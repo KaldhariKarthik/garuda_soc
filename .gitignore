@@ -1,0 +1,32 @@
+# Cadence Xcelium
+xcelium.d/
+xrun.history
+xrun.log
+xrun.key
+.simvision/
+*.shm/
+waves.shm/
+INCA_libs/
+irun.history
+irun.log
+irun.key
+cov_work/
+
+# Build outputs
+sim/
+*.log
+*.vcd
+*.fsdb
+*.o
+*.so
+
+# Editor / OS
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+.DS_Store
+
+# Reports
+*.rpt
