@@ -6,8 +6,8 @@
 `timescale 1ns / 1ps
 
 module barrel_shifter (
-    input wire [47:0] cluster_out;
-    input wire [5:0]  shift_amt;
+    input wire [47:0] cluster_out,
+    input wire [5:0]  shift_amt,
     input wire        shift_dir,
     
     output wire [31:0] shift_result
