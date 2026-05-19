@@ -37,7 +37,7 @@ module dsu_decoder (
     wire [4:0] rs1_f = instr[19:15];
     wire [4:0] rs2_f = instr[24:20];
     wire [1:0] acc_sel_r = instr[26:25];
-    wire [4:0] funct5 = instr[31:27];
+    wire [4:0] funct5_r = instr[31:27];
     wire [11:0] imm_i = instr[31:20];
     
     wire is_custom0 = (opcode == 7'b0001011);
@@ -58,10 +58,10 @@ module dsu_decoder (
     
     wire [1:0] acc_sel_eff = is_itype ? imm_i[7:6] : acc_sel_r;
     assign acc_sel = acc_sel_eff;
-    assign shift_acc_sel = imm_i[7:6[;
+    assign shift_acc_sel = imm_i[7:6];
     
     wire any_legal_op = op_mac_sel | op_macsub | op_macabs | op_macdot | op_macload | op_macclear | op_macsat | op_rd_lo | op_rd_hi | op_macshift;
-    wire bad_acc_sel = (acc_sel_eff == 2`b11);
+    wire bad_acc_sel = (acc_sel_eff == 2'b11);
     wire bad_funct3 = is_custom0 & ~(is_rtype | is_itype);
     assign illegal_instr = is_custom0 & dsu_en & (~any_legal_op | bad_acc_sel | bad_funct3);
     
@@ -71,6 +71,7 @@ module dsu_decoder (
     wire mac_addsub = op_macsub;
     wire mac_clear = op_macclear;
     wire mac_load = op_macload;
+    wire mac_abs = op_macabs;
     wire mac_dot = op_macdot;
     wire mac_flush = flush;
     
@@ -94,6 +95,7 @@ module dsu_decoder (
     
     assign result_src = op_rd_lo ? 2'b01 : op_rd_hi ? 2'b10 : op_macshift ? 2'b11 : 2'b00;
     
-    assign writes_regfile = (op_rd_lo | op_rd_hi | op_macshift) & rd addr = rd_F;
+    assign writes_regfile = (op_rd_lo | op_rd_hi | op_macshift) & dsu_en & ~illegal_instr; 
+    assign rd_addr = rd_f;
     
 endmodule
