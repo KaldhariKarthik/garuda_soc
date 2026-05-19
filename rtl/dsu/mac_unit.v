@@ -60,12 +60,17 @@ module mac_unit(
     );
     
     reg [47:0] sum_reg, carry_reg;
+    wire write_en = en & ~flush;
     always @(posedge clk or negedge rst_n) begin 
         if (!rst_n) begin
             sum_reg   <= 48'b0;
             carry_reg <= 48'b0;
         end
-        else if (en & ~flush) begin
+        else if (flush) begin 
+            sum_reg   <= 48'b0;
+            carry_reg <= 48'b0;
+        end
+        else if (write_en) begin
             sum_reg   <= csa1_sum;
             carry_reg <= csa1_carry;
         end
@@ -103,13 +108,14 @@ module mac_unit(
         else                       acc_next = adder_result;    
     end
     
+    
     always @(posedge clk or negedge rst_n) begin
         if      (!rst_n)      acc <= 48'b0;
-        else if (en & ~flush) acc <= acc_next;
+        else if (write_en)          acc <= acc_next;
     end
     assign mac_out = acc;
     
     wire is_accum = ~(load | clear | sat_writeback_en);
-    assign overflow = accum_ovf & en & ~flush & is_accum;
+    assign overflow = accum_ovf & write_en & is_accum;
     
 endmodule
