@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module csa_3to2 #(parameter WIDTH = 48) (
     input wire [WIDTH-1:0] a,
     input wire [WIDTH-1:0] b,

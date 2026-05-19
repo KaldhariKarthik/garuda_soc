@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module operand_router (
     input wire  [31:0] rs1,
     input wire  [31:0] rs2,
