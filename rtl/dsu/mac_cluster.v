@@ -12,7 +12,7 @@ module mac_cluster (
     input wire rst_n,
     
     input wire [31:0] rs1,
-    input wire [31:0] rs1, 
+    input wire [31:0] rs2, 
     
     input wire [`MAC_CTRL_W-1:0] control,
     input wire [1:0]             acc_sel,
@@ -42,7 +42,6 @@ module mac_cluster (
     assign en_onehot[2] = ctrl_en & (acc_sel == `ACC_MAG);
     
     wire [2:0] sat_we_onehot;
-    assign sat_we_onehot;
     assign sat_we_onehot[0] = sat_writeback_en & (acc_sel == `ACC_FX);
     assign sat_we_onehot[1] = sat_writeback_en & (acc_sel == `ACC_FY);
     assign sat_we_onehot[2] = sat_writeback_en & (acc_sel == `ACC_MAG);
@@ -62,7 +61,7 @@ module mac_cluster (
         .dot_en           (ctrl_dot),
         .flush            (ctrl_flush),
         .sat_writeback    (sat_writeback),
-        .sat_writeback_en (sat_we_onehat[0]),
+        .sat_writeback_en (sat_we_onehot[0]),
         .mac_out          (mac_out_0),
         .overflow         (overflow[0])
     );
@@ -80,7 +79,7 @@ module mac_cluster (
         .dot_en           (ctrl_dot),
         .flush            (ctrl_flush),
         .sat_writeback    (sat_writeback),
-        .sat_writeback_en (sat_we_onehat[1]),
+        .sat_writeback_en (sat_we_onehot[1]),
         .mac_out          (mac_out_1),
         .overflow         (overflow[1])
     );
@@ -98,7 +97,7 @@ module mac_cluster (
         .dot_en           (ctrl_dot),
         .flush            (ctrl_flush),
         .sat_writeback    (sat_writeback),
-        .sat_writeback_en (sat_we_onehat[2]),
+        .sat_writeback_en (sat_we_onehot[2]),
         .mac_out          (mac_out_2),
         .overflow         (overflow[2])
     );
