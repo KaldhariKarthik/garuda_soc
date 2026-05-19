@@ -14,3 +14,4 @@ rtl/dsu/overflow_flag.v
 rtl/dsu/readback_mux.v
 rtl/dsu/result_selector.v
 rtl/dsu/saturation_unit.v
+rtl/dsu/dsu_stall.v
