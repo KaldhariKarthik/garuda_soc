@@ -15,3 +15,4 @@ rtl/dsu/readback_mux.v
 rtl/dsu/result_selector.v
 rtl/dsu/saturation_unit.v
 rtl/dsu/dsu_stall.v
+rtl/dsu/dsu_top.v
