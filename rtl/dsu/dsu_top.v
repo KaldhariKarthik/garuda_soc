@@ -74,7 +74,7 @@ module dsu_top (
         .sat_op (sat_op),
         .sat_writeback (sat_writeback),
         .sat_writeback_en (sat_writeback_en),
-        .sat_overflow (sar_overflow)
+        .sat_overflow (sat_overflow)
     );
     
     wire [2:0] mac_overflow;
@@ -89,7 +89,7 @@ module dsu_top (
         .sat_writeback (sat_writeback),
         .sat_writeback_en (sat_writeback_en),
         .cluster_out (cluster_out),
-        .oveflow (overflow),
+        .overflow (overflow),
         .dbg_acc_0 (dbg_acc_0),
         .dbg_acc_1 (dbg_acc_1),
         .dbg_acc_2 (dbg_acc_2)        
@@ -137,7 +137,7 @@ module dsu_top (
         .rst_n (rst_n),
         .mac_overflow (mac_overflow),
         .sat_overflow (sat_overflow),
-        .csr_clear_oveflow (csr_clear_overflow),
+        .csr_clear_overflow (csr_clear_overflow),
         .dsu_overflow (dsu_overflow)
     );
     

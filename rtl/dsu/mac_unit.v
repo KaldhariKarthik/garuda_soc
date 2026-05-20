@@ -60,7 +60,7 @@ module mac_unit(
     );
     
     reg [47:0] sum_reg, carry_reg;
-    wire write_en = en & ~flush;
+    wire write_en = (en | sat_writeback_en) & ~flush;
     always @(posedge clk or negedge rst_n) begin 
         if (!rst_n) begin
             sum_reg   <= 48'b0;

@@ -6,7 +6,7 @@
 
 module readback_mux (
     input wire [47:0] cluster_out,
-    input wire        rd_lo_ap,
+    input wire        rd_lo_op,
     input wire        rd_hi_op,
     
     output wire [31:0] rd_lo_data,
