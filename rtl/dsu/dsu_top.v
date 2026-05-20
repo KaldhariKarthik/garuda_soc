@@ -66,7 +66,7 @@ module dsu_top (
     
     wire [47:0] cluster_out;
     wire [47:0] sat_writeback;
-    wire satwriteback_en;
+    wire sat_writeback_en;
     wire sat_overflow;
     
     saturation_unit u_sat (
@@ -89,7 +89,7 @@ module dsu_top (
         .sat_writeback (sat_writeback),
         .sat_writeback_en (sat_writeback_en),
         .cluster_out (cluster_out),
-        .overflow (overflow),
+        .overflow (mac_overflow),
         .dbg_acc_0 (dbg_acc_0),
         .dbg_acc_1 (dbg_acc_1),
         .dbg_acc_2 (dbg_acc_2)        
@@ -120,8 +120,8 @@ module dsu_top (
         .cluster_out (cluster_out),
         .rd_lo_op (rd_lo_op),
         .rd_hi_op (rd_hi_op),
-        .shift_result (shift_result),
-        .dsu_rd_data (dsu_rd_data)
+        .rd_lo_data (rd_lo_data),
+        .rd_hi_data (rd_hi_data)
     );
     
     result_selector u_rsel (
