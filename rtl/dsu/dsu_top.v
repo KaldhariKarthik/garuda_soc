@@ -107,7 +107,7 @@ module dsu_top (
      
      wire [31:0] shift_result;
      barrel_shifter u_shifter (
-        .cluster_out (cluster_out),
+        .cluster_out (shift_input),
         .shift_amt (shift_amt),
         .shift_dir (shift_dir),
         .shift_result (shift_result)
