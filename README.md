@@ -37,17 +37,3 @@ avoidance via the Artificial Potential Field algorithm.
 |22 | `clk_div/`     | Clock divider                                |
 |23 | `reset_ctrl/`  | Reset controller                             |
 |24 | `debug/`       | RISC-V Debug Module 0.13                     |
-
-## Tools
-
-- **RTL language:** Verilog-2001
-- **Testbench language:** SystemVerilog
-- **Simulator:** Cadence Xcelium
-- **Synthesis:** Cadence Genus (planned, July)
-- **PnR:** Cadence Innovus (planned, Aug–Oct)
-- **Process node:** 28 nm
-- **Target frequency:** 200 MHz (100 MHz fallback)
-
-## Tapeout target
-
-December 1, 2026.
