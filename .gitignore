@@ -12,6 +12,16 @@ irun.log
 irun.key
 cov_work/
 
+# Cadence Genus / Innovus stragglers
+genus.log
+genus.cmd.log
+innovus.log
+*.cmd.log
+*.pvldb
+fv/
+*.X
+*.dmp
+
 # Build outputs
 sim/
 *.log
