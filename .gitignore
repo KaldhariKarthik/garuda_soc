@@ -53,3 +53,4 @@ irun.history
 genus.log
 *.vcd
 *.shm/
+.bpad/
