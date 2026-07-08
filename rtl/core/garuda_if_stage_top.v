@@ -58,7 +58,6 @@ module garuda_if_stage_top (
     wire [31:0] data_pc;
     wire        data_fault;
 
-    wire        fifo_full;
     wire        fifo_empty;
     wire [ 2:0] fifo_occupancy;
     wire        fifo_rd_en = ~fifo_empty & ~stall_i & ~redirect_i;
@@ -127,7 +126,7 @@ module garuda_if_stage_top (
         .instr_fault_o (instr_fault_o),
         .instr_valid_o (instr_valid_o),
 
-        .full_o        (fifo_full),
+        .full_o (),
         .empty_o       (fifo_empty),
         .occupancy_o   (fifo_occupancy)
     );

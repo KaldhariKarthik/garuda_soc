@@ -107,7 +107,6 @@ module mem_stage (
     // -----------------------------------------------------------------------
     // Sub-block 2: D-Port AHB-Lite master
     // -----------------------------------------------------------------------
-    wire ok_done_w;
     wire err_pulse_w;
 
     d_port_ahb_master u_d_port_ahb_master (
@@ -130,7 +129,7 @@ module mem_stage (
         .d_hresp_i    (d_hresp_i),
 
         .mem_stall_o  (mem_stall_o),
-        .ok_done_o    (ok_done_w),
+        .ok_done_o (),
         .err_pulse_o  (err_pulse_w)
     );
 

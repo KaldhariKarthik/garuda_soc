@@ -40,3 +40,16 @@ sim/
 
 # Reports
 *.rpt
+
+# --- sim/synth run artifacts (never commit) ---
+xcelium.d/
+INCA_libs/
+worklib_i/
+*.err
+xrun.log
+xrun.history
+irun.log
+irun.history
+genus.log
+*.vcd
+*.shm/

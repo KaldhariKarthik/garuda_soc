@@ -91,7 +91,6 @@ module id_stage (
     // -----------------------------------------------------------------------
     // Sub-block 1: Decode / Control
     // -----------------------------------------------------------------------
-    wire [6:0] opcode_w;
     wire [4:0] rd_w, rs1_idx_w, rs2_idx_w;
     wire [2:0] funct3_w;
     wire [2:0] imm_sel_w;
@@ -100,7 +99,7 @@ module id_stage (
     decode_control u_decode_control (
         .instr_i          (id_instr),
 
-        .opcode_o          (opcode_w),
+        .opcode_o (),
         .rd_o              (rd_w),
         .funct3_o          (funct3_w),
         .rs1_o             (rs1_idx_w),
