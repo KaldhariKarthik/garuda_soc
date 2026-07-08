@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+`default_nettype none
 // ============================================================================
 // GARUDA SoC — Block I: Processor Core
 // Module      : garuda_prefetch_buffer
@@ -100,3 +102,5 @@ module garuda_prefetch_buffer (
     end
 
 endmodule
+
+`default_nettype wire

@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core
 // MEM Stage (top level) - instantiates the 3 sub-blocks shown on the core
@@ -32,6 +33,7 @@ module mem_stage (
     input  wire [31:0] rs2_data_i,    // forwarded store operand
     input  wire [2:0]  funct3_i,
     input  wire [4:0]  rd_i,
+    input  wire [31:0] pc_i,           // ex_mem.pc — faulting instr PC for mepc (Sec.14.4)
 
     // Control bits needed in MEM (subset of the full ctrl bundle)
     input  wire         mem_read_i,
@@ -70,6 +72,7 @@ module mem_stage (
     // Raw exception outputs (Sec. 14.1 causes 4/5/6/7, Sec. 14.2 mtval)
     // -------------------------------------------------------------------
     output wire         mem_exception_valid_o,
+    output wire [31:0] mem_exception_pc_o,   // -> CONTROL: mepc source on a MEM fault
     output wire [3:0]  mem_exception_cause_o,
     output wire [31:0] mem_exception_mtval_o
 );
@@ -171,15 +174,18 @@ module mem_stage (
     wire store_err_w = err_pulse_w & mem_write_i;
     wire load_err_w  = err_pulse_w & mem_read_i;
 
-    assign mem_exception_valid_o = misaligned_load_w | misaligned_store_w |
-                                    load_err_w | store_err_w;
+    // Misalignment is owned by EX (ex_stage kills the access and raises
+    // load/store_misaligned, causes 4/6). MEM owns only bus access faults
+    // (causes 5/7). start_w still gates on ~any_misaligned as belt-and-braces.
+    assign mem_exception_pc_o = pc_i;
+    assign mem_exception_valid_o = load_err_w | store_err_w;
 
-    assign mem_exception_cause_o = misaligned_load_w  ? 4'd4 :
-                                    misaligned_store_w ? 4'd6 :
-                                    load_err_w          ? 4'd5 :
-                                    store_err_w          ? 4'd7 :
+    assign mem_exception_cause_o = load_err_w  ? 4'd5 :
+                                    store_err_w ? 4'd7 :
                                     4'd0;
 
     assign mem_exception_mtval_o = ex_result_i;   // the load/store address in all 4 cases
 
 endmodule
+
+`default_nettype wire

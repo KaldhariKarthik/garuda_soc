@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core - MEM Stage, Sub-block 3/3
 // Load Formatter  (Verilog)
@@ -54,3 +55,5 @@ module load_formatter (
     end
 
 endmodule
+
+`default_nettype wire

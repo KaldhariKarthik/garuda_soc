@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core - ID Stage, Sub-block 4/5
 // Branch Predict  (Verilog)
@@ -43,3 +44,5 @@ module branch_predict (
     assign id_redirect_target_o = jal_i ? jal_target : branch_target;
 
 endmodule
+
+`default_nettype wire

@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core - ID Stage, Sub-block 3/5
 // Register File  (Verilog)
@@ -50,3 +51,5 @@ module regfile (
                            ? wb_data_i : rs2_raw;
 
 endmodule
+
+`default_nettype wire

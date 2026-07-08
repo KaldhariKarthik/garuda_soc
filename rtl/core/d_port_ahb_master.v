@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core - MEM Stage, Sub-block 2/3
 // D-Port AHB-Lite master  (Verilog)
@@ -115,3 +116,5 @@ module d_port_ahb_master (
                            (state == S_ERR2);
 
 endmodule
+
+`default_nettype wire

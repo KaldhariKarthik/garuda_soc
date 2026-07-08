@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+`default_nettype none
 // ============================================================================
 // GARUDA SoC — Block I: Processor Core
 // Module      : garuda_pc_gen
@@ -58,3 +60,5 @@ module garuda_pc_gen (
     end
 
 endmodule
+
+`default_nettype wire

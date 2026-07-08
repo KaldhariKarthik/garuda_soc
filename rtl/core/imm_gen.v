@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core - ID Stage, Sub-block 2/5
 // Immediate Generator  (Verilog)
@@ -52,3 +53,5 @@ module imm_gen (
     end
 
 endmodule
+
+`default_nettype wire

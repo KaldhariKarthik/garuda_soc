@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+`default_nettype none
 // ============================================================================
 // GARUDA SoC — Block I: Processor Core
 // Module      : garuda_if_stage_top
@@ -131,3 +133,5 @@ module garuda_if_stage_top (
     );
 
 endmodule
+
+`default_nettype wire

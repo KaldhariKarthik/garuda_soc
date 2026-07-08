@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core
 // wb_stage.v - Write-Back Stage (Sec. 5, Sec. 10.3)
@@ -33,3 +34,5 @@ module wb_stage (
     assign rf_wdata_o = wb_data_i;
 
 endmodule
+
+`default_nettype wire

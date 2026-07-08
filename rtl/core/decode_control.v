@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core - ID Stage, Sub-block 1/5
 // Decode / Control  (Verilog)
@@ -228,3 +229,5 @@ module decode_control (
     end
 
 endmodule
+
+`default_nettype wire

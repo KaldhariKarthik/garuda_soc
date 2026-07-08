@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+`default_nettype none
 //=============================================================================
 // GARUDA SoC -- Block I: Processor Core
 // alu.v -- 32-bit combinational ALU
@@ -40,3 +42,5 @@ module alu (
     end
 
 endmodule
+
+`default_nettype wire

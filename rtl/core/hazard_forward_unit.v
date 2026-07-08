@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core - ID Stage, Sub-block 5/5
 // Hazard / Forwarding unit (ID-side: load-use detection)  (Verilog)
@@ -35,3 +36,5 @@ module hazard_forward_unit (
                                ((ex_rd_i == id_rs1_idx_i) || (ex_rd_i == id_rs2_idx_i));
 
 endmodule
+
+`default_nettype wire

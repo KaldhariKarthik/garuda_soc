@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 //=============================================================================
 // GARUDA SoC -- Block I: Processor Core
 // core_ex_defs.vh -- EX-stage shared encodings
@@ -55,3 +56,4 @@
 `define CSR_RC    2'b11
 
 `endif // CORE_EX_DEFS_VH
+

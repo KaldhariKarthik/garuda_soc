@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+`default_nettype none
 //=============================================================================
 // GARUDA SoC -- Block I: Processor Core
 // branch_unit.v -- EX-stage branch resolution, JALR target, redirect
@@ -96,3 +98,5 @@ module branch_unit (
                                      : fallthrough;
 
 endmodule
+
+`default_nettype wire

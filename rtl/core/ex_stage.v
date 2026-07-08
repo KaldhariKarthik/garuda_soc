@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+`default_nettype none
 //=============================================================================
 // GARUDA SoC -- Block I: Processor Core
 // ex_stage.v -- Execute stage wrapper
@@ -321,3 +323,5 @@ module ex_stage (
     assign mem_to_reg_out = mem_to_reg;
 
 endmodule
+
+`default_nettype wire

@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+`default_nettype none
 //=============================================================================
 // GARUDA SoC -- Block I: Processor Core
 // mul32.v -- single-cycle 32x32 multiplier (MUL / MULH / MULHSU / MULHU)
@@ -50,3 +52,5 @@ module mul32 (
                                          : product[63:32];
 
 endmodule
+
+`default_nettype wire

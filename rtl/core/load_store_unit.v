@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core - MEM Stage, Sub-block 1/3
 // Load/Store Unit  (Verilog)
@@ -53,3 +54,5 @@ module load_store_unit (
     end
 
 endmodule
+
+`default_nettype wire

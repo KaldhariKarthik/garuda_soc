@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+`default_nettype none
 // ============================================================================
 // GARUDA SoC — Block I: Processor Core
 // Module      : garuda_iport_ahb_master
@@ -153,3 +155,5 @@ module garuda_iport_ahb_master #(
     end
 
 endmodule
+
+`default_nettype wire

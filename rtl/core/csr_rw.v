@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+`default_nettype none
 //=============================================================================
 // GARUDA SoC -- Block I: Processor Core
 // csr_rw.v -- EX-stage CSR read-modify-write seam (CSR_RW block)
@@ -48,3 +50,5 @@ module csr_rw (
     assign csr_en_out = csr_en;
 
 endmodule
+
+`default_nettype wire

@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core
 // mem_wb_reg.v - MEM/WB Pipeline Register (Sec. 5.2)
@@ -57,3 +58,5 @@ module mem_wb_reg (
     end
 
 endmodule
+
+`default_nettype wire

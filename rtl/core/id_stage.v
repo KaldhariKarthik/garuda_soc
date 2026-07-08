@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core
 // ID Stage (top level) - instantiates the 5 sub-blocks shown on the core
@@ -94,9 +95,10 @@ module id_stage (
     wire [4:0] rd_w, rs1_idx_w, rs2_idx_w;
     wire [2:0] funct3_w;
     wire [2:0] imm_sel_w;
+    wire [31:0] id_instr = if_id_valid_i ? if_id_instr_i : 32'h0000_0013;
 
     decode_control u_decode_control (
-        .instr_i          (if_id_instr_i),
+        .instr_i          (id_instr),
 
         .opcode_o          (opcode_w),
         .rd_o              (rd_w),
@@ -130,7 +132,7 @@ module id_stage (
     wire [31:0] imm_b_w, imm_j_w;
 
     imm_gen u_imm_gen (
-        .instr_i    (if_id_instr_i),
+        .instr_i    (id_instr),
         .imm_sel_i  (imm_sel_w),
 
         .imm_o      (imm_w),
@@ -197,7 +199,9 @@ module id_stage (
     assign rs2_idx_o    = rs2_idx_w;
     assign rd_o         = rd_w;
     assign funct3_o     = funct3_w;
-    assign instr_o      = if_id_instr_i;
+    assign instr_o      = id_instr;
     assign fault_o      = if_id_fault_i;
 
 endmodule
+
+`default_nettype wire
