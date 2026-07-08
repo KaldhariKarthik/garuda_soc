@@ -74,7 +74,17 @@ module id_stage (
     // ID-stage redirect: static-predicted-taken branch, or JAL (Sec. 12.1/12.2)
     // -------------------------------------------------------------------
     output wire         id_redirect_valid_o,
-    output wire [31:0] id_redirect_target_o
+    output wire [31:0] id_redirect_target_o,
+
+    // -------------------------------------------------------------------
+    // Static prediction bit -> id_ex register (Sec. 5.2 field list).
+    // EX resolves the actual branch condition and compares against this
+    // to detect a misprediction (predicted-taken backward branch that
+    // falls through, or predicted-not-taken forward branch that is taken)
+    // and drive its own 2-bubble EX redirect. Previously this bit was
+    // computed in branch_predict but dropped here; it must ride id_ex.
+    // -------------------------------------------------------------------
+    output wire         predict_taken_o
 );
 
     // -----------------------------------------------------------------------
@@ -158,7 +168,7 @@ module id_stage (
         .branch_i                (branch_o),
         .jal_i                   (jal_o),
 
-        .predict_taken_o         (),   // not needed outside this stage
+        .predict_taken_o         (predict_taken_o),   // -> id_ex (Sec. 5.2)
         .id_redirect_valid_o     (id_redirect_valid_o),
         .id_redirect_target_o    (id_redirect_target_o)
     );

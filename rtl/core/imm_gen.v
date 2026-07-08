@@ -11,36 +11,9 @@
 // The CSR-immediate case (CSRRWI/SI/CI) is a 5-bit zero-extended field
 // from rs1, per Sec. 13.3, not a sign-extended form.
 // =============================================================================
-// -----------------------------------------------------------------------
-// ID-stage shared constants (inlined; guarded so this file is safe to
-// compile together with other files that also inline this same block)
-// -----------------------------------------------------------------------
-`ifndef GARUDA_ID_DEFS_VH
-`define GARUDA_ID_DEFS_VH
-
-// ALU operation encoding (consumed by EX-stage ALU, Sec. 8.1)
-`define ALU_ADD   4'h0
-`define ALU_SUB   4'h1
-`define ALU_AND   4'h2
-`define ALU_OR    4'h3
-`define ALU_XOR   4'h4
-`define ALU_SLL   4'h5
-`define ALU_SRL   4'h6
-`define ALU_SRA   4'h7
-`define ALU_SLT   4'h8
-`define ALU_SLTU  4'h9
-`define ALU_PASSB 4'hA   // LUI: result = operand B (immediate)
-
-// Immediate-form select (Sec. 7.3)
-`define IMM_I    3'h0
-`define IMM_S    3'h1
-`define IMM_B    3'h2
-`define IMM_U    3'h3
-`define IMM_J    3'h4
-`define IMM_CSR  3'h5   // 5-bit zero-extended rs1, CSRRWI/SI/CI (Sec. 13.3)
-`define IMM_NONE 3'h6
-
-`endif // GARUDA_ID_DEFS_VH
+// Shared ALU-op / immediate-select encodings (single source of truth).
+// Requires `-incdir rtl/common` on the compile line (see rtl/core/filelist.f).
+`include "garuda_defs.vh"
 
 module imm_gen (
     input  wire [31:0] instr_i,

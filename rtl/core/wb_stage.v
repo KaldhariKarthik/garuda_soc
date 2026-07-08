@@ -1,62 +1,35 @@
-// ============================================================================
-// GARUDA SoC — Block I: Processor Core
-// wb_stage.v — Write-Back Stage (§5, §10.3)
-// Document: AERO-GARUDA-DS-001 Rev 1.0
+`timescale 1ns/1ps
+// =============================================================================
+// GARUDA SoC - Block I: Processor Core
+// wb_stage.v - Write-Back Stage (Sec. 5, Sec. 10.3)
+// Document: AERO-GARUDA-DS-001 Rev 1.1
 //
-// Function:
-//   1. wb_mux  — selects between load data and EX result
-//   2. Drives register file write port (rd, wb_data, we)
-//   3. WB→ID bypass is handled inside register_file.v
+// Under the mux-in-MEM contract (Sec. 5.2 / Sec. 10.3), the mem_to_reg mux
+// is done in MEM, so wb_data arrives ALREADY FINAL (load-formatted value
+// for loads, EX result for everything else: ALU / MUL / DSU MACRD / CSR
+// rdata / JAL-JALR link). WB therefore holds no datapath logic - it is a
+// named structural boundary (matching the Sec. 5 block diagram) that drives
+// the register-file write port. It is the reserved insertion point for any
+// future WB-side logic; today it is a pass-through.
 //
-// Inputs from MEM/WB register:
-//   wb_result     — EX result (ALU / MUL / DSU / CSR / link PC)
-//   wb_load_data  — formatted load data from load_formatter
-//   wb_rd         — destination register index
-//   wb_reg_write  — write enable
-//   wb_mem_to_reg — 1 = select load data, 0 = select EX result
-//
-// Outputs to register file:
-//   rf_we         — write enable
-//   rf_rd         — destination register index
-//   rf_wdata      — value to write
-// ============================================================================
-`include "garuda_defs.vh"
+// x0-write guard lives in the register file (regfile.v), not here.
+// The WB->ID bypass also lives in regfile.v; these rf_* signals feed it.
+// =============================================================================
 
 module wb_stage (
-    // ── Inputs from MEM/WB register ─────────────────────────────────────
-    input  wire [31:0] wb_result,       // EX result (ALU/MUL/DSU/CSR/link)
-    input  wire [31:0] wb_load_data,    // formatted load data (LB/LH/LW/LBU/LHU)
-    input  wire [4:0]  wb_rd,           // destination register index
-    input  wire        wb_reg_write,    // write enable from control
-    input  wire        wb_mem_to_reg,   // mux select: 1=load, 0=EX result
+    // From MEM/WB register
+    input  wire [31:0] wb_data_i,      // final writeback value
+    input  wire [4:0]  rd_i,           // destination register index
+    input  wire        reg_write_i,    // writeback enable
 
-    // ── Outputs to register file write port ──────────────────────────────
-    output wire        rf_we,           // register file write enable
-    output wire [4:0]  rf_rd,           // register file destination index
-    output wire [31:0] rf_wdata         // register file write data
+    // To register-file write port (regfile.v: wb_reg_write_i/wb_rd_i/wb_data_i)
+    output wire        rf_we_o,
+    output wire [4:0]  rf_rd_o,
+    output wire [31:0] rf_wdata_o
 );
 
-    // ====================================================================
-    // wb_mux — select write-back value (§10.3)
-    //
-    // mem_to_reg = 1  → load instruction  → use load_formatter output
-    // mem_to_reg = 0  → everything else   → use EX result
-    //
-    // Loads: formatted by load_formatter (sign/zero extended byte/half/word)
-    // Everything else: ALU, MUL, DSU MACRD, CSR rdata, JAL/JALR link PC
-    // ====================================================================
-    assign rf_wdata = wb_mem_to_reg ? wb_load_data : wb_result;
-
-    // ====================================================================
-    // Register file write enable
-    // x0 write guard: rf_we can be high but register_file.v discards
-    // writes to x0 internally. No need to gate here.
-    // ====================================================================
-    assign rf_we = wb_reg_write;
-
-    // ====================================================================
-    // Destination register passthrough
-    // ====================================================================
-    assign rf_rd = wb_rd;
+    assign rf_we_o    = reg_write_i;
+    assign rf_rd_o    = rd_i;
+    assign rf_wdata_o = wb_data_i;
 
 endmodule
