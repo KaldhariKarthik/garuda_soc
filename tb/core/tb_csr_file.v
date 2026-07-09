@@ -9,9 +9,9 @@ module tb_csr_file;
   csr_file dut(.clk_i(clk),.rst_n_i(rst_n),.csr_en_i(csr_en),.csr_addr_i(addr),
     .csr_wdata_i(wdata),.csr_op_i(op),.csr_rdata_o(rdata),.illegal_csr_o(illegal),
     .instret_i(instret),.dsu_overflow_i(dsu_ovf),.csr_clear_overflow_o(clr_ovf),
-    .trap_enter_i(trap_enter),.mret_i(mret),.trap_pc_i(tpc),.trap_cause_i(tcause),
+    .trap_enter_i(trap_enter),.mret_i(mret),.is_interrupt_i(1'b0),.clic_level_i(8'd0),.trap_pc_i(tpc),.trap_cause_i(tcause),
     .trap_tval_i(ttval),.clic_mip_i(clic_mip),.mstatus_mie_o(mie),.mtvec_o(mtvec),
-    .mtvt_o(mtvt),.mepc_o(mepc),.mintthresh_o(ithr));
+    .mtvt_o(mtvt),.mepc_o(mepc),.mintthresh_o(ithr),.mintstatus_mil_o());
   task c32(input [127:0] n,input [31:0] g,input [31:0] e);
     begin if(g!==e)begin $display("FAIL %0s got %h exp %h",n,g,e);errors=errors+1;end end endtask
   task c1(input [127:0] n,input g,input e);

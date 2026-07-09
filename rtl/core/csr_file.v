@@ -44,6 +44,8 @@ module csr_file (
     // ---- trap interface (trap_ctrl) ----
     input  wire        trap_enter_i,     // pulse: take a trap
     input  wire        mret_i,           // pulse: MRET
+    input  wire        is_interrupt_i,   // trap_enter is an interrupt -> push level (Sec.14.3)
+    input  wire [7:0]  clic_level_i,     // taken interrupt level
     input  wire [31:0] trap_pc_i,        // -> mepc
     input  wire [31:0] trap_cause_i,     // -> mcause (bit31 = interrupt)
     input  wire [31:0] trap_tval_i,      // -> mtval
@@ -54,7 +56,8 @@ module csr_file (
     output wire [31:0] mtvec_o,
     output wire [31:0] mtvt_o,
     output wire [31:0] mepc_o,
-    output wire [7:0]  mintthresh_o
+    output wire [7:0]  mintthresh_o,
+    output wire [7:0]  mintstatus_mil_o  // current active interrupt level (Sec.14.3 take cond)
 );
     // ---------------- addresses (Sec. 13.2) ----------------
     localparam MISA=12'h301, MVENDORID=12'hF11, MARCHID=12'hF12, MIMPID=12'hF13,
@@ -68,11 +71,12 @@ module csr_file (
     reg        mstatus_mie, mstatus_mpie;   // MPP fixed 2'b11 (M-only)
     reg [31:0] mtvec_r, mtvt_r, mie_r, mepc_r, mcause_r, mtval_r, mscratch_r;
     reg [7:0]  mintthresh_r;
+    reg [7:0]  mil_r, mpil_r;            // mintstatus: current / previous interrupt level
     reg [63:0] mcycle_r, minstret_r;
 
     wire [31:0] mstatus_val = {19'd0, 2'b11 /*MPP*/, 3'd0, mstatus_mpie, 3'd0, mstatus_mie, 3'd0};
     wire [31:0] misa_val    = {2'b01 /*MXL=32*/, 4'd0, 26'h0001100 /*I+M*/} | (32'd1<<23 /*X*/);
-    wire [31:0] mintstatus_val = {24'd0, mintthresh_r};
+    wire [31:0] mintstatus_val = {16'd0, mpil_r, mil_r};   // [15:8]=mpil [7:0]=mil
 
     // ---------------- read mux + implemented? ----------------
     reg [31:0] rdata;
@@ -137,7 +141,8 @@ module csr_file (
     assign mtvec_o       = mtvec_r;
     assign mtvt_o        = mtvt_r;
     assign mepc_o        = mepc_r;
-    assign mintthresh_o  = mintthresh_r;
+    assign mintthresh_o    = mintthresh_r;
+    assign mintstatus_mil_o= mil_r;
 
     always @(posedge clk_i or negedge rst_n_i) begin
         if (!rst_n_i) begin
@@ -145,6 +150,7 @@ module csr_file (
             mtvec_r<=32'd0; mtvt_r<=32'd0; mie_r<=32'd0; mepc_r<=32'd0;
             mcause_r<=32'd0; mtval_r<=32'd0; mscratch_r<=32'd0; mintthresh_r<=8'd0;
             mcycle_r<=64'd0; minstret_r<=64'd0;
+            mil_r<=8'd0; mpil_r<=8'd0;
         end else begin
             mcycle_r   <= mcycle_r + 64'd1;
             if (instret_i) minstret_r <= minstret_r + 64'd1;
@@ -156,9 +162,14 @@ module csr_file (
                 mtval_r     <= trap_tval_i;
                 mstatus_mpie<= mstatus_mie;
                 mstatus_mie <= 1'b0;
+                if (is_interrupt_i) begin        // push interrupt level (Sec.14.3/14.4)
+                    mpil_r <= mil_r;
+                    mil_r  <= clic_level_i;
+                end
             end else if (mret_i) begin
                 mstatus_mie <= mstatus_mpie;
                 mstatus_mpie<= 1'b1;
+                mil_r       <= mpil_r;           // restore interrupt level (Sec.14.4)
             end else if (wr_ok) begin
                 case (csr_addr_i)
                     MSTATUS:  begin mstatus_mie <= mstatus_next[3];
