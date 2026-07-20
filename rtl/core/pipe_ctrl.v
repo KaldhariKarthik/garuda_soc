@@ -33,6 +33,7 @@ module pipe_ctrl (
     input  wire        mem_stall_i,          // D-port wait  (mem_stage.mem_stall_o)
     input  wire        dsu_busy_i,           // DSU same-acc hold (ex_stage.dsu_busy)
     input  wire        load_use_stall_i,     // load-use (id_stage.load_use_stall_o)
+    input  wire        wfi_hold_i,           // WFI drain-stall (trap_ctrl.wfi_hold_o)
 
     // ---- redirect sources ----
     input  wire        id_redirect_valid_i,  // JAL / predicted-taken (id_stage)
@@ -72,8 +73,17 @@ module pipe_ctrl (
                                                        id_redirect_target_i;
 
     // Holds (raw). Flushes override holds per-register below.
-    wire hold_pc_ifid = mem_stall_i | dsu_busy_i | load_use_stall_i;
-    wire hold_id_ex   = mem_stall_i | dsu_busy_i;           // load-use flushes id_ex
+    // WFI (Sec. 14.5) is a drain-precise hold, not a fetch-only stall: it holds
+    // PC, IF/ID *and* ID/EX. The WFI itself parks in EX (id_ex held, so is_wfi
+    // stays asserted and trap_ctrl's wfi_active latch keeps holding), the
+    // younger instruction stays parked in ID, and everything OLDER than the WFI
+    // drains through EX/MEM/WB unimpeded because EX/MEM is not held. Holding
+    // only PC/IF-ID (the earlier approximation) let the instruction behind the
+    // WFI advance into EX and execute during the sleep.
+    // WFI writes no architectural state (reg_write=0), so re-presenting it in
+    // EX every held cycle is harmless.
+    wire hold_pc_ifid = mem_stall_i | dsu_busy_i | load_use_stall_i | wfi_hold_i;
+    wire hold_id_ex   = mem_stall_i | dsu_busy_i | wfi_hold_i;  // load-use flushes id_ex
     wire hold_ex_mem  = mem_stall_i;
 
     // PC

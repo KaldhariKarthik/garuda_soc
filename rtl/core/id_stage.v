@@ -85,7 +85,15 @@ module id_stage (
     // and drive its own 2-bubble EX redirect. Previously this bit was
     // computed in branch_predict but dropped here; it must ride id_ex.
     // -------------------------------------------------------------------
-    output wire         predict_taken_o
+    output wire         predict_taken_o,
+
+    // -------------------------------------------------------------------
+    // Retire tag (Sec. 13.2): asserted for a real fetched instruction, low
+    // for the NOP injected when if_id_valid_i is low. Rides the pipeline to
+    // csr_file.instret_i so minstret counts architectural retirement rather
+    // than register-file writes (stores/branches retire but do not write).
+    // -------------------------------------------------------------------
+    output wire         valid_o
 );
 
     // -----------------------------------------------------------------------
@@ -200,6 +208,7 @@ module id_stage (
     assign funct3_o     = funct3_w;
     assign instr_o      = id_instr;
     assign fault_o      = if_id_fault_i;
+    assign valid_o      = if_id_valid_i;
 
 endmodule
 

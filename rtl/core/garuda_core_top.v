@@ -10,10 +10,15 @@
 //   interface (Sec.14.3), machine-timer inputs (Sec.14.6), DSU accumulator
 //   debug taps (Sec.15). DSU and register file are core-internal.
 //
-// NOTE (flagged): minstret is driven from mem_wb.reg_write as an approximation;
-//   a dedicated retire-valid bit through mem_wb is a small follow-up to also
-//   count stores/branches. WFI hold is folded into the fetch/upstream stall
-//   (drain-precision refinement pending, Sec.14.5).
+// Rev 1.1 follow-ups now closed:
+//   - minstret is driven by a real retire tag threaded id_stage -> id_ex ->
+//     ex_mem -> mem_stage -> mem_wb (was mem_wb.reg_write, which missed stores
+//     and branches and miscounted a MEM-faulting instruction).
+//   - WFI is a drain-precise hold inside pipe_ctrl (PC/IF-ID/ID-EX), not a
+//     fetch-only stall at this level (Sec.14.5).
+//   - The machine timer has a real interrupt path: mtip -> mip.MTIP, gated by
+//     mie.MTIE and mstatus.MIE, entering via trap_ctrl with cause 0x80000007
+//     (was only OR'd into the CLIC pending summary and never takeable).
 // =============================================================================
 module garuda_core_top #(
     parameter [31:0] RESET_VECTOR = 32'h1000_0000
@@ -76,13 +81,13 @@ module garuda_core_top #(
     wire [2:0] id_csr_op; wire id_is_system, id_illegal, id_fault;
     wire [31:0] id_rs1_data, id_rs2_data, id_imm, id_pc, id_instr;
     wire [4:0] id_rs1_idx, id_rs2_idx, id_rd; wire [2:0] id_funct3;
-    wire id_load_use, id_redir_v; wire [31:0] id_redir_t; wire id_predict_taken;
+    wire id_valid; wire id_load_use, id_redir_v; wire [31:0] id_redir_t; wire id_predict_taken;
     // ID/EX outputs
     wire [31:0] xe_pc, xe_instr, xe_rs1, xe_rs2, xe_imm; wire [4:0] xe_rs1i, xe_rs2i, xe_rd;
     wire [2:0] xe_funct3; wire xe_reg_write, xe_mem_read, xe_mem_write, xe_mem_to_reg;
     wire xe_alu_src, xe_pc_op_a; wire [3:0] xe_alu_op; wire xe_branch, xe_jal, xe_jalr;
     wire xe_predicted_taken, xe_mul_en, xe_dsu_en, xe_csr_en, xe_csr_imm; wire [1:0] xe_csr_op;
-    wire xe_is_system, xe_illegal, xe_fault;
+    wire xe_is_system, xe_illegal, xe_fault, xe_valid;
     // forwarding
     wire [1:0] fwd_a_sel, fwd_b_sel;
     // EX outputs
@@ -93,12 +98,12 @@ module garuda_core_top #(
     wire ex_load_mis, ex_store_mis, ex_dsu_illegal, ex_dsu_busy, ex_dsu_overflow;
     // EX/MEM outputs
     wire [31:0] em_result, em_store, em_pc; wire [2:0] em_funct3; wire [4:0] em_rd;
-    wire em_mem_read, em_mem_write, em_mem_to_reg, em_reg_write;
+    wire em_mem_read, em_mem_write, em_mem_to_reg, em_reg_write, em_valid;
     // MEM outputs
-    wire [31:0] mem_wb_data; wire mem_reg_write; wire [4:0] mem_rd; wire mem_stall;
+    wire [31:0] mem_wb_data; wire mem_reg_write, mem_retire; wire [4:0] mem_rd; wire mem_stall;
     wire mem_exc_v; wire [31:0] mem_exc_pc, mem_exc_tval; wire [3:0] mem_exc_cause;
     // MEM/WB outputs
-    wire [31:0] mw_data; wire [4:0] mw_rd; wire mw_reg_write;
+    wire [31:0] mw_data; wire [4:0] mw_rd; wire mw_reg_write, mw_retire;
     // WB -> regfile write / ID bypass
     wire rf_we; wire [4:0] rf_rd; wire [31:0] rf_wdata;
     // CSR
@@ -114,12 +119,10 @@ module garuda_core_top #(
     wire pc_if_stall, pc_if_redir; wire [31:0] pc_if_redir_pc;
     wire pc_ifid_s, pc_ifid_f, pc_idex_s, pc_idex_f, pc_exmem_s, pc_exmem_f, pc_mwb_f;
 
-    // WFI folds into fetch/upstream hold (Sec.14.5, drain-precision pending)
-    wire if_stall_final   = pc_if_stall | tr_wfi_hold;
-    wire ifid_stall_final = pc_ifid_s   | tr_wfi_hold;
-
-    // machine timer pending (Sec.14.6): consumed via CLIC/mip summary
+    // WFI hold is composed inside pipe_ctrl (Sec.14.5) - no top-level override.
+    // machine timer pending (Sec.14.6) -> csr_file mip.MTIP
     wire mtip = (mtime_i >= mtimecmp_i);
+    wire csr_mti_pending;
 
     // =========================================================================
     // IF stage
@@ -130,10 +133,10 @@ module garuda_core_top #(
         .i_hburst_o(i_hburst_o), .i_hprot_o(i_hprot_o), .i_hwrite_o(i_hwrite_o), .i_hwdata_o(i_hwdata_o),
         .i_hrdata_i(i_hrdata_i), .i_hready_i(i_hready_i), .i_hresp_i(i_hresp_i),
         .instr_o(if_instr), .instr_pc_o(if_pc), .instr_valid_o(if_valid), .instr_fault_o(if_fault),
-        .stall_i(if_stall_final), .redirect_i(pc_if_redir), .redirect_pc_i(pc_if_redir_pc)
+        .stall_i(pc_if_stall), .redirect_i(pc_if_redir), .redirect_pc_i(pc_if_redir_pc)
     );
     if_id u_ifid (
-        .clk_i(clk_i), .rst_n_i(rst_n_i), .stall_i(ifid_stall_final), .flush_i(pc_ifid_f),
+        .clk_i(clk_i), .rst_n_i(rst_n_i), .stall_i(pc_ifid_s), .flush_i(pc_ifid_f),
         .instr_i(if_instr), .pc_i(if_pc), .valid_i(if_valid), .fault_i(if_fault),
         .instr_o(fd_instr), .pc_o(fd_pc), .valid_o(fd_valid), .fault_o(fd_fault)
     );
@@ -156,7 +159,7 @@ module garuda_core_top #(
         .instr_o(id_instr), .fault_o(id_fault),
         .load_use_stall_o(id_load_use),
         .id_redirect_valid_o(id_redir_v), .id_redirect_target_o(id_redir_t),
-        .predict_taken_o(id_predict_taken)
+        .predict_taken_o(id_predict_taken), .valid_o(id_valid)
     );
     id_ex u_idex (
         .clk_i(clk_i), .rst_n_i(rst_n_i), .stall_i(pc_idex_s), .flush_i(pc_idex_f),
@@ -167,7 +170,7 @@ module garuda_core_top #(
         .alu_op_i(id_alu_op), .branch_i(id_branch), .jal_i(id_jal), .jalr_i(id_jalr),
         .predicted_taken_i(id_predict_taken), .mul_en_i(id_mul_en), .dsu_en_i(id_dsu_en),
         .csr_en_i(id_csr_en), .csr_imm_i(id_csr_op[2]), .csr_op_i(id_csr_op[1:0]),
-        .is_system_i(id_is_system), .illegal_instr_dec_i(id_illegal), .fault_i(id_fault),
+        .is_system_i(id_is_system), .illegal_instr_dec_i(id_illegal), .fault_i(id_fault), .valid_i(id_valid),
         .pc_o(xe_pc), .instr_o(xe_instr), .rs1_data_o(xe_rs1), .rs2_data_o(xe_rs2), .imm_o(xe_imm),
         .rs1_idx_o(xe_rs1i), .rs2_idx_o(xe_rs2i), .rd_o(xe_rd), .funct3_o(xe_funct3),
         .reg_write_o(xe_reg_write), .mem_read_o(xe_mem_read), .mem_write_o(xe_mem_write),
@@ -175,7 +178,7 @@ module garuda_core_top #(
         .alu_op_o(xe_alu_op), .branch_o(xe_branch), .jal_o(xe_jal), .jalr_o(xe_jalr),
         .predicted_taken_o(xe_predicted_taken), .mul_en_o(xe_mul_en), .dsu_en_o(xe_dsu_en),
         .csr_en_o(xe_csr_en), .csr_imm_o(xe_csr_imm), .csr_op_o(xe_csr_op),
-        .is_system_o(xe_is_system), .illegal_instr_dec_o(xe_illegal), .fault_o(xe_fault)
+        .is_system_o(xe_is_system), .illegal_instr_dec_o(xe_illegal), .fault_o(xe_fault), .valid_o(xe_valid)
     );
 
     // =========================================================================
@@ -212,10 +215,10 @@ module garuda_core_top #(
         .clk_i(clk_i), .rst_n_i(rst_n_i), .stall_i(pc_exmem_s), .flush_i(pc_exmem_f),
         .ex_result_i(ex_result), .store_data_i(ex_store_data), .funct3_i(xe_funct3),
         .rd_i(ex_rd_out), .pc_i(xe_pc), .mem_read_i(ex_mem_read_out), .mem_write_i(ex_mem_write_out),
-        .mem_to_reg_i(ex_mem_to_reg_out), .reg_write_i(ex_reg_write_out),
+        .mem_to_reg_i(ex_mem_to_reg_out), .reg_write_i(ex_reg_write_out), .valid_i(xe_valid),
         .ex_result_o(em_result), .store_data_o(em_store), .funct3_o(em_funct3), .rd_o(em_rd),
         .pc_o(em_pc), .mem_read_o(em_mem_read), .mem_write_o(em_mem_write),
-        .mem_to_reg_o(em_mem_to_reg), .reg_write_o(em_reg_write)
+        .mem_to_reg_o(em_mem_to_reg), .reg_write_o(em_reg_write), .valid_o(em_valid)
     );
 
     // =========================================================================
@@ -225,18 +228,19 @@ module garuda_core_top #(
         .clk_i(clk_i), .rst_n_i(rst_n_i),
         .ex_result_i(em_result), .rs2_data_i(em_store), .funct3_i(em_funct3), .rd_i(em_rd),
         .pc_i(em_pc), .mem_read_i(em_mem_read), .mem_write_i(em_mem_write),
-        .mem_to_reg_i(em_mem_to_reg), .reg_write_i(em_reg_write),
+        .mem_to_reg_i(em_mem_to_reg), .reg_write_i(em_reg_write), .valid_i(em_valid),
         .d_haddr_o(d_haddr_o), .d_htrans_o(d_htrans_o), .d_hsize_o(d_hsize_o),
         .d_hburst_o(d_hburst_o), .d_hprot_o(d_hprot_o), .d_hwrite_o(d_hwrite_o), .d_hwdata_o(d_hwdata_o),
         .d_hrdata_i(d_hrdata_i), .d_hready_i(d_hready_i), .d_hresp_i(d_hresp_i),
-        .wb_data_o(mem_wb_data), .reg_write_o(mem_reg_write), .rd_o(mem_rd), .mem_stall_o(mem_stall),
+        .wb_data_o(mem_wb_data), .reg_write_o(mem_reg_write), .rd_o(mem_rd), .retire_o(mem_retire),
+        .mem_stall_o(mem_stall),
         .mem_exception_valid_o(mem_exc_v), .mem_exception_pc_o(mem_exc_pc),
         .mem_exception_cause_o(mem_exc_cause), .mem_exception_mtval_o(mem_exc_tval)
     );
     mem_wb_reg u_memwb (
         .clk_i(clk_i), .rst_n_i(rst_n_i), .flush_i(pc_mwb_f),
-        .wb_data_i(mem_wb_data), .rd_i(mem_rd), .reg_write_i(mem_reg_write),
-        .wb_data_o(mw_data), .rd_o(mw_rd), .reg_write_o(mw_reg_write)
+        .wb_data_i(mem_wb_data), .rd_i(mem_rd), .reg_write_i(mem_reg_write), .retire_i(mem_retire),
+        .wb_data_o(mw_data), .rd_o(mw_rd), .reg_write_o(mw_reg_write), .retire_o(mw_retire)
     );
     wb_stage u_wb (
         .wb_data_i(mw_data), .rd_i(mw_rd), .reg_write_i(mw_reg_write),
@@ -250,13 +254,14 @@ module garuda_core_top #(
         .clk_i(clk_i), .rst_n_i(rst_n_i),
         .csr_en_i(ex_csr_en_out), .csr_addr_i(ex_csr_addr_w), .csr_wdata_i(ex_csr_wdata),
         .csr_op_i(ex_csr_op_out), .csr_rdata_o(csr_rdata), .illegal_csr_o(csr_illegal),
-        .instret_i(mw_reg_write),                     // NOTE: approx retire (flagged)
+        .instret_i(mw_retire),                        // true architectural retire
         .dsu_overflow_i(ex_dsu_overflow), .csr_clear_overflow_o(csr_clear_ovf),
         .trap_enter_i(tr_enter), .mret_i(tr_mret), .is_interrupt_i(tr_is_int),
         .clic_level_i(tr_level), .trap_pc_i(tr_pc), .trap_cause_i(tr_cause), .trap_tval_i(tr_tval),
-        .clic_mip_i(clic_irq_i | mtip),
+        .clic_mip_i(clic_irq_i), .mtip_i(mtip),
         .mstatus_mie_o(csr_mstatus_mie), .mtvec_o(csr_mtvec), .mtvt_o(csr_mtvt),
-        .mepc_o(csr_mepc), .mintthresh_o(csr_mintthresh), .mintstatus_mil_o(csr_mil)
+        .mepc_o(csr_mepc), .mintthresh_o(csr_mintthresh), .mintstatus_mil_o(csr_mil),
+        .mti_pending_o(csr_mti_pending)
     );
     assign clic_mintthresh_o = csr_mintthresh;
 
@@ -278,7 +283,8 @@ module garuda_core_top #(
         .mem_exc_pc_i(mem_exc_pc), .mem_exc_tval_i(mem_exc_tval),
         .clic_take_cond_i(clic_take_cond), .clic_wake_cond_i(clic_wake_cond),
         .clic_irq_id_i(clic_id), .clic_irq_lvl_i(clic_lvl), .clic_vector_target_i(clic_vec_target),
-        .clic_take_o(clic_take), .mtvec_i(csr_mtvec), .mepc_i(csr_mepc),
+        .clic_take_o(clic_take), .mti_pending_i(csr_mti_pending),
+        .mtvec_i(csr_mtvec), .mepc_i(csr_mepc), .mstatus_mie_i(csr_mstatus_mie),
         .trap_enter_o(tr_enter), .is_interrupt_o(tr_is_int), .clic_level_o(tr_level), .mret_o(tr_mret),
         .trap_pc_o(tr_pc), .trap_cause_o(tr_cause), .trap_tval_o(tr_tval),
         .trap_redirect_valid_o(tr_redir_v), .trap_redirect_target_o(tr_redir_t),
@@ -286,7 +292,7 @@ module garuda_core_top #(
         .trap_squash_mem_wb_o(tr_sq_mwb), .wfi_hold_o(tr_wfi_hold), .ex_squash_o(tr_ex_squash)
     );
     pipe_ctrl u_pipe (
-        .mem_stall_i(mem_stall), .dsu_busy_i(ex_dsu_busy), .load_use_stall_i(id_load_use),
+        .mem_stall_i(mem_stall), .dsu_busy_i(ex_dsu_busy), .load_use_stall_i(id_load_use), .wfi_hold_i(tr_wfi_hold),
         .id_redirect_valid_i(id_redir_v), .id_redirect_target_i(id_redir_t),
         .ex_redirect_i(ex_redirect), .ex_redirect_target_i(ex_redirect_target),
         .trap_redirect_valid_i(tr_redir_v), .trap_redirect_target_i(tr_redir_t),

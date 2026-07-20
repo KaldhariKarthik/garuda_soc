@@ -37,11 +37,15 @@ module mem_wb_reg (
     input  wire [31:0] wb_data_i,      // load-formatted value OR EX result
     input  wire [4:0]  rd_i,
     input  wire        reg_write_i,
+    input  wire        retire_i,       // mem_stage.retire_o - architectural retirement
 
     // To WB stage
     output reg  [31:0] wb_data_o,
     output reg  [4:0]  rd_o,
-    output reg         reg_write_o
+    output reg         reg_write_o,
+
+    // To CSR file (Sec. 13.2) - minstret increment, one pulse per retired instr
+    output reg         retire_o
 );
 
     always @(posedge clk_i or negedge rst_n_i) begin
@@ -50,10 +54,12 @@ module mem_wb_reg (
             wb_data_o   <= 32'd0;
             rd_o        <= 5'd0;
             reg_write_o <= 1'b0;    // write-enable LOW = no WB
+            retire_o    <= 1'b0;    // a bubble never retires
         end else begin
             wb_data_o   <= wb_data_i;
             rd_o        <= rd_i;
             reg_write_o <= reg_write_i;
+            retire_o    <= retire_i;
         end
     end
 

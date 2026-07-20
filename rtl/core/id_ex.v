@@ -56,6 +56,7 @@ module id_ex (
     input  wire        is_system_i,
     input  wire        illegal_instr_dec_i,
     input  wire        fault_i,
+    input  wire        valid_i,             // retire tag (Sec.13.2) - low in a bubble
 
     // ---- outputs (same names, _o) ----
     output reg  [31:0] pc_o,
@@ -85,7 +86,8 @@ module id_ex (
     output reg  [1:0]  csr_op_o,
     output reg         is_system_o,
     output reg         illegal_instr_dec_o,
-    output reg         fault_o
+    output reg         fault_o,
+    output reg         valid_o
 );
     // Control fields that must be NOP-safe in a bubble.
     task set_bubble;
@@ -94,6 +96,8 @@ module id_ex (
             branch_o<=1'b0; jal_o<=1'b0; jalr_o<=1'b0; predicted_taken_o<=1'b0;
             mul_en_o<=1'b0; dsu_en_o<=1'b0; csr_en_o<=1'b0;
             is_system_o<=1'b0; illegal_instr_dec_o<=1'b0; fault_o<=1'b0;
+            valid_o<=1'b0;                  // a bubble never retires
+
             // data + benign ctrl -> NOP (addi x0,x0,0)
             instr_o<=32'h0000_0013; alu_op_o<=4'h0; alu_src_o<=1'b0; pc_op_a_o<=1'b0;
             csr_imm_o<=1'b0; csr_op_o<=2'b00;
@@ -115,6 +119,7 @@ module id_ex (
             predicted_taken_o<=predicted_taken_i; mul_en_o<=mul_en_i; dsu_en_o<=dsu_en_i;
             csr_en_o<=csr_en_i; csr_imm_o<=csr_imm_i; csr_op_o<=csr_op_i;
             is_system_o<=is_system_i; illegal_instr_dec_o<=illegal_instr_dec_i; fault_o<=fault_i;
+            valid_o<=valid_i;
         end
     end
 endmodule

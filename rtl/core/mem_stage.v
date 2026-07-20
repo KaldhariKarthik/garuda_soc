@@ -40,6 +40,7 @@ module mem_stage (
     input  wire         mem_write_i,
     input  wire         mem_to_reg_i,
     input  wire         reg_write_i,
+    input  wire         valid_i,       // ex_mem.valid — retire tag (Sec. 13.2)
 
     // -------------------------------------------------------------------
     // D-port AHB-Lite master pins (Sec. 4.1)
@@ -62,6 +63,7 @@ module mem_stage (
     output wire [31:0] wb_data_o,
     output wire         reg_write_o,
     output wire [4:0]  rd_o,
+    output wire         retire_o,      // this instruction architecturally retires
 
     // -------------------------------------------------------------------
     // Hold source (Sec. 11.4) - raw signal; composition is downstream
@@ -184,6 +186,15 @@ module mem_stage (
                                     4'd0;
 
     assign mem_exception_mtval_o = ex_result_i;   // the load/store address in all 4 cases
+
+    // -----------------------------------------------------------------------
+    // Retire tag (Sec. 13.2). A real instruction retires when it leaves MEM
+    // without faulting; an instruction that takes a MEM access fault (5/7) is
+    // squashed by CONTROL and must NOT count toward minstret.
+    // No gating on mem_stall_o is needed: CONTROL bubbles MEM/WB every wait-
+    // state cycle, so the tag is captured exactly once, when the wait clears.
+    // -----------------------------------------------------------------------
+    assign retire_o = valid_i & ~mem_exception_valid_o;
 
 endmodule
 

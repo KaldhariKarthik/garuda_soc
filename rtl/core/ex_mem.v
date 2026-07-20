@@ -33,6 +33,7 @@ module ex_mem (
     input  wire        mem_write_i,     // ex_stage.mem_write_out
     input  wire        mem_to_reg_i,    // ex_stage.mem_to_reg_out
     input  wire        reg_write_i,     // ex_stage.reg_write_out
+    input  wire        valid_i,         // id_ex.valid (around EX) - retire tag, Sec.13.2
 
     output reg  [31:0] ex_result_o,
     output reg  [31:0] store_data_o,
@@ -42,18 +43,20 @@ module ex_mem (
     output reg         mem_read_o,
     output reg         mem_write_o,
     output reg         mem_to_reg_o,
-    output reg         reg_write_o
+    output reg         reg_write_o,
+    output reg         valid_o
 );
     always @(posedge clk_i or negedge rst_n_i) begin
         if (!rst_n_i || flush_i) begin
             ex_result_o<=32'd0; store_data_o<=32'd0; funct3_o<=3'd0; rd_o<=5'd0; pc_o<=32'd0;
             mem_read_o<=1'b0; mem_write_o<=1'b0; mem_to_reg_o<=1'b0; reg_write_o<=1'b0;
+            valid_o<=1'b0;
         end else if (stall_i) begin
             // hold: retain all outputs
         end else begin
             ex_result_o<=ex_result_i; store_data_o<=store_data_i; funct3_o<=funct3_i;
             rd_o<=rd_i; pc_o<=pc_i; mem_read_o<=mem_read_i; mem_write_o<=mem_write_i;
-            mem_to_reg_o<=mem_to_reg_i; reg_write_o<=reg_write_i;
+            mem_to_reg_o<=mem_to_reg_i; reg_write_o<=reg_write_i; valid_o<=valid_i;
         end
     end
 endmodule

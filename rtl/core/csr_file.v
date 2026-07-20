@@ -49,7 +49,8 @@ module csr_file (
     input  wire [31:0] trap_pc_i,        // -> mepc
     input  wire [31:0] trap_cause_i,     // -> mcause (bit31 = interrupt)
     input  wire [31:0] trap_tval_i,      // -> mtval
-    input  wire        clic_mip_i,       // CLIC pending summary -> mip (informational)
+    input  wire        clic_mip_i,       // CLIC external pending summary -> mip.MEIP
+    input  wire        mtip_i,           // machine timer pending, mtime >= mtimecmp (Sec.14.6)
 
     // ---- architectural exports (to trap_ctrl / clic_ctrl) ----
     output wire        mstatus_mie_o,
@@ -57,7 +58,13 @@ module csr_file (
     output wire [31:0] mtvt_o,
     output wire [31:0] mepc_o,
     output wire [7:0]  mintthresh_o,
-    output wire [7:0]  mintstatus_mil_o  // current active interrupt level (Sec.14.3 take cond)
+    output wire [7:0]  mintstatus_mil_o, // current active interrupt level (Sec.14.3 take cond)
+
+    // Machine-timer interrupt pending AND locally enabled (mie.MTIE). Deliberately
+    // NOT gated by mstatus.MIE: trap_ctrl applies the global enable for taking the
+    // trap, and uses this ungated form for the MIE-independent WFI wake (Sec.14.5),
+    // mirroring the clic_ctrl take_cond / wake_cond split.
+    output wire        mti_pending_o
 );
     // ---------------- addresses (Sec. 13.2) ----------------
     localparam MISA=12'h301, MVENDORID=12'hF11, MARCHID=12'hF12, MIMPID=12'hF13,
@@ -78,6 +85,12 @@ module csr_file (
     wire [31:0] misa_val    = {2'b01 /*MXL=32*/, 4'd0, 26'h0001100 /*I+M*/} | (32'd1<<23 /*X*/);
     wire [31:0] mintstatus_val = {16'd0, mpil_r, mil_r};   // [15:8]=mpil [7:0]=mil
 
+    // mip is read-only hardware state (Sec.13.2): MEIP[11] = CLIC pending summary,
+    // MTIP[7] = machine timer. Both are driven by hardware, never by a CSR write.
+    wire [31:0] mip_val = {20'd0, clic_mip_i, 3'd0, mtip_i, 7'd0};
+    localparam MTIE_BIT = 7;
+    assign mti_pending_o = mtip_i & mie_r[MTIE_BIT];
+
     // ---------------- read mux + implemented? ----------------
     reg [31:0] rdata;
     reg        implemented;
@@ -93,7 +106,7 @@ module csr_file (
             MTVEC:     rdata = mtvec_r;
             MTVT:      rdata = mtvt_r;
             MIE:       rdata = mie_r;
-            MIP:       rdata = {31'd0, clic_mip_i};
+            MIP:       rdata = mip_val;
             MEPC:      rdata = mepc_r;
             MCAUSE:    rdata = mcause_r;
             MTVAL:     rdata = mtval_r;
@@ -113,7 +126,7 @@ module csr_file (
     // read-only addresses: writing them is illegal
     wire is_ro = (csr_addr_i==MVENDORID)||(csr_addr_i==MARCHID)||(csr_addr_i==MIMPID)||
                  (csr_addr_i==MHARTID)||(csr_addr_i==MISA)||(csr_addr_i==MINTSTATUS)||
-                 (csr_addr_i==DSU_OVF);
+                 (csr_addr_i==DSU_OVF)||(csr_addr_i==MIP);
     wire access      = csr_en_i && (csr_op_i != 2'b00);
     wire is_write    = access && (csr_op_i == `CSR_RW ||
                                   ((csr_op_i==`CSR_RS||csr_op_i==`CSR_RC) && (csr_wdata_i!=32'd0)));

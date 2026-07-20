@@ -58,9 +58,13 @@ module trap_ctrl #(
     input  wire [31:0] clic_vector_target_i,
     output wire        clic_take_o,           // -> clic_ctrl.take_i (ack pulse)
 
+    // ---- machine timer interrupt (Sec.14.6) ----
+    input  wire        mti_pending_i,     // mip.MTIP & mie.MTIE (NOT gated by mstatus.MIE)
+
     // ---- csr_file reads ----
     input  wire [31:0] mtvec_i,
     input  wire [31:0] mepc_i,
+    input  wire        mstatus_mie_i,     // global enable, for the MTI take condition
 
     // ---- csr_file trap writes ----
     output wire        trap_enter_o,
@@ -107,16 +111,27 @@ module trap_ctrl #(
         else if (is_wfi & ~wfi_active)             wfi_active <= 1'b1;
         else if (wfi_active & clic_wake_cond_i)    wfi_active <= 1'b0;
     end
-    assign wfi_hold_o = wfi_active & ~clic_wake_cond_i;
+    // WFI wakes on ANY pending-and-locally-enabled interrupt, CLIC or timer,
+    // independent of mstatus.MIE (Sec.14.5): with MIE clear the hart still
+    // resumes at the instruction after the WFI rather than sleeping forever.
+    wire wake_cond    = clic_wake_cond_i | mti_pending_i;
+    assign wfi_hold_o = wfi_active & ~wake_cond;
 
     // Arbitration: MEM exc > EX exc > interrupt. (MRET is exit, handled separately.)
+    // Within interrupts, the CLIC external source outranks the machine timer
+    // (RISC-V default MEI > MTI); the CLIC has already applied its own level /
+    // mintthresh arbitration and mstatus.MIE inside clic_take_cond_i.
     wire exception    = mem_exc_valid_i | ex_exc;
     wire take_int      = clic_take_cond_i & ~exception;  // exceptions win
-    wire trap_now     = (exception | take_int) & ~is_mret;
+    wire take_mti     = mti_pending_i & mstatus_mie_i & ~exception & ~take_int;
+    wire any_int      = take_int | take_mti;
+    wire trap_now     = (exception | any_int) & ~is_mret;
 
+    // MTI is level-sensitive in the timer, not a CLIC vector: no ack pulse and
+    // no CLIC level to push, so it enters at mil level 0.
     assign clic_take_o     = take_int;
-    assign is_interrupt_o  = take_int;
-    assign clic_level_o    = clic_irq_lvl_i;
+    assign is_interrupt_o  = any_int;
+    assign clic_level_o    = take_int ? clic_irq_lvl_i : 8'd0;
 
     assign trap_enter_o    = trap_now;
     assign mret_o          = is_mret;
@@ -126,9 +141,10 @@ module trap_ctrl #(
                           ex_exc          ? idex_pc_i     :
                                             idex_pc_i;     // interrupt: resume @ EX instr
     assign trap_cause_o = take_int        ? {1'b1, {(31-ID_W){1'b0}}, clic_irq_id_i} :
+                          take_mti        ? 32'h8000_0007 :   // machine timer interrupt
                           mem_exc_valid_i ? {28'd0, mem_exc_cause_i} :
                                             {28'd0, ex_cause};
-    assign trap_tval_o  = take_int        ? 32'd0 :
+    assign trap_tval_o  = any_int         ? 32'd0 :
                           mem_exc_valid_i ? mem_exc_tval_i : ex_tval;
 
     wire [31:0] mtvec_base = {mtvec_i[31:6], 6'b0};
@@ -140,7 +156,7 @@ module trap_ctrl #(
 
     // Squash of the offending instr's own downstream reg (+younger via redirect flush)
     assign trap_squash_mem_wb_o = mem_exc_valid_i;                 // kill MEM fault WB
-    assign trap_squash_ex_mem_o = (ex_exc & ~mem_exc_valid_i) | take_int; // kill EX instr
+    assign trap_squash_ex_mem_o = (ex_exc & ~mem_exc_valid_i) | any_int; // kill EX instr
     assign trap_squash_id_ex_o  = trap_now;                        // younger
     assign ex_squash_o          = trap_now;                        // DSU trap-only flush
 endmodule

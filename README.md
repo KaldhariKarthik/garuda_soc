@@ -39,8 +39,8 @@ That is the discipline this whole project runs on: ambiguity gets resolved and d
 | Block | Status |
 |---|---|
 | DMA controller | Design doc complete |
-| DSU (collision avoidance coprocessor) | Design doc complete, RTL boundary frozen |
-| Core pipeline | Design doc complete (Rev 1.1) |
+| DSU (collision avoidance coprocessor) | Design doc complete, RTL complete, integrated into EX — unverified |
+| Core pipeline | Design doc complete (Rev 1.1), RTL complete, elaborates with the real DSU |
 | Bus / AHB interconnect + bridge | Pending |
 | CLIC | Pending |
 | Memory subsystem | Pending |
@@ -54,7 +54,7 @@ Five block documents stand between this project and a fully specified chip. None
 
 ## What's Left Before Silicon Stops Being Negotiable
 
-RTL freeze is targeted for end of June, and the blocks left on that list are the ones where a mistake doesn't stay local — CSR file, M-mode privilege, trap and exception logic, CLIC trap entry, JAL/JALR, the M-extension, and DSU integration into the core pipeline. A bug in the DSU produces a wrong collision-avoidance vector. A bug in the trap path produces a chip that locks up in ways that don't reproduce the same way twice. That asymmetry is why the privilege infrastructure gets the most scrutiny before freeze, not the most lines of code.
+The blocks that list called out as load-bearing — CSR file, M-mode privilege, trap and exception logic, CLIC trap entry, JAL/JALR, the M-extension, and DSU integration into the core pipeline — are now written and elaborating as one netlist. The three Rev 1.1 gaps flagged in `garuda_core_top.v` are closed: minstret counts real retirement through a dedicated retire tag, WFI is a drain-precise hold, and the machine timer has an actual takeable interrupt path. What has NOT happened is verification: six unit smokes and an elaboration are not a verified core. A bug in the DSU produces a wrong collision-avoidance vector. A bug in the trap path produces a chip that locks up in ways that don't reproduce the same way twice. That asymmetry is why the privilege infrastructure gets the most scrutiny before freeze, not the most lines of code.
 
 After that: multi-master AHB arbitration, the AHB-to-APB bridge clock-domain crossing, riscv-arch-test compliance, a Python golden reference model, a directed test suite, and static timing closure at 200MHz. GDSII is targeted for end of October. Tapeout is December 1.
 

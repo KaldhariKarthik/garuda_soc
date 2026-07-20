@@ -1,12 +1,12 @@
 `timescale 1ns/1ps
 module tb_pipe_ctrl;
   integer errors=0;
-  reg mem_stall, dsu_busy, load_use;
+  reg mem_stall, dsu_busy, load_use, wfi_hold;
   reg idv, exr, trv, sq_ide, sq_exm, sq_mwb;
   reg [31:0] idt, ext, trt;
   wire if_stall, if_redir; wire [31:0] if_rpc;
   wire ifid_s, ifid_f, idex_s, idex_f, exmem_s, exmem_f, memwb_f;
-  pipe_ctrl u(.mem_stall_i(mem_stall),.dsu_busy_i(dsu_busy),.load_use_stall_i(load_use),
+  pipe_ctrl u(.mem_stall_i(mem_stall),.dsu_busy_i(dsu_busy),.load_use_stall_i(load_use),.wfi_hold_i(wfi_hold),
     .id_redirect_valid_i(idv),.id_redirect_target_i(idt),
     .ex_redirect_i(exr),.ex_redirect_target_i(ext),
     .trap_redirect_valid_i(trv),.trap_redirect_target_i(trt),
@@ -30,12 +30,16 @@ module tb_pipe_ctrl;
   endtask
 
   initial begin
-    {mem_stall,dsu_busy,load_use,idv,exr,trv,sq_ide,sq_exm,sq_mwb}=0;
+    {mem_stall,dsu_busy,load_use,wfi_hold,idv,exr,trv,sq_ide,sq_exm,sq_mwb}=0;
     idt=32'h1111; ext=32'h2222; trt=32'h3333;
     //                                     ifS ifR ifidS ifidF idexS idexF exmS exmF mwbF
     #1 chk("idle",                    9'b0_0_0_0_0_0_0_0_0);
     load_use=1; #1 chk("load_use",    9'b1_0_1_0_0_1_0_0_0); load_use=0;
     dsu_busy=1; #1 chk("dsu_busy",    9'b1_0_1_0_1_0_0_0_0); dsu_busy=0;
+    // WFI (Sec.14.5) is drain-precise: holds PC, IF/ID AND ID/EX so the WFI
+    // parks in EX and the younger instr stays in ID, while EX/MEM stays free
+    // to let everything older than the WFI drain out.
+    wfi_hold=1; #1 chk("wfi_hold",    9'b1_0_1_0_1_0_0_0_0); wfi_hold=0;
     mem_stall=1;#1 chk("dport_wait",  9'b1_0_1_0_1_0_1_0_1); mem_stall=0;
     idv=1;      #1 chk("id_redir_1b", 9'b0_1_0_1_0_0_0_0_0); chkpc("id_redir",32'h1111); idv=0;
     exr=1;      #1 chk("ex_redir_2b", 9'b0_1_0_1_0_1_0_0_0); chkpc("ex_redir",32'h2222);
