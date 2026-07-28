@@ -1,0 +1,58 @@
+Invoking simulator...
+
+./simv -sml=verdi +UVM_VERDI_TRACE=UVM_AWARE +fsdb+gate=off -ucli2Proc -ucli
+debImport "-i" "-simflow" "-dbdir" "./simv.daidir"
+Chronologic VCS simulator copyright 1991-2023
+Contains Synopsys proprietary information.
+Compiler version U-2023.03_Full64; Runtime version U-2023.03_Full64;  Jul 28 13:44 2026
+
+Checkout succeeded: VCS-BASE-RUNTIME/AF3AD4D7787CF4828637
+	License file: 27020@14.139.1.126
+	License Server: 27020@14.139.1.126
+
+[SCL] 07/28/2026 13:44:59 Checking status for feature VCS-BASE-RUNTIME
+[SCL] 07/28/2026 13:44:59 PID:15195 Client:vlsi-i5-81.cvr.ac.in Server:27020@14.139.1.126 Checkout succeeded VCS-BASE-RUNTIME 2023.03 from VCS-Base-Runtime-Pkg
+
+*Verdi* Loading libsscore_vcs202303.so
+
+FSDB Dumper for VCS, Release Verdi_U-2023.03-SP1, Linux x86_64/64bit, 05/28/2023
+
+(C) 1996 - 2023 by Synopsys, Inc.
+
+*Verdi* : Create FSDB file '/home/vlsi/1TOPS_SV/inter.fsdb'
+
+*Verdi* : Flush all FSDB Files at 0 ps.
+
+*Verdi* : Enable RPC Server(15195)
+
+srcTBInvokeSim
+xterm-256color is Not a valid terminal...
+Verdi>run
+
+=== STARTING ID_STAGE 100% COVERAGE TESTBENCH ===
+TC1: Testing Register x0 Read-Only Zero Boundary...
+TC2: Testing WB->ID Combinational Register Bypass...
+TC3: Testing Load-Use Hazard & Stall Corner Exclusions...
+TC4: Testing Branch Target Wrappings & Predict logic...
+TC5: Testing Illegal and Reserved Opcode Handling...
+TC6: Sweeping all Opcodes against Stall/Unstall bins...
+TC7: Testing Additional Structural Corner Cases...
+TC8: Injecting Dense Constrained Random Transfers...
+
+=============================================
+SIMULATION COMPLETED
+Functional Coverage achieved: 100.00%
+TOTAL CHECKPOINTS PASSED: 13
+TOTAL CHECKPOINTS FAILED: 0
+=============================================
+RESULT: ALL TESTCASES AND CORNER CASES PASSED!
+$finish called from file "tb_id_stage.sv", line 516.
+$finish at simulation time              5306000
+Simulation complete, time is 5306000 ps.
+tb_id_stage.sv, 516 :         $finish;
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 5306000 ps
+CPU Time:      0.110 seconds;       Data structure size:   0.0Mb
+Tue Jul 28 13:49:51 2026
+[SCL] 07/28/2026 13:49:51 PID:15195 Client:vlsi-i5-81.cvr.ac.in checkin (null) 
+debExit
