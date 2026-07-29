@@ -94,7 +94,27 @@ module pipe_ctrl (
     assign if_id_stall_o = hold_pc_ifid & ~if_id_flush_o;
 
     // ID/EX : 2-bubble redirect OR load-use OR trap-squash bubbles it
-    assign id_ex_flush_o = redir_2b | load_use_stall_i | trap_squash_id_ex_i;
+    //
+    // ERRATUM P-1 (found by riscv-tests ld_st)
+    // ---------------------------------------
+    // load_use_stall_i MUST be gated by ~mem_stall_i, for exactly the reason
+    // redirects already are above. The load-use interlock bubbles ID/EX so a
+    // gap opens behind a load that has ALREADY advanced into EX/MEM. During a
+    // D-port wait that premise is false: EX/MEM is held (hold_ex_mem), so the
+    // instruction in ID/EX cannot advance - and flushing ID/EX then does not
+    // insert a bubble behind the load, it DESTROYS the load still sitting
+    // there. Flush outranks stall inside id_ex.v, so the hold does not save it.
+    //
+    // Observed in ld_st as: sb / lb / sb / lb back to back. The sb stalls MEM
+    // for its two-phase AHB access; in that same cycle the third instruction
+    // in ID raises load-use against the lb parked in ID/EX, the lb is flushed
+    // out of existence, and its destination register is never written - so
+    // every later reader of it returned X.
+    //
+    // Latent until ERRATUM D-1: with the old one-cycle D-port there was no
+    // multi-cycle MEM stall, so load-use and mem_stall could never overlap.
+    assign id_ex_flush_o = redir_2b | (load_use_stall_i & ~mem_stall_i) |
+                           trap_squash_id_ex_i;
     assign id_ex_stall_o = hold_id_ex & ~id_ex_flush_o;
 
     // EX/MEM : holds on D-port wait; flush only on trap-squash of the faulting

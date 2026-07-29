@@ -127,6 +127,11 @@ module ex_stage (
     //------------------------------------------------------------------
     output wire [31:0] ex_result,       // for loads/stores this IS d_haddr
     output wire [31:0] store_data,      // forwarded rs2, to MEM lane-align
+
+    // Post-forwarding register operands, fed back to ID/EX for operand
+    // capture across a multi-cycle stall. See ERRATUM F-1 in id_ex.v.
+    output wire [31:0] rs1_fwd_o,
+    output wire [31:0] rs2_fwd_o,
     output wire [4:0]  rd_out,
     output wire        reg_write_out,
     output wire        mem_read_out,    // misalign-killed (Section 10.2)
@@ -188,6 +193,9 @@ module ex_stage (
     // Store data and DSU operands always take the forwarded REGISTER value
     // (Section 9.5: DSU operands ride the same EX forwarding paths).
     assign store_data = rs2_fwd;
+
+    assign rs1_fwd_o = rs1_fwd;
+    assign rs2_fwd_o = rs2_fwd;
 
     //==================================================================
     // ALU

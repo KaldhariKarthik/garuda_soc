@@ -91,6 +91,7 @@ module garuda_core_top #(
     // forwarding
     wire [1:0] fwd_a_sel, fwd_b_sel;
     // EX outputs
+    wire [31:0] ex_rs1_fwd, ex_rs2_fwd;   // post-forward operands -> ID/EX (ERRATUM F-1)
     wire [11:0] ex_csr_addr_w; wire [31:0] ex_csr_wdata; wire [1:0] ex_csr_op_out; wire ex_csr_en_out;
     wire [31:0] ex_result, ex_store_data; wire [4:0] ex_rd_out;
     wire ex_reg_write_out, ex_mem_read_out, ex_mem_write_out, ex_mem_to_reg_out;
@@ -164,6 +165,7 @@ module garuda_core_top #(
     id_ex u_idex (
         .clk_i(clk_i), .rst_n_i(rst_n_i), .stall_i(pc_idex_s), .flush_i(pc_idex_f),
         .pc_i(id_pc), .instr_i(id_instr), .rs1_data_i(id_rs1_data), .rs2_data_i(id_rs2_data),
+        .rs1_fwd_i(ex_rs1_fwd), .rs2_fwd_i(ex_rs2_fwd),   // ERRATUM F-1 operand capture
         .imm_i(id_imm), .rs1_idx_i(id_rs1_idx), .rs2_idx_i(id_rs2_idx), .rd_i(id_rd), .funct3_i(id_funct3),
         .reg_write_i(id_reg_write), .mem_read_i(id_mem_read), .mem_write_i(id_mem_write),
         .mem_to_reg_i(id_mem_to_reg), .alu_src_i(id_alu_src), .pc_op_a_i(id_alu_a_pc),
@@ -202,7 +204,8 @@ module garuda_core_top #(
         .exmem_fwd_data(em_result), .memwb_fwd_data(mw_data),
         .csr_rdata(csr_rdata), .csr_clear_overflow(csr_clear_ovf), .ex_squash(tr_ex_squash),
         .csr_addr(ex_csr_addr_w), .csr_wdata(ex_csr_wdata), .csr_op_out(ex_csr_op_out), .csr_en_out(ex_csr_en_out),
-        .ex_result(ex_result), .store_data(ex_store_data), .rd_out(ex_rd_out),
+        .ex_result(ex_result), .store_data(ex_store_data),
+        .rs1_fwd_o(ex_rs1_fwd), .rs2_fwd_o(ex_rs2_fwd), .rd_out(ex_rd_out),
         .reg_write_out(ex_reg_write_out), .mem_read_out(ex_mem_read_out),
         .mem_write_out(ex_mem_write_out), .mem_to_reg_out(ex_mem_to_reg_out),
         .ex_redirect(ex_redirect), .ex_redirect_target(ex_redirect_target),

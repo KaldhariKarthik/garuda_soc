@@ -30,6 +30,11 @@ module id_ex (
     input  wire [31:0] instr_i,
     input  wire [31:0] rs1_data_i,
     input  wire [31:0] rs2_data_i,
+
+    // Post-forwarding operands from EX (ex_stage.rs1_fwd_o/rs2_fwd_o).
+    // Used ONLY on the hold path -- see ERRATUM F-1 below.
+    input  wire [31:0] rs1_fwd_i,
+    input  wire [31:0] rs2_fwd_i,
     input  wire [31:0] imm_i,
     input  wire [4:0]  rs1_idx_i,
     input  wire [4:0]  rs2_idx_i,
@@ -109,7 +114,36 @@ module id_ex (
     always @(posedge clk_i or negedge rst_n_i) begin
         if (!rst_n_i)      set_bubble;
         else if (flush_i)  set_bubble;          // flush strictly > stall (Sec.11.4)
-        else if (stall_i)  ;                     // hold: retain all outputs
+        else if (stall_i) begin
+            // ---------------------------------------------------------------
+            // ERRATUM F-1 (found by tb_boot / riscv-tests sw,sh,sb,ld_st,st_ld)
+            // ---------------------------------------------------------------
+            // A plain hold here loses a forwarded operand. Forwarding is
+            // re-evaluated combinationally in EX every cycle, but its SOURCES
+            // drain away while EX is held: pipe_ctrl bubbles MEM/WB on every
+            // D-port wait-state cycle (Sec.11.4), so memwb_reg_write falls and
+            // forward_unit reverts to FWD_NONE. EX then falls back to the
+            // register-file value latched back in ID -- which is precisely the
+            // stale value forwarding existed to replace.
+            //
+            // Observed as: addi a2,a2,784 ; sw a3,0(a2) ; lw a4,0(a2)
+            // The store (1 cycle behind the addi) got a2=0x10000540; the load
+            // (2 behind) got a2=0x10000230 and read an instruction word back.
+            //
+            // Fix: while held, re-latch the operands through the forwarding
+            // mux. On the first held cycle the producer is still visible, so
+            // the correct value is captured; on later cycles the select is
+            // already FWD_NONE and the mux returns this register's own -- now
+            // correct -- value, so the capture is idempotent and stable.
+            //
+            // This was latent, not new: it needs a multi-cycle MEM access to
+            // expose it, and until the D-port was corrected to a real two-phase
+            // AHB transfer (ERRATUM D-1) every access completed in one cycle
+            // and the window never opened. Any wait-stated memory would have
+            // triggered it in silicon.
+            rs1_data_o <= rs1_fwd_i;
+            rs2_data_o <= rs2_fwd_i;
+        end
         else begin
             pc_o<=pc_i; instr_o<=instr_i; rs1_data_o<=rs1_data_i; rs2_data_o<=rs2_data_i;
             imm_o<=imm_i; rs1_idx_o<=rs1_idx_i; rs2_idx_o<=rs2_idx_i; rd_o<=rd_i; funct3_o<=funct3_i;

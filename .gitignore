@@ -54,3 +54,8 @@ genus.log
 *.vcd
 *.shm/
 .bpad/
+
+# --- bare-metal software build outputs (regenerate with `make sw` / `make isa_tests`) ---
+sw/build/
+sw/riscv-tests/build/
+*.spike.log

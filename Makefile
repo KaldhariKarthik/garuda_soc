@@ -32,17 +32,26 @@ define run_test
 	    || echo "$(WORKDIR): no result line"
 endef
 else
+# NOTE: xrun runs from the REPO ROOT, not from sim/<workdir>. The .f files list
+# source paths relative to the repo root, and xrun resolves them against its own
+# cwd -- so cd-ing into sim/<workdir> first (as the xsim leg does, where the
+# paths are rewritten absolute by the sed) made every filelist unresolvable:
+#   xrun: *F,BDARGF: command line argument file 'rtl/core/filelist_core_dsu.f'
+#         could not be opened for reading
+# Outputs are redirected into sim/<workdir> instead of chdir-ing there.
 define run_test
-	@mkdir -p $(SIM_DIR)/$(WORKDIR) && cd $(SIM_DIR)/$(WORKDIR) && \
-	  $(XRUN) -f $(CURDIR)/$(1) -top $(2) -l run.log; \
-	  grep -ihE "FAIL|PASSED|ERROR|Built simulation snapshot" run.log \
+	@mkdir -p $(SIM_DIR)/$(WORKDIR) && \
+	  $(XRUN) -f $(1) -top $(2) \
+	    -xmlibdirname $(SIM_DIR)/$(WORKDIR)/xcelium.d \
+	    -l $(SIM_DIR)/$(WORKDIR)/run.log; \
+	  grep -ihE "FAIL|PASSED|ERROR|Built simulation snapshot" $(SIM_DIR)/$(WORKDIR)/run.log \
 	    || echo "$(WORKDIR): no result line"
 endef
 endif
 
 .PHONY: help check_tools clean elab_core elab_core_dsu \
         test_ex test_ex_dsu test_idex test_exmem test_pipe test_csr test_trap \
-        test_core
+        test_core sw isa_tests test_boot test_c regress regress_wait test_flag2
 
 help:
 	@echo "GARUDA SoC build targets:"
@@ -51,6 +60,13 @@ help:
 	@echo "  make elab_core_dsu   -- elaborate core + REAL DSU (integration)"
 	@echo "  make test_core       -- run every core unit smoke"
 	@echo "  make test_ex_dsu     -- EX smoke against the real DSU"
+	@echo "  make sw              -- build bare-metal tests (boot6, ctest1, dsu_flag2)"
+	@echo "  make isa_tests       -- build riscv-tests rv32ui + rv32um"
+	@echo "  make test_boot       -- 6-instruction boot smoke through tb_boot"
+	@echo "  make test_c          -- first C test (crt0 + stack + .bss + M-ext)"
+	@echo "  make test_flag2      -- DSU FLAG-2 compute->read ordering probe"
+	@echo "  make regress         -- full ISA regression + Spike lockstep"
+	@echo "  make regress_wait    -- same, with AHB wait states injected"
 	@echo "  make clean           -- remove all simulation artifacts"
 	@echo ""
 	@echo "Select simulator with SIM=xrun (default) or SIM=xsim."
@@ -100,3 +116,42 @@ clean:
 	rm -rf INCA_libs *.shm waves.shm .simvision cov_work
 	rm -rf xsim.dir *.jou *.pb *.wdb
 	rm -f *.log *.vcd *.fsdb
+
+# =============================================================================
+# Software + full-pipeline flows
+# =============================================================================
+sw:
+	$(MAKE) -C sw all
+
+isa_tests:
+	$(MAKE) -C sw/riscv-tests all
+
+BOOT_ARGS = -f tb/soc/filelist_boot.f -top tb_boot
+
+test_boot: sw
+	@mkdir -p $(SIM_DIR)/tb_boot
+	@$(XRUN) $(BOOT_ARGS) -xmlibdirname $(SIM_DIR)/tb_boot/xcelium.d \
+	   -l $(SIM_DIR)/tb_boot/run.log \
+	   +HEX=sw/build/boot6.hex +COMMIT=$(SIM_DIR)/tb_boot/commit.log +MAXCYC=2000 \
+	   | grep -E "TOHOST|PASSED|FAILED|TIMEOUT"
+
+test_c: sw
+	@mkdir -p $(SIM_DIR)/tb_boot
+	@$(XRUN) $(BOOT_ARGS) -xmlibdirname $(SIM_DIR)/tb_boot/xcelium.d \
+	   -l $(SIM_DIR)/tb_boot/ctest1.log \
+	   +HEX=sw/build/ctest1.hex +COMMIT=$(SIM_DIR)/tb_boot/ctest1.commit.log \
+	   +MAXCYC=20000 +QUIET | grep -E "TOHOST|PASSED|FAILED|TIMEOUT"
+
+test_flag2: sw
+	@mkdir -p $(SIM_DIR)/tb_boot
+	@$(XRUN) $(BOOT_ARGS) -xmlibdirname $(SIM_DIR)/tb_boot/xcelium.d \
+	   -l $(SIM_DIR)/tb_boot/flag2.log \
+	   +HEX=sw/build/dsu_flag2.hex +COMMIT=$(SIM_DIR)/tb_boot/flag2.commit.log \
+	   +MAXCYC=2000 +DBGACC | grep -E "ACC:|TOHOST|PASSED|FAILED|TIMEOUT" | head -40
+
+regress: isa_tests
+	@./scripts/run_regression.sh
+
+regress_wait: isa_tests
+	@RUNDIR=$(SIM_DIR)/regress_wait EXTRA_ARGS="+IWAIT=2 +DWAIT=3" MAXCYC=400000 \
+	   ./scripts/run_regression.sh
