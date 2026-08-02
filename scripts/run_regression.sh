@@ -20,14 +20,29 @@ set -u
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-export PATH=/home/install/XCELIUM2209/tools/bin:$PATH
-export LM_LICENSE_FILE=${LM_LICENSE_FILE:-5280@192.168.6.16}
-export CDS_LIC_FILE=${CDS_LIC_FILE:-5280@192.168.6.16}
+# One source of truth for tool locations; safe to source repeatedly.
+source "$ROOT/scripts/setup_env.sh" > /dev/null
 
-SPIKE=${SPIKE:-$HOME/external/spike-inst/bin/spike}
 HEXDIR=${HEXDIR:-sw/riscv-tests/build}
 RUNDIR=${RUNDIR:-sim/regress}
 MAXCYC=${MAXCYC:-100000}
+
+# ---------------------------------------------------------------------------
+# Tests where instruction-level lockstep against Spike is NOT APPLICABLE.
+# These are not waivers for failures -- each still has to pass its own TOHOST
+# self-check. They are cases where comparing instruction streams is meaningless
+# by construction:
+#
+#   p-div/divu/rem/remu : GARUDA has no hardware divider (Sec. 7.2). It takes an
+#     illegal-instruction trap and emulates in software, retiring ~100
+#     instructions where Spike's hardware divider retires one. The streams
+#     cannot match and it would be wrong if they did.
+#   p-csr / p-mcsr / p-ma_fetch : misa bit 23 ("X", non-standard extension
+#     present) is set by csr_file.v:85 because of the Custom-0 DSU. Spike knows
+#     nothing about the DSU and reports 0x40001100 where GARUDA correctly
+#     reports 0x40801100. Each of these tests reads misa into a register.
+# ---------------------------------------------------------------------------
+NO_LOCKSTEP=" p-div p-divu p-rem p-remu p-csr p-mcsr p-ma_fetch "
 
 mkdir -p "$RUNDIR"
 
@@ -72,17 +87,19 @@ for t in $TESTS; do
     elif grep -q "FAILED" "$rlog"; then th="FAIL$(grep -oP 'test \K[0-9]+' "$rlog" | head -1)"
     else th="NORESULT"; fi
 
-    if [ -f "$elf" ]; then
+    if [ -z "${NO_LOCKSTEP##* $t *}" ]; then
+        ls_v="n/a"
+    elif [ -f "$elf" ]; then
         ls_out=$(python3 tools/lockstep.py --rtl "$clog" --elf "$elf" \
                     --spike-log "$slog" --spike "$SPIKE" --max 3 2>&1)
         if echo "$ls_out" | grep -q "^MATCH"; then ls_v=MATCH
         else ls_v=DIVERGE; echo "$ls_out" > "$RUNDIR/$t.lockstep.txt"; fi
     else
-        ls_v="-"
+        ls_v="NO-ELF"
     fi
 
     note=""
-    if [ "$th" = "PASS" ] && [ "$ls_v" = "MATCH" ]; then
+    if [ "$th" = "PASS" ] && { [ "$ls_v" = "MATCH" ] || [ "$ls_v" = "n/a" ]; }; then
         pass=$((pass+1))
     else
         fail=$((fail+1)); FAILED="$FAILED $t"

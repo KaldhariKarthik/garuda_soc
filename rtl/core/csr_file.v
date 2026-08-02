@@ -123,9 +123,23 @@ module csr_file (
         csr_rdata_o = rdata;
     end
 
-    // read-only addresses: writing them is illegal
+    // ERRATUM T-2 (found by riscv-tests rv32mi/ma_fetch)
+    // ------------------------------------------------
+    // MISA is NOT a read-only CSR. The privileged spec defines it as WARL: a
+    // write that would select an unsupported extension must be IGNORED, and
+    // the CSR then reads back as whatever the implementation supports. Only
+    // CSRs in the 0xF00-0xFFF range are architecturally read-only (their
+    // top two address bits mark them so).
+    //
+    // Treating MISA as read-only made `csrsi misa,4` - the standard way
+    // software probes for the C extension - raise an illegal instruction.
+    // ma_fetch does exactly that to discover whether misaligned targets are
+    // legal, so a correct probe was answered with a trap.
+    //
+    // MISA is absent from the write-enable decode below, so writes already
+    // have no effect; it only had to stop being reported as illegal.
     wire is_ro = (csr_addr_i==MVENDORID)||(csr_addr_i==MARCHID)||(csr_addr_i==MIMPID)||
-                 (csr_addr_i==MHARTID)||(csr_addr_i==MISA)||(csr_addr_i==MINTSTATUS)||
+                 (csr_addr_i==MHARTID)||(csr_addr_i==MINTSTATUS)||
                  (csr_addr_i==DSU_OVF)||(csr_addr_i==MIP);
     wire access      = csr_en_i && (csr_op_i != 2'b00);
     wire is_write    = access && (csr_op_i == `CSR_RW ||

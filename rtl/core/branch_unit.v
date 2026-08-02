@@ -46,13 +46,20 @@ module branch_unit (
     input  wire [31:0] rs2_fwd,
     // ctrl
     input  wire        branch,          // conditional branch in EX
+    input  wire        jal,             // JAL in EX (target = pc + Jimm)
     input  wire        jalr,            // JALR in EX
     input  wire        predicted_taken, // ID's static prediction for this branch
     // resolution
     output wire        branch_taken,    // resolved direction (valid when branch)
     output wire        mispredict,      // prediction != resolution
     output wire        redirect,        // EX-origin redirect request
-    output wire [31:0] redirect_target
+    output wire [31:0] redirect_target,
+    // ERRATUM T-1: instruction-address-misaligned (cause 0) detection.
+    // Checked HERE rather than off `redirect`, because JAL and predicted-taken
+    // branches redirect from ID (see the note above) and never assert
+    // `redirect` at all - so an EX check hung off the redirect signal misses
+    // exactly the JAL case that rv32mi/ma_fetch exercises.
+    output wire        target_misaligned
 );
 
     //------------------------------------------------------------------
@@ -92,6 +99,12 @@ module branch_unit (
     // JALR always redirects from EX (Section 12.2). A mispredicted branch
     // redirects to the corrected path. jalr and branch are mutually
     // exclusive by decode.
+    // Every taken control transfer, regardless of which stage redirects for it.
+    // GARUDA has no C extension, so any target with bits[1:0] != 0 is illegal.
+    assign target_misaligned = jalr                 ? (jalr_target[1:0]   != 2'b00) :
+                               (jal | branch_taken) ? (branch_target[1:0] != 2'b00) :
+                                                      1'b0;
+
     assign redirect        = jalr | mispredict;
     assign redirect_target = jalr    ? jalr_target
                            : taken_r ? branch_target

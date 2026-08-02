@@ -62,8 +62,32 @@ module pipe_ctrl (
     output wire        ex_mem_flush_o,
     output wire        mem_wb_flush_o        // mem_wb has flush only (terminal-side)
 );
+    // ERRATUM P-2 (found by riscv-tests rv32mi/ma_addr)
+    // -----------------------------------------------
+    // An ID-stage (predicted-taken) redirect is only meaningful if the branch
+    // in ID actually ISSUES into ID/EX this cycle. The redirect flushes IF/ID
+    // on the assumption that the branch has moved on and only its wrongly
+    // fetched shadow is left behind. When ID is held - load-use, DSU busy or
+    // WFI - that assumption is false: the branch is still sitting in IF/ID, and
+    // if_id_flush_o then DESTROYS THE BRANCH ITSELF. It never reaches EX, so it
+    // is never resolved and never retires, and the predicted target stands as
+    // if it had been confirmed.
+    //
+    // Seen in ma_addr as `lb t0,0(t0); beqz t0,fail`: the load-use interlock
+    // holds the beqz in ID, the predictor redirects to `fail` in the same
+    // cycle, the beqz is flushed away, and the core lands in `fail` having
+    // never compared anything. It is timing-sensitive - injecting AHB wait
+    // states shifts the coincidence apart and the test passes - which is
+    // exactly the sort of bug that survives to silicon and reproduces once a
+    // month.
+    //
+    // mem_stall is already handled by the ~mem_stall_i term below; these are
+    // the remaining hold sources that keep ID from issuing.
+    wire id_redir_ok = id_redirect_valid_i &
+                       ~load_use_stall_i & ~dsu_busy_i & ~wfi_hold_i;
+
     // Redirect selection (priority trap > ex > id), gated by ~mem_stall.
-    wire redir_raw   = trap_redirect_valid_i | ex_redirect_i | id_redirect_valid_i;
+    wire redir_raw   = trap_redirect_valid_i | ex_redirect_i | id_redir_ok;
     wire redirect    = redir_raw & ~mem_stall_i;
     wire redir_2b    = (trap_redirect_valid_i | ex_redirect_i) & ~mem_stall_i; // 2-bubble
 

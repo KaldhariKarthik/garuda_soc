@@ -97,6 +97,7 @@ module garuda_core_top #(
     wire ex_reg_write_out, ex_mem_read_out, ex_mem_write_out, ex_mem_to_reg_out;
     wire ex_redirect; wire [31:0] ex_redirect_target; wire ex_branch_mispredict;
     wire ex_load_mis, ex_store_mis, ex_dsu_illegal, ex_dsu_busy, ex_dsu_overflow;
+    wire ex_fetch_mis;                    // cause 0, ERRATUM T-1
     // EX/MEM outputs
     wire [31:0] em_result, em_store, em_pc; wire [2:0] em_funct3; wire [4:0] em_rd;
     wire em_mem_read, em_mem_write, em_mem_to_reg, em_reg_write, em_valid;
@@ -205,7 +206,7 @@ module garuda_core_top #(
         .csr_rdata(csr_rdata), .csr_clear_overflow(csr_clear_ovf), .ex_squash(tr_ex_squash),
         .csr_addr(ex_csr_addr_w), .csr_wdata(ex_csr_wdata), .csr_op_out(ex_csr_op_out), .csr_en_out(ex_csr_en_out),
         .ex_result(ex_result), .store_data(ex_store_data),
-        .rs1_fwd_o(ex_rs1_fwd), .rs2_fwd_o(ex_rs2_fwd), .rd_out(ex_rd_out),
+        .rs1_fwd_o(ex_rs1_fwd), .rs2_fwd_o(ex_rs2_fwd), .fetch_misaligned(ex_fetch_mis), .rd_out(ex_rd_out),
         .reg_write_out(ex_reg_write_out), .mem_read_out(ex_mem_read_out),
         .mem_write_out(ex_mem_write_out), .mem_to_reg_out(ex_mem_to_reg_out),
         .ex_redirect(ex_redirect), .ex_redirect_target(ex_redirect_target),
@@ -282,6 +283,7 @@ module garuda_core_top #(
         .idex_illegal_dec_i(xe_illegal), .idex_is_system_i(xe_is_system),
         .ex_dsu_illegal_i(ex_dsu_illegal), .ex_csr_illegal_i(csr_illegal),
         .ex_load_misalign_i(ex_load_mis), .ex_store_misalign_i(ex_store_mis), .ex_addr_i(ex_result),
+        .ex_fetch_misalign_i(ex_fetch_mis), .ex_fetch_target_i(ex_redirect_target),
         .mem_exc_valid_i(mem_exc_v), .mem_exc_cause_i(mem_exc_cause),
         .mem_exc_pc_i(mem_exc_pc), .mem_exc_tval_i(mem_exc_tval),
         .clic_take_cond_i(clic_take_cond), .clic_wake_cond_i(clic_wake_cond),

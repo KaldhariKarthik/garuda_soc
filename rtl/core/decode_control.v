@@ -170,8 +170,19 @@ module decode_control (
                     3'b100: alu_op_o = `ALU_XOR;                                  // XORI
                     3'b110: alu_op_o = `ALU_OR;                                   // ORI
                     3'b111: alu_op_o = `ALU_AND;                                  // ANDI
-                    3'b001: alu_op_o = `ALU_SLL;                                  // SLLI
-                    3'b101: alu_op_o = funct7[5] ? `ALU_SRA : `ALU_SRL;           // SRAI/SRLI
+                    // ERRATUM C-1 (found by riscv-tests rv32mi/shamt)
+                    // The shift-immediate forms carry the shift amount in
+                    // instr[24:20] and RV32 requires instr[31:25] to be exactly
+                    // 0000000 (SLLI/SRLI) or 0100000 (SRAI). Previously only
+                    // funct7[5] was examined and the remaining six bits were
+                    // ignored, so `slli x1,x1,32` - encoded with instr[25] set -
+                    // executed as a shift by 0 instead of raising an illegal
+                    // instruction. Spike traps it; GARUDA did not.
+                    3'b001: if (funct7 == 7'b0000000) alu_op_o = `ALU_SLL;        // SLLI
+                            else                      illegal_instr_o = 1'b1;
+                    3'b101: if (funct7 == 7'b0000000) alu_op_o = `ALU_SRL;        // SRLI
+                            else if (funct7 == 7'b0100000) alu_op_o = `ALU_SRA;   // SRAI
+                            else                      illegal_instr_o = 1'b1;
                     default: illegal_instr_o = 1'b1;
                 endcase
             end

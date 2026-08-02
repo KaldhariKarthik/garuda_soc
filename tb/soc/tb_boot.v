@@ -40,6 +40,7 @@ module tb_boot;
     reg [1023:0] hexfile;
     reg [1023:0] commitfile;
     integer      maxcyc, maxinstr, iwait, dwait;
+    integer      dbgfrom, dbgto;
     reg [31:0]   tohost_addr;
     reg          quiet;
 
@@ -189,6 +190,8 @@ module tb_boot;
         cyc = 0; ninstr = 0; exit_code = 0;
         if (!$value$plusargs("MAXCYC=%d", maxcyc))     maxcyc   = 200000;
         if (!$value$plusargs("MAXINSTR=%d", maxinstr)) maxinstr = 0;
+        if (!$value$plusargs("DBGFROM=%d", dbgfrom))   dbgfrom  = 0;
+        if (!$value$plusargs("DBGTO=%d", dbgto))       dbgto    = 60;
         if (!$value$plusargs("IWAIT=%d", iwait))       iwait    = 0;
         if (!$value$plusargs("DWAIT=%d", dwait))       dwait    = 0;
         if (!$value$plusargs("TOHOST=%h", tohost_addr))tohost_addr = 32'h1000_F000;
@@ -225,7 +228,7 @@ module tb_boot;
     // the TB (not deleted after first bring-up) because every future "core
     // fetches nothing" failure starts by looking at exactly these signals.
     always @(posedge clk) begin
-        if (rst_n && $test$plusargs("DBGBUS") && cyc < 60) begin
+        if (rst_n && $test$plusargs("DBGBUS") && cyc >= dbgfrom && cyc < dbgto) begin
             $display("c%0d ITRANS=%b IADDR=%08x IRD=%08x IRDY=%b | ifv=%b ifpc=%08x | fdv=%b fdpc=%08x | idv=%b xev=%b emv=%b ret=%b | ifstall=%b redir=%b",
                      cyc, i_htrans, i_haddr, i_hrdata, i_hready,
                      dut.if_valid, dut.if_pc, dut.fd_valid, dut.fd_pc,
@@ -242,18 +245,25 @@ module tb_boot;
                 $display("c%0d DDATA: addr=%08x wr=%b wdata=%08x rdata=%08x",
                          cyc, u_mem.b_da, u_mem.b_dw, d_hwdata, d_hrdata);
         end
-        if (rst_n && $test$plusargs("DBGACC") && cyc < 45) begin
+        if (rst_n && $test$plusargs("DBGACC") && cyc >= dbgfrom && cyc < dbgto) begin
             $display("c%0d ACC: acc0=%012x acc1=%012x | xe_pc=%08x dsu_en=%b dsu_busy=%b idex_s=%b",
                      cyc, dbg_acc0, dbg_acc1, dut.xe_pc, dut.xe_dsu_en,
                      dut.ex_dsu_busy, dut.pc_idex_s);
         end
-        if (rst_n && $test$plusargs("DBGM") && cyc < 40) begin
+        if (rst_n && $test$plusargs("DBGEX") && cyc >= dbgfrom && cyc < dbgto) begin
+            $display("c%0d EX: xe_pc=%08x xe_v=%b br=%b | loaduse=%b idex_s=%b idex_f=%b | exredir=%b tgt=%08x | fwd_a=%b rs1=%08x memstall=%b",
+                     cyc, dut.xe_pc, dut.xe_valid, dut.xe_branch,
+                     dut.id_load_use, dut.pc_idex_s, dut.pc_idex_f,
+                     dut.ex_redirect, dut.ex_redirect_target,
+                     dut.fwd_a_sel, dut.xe_rs1, dut.mem_stall);
+        end
+        if (rst_n && $test$plusargs("DBGM") && cyc >= dbgfrom && cyc < dbgto) begin
             $display("c%0d MEM: em_pc=%08x em_v=%b memrd=%b memwr=%b | dstate=%d start=%b hready=%b memstall=%b | mwb_f=%b mw_ret=%b mw_rd=%02d mw_data=%08x",
                      cyc, dut.em_pc, dut.em_valid, dut.em_mem_read, dut.em_mem_write,
                      dut.u_mem.u_d_port_ahb_master.state, dut.u_mem.u_d_port_ahb_master.start_i, d_hready,
                      dut.mem_stall, dut.pc_mwb_f, dut.mw_retire, dut.mw_rd, dut.mw_data);
         end
-        if (rst_n && $test$plusargs("DBGTRAP") && cyc < 60) begin
+        if (rst_n && $test$plusargs("DBGTRAP") && cyc >= dbgfrom && cyc < dbgto) begin
             $display("c%0d TRAP: enter=%b cause=%08x tpc=%08x redir=%b tgt=%08x | id_ill=%b xe_ill=%b dsu_ill=%b dsu_busy=%b lmis=%b smis=%b memexc=%b | exredir=%b extgt=%08x",
                      cyc, dut.tr_enter, dut.tr_cause, dut.tr_pc, dut.tr_redir_v, dut.tr_redir_t,
                      dut.id_illegal, dut.xe_illegal, dut.ex_dsu_illegal, dut.ex_dsu_busy,

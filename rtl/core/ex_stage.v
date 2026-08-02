@@ -143,6 +143,11 @@ module ex_stage (
     //------------------------------------------------------------------
     output wire        ex_redirect,
     output wire [31:0] ex_redirect_target,
+    // ERRATUM T-1: a taken control transfer to a non-4-byte-aligned target
+    // must raise instruction-address-misaligned (cause 0). GARUDA has no C
+    // extension, so every instruction address is required to be 4-byte
+    // aligned. See trap_ctrl.v.
+    output wire        fetch_misaligned,
     output wire        branch_mispredict, // for perf counters / hazard
 
     //------------------------------------------------------------------
@@ -194,6 +199,9 @@ module ex_stage (
     // (Section 9.5: DSU operands ride the same EX forwarding paths).
     assign store_data = rs2_fwd;
 
+    // Reported on the branch/jump itself, not on the target instruction
+    // (RISC-V priv spec: "reported on the branch or jump that caused the
+    // misaligned instruction address"). mtval is the offending target.
     assign rs1_fwd_o = rs1_fwd;
     assign rs2_fwd_o = rs2_fwd;
 
@@ -231,12 +239,14 @@ module ex_stage (
         .rs1_fwd         (rs1_fwd),
         .rs2_fwd         (rs2_fwd),
         .branch          (branch),
+        .jal             (jal),
         .jalr            (jalr),
         .predicted_taken (predicted_taken),
         .branch_taken    (),                 // available for BTB later; unused
         .mispredict      (branch_mispredict),
         .redirect        (ex_redirect),
-        .redirect_target (ex_redirect_target)
+        .redirect_target (ex_redirect_target),
+        .target_misaligned (fetch_misaligned)
     );
 
     //==================================================================

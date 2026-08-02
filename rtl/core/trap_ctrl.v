@@ -43,6 +43,8 @@ module trap_ctrl #(
     input  wire        ex_load_misalign_i,    // cause 4
     input  wire        ex_store_misalign_i,   // cause 6
     input  wire [31:0] ex_addr_i,             // mtval for 4/6 (= ex_result)
+    input  wire        ex_fetch_misalign_i,   // cause 0 (ERRATUM T-1)
+    input  wire [31:0] ex_fetch_target_i,     // mtval for cause 0
 
     // ---- MEM-point (mem_stage) ----
     input  wire        mem_exc_valid_i,
@@ -99,10 +101,19 @@ module trap_ctrl #(
     wire e4  = ex_load_misalign_i;
     wire e6  = ex_store_misalign_i;
     wire e11 = is_ecall;
-    wire ex_exc = e1|e2|e3|e4|e6|e11;
-    wire [3:0]  ex_cause = e1?4'd1 : e2?4'd2 : e3?4'd3 : e4?4'd4 : e6?4'd6 : 4'd11;
-    wire [31:0] ex_tval  = e1?idex_pc_i : e2?idex_instr_i : e3?idex_pc_i :
-                           (e4|e6)?ex_addr_i : 32'd0;
+    // ERRATUM T-1 (found by riscv-tests rv32mi/ma_fetch): cause 0,
+    // instruction address misaligned, was not implemented at all. Without the
+    // C extension every instruction address must be 4-byte aligned, so a
+    // taken branch/JAL/JALR to a target with bits[1:0] != 0 is required to
+    // trap. GARUDA previously redirected fetch to the misaligned address and
+    // carried on. Ranked below the instruction-access fault and the illegal
+    // instruction, neither of which can co-occur with a taken jump.
+    wire e0  = ex_fetch_misalign_i;
+    wire ex_exc = e0|e1|e2|e3|e4|e6|e11;
+    wire [3:0]  ex_cause = e1?4'd1 : e2?4'd2 : e0?4'd0 : e3?4'd3 :
+                           e4?4'd4 : e6?4'd6 : 4'd11;
+    wire [31:0] ex_tval  = e1?idex_pc_i : e2?idex_instr_i : e0?ex_fetch_target_i :
+                           e3?idex_pc_i : (e4|e6)?ex_addr_i : 32'd0;
 
     // WFI drain-stall hold
     reg wfi_active;
@@ -147,7 +158,24 @@ module trap_ctrl #(
     assign trap_tval_o  = any_int         ? 32'd0 :
                           mem_exc_valid_i ? mem_exc_tval_i : ex_tval;
 
-    wire [31:0] mtvec_base = {mtvec_i[31:6], 6'b0};
+    // ERRATUM T-3 (found by riscv-tests rv32mi/breakpoint)
+    // -----------------------------------------------------
+    // mtvec BASE was masked to a 64-BYTE boundary ({mtvec_i[31:6], 6'b0}).
+    // The privileged spec requires only 4-byte alignment for mtvec BASE; the
+    // 64-byte requirement belongs to mtvt (the CLIC vector table), which this
+    // design already has as a separate CSR. So the extra masking bought
+    // nothing and silently moved every handler backwards to the previous
+    // 64-byte boundary.
+    //
+    // Software that sets mtvec to any 4-byte aligned address - which is all
+    // standard M-mode software - had its trap handler relocated underneath it.
+    // breakpoint.S sets mtvec=0x100003d8, GARUDA vectored to 0x100003c0, and
+    // the core looped forever re-executing the setup code and re-trapping.
+    //
+    // This also removes a trap for every future firmware author: it is why the
+    // GARUDA riscv-tests p-env has to force `.align 6` on its trap vector.
+    // That alignment is now belt-and-braces rather than load-bearing.
+    wire [31:0] mtvec_base = {mtvec_i[31:2], 2'b0};
 
     // Redirect: trap -> vector/base ; MRET -> mepc
     assign trap_redirect_valid_o  = trap_now | is_mret;

@@ -12,6 +12,10 @@ module tb_trap_ctrl;
     .idex_pc_i(idpc),.idex_instr_i(idinstr),.idex_fault_i(idflt),
     .idex_illegal_dec_i(idill),.idex_is_system_i(idsys),.ex_dsu_illegal_i(dsuill),
     .ex_csr_illegal_i(csrill),.ex_load_misalign_i(ldm),.ex_store_misalign_i(stm),.ex_addr_i(exaddr),
+    // ERRATUM T-1 added cause 0 (instruction address misaligned). Tied off
+    // here: this TB predates it and exercises no control transfers. Left
+    // undriven the inputs float and poison the whole cause mux with x.
+    .ex_fetch_misalign_i(1'b0),.ex_fetch_target_i(32'd0),
     .mem_exc_valid_i(memv),.mem_exc_cause_i(memc),.mem_exc_pc_i(mpc),.mem_exc_tval_i(mtval),
     .clic_take_cond_i(tkcond),.clic_wake_cond_i(wkcond),.clic_irq_id_i(irqid),
     .clic_irq_lvl_i(irqlvl),.clic_vector_target_i(vectgt),.clic_take_o(tk_ack),

@@ -31,7 +31,7 @@ BUILD   = build
 COMMON  = common/crt0.S
 
 CTESTS  = ctest1
-ATESTS  = boot6 dsu_flag2
+ATESTS  = boot6 dsu_flag2 t_loadbranch
 
 ALL     = $(addprefix $(BUILD)/,$(addsuffix .hex,$(CTESTS) $(ATESTS)))
 
@@ -50,6 +50,9 @@ $(BUILD)/boot6.elf: tests/boot6.S common/link.ld | $(BUILD)
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
 
 $(BUILD)/dsu_flag2.elf: tests/dsu_flag2.S common/link.ld | $(BUILD)
+	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
+
+$(BUILD)/t_loadbranch.elf: tests/t_loadbranch.S common/link.ld | $(BUILD)
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
 
 $(BUILD)/%.bin: $(BUILD)/%.elf

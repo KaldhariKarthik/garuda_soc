@@ -112,7 +112,10 @@ def main():
     ap.add_argument("--elf", help="ELF to run spike on (generates the log)")
     ap.add_argument("--spike", default=os.path.expanduser(
         "~/external/spike-inst/bin/spike"))
-    ap.add_argument("--isa", default="rv32im")
+    # Zicsr must be explicit: spike's --isa=rv32im does NOT imply it, so every
+    # CSR instruction decodes as illegal in the golden model and the whole trap
+    # suite "diverges" against a core that is behaving correctly.
+    ap.add_argument("--isa", default="rv32im_zicsr")
     ap.add_argument("--base", default="0x10000000")
     ap.add_argument("--size", default="0x40000")
     ap.add_argument("--max", type=int, default=5, help="divergences to print")
@@ -126,6 +129,12 @@ def main():
         cmd = [args.spike, f"--isa={args.isa}",
                f"-m{args.base}:{args.size}",
                "--disable-dtb",              # spike's NS16550 sits at 0x10000000
+               # GARUDA implements M-mode ONLY. Spike defaults to MSU, so the
+               # env's `csrwi mstatus,0` (MPP=0) + `mret` drops it to U-mode and
+               # every M-mode CSR access then traps as illegal -- against a core
+               # that never left M-mode. Without this the whole trap suite
+               # "diverges" on correct RTL.
+               "--priv=m",
                f"--pc={args.base}",          # no boot ROM without the dtb
                "--log-commits", "-l", args.elf]
         with open(spike_log, "w") as f:
