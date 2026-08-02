@@ -1,0 +1,7 @@
+decode 29.2140
+alu 34.0909
+ldst 22.0000
+hazard 56.9444
+trap 0.0000
+ahb 62.5000
+dsu 0.0000

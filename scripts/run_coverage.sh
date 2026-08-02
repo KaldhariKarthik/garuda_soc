@@ -1,70 +1,81 @@
 #!/usr/bin/env bash
 # =============================================================================
-# GARUDA coverage run.
+# GARUDA coverage: collect with Incisive, merge and report with IMC.
 #
-# TOOLING STATUS -- READ THIS BEFORE TRUSTING ANY NUMBER BELOW
-# ------------------------------------------------------------
-# CODE coverage (statement / branch / toggle) is INSTRUMENTED AND COLLECTED
-# here, but it CANNOT BE REPORTED on this machine. `xrun -coverage all` writes
-# a valid Xcelium 22.09 database, and the only IMC installed is Incisive 15.20,
-# which rejects it:
+# WHY IRUN AND NOT XRUN
+# ---------------------
+# The regression runs on Xcelium 22.09, but IMC on this machine is Incisive
+# 15.20 and cannot read an Xcelium 22.09 coverage database:
 #     *E,DBERR: Error loading database file ... serialization exception
-# Xcelium 22.09 ships no IMC of its own - only launch_rmi_imc.sh, a launcher
-# for a separate install. Nothing in this script can work around that; it needs
-# an IMC or vManager matching the simulator. The databases under
-# $COVDIR/cov_work are correct and will report the moment one is available.
+# There is no format-downgrade option in xrun, and no newer IMC installed. The
+# fix is to move the WRITER back rather than the reader forward: irun 15.20 is
+# installed, matches IMC's vintage, and the design builds and runs under it
+# unchanged.
 #
-# FUNCTIONAL coverage does not depend on IMC: the bound covergroups in
-# tb/cov/garuda_cov.sv report their own numbers at end of simulation, so those
-# figures are real today.
+# So there are deliberately two flows, and that is a feature rather than a
+# workaround:
+#   xrun (Xcelium 22.09) - the regression. Fast, and where every bug so far was
+#                          found. Correctness signoff.
+#   irun (Incisive 15.20) - coverage collection only. Metrics signoff.
+# Both consume the SAME filelists, so a test covered here is the same test that
+# passes there. Functional coverage numbers have been cross-checked between the
+# two simulators and agree exactly, which is a useful independent check on the
+# covergroups themselves.
 #
-# ON MERGING: each test is a separate simulation, so its covergroups start
-# empty. Without IMC there is no bin-level merge, and percentages from
-# different runs cannot legitimately be averaged. The aggregate printed here is
-# therefore the MAXIMUM per group across the suite, which is a true LOWER BOUND
-# on merged coverage - never an overstatement. A real merged number needs IMC.
+# WHAT GETS MEASURED
+#   code       - statement / branch / toggle, per module, from -coverage all
+#   functional - the seven bound covergroups in tb/cov/garuda_cov.sv
+# IMC's `report -summary` does NOT roll covergroups into its Functional column;
+# use `report -detail -metrics covergroup`, which this script does.
 #
 # Usage: scripts/run_coverage.sh [test ...]
 # =============================================================================
 set -u
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+
+# Incisive for collection; the shared env still supplies the licence and RISC-V
+# paths. Deliberately NOT scripts/setup_env.sh's Xcelium PATH order.
 source "$ROOT/scripts/setup_env.sh" > /dev/null
+export PATH=/home/install/INCISIVE152/tools/bin:$PATH
+IMC=${IMC:-/home/install/INCISIVE152/bin/imc}
 
 COVDIR=${COVDIR:-sim/cov}
 HEXDIR=${HEXDIR:-sw/riscv-tests/build}
 SWDIR=${SWDIR:-sw/build}
 MAXCYC=${MAXCYC:-200000}
-mkdir -p "$COVDIR/reports"
+rm -rf "$COVDIR"; mkdir -p "$COVDIR/reports"
 
-echo "elaborating with coverage instrumentation..."
-xrun -f tb/soc/filelist_boot_cov.f -top tb_boot \
-     -coverage all -covoverwrite -covworkdir "$COVDIR/cov_work" \
-     -covdut garuda_core_top \
-     -xmlibdirname "$COVDIR/xcelium.d" -snapshot gcov \
-     -l "$COVDIR/elab.log" -elaborate > /dev/null 2>&1
-if grep -qE "^xrun: \*[EF]|^xmelab: \*[EF]" "$COVDIR/elab.log"; then
+# ---------------------------------------------------------------------------
+# 1. elaborate once
+# ---------------------------------------------------------------------------
+echo "elaborating (irun, coverage instrumented)..."
+irun -f tb/soc/filelist_boot_cov.f -top tb_boot \
+     -coverage all -cov_cgsample -covoverwrite \
+     -covworkdir "$COVDIR/cov_work" -nclibdirname "$COVDIR/INCA_libs" \
+     -snapshot gcov -elaborate -l "$COVDIR/elab.log" > /dev/null 2>&1
+if grep -qE "^irun: \*[EF]|^ncelab: \*[EF]" "$COVDIR/elab.log"; then
     echo "ELABORATION FAILED - see $COVDIR/elab.log"
-    grep -E "^xrun: \*[EF]|^xmelab: \*[EF]" "$COVDIR/elab.log" | head; exit 1
+    grep -E "\*[EF]," "$COVDIR/elab.log" | head; exit 1
 fi
 
+# ---------------------------------------------------------------------------
+# 2. run every test into its own coverage scope
+# ---------------------------------------------------------------------------
 if [ $# -gt 0 ]; then TESTS="$*"
 else
     TESTS=$(ls "$HEXDIR"/*.hex 2>/dev/null | xargs -n1 basename | sed 's/\.hex$//')
-    TESTS="$TESTS ctest1 t_dsu t_irq t_wfi t_buserr t_flush t_loadbranch dsu_flag2"
+    TESTS="$TESTS ctest1 boot6 dsu_flag2 t_dsu t_irq t_wfi t_buserr t_flush t_loadbranch t_mem"
 fi
 
-printf "\n%-16s %7s %7s %7s %7s %7s %7s %7s\n" TEST DECODE ALU LDST HAZARD TRAP AHB DSU
-printf -- "--------------------------------------------------------------------------\n"
-
-declare -A MAXV
-for g in decode alu ldst hazard trap ahb dsu; do MAXV[$g]=0; done
-
+ran=""
+printf "\n%-18s %s\n" TEST RESULT
+printf -- "----------------------------------------\n"
 for t in $TESTS; do
     hex="$HEXDIR/$t.hex"; [ -f "$hex" ] || hex="$SWDIR/$t.hex"
     [ -f "$hex" ] || continue
 
-    # conditions some directed tests need in order to reach their coverage
+    # conditions some directed tests need to reach their coverage at all
     extra=""
     case "$t" in
       t_buserr) extra="+ERR_EN=1 +ERR_BASE=10020000 +ERR_SIZE=1000" ;;
@@ -73,30 +84,83 @@ for t in $TESTS; do
       t_flush)  extra="+IWAIT=3 +IRAND=1 +SEED=7" ;;
     esac
 
-    rm -f "$COVDIR/reports/$t.txt"
-    xrun -R -xmlibdirname "$COVDIR/xcelium.d" -snapshot gcov \
+    irun -R -snapshot gcov -nclibdirname "$COVDIR/INCA_libs" \
          -covworkdir "$COVDIR/cov_work" -covtest "$t" -covoverwrite \
          -l "$COVDIR/$t.log" +HEX="$hex" +COMMIT="$COVDIR/$t.commit.log" \
          +MAXCYC="$MAXCYC" +QUIET +COVTAG="$COVDIR/reports/$t" $extra > /dev/null 2>&1
 
-    f="$COVDIR/reports/$t.txt"
-    [ -f "$f" ] || { printf "%-16s %s\n" "$t" "(no coverage output)"; continue; }
-
-    line=$(printf "%-16s" "$t")
-    for g in decode alu ldst hazard trap ahb dsu; do
-        v=$(awk -v k="$g" '$1==k{printf "%.2f", $2}' "$f")
-        [ -z "$v" ] && v=0
-        line="$line $(printf '%7s' "$v")"
-        awk -v a="$v" -v b="${MAXV[$g]}" 'BEGIN{exit !(a>b)}' && MAXV[$g]=$v
-    done
-    echo "$line"
+    if grep -q "TOHOST=1 -> PASSED" "$COVDIR/$t.log"; then r=PASS
+    elif grep -q "TIMEOUT" "$COVDIR/$t.log"; then r=TIMEOUT
+    else r=FAIL; fi
+    printf "%-18s %s\n" "$t" "$r"
+    [ -d "$COVDIR/cov_work/scope/$t" ] && ran="$ran $COVDIR/cov_work/scope/$t"
 done
 
-printf -- "--------------------------------------------------------------------------\n"
-printf "%-16s" "MAX (lower bound)"
-for g in decode alu ldst hazard trap ahb dsu; do printf " %7s" "${MAXV[$g]}"; done
+# ---------------------------------------------------------------------------
+# 2b. unit-level databases
+# ---------------------------------------------------------------------------
+# tb_boot exercises the DSU with only a handful of instructions, so the DSU's
+# internals (CSA tree, Kogge-Stone adder, multipliers, shifter) read near zero
+# from the system level alone. Their real coverage comes from tb_dsu_top's
+# randomised sweep and from the per-block unit TBs. Those are different TOP
+# modules but the same design modules, so IMC merges them into one view - which
+# is the whole reason the verification plan asks for a merged number rather
+# than a system-level one.
+if [ $# -eq 0 ]; then
+    mkdir -p "$COVDIR/unit_libs"
+
+    echo; echo "collecting unit-level coverage..."
+    python3 tools/gen/DSU_gen.py --count "${DSU_TESTS:-600}" --seed "${DSU_SEED:-1}" \
+            --outdir "$COVDIR/dsu" > /dev/null 2>&1
+    irun -64bit -f tb/dsu/filelist_dsu_top.f -top tb_dsu_top \
+         -coverage all -cov_cgsample -covoverwrite \
+         -covworkdir "$COVDIR/cov_work" -covtest dsu_unit \
+         -nclibdirname "$COVDIR/unit_libs" -l "$COVDIR/dsu_unit.log" \
+         +STIM="$COVDIR/dsu/dsu_stim.mem" +EXP="$COVDIR/dsu/dsu_expected.mem" > /dev/null 2>&1
+    if grep -q "RESULT         : PASSED" "$COVDIR/dsu_unit.log"; then
+        printf "%-18s %s\n" "dsu_unit" "PASS"
+        ran="$ran $COVDIR/cov_work/scope/dsu_unit"
+    else
+        printf "%-18s %s\n" "dsu_unit" "FAIL"
+    fi
+
+    # the six constrained-random block TBs (top module is tb_top)
+    for u in decode_control imm_gen reg_file branch_predict hazard_forward_unit id_stage; do
+        irun -64bit -f "tb/core/filelist_$u.f" -top tb_top \
+             -coverage all -cov_cgsample -covoverwrite \
+             -covworkdir "$COVDIR/cov_work" -covtest "unit_$u" \
+             -nclibdirname "$COVDIR/unit_libs" -l "$COVDIR/unit_$u.log" > /dev/null 2>&1
+        f=$(grep -c "\[FAIL\]" "$COVDIR/unit_$u.log" 2>/dev/null)
+        printf "%-18s %s\n" "unit_$u" "$([ "$f" = 0 ] && echo PASS || echo "FAIL($f)")"
+        [ -d "$COVDIR/cov_work/scope/unit_$u" ] && ran="$ran $COVDIR/cov_work/scope/unit_$u"
+    done
+fi
+
+[ -z "$ran" ] && { echo "no coverage scopes produced"; exit 1; }
+
+# ---------------------------------------------------------------------------
+# 3. merge every run and report
+# ---------------------------------------------------------------------------
+# Merging is the whole point of having IMC: each test is a separate simulation
+# starting with empty covergroups, so without a bin-level merge the only honest
+# aggregate is a per-group maximum. Merged, these are real totals.
+echo; echo "merging $(echo $ran | wc -w) runs..."
+{
+  echo "merge $ran -out $COVDIR/cov_work/merged -overwrite"
+  echo "load -run $COVDIR/cov_work/merged"
+  echo "report -summary -out $COVDIR/summary.txt"
+  echo "report -detail -metrics covergroup -out $COVDIR/functional.txt"
+  echo "report -detail -out $COVDIR/detail.txt"
+  echo "exit"
+} > "$COVDIR/merge.tcl"
+
+"$IMC" -exec "$COVDIR/merge.tcl" 2>&1 | grep -E "\*E,|\*F,|MERGE" | head -5
+
 echo
+echo "================= MERGED COVERAGE ================="
+awk 'NR<=4' "$COVDIR/summary.txt" 2>/dev/null | cut -c1-118
 echo
-echo "NOTE: code coverage collected into $COVDIR/cov_work but NOT reportable --"
-echo "      Incisive 15.20 imc cannot read an Xcelium 22.09 database."
-echo "      Functional numbers above are real; the aggregate is a lower bound."
+echo "----------------- functional (covergroups) -----------------"
+grep -E "^u_cg_" "$COVDIR/functional.txt" 2>/dev/null | awk '{printf "  %-16s %s %s\n",$1,$2,$3}'
+echo
+echo "reports: $COVDIR/summary.txt  $COVDIR/functional.txt  $COVDIR/detail.txt"
