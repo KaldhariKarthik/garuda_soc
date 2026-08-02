@@ -76,6 +76,7 @@ module decode_control (
     localparam [6:0] OP_REG     = 7'b0110011;
     localparam [6:0] OP_SYSTEM  = 7'b1110011;
     localparam [6:0] OP_CUSTOM0 = 7'b0001011;
+    localparam [6:0] OP_MISC_MEM= 7'b0001111;   // FENCE / FENCE.I (ERRATUM C-2)
 
     // M-extension sub-decode (OP major opcode, funct7 = 0000001)
     wire is_muldiv;
@@ -223,6 +224,31 @@ module decode_control (
                 end
                 // funct3 == 000: ECALL/EBREAK/MRET/WFI - discriminated in EX/CONTROL
                 // from instr[31:20]; no ID-stage regfile/ALU side effects here.
+            end
+
+            // ERRATUM C-2 (found while porting riscv-tests)
+            // ------------------------------------------------
+            // OP_MISC_MEM had no case at all, so FENCE fell through to the
+            // `default` below and raised illegal_instr. RV32I permits FENCE to
+            // be implemented as a no-op but does NOT permit it to trap, so any
+            // conforming code that fences - including the upstream riscv-tests
+            // RVTEST_PASS macro - took an illegal-instruction trap on a core
+            // that is otherwise executing it correctly.
+            //
+            // FENCE (funct3=000) is a no-op here: GARUDA has a single hart and
+            // no store buffer or cache, so there is nothing to order.
+            //
+            // FENCE.I (funct3=001) is deliberately LEFT ILLEGAL. It is the
+            // Zifencei extension, which misa does not advertise, and making it
+            // a no-op would be WRONG rather than conservative: the prefetch
+            // buffer holds already-fetched instructions and has no flush path,
+            // so self-modifying code would silently execute stale words. It
+            // needs a real prefetch-buffer flush before it can be claimed -
+            // that is a design decision, not a decode fix, and it is why
+            // riscv-tests fence_i stays excluded.
+            OP_MISC_MEM: begin
+                if (funct3 != 3'b000) illegal_instr_o = 1'b1;   // FENCE.I etc.
+                // FENCE: no register write, no memory op, no side effects.
             end
 
             OP_CUSTOM0: begin

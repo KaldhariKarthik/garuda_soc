@@ -59,3 +59,8 @@ genus.log
 sw/build/
 sw/riscv-tests/build/
 *.spike.log
+
+# stray tool artifacts
+imc.key
+__pycache__/
+*.pyc

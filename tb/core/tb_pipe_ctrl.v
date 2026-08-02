@@ -35,11 +35,14 @@ module tb_pipe_ctrl;
     //                                     ifS ifR ifidS ifidF idexS idexF exmS exmF mwbF
     #1 chk("idle",                    9'b0_0_0_0_0_0_0_0_0);
     load_use=1; #1 chk("load_use",    9'b1_0_1_0_0_1_0_0_0); load_use=0;
-    dsu_busy=1; #1 chk("dsu_busy",    9'b1_0_1_0_1_0_0_0_0); dsu_busy=0;
+    // ERRATUM P-3: a stall at ID/EX must bubble EX/MEM, so exmem_f is now 1.
+    // Previously EX/MEM kept latching the parked instruction's EX outputs and
+    // re-committed it once per held cycle (t_dsu / t_wfi caught this).
+    dsu_busy=1; #1 chk("dsu_busy",    9'b1_0_1_0_1_0_0_1_0); dsu_busy=0;
     // WFI (Sec.14.5) is drain-precise: holds PC, IF/ID AND ID/EX so the WFI
     // parks in EX and the younger instr stays in ID, while EX/MEM stays free
     // to let everything older than the WFI drain out.
-    wfi_hold=1; #1 chk("wfi_hold",    9'b1_0_1_0_1_0_0_0_0); wfi_hold=0;
+    wfi_hold=1; #1 chk("wfi_hold",    9'b1_0_1_0_1_0_0_1_0); wfi_hold=0;   // ERRATUM P-3
     mem_stall=1;#1 chk("dport_wait",  9'b1_0_1_0_1_0_1_0_1); mem_stall=0;
     idv=1;      #1 chk("id_redir_1b", 9'b0_1_0_1_0_0_0_0_0); chkpc("id_redir",32'h1111); idv=0;
     exr=1;      #1 chk("ex_redir_2b", 9'b0_1_0_1_0_1_0_0_0); chkpc("ex_redir",32'h2222);

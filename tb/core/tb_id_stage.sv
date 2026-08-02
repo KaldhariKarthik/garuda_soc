@@ -79,6 +79,19 @@
 // -------------------------------------------------------------
 
 // ---- Sub-block 1/5: Decode / Control --------------------------------------
+`ifndef GARUDA_REAL_RTL
+// -----------------------------------------------------------------------------
+// INLINED DUT COPY -- guarded (added 2026-08-02).
+//
+// This file carries its own copy of the DUT so it can be compiled standalone
+// under VCS. That copy is a SNAPSHOT and had already drifted from rtl/core/*.v
+// (it predates the SLLI/SRLI/SRAI funct7 check and the FENCE decode), so a
+// green run against it proves nothing about the RTL that actually ships.
+//
+// Defining GARUDA_REAL_RTL skips this copy so the testbench binds to the real
+// rtl/core sources -- that is what tb/core/filelist_*.f does. Compiling this
+// file standalone with no define behaves exactly as before.
+// -----------------------------------------------------------------------------
 module decode_control (
     input  wire [31:0] instr_i,
     output wire [6:0]  opcode_o,
@@ -406,6 +419,8 @@ module id_stage (
     assign fault_o      = if_id_fault_i;
     assign valid_o      = if_id_valid_i;
 endmodule
+`endif // GARUDA_REAL_RTL -- inlined DUT copy ends; verification env follows
+
 
 
 // -------------------------------------------------------------
@@ -803,8 +818,18 @@ class id_stage_ref_model;
                 case (f3)
                     3'b000: r.alu_op=`ALU_ADD; 3'b010: r.alu_op=`ALU_SLT; 3'b011: r.alu_op=`ALU_SLTU;
                     3'b100: r.alu_op=`ALU_XOR; 3'b110: r.alu_op=`ALU_OR; 3'b111: r.alu_op=`ALU_AND;
-                    3'b001: r.alu_op=`ALU_SLL;
-                    3'b101: r.alu_op = f7[5] ? `ALU_SRA : `ALU_SRL;
+                    // ERRATUM C-1: RV32I requires instr[31:25] to be exactly
+                    // 0000000 for SLLI/SRLI and 0100000 for SRAI; every other
+                    // value is reserved and must trap. This model ignored all
+                    // of funct7 but bit 5, matching the RTL as written at the
+                    // time. rtl/core/decode_control.v was corrected after
+                    // riscv-tests rv32mi/shamt showed Spike trapping where
+                    // GARUDA did not.
+                    3'b001: if (f7 == 7'b0000000) r.alu_op=`ALU_SLL;
+                            else                  r.illegal = 1;
+                    3'b101: if      (f7 == 7'b0000000) r.alu_op=`ALU_SRL;
+                            else if (f7 == 7'b0100000) r.alu_op=`ALU_SRA;
+                            else                       r.illegal = 1;
                     default: r.illegal = 1;
                 endcase
             end
@@ -831,6 +856,12 @@ class id_stage_ref_model;
                 if (f3 != 3'b000) begin r.csr_en=1; r.csr_op=f3; r.reg_write=1; r.imm_sel=`IMM_CSR; end
             end
             7'b0001011: begin r.dsu_en=1; end
+            // ERRATUM C-2: FENCE (MISC-MEM, funct3=000) is a no-op on GARUDA -
+            // single hart, no cache, nothing to order - but RV32I does not
+            // permit it to TRAP, which is what the missing decode case caused.
+            // FENCE.I (funct3=001) stays illegal: it is Zifencei, which misa
+            // does not advertise, and the prefetch buffer has no flush path.
+            7'b0001111: begin if (f3 != 3'b000) r.illegal = 1; end
             default: r.illegal=1;
         endcase
         return r;

@@ -55,6 +55,19 @@
 // -------------------------------------------------------------
 // 1. DUT: regfile.v (pasted verbatim, self-contained file)
 // -------------------------------------------------------------
+`ifndef GARUDA_REAL_RTL
+// -----------------------------------------------------------------------------
+// INLINED DUT COPY -- guarded (added 2026-08-02).
+//
+// This file carries its own copy of the DUT so it can be compiled standalone
+// under VCS. That copy is a SNAPSHOT and had already drifted from rtl/core/*.v
+// (it predates the SLLI/SRLI/SRAI funct7 check and the FENCE decode), so a
+// green run against it proves nothing about the RTL that actually ships.
+//
+// Defining GARUDA_REAL_RTL skips this copy so the testbench binds to the real
+// rtl/core sources -- that is what tb/core/filelist_*.f does. Compiling this
+// file standalone with no define behaves exactly as before.
+// -----------------------------------------------------------------------------
 module regfile (
     input  wire         clk_i,
     input  wire         rst_n_i,
@@ -88,6 +101,8 @@ module regfile (
                            ? wb_data_i : rs2_raw;
 
 endmodule
+`endif // GARUDA_REAL_RTL -- inlined DUT copy ends; verification env follows
+
 
 
 // -------------------------------------------------------------

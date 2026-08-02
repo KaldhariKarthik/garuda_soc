@@ -61,16 +61,46 @@ module mac_unit(
     
     reg [47:0] sum_reg, carry_reg;
     wire write_en = (en | sat_writeback_en) & ~flush;
-    always @(posedge clk or negedge rst_n) begin 
+
+    // -----------------------------------------------------------------------
+    // ERRATUM DSU-2 (FLAG-A) -- pending-product poisoning
+    // -----------------------------------------------------------------------
+    // sum_reg/carry_reg were gated by write_en, which is also the accumulator's
+    // write enable. MACLOAD, MACCLEAR and MACSAT all assert it, so each of them
+    // latched the CSA1 output - the product of its own rs1/rs2 fields, which
+    // are architecturally meaningless for those ops - into the pending-product
+    // registers. The next accumulate to that accumulator then added that
+    // garbage in. DSU_Golden.py records the symptom: "GOT FY = 63, EXPECTED 0
+    // (63 = 7x9)", the operand fields of a clear.
+    //
+    // It was masked only because DSU_gen.py drives rs1=rs2=0 for clear/load.
+    // Real APF kernel code has no reason to.
+    //
+    // Two separate obligations, previously conflated:
+    //   prod_en  - only a genuine multiply may latch a new pending product.
+    //   pend_clr - clear/load/saturate REPLACE the accumulator outright, so any
+    //              pending product is now stale and must be discarded too.
+    //              Holding it would let a product from before a MACCLEAR land
+    //              in the accumulator after it, which is the same bug wearing
+    //              a different hat.
+    // -----------------------------------------------------------------------
+    wire prod_en  =  en & ~clear & ~load & ~sat_writeback_en & ~flush;
+    wire pend_clr = (clear | load | sat_writeback_en) & ~flush;
+
+    always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             sum_reg   <= 48'b0;
             carry_reg <= 48'b0;
         end
-        else if (flush) begin 
+        else if (flush) begin
             sum_reg   <= 48'b0;
             carry_reg <= 48'b0;
         end
-        else if (write_en) begin
+        else if (pend_clr) begin
+            sum_reg   <= 48'b0;
+            carry_reg <= 48'b0;
+        end
+        else if (prod_en) begin
             sum_reg   <= csa1_sum;
             carry_reg <= csa1_carry;
         end
@@ -109,13 +139,52 @@ module mac_unit(
     end
     
     
+    // -----------------------------------------------------------------------
+    // ERRATUM DSU-4 -- the second pipeline stage did not self-drain
+    // -----------------------------------------------------------------------
+    // acc was written only when write_en was asserted, i.e. only when a NEW
+    // instruction arrived for this accumulator. But the multiply is a two-stage
+    // pipeline: stage 1 latches the product into sum_reg/carry_reg, stage 2
+    // (CSA2 + Kogge-Stone) is supposed to fold it into acc on the following
+    // cycle. With no instruction on that following cycle, stage 2 never
+    // clocked and the product sat in sum_reg/carry_reg indefinitely - the
+    // "stranded final product" in the DSU plan's Open Questions row 4, and the
+    // real reason dsu_flag2.S read 0 rather than 15. The FLAG-C interlock
+    // (DSU-3) alone cannot fix it: stalling one cycle does not help when the
+    // commit needs an instruction that never comes.
+    //
+    // `pending` makes stage 2 drain itself: a product latched this cycle is
+    // committed on the next, instruction or no instruction. Back-to-back
+    // computes still chain correctly - each cycle commits the previous product
+    // while latching a new one, which is what a two-stage pipeline should do.
+    //
+    // FLAG-B is preserved: flush clears the PENDING product but leaves acc
+    // intact, because a trap must not destroy committed accumulator state.
+    // -----------------------------------------------------------------------
+    reg pending;
     always @(posedge clk or negedge rst_n) begin
-        if      (!rst_n)      acc <= 48'b0;
-        else if (write_en)          acc <= acc_next;
+        if      (!rst_n) pending <= 1'b0;
+        else if (flush)  pending <= 1'b0;
+        else             pending <= prod_en;
+    end
+
+    wire acc_we = (sat_writeback_en | ((load | clear) & en) | pending) & ~flush;
+
+    always @(posedge clk or negedge rst_n) begin
+        if      (!rst_n) acc <= 48'b0;
+        else if (acc_we) acc <= acc_next;
     end
     assign mac_out = acc;
     
     wire is_accum = ~(load | clear | sat_writeback_en);
-    assign overflow = accum_ovf & write_en & is_accum;
+
+    // ERRATUM DSU-4 (continued): overflow must be reported on the cycle the
+    // accumulate actually COMMITS, which is now `pending`, not on the cycle an
+    // instruction happens to arrive (`write_en`). Leaving it on write_en after
+    // making stage 2 self-draining split the two apart: the fold that
+    // overflows can now happen on a cycle with no instruction present, and
+    // conversely an arriving instruction no longer implies a fold. Caught by
+    // tb_dsu_top as a sticky-overflow mismatch against DSUModel.
+    assign overflow = accum_ovf & pending & ~flush & is_accum;
     
 endmodule

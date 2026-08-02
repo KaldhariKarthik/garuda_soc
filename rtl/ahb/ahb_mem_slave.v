@@ -38,8 +38,22 @@ module ahb_mem_slave #(
 
     // Wait-state injection, per port. Inputs rather than parameters so the
     // testbench can drive them from a plusarg without a separate elaboration.
+    // When *_rand_i is set these are treated as the MAXIMUM and each access
+    // draws its own count in 0..max (Core Sanity TB row 21). A fixed count
+    // exercises one timing; a randomised one is what actually finds the
+    // stall-window bugs, three of which have already been found this way.
     input  wire [7:0]  i_waits_i,
     input  wire [7:0]  d_waits_i,
+    input  wire        i_rand_i,
+    input  wire        d_rand_i,
+
+    // Bus-error injection (Core Sanity TB row 17). Any access whose address
+    // falls in [err_base_i, err_base_i + err_size_i) returns the two-cycle
+    // ERROR response, letting a test provoke a load/store access fault at a
+    // chosen address without needing a second slave or a decoder.
+    input  wire        err_en_i,
+    input  wire [31:0] err_base_i,
+    input  wire [31:0] err_size_i,
 
     // ---------------- Port A : instruction side ----------------
     input  wire [31:0] i_haddr_i,
@@ -92,6 +106,26 @@ module ahb_mem_slave #(
 
     wire a_in_range = (i_haddr_i >= BASE_ADDR) && (i_haddr_i < (BASE_ADDR + SIZE_BYTES));
     wire b_in_range = (d_haddr_i >= BASE_ADDR) && (d_haddr_i < (BASE_ADDR + SIZE_BYTES));
+
+    wire a_err_win = err_en_i && (i_haddr_i >= err_base_i) &&
+                                 (i_haddr_i <  (err_base_i + err_size_i));
+    wire b_err_win = err_en_i && (d_haddr_i >= err_base_i) &&
+                                 (d_haddr_i <  (err_base_i + err_size_i));
+
+    // Per-access wait-state draw. $random is seeded by the testbench, so a
+    // failing regression seed replays exactly.
+    function [7:0] draw_waits;
+        input [7:0] maxw;
+        input       rand_en;
+        reg [31:0]  r;
+        begin
+            if (!rand_en || maxw == 8'd0) draw_waits = maxw;
+            else begin
+                r = $random;
+                draw_waits = r[7:0] % (maxw + 8'd1);
+            end
+        end
+    endfunction
 
     // HREADYOUT low while wait states remain, or during the error's 1st cycle
     assign i_hready_o = (a_wcnt == 8'd0) && !(a_derr && !a_err2);
@@ -152,8 +186,8 @@ module ahb_mem_slave #(
             a_dw   <= i_hwrite_i;
             a_da   <= i_haddr_i;
             a_ds   <= i_hsize_i;
-            a_wcnt <= i_htrans_i[1] ? i_waits_i : 8'd0;
-            a_derr <= i_htrans_i[1] && !a_in_range;
+            a_wcnt <= i_htrans_i[1] ? draw_waits(i_waits_i, i_rand_i) : 8'd0;
+            a_derr <= i_htrans_i[1] && (!a_in_range || a_err_win);
         end else begin
             if (a_wcnt != 8'd0) a_wcnt <= a_wcnt - 8'd1;
         end
@@ -177,8 +211,8 @@ module ahb_mem_slave #(
             b_dw   <= d_hwrite_i;
             b_da   <= d_haddr_i;
             b_ds   <= d_hsize_i;
-            b_wcnt <= d_htrans_i[1] ? d_waits_i : 8'd0;
-            b_derr <= d_htrans_i[1] && !b_in_range;
+            b_wcnt <= d_htrans_i[1] ? draw_waits(d_waits_i, d_rand_i) : 8'd0;
+            b_derr <= d_htrans_i[1] && (!b_in_range || b_err_win);
         end else begin
             if (b_wcnt != 8'd0) b_wcnt <= b_wcnt - 8'd1;
         end

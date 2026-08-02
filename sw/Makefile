@@ -14,7 +14,7 @@ CC      = $(RISCV_BIN)/$(RISCV_PREFIX)gcc
 OBJCOPY = $(RISCV_BIN)/$(RISCV_PREFIX)objcopy
 OBJDUMP = $(RISCV_BIN)/$(RISCV_PREFIX)objdump
 
-ARCH    = rv32im
+ARCH    = rv32im_zicsr        # zicsr: the assembler needs it named explicitly for csrr/csrw
 ABI     = ilp32
 
 # -mno-relax: no __global_pointer$ is set up by crt0, so gp-relative
@@ -31,7 +31,8 @@ BUILD   = build
 COMMON  = common/crt0.S
 
 CTESTS  = ctest1
-ATESTS  = boot6 dsu_flag2 t_loadbranch
+ATESTS  = boot6 dsu_flag2 t_loadbranch t_mem \
+          t_buserr t_irq t_wfi t_flush t_dsu
 
 ALL     = $(addprefix $(BUILD)/,$(addsuffix .hex,$(CTESTS) $(ATESTS)))
 
@@ -45,14 +46,9 @@ $(BUILD):
 $(BUILD)/%.elf: tests/%.c $(COMMON) common/link.ld | $(BUILD)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(COMMON) $< -o $@
 
-# Assembly tests are their own reset vector -- no crt0
-$(BUILD)/boot6.elf: tests/boot6.S common/link.ld | $(BUILD)
-	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
-
-$(BUILD)/dsu_flag2.elf: tests/dsu_flag2.S common/link.ld | $(BUILD)
-	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
-
-$(BUILD)/t_loadbranch.elf: tests/t_loadbranch.S common/link.ld | $(BUILD)
+# Assembly tests are their own reset vector -- no crt0. One pattern rule, so
+# adding a test means adding its name to ATESTS and nothing else.
+$(BUILD)/%.elf: tests/%.S common/link.ld | $(BUILD)
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
 
 $(BUILD)/%.bin: $(BUILD)/%.elf

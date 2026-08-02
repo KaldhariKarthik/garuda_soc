@@ -247,13 +247,24 @@ class DSUModel:
         self.overflow_sticky = 0
         self.prev_was_2cycle = 0              # dsu_stall.v
         self.prev_acc_sel = 0
+        self.stalled_once = 0                 # dsu_stall.v one-shot (DSU-1)
+        self.pending = [0, 0, 0]              # mac_unit.v stage-2 drain (DSU-4)
 
     # -- dsu_stall.v ------------------------------------------------------
     def _stall(self, d):
-        cur_is_2cycle = d.is_rtype and d.funct5 in (MACRD_LO, MACRD_HI, MACSAT)
-        cur_reads_acc = cur_is_2cycle or d.is_itype
+        # ERRATUM DSU-3 (FLAG-C): the compute ops are 2-cycle producers too, so
+        # compute -> readback now interlocks. Previously only readback ops were
+        # listed and compute -> readback sailed through onto a stale value.
+        cur_is_compute = d.is_rtype and d.funct5 in (MAC_SEL, MACSUB, MACABS, MACDOT)
+        cur_is_readback = d.is_rtype and d.funct5 in (MACRD_LO, MACRD_HI, MACSAT)
+        cur_is_2cycle = cur_is_readback or cur_is_compute
+        cur_reads_acc = cur_is_readback or d.is_itype
+        # ERRATUM DSU-1: one-shot. Holding ID/EX re-presents the SAME
+        # instruction, so without this the condition sustains itself and
+        # dsu_busy never clears.
         stall_now = bool(self.prev_was_2cycle and cur_reads_acc and
-                         d.acc_sel == self.prev_acc_sel)
+                         d.acc_sel == self.prev_acc_sel and
+                         not self.stalled_once)
         return stall_now, cur_is_2cycle
 
     def tick(self, instr=0, rs1=0, rs2=0, dsu_en=1,
@@ -312,6 +323,7 @@ class DSUModel:
         next_acc = list(self.acc)
         next_sum = list(self.sum_reg)
         next_carry = list(self.carry_reg)
+        next_pending = list(self.pending)
 
         for i in range(3):
             en_i = d.mac_en and d.acc_sel == i
@@ -336,8 +348,25 @@ class DSUModel:
                 acc_next = adder_result
 
             is_accum = not (d.load or d.clear or sat_we_i)
-            if accum_ovf and write_en and is_accum:
+            # Overflow is a property of the COMMIT (DSU-4), not of an
+            # instruction arriving: the fold that overflows may happen on a
+            # cycle with no instruction at all.
+            if accum_ovf and (self.pending[i] and not flush) and is_accum:
                 mac_overflow = 1
+
+            # ERRATUM DSU-2 (FLAG-A): only a genuine multiply may latch a new
+            # pending product, and clear/load/saturate must DISCARD any pending
+            # product because they replace the accumulator outright.
+            prod_en_i = bool(en_i and not d.load and not d.clear
+                             and not sat_we_i and not flush)
+            pend_clr_i = bool((d.clear or d.load or sat_we_i) and not flush)
+
+            # ERRATUM DSU-4: stage 2 self-drains. A product latched last cycle
+            # commits this cycle whether or not a new instruction arrived;
+            # previously acc moved only when write_en was asserted, so the last
+            # product of a sequence was stranded indefinitely.
+            acc_we_i = bool((sat_we_i or ((d.load or d.clear) and en_i)
+                             or self.pending[i]) and not flush)
 
             if flush:
                 # FLAG-B: flush clears the PENDING product only. `acc` keeps
@@ -345,12 +374,17 @@ class DSUModel:
                 # state. DSU_Verification_Plan row 31 disagrees; it is wrong.
                 next_sum[i] = 0
                 next_carry[i] = 0
-            elif write_en:
-                next_acc[i] = acc_next & MASK48
-                # FLAG-A: this fires for MACLOAD/MACCLEAR/MACSAT too, latching
-                # products of operand fields those ops never meant to use.
-                next_sum[i] = csa1_sum
-                next_carry[i] = csa1_carry
+                next_pending[i] = 0
+            else:
+                next_pending[i] = 1 if prod_en_i else 0
+                if acc_we_i:
+                    next_acc[i] = acc_next & MASK48
+                if pend_clr_i:
+                    next_sum[i] = 0
+                    next_carry[i] = 0
+                elif prod_en_i:
+                    next_sum[i] = csa1_sum
+                    next_carry[i] = csa1_carry
 
         # ---- readback_mux / barrel_shifter / result_selector -------------
         rd_lo_data = cluster_out & MASK32
@@ -390,21 +424,30 @@ class DSUModel:
         self.acc = next_acc
         self.sum_reg = next_sum
         self.carry_reg = next_carry
+        self.pending = next_pending
         self.overflow_sticky = next_ovf
         if flush:
             self.prev_was_2cycle = 0
             self.prev_acc_sel = 0
-        elif not stall_now:
-            self.prev_was_2cycle = int(cur_is_2cycle)
-            self.prev_acc_sel = d.acc_sel
+            self.stalled_once = 0
+        else:
+            # ERRATUM DSU-1: stalled_once records that this instruction has
+            # already been held, so the interlock is a one-shot.
+            self.stalled_once = int(stall_now)
+            if not stall_now:
+                self.prev_was_2cycle = int(cur_is_2cycle)
+                self.prev_acc_sel = d.acc_sel
         return out
 
     # -- convenience ------------------------------------------------------
     def settle(self, acc_sel):
-        """Push a pending product into acc without changing its value, by
-        issuing MAC_SEL 0*0 to the same accumulator. This is a WORKAROUND for
-        the structure described in FLAG-A/FLAG-C, not architectural behaviour."""
-        return self.tick(asm(MAC_SEL, acc_sel), 0, 0)
+        """OBSOLETE as of ERRATUM DSU-4. Stage 2 now self-drains, so a pending
+        product commits on the next cycle with no instruction required. Kept
+        only so older callers still work; issuing an idle tick is the correct
+        way to advance a cycle now, and DSU_gen.py no longer inserts a settle.
+        Retained rather than deleted because deleting it would silently change
+        the cycle count of any sequence that still calls it."""
+        return self.tick(0, 0, 0, dsu_en=0)
 
     def acc_signed(self, i):
         return s48(self.acc[i])

@@ -39,8 +39,12 @@ module tb_boot;
 
     reg [1023:0] hexfile;
     reg [1023:0] commitfile;
+    reg [1023:0] covtag;
     integer      maxcyc, maxinstr, iwait, dwait;
     integer      dbgfrom, dbgto;
+    integer      irq_at, irq_id, irq_lvl, irq_shv, irq_every, seed;
+    integer      irand, drand;
+    integer      err_en; reg [31:0] err_base, err_size;
     reg [31:0]   tohost_addr;
     reg          quiet;
 
@@ -68,6 +72,21 @@ module tb_boot;
 
     wire [47:0] dbg_acc0, dbg_acc1, dbg_acc2;
 
+    // ---------------- CLIC interrupt injection (Core Sanity rows 18/20) -----
+    // The interrupt is asserted at +IRQ_AT and HELD until the core acknowledges
+    // it, which is what the CLIC handshake requires - a one-cycle pulse would
+    // be legal to drop and the test would silently prove nothing. +IRQ_EVERY
+    // re-arms it periodically so a single run can hit many different offsets
+    // into a loop rather than one fixed point in the instruction stream.
+    reg  irq_req;
+    wire irq_ack;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) irq_req <= 1'b0;
+        else if (irq_ack) irq_req <= 1'b0;
+        else if (irq_at  > 0 && cyc == irq_at) irq_req <= 1'b1;
+        else if (irq_every > 0 && (cyc % irq_every) == 0 && cyc > 0) irq_req <= 1'b1;
+    end
+
     garuda_core_top #(.RESET_VECTOR(BASE_ADDR)) dut (
         .clk_i(clk), .rst_n_i(rst_n),
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize),
@@ -78,9 +97,9 @@ module tb_boot;
         .d_hburst_o(d_hburst), .d_hprot_o(d_hprot), .d_hwrite_o(d_hwrite),
         .d_hwdata_o(d_hwdata), .d_hrdata_i(d_hrdata), .d_hready_i(d_hready),
         .d_hresp_i(d_hresp),
-        .clic_irq_i(1'b0), .clic_irq_id_i(12'd0), .clic_irq_lvl_i(8'd0),
-        .clic_irq_shv_i(1'b0), .clic_irq_ack_o(), .clic_irq_id_ack_o(),
-        .clic_mintthresh_o(),
+        .clic_irq_i(irq_req), .clic_irq_id_i(irq_id[11:0]),
+        .clic_irq_lvl_i(irq_lvl[7:0]), .clic_irq_shv_i(irq_shv[0]),
+        .clic_irq_ack_o(irq_ack), .clic_irq_id_ack_o(), .clic_mintthresh_o(),
         .mtime_i(64'd0), .mtimecmp_i(64'hFFFF_FFFF_FFFF_FFFF),
         .dbg_acc_0_o(dbg_acc0), .dbg_acc_1_o(dbg_acc1), .dbg_acc_2_o(dbg_acc2)
     );
@@ -90,6 +109,8 @@ module tb_boot;
     ) u_mem (
         .clk_i(clk), .rst_n_i(rst_n),
         .i_waits_i(iwait[7:0]), .d_waits_i(dwait[7:0]),
+        .i_rand_i(irand[0]), .d_rand_i(drand[0]),
+        .err_en_i(err_en[0]), .err_base_i(err_base), .err_size_i(err_size),
         .i_haddr_i(i_haddr), .i_htrans_i(i_htrans), .i_hsize_i(i_hsize),
         .i_hwrite_i(i_hwrite), .i_hwdata_i(i_hwdata),
         .i_hrdata_o(i_hrdata), .i_hready_o(i_hready), .i_hresp_o(i_hresp),
@@ -176,6 +197,11 @@ module tb_boot;
     task finish_sim;
         input integer code;
         begin
+            // Functional coverage self-report, if the covergroups are bound in
+            // (filelist_boot_cov.f). Guarded so the plain filelist still runs.
+`ifdef GARUDA_COV
+            dut.u_cov.report_coverage(covtag);
+`endif
             $fflush(fh_commit);
             $fclose(fh_commit);
             exit_code = code;
@@ -190,6 +216,21 @@ module tb_boot;
         cyc = 0; ninstr = 0; exit_code = 0;
         if (!$value$plusargs("MAXCYC=%d", maxcyc))     maxcyc   = 200000;
         if (!$value$plusargs("MAXINSTR=%d", maxinstr)) maxinstr = 0;
+        if (!$value$plusargs("IRQ_AT=%d",  irq_at))    irq_at    = 0;
+        if (!$value$plusargs("IRQ_ID=%d",  irq_id))    irq_id    = 1;
+        if (!$value$plusargs("IRQ_LVL=%d", irq_lvl))   irq_lvl   = 8'hFF;
+        if (!$value$plusargs("IRQ_SHV=%d", irq_shv))   irq_shv   = 0;
+        if (!$value$plusargs("IRQ_EVERY=%d", irq_every)) irq_every = 0;
+        if (!$value$plusargs("IRAND=%d", irand))       irand     = 0;
+        if (!$value$plusargs("DRAND=%d", drand))       drand     = 0;
+        if (!$value$plusargs("ERR_EN=%d", err_en))     err_en    = 0;
+        if (!$value$plusargs("ERR_BASE=%h", err_base)) err_base  = 32'h1002_0000;
+        if (!$value$plusargs("ERR_SIZE=%h", err_size)) err_size  = 32'h0000_1000;
+        if (!$value$plusargs("SEED=%d", seed))         seed      = 1;
+        begin : seed_rng
+            integer dummy;
+            dummy = $random(seed);      // seed the wait-state RNG reproducibly
+        end
         if (!$value$plusargs("DBGFROM=%d", dbgfrom))   dbgfrom  = 0;
         if (!$value$plusargs("DBGTO=%d", dbgto))       dbgto    = 60;
         if (!$value$plusargs("IWAIT=%d", iwait))       iwait    = 0;
@@ -197,6 +238,7 @@ module tb_boot;
         if (!$value$plusargs("TOHOST=%h", tohost_addr))tohost_addr = 32'h1000_F000;
         quiet = $test$plusargs("QUIET");
 
+        if (!$value$plusargs("COVTAG=%s", covtag)) covtag = "run";
         if (!$value$plusargs("COMMIT=%s", commitfile)) commitfile = "commit.log";
         fh_commit = $fopen(commitfile, "w");
         if (fh_commit == 0) begin

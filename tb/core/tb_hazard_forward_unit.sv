@@ -28,6 +28,19 @@
 // -------------------------------------------------------------
 // 1. DUT: hazard_forward_unit.v (pasted verbatim, self-contained file)
 // -------------------------------------------------------------
+`ifndef GARUDA_REAL_RTL
+// -----------------------------------------------------------------------------
+// INLINED DUT COPY -- guarded (added 2026-08-02).
+//
+// This file carries its own copy of the DUT so it can be compiled standalone
+// under VCS. That copy is a SNAPSHOT and had already drifted from rtl/core/*.v
+// (it predates the SLLI/SRLI/SRAI funct7 check and the FENCE decode), so a
+// green run against it proves nothing about the RTL that actually ships.
+//
+// Defining GARUDA_REAL_RTL skips this copy so the testbench binds to the real
+// rtl/core sources -- that is what tb/core/filelist_*.f does. Compiling this
+// file standalone with no define behaves exactly as before.
+// -----------------------------------------------------------------------------
 module hazard_forward_unit (
     input  wire [4:0] id_rs1_idx_i,
     input  wire [4:0] id_rs2_idx_i,
@@ -42,6 +55,8 @@ module hazard_forward_unit (
                                ((ex_rd_i == id_rs1_idx_i) || (ex_rd_i == id_rs2_idx_i));
 
 endmodule
+`endif // GARUDA_REAL_RTL -- inlined DUT copy ends; verification env follows
+
 
 
 // -------------------------------------------------------------

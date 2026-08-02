@@ -143,7 +143,27 @@ module pipe_ctrl (
 
     // EX/MEM : holds on D-port wait; flush only on trap-squash of the faulting
     //          instr (NOT on ordinary EX redirect - the JALR must retire).
-    assign ex_mem_flush_o = trap_squash_ex_mem_i & ~mem_stall_i;
+    // ERRATUM P-3 (found by Core Sanity rows 13/20: t_dsu, t_wfi)
+    // -----------------------------------------------------------
+    // A stall at ID/EX must insert BUBBLES into EX/MEM. dsu_busy and wfi_hold
+    // hold ID/EX but hold_ex_mem covers only mem_stall, so EX/MEM kept latching
+    // the EX outputs of the very instruction that was parked - re-committing it
+    // once per held cycle.
+    //
+    // The existing note above ("WFI writes no architectural state, so
+    // re-presenting it in EX every held cycle is harmless") is true only if the
+    // WFI itself is what is parked. It is not: wfi_active is a REGISTERED latch
+    // in trap_ctrl, so by the time wfi_hold rises the WFI has already advanced
+    // to EX/MEM and the instruction BEHIND it is sitting in ID/EX. t_wfi caught
+    // that instruction executing 381 times instead of once.
+    //
+    // Same defect on the DSU side: a MACRD_LO parked by dsu_busy writes its
+    // destination register every cycle it is held.
+    //
+    // mem_stall is excluded because there EX/MEM is genuinely HELD
+    // (hold_ex_mem) rather than advancing, so nothing is re-committed.
+    assign ex_mem_flush_o = (trap_squash_ex_mem_i | dsu_busy_i | wfi_hold_i)
+                            & ~mem_stall_i;
     assign ex_mem_stall_o = hold_ex_mem & ~ex_mem_flush_o;
 
     // MEM/WB : bubble into WB during a D-port wait, or trap-squash of a MEM fault

@@ -43,6 +43,19 @@
 // -------------------------------------------------------------
 // 1. DUT: decode_control.v (pasted verbatim, `include line substituted)
 // -------------------------------------------------------------
+`ifndef GARUDA_REAL_RTL
+// -----------------------------------------------------------------------------
+// INLINED DUT COPY -- guarded (added 2026-08-02).
+//
+// This file carries its own copy of the DUT so it can be compiled standalone
+// under VCS. That copy is a SNAPSHOT and had already drifted from rtl/core/*.v
+// (it predates the SLLI/SRLI/SRAI funct7 check and the FENCE decode), so a
+// green run against it proves nothing about the RTL that actually ships.
+//
+// Defining GARUDA_REAL_RTL skips this copy so the testbench binds to the real
+// rtl/core sources -- that is what tb/core/filelist_*.f does. Compiling this
+// file standalone with no define behaves exactly as before.
+// -----------------------------------------------------------------------------
 module decode_control (
     input  wire [31:0] instr_i,
 
@@ -251,6 +264,8 @@ module decode_control (
     end
 
 endmodule
+`endif // GARUDA_REAL_RTL -- inlined DUT copy ends; verification env follows
+
 
 
 // -------------------------------------------------------------
@@ -574,8 +589,18 @@ class decode_ref_model;
             3'b100: r.alu_op = `ALU_XOR;
             3'b110: r.alu_op = `ALU_OR;
             3'b111: r.alu_op = `ALU_AND;
-            3'b001: r.alu_op = `ALU_SLL;
-            3'b101: r.alu_op = f7[5] ? `ALU_SRA : `ALU_SRL;
+            // RV32I requires instr[31:25] to be exactly 0000000 for SLLI and
+            // SRLI, and 0100000 for SRAI. Anything else is a reserved encoding
+            // and must raise illegal_instr. This model previously ignored all
+            // of funct7 except bit 5, matching the RTL as it stood when this
+            // file was written; rtl/core/decode_control.v was corrected
+            // (ERRATUM C-1, found by riscv-tests rv32mi/shamt, which traps in
+            // Spike and did not on GARUDA). Updated here to match the spec.
+            3'b001: if (f7 == 7'b0000000) r.alu_op = `ALU_SLL;
+                    else                  r.illegal = 1;
+            3'b101: if      (f7 == 7'b0000000) r.alu_op = `ALU_SRL;
+                    else if (f7 == 7'b0100000) r.alu_op = `ALU_SRA;
+                    else                       r.illegal = 1;
         endcase
         return r;
     endfunction

@@ -48,6 +48,19 @@
 // -------------------------------------------------------------
 // 1. DUT: imm_gen.v (pasted verbatim, `include line substituted per above)
 // -------------------------------------------------------------
+`ifndef GARUDA_REAL_RTL
+// -----------------------------------------------------------------------------
+// INLINED DUT COPY -- guarded (added 2026-08-02).
+//
+// This file carries its own copy of the DUT so it can be compiled standalone
+// under VCS. That copy is a SNAPSHOT and had already drifted from rtl/core/*.v
+// (it predates the SLLI/SRLI/SRAI funct7 check and the FENCE decode), so a
+// green run against it proves nothing about the RTL that actually ships.
+//
+// Defining GARUDA_REAL_RTL skips this copy so the testbench binds to the real
+// rtl/core sources -- that is what tb/core/filelist_*.f does. Compiling this
+// file standalone with no define behaves exactly as before.
+// -----------------------------------------------------------------------------
 module imm_gen (
     input  wire [31:0] instr_i,
     input  wire [2:0]  imm_sel_i,
@@ -84,6 +97,8 @@ module imm_gen (
     end
 
 endmodule
+`endif // GARUDA_REAL_RTL -- inlined DUT copy ends; verification env follows
+
 
 
 // -------------------------------------------------------------

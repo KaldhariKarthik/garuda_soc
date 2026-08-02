@@ -51,22 +51,29 @@ endif
 
 .PHONY: help check_tools clean elab_core elab_core_dsu \
         test_ex test_ex_dsu test_idex test_exmem test_pipe test_csr test_trap \
-        test_core sw isa_tests test_boot test_c regress regress_wait test_flag2
+        test_core sw isa_tests test_boot test_c regress regress_wait test_flag2 \
+        test_sanity regress_rand coverage test_dsu test_units test_decode_control \
+        test_imm_gen test_reg_file test_branch_predict test_hazard_forward_unit test_id_stage
 
 help:
 	@echo "GARUDA SoC build targets:"
 	@echo "  make check_tools     -- verify the selected simulator is on PATH"
 	@echo "  make elab_core       -- elaborate core standalone (inert DSU stub)"
 	@echo "  make elab_core_dsu   -- elaborate core + REAL DSU (integration)"
-	@echo "  make test_core       -- run every core unit smoke"
+	@echo "  make test_core       -- every core unit smoke + the six unit TBs"
+	@echo "  make test_units      -- the six constrained-random unit TBs only"
 	@echo "  make test_ex_dsu     -- EX smoke against the real DSU"
 	@echo "  make sw              -- build bare-metal tests (boot6, ctest1, dsu_flag2)"
 	@echo "  make isa_tests       -- build riscv-tests rv32ui + rv32um"
 	@echo "  make test_boot       -- 6-instruction boot smoke through tb_boot"
 	@echo "  make test_c          -- first C test (crt0 + stack + .bss + M-ext)"
 	@echo "  make test_flag2      -- DSU FLAG-2 compute->read ordering probe"
+	@echo "  make test_dsu        -- DSU unit TB vs DSUModel (regenerates vectors)"
+	@echo "  make test_sanity     -- Core Sanity TB: IRQ, bus error, WFI, flush, DSU"
 	@echo "  make regress         -- full ISA regression + Spike lockstep"
 	@echo "  make regress_wait    -- same, with AHB wait states injected"
+	@echo "  make regress_rand    -- same, randomised waits 0..8 (SEED=n)"
+	@echo "  make coverage        -- functional coverage sweep (code cov: see script)"
 	@echo "  make clean           -- remove all simulation artifacts"
 	@echo ""
 	@echo "Select simulator with SIM=xrun (default) or SIM=xsim."
@@ -86,6 +93,32 @@ elab_core:
 
 elab_core_dsu:
 	$(call run_test,rtl/core/filelist_core_dsu.f,garuda_core_top,elab_core_dsu)
+
+# ---- teammate unit TBs (constrained-random, top module is tb_top) ----
+# -64bit is required: the SV randomization library is only present as 64-bit
+# here, and the default 32-bit invocation dies with
+#   *F,RNCNL: ... libz.so.1 ... not a valid ELFCLASS32 library
+# These bind to the REAL rtl/core sources via GARUDA_REAL_RTL; the testbenches
+# also carry an inlined DUT snapshot for standalone VCS builds.
+define run_tb_top
+	@mkdir -p $(SIM_DIR)/unit_$(1) && \
+	  $(XRUN) -64bit -f tb/core/filelist_$(1).f -top tb_top \
+	    -xmlibdirname $(SIM_DIR)/unit_$(1)/xcelium.d \
+	    -l $(SIM_DIR)/unit_$(1)/run.log > /dev/null 2>&1; \
+	  printf "%-22s PASS=%-5s FAIL=%s\n" "$(1)" \
+	    "$$(grep -c '\[PASS\]' $(SIM_DIR)/unit_$(1)/run.log)" \
+	    "$$(grep -c '\[FAIL\]' $(SIM_DIR)/unit_$(1)/run.log)"
+endef
+
+test_units: test_decode_control test_imm_gen test_reg_file test_branch_predict \
+            test_hazard_forward_unit test_id_stage
+
+test_decode_control:      ; $(call run_tb_top,decode_control)
+test_imm_gen:             ; $(call run_tb_top,imm_gen)
+test_reg_file:            ; $(call run_tb_top,reg_file)
+test_branch_predict:      ; $(call run_tb_top,branch_predict)
+test_hazard_forward_unit: ; $(call run_tb_top,hazard_forward_unit)
+test_id_stage:            ; $(call run_tb_top,id_stage)
 
 # ---- core unit smokes ----
 test_ex:
@@ -109,7 +142,7 @@ test_csr:
 test_trap:
 	$(call run_test,tb/core/filelist_trap_ctrl.f,tb_trap_ctrl)
 
-test_core: test_ex test_ex_dsu test_idex test_exmem test_pipe test_csr test_trap
+test_core: test_ex test_ex_dsu test_idex test_exmem test_pipe test_csr test_trap test_units
 
 clean:
 	rm -rf $(SIM_DIR) xcelium.d xrun.history xrun.log xrun.key
@@ -149,8 +182,36 @@ test_flag2: sw
 	   +HEX=sw/build/dsu_flag2.hex +COMMIT=$(SIM_DIR)/tb_boot/flag2.commit.log \
 	   +MAXCYC=2000 +DBGACC | grep -E "ACC:|TOHOST|PASSED|FAILED|TIMEOUT" | head -40
 
+test_sanity: sw
+	@./scripts/run_sanity.sh
+
+# DSU unit TB. Vectors are REGENERATED every run: the expected values come from
+# DSUModel, so stale vectors would silently test the previous RTL.
+DSU_TESTS ?= 400
+DSU_SEED  ?= 1
+test_dsu:
+	@mkdir -p $(SIM_DIR)/dsu
+	@python3 tools/gen/DSU_gen.py --count $(DSU_TESTS) --seed $(DSU_SEED) \
+	   --outdir $(SIM_DIR)/dsu | tail -1
+	@$(XRUN) -64bit -f tb/dsu/filelist_dsu_top.f -top tb_dsu_top \
+	   -xmlibdirname $(SIM_DIR)/dsu/xcelium.d -l $(SIM_DIR)/dsu/run.log \
+	   +STIM=$(SIM_DIR)/dsu/dsu_stim.mem +EXP=$(SIM_DIR)/dsu/dsu_expected.mem \
+	   > /dev/null 2>&1; \
+	 grep -E "tests compared|mismatches|RESULT" $(SIM_DIR)/dsu/run.log
+
+coverage: sw isa_tests
+	@./scripts/run_coverage.sh
+
 regress: isa_tests
 	@./scripts/run_regression.sh
+
+# Core Sanity row 21: randomise I and D wait states per access, 0..8. A fixed
+# wait count exercises exactly one timing; randomised counts are what actually
+# open and close the stall windows. SEED= replays a failing run exactly.
+regress_rand: isa_tests
+	@RUNDIR=$(SIM_DIR)/regress_rand MAXCYC=600000 \
+	   EXTRA_ARGS="+IWAIT=8 +DWAIT=8 +IRAND=1 +DRAND=1 +SEED=$${SEED:-1}" \
+	   ./scripts/run_regression.sh
 
 regress_wait: isa_tests
 	@RUNDIR=$(SIM_DIR)/regress_wait EXTRA_ARGS="+IWAIT=2 +DWAIT=3" MAXCYC=400000 \
