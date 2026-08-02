@@ -147,7 +147,15 @@ module dsu_top (
         .flush (flush),
         .funct5 (funct5_w),
         .funct3 (funct3_w),
-        .is_custom0 (is_custom0_w),
+        // ERRATUM DSU-9 -- dsu_busy was the ONE DSU output not gated by
+        // dsu_en. Every other output carries `& dsu_en` (sat_op, shift_op,
+        // rd_lo_op, rd_hi_op, writes_regfile, illegal_instr, mac_en), but
+        // is_custom0 is a bare opcode compare, so with dsu_en low a Custom-0
+        // word could still assert the interlock - stalling the pipeline for a
+        // unit that is doing nothing. Gated here rather than inside dsu_stall:
+        // the interlock is that module's job, whether the DSU is enabled at
+        // all is the top level's.
+        .is_custom0 (is_custom0_w & dsu_en),
         .acc_sel (acc_sel),
         .dsu_busy (dsu_busy)
     );

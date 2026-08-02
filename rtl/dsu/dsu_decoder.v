@@ -68,7 +68,37 @@ module dsu_decoder (
     wire any_legal_op = op_mac_sel | op_macsub | op_macabs | op_macdot | op_macload | op_macclear | op_macsat | op_rd_lo | op_rd_hi | op_macshift;
     wire bad_acc_sel  = (acc_sel_eff == 2'b11);
     wire bad_funct3   = is_custom0 & ~(is_rtype | is_itype);
-    assign illegal_instr = is_custom0 & dsu_en & (~any_legal_op | bad_acc_sel | bad_funct3);
+
+    // -----------------------------------------------------------------------
+    // ERRATUM DSU-6 (FLAG-D) -- MACSHIFT amount out of range
+    // -----------------------------------------------------------------------
+    // shift_amt is 6 bits (0..63) but the accumulator is 48. Amounts 48..63
+    // were architecturally undefined: the RTL happened to be well-behaved
+    // (left -> 0, arithmetic right -> all sign bits) but nothing said so, and
+    // nothing stopped software using them.
+    //
+    // Resolved by making the range REAL rather than documented. An ABI note
+    // saying "use 0..47" is exactly the kind of unenforceable contract that
+    // was rejected for FLAG-C: no assembler checks it, so the first kernel to
+    // compute a shift amount at run time would violate it silently.
+    // -----------------------------------------------------------------------
+    wire bad_shift_amt  = is_itype & (imm_i[5:0] >= 6'd48);
+
+    // -----------------------------------------------------------------------
+    // ERRATUM DSU-7 -- reserved I-type immediate bits
+    // -----------------------------------------------------------------------
+    // MACSHIFT uses imm_i[8]=dir, [7:6]=acc_sel, [5:0]=amt. Bits [11:9] were
+    // read by nothing and checked by nothing, so ANY value decoded as a valid
+    // shift - which quietly spent seven eighths of the I-type encoding space.
+    // Requiring them to be zero reserves that space for future DSU
+    // instructions. This has to land before firmware ships with junk in those
+    // bits, because after that the space can never be reclaimed.
+    // -----------------------------------------------------------------------
+    wire bad_shift_rsvd = is_itype & (imm_i[11:9] != 3'b000);
+
+    assign illegal_instr = is_custom0 & dsu_en &
+                           (~any_legal_op | bad_acc_sel | bad_funct3 |
+                            bad_shift_amt | bad_shift_rsvd);
     
     wire compute_op = op_mac_sel | op_macsub | op_macabs | op_macdot | op_macload | op_macclear;
     

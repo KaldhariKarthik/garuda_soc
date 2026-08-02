@@ -59,8 +59,14 @@ def rand_word(rng):
     return rng.randint(0, MASK32)
 
 
+# Word 3 of each stimulus record. Bit 0 is csr_clear_overflow; bit 8 is
+# dsu_en_n (1 = drive dsu_en LOW). Bit 8 was chosen so every pre-existing
+# vector, which has word3 = 0 or 1, still means exactly what it meant.
+DSU_EN_N = 1 << 8
+
+
 def directed_tests():
-    """Curated corner cases, each a (instr, rs1, rs2, csr_clear, note) tuple."""
+    """Curated corner cases, each a (instr, rs1, rs2, ctrl, note) tuple."""
     t = []
     # one basic run of every instruction
     t += [(asm(MAC_SEL,  ACC_FX), 3, 4, 0, "MAC_SEL basic 3*4"),
@@ -89,7 +95,34 @@ def directed_tests():
           (asm_shift(ACC_FY, amt=4, left=0, rd=12), 0, 0, 0, "MACSHIFT ASR 4"),
           (asm_shift(ACC_FY, amt=4, left=1, rd=13), 0, 0, 0, "MACSHIFT LSL 4"),
           (asm_shift(ACC_FY, amt=0, left=0, rd=14), 0, 0, 0, "MACSHIFT amt=0"),
-          (asm_shift(ACC_FY, amt=63, left=0, rd=15), 0, 0, 0, "MACSHIFT amt=63 (FLAG-3)")]
+          (asm_shift(ACC_FY, amt=47, left=0, rd=15), 0, 0, 0, "MACSHIFT amt=47 (max legal)"),
+          (asm_shift(ACC_FY, amt=47, left=1, rd=16), 0, 0, 0, "MACSHIFT LSL 47 (max legal)")]
+
+    # ERRATUM DSU-6 (FLAG-D): 48..63 are now out of range -> illegal.
+    t += [(asm_shift(ACC_FY, amt=48, left=0, rd=15), 0, 0, 0, "MACSHIFT amt=48 -> illegal"),
+          (asm_shift(ACC_FY, amt=63, left=0, rd=15), 0, 0, 0, "MACSHIFT amt=63 -> illegal"),
+          (asm_shift(ACC_FY, amt=48, left=1, rd=15), 0, 0, 0, "MACSHIFT LSL 48 -> illegal")]
+
+    # ERRATUM DSU-7: imm[11:9] are reserved and must be zero.
+    t += [(asm_shift(ACC_FY, amt=4, rd=17) | (1 << 29), 0, 0, 0, "I-type rsvd[9] set -> illegal"),
+          (asm_shift(ACC_FY, amt=4, rd=17) | (2 << 29), 0, 0, 0, "I-type rsvd[10] set -> illegal"),
+          (asm_shift(ACC_FY, amt=4, rd=17) | (4 << 29), 0, 0, 0, "I-type rsvd[11] set -> illegal")]
+
+    # ERRATUM DSU-8 (FLAG-E): an overflow landing on its own clear must survive.
+    # MACLOAD the accumulator to just below the 48-bit limit, then push it over
+    # while asserting csr_clear_overflow in the same cycle.
+    t += [(asm(MACCLEAR, ACC_MAG), 0, 0, 0, "clear MAG before overflow test"),
+          (asm(MACLOAD,  ACC_MAG), 0x7FFFFFFF, 0, 0, "load MAG near max"),
+          (asm(MAC_SEL,  ACC_MAG), 0x7FFF7FFF, 0x7FFF7FFF, 0, "drive MAG to overflow"),
+          (asm(MAC_SEL,  ACC_MAG), 0x7FFF7FFF, 0x7FFF7FFF, 1, "overflow + clear same cycle")]
+
+    # ERRATUM DSU-9: with dsu_en low the DSU must be completely inert --
+    # no state change, no rd_valid, no illegal, and critically no dsu_busy.
+    t += [(asm(MAC_SEL,  ACC_FX), 7, 9, DSU_EN_N, "dsu_en=0: compute is inert"),
+          (asm(MACRD_LO, ACC_FX, rd=11), 0, 0, DSU_EN_N, "dsu_en=0: readback is inert"),
+          (asm(MACCLEAR, ACC_FX), 0, 0, DSU_EN_N, "dsu_en=0: clear is inert"),
+          ((0x1F << 27) | 0x0B, 1, 1, DSU_EN_N, "dsu_en=0: bad encoding is not illegal"),
+          (asm(MACRD_LO, ACC_FX, rd=11), 0, 0, DSU_EN_N, "dsu_en=0: no interlock stall")]
     # illegal ones -- must be rejected, state untouched
     t += [(asm(MAC_SEL, acc_sel=3), 1, 1, 0, "illegal acc_sel=3"),
           ((0x1F << 27) | 0x0B, 1, 1, 0, "illegal unknown funct5"),
@@ -166,10 +199,12 @@ def main():
         #    retired the old "settle MAC_SEL 0*0" hack -- that op existed only
         #    to force a commit that the hardware now performs by itself).
         # 4. snapshot the accumulators.
-        r = dsu.tick(instr, rs1, rs2, csr_clear_overflow=clr)
+        den = 0 if (clr & DSU_EN_N) else 1
+        cclr = clr & 1
+        r = dsu.tick(instr, rs1, rs2, dsu_en=den, csr_clear_overflow=cclr)
         guard = 0
         while r["dsu_busy"]:
-            r = dsu.tick(instr, rs1, rs2, csr_clear_overflow=clr)
+            r = dsu.tick(instr, rs1, rs2, dsu_en=den, csr_clear_overflow=cclr)
             guard += 1
             if guard > 4:
                 raise RuntimeError(f"dsu_busy stuck at test #{count} ({note}) "

@@ -61,11 +61,14 @@ intended (or fixed) before tapeout. These are modelled AS THE RTL BEHAVES.
   FLAG-C  dsu_stall interlocks readback-after-readback (RD_LO/RD_HI/MACSAT),
           but NOT readback-after-multiply -- which, given the pending-product
           structure, is the hazard that actually loses data.
-  FLAG-D  MACSHIFT amounts 48..63 are architecturally undefined but the RTL is
-          well-behaved and this model matches it (left -> 0, arithmetic right
-          -> all sign bits). Needs an assembler/ABI contract, not an RTL fix.
-  FLAG-E  overflow_flag: a csr_clear coinciding with an overflow -> clear wins.
-          Modelled as the RTL behaves; confirm it is the intended policy.
+  FLAG-D  RESOLVED 2026-08-02 (ERRATUM DSU-6). Shift amounts 48..63 now raise
+          illegal_instr. The accumulator is 48 bits, so 0..47 is the whole
+          meaningful range; making it an encoding rule means the hardware
+          enforces it instead of an ABI note nothing checks.
+  FLAG-E  RESOLVED 2026-08-02 (ERRATUM DSU-8). A csr_clear coinciding with an
+          overflow no longer discards it: the clear resets the accumulated
+          flag but a same-cycle overflow is still recorded, as RISC-V W1C bits
+          behave. Previously a poll-and-clear loop dropped such overflows.
 """
 
 # ---------------------------------------------------------------------------
@@ -186,7 +189,7 @@ def decode(instr, dsu_en=1):
     op_macload = rop(MACLOAD);   op_macclear = rop(MACCLEAR)
     op_macsat = rop(MACSAT)
     op_rd_lo = rop(MACRD_LO);    op_rd_hi = rop(MACRD_HI)
-    op_macshift = d.is_itype                  # NB: I-type ignores funct5 entirely
+    op_macshift = d.is_itype                  # I-type carries no funct5 field
 
     any_legal = (op_mac_sel or op_macsub or op_macabs or op_macdot or
                  op_macload or op_macclear or op_macsat or op_rd_lo or
@@ -194,8 +197,17 @@ def decode(instr, dsu_en=1):
     bad_acc_sel = (d.acc_sel == 3)
     bad_funct3 = d.is_custom0 and not (d.is_rtype or d.is_itype)
 
+    # ERRATUM DSU-6 (FLAG-D): the accumulator is 48 bits, so shift amounts
+    # 48..63 are out of range and now raise illegal rather than being an
+    # undefined-but-well-behaved corner.
+    bad_shift_amt = d.is_itype and d.shift_amt >= 48
+    # ERRATUM DSU-7: imm_i[11:9] are reserved and must be zero, keeping the
+    # rest of the I-type encoding space available for future instructions.
+    bad_shift_rsvd = d.is_itype and ((imm_i >> 9) & 0x7) != 0
+
     d.illegal = bool(d.is_custom0 and dsu_en and
-                     ((not any_legal) or bad_acc_sel or bad_funct3))
+                     ((not any_legal) or bad_acc_sel or bad_funct3 or
+                      bad_shift_amt or bad_shift_rsvd))
 
     ok = dsu_en and not d.illegal
     compute = (op_mac_sel or op_macsub or op_macabs or op_macdot or
@@ -251,10 +263,15 @@ class DSUModel:
         self.pending = [0, 0, 0]              # mac_unit.v stage-2 drain (DSU-4)
 
     # -- dsu_stall.v ------------------------------------------------------
-    def _stall(self, d):
+    def _stall(self, d, dsu_en=1):
         # ERRATUM DSU-3 (FLAG-C): the compute ops are 2-cycle producers too, so
         # compute -> readback now interlocks. Previously only readback ops were
         # listed and compute -> readback sailed through onto a stale value.
+        # ERRATUM DSU-9: dsu_busy is gated by dsu_en. is_custom0 is a bare
+        # opcode compare, so without this the interlock could stall on a
+        # Custom-0 word the DSU was not even enabled for.
+        if not dsu_en:
+            return False, False
         cur_is_compute = d.is_rtype and d.funct5 in (MAC_SEL, MACSUB, MACABS, MACDOT)
         cur_is_readback = d.is_rtype and d.funct5 in (MACRD_LO, MACRD_HI, MACSAT)
         cur_is_2cycle = cur_is_readback or cur_is_compute
@@ -279,7 +296,7 @@ class DSUModel:
         rs1 &= MASK32
         rs2 &= MASK32
         d = decode(instr, dsu_en)
-        stall_now, cur_is_2cycle = self._stall(d)
+        stall_now, cur_is_2cycle = self._stall(d, dsu_en)
 
         # ---- operand_router.v -------------------------------------------
         dot_active = d.dot_en and not d.abs_en
@@ -404,7 +421,10 @@ class DSUModel:
         any_ovf = mac_overflow or sat_overflow
         overflow_now = self.overflow_sticky     # value visible THIS cycle
         if csr_clear_overflow:
-            next_ovf = 0
+            # ERRATUM DSU-8 (FLAG-E): clear the ACCUMULATED flag but keep an
+            # overflow occurring in this same cycle, or a poll-and-clear loop
+            # drops it silently.
+            next_ovf = 1 if any_ovf else 0
         elif any_ovf:
             next_ovf = 1
         else:

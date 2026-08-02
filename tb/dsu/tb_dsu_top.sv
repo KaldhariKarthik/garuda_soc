@@ -9,7 +9,11 @@
 // would be a second thing to keep in sync, and the two would drift.
 //
 // FILE FORMAT (fixed-size records, as DSU_gen.py documents)
-//   dsu_stim.mem      4 words/test: instr, rs1, rs2, {31'b0, csr_clear_overflow}
+//   dsu_stim.mem      4 words/test: instr, rs1, rs2, ctrl
+//                     ctrl bit 0 = csr_clear_overflow
+//                     ctrl bit 8 = dsu_en_n (1 -> drive dsu_en LOW)
+//                     Bit 8 was chosen so vectors predating it, which have
+//                     ctrl of 0 or 1, still mean exactly what they meant.
 //   dsu_expected.mem  8 words/test: rd_data,
 //                                   acc_FX[31:0], {16'b0, acc_FX[47:32]},
 //                                   acc_FY[31:0], {16'b0, acc_FY[47:32]},
@@ -138,7 +142,7 @@ module tb_dsu_top;
             rs1                = stim[i*STIM_W+1];
             rs2                = stim[i*STIM_W+2];
             csr_clear_overflow = stim[i*STIM_W+3][0];
-            dsu_en             = 1'b1;
+            dsu_en             = ~stim[i*STIM_W+3][8];   // bit 8 = dsu_en_n
 
             guard = 0;
             #1;                                  // let dsu_busy settle
