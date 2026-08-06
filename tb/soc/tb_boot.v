@@ -43,6 +43,7 @@ module tb_boot;
     integer      maxcyc, maxinstr, iwait, dwait;
     integer      dbgfrom, dbgto;
     integer      irq_at, irq_id, irq_lvl, irq_shv, irq_every, seed;
+    integer      irq_sweep;
     integer      irand, drand;
     integer      err_en; reg [31:0] err_base, err_size;
     reg [31:0]   tohost_addr;
@@ -87,6 +88,50 @@ module tb_boot;
         else if (irq_every > 0 && (cyc % irq_every) == 0 && cyc > 0) irq_req <= 1'b1;
     end
 
+    // ---- +IRQ_SWEEP: vary id / level / shv on every interrupt --------------
+    // clic_ctrl reads 12-bit id, 8-bit level and two 32-bit vector bases. With
+    // one fixed interrupt configuration those buses never change, so toggle
+    // coverage sat at 15/269 bins even though the take/ack logic was exercised.
+    // The patterns are complementary pairs (0x000/0xFFF, 0x55/0xAA ...) so every
+    // bit toggles in BOTH directions within a couple of interrupts rather than
+    // needing 4096 of them.
+    reg [3:0] sweep_ix;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)            sweep_ix <= 4'd0;
+        else if (irq_ack)      sweep_ix <= sweep_ix + 4'd1;
+    end
+
+    wire [11:0] sweep_id  = (sweep_ix == 4'd0) ? 12'h000 :
+                            (sweep_ix == 4'd1) ? 12'hFFF :
+                            (sweep_ix == 4'd2) ? 12'h555 :
+                            (sweep_ix == 4'd3) ? 12'hAAA :
+                            (sweep_ix == 4'd4) ? 12'h001 :
+                            (sweep_ix == 4'd5) ? 12'hFFE :
+                            (sweep_ix == 4'd6) ? 12'h800 : 12'h7FF;
+    // Levels stay high enough to beat mintthresh/mil most of the time, but the
+    // low ones deliberately fail the take condition so both arms of each
+    // comparison are covered.
+    wire [7:0]  sweep_lvl = (sweep_ix == 4'd0) ? 8'hFF :
+                            (sweep_ix == 4'd1) ? 8'h55 :
+                            (sweep_ix == 4'd2) ? 8'hAA :
+                            (sweep_ix == 4'd3) ? 8'h01 :
+                            (sweep_ix == 4'd4) ? 8'hFE :
+                            (sweep_ix == 4'd5) ? 8'h80 :
+                            (sweep_ix == 4'd6) ? 8'h7F : 8'hFF;
+
+    wire [11:0] irq_id_eff  = irq_sweep[0] ? sweep_id  : irq_id[11:0];
+    wire [7:0]  irq_lvl_eff = irq_sweep[0] ? sweep_lvl : irq_lvl[7:0];
+    // shv alternates with the sweep. It was briefly disabled here while SHV
+    // interrupts appeared to corrupt mepc - that turned out to be ERRATUM T-4
+    // (an interrupt taken on a pipeline bubble latched mepc = 0), not the SHV
+    // memory model. SHV arrives at arbitrary points in the instruction stream
+    // so it hit that window far more often than the fixed-offset t_irq ever
+    // did. With T-4 fixed, SHV vectoring through a jump table works, which
+    // also settles clic_ctrl.v's open question in favour of the
+    // jump-instruction interpretation: that is what the RTL implements and it
+    // is now demonstrated end to end.
+    wire        irq_shv_eff = irq_sweep[0] ? sweep_ix[0] : irq_shv[0];
+
     garuda_core_top #(.RESET_VECTOR(BASE_ADDR)) dut (
         .clk_i(clk), .rst_n_i(rst_n),
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize),
@@ -97,8 +142,8 @@ module tb_boot;
         .d_hburst_o(d_hburst), .d_hprot_o(d_hprot), .d_hwrite_o(d_hwrite),
         .d_hwdata_o(d_hwdata), .d_hrdata_i(d_hrdata), .d_hready_i(d_hready),
         .d_hresp_i(d_hresp),
-        .clic_irq_i(irq_req), .clic_irq_id_i(irq_id[11:0]),
-        .clic_irq_lvl_i(irq_lvl[7:0]), .clic_irq_shv_i(irq_shv[0]),
+        .clic_irq_i(irq_req), .clic_irq_id_i(irq_id_eff),
+        .clic_irq_lvl_i(irq_lvl_eff), .clic_irq_shv_i(irq_shv_eff),
         .clic_irq_ack_o(irq_ack), .clic_irq_id_ack_o(), .clic_mintthresh_o(),
         .mtime_i(64'd0), .mtimecmp_i(64'hFFFF_FFFF_FFFF_FFFF),
         .dbg_acc_0_o(dbg_acc0), .dbg_acc_1_o(dbg_acc1), .dbg_acc_2_o(dbg_acc2)
@@ -221,6 +266,7 @@ module tb_boot;
         if (!$value$plusargs("IRQ_LVL=%d", irq_lvl))   irq_lvl   = 8'hFF;
         if (!$value$plusargs("IRQ_SHV=%d", irq_shv))   irq_shv   = 0;
         if (!$value$plusargs("IRQ_EVERY=%d", irq_every)) irq_every = 0;
+        if (!$value$plusargs("IRQ_SWEEP=%d", irq_sweep))  irq_sweep = 0;
         if (!$value$plusargs("IRAND=%d", irand))       irand     = 0;
         if (!$value$plusargs("DRAND=%d", drand))       drand     = 0;
         if (!$value$plusargs("ERR_EN=%d", err_en))     err_en    = 0;

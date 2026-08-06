@@ -24,6 +24,7 @@ module branch_predict (
     input  wire [31:0] imm_j_i,
     input  wire         branch_i,   // ctrl.branch from Decode/Control
     input  wire         jal_i,      // ctrl.jal from Decode/Control
+    input  wire         fencei_i,   // FENCE.I: redirect to pc+4 to flush prefetch
 
     output wire         predict_taken_o,
     output wire         id_redirect_valid_o,
@@ -40,8 +41,17 @@ module branch_predict (
     // forward branch predicted not-taken.
     assign predict_taken_o = branch_i & imm_b_i[31];
 
-    assign id_redirect_valid_o  = jal_i | predict_taken_o;
-    assign id_redirect_target_o = jal_i ? jal_target : branch_target;
+    // ERRATUM C-3: FENCE.I redirects to the NEXT instruction. The redirect is
+    // what does the work - garuda_prefetch_buffer drops its entire contents on
+    // any redirect, so everything fetched after the FENCE.I is discarded and
+    // refetched. Architecturally a no-op; structurally a prefetch flush.
+    // Ranked first because a FENCE.I is neither a branch nor a JAL, so the
+    // other two targets are meaningless for it.
+    wire [31:0] fencei_target = pc_i + 32'd4;
+
+    assign id_redirect_valid_o  = fencei_i | jal_i | predict_taken_o;
+    assign id_redirect_target_o = fencei_i ? fencei_target :
+                                  jal_i    ? jal_target    : branch_target;
 
 endmodule
 

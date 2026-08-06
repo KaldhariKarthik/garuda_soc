@@ -524,6 +524,10 @@ module tb_top;
         .imm_j_i              (vif.imm_j),
         .branch_i             (vif.branch),
         .jal_i                (vif.jal),
+        // ERRATUM C-3 added fencei_i (FENCE.I redirects to pc+4 to flush the
+        // prefetch buffer). Tied low: this TB predates it and drives no
+        // FENCE.I. Left floating it reads as X and poisons id_redirect_valid_o.
+        .fencei_i             (1'b0),
         .predict_taken_o      (vif.predict_taken),
         .id_redirect_valid_o  (vif.redirect_valid),
         .id_redirect_target_o (vif.redirect_target)

@@ -281,6 +281,7 @@ module garuda_core_top #(
         .clk_i(clk_i), .rst_n_i(rst_n_i),
         .idex_pc_i(xe_pc), .idex_instr_i(xe_instr), .idex_fault_i(xe_fault),
         .idex_illegal_dec_i(xe_illegal), .idex_is_system_i(xe_is_system),
+        .idex_valid_i(xe_valid),                      // ERRATUM T-4
         .ex_dsu_illegal_i(ex_dsu_illegal), .ex_csr_illegal_i(csr_illegal),
         .ex_load_misalign_i(ex_load_mis), .ex_store_misalign_i(ex_store_mis), .ex_addr_i(ex_result),
         .ex_fetch_misalign_i(ex_fetch_mis), .ex_fetch_target_i(ex_redirect_target),

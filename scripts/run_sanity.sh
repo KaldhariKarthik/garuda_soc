@@ -30,6 +30,8 @@ SANITY_TESTS=(
   "t_wfi|20 WFI sleep and wake|+IRQ_AT=400"
   "t_dsu|9/13 DSU Custom-0 and busy hold|"
   "t_mem|item 6: width x offset matrix, byte enables, misalign traps|"
+  "t_clic|18: CLIC id/level/threshold sweep, take and block|+IRQ_EVERY=40 +IRQ_SWEEP=1"
+  "t_cov|coverage closure: FENCE, reserved encodings, CSR sweep, toggle walks|"
 )
 
 echo "elaborating..."

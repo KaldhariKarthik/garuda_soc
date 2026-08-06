@@ -43,7 +43,7 @@ IMC=${IMC:-/home/install/INCISIVE152/bin/imc}
 COVDIR=${COVDIR:-sim/cov}
 HEXDIR=${HEXDIR:-sw/riscv-tests/build}
 SWDIR=${SWDIR:-sw/build}
-MAXCYC=${MAXCYC:-200000}
+MAXCYC=${MAXCYC:-400000}
 rm -rf "$COVDIR"; mkdir -p "$COVDIR/reports"
 
 # ---------------------------------------------------------------------------
@@ -65,7 +65,7 @@ fi
 if [ $# -gt 0 ]; then TESTS="$*"
 else
     TESTS=$(ls "$HEXDIR"/*.hex 2>/dev/null | xargs -n1 basename | sed 's/\.hex$//')
-    TESTS="$TESTS ctest1 boot6 dsu_flag2 t_dsu t_irq t_wfi t_buserr t_flush t_loadbranch t_mem"
+    TESTS="$TESTS ctest1 boot6 dsu_flag2 t_dsu t_irq t_wfi t_buserr t_flush t_loadbranch t_mem t_clic t_cov"
 fi
 
 ran=""
@@ -82,6 +82,7 @@ for t in $TESTS; do
       t_irq)    extra="+IRQ_AT=300" ;;
       t_wfi)    extra="+IRQ_AT=400" ;;
       t_flush)  extra="+IWAIT=3 +IRAND=1 +SEED=7" ;;
+      t_clic)   extra="+IRQ_EVERY=40 +IRQ_SWEEP=1" ;;
     esac
 
     irun -R -snapshot gcov -nclibdirname "$COVDIR/INCA_libs" \
@@ -146,9 +147,10 @@ fi
 # aggregate is a per-group maximum. Merged, these are real totals.
 echo; echo "merging $(echo $ran | wc -w) runs..."
 {
-  echo "merge $ran -out $COVDIR/cov_work/merged -overwrite"
+  echo "merge $ran -out $COVDIR/cov_work/merged -overwrite -initial_model union_all"
   echo "load -run $COVDIR/cov_work/merged"
   echo "report -summary -out $COVDIR/summary.txt"
+  echo "report -summary -type -out $COVDIR/module_summary.txt"
   echo "report -detail -metrics covergroup -out $COVDIR/functional.txt"
   echo "report -detail -out $COVDIR/detail.txt"
   echo "exit"

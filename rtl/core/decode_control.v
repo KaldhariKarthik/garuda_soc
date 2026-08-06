@@ -43,6 +43,7 @@ module decode_control (
     output reg  [2:0]  csr_op_o,
     output reg          is_system_o,
     output reg          illegal_instr_o,
+    output reg          fencei_o,          // FENCE.I: flush prefetch, refetch
     output reg  [2:0]  imm_sel_o
 );
 
@@ -107,6 +108,7 @@ module decode_control (
         csr_op_o        = 3'b000;
         is_system_o     = 1'b0;
         illegal_instr_o = 1'b0;
+        fencei_o        = 1'b0;
         imm_sel_o       = `IMM_NONE;
 
         case (opcode)
@@ -238,17 +240,22 @@ module decode_control (
             // FENCE (funct3=000) is a no-op here: GARUDA has a single hart and
             // no store buffer or cache, so there is nothing to order.
             //
-            // FENCE.I (funct3=001) is deliberately LEFT ILLEGAL. It is the
-            // Zifencei extension, which misa does not advertise, and making it
-            // a no-op would be WRONG rather than conservative: the prefetch
-            // buffer holds already-fetched instructions and has no flush path,
-            // so self-modifying code would silently execute stale words. It
-            // needs a real prefetch-buffer flush before it can be claimed -
-            // that is a design decision, not a decode fix, and it is why
-            // riscv-tests fence_i stays excluded.
+            // FENCE.I (funct3=001) is now IMPLEMENTED (ERRATUM C-3). It was
+            // previously illegal because the prefetch buffer holds already
+            // fetched instructions and had no flush path, so a no-op would
+            // have silently executed stale words after self-modifying code.
+            //
+            // The flush already exists: garuda_prefetch_buffer invalidates the
+            // whole buffer on any redirect (Sec.6.5). So FENCE.I is realised as
+            // an ID-stage redirect to PC+4 - architecturally a no-op that
+            // happens to discard everything already fetched behind it, which is
+            // exactly Zifencei's requirement. No new flush path, no new state.
+            //
+            // Any other funct3 in MISC-MEM remains illegal.
             OP_MISC_MEM: begin
-                if (funct3 != 3'b000) illegal_instr_o = 1'b1;   // FENCE.I etc.
-                // FENCE: no register write, no memory op, no side effects.
+                if      (funct3 == 3'b000) ;                    // FENCE: no-op
+                else if (funct3 == 3'b001) fencei_o = 1'b1;     // FENCE.I
+                else                       illegal_instr_o = 1'b1;
             end
 
             OP_CUSTOM0: begin

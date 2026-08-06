@@ -861,7 +861,12 @@ class id_stage_ref_model;
             // permit it to TRAP, which is what the missing decode case caused.
             // FENCE.I (funct3=001) stays illegal: it is Zifencei, which misa
             // does not advertise, and the prefetch buffer has no flush path.
-            7'b0001111: begin if (f3 != 3'b000) r.illegal = 1; end
+            // ERRATUM C-3: FENCE.I (funct3=001) is implemented as a redirect
+            // to pc+4, which flushes the prefetch buffer. It is no longer
+            // illegal. Any OTHER MISC-MEM funct3 still is.
+            // ERRATUM C-3: FENCE (000) is a no-op, FENCE.I (001) is a redirect
+            // to pc+4 that flushes the prefetch buffer. Neither is illegal.
+            7'b0001111: begin if (f3 != 3'b000 && f3 != 3'b001) r.illegal = 1; end
             default: r.illegal=1;
         endcase
         return r;
@@ -893,11 +898,16 @@ class id_stage_ref_model;
 
     // ---- branch prediction ----
     static function bit predict_taken(bit branch_v, bit [31:0] imm_b_v); return branch_v & imm_b_v[31]; endfunction
-    static function bit redirect_valid(bit branch_v, bit jal_v, bit [31:0] imm_b_v);
-        return jal_v | predict_taken(branch_v, imm_b_v);
+    // ERRATUM C-3: FENCE.I redirects to pc+4. The redirect IS the flush -
+    // garuda_prefetch_buffer drops everything on any redirect - so it must be
+    // modelled here or the DUT looks wrong on every FENCE.I.
+    static function bit redirect_valid(bit branch_v, bit jal_v, bit fencei_v, bit [31:0] imm_b_v);
+        return fencei_v | jal_v | predict_taken(branch_v, imm_b_v);
     endfunction
-    static function bit [31:0] redirect_target(bit jal_v, bit [31:0] pc_v, bit [31:0] imm_b_v, bit [31:0] imm_j_v);
-        return jal_v ? (pc_v + imm_j_v) : (pc_v + imm_b_v);
+    static function bit [31:0] redirect_target(bit jal_v, bit fencei_v, bit [31:0] pc_v,
+                                               bit [31:0] imm_b_v, bit [31:0] imm_j_v);
+        return fencei_v ? (pc_v + 32'd4) :
+               jal_v    ? (pc_v + imm_j_v) : (pc_v + imm_b_v);
     endfunction
 
     // ---- load-use hazard ----
@@ -1049,7 +1059,7 @@ class id_scoreboard;
         bit [31:0] exp_imm, exp_imm_b, exp_imm_j;
         bit [4:0]  exp_rs1_idx, exp_rs2_idx, exp_rd;
         bit [2:0]  exp_funct3;
-        bit         exp_predict_taken, exp_redirect_valid;
+        bit         exp_predict_taken, exp_redirect_valid, exp_fencei;
         bit [31:0] exp_redirect_target;
         bit         exp_stall;
         bit         bypass_rs1, bypass_rs2;
@@ -1066,8 +1076,14 @@ class id_scoreboard;
         exp_imm   = model.imm_select(eff_instr, exp_decode.imm_sel);
 
         exp_predict_taken   = model.predict_taken(exp_decode.branch, exp_imm_b);
-        exp_redirect_valid  = model.redirect_valid(exp_decode.branch, exp_decode.jal, exp_imm_b);
-        exp_redirect_target = model.redirect_target(exp_decode.jal, pc_v, exp_imm_b, exp_imm_j);
+        // FENCE.I derived straight from the encoding rather than carried in
+        // decode_result_t: that struct is built by positional assignment
+        // patterns in several places, so widening it breaks them.
+        exp_fencei = (eff_instr[6:0] == 7'b0001111) && (eff_instr[14:12] == 3'b001);
+        exp_redirect_valid  = model.redirect_valid(exp_decode.branch, exp_decode.jal,
+                                                   exp_fencei, exp_imm_b);
+        exp_redirect_target = model.redirect_target(exp_decode.jal, exp_fencei,
+                                                   pc_v, exp_imm_b, exp_imm_j);
 
         exp_stall = model.load_use_stall(exp_rs1_idx, exp_rs2_idx, exr_v, exrd_v);
 

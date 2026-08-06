@@ -104,6 +104,10 @@ module id_stage (
     wire [2:0] imm_sel_w;
     wire [31:0] id_instr = if_id_valid_i ? if_id_instr_i : 32'h0000_0013;
 
+    // FENCE.I (ERRATUM C-3): decode_control raises it, branch_predict turns it
+    // into an ID redirect to pc+4, which flushes the prefetch buffer.
+    wire fencei_w;
+
     decode_control u_decode_control (
         .instr_i          (id_instr),
 
@@ -129,6 +133,7 @@ module id_stage (
         .csr_op_o          (csr_op_o),
         .is_system_o       (is_system_o),
         .illegal_instr_o   (illegal_instr_dec_o),
+        .fencei_o          (fencei_w),
         .imm_sel_o         (imm_sel_w)
     );
 
@@ -176,6 +181,7 @@ module id_stage (
         .imm_j_i                 (imm_j_w),
         .branch_i                (branch_o),
         .jal_i                   (jal_o),
+        .fencei_i                (fencei_w),
 
         .predict_taken_o         (predict_taken_o),   // -> id_ex (Sec. 5.2)
         .id_redirect_valid_o     (id_redirect_valid_o),

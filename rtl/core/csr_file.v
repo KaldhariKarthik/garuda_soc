@@ -72,7 +72,18 @@ module csr_file (
                MIE=12'h304, MIP=12'h344, MEPC=12'h341, MCAUSE=12'h342, MTVAL=12'h343,
                MSCRATCH=12'h340, MINTSTATUS=12'hFB1, MINTTHRESH=12'h347, MNXTI=12'h345,
                MCYCLE=12'hB00, MCYCLEH=12'hB80, MINSTRET=12'hB02, MINSTRETH=12'hB82,
-               DSU_OVF=12'hBC0;
+               DSU_OVF=12'hBC0,
+               // ERRATUM C-4 (Zicntr): user-level read-only shadows of the
+               // machine counters. riscv-tests rv32mi/zicntr reads cycle /
+               // instret / cycleh / instreth and requires them NOT to trap.
+               // GARUDA is M-mode only, but M-mode may read any CSR and the
+               // Zicntr counters are architecturally these addresses, so they
+               // are provided as read-only aliases rather than left
+               // unimplemented. `time` (0xC01) is deliberately NOT aliased: it
+               // is defined as the memory-mapped mtime, not a copy of mcycle,
+               // and pretending otherwise would be wrong.
+               CYCLE=12'hC00, INSTRET=12'hC02,
+               CYCLEH=12'hC80, INSTRETH=12'hC82;
 
     // ---------------- state ----------------
     reg        mstatus_mie, mstatus_mpie;   // MPP fixed 2'b11 (M-only)
@@ -118,6 +129,10 @@ module csr_file (
             MINSTRET:  rdata = minstret_r[31:0];
             MINSTRETH: rdata = minstret_r[63:32];
             DSU_OVF:   rdata = {31'd0, dsu_overflow_i};
+            CYCLE:     rdata = mcycle_r[31:0];       // Zicntr read-only aliases
+            CYCLEH:    rdata = mcycle_r[63:32];
+            INSTRET:   rdata = minstret_r[31:0];
+            INSTRETH:  rdata = minstret_r[63:32];
             default:   begin rdata = 32'd0; implemented = 1'b0; end
         endcase
         csr_rdata_o = rdata;
@@ -140,7 +155,11 @@ module csr_file (
     // have no effect; it only had to stop being reported as illegal.
     wire is_ro = (csr_addr_i==MVENDORID)||(csr_addr_i==MARCHID)||(csr_addr_i==MIMPID)||
                  (csr_addr_i==MHARTID)||(csr_addr_i==MINTSTATUS)||
-                 (csr_addr_i==DSU_OVF)||(csr_addr_i==MIP);
+                 (csr_addr_i==DSU_OVF)||(csr_addr_i==MIP)||
+                 // Zicntr shadows are read-only by architecture: writes go to
+                 // the machine counters, never through these addresses.
+                 (csr_addr_i==CYCLE)||(csr_addr_i==CYCLEH)||
+                 (csr_addr_i==INSTRET)||(csr_addr_i==INSTRETH);
     wire access      = csr_en_i && (csr_op_i != 2'b00);
     wire is_write    = access && (csr_op_i == `CSR_RW ||
                                   ((csr_op_i==`CSR_RS||csr_op_i==`CSR_RC) && (csr_wdata_i!=32'd0)));

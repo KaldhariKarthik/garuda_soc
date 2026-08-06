@@ -115,7 +115,12 @@ def main():
     # Zicsr must be explicit: spike's --isa=rv32im does NOT imply it, so every
     # CSR instruction decodes as illegal in the golden model and the whole trap
     # suite "diverges" against a core that is behaving correctly.
-    ap.add_argument("--isa", default="rv32im_zicsr")
+    # Every extension GARUDA implements must be named, or spike raises illegal
+    # on instructions the core executes correctly and the whole test "diverges":
+    #   zicsr    - CSR instructions (rv32im alone does NOT imply it)
+    #   zifencei - FENCE.I (ERRATUM C-3)
+    #   zicntr   - cycle/instret/cycleh/instreth shadows (ERRATUM C-4)
+    ap.add_argument("--isa", default="rv32im_zicsr_zifencei_zicntr")
     ap.add_argument("--base", default="0x10000000")
     ap.add_argument("--size", default="0x40000")
     ap.add_argument("--max", type=int, default=5, help="divergences to print")

@@ -25,7 +25,7 @@ BUILD  = build
 #             design, not by defect. They belong in the trap-handler suite.
 #   Moved to the p-env (trap handler) build below, not excluded any more:
 #     ma_data, div, divu, rem, remu  -- all need a trap handler.
-EXCLUDE   = fence_i ma_data
+EXCLUDE   = ma_data          # fence_i re-enabled: FENCE.I implemented (ERRATUM C-3)
 EXCLUDE_M = div divu rem remu
 
 # ---- p-env (trap handler) suites -------------------------------------------
@@ -39,7 +39,7 @@ EXCLUDE_M = div divu rem remu
 #     raise illegal-instruction. The test's own mtvec_handler then rejects any
 #     cause that is not CAUSE_BREAKPOINT and fails. Re-enable when the debug
 #     block lands; nothing here is waived, the feature simply does not exist.
-EXCLUDE_MI = pmpaddr zicntr instret_overflow breakpoint
+EXCLUDE_MI = pmpaddr instret_overflow breakpoint   # zicntr re-enabled (ERRATUM C-4)
 
 MI_SRCS = $(filter-out $(addprefix $(RISCV_TESTS)/isa/rv32mi/,$(addsuffix .S,$(EXCLUDE_MI))), \
                        $(wildcard $(RISCV_TESTS)/isa/rv32mi/*.S))
@@ -59,7 +59,7 @@ UI = $(notdir $(UI_SRCS:.S=))
 UM = $(notdir $(UM_SRCS:.S=))
 TESTS = $(UI) $(UM)
 
-CFLAGS = -march=rv32im -mabi=ilp32 -mno-relax -fno-pic -nostdlib -nostartfiles \
+CFLAGS = -march=rv32im_zifencei -mabi=ilp32 -mno-relax -fno-pic -nostdlib -nostartfiles \
          -Wa,--no-warn \
          -I env -I $(RISCV_TESTS)/isa/macros/scalar -I $(RISCV_TESTS)/env
 LDFLAGS = -T ../common/link.ld -no-pie -static -Wl,--no-warn-rwx-segments
@@ -92,7 +92,7 @@ $(BUILD)/%.elf: $(RISCV_TESTS)/isa/rv32um/%.S env/riscv_test.h | $(BUILD)
 	@$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@ 2>$(BUILD)/$*.buildlog || \
 	  { echo "BUILD-FAIL $*"; rm -f $@; }
 
-PCFLAGS = -march=rv32im_zicsr -mabi=ilp32 -mno-relax -fno-pic -nostdlib -nostartfiles \
+PCFLAGS = -march=rv32im_zicsr_zifencei -mabi=ilp32 -mno-relax -fno-pic -nostdlib -nostartfiles \
           -Wa,--no-warn \
           -I env/p -I $(RISCV_TESTS)/isa/macros/scalar -I $(RISCV_TESTS)/env
 

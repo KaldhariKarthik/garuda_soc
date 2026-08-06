@@ -16,6 +16,9 @@ module tb_trap_ctrl;
     // here: this TB predates it and exercises no control transfers. Left
     // undriven the inputs float and poison the whole cause mux with x.
     .ex_fetch_misalign_i(1'b0),.ex_fetch_target_i(32'd0),
+    // ERRATUM T-4 added an EX-valid gate on interrupt entry. Tied high
+    // here so this TB's existing interrupt vectors behave as before.
+    .idex_valid_i(1'b1),
     .mem_exc_valid_i(memv),.mem_exc_cause_i(memc),.mem_exc_pc_i(mpc),.mem_exc_tval_i(mtval),
     .clic_take_cond_i(tkcond),.clic_wake_cond_i(wkcond),.clic_irq_id_i(irqid),
     .clic_irq_lvl_i(irqlvl),.clic_vector_target_i(vectgt),.clic_take_o(tk_ack),

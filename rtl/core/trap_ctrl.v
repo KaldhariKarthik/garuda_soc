@@ -38,6 +38,7 @@ module trap_ctrl #(
     input  wire        idex_fault_i,          // I-access fault bit (cause 1)
     input  wire        idex_illegal_dec_i,    // decode illegal (cause 2)
     input  wire        idex_is_system_i,
+    input  wire        idex_valid_i,          // ERRATUM T-4: EX holds a real instr
     input  wire        ex_dsu_illegal_i,      // cause 2
     input  wire        ex_csr_illegal_i,      // cause 2 (csr_file.illegal_csr)
     input  wire        ex_load_misalign_i,    // cause 4
@@ -133,8 +134,31 @@ module trap_ctrl #(
     // (RISC-V default MEI > MTI); the CLIC has already applied its own level /
     // mintthresh arbitration and mstatus.MIE inside clic_take_cond_i.
     wire exception    = mem_exc_valid_i | ex_exc;
-    wire take_int      = clic_take_cond_i & ~exception;  // exceptions win
-    wire take_mti     = mti_pending_i & mstatus_mie_i & ~exception & ~take_int;
+
+    // -----------------------------------------------------------------------
+    // ERRATUM T-4 -- an interrupt taken on a bubble destroyed mepc
+    // -----------------------------------------------------------------------
+    // trap_pc_o uses idex_pc_i for an interrupt ("resume @ EX instr"), but
+    // interrupt entry was not gated on EX actually HOLDING an instruction.
+    // id_ex.set_bubble writes pc_o <= 32'd0, so an interrupt arriving while
+    // ID/EX was a bubble - which happens constantly, e.g. in the shadow of
+    // every taken branch - latched mepc = 0. MRET then returned to address 0,
+    // which is outside the memory map, and the core fell into an endless
+    // instruction-access-fault storm having lost the return address entirely.
+    //
+    // Interrupts are architecturally taken BETWEEN instructions, so requiring a
+    // valid instruction in EX is the correct condition, not a workaround. The
+    // CLIC holds its request until acknowledged, so deferring by a cycle loses
+    // nothing.
+    //
+    // Found by t_clic asserting interrupts at many different offsets into a
+    // loop (Core Sanity row 18) - a fixed injection point can miss it forever.
+    // Exceptions need no such gate: they are raised BY an instruction, so one
+    // is present by construction.
+    // -----------------------------------------------------------------------
+    wire take_int      = clic_take_cond_i & ~exception & idex_valid_i;
+    wire take_mti     = mti_pending_i & mstatus_mie_i & ~exception & ~take_int
+                        & idex_valid_i;
     wire any_int      = take_int | take_mti;
     wire trap_now     = (exception | any_int) & ~is_mret;
 
