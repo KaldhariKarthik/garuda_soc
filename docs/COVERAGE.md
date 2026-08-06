@@ -1,6 +1,7 @@
 # GARUDA coverage — status and signoff notes
 
-Generated 2026-08-04 from a merged database of 79 runs.
+Generated 2026-08-04 from a merged database of 80 runs.
+See `docs/HANDOFF.md` for the full verification handoff; this file covers coverage only.
 Reproduce with `./scripts/run_coverage.sh`; reports land in `sim/cov/`.
 
 ---
@@ -50,7 +51,7 @@ enabler.
 
 ## Where coverage stands
 
-**Code coverage (merged, 80 runs): `garuda_core_top` instance tree at 71.86%**
+**Code coverage (merged): `garuda_core_top` instance tree at 73.24%**
 (was 62.71% before the closure work).
 
 ### The shortfall is toggle, not logic
@@ -111,15 +112,23 @@ chased; covering them measures the testbench, not the chip.
 | `garuda_cov` | the covergroup module itself |
 | `branch_if`, `hazard_if`, `id_stage_if`, `imm_gen_if`, `regfile_if` (0%) | SystemVerilog interfaces belonging to the unit testbenches |
 
-## Category B — blocked on an open design decision
+## Category B — RESOLVED, previously believed blocked
 
-| entity | why |
-|---|---|
-| `clic_ctrl` (56.88%, was 5.58%) | The residual gap is the **SHV vectored path** and the `mtvt` bus bits it drives. `clic_ctrl.v`'s own header flags this as unresolved: *"if the table holds handler pointers requiring a hardware dereference, trap_ctrl issues that vector fetch; if it holds jump instructions, fetch lands here directly. Flagged for reconciliation with the SHV memory-model decision."* Driving `shv=1` against a jump table produced interrupts after which `mepc` returned as 0. **This must be settled as a design question before the coverage can honestly be closed** — writing a test against either interpretation would be asserting an answer the design has not chosen. |
+This section previously claimed `clic_ctrl` was blocked on an unresolved SHV memory-model
+decision, because driving `shv=1` produced interrupts after which `mepc` read as 0.
 
-Everything else in `clic_ctrl` — take/block on `mintthresh`, both arms of each level
-comparison, MIE gating, the ack handshake, id and level bus toggling — is now covered by
-`sw/tests/t_clic.S` plus the testbench's `+IRQ_SWEEP` id/level sweep.
+**That diagnosis was wrong.** The corruption was ERRATUM T-4 — interrupt entry was not
+gated on a valid instruction in EX, so an interrupt landing on a pipeline bubble latched
+`mepc = idex_pc = 0`. SHV merely exposed it more often, arriving at arbitrary points in
+the instruction stream rather than at one fixed offset.
+
+With T-4 fixed, **SHV vectoring works end to end** through a 4096-entry jump table. That
+also settles `clic_ctrl.v`'s open question by evidence rather than by decision: the RTL
+implements the jump-instruction interpretation, and it is correct.
+
+`clic_ctrl` is now at **65.06%** (from 5.58%). The remainder is toggle coverage on the
+`mtvt` / `vector_target_o` upper bits, which is the same wide-bus toggle problem as every
+other module below the bar — not a blocker.
 
 ## Category C — genuine gaps, with the test that closes each
 
