@@ -159,6 +159,17 @@ module dma_reg_bank (
     // -----------------------------------------------------------------------
     // Write path + CDC event generation (pclk)
     // -----------------------------------------------------------------------
+    // Per-channel write decode. A continuous assign rather than a blocking
+    // temp inside the clocked block: same logic, but it keeps the sequential
+    // process free of blocking assignments (Verilator BLKSEQ) and makes the
+    // one-hot channel select explicit.
+    wire [`DMA_NCH-1:0] ch_wr;
+    generate
+        for (gi = 0; gi < `DMA_NCH; gi = gi + 1) begin : g_chwr
+            assign ch_wr[gi] = wr_en_i && sel_valid_i && (ch_sel_i == gi[2:0]);
+        end
+    endgenerate
+
     integer c;
     always @(posedge pclk_i or negedge preset_n_i) begin
         if (!preset_n_i) begin
@@ -177,40 +188,72 @@ module dma_reg_bank (
             clr_err_tog_o  <= {`DMA_NCH{1'b0}};
         end else begin
             for (c = 0; c < `DMA_NCH; c = c + 1) begin
-                if (wr_en_i && sel_valid_i && (ch_sel_i == c[2:0])) begin
-                    case (reg_sel_i)
-                        `DMA_REG_SAR: sar[c] <= wdata_i;
-                        `DMA_REG_DAR: dar[c] <= wdata_i;
-                        // Sec. 6.5: TCR is 16 bits, [31:16] reserved, writes
-                        // to the upper half ignored.
-                        `DMA_REG_TCR: tcr[c] <= wdata_i[`DMA_TCR_W-1:0];
-                        // Sec. 6.6: CR[31:13] reserved, writes ignored.
-                        `DMA_REG_CR: begin
-                            cr[c] <= wdata_i[`DMA_CR_W-1:0];
-                            // "Set this bit LAST after configuring all other
-                            // registers" (Sec. 6.6) IS the start trigger, so a
-                            // CR write carrying EN=1 is what raises the arm
-                            // event. See dma_channel_fsm DESIGN NOTE 1.
-                            if (wdata_i[`DMA_CR_EN])
-                                arm_tog_o[c] <= ~arm_tog_o[c];
-                        end
-                        // Sec. 6.7: SR bits [1:0] are W1C. Writing 1 clears;
-                        // writing 0 has no effect. The clear itself happens in
-                        // hclk where the flag lives - this only raises the
-                        // event. Nothing in SR is stored in this domain.
-                        `DMA_REG_SR: begin
-                            if (wdata_i[`DMA_SR_COMPLETE])
-                                clr_done_tog_o[c] <= ~clr_done_tog_o[c];
-                            if (wdata_i[`DMA_SR_ERROR])
-                                clr_err_tog_o[c]  <= ~clr_err_tog_o[c];
-                        end
-                        default: ; // reserved reg_sel: write dropped
-                    endcase
+                // -------------------------------------------------------
+                // ERRATUM DMA-2 - a write to ANY register of this channel
+                // used to swallow the hardware EN clear.
+                //
+                // This loop was previously one "if (write to channel c) case
+                // (reg_sel) ... else if (en_clr_p[c])". The else-if is skipped
+                // whenever the channel is written AT ALL - so an APB write to
+                // SAR, DAR, TCR or SR landing in the same pclk cycle as the
+                // completion pulse took the write branch, matched a case arm
+                // that does not touch CR, and DROPPED the clear.
+                //
+                // en_clr_p is a one-shot recovered from a toggle handshake
+                // (dma_cdc_pulse). A dropped one-shot is gone permanently -
+                // there is no retry - so CR.EN reads 1 forever on a channel
+                // that has completed and returned to IDLE. The transfer engine
+                // still works, because arming is event-driven (DESIGN NOTE 1
+                // in dma_channel_fsm), which is exactly what makes this nasty:
+                // the block behaves correctly while its status register lies,
+                // and anyone debugging from CR.EN is sent the wrong way.
+                //
+                // The collision is a normal software pattern, not a corner
+                // case: a completion ISR writes SR (W1C) and re-programs
+                // SAR/DAR for the next descriptor precisely in this window.
+                //
+                // Fixed by decoding each register independently, so ONLY a CR
+                // write can pre-empt the clear - which is the actual intent of
+                // the write-priority rule documented above.
+                //
+                // Found by T17 (2 of 14 swept collision phases).
+                // -------------------------------------------------------
+                if (ch_wr[c] && (reg_sel_i == `DMA_REG_SAR))
+                    sar[c] <= wdata_i;
+
+                if (ch_wr[c] && (reg_sel_i == `DMA_REG_DAR))
+                    dar[c] <= wdata_i;
+
+                // Sec. 6.5: TCR is 16 bits, [31:16] reserved, writes to the
+                // upper half ignored.
+                if (ch_wr[c] && (reg_sel_i == `DMA_REG_TCR))
+                    tcr[c] <= wdata_i[`DMA_TCR_W-1:0];
+
+                // Sec. 6.6: CR[31:13] reserved, writes ignored. A software CR
+                // write beats the hardware EN clear in the same cycle - it is
+                // the newer intent, and the clear refers to the transfer that
+                // just finished.
+                if (ch_wr[c] && (reg_sel_i == `DMA_REG_CR)) begin
+                    cr[c] <= wdata_i[`DMA_CR_W-1:0];
+                    // "Set this bit LAST after configuring all other
+                    // registers" (Sec. 6.6) IS the start trigger, so a CR
+                    // write carrying EN=1 is what raises the arm event.
+                    if (wdata_i[`DMA_CR_EN])
+                        arm_tog_o[c] <= ~arm_tog_o[c];
                 end else if (en_clr_p[c]) begin
                     // Hardware single-shot completion clears CR.EN (Sec. 6.6).
-                    // Reached only when no APB write is targeting this channel
-                    // this cycle - see "THE EN WRITE-PRIORITY RULE" above.
                     cr[c][`DMA_CR_EN] <= 1'b0;
+                end
+
+                // Sec. 6.7: SR bits [1:0] are W1C. Writing 1 clears; writing 0
+                // has no effect. The clear itself happens in hclk where the
+                // flag lives - this only raises the event. Nothing in SR is
+                // stored in this domain.
+                if (ch_wr[c] && (reg_sel_i == `DMA_REG_SR)) begin
+                    if (wdata_i[`DMA_SR_COMPLETE])
+                        clr_done_tog_o[c] <= ~clr_done_tog_o[c];
+                    if (wdata_i[`DMA_SR_ERROR])
+                        clr_err_tog_o[c]  <= ~clr_err_tog_o[c];
                 end
             end
         end

@@ -1283,6 +1283,54 @@ module tb_dma_top;
     endtask
 
     // =======================================================================
+    // T17 - The hardware CR.EN clear must survive a concurrent APB write to a
+    //       DIFFERENT register of the same channel.
+    //
+    // The EN clear (Sec. 6.6, single-shot completion) arrives in pclk as a
+    // one-shot pulse recovered from a toggle. A one-shot that is dropped is
+    // gone for good - CR.EN would then read 1 forever on a channel that has
+    // finished and gone idle.
+    //
+    // The collision is a real software pattern, not a contrived one: firmware
+    // servicing a completion interrupt writes SR (W1C) and often re-programs
+    // SAR/DAR for the next descriptor, right in the window where the clear
+    // pulse lands. The trial loop sweeps the write burst across that window in
+    // 1-hclk steps so the collision is hit rather than hoped for.
+    // =======================================================================
+    task t17_en_clr_collision;
+        integer trial, i;
+        begin
+            $display("--- T17: EN clear vs concurrent write to another register ---");
+            for (trial = 0; trial < 14; trial = trial + 1) begin
+                u_slave.init_model();
+                u_slave.push_rd(0, 32'h0000_0001);
+                ack_count[0] = 0;
+
+                cfg_channel(0, FIFO_BASE, MEM_BASE + 32'h1500, 16'd1,
+                            mk_cr(DIR_P2M, SZ_BYTE, 1'b0, 1'b1, 1'b0,
+                                  1'b1, 1'b1, 3'd7, 1'b1));
+                set_req(6'b000001);
+
+                wait (ack_count[0] == 1);
+                hclk_wait(trial);              // sweep the collision phase
+
+                // Rewrite SAR with its own value - functionally a no-op for
+                // the transfer, but it asserts wr_en for this channel.
+                for (i = 0; i < 3; i = i + 1)
+                    apb_write(0, R_SAR, FIFO_BASE);
+
+                hclk_wait(40);
+                apb_read(0, R_CR, rd);
+                chk(rd[B_EN] === 1'b0,
+                    "CR.EN cleared despite a concurrent SAR write");
+
+                set_req(6'b000000);
+                clear_all_channels();
+            end
+        end
+    endtask
+
+    // =======================================================================
     // Main
     // =======================================================================
     integer seed_arg;
@@ -1338,6 +1386,7 @@ module tb_dma_top;
         t13_all_channels();
         t14_software_abort();
         t15_edge_cases();
+        t17_en_clr_collision();
         t16_random_soak();
 
         // Protocol monitors
