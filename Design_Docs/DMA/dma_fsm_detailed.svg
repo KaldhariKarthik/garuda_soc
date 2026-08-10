@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="820" viewBox="0 0 1000 820" font-family="Arial, sans-serif">
+<style>
+.st{font-size:14px;font-weight:bold;fill:#0a3d2e}
+.stsub{font-size:10px;fill:#0F6E56}
+.cond{font-size:11px;font-family:Consolas,monospace;fill:#444}
+.title{font-size:16px;font-weight:bold;fill:#000}
+.sec{font-size:13px;font-weight:bold;fill:#333}
+.note{font-size:11px;fill:#555}
+.ahbst{font-size:13px;font-weight:bold;fill:#5a1f33}
+.ahbsub{font-size:10px;fill:#993556}
+</style>
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5"/></marker>
+</defs>
+
+<text class="title" x="500" y="34" text-anchor="middle">DMA state machines — channel FSM (5-state) + AHB master FSM (6-state)</text>
+
+<!-- ============ CHANNEL FSM (left) ============ -->
+<text class="sec" x="60" y="70">Channel FSM (one per channel, 6 total) — high-level transfer control</text>
+
+<!-- IDLE -->
+<rect x="120" y="90" width="200" height="56" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1.5"/>
+<text class="st" x="220" y="113" text-anchor="middle" fill="#2c2c2a">IDLE</text>
+<text class="stsub" x="220" y="132" text-anchor="middle" fill="#5F5E5A">no bus activity · waits for EN</text>
+
+<!-- CONFIGURED -->
+<rect x="120" y="200" width="200" height="56" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text class="st" x="220" y="223" text-anchor="middle" fill="#3C3489">CONFIGURED</text>
+<text class="stsub" x="220" y="242" text-anchor="middle" fill="#534AB7">latch SAR/DAR/TCR/CR → working regs</text>
+
+<!-- WAITING -->
+<rect x="100" y="310" width="240" height="56" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="1.5"/>
+<text class="st" x="220" y="333" text-anchor="middle" fill="#712B13">WAITING_FOR_REQUEST</text>
+<text class="stsub" x="220" y="352" text-anchor="middle" fill="#993C1D">assert ch_req · need dma_req AND grant</text>
+
+<!-- TRANSFERRING -->
+<rect x="110" y="430" width="220" height="56" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+<text class="st" x="220" y="453" text-anchor="middle">TRANSFERRING</text>
+<text class="stsub" x="220" y="472" text-anchor="middle">hand beat to AHB master · dec xfer_cnt</text>
+
+<!-- COMPLETE -->
+<rect x="120" y="560" width="200" height="56" rx="10" fill="#FBEAF0" stroke="#993556" stroke-width="1.5"/>
+<text class="st" x="220" y="583" text-anchor="middle" fill="#72243E">COMPLETE</text>
+<text class="stsub" x="220" y="602" text-anchor="middle" fill="#993556">set SR flag · fire IRQ · check CIRC</text>
+
+<!-- transitions -->
+<line x1="100" y1="80" x2="170" y2="88" stroke="#888" stroke-width="1" marker-end="url(#a)"/>
+<text class="cond" x="80" y="80">reset</text>
+
+<line x1="220" y1="146" x2="220" y2="198" stroke="#444" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="cond" x="228" y="176">CR.EN = 1</text>
+
+<line x1="220" y1="256" x2="220" y2="308" stroke="#444" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="cond" x="228" y="286">always (1 cycle)</text>
+
+<line x1="220" y1="366" x2="220" y2="428" stroke="#444" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="cond" x="228" y="400">dma_req=1 AND grant=1</text>
+
+<!-- TRANSFERRING -> WAITING (loop back) -->
+<path d="M110 460 L70 460 L70 338 L98 338" fill="none" stroke="#444" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="cond" x="30" y="395">beat done,</text>
+<text class="cond" x="30" y="410">xfer_cnt&gt;0</text>
+<text class="cond" x="30" y="425">(re-arbitrate)</text>
+
+<!-- TRANSFERRING -> COMPLETE -->
+<line x1="220" y1="486" x2="220" y2="558" stroke="#444" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="cond" x="228" y="525">xfer_cnt=0 or</text>
+<text class="cond" x="228" y="540">bus_error</text>
+
+<!-- COMPLETE -> IDLE (circ=0) -->
+<path d="M320 580 L370 580 L370 118 L322 118" fill="none" stroke="#444" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="cond" x="378" y="345">CIRC=0:</text>
+<text class="cond" x="378" y="360">clear EN,</text>
+<text class="cond" x="378" y="375">go IDLE</text>
+
+<!-- COMPLETE -> CONFIGURED (circ=1) -->
+<path d="M320 588 L400 588 L400 228 L322 228" fill="none" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="cond" x="408" y="408" fill="#0F6E56">CIRC=1:</text>
+<text class="cond" x="408" y="423" fill="#0F6E56">reload,</text>
+<text class="cond" x="408" y="438" fill="#0F6E56">restart</text>
+
+<!-- ============ AHB MASTER FSM (right) ============ -->
+<text class="sec" x="560" y="70">AHB master FSM (one, shared) — low-level bus protocol</text>
+
+<!-- vertical column of 6 states -->
+<rect x="640" y="90" width="200" height="48" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1.5"/>
+<text class="ahbst" x="740" y="112" text-anchor="middle" fill="#2c2c2a">IDLE</text>
+<text class="ahbsub" x="740" y="128" text-anchor="middle" fill="#5F5E5A">htrans=IDLE</text>
+
+<rect x="640" y="178" width="200" height="48" rx="10" fill="#FBEAF0" stroke="#993556" stroke-width="1.5"/>
+<text class="ahbst" x="740" y="200" text-anchor="middle">READ_ADDR</text>
+<text class="ahbsub" x="740" y="216" text-anchor="middle">haddr=src, hwrite=0</text>
+
+<rect x="640" y="266" width="200" height="48" rx="10" fill="#FBEAF0" stroke="#993556" stroke-width="1.5"/>
+<text class="ahbst" x="740" y="288" text-anchor="middle">READ_DATA</text>
+<text class="ahbsub" x="740" y="304" text-anchor="middle">capture hrdata→buffer</text>
+
+<rect x="640" y="354" width="200" height="48" rx="10" fill="#FBEAF0" stroke="#993556" stroke-width="1.5"/>
+<text class="ahbst" x="740" y="376" text-anchor="middle">WRITE_ADDR</text>
+<text class="ahbsub" x="740" y="392" text-anchor="middle">haddr=dst, hwrite=1</text>
+
+<rect x="640" y="442" width="200" height="48" rx="10" fill="#FBEAF0" stroke="#993556" stroke-width="1.5"/>
+<text class="ahbst" x="740" y="464" text-anchor="middle">WRITE_DATA</text>
+<text class="ahbsub" x="740" y="480" text-anchor="middle">hwdata=buffer</text>
+
+<rect x="640" y="530" width="200" height="48" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+<text class="ahbst" x="740" y="552" text-anchor="middle" fill="#0a3d2e">DONE</text>
+<text class="ahbsub" x="740" y="568" text-anchor="middle" fill="#0F6E56">pulse dma_ack · beat_done</text>
+
+<!-- transitions -->
+<line x1="740" y1="138" x2="740" y2="176" stroke="#444" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="cond" x="748" y="162">channel granted</text>
+<line x1="740" y1="226" x2="740" y2="264" stroke="#444" stroke-width="1.2" marker-end="url(#a)"/>
+<line x1="740" y1="314" x2="740" y2="352" stroke="#444" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="cond" x="748" y="338">hready=1</text>
+<line x1="740" y1="402" x2="740" y2="440" stroke="#444" stroke-width="1.2" marker-end="url(#a)"/>
+<line x1="740" y1="490" x2="740" y2="528" stroke="#444" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="cond" x="748" y="514">hready=1</text>
+
+<!-- DONE back to IDLE -->
+<path d="M840 554 L890 554 L890 114 L842 114" fill="none" stroke="#444" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="cond" x="898" y="330">next beat</text>
+<text class="cond" x="898" y="345">or IDLE</text>
+
+<!-- error branch -->
+<path d="M640 290 L600 290 L600 554 L638 554" fill="none" stroke="#A32D2D" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#a)"/>
+<text class="cond" x="560" y="420" fill="#A32D2D">hresp=ERROR</text>
+<text class="cond" x="560" y="435" fill="#A32D2D">→ bus_error</text>
+
+<!-- handoff arrow between the two FSMs -->
+<path d="M330 458 L470 458 L470 200 L638 200" fill="none" stroke="#0F6E56" stroke-width="1.5" stroke-dasharray="6 3" marker-end="url(#a)"/>
+<text class="note" x="500" y="450" fill="#0F6E56" font-weight="bold">handoff: TRANSFERRING starts the</text>
+<text class="note" x="500" y="465" fill="#0F6E56" font-weight="bold">AHB master FSM for one beat</text>
+
+<!-- beat_done feedback -->
+<path d="M638 542 L500 542 L500 478 L332 478" fill="none" stroke="#993556" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#a)"/>
+<text class="note" x="470" y="535" fill="#993556">beat_done → channel FSM decrements xfer_cnt</text>
+
+<!-- footer notes -->
+<text class="note" x="60" y="700">The channel FSM (5 states) decides WHAT to transfer and WHEN. The AHB master FSM (6 states) executes the HOW —</text>
+<text class="note" x="60" y="718">the actual read+write bus protocol for one beat. One AHB master is shared; the arbiter's ch_sel picks which channel it serves.</text>
+<text class="note" x="60" y="742">A complete beat = one full pass through the AHB master FSM (IDLE→...→DONE) ≈ 3 hclk cycles when slaves have zero wait states.</text>
+<text class="note" x="60" y="766">Per-beat re-arbitration: after DONE, control returns to the channel FSM's WAITING_FOR_REQUEST, and the arbiter re-evaluates.</text>
+<text class="note" x="60" y="790">So a higher-priority channel can grab the AHB master between any two beats of a lower-priority transfer.</text>
+</svg>

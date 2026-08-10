@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="640" viewBox="0 0 1000 640" font-family="Arial, sans-serif">
+<style>
+.lbl{font-size:13px;font-weight:bold;fill:#3C3489}
+.sub{font-size:11px;fill:#534AB7}
+.sig{font-size:11px;font-family:Consolas,monospace;fill:#444}
+.title{font-size:16px;font-weight:bold;fill:#000}
+.note{font-size:11px;fill:#555}
+.dir{font-size:10px;font-weight:bold;fill:#888}
+</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5"/></marker></defs>
+
+<text class="title" x="500" y="34" text-anchor="middle">APB Slave Interface — config port (100 MHz pclk domain)</text>
+
+<!-- APB slave block -->
+<rect x="330" y="120" width="340" height="320" rx="12" fill="#EEEDFE" stroke="#534AB7" stroke-width="2"/>
+<text class="lbl" x="500" y="148" text-anchor="middle" font-size="15">APB Slave</text>
+
+<!-- internal: address decoder -->
+<rect x="360" y="170" width="280" height="80" rx="8" fill="#F7F6FE" stroke="#7F77DD" stroke-width="1"/>
+<text class="lbl" x="500" y="190" text-anchor="middle">Address decoder</text>
+<text class="sig" x="500" y="210" text-anchor="middle">paddr[7:5] → channel (0-5)</text>
+<text class="sig" x="500" y="226" text-anchor="middle">paddr[4:2] → register (SAR..SR)</text>
+<text class="sig" x="500" y="242" text-anchor="middle">~30 gates combinational</text>
+
+<!-- internal: write/read logic -->
+<rect x="360" y="270" width="280" height="70" rx="8" fill="#F7F6FE" stroke="#7F77DD" stroke-width="1"/>
+<text class="lbl" x="500" y="290" text-anchor="middle">Write/read control</text>
+<text class="sig" x="500" y="310" text-anchor="middle">wr_en = psel &amp; penable &amp; pwrite</text>
+<text class="sig" x="500" y="326" text-anchor="middle">drives write strobes to reg bank</text>
+
+<!-- internal: tie-offs -->
+<rect x="360" y="360" width="280" height="60" rx="8" fill="#F7F6FE" stroke="#7F77DD" stroke-width="1"/>
+<text class="sig" x="500" y="384" text-anchor="middle">pready = 1 (zero wait states)</text>
+<text class="sig" x="500" y="402" text-anchor="middle">pslverr = 0 (never errors)</text>
+
+<!-- LEFT: inputs from APB bus -->
+<text class="dir" x="120" y="150">INPUTS (from CPU via bridge)</text>
+<g>
+<line x1="120" y1="175" x2="328" y2="175" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="124" y="170">psel</text><text class="note" x="200" y="170">slave selected</text>
+<line x1="120" y1="205" x2="328" y2="205" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="124" y="200">penable</text><text class="note" x="200" y="200">access phase strobe</text>
+<line x1="120" y1="235" x2="328" y2="235" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="124" y="230">pwrite</text><text class="note" x="200" y="230">1=write 0=read</text>
+<line x1="120" y1="265" x2="328" y2="265" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="124" y="260">paddr[7:0]</text><text class="note" x="210" y="260">register offset</text>
+<line x1="120" y1="295" x2="328" y2="295" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="124" y="290">pwdata[31:0]</text><text class="note" x="225" y="290">config data in</text>
+</g>
+
+<!-- RIGHT: to register bank + back to bus -->
+<text class="dir" x="700" y="150">TO REGISTER BANK / BUS</text>
+<g>
+<line x1="672" y1="200" x2="880" y2="200" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="700" y="195">wr_strobe[29:0]</text><text class="note" x="700" y="215">one per register</text>
+<line x1="880" y1="290" x2="672" y2="290" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="700" y="285">reg_data[31:0]</text><text class="note" x="700" y="305">selected reg value</text>
+</g>
+
+<!-- OUTPUTS back to bus -->
+<text class="dir" x="120" y="370">OUTPUTS (to CPU)</text>
+<line x1="328" y1="390" x2="120" y2="390" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="124" y="385">prdata[31:0]</text><text class="note" x="225" y="385">read data out</text>
+<line x1="328" y1="415" x2="120" y2="415" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="124" y="410">pready, pslverr</text>
+
+<!-- clock -->
+<text class="sig" x="500" y="105" text-anchor="middle">pclk (100 MHz) · preset_n</text>
+<line x1="500" y1="108" x2="500" y2="118" stroke="#534AB7" stroke-width="1" marker-end="url(#a)"/>
+
+<!-- notes -->
+<text class="note" x="80" y="480">How it works: The CPU drives a 2-cycle APB transaction. Cycle 1 (setup): psel=1, paddr/pwdata/pwrite valid, penable=0.</text>
+<text class="note" x="80" y="500">Cycle 2 (access): penable=1. The slave decodes paddr, and on a write asserts the matching register's write strobe; on a</text>
+<text class="note" x="80" y="520">read it MUXes the addressed register onto prdata. pready=1 means it always completes in this one cycle (no stalling).</text>
+<text class="note" x="80" y="540">This block ONLY talks to the CPU. It has no knowledge of dma_req/ack or transfers — those go straight to the FSMs.</text>
+<text class="note" x="80" y="568">Gate count: ~200. Lives entirely in the pclk (100 MHz) domain. The register bank it writes is also pclk.</text>
+</svg>

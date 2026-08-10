@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620" font-family="Arial, sans-serif">
+<style>
+.lbl{font-size:13px;font-weight:bold;fill:#1a1a1a}.sub{font-size:10px;fill:#555}
+.sig{font-size:10px;font-family:Consolas,monospace;fill:#555}.title{font-size:16px;font-weight:bold}
+.bus{font-size:12px;font-weight:bold;fill:#333}.note{font-size:10px;fill:#666}
+</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5"/></marker></defs>
+<text class="title" x="500" y="32" text-anchor="middle">DMA Controller in the GARUDA SoC</text>
+
+<!-- AHB bus bar -->
+<rect x="60" y="150" width="880" height="26" rx="6" fill="#E8E6F4" stroke="#534AB7" stroke-width="1.2"/>
+<text class="bus" x="500" y="168" text-anchor="middle" fill="#3C3489">AHB-Lite Bus (200 MHz)</text>
+
+<!-- APB bus bar -->
+<rect x="320" y="400" width="620" height="26" rx="6" fill="#F4E6EC" stroke="#993556" stroke-width="1.2"/>
+<text class="bus" x="630" y="418" text-anchor="middle" fill="#72243E">APB Bus (100 MHz)</text>
+
+<!-- AHB masters -->
+<rect x="90" y="70" width="150" height="56" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text class="lbl" x="165" y="93" text-anchor="middle">RV32IM CPU</text><text class="sub" x="165" y="112" text-anchor="middle">AHB master</text>
+<rect x="300" y="70" width="150" height="56" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="2"/>
+<text class="lbl" x="375" y="93" text-anchor="middle">DMA Controller</text><text class="sub" x="375" y="112" text-anchor="middle">AHB master + APB slave</text>
+
+<!-- AHB slaves -->
+<rect x="540" y="70" width="110" height="56" rx="8" fill="#EAF2FB" stroke="#2D6BA3" stroke-width="1.2"/>
+<text class="lbl" x="595" y="93" text-anchor="middle">ISRAM</text><text class="sub" x="595" y="112" text-anchor="middle">64 KB</text>
+<rect x="670" y="70" width="110" height="56" rx="8" fill="#EAF2FB" stroke="#2D6BA3" stroke-width="1.2"/>
+<text class="lbl" x="725" y="93" text-anchor="middle">DSRAM</text><text class="sub" x="725" y="112" text-anchor="middle">64 KB, 4 banks</text>
+<rect x="800" y="70" width="130" height="56" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1.5"/>
+<text class="lbl" x="865" y="93" text-anchor="middle">AHB-APB Bridge</text><text class="sub" x="865" y="112" text-anchor="middle">200 to 100 MHz</text>
+
+<!-- CLIC -->
+<rect x="90" y="220" width="150" height="50" rx="8" fill="#FBEAF0" stroke="#993556" stroke-width="1.5"/>
+<text class="lbl" x="165" y="242" text-anchor="middle">CLIC (Block 16)</text><text class="sub" x="165" y="260" text-anchor="middle">interrupt controller</text>
+
+<!-- connections to AHB -->
+<line x1="165" y1="126" x2="165" y2="149" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a)"/>
+<line x1="375" y1="126" x2="375" y2="149" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#a)"/>
+<line x1="595" y1="126" x2="595" y2="149" stroke="#2D6BA3" stroke-width="1.2" marker-end="url(#a)"/>
+<line x1="725" y1="126" x2="725" y2="149" stroke="#2D6BA3" stroke-width="1.2" marker-end="url(#a)"/>
+<line x1="865" y1="126" x2="865" y2="149" stroke="#993C1D" stroke-width="1.2" marker-end="url(#a)"/>
+
+<!-- bridge to APB -->
+<line x1="865" y1="176" x2="865" y2="399" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+
+<!-- peripherals on APB -->
+<rect x="350" y="470" width="90" height="46" rx="6" fill="#FFF3E0" stroke="#B5851A" stroke-width="1"/><text class="sub" x="395" y="490" text-anchor="middle" font-weight="bold">SPI</text><text class="sub" x="395" y="505" text-anchor="middle">IMU</text>
+<rect x="450" y="470" width="90" height="46" rx="6" fill="#FFF3E0" stroke="#B5851A" stroke-width="1"/><text class="sub" x="495" y="490" text-anchor="middle" font-weight="bold">I2C</text><text class="sub" x="495" y="505" text-anchor="middle">baro/mag</text>
+<rect x="550" y="470" width="90" height="46" rx="6" fill="#FFF3E0" stroke="#B5851A" stroke-width="1"/><text class="sub" x="595" y="490" text-anchor="middle" font-weight="bold">UART x3</text><text class="sub" x="595" y="505" text-anchor="middle">son/gps/lora</text>
+<rect x="650" y="470" width="90" height="46" rx="6" fill="#FFF3E0" stroke="#B5851A" stroke-width="1"/><text class="sub" x="695" y="490" text-anchor="middle" font-weight="bold">GPIO</text><text class="sub" x="695" y="505" text-anchor="middle">ESP-NOW</text>
+<rect x="750" y="470" width="110" height="46" rx="6" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/><text class="sub" x="805" y="490" text-anchor="middle" font-weight="bold">DMA regs</text><text class="sub" x="805" y="505" text-anchor="middle">config (APB slave)</text>
+
+<line x1="395" y1="470" x2="395" y2="427" stroke="#B5851A" stroke-width="1" marker-end="url(#a)"/>
+<line x1="495" y1="470" x2="495" y2="427" stroke="#B5851A" stroke-width="1" marker-end="url(#a)"/>
+<line x1="595" y1="470" x2="595" y2="427" stroke="#B5851A" stroke-width="1" marker-end="url(#a)"/>
+<line x1="695" y1="470" x2="695" y2="427" stroke="#B5851A" stroke-width="1" marker-end="url(#a)"/>
+<line x1="805" y1="470" x2="805" y2="427" stroke="#0F6E56" stroke-width="1" marker-end="url(#a)"/>
+
+<!-- DMA to CLIC -->
+<path d="M300 98 L165 98 L165 218" fill="none" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="200" y="200">dma_irq/err[5:0]</text>
+
+<!-- sideband req/ack from peripherals to DMA -->
+<path d="M395 516 L300 540 L280 540 L280 100 L300 100" fill="none" stroke="#0F6E56" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#a)"/>
+<text class="sig" x="255" y="300" transform="rotate(-90 255 300)">dma_req/ack[5:0] (sideband)</text>
+
+<text class="note" x="60" y="560">Data path (P to M): DMA reads peripheral FIFO via AHB to bridge to APB, captures in buffer, writes to DSRAM via AHB.</text>
+<text class="note" x="60" y="578">Config path: CPU writes DMA registers via AHB to bridge to APB to DMA APB slave. Sideband req/ack bypass all buses.</text>
+<text class="note" x="60" y="596">Interrupt path: DMA raises dma_irq/err to CLIC, which prioritizes across the whole chip and interrupts the CPU.</text>
+</svg>

@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="760" viewBox="0 0 1000 760" font-family="Arial, sans-serif">
+<style>
+.lbl{font-size:13px;font-weight:bold;fill:#1a1a1a}
+.sub{font-size:11px;fill:#444}
+.sig{font-size:10px;font-family:Consolas,monospace;fill:#555}
+.reg{font-size:10px;font-family:Consolas,monospace;fill:#222;font-weight:bold}
+.title{font-size:15px;font-weight:bold;fill:#000}
+.note{font-size:10px;fill:#666}
+</style>
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5"/></marker>
+</defs>
+
+<!-- DMA outer boundary -->
+<rect x="150" y="40" width="700" height="680" rx="14" fill="none" stroke="#333" stroke-width="2" stroke-dasharray="8 4"/>
+<text class="title" x="500" y="65" text-anchor="middle">DMA Controller — internal architecture</text>
+
+<!-- Clocks/reset top -->
+<text class="sig" x="200" y="35" text-anchor="middle">hclk(200M)</text>
+<text class="sig" x="290" y="35" text-anchor="middle">pclk(100M)</text>
+<text class="sig" x="400" y="35" text-anchor="middle">hreset_n / preset_n</text>
+
+<!-- APB SLAVE -->
+<rect x="175" y="90" width="180" height="80" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text class="lbl" x="265" y="112" text-anchor="middle">APB Slave</text>
+<text class="sub" x="265" y="130" text-anchor="middle">Address decode</text>
+<text class="sig" x="265" y="148" text-anchor="middle">paddr[7:5]=channel</text>
+<text class="sig" x="265" y="162" text-anchor="middle">paddr[4:2]=register</text>
+
+<!-- REGISTER BANK with 6 channels x 5 regs -->
+<rect x="175" y="195" width="180" height="300" rx="8" fill="#F7F6FE" stroke="#534AB7" stroke-width="1.5"/>
+<text class="lbl" x="265" y="214" text-anchor="middle">Register Bank</text>
+<!-- 6 channel rows -->
+<g>
+<rect x="185" y="225" width="160" height="42" rx="4" fill="#EEEDFE" stroke="#7F77DD" stroke-width="0.7"/>
+<text class="reg" x="192" y="240">CH0:</text><text class="sig" x="225" y="240">SAR DAR TCR</text><text class="sig" x="225" y="254">CR  SR (PRI=7)</text>
+<rect x="185" y="270" width="160" height="36" rx="4" fill="#F7F6FE" stroke="#7F77DD" stroke-width="0.7"/>
+<text class="reg" x="192" y="291">CH1:</text><text class="sig" x="225" y="291">5 regs (PRI=4)</text>
+<rect x="185" y="309" width="160" height="36" rx="4" fill="#EEEDFE" stroke="#7F77DD" stroke-width="0.7"/>
+<text class="reg" x="192" y="330">CH2:</text><text class="sig" x="225" y="330">5 regs (PRI=5)</text>
+<rect x="185" y="348" width="160" height="36" rx="4" fill="#F7F6FE" stroke="#7F77DD" stroke-width="0.7"/>
+<text class="reg" x="192" y="369">CH3:</text><text class="sig" x="225" y="369">5 regs (PRI=2)</text>
+<rect x="185" y="387" width="160" height="36" rx="4" fill="#EEEDFE" stroke="#7F77DD" stroke-width="0.7"/>
+<text class="reg" x="192" y="408">CH4:</text><text class="sig" x="225" y="408">5 regs (PRI=3)</text>
+<rect x="185" y="426" width="160" height="36" rx="4" fill="#F7F6FE" stroke="#7F77DD" stroke-width="0.7"/>
+<text class="reg" x="192" y="447">CH5:</text><text class="sig" x="225" y="447">5 regs (PRI=6)</text>
+</g>
+<text class="note" x="265" y="480" text-anchor="middle">30 regs total · flip-flops · pclk</text>
+
+<!-- APB slave to reg bank -->
+<line x1="265" y1="170" x2="265" y2="193" stroke="#534AB7" stroke-width="1" marker-end="url(#a)"/>
+
+<!-- CHANNEL FSMs -->
+<rect x="410" y="195" width="195" height="300" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+<text class="lbl" x="507" y="214" text-anchor="middle">6 Channel FSMs</text>
+<g>
+<rect x="420" y="225" width="175" height="40" rx="4" fill="#D5F0E6" stroke="#1D9E75" stroke-width="0.7"/>
+<text class="reg" x="428" y="241">FSM0 (5-state)</text><text class="sig" x="428" y="256">+ working regs</text>
+<rect x="420" y="270" width="175" height="34" rx="4" fill="#E8F7F1" stroke="#1D9E75" stroke-width="0.7"/>
+<text class="reg" x="428" y="291">FSM1</text>
+<rect x="420" y="308" width="175" height="34" rx="4" fill="#D5F0E6" stroke="#1D9E75" stroke-width="0.7"/>
+<text class="reg" x="428" y="329">FSM2</text>
+<rect x="420" y="346" width="175" height="34" rx="4" fill="#E8F7F1" stroke="#1D9E75" stroke-width="0.7"/>
+<text class="reg" x="428" y="367">FSM3</text>
+<rect x="420" y="384" width="175" height="34" rx="4" fill="#D5F0E6" stroke="#1D9E75" stroke-width="0.7"/>
+<text class="reg" x="428" y="405">FSM4</text>
+<rect x="420" y="422" width="175" height="34" rx="4" fill="#E8F7F1" stroke="#1D9E75" stroke-width="0.7"/>
+<text class="reg" x="428" y="443">FSM5</text>
+</g>
+<text class="note" x="507" y="478" text-anchor="middle">each: state reg + xfer_cnt +</text>
+<text class="note" x="507" y="490" text-anchor="middle">src/dst_addr_r · hclk</text>
+
+<!-- reg bank to FSMs -->
+<line x1="355" y1="345" x2="408" y2="345" stroke="#0F6E56" stroke-width="1" marker-end="url(#a)"/>
+<text class="sig" x="382" y="338" text-anchor="middle">config</text>
+<text class="sig" x="382" y="360" text-anchor="middle">snapshot</text>
+
+<!-- ARBITER -->
+<rect x="410" y="525" width="195" height="70" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1.5"/>
+<text class="lbl" x="507" y="548" text-anchor="middle">Priority Arbiter</text>
+<text class="sub" x="507" y="566" text-anchor="middle">priority encoder (combinational)</text>
+<text class="sig" x="507" y="583" text-anchor="middle">highest PRI wins · idx tiebreak</text>
+
+<!-- FSMs to arbiter -->
+<line x1="507" y1="495" x2="507" y2="523" stroke="#993C1D" stroke-width="1" marker-end="url(#a)"/>
+<text class="sig" x="600" y="512" text-anchor="middle">ch_req[5:0]</text>
+
+<!-- arbiter to FSMs (grant) -->
+<path d="M410 560 L385 560 L385 470 L408 470" fill="none" stroke="#993C1D" stroke-width="1" marker-end="url(#a)"/>
+<text class="sig" x="385" y="512" text-anchor="middle">grant</text>
+
+<!-- AHB MASTER -->
+<rect x="650" y="195" width="180" height="140" rx="8" fill="#FBEAF0" stroke="#993556" stroke-width="1.5"/>
+<text class="lbl" x="740" y="216" text-anchor="middle">AHB-Lite Master</text>
+<text class="sub" x="740" y="233" text-anchor="middle">6-state FSM:</text>
+<text class="sig" x="740" y="249" text-anchor="middle">IDLE→READ_ADDR→</text>
+<text class="sig" x="740" y="263" text-anchor="middle">READ_DATA→WRITE_ADDR</text>
+<text class="sig" x="740" y="277" text-anchor="middle">→WRITE_DATA→DONE</text>
+<rect x="675" y="290" width="130" height="34" rx="4" fill="#F4D5E0" stroke="#993556" stroke-width="0.8"/>
+<text class="reg" x="740" y="311" text-anchor="middle">data buffer [31:0]</text>
+
+<!-- arbiter to AHB master -->
+<path d="M605 545 L630 545 L630 290 L648 290" fill="none" stroke="#993556" stroke-width="1" marker-end="url(#a)"/>
+<text class="sig" x="635" y="420" text-anchor="middle">ch_sel[2:0]</text>
+<text class="sig" x="635" y="434" text-anchor="middle">src/dst/size</text>
+
+<!-- AHB master beat_done back to FSMs -->
+<path d="M650 320 L620 320 L620 460 L607 460" fill="none" stroke="#993556" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#a)"/>
+<text class="sig" x="660" y="345" text-anchor="start">beat_done,</text>
+<text class="sig" x="660" y="358" text-anchor="start">bus_error</text>
+
+<!-- IRQ AGGREGATOR -->
+<rect x="650" y="400" width="180" height="90" rx="8" fill="#FBEAF0" stroke="#993556" stroke-width="1.5"/>
+<text class="lbl" x="740" y="422" text-anchor="middle">IRQ Aggregator</text>
+<text class="sub" x="740" y="440" text-anchor="middle">12 AND gates</text>
+<text class="sig" x="740" y="458" text-anchor="middle">irq[n]=COMPLETE·IE</text>
+<text class="sig" x="740" y="472" text-anchor="middle">err[n]=ERROR·EIE</text>
+
+<!-- FSMs to IRQ agg -->
+<path d="M595 470 L615 470 L615 445 L648 445" fill="none" stroke="#993556" stroke-width="0.8" marker-end="url(#a)"/>
+<text class="sig" x="618" y="430" text-anchor="start">done/err flags</text>
+
+<!-- ============ EXTERNAL ============ -->
+<!-- APB bus in -->
+<line x1="60" y1="130" x2="173" y2="130" stroke="#534AB7" stroke-width="1.5" marker-end="url(#a)"/>
+<text class="sig" x="100" y="120" text-anchor="middle">from CPU</text>
+<text class="sig" x="100" y="145" text-anchor="middle">(APB bus)</text>
+
+<!-- dma_req into FSMs -->
+<line x1="60" y1="300" x2="408" y2="300" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="90" y="293" text-anchor="middle">dma_req[5:0]</text>
+<text class="note" x="90" y="315" text-anchor="middle">(from peripherals,</text>
+<text class="note" x="90" y="327" text-anchor="middle">straight to FSMs)</text>
+
+<!-- dma_ack out of FSMs -->
+<line x1="408" y1="410" x2="60" y2="410" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="90" y="403" text-anchor="middle">dma_ack[5:0]</text>
+
+<!-- AHB bus out -->
+<line x1="832" y1="265" x2="945" y2="265" stroke="#993556" stroke-width="1.5" marker-end="url(#a)"/>
+<text class="sig" x="900" y="255" text-anchor="middle">AHB bus</text>
+<text class="sig" x="900" y="280" text-anchor="middle">(200 MHz)</text>
+
+<!-- IRQ out -->
+<line x1="832" y1="445" x2="945" y2="445" stroke="#993556" stroke-width="1.5" marker-end="url(#a)"/>
+<text class="sig" x="900" y="435" text-anchor="middle">dma_irq/err</text>
+<text class="sig" x="900" y="460" text-anchor="middle">→ CLIC</text>
+
+<!-- legend -->
+<text class="note" x="175" y="620">Color: purple=config path · teal=channel FSMs · coral=arbitration · pink=data/IRQ output</text>
+<text class="note" x="175" y="640">Solid arrows = data/control flow. Dashed = status feedback. Sideband dma_req/ack bypass the buses.</text>
+<text class="note" x="175" y="660">Two clock domains: pclk(100M) for APB slave + register bank; hclk(200M) for FSMs, arbiter, AHB master.</text>
+<text class="note" x="175" y="680">CDC crossing handled in CONFIGURED state (2-flop synchronizer on EN bit).</text>
+</svg>

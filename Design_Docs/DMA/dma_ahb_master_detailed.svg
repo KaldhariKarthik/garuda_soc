@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700" font-family="Arial, sans-serif">
+<style>
+.lbl{font-size:13px;font-weight:bold;fill:#72243E}
+.sub{font-size:11px;fill:#993556}
+.sig{font-size:11px;font-family:Consolas,monospace;fill:#444}
+.title{font-size:16px;font-weight:bold;fill:#000}
+.note{font-size:11px;fill:#555}
+.dir{font-size:10px;font-weight:bold;fill:#888}
+</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5"/></marker></defs>
+
+<text class="title" x="500" y="34" text-anchor="middle">AHB-Lite Master — data port (200 MHz hclk domain)</text>
+
+<!-- AHB master block -->
+<rect x="320" y="110" width="360" height="370" rx="12" fill="#FBEAF0" stroke="#993556" stroke-width="2"/>
+<text class="lbl" x="500" y="138" text-anchor="middle" font-size="15">AHB-Lite Master</text>
+
+<!-- internal: 6-state FSM -->
+<rect x="350" y="160" width="300" height="120" rx="8" fill="#F4D5E0" stroke="#993556" stroke-width="1"/>
+<text class="lbl" x="500" y="180" text-anchor="middle">6-state protocol FSM</text>
+<text class="sig" x="500" y="200" text-anchor="middle">IDLE → READ_ADDR → READ_DATA</text>
+<text class="sig" x="500" y="216" text-anchor="middle">→ WRITE_ADDR → WRITE_DATA → DONE</text>
+<text class="sig" x="500" y="238" text-anchor="middle">advances on hready=1</text>
+<text class="sig" x="500" y="256" text-anchor="middle">hresp=ERROR → abort + bus_error</text>
+<text class="sig" x="500" y="272" text-anchor="middle">~3 hclk cycles per beat</text>
+
+<!-- internal: data buffer -->
+<rect x="350" y="300" width="300" height="50" rx="8" fill="#F4D5E0" stroke="#993556" stroke-width="1"/>
+<text class="lbl" x="500" y="320" text-anchor="middle">Data buffer [31:0]</text>
+<text class="sig" x="500" y="338" text-anchor="middle">holds byte between read &amp; write</text>
+
+<!-- internal: address/control MUX -->
+<rect x="350" y="370" width="300" height="50" rx="8" fill="#F4D5E0" stroke="#993556" stroke-width="1"/>
+<text class="lbl" x="500" y="390" text-anchor="middle">Address/control MUX</text>
+<text class="sig" x="500" y="408" text-anchor="middle">ch_sel picks src vs dst, size, dir</text>
+
+<text class="sig" x="500" y="448" text-anchor="middle">~2000 gates · hclk (200 MHz)</text>
+
+<!-- clock -->
+<text class="sig" x="500" y="98" text-anchor="middle">hclk (200 MHz) · hreset_n</text>
+<line x1="500" y1="100" x2="500" y2="108" stroke="#993556" stroke-width="1" marker-end="url(#a)"/>
+
+<!-- LEFT: from arbiter / FSMs -->
+<text class="dir" x="100" y="155">FROM ARBITER / CHANNEL FSM</text>
+<line x1="100" y1="180" x2="318" y2="180" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="104" y="175">ch_sel[2:0]</text><text class="note" x="195" y="175">which channel</text>
+<line x1="100" y1="210" x2="318" y2="210" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="104" y="205">src_addr[31:0]</text>
+<line x1="100" y1="240" x2="318" y2="240" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="104" y="235">dst_addr[31:0]</text>
+<line x1="100" y1="270" x2="318" y2="270" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="104" y="265">size[1:0], dir[1:0]</text>
+
+<!-- RIGHT: to AHB bus (outputs) -->
+<text class="dir" x="730" y="135">TO AHB BUS (master drives)</text>
+<g>
+<line x1="682" y1="160" x2="900" y2="160" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="700" y="155">haddr[31:0]</text>
+<line x1="682" y1="185" x2="900" y2="185" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="700" y="180">htrans[1:0]</text>
+<line x1="682" y1="210" x2="900" y2="210" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="700" y="205">hwrite</text>
+<line x1="682" y1="235" x2="900" y2="235" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="700" y="230">hsize[2:0]</text>
+<line x1="682" y1="260" x2="900" y2="260" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="700" y="255">hburst[2:0] (=SINGLE)</text>
+<line x1="682" y1="285" x2="900" y2="285" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="700" y="280">hwdata[31:0]</text>
+</g>
+
+<!-- RIGHT: from AHB bus (inputs) -->
+<text class="dir" x="730" y="320">FROM AHB BUS (slave responds)</text>
+<g>
+<line x1="900" y1="345" x2="682" y2="345" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="700" y="340">hrdata[31:0]</text>
+<line x1="900" y1="370" x2="682" y2="370" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="700" y="365">hready</text>
+<line x1="900" y1="395" x2="682" y2="395" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="700" y="390">hresp</text>
+</g>
+
+<!-- bottom: outputs to FSM -->
+<text class="dir" x="100" y="320">TO CHANNEL FSM</text>
+<line x1="318" y1="345" x2="100" y2="345" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="104" y="340">beat_done</text>
+<line x1="318" y1="375" x2="100" y2="375" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="104" y="370">bus_error</text>
+<line x1="318" y1="405" x2="100" y2="405" stroke="#993556" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="sig" x="104" y="400">dma_ack[n] (1 pulse)</text>
+
+<!-- notes -->
+<text class="note" x="80" y="520">How it works: when a channel is granted, the FSM runs one full beat. READ_ADDR/READ_DATA fetch from src_addr</text>
+<text class="note" x="80" y="540">(peripheral FIFO via bridge, or SRAM) into the buffer. WRITE_ADDR/WRITE_DATA push the buffer to dst_addr. The AHB</text>
+<text class="note" x="80" y="560">pipelined protocol overlaps the write address phase with the read data capture, so a beat is ~3 cycles not 4.</text>
+<text class="note" x="80" y="580">hready=0 inserts wait states (DMA holds signals stable). hresp=ERROR aborts the beat and raises bus_error to the FSM.</text>
+<text class="note" x="80" y="600">On DONE it pulses dma_ack[n] (peripheral pops its FIFO) and beat_done (channel FSM decrements xfer_cnt).</text>
+<text class="note" x="80" y="628">Only ONE AHB master exists — shared by all 6 channels, time-multiplexed by the arbiter's ch_sel. hclk (200 MHz) domain.</text>
+</svg>

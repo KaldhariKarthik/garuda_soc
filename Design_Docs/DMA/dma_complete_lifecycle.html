@@ -1,0 +1,151 @@
+<style>
+.step{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-bottom:1px solid var(--color-border-tertiary);cursor:pointer;transition:background .15s}
+.step:hover{background:var(--color-background-secondary)}
+.step:last-child{border-bottom:none}
+.num{min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;font-size:13px;flex-shrink:0}
+.who{font-size:11px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
+.desc{font-size:14px;color:var(--color-text-primary);line-height:1.5}
+.detail{font-size:12px;color:var(--color-text-secondary);margin-top:4px;line-height:1.5}
+.sig{font-family:var(--font-mono);font-size:11px;background:var(--color-background-tertiary);padding:1px 5px;border-radius:3px}
+.phase{padding:10px 16px;font-weight:500;font-size:13px;color:var(--color-text-secondary);background:var(--color-background-tertiary);letter-spacing:.5px}
+</style>
+
+<h2 class="sr-only">Complete lifecycle of one DMA transfer for IMU data, from boot configuration through 14 bytes moved to interrupt handling</h2>
+
+<div class="phase">PHASE 1 — CONFIGURATION (happens once at boot, CPU does this)</div>
+
+<div class="step" onclick="sendPrompt('Explain how the CPU configures DMA registers through the APB bus')">
+<div class="num" style="background:#EEEDFE;color:#3C3489">1</div>
+<div>
+<div class="who" style="color:#534AB7">CPU (via APB bus → bridge → DMA registers)</div>
+<div class="desc">CPU writes SAR, DAR, TCR, CR for channel 0</div>
+<div class="detail"><span class="sig">SAR</span> = 0x4000_1004 (SPI FIFO address — where the IMU bytes are)<br>
+<span class="sig">DAR</span> = 0x2000_0100 (DSRAM buffer — where the bytes should end up)<br>
+<span class="sig">TCR</span> = 14 (move 14 bytes)<br>
+<span class="sig">CR</span> = P→M, byte, no source inc, dest inc, circular, interrupt on, priority 7, ENABLE</div>
+</div>
+</div>
+
+<div class="step">
+<div class="num" style="background:#EEEDFE;color:#3C3489">2</div>
+<div>
+<div class="who" style="color:#534AB7">DMA channel 0 FSM</div>
+<div class="desc">FSM sees <span class="sig">CR.EN</span> = 1 → moves from IDLE to CONFIGURED</div>
+<div class="detail">Copies SAR, DAR, TCR, CR into private working registers (shadow copies). Takes 1 clock cycle (5 ns). Then automatically moves to WAITING_FOR_REQUEST.</div>
+</div>
+</div>
+
+<div class="phase">PHASE 2 — WAITING (DMA is armed, waiting for sensor data)</div>
+
+<div class="step">
+<div class="num" style="background:#E1F5EE;color:#085041">3</div>
+<div>
+<div class="who" style="color:#0F6E56">SPI peripheral</div>
+<div class="desc">IMU sensor sends byte #1 over the SPI wire → SPI puts it into its FIFO</div>
+<div class="detail">The SPI hardware clocks in data from the external IMU chip. Each byte goes into a small internal queue (FIFO). When the FIFO has at least one byte, SPI asserts <span class="sig">dma_req[0]</span> = 1 on the sideband wire. This wire goes directly from the SPI block to the DMA block — no bus involved.</div>
+</div>
+</div>
+
+<div class="step">
+<div class="num" style="background:#E1F5EE;color:#085041">4</div>
+<div>
+<div class="who" style="color:#0F6E56">DMA channel 0 FSM + arbiter</div>
+<div class="desc">FSM sees <span class="sig">dma_req[0]</span> = 1 → raises <span class="sig">ch_req[0]</span> to the arbiter</div>
+<div class="detail">The arbiter (priority encoder inside DMA) checks all 6 channels. Only CH0 is requesting. CH0 priority = 7. No competition. Arbiter outputs <span class="sig">grant</span> = 1. FSM moves to TRANSFERRING.</div>
+</div>
+</div>
+
+<div class="phase">PHASE 3 — TRANSFERRING (one byte, two bus transactions)</div>
+
+<div class="step" onclick="sendPrompt('Explain the AHB bus protocol in detail — address phase and data phase')">
+<div class="num" style="background:#FBEAF0;color:#72243E">5a</div>
+<div>
+<div class="who" style="color:#993556">DMA AHB master — READ from SPI FIFO</div>
+<div class="desc">DMA puts the SPI FIFO address on the AHB bus and reads 1 byte</div>
+<div class="detail">DMA drives: <span class="sig">HADDR</span> = 0x4000_1004, <span class="sig">HWRITE</span> = 0 (read).<br>
+The AHB address decoder (hardwired logic on the bus, NOT part of DMA) sees the upper bits = 0x4, knows this is an APB range, routes to the bridge.<br>
+Bridge performs APB read from SPI FIFO → returns the byte on <span class="sig">HRDATA</span>.<br>
+DMA captures the byte in its tiny internal buffer register.</div>
+</div>
+</div>
+
+<div class="step">
+<div class="num" style="background:#FBEAF0;color:#72243E">5b</div>
+<div>
+<div class="who" style="color:#993556">DMA AHB master — WRITE to DSRAM</div>
+<div class="desc">DMA puts the DSRAM buffer address on the AHB bus and writes the byte</div>
+<div class="detail">DMA drives: <span class="sig">HADDR</span> = 0x2000_0100, <span class="sig">HWRITE</span> = 1 (write), <span class="sig">HWDATA</span> = the byte.<br>
+Address decoder sees upper bits = 0x2, routes directly to DSRAM (no bridge needed — DSRAM is on AHB).<br>
+DSRAM stores the byte. Returns <span class="sig">HREADY</span> = 1 (done).</div>
+</div>
+</div>
+
+<div class="step">
+<div class="num" style="background:#FBEAF0;color:#72243E">5c</div>
+<div>
+<div class="who" style="color:#993556">DMA internals</div>
+<div class="desc">Bookkeeping: ack the peripheral, update counters, release bus</div>
+<div class="detail">DMA pulses <span class="sig">dma_ack[0]</span> = 1 for one clock cycle → SPI pops the byte from its FIFO.<br>
+Working counter: 14 → 13. Destination address: 0x2000_0100 → 0x2000_0101 (DINC=1).<br>
+Source address stays 0x4000_1004 (SINC=0).<br>
+FSM returns to WAITING_FOR_REQUEST. Arbiter re-evaluates.</div>
+</div>
+</div>
+
+<div class="phase">PHASE 4 — REPEAT (steps 4-5 happen 13 more times)</div>
+
+<div class="step">
+<div class="num" style="background:#E1F5EE;color:#085041">6</div>
+<div>
+<div class="who" style="color:#0F6E56">Repeat for bytes 2-14</div>
+<div class="desc">Each byte: arbiter grants → read SPI FIFO → write DSRAM → counter--</div>
+<div class="detail">If another channel (say CH2 sonar, priority 5) requests during this process, the arbiter compares priorities. CH0 = 7 > CH2 = 5, so CH0 wins every time. CH2 waits until CH0 is done or CH0's FIFO empties.<br><br>
+After byte 14: working counter hits 0.</div>
+</div>
+</div>
+
+<div class="phase">PHASE 5 — COMPLETION AND INTERRUPT</div>
+
+<div class="step">
+<div class="num" style="background:#FAECE7;color:#712B13">7</div>
+<div>
+<div class="who" style="color:#993C1D">DMA channel 0 FSM</div>
+<div class="desc">Counter = 0 → FSM moves to COMPLETE</div>
+<div class="detail">Hardware sets <span class="sig">SR.COMPLETE</span> = 1.<br>
+Since <span class="sig">CR.IE</span> = 1 (interrupt enabled), the AND gate fires: <span class="sig">dma_irq[0]</span> goes HIGH.<br>
+This wire goes from DMA → CLIC (the interrupt controller).</div>
+</div>
+</div>
+
+<div class="step" onclick="sendPrompt('Explain how the CLIC interrupt controller works in GARUDA')">
+<div class="num" style="background:#FAECE7;color:#712B13">8</div>
+<div>
+<div class="who" style="color:#993C1D">CLIC → CPU</div>
+<div class="desc">CLIC interrupts the CPU → CPU jumps to the DMA interrupt handler</div>
+<div class="detail">CPU pauses whatever it was doing (EKF math). Saves its current position (program counter → <span class="sig">mepc</span> register). Jumps to the ISR (interrupt service routine) — a C function you wrote.</div>
+</div>
+</div>
+
+<div class="step">
+<div class="num" style="background:#FAECE7;color:#712B13">9</div>
+<div>
+<div class="who" style="color:#993C1D">CPU (running ISR)</div>
+<div class="desc">ISR reads <span class="sig">SR</span>, sees COMPLETE=1, clears it, signals EKF task</div>
+<div class="detail">CPU reads SR via APB (same path as step 1, but reading).<br>
+Sees bit 0 = 1 (COMPLETE). Writes 1 to bit 0 to clear it (W1C).<br>
+<span class="sig">dma_irq[0]</span> drops to 0 (because SR.COMPLETE is now 0).<br>
+ISR posts a FreeRTOS semaphore: "EKF task, your IMU data is at 0x2000_0100."<br>
+ISR returns → CPU restores its previous position and resumes EKF math.</div>
+</div>
+</div>
+
+<div class="phase">PHASE 6 — CIRCULAR RESTART</div>
+
+<div class="step">
+<div class="num" style="background:#E1F5EE;color:#085041">10</div>
+<div>
+<div class="who" style="color:#0F6E56">DMA channel 0 FSM</div>
+<div class="desc">CIRC=1 → reload SAR, DAR, TCR → back to CONFIGURED → WAITING</div>
+<div class="detail">No CPU involved. DMA resets itself: source back to 0x4000_1004, dest back to 0x2000_0100, counter back to 14. Ready for the next batch of IMU data in ~1 ms. The cycle repeats indefinitely.</div>
+</div>
+</div>
