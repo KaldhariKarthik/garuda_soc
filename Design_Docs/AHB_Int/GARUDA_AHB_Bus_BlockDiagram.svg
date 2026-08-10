@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 780" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#555"/>
+    </marker>
+    <marker id="arrowB" markerWidth="9" markerHeight="9" refX="0" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M7,0 L0,3 L7,6 Z" fill="#555"/>
+    </marker>
+    <marker id="iarrow" markerWidth="8" markerHeight="8" refX="6" refY="2.6" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L6,2.6 L0,5.2 Z" fill="#8a8a8a"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1080" height="780" fill="#ffffff"/>
+  <text x="540" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1f1f1f">GARUDA AHB-Lite Interconnect (Block 6) — Top-Level Structure</text>
+  <text x="540" y="54" text-anchor="middle" font-size="12" fill="#777">Single shared AHB-Lite layer · 3 masters · 4 slaves · 200 MHz hclk domain</text>
+
+  <!-- ===================== MASTERS (top) ===================== -->
+  <g>
+    <rect x="70"  y="82" width="240" height="72" rx="6" fill="#EDE7F6" stroke="#7E57C2" stroke-width="2"/>
+    <text x="190" y="112" text-anchor="middle" font-size="15" font-weight="bold" fill="#4527A0">CPU I-Port (M0)</text>
+    <text x="190" y="133" text-anchor="middle" font-size="11" fill="#5e35b1" font-family="Consolas, monospace">i_h*  ·  INCR bursts</text>
+
+    <rect x="420" y="82" width="240" height="72" rx="6" fill="#EDE7F6" stroke="#7E57C2" stroke-width="2"/>
+    <text x="540" y="112" text-anchor="middle" font-size="15" font-weight="bold" fill="#4527A0">CPU D-Port (M1)</text>
+    <text x="540" y="133" text-anchor="middle" font-size="11" fill="#5e35b1" font-family="Consolas, monospace">d_h*  ·  SINGLE</text>
+
+    <rect x="770" y="82" width="240" height="72" rx="6" fill="#EDE7F6" stroke="#7E57C2" stroke-width="2"/>
+    <text x="890" y="112" text-anchor="middle" font-size="15" font-weight="bold" fill="#4527A0">DMA (M2)</text>
+    <text x="890" y="133" text-anchor="middle" font-size="11" fill="#5e35b1" font-family="Consolas, monospace">h*  ·  SINGLE beat</text>
+  </g>
+
+  <!-- master <-> interconnect bidirectional links -->
+  <line x1="190" y1="154" x2="190" y2="212" stroke="#555" stroke-width="2" marker-start="url(#arrowB)" marker-end="url(#arrow)"/>
+  <line x1="540" y1="154" x2="540" y2="212" stroke="#555" stroke-width="2" marker-start="url(#arrowB)" marker-end="url(#arrow)"/>
+  <line x1="890" y1="154" x2="890" y2="212" stroke="#555" stroke-width="2" marker-start="url(#arrowB)" marker-end="url(#arrow)"/>
+
+  <!-- ===================== INTERCONNECT (middle) ===================== -->
+  <rect x="40" y="212" width="1000" height="358" rx="10" fill="#FAFAFA" stroke="#9E9E9E" stroke-width="2"/>
+  <text x="60" y="238" font-size="14" font-weight="bold" fill="#616161">AHB-LITE INTERCONNECT</text>
+
+  <!-- Row A: address / control path -->
+  <rect x="80"  y="262" width="250" height="78" rx="6" fill="#FFEBEE" stroke="#EF5350" stroke-width="2"/>
+  <text x="205" y="292" text-anchor="middle" font-size="14" font-weight="bold" fill="#C62828">Address Decoder</text>
+  <text x="205" y="313" text-anchor="middle" font-size="11" fill="#d32f2f">HADDR[31:28] &#8594; HSEL</text>
+  <text x="205" y="330" text-anchor="middle" font-size="11" fill="#d32f2f">+ default-slave select</text>
+
+  <rect x="415" y="262" width="250" height="78" rx="6" fill="#FFEBEE" stroke="#EF5350" stroke-width="2"/>
+  <text x="540" y="292" text-anchor="middle" font-size="14" font-weight="bold" fill="#C62828">Master Arbiter</text>
+  <text x="540" y="313" text-anchor="middle" font-size="11" fill="#d32f2f">fixed priority</text>
+  <text x="540" y="330" text-anchor="middle" font-size="11" fill="#d32f2f">DMA &gt; D-Port &gt; I-Port</text>
+
+  <rect x="750" y="262" width="250" height="78" rx="6" fill="#EDE7F6" stroke="#7E57C2" stroke-width="2"/>
+  <text x="875" y="290" text-anchor="middle" font-size="14" font-weight="bold" fill="#4527A0">Master Mux</text>
+  <text x="875" y="310" text-anchor="middle" font-size="10.5" fill="#5e35b1">drives 1 master's HADDR/HTRANS/HWRITE/</text>
+  <text x="875" y="326" text-anchor="middle" font-size="10.5" fill="#5e35b1">HSIZE/HBURST/HPROT/HWDATA to slaves</text>
+
+  <!-- Row A internal arrows -->
+  <line x1="330" y1="301" x2="413" y2="301" stroke="#8a8a8a" stroke-width="1.6" marker-end="url(#iarrow)"/>
+  <line x1="665" y1="301" x2="748" y2="301" stroke="#8a8a8a" stroke-width="1.6" marker-end="url(#iarrow)"/>
+
+  <!-- Row B: data-phase / return path -->
+  <rect x="80"  y="392" width="250" height="86" rx="6" fill="#E0F2F1" stroke="#26A69A" stroke-width="2"/>
+  <text x="205" y="422" text-anchor="middle" font-size="14" font-weight="bold" fill="#00695C">Data-Phase</text>
+  <text x="205" y="442" text-anchor="middle" font-size="14" font-weight="bold" fill="#00695C">Slave-Select Reg</text>
+  <text x="205" y="463" text-anchor="middle" font-size="11" fill="#00796b">1-cycle delayed HSEL</text>
+
+  <rect x="415" y="392" width="250" height="86" rx="6" fill="#EDE7F6" stroke="#7E57C2" stroke-width="2"/>
+  <text x="540" y="428" text-anchor="middle" font-size="14" font-weight="bold" fill="#4527A0">Read-Data Mux</text>
+  <text x="540" y="452" text-anchor="middle" font-size="11" fill="#5e35b1">selects slave HRDATA</text>
+
+  <rect x="750" y="392" width="250" height="86" rx="6" fill="#EDE7F6" stroke="#7E57C2" stroke-width="2"/>
+  <text x="875" y="428" text-anchor="middle" font-size="14" font-weight="bold" fill="#4527A0">HREADY / HRESP Mux</text>
+  <text x="875" y="452" text-anchor="middle" font-size="11" fill="#5e35b1">wait-states + 2-cyc ERROR</text>
+
+  <!-- decoder feeds the data-phase register (registered path) -->
+  <line x1="205" y1="340" x2="205" y2="390" stroke="#8a8a8a" stroke-width="1.6" marker-end="url(#iarrow)"/>
+  <line x1="330" y1="435" x2="413" y2="435" stroke="#8a8a8a" stroke-width="1.6" marker-end="url(#iarrow)"/>
+  <line x1="665" y1="435" x2="748" y2="435" stroke="#8a8a8a" stroke-width="1.6" marker-end="url(#iarrow)"/>
+
+  <!-- Default slave chip (bottom-right inside interconnect) -->
+  <rect x="415" y="500" width="250" height="52" rx="6" fill="#FFEBEE" stroke="#EF5350" stroke-width="2"/>
+  <text x="540" y="522" text-anchor="middle" font-size="13" font-weight="bold" fill="#C62828">Default Slave</text>
+  <text x="540" y="540" text-anchor="middle" font-size="10.5" fill="#d32f2f">unmapped addr &#8594; 2-cycle HRESP=ERROR</text>
+
+  <!-- ===================== SLAVES (bottom) ===================== -->
+  <line x1="150" y1="570" x2="150" y2="628" stroke="#555" stroke-width="2" marker-start="url(#arrowB)" marker-end="url(#arrow)"/>
+  <line x1="410" y1="570" x2="410" y2="628" stroke="#555" stroke-width="2" marker-start="url(#arrowB)" marker-end="url(#arrow)"/>
+  <line x1="670" y1="570" x2="670" y2="628" stroke="#555" stroke-width="2" marker-start="url(#arrowB)" marker-end="url(#arrow)"/>
+  <line x1="930" y1="570" x2="930" y2="628" stroke="#555" stroke-width="2" marker-start="url(#arrowB)" marker-end="url(#arrow)"/>
+
+  <g>
+    <rect x="50"  y="628" width="200" height="76" rx="6" fill="#EDE7F6" stroke="#7E57C2" stroke-width="2"/>
+    <text x="150" y="658" text-anchor="middle" font-size="14" font-weight="bold" fill="#4527A0">Instruction SRAM</text>
+    <text x="150" y="679" text-anchor="middle" font-size="11" fill="#5e35b1" font-family="Consolas, monospace">0x0000_0000 · 64KB</text>
+
+    <rect x="310" y="628" width="200" height="76" rx="6" fill="#EDE7F6" stroke="#7E57C2" stroke-width="2"/>
+    <text x="410" y="658" text-anchor="middle" font-size="14" font-weight="bold" fill="#4527A0">Boot ROM</text>
+    <text x="410" y="679" text-anchor="middle" font-size="11" fill="#5e35b1" font-family="Consolas, monospace">0x1000_0000 · 4KB</text>
+
+    <rect x="570" y="628" width="200" height="76" rx="6" fill="#EDE7F6" stroke="#7E57C2" stroke-width="2"/>
+    <text x="670" y="658" text-anchor="middle" font-size="14" font-weight="bold" fill="#4527A0">Data SRAM</text>
+    <text x="670" y="679" text-anchor="middle" font-size="11" fill="#5e35b1" font-family="Consolas, monospace">0x2000_0000 · 4 banks</text>
+
+    <rect x="830" y="628" width="200" height="76" rx="6" fill="#EDE7F6" stroke="#7E57C2" stroke-width="2"/>
+    <text x="930" y="658" text-anchor="middle" font-size="14" font-weight="bold" fill="#4527A0">AHB&#8594;APB Bridge</text>
+    <text x="930" y="679" text-anchor="middle" font-size="11" fill="#5e35b1" font-family="Consolas, monospace">0x4000_0000 · APB</text>
+  </g>
+
+  <text x="540" y="730" text-anchor="middle" font-size="11" fill="#9e9e9e">Bidirectional links carry the full AHB-Lite bundle (address + write down, HRDATA/HREADY/HRESP up). Data-phase slave select is the address-phase decode registered one cycle.</text>
+  <text x="540" y="748" text-anchor="middle" font-size="11" fill="#9e9e9e">HPROT is passed through from the granted master; the DMA has no HPROT, so the interconnect substitutes HPROT=0x3 (data, privileged) on its beats.</text>
+</svg>

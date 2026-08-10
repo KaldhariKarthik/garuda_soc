@@ -38,10 +38,11 @@ That is the discipline this whole project runs on: ambiguity gets resolved and d
 
 | Block | Status |
 |---|---|
+|AHB-Lite (+ interconnect)| Design doc complete |
 | DMA controller | Design doc complete, RTL complete |
 | DSU (collision avoidance coprocessor) | Design doc complete, RTL complete, integrated into EX — unverified |
 | Core pipeline | Design doc complete (Rev 1.1), RTL complete, elaborates with the real DSU |
-| Bus / AHB interconnect + bridge | Pending |
+| AHB2APB bridge | Pending |
 | CLIC | Pending |
 | Memory subsystem | Pending |
 | Timers | Pending |

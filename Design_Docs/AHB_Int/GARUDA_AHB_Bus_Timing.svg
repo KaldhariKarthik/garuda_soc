@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 560" font-family="Arial, Helvetica, sans-serif">
+  <rect x="0" y="0" width="1120" height="560" fill="#ffffff"/>
+  <text x="560" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#1f1f1f">AHB-Lite Transfer Timing — Pipelining, Arbitration Hand-off, Wait-State &amp; 2-Cycle ERROR</text>
+
+  <!-- geometry: 10 cycles, each 88px, first tick at x=180 -->
+  <!-- cycle boundary gridlines -->
+  <g stroke="#e0e0e0" stroke-width="1">
+    <line x1="180" y1="60" x2="180" y2="500"/>
+    <line x1="268" y1="60" x2="268" y2="500"/>
+    <line x1="356" y1="60" x2="356" y2="500"/>
+    <line x1="444" y1="60" x2="444" y2="500"/>
+    <line x1="532" y1="60" x2="532" y2="500"/>
+    <line x1="620" y1="60" x2="620" y2="500"/>
+    <line x1="708" y1="60" x2="708" y2="500"/>
+    <line x1="796" y1="60" x2="796" y2="500"/>
+    <line x1="884" y1="60" x2="884" y2="500"/>
+    <line x1="972" y1="60" x2="972" y2="500"/>
+    <line x1="1060" y1="60" x2="1060" y2="500"/>
+  </g>
+  <!-- cycle labels -->
+  <g font-size="11" fill="#9e9e9e" text-anchor="middle" font-family="Consolas, monospace">
+    <text x="224" y="74">T0</text><text x="312" y="74">T1</text><text x="400" y="74">T2</text>
+    <text x="488" y="74">T3</text><text x="576" y="74">T4</text><text x="664" y="74">T5</text>
+    <text x="752" y="74">T6</text><text x="840" y="74">T7</text><text x="928" y="74">T8</text><text x="1016" y="74">T9</text>
+  </g>
+
+  <!-- ===== hclk row ===== -->
+  <text x="170" y="102" text-anchor="end" font-size="12" font-weight="bold" fill="#1f1f1f" font-family="Consolas, monospace">hclk</text>
+  <polyline fill="none" stroke="#26A69A" stroke-width="1.8"
+    points="180,110 180,86 224,86 224,110 268,110 268,86 312,86 312,110 356,110 356,86 400,86 400,110 444,110 444,86 488,86 488,110 532,110 532,86 576,86 576,110 620,110 620,86 664,86 664,110 708,110 708,86 752,86 752,110 796,110 796,86 840,86 840,110 884,110 884,86 928,86 928,110 972,110 972,86 1016,86 1016,110 1060,110"/>
+
+  <!-- ===== granted master (arbiter) ===== -->
+  <text x="170" y="152" text-anchor="end" font-size="12" font-weight="bold" fill="#C62828" font-family="Consolas, monospace">grant</text>
+  <g font-size="12" text-anchor="middle" fill="#C62828" font-weight="bold">
+    <rect x="182" y="132" width="172" height="30" rx="4" fill="#FFEBEE" stroke="#EF5350"/><text x="268" y="152">CPU D-Port</text>
+    <rect x="358" y="132" width="260" height="30" rx="4" fill="#FDE2E4" stroke="#EF5350"/><text x="488" y="152">DMA (higher priority)</text>
+    <rect x="622" y="132" width="436" height="30" rx="4" fill="#FFEBEE" stroke="#EF5350"/><text x="840" y="152">CPU D-Port (resumes)</text>
+  </g>
+
+  <!-- ===== Address phase row ===== -->
+  <text x="170" y="212" text-anchor="end" font-size="12" font-weight="bold" fill="#4527A0" font-family="Consolas, monospace">HADDR</text>
+  <text x="170" y="228" text-anchor="end" font-size="10" fill="#7e57c2" font-family="Consolas, monospace">(addr phase)</text>
+  <g font-size="11.5" text-anchor="middle" fill="#4527A0" font-family="Consolas, monospace">
+    <rect x="182" y="196" width="84" height="34" rx="4" fill="#EDE7F6" stroke="#7E57C2"/><text x="224" y="217">A0 rd</text>
+    <rect x="270" y="196" width="84" height="34" rx="4" fill="#EDE7F6" stroke="#7E57C2"/><text x="312" y="217">A1 rd</text>
+    <rect x="358" y="196" width="84" height="34" rx="4" fill="#F3E5F5" stroke="#7E57C2"/><text x="400" y="217">DMA rd</text>
+    <rect x="446" y="196" width="84" height="34" rx="4" fill="#F3E5F5" stroke="#7E57C2"/><text x="488" y="217">DMA wr</text>
+    <rect x="622" y="196" width="84" height="34" rx="4" fill="#EDE7F6" stroke="#7E57C2"/><text x="664" y="217">A2 rd</text>
+    <rect x="798" y="196" width="84" height="34" rx="4" fill="#FFEBEE" stroke="#EF5350"/><text x="840" y="217">A3 bad</text>
+  </g>
+
+  <!-- ===== Data phase row ===== -->
+  <text x="170" y="292" text-anchor="end" font-size="12" font-weight="bold" fill="#00695C" font-family="Consolas, monospace">HRDATA</text>
+  <text x="170" y="308" text-anchor="end" font-size="10" fill="#26a69a" font-family="Consolas, monospace">(data phase)</text>
+  <g font-size="11.5" text-anchor="middle" fill="#00695C" font-family="Consolas, monospace">
+    <rect x="270" y="276" width="84" height="34" rx="4" fill="#E0F2F1" stroke="#26A69A"/><text x="312" y="297">D0</text>
+    <rect x="358" y="276" width="84" height="34" rx="4" fill="#E0F2F1" stroke="#26A69A"/><text x="400" y="297">D1</text>
+    <rect x="446" y="276" width="84" height="34" rx="4" fill="#EAF7F5" stroke="#26A69A"/><text x="488" y="297">DMA rd</text>
+    <!-- wait state stretch on DMA write data -->
+    <rect x="534" y="276" width="172" height="34" rx="4" fill="#FFF8E1" stroke="#F0A500"/><text x="620" y="293">DMA wr</text><text x="620" y="305" font-size="9.5" fill="#a67c00">wait-state</text>
+    <rect x="710" y="276" width="84" height="34" rx="4" fill="#E0F2F1" stroke="#26A69A"/><text x="752" y="297">D2</text>
+    <!-- error two-cycle -->
+    <rect x="886" y="276" width="84" height="34" rx="4" fill="#FFEBEE" stroke="#EF5350"/><text x="928" y="293">ERROR</text><text x="928" y="305" font-size="9.5" fill="#c62828">cyc 1</text>
+    <rect x="974" y="276" width="84" height="34" rx="4" fill="#FFEBEE" stroke="#EF5350"/><text x="1016" y="293">ERROR</text><text x="1016" y="305" font-size="9.5" fill="#c62828">cyc 2</text>
+  </g>
+
+  <!-- ===== HREADY row ===== -->
+  <text x="170" y="372" text-anchor="end" font-size="12" font-weight="bold" fill="#1f1f1f" font-family="Consolas, monospace">HREADY</text>
+  <polyline fill="none" stroke="#555" stroke-width="1.8"
+    points="180,356 532,356 532,388 708,388 708,356 1060,356"/>
+  <text x="620" y="404" text-anchor="middle" font-size="10" fill="#a67c00">low = insert wait</text>
+
+  <!-- ===== HRESP row ===== -->
+  <text x="170" y="440" text-anchor="end" font-size="12" font-weight="bold" fill="#1f1f1f" font-family="Consolas, monospace">HRESP</text>
+  <polyline fill="none" stroke="#555" stroke-width="1.8"
+    points="180,424 884,424 884,456 1060,456"/>
+  <text x="972" y="474" text-anchor="middle" font-size="10" fill="#c62828">ERROR (2 cycles)</text>
+
+  <!-- annotations -->
+  <line x1="358" y1="168" x2="358" y2="196" stroke="#EF5350" stroke-width="1.4" stroke-dasharray="3,3"/>
+  <text x="360" y="184" font-size="10" fill="#c62828">DMA preempts at beat boundary</text>
+
+  <text x="560" y="524" text-anchor="middle" font-size="11.5" fill="#616161">Address phase of transfer N+1 overlaps the data phase of transfer N (1 transfer/cycle sustained). A higher-priority master is granted only at a beat boundary,</text>
+  <text x="560" y="542" text-anchor="middle" font-size="11.5" fill="#616161">never mid-beat. HREADY-low stretches the data phase; HRESP=ERROR is always two cycles so a pipelined write address can be cancelled before it commits.</text>
+</svg>
