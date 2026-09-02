@@ -1,6 +1,13 @@
-// tb_clic_ctrl.v now exists (was "add later; lint only"); the old trailing
-// # comment on the source line was not valid filelist syntax.
+// filelist_clic_ctrl.f -- SystemVerilog element TB. Top module is tb_top.
+//
+// No GARUDA_REAL_RTL define here: unlike the older unit TBs, these carry no
+// inlined DUT snapshot, so the real rtl/core source below is the only DUT
+// that can ever be compiled. See docs/CORE_ELEMENT_VERIFICATION.md.
+
 -incdir rtl/common
 -incdir rtl/core
 rtl/core/clic_ctrl.v
-tb/core/tb_clic_ctrl.v
+
+-sv
+tb/core/garuda_tb_pkg.sv
+tb/core/tb_clic_ctrl.sv

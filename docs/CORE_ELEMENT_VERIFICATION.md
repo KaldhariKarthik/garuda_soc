@@ -17,31 +17,61 @@ and the RTL in `rtl/core/`.
 > `test_elements` is deliberately kept OUT of `make test_core` until it reports
 > clean, so the existing regression flow is unaffected.
 >
-> These are Verilog-2001 (`.v`), matching the `tb_pipe_ctrl.v` / `tb_trap_ctrl.v`
-> smoke style — not the SystemVerilog (`.sv`) style of the `tb_top` unit TBs.
-> No SV randomisation is used, so they run 32-bit under `xrun` without the
-> `-64bit` flag the `tb_top` set requires.
+> These are SystemVerilog (`.sv`), following the same convention as the six
+> existing `tb_top` unit TBs: interface with bound SVA, `rand`/`constraint`
+> stimulus classes, a reference model written from the spec, a covergroup, and
+> a `[PASS]`/`[FAIL]` scoreboard. They use SV randomisation, so they need
+> `xrun -64bit` — `make test_elements` passes it.
 
 Run them all:
 
 ```bash
 source scripts/setup_env.sh
 make test_elements          # the 14 element TBs
-make test_core              # everything: smokes + unit TBs + elements
 ```
+
+`test_elements` is NOT part of `make test_core` yet — see the status note
+above. Move it into that list once it reports clean.
 
 Or one at a time — `make test_alu`, `make test_dport`, and so on (table below).
 
-Each testbench is self-checking and prints one result line:
+Each testbench prints one `[PASS]` or `[FAIL]` line per check and a summary:
 
 ```
-<NAME> UNIT: ALL CHECKS PASSED
-<NAME> UNIT: <n> FAILURE(S)
+============ ALU UNIT TB SUMMARY ============
+ CHECKS=26431  PASS=26431  FAIL=0
+ FUNCTIONAL COVERAGE = 98.44 %
+ RESULT: ALL CHECKS PASSED
 ```
 
-which is what the Makefile's existing `grep -ihE "FAIL|PASSED|ERROR"` picks up.
-Plain Verilog-2001, no SV randomisation, so these run 32-bit under `xrun`
-without the `-64bit` flag the `tb_top` unit TBs need.
+`make test_elements` prints one line per element with the PASS/FAIL counts and
+the RESULT line, then echoes any `[FAIL]` / `[SVA-FAIL]` / elaboration errors
+so you can see *which* check broke, not just how many did.
+
+Per-check `[PASS]` lines are suppressed by default — an exhaustive ALU sweep is
+tens of thousands of checks and printing them all makes the log unusable.
+Passes are still counted. Add `+VERBOSE` to print every one:
+
+```bash
+xrun -64bit -f tb/core/filelist_alu.f -top tb_top +VERBOSE
+```
+
+### Shared scoreboard
+
+The six older unit TBs each carry their own copy of an identical scoreboard
+class, and the `[PASS]`/`[FAIL]` format is load-bearing — the Makefile counts
+results by grepping for it, so a drifted copy silently reports zero. The 14
+element TBs share one definition in `tb/core/garuda_tb_pkg.sv` instead. Every
+element filelist compiles that package first.
+
+### No inlined DUT snapshots
+
+The older unit TBs each paste a snapshot of their DUT under
+`` `ifndef GARUDA_REAL_RTL ``. `tb_imm_gen.sv`'s own header records that its
+snapshot **had already drifted** from `rtl/core`, so "a green run against it
+proves nothing about the RTL that actually ships". These 14 carry no snapshot:
+their filelists bind the real `rtl/core` source, which is the only
+configuration worth reporting a result from.
 
 ---
 
@@ -54,20 +84,20 @@ covered by the existing smokes, and `regfile`/`decode_control`/`imm_gen`/
 
 | Element | Spec § | TB | `make` target | Directed tests (§18.2) |
 |---|---|---|---|---|
-| `garuda_pc_gen` | 6.2, 2.1, 17 | `tb_garuda_pc_gen.v` | `test_pc_gen` | C28, C14 |
-| `garuda_prefetch_buffer` | 6.3, 6.5 | `tb_garuda_prefetch_buffer.v` | `test_prefetch` | C14, C15 |
-| `garuda_iport_ahb_master` | 6.4, 6.5, 16 | `tb_garuda_iport_ahb_master.v` | `test_iport` | C12, C13, C14, C15 |
-| `garuda_if_stage_top` | 6, 16 | `tb_garuda_if_stage_top.v` | `test_if_stage` | C13, C14, C15 |
-| `alu` | 8.1 | `tb_alu.v` | `test_alu` | C01, C05 |
-| `mul32` | 8.2 | `tb_mul32.v` | `test_mul32` | C02 |
-| `branch_unit` | 12.2, 12.3 | `tb_branch_unit.v` | `test_branch_unit` | C06–C09 |
-| `csr_rw` | 8.3, 8.4, 13.3 | `tb_csr_rw.v` | `test_csr_rw` | C21 |
-| `load_store_unit` | 10.1, 10.2 | `tb_load_store_unit.v` | `test_lsu` | C10, C11 |
-| `load_formatter` | 10.3 | `tb_load_formatter.v` | `test_load_fmt` | C10 |
-| `d_port_ahb_master` | 10.4, 16.1–16.3 | `tb_d_port_ahb_master.v` | `test_dport` | C12 |
-| `mem_stage` | 10, 11.4, 13.2, 14.1/14.2 | `tb_mem_stage.v` | `test_mem_stage` | C10, C11, C12 |
-| `mem_wb_reg` + `wb_stage` | 5.2, 10.3, 11.4, 13.2 | `tb_mem_wb_reg.v` | `test_memwb` | C28 |
-| `clic_ctrl` | 14.3, 14.5 | `tb_clic_ctrl.v` | `test_clic_ctrl` | C23, C24, C26 |
+| `garuda_pc_gen` | 6.2, 2.1, 17 | `tb_garuda_pc_gen.sv` | `test_pc_gen` | C28, C14 |
+| `garuda_prefetch_buffer` | 6.3, 6.5 | `tb_garuda_prefetch_buffer.sv` | `test_prefetch` | C14, C15 |
+| `garuda_iport_ahb_master` | 6.4, 6.5, 16 | `tb_garuda_iport_ahb_master.sv` | `test_iport` | C12, C13, C14, C15 |
+| `garuda_if_stage_top` | 6, 16 | `tb_garuda_if_stage_top.sv` | `test_if_stage` | C13, C14, C15 |
+| `alu` | 8.1 | `tb_alu.sv` | `test_alu` | C01, C05 |
+| `mul32` | 8.2 | `tb_mul32.sv` | `test_mul32` | C02 |
+| `branch_unit` | 12.2, 12.3 | `tb_branch_unit.sv` | `test_branch_unit` | C06–C09 |
+| `csr_rw` | 8.3, 8.4, 13.3 | `tb_csr_rw.sv` | `test_csr_rw` | C21 |
+| `load_store_unit` | 10.1, 10.2 | `tb_load_store_unit.sv` | `test_lsu` | C10, C11 |
+| `load_formatter` | 10.3 | `tb_load_formatter.sv` | `test_load_fmt` | C10 |
+| `d_port_ahb_master` | 10.4, 16.1–16.3 | `tb_d_port_ahb_master.sv` | `test_dport` | C12 |
+| `mem_stage` | 10, 11.4, 13.2, 14.1/14.2 | `tb_mem_stage.sv` | `test_mem_stage` | C10, C11, C12 |
+| `mem_wb_reg` + `wb_stage` | 5.2, 10.3, 11.4, 13.2 | `tb_mem_wb_reg.sv` | `test_memwb` | C28 |
+| `clic_ctrl` | 14.3, 14.5 | `tb_clic_ctrl.sv` | `test_clic_ctrl` | C23, C24, C26 |
 
 `wb_stage` has no TB of its own on purpose: it is three `assign`s with no
 state (Sec. 5 calls it a structural boundary), so `tb_mem_wb_reg` instantiates
@@ -89,7 +119,9 @@ bus cycle's read data while keeping its own correct PC tag. `tb_garuda_iport_ahb
 runs a stream through a memory model whose word at address A is a unique
 function of A, and checks the `(data_pc_o, data_instr_o)` **pair** on every
 delivery. `tb_garuda_if_stage_top` re-checks the same property at the stage
-output, plus strict `+4` ordering from the last redirect target.
+output, plus strict `+4` ordering from the last redirect target. Both also
+state it as SVA, so it holds on every cycle of the randomised soak, not only
+on the directed sequences.
 
 **ERRATUM D-1** (`d_port_ahb_master`) — same root cause on the data side: every
 store wrote zero and every load returned stale data. Three named checks in
@@ -122,6 +154,10 @@ directly, so re-measure after running them:
   redirects.
 - `garuda_if_stage_top` (58.36%, "buffer full, redirect with 2 fetches in
   flight, back-to-back redirects") → one section each.
+- `cp_lvl_vs_thresh` / `cp_lvl_vs_active` in `tb_clic_ctrl.sv` bin the
+  **equality** case separately, so a coverage report that shows those bins hit
+  is the evidence that strict `>` (test C24) was actually exercised rather
+  than assumed.
 - The wide-bus toggle shortfall the same doc describes is attacked here by
   driving complementary patterns (`0000_0000` / `FFFF_FFFF` / `8081_8283` /
   `AAAA_5555`) and full-range addresses through the datapath elements, rather
@@ -173,7 +209,7 @@ cannot pass:
 
 ## Fixed along the way
 
-`tb/core/filelist_clic_ctrl.f` listed `tb_clic_ctrl.v` with a trailing
+`tb/core/filelist_clic_ctrl.f` listed `tb_clic_ctrl.sv` with a trailing
 `# (add later; clic has no tb yet — lint only for now)` comment. `#` is not a
 comment in a Cadence/Vivado filelist, and the testbench did not exist. Both
 are now correct: the file exists and the filelist uses `//`.

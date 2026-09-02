@@ -1,4 +1,4 @@
-// filelist_mem_stage.f -- SystemVerilog element TB. Top module is tb_top.
+// filelist_garuda_if_stage_top.f -- SystemVerilog element TB. Top module is tb_top.
 //
 // No GARUDA_REAL_RTL define here: unlike the older unit TBs, these carry no
 // inlined DUT snapshot, so the real rtl/core source below is the only DUT
@@ -6,11 +6,11 @@
 
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/load_store_unit.v
-rtl/core/d_port_ahb_master.v
-rtl/core/load_formatter.v
-rtl/core/mem_stage.v
+rtl/core/garuda_pc_gen.v
+rtl/core/garuda_iport_ahb_master.v
+rtl/core/garuda_prefetch_buffer.v
+rtl/core/garuda_if_stage_top.v
 
 -sv
 tb/core/garuda_tb_pkg.sv
-tb/core/tb_mem_stage.sv
+tb/core/tb_garuda_if_stage_top.sv

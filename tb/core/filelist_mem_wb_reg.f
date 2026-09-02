@@ -1,6 +1,14 @@
-// mem_wb_reg + wb_stage: the register and the pass-through boundary it drives.
+// filelist_mem_wb_reg.f -- SystemVerilog element TB. Top module is tb_top.
+//
+// No GARUDA_REAL_RTL define here: unlike the older unit TBs, these carry no
+// inlined DUT snapshot, so the real rtl/core source below is the only DUT
+// that can ever be compiled. See docs/CORE_ELEMENT_VERIFICATION.md.
+
 -incdir rtl/common
 -incdir rtl/core
 rtl/core/mem_wb_reg.v
 rtl/core/wb_stage.v
-tb/core/tb_mem_wb_reg.v
+
+-sv
+tb/core/garuda_tb_pkg.sv
+tb/core/tb_mem_wb_reg.sv

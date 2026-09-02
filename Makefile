@@ -65,8 +65,8 @@ help:
 	@echo "  make elab_core_dsu   -- elaborate core + REAL DSU (integration)"
 	@echo "  make test_core       -- every core unit smoke + the six unit TBs"
 	@echo "  make test_units      -- the six constrained-random unit TBs only"
-	@echo "  make test_elements   -- the 14 per-element core TBs, NOT YET RUN (ALU, MUL, branch,"
-	@echo "                          CSR_RW, LSU, load-fmt, D-port, MEM, MEM/WB,"
+	@echo "  make test_elements   -- the 14 per-element SV core TBs, NOT YET RUN (ALU, MUL,"
+	@echo "                          branch, CSR_RW, LSU, load-fmt, D-port, MEM, MEM/WB,"
 	@echo "                          PC-gen, prefetch, I-port, IF top, CLIC)"
 	@echo "  make test_ex_dsu     -- EX smoke against the real DSU"
 	@echo "  make sw              -- build bare-metal tests (boot6, ctest1, dsu_flag2)"
@@ -148,25 +148,43 @@ test_csr:
 test_trap:
 	$(call run_test,tb/core/filelist_trap_ctrl.f,tb_trap_ctrl)
 
-# ---- per-element unit TBs (Sec. 18.2 directed tests, block level) ----
-# One core element from the block diagram per target, checked on its own
-# against AERO-GARUDA-DS-001. Same run_test flow as the smokes above; top
-# module is tb_<module>. See docs/CORE_ELEMENT_VERIFICATION.md for the
-# element -> spec section -> C-test mapping.
-test_alu:            ; $(call run_test,tb/core/filelist_alu.f,tb_alu)
-test_mul32:          ; $(call run_test,tb/core/filelist_mul32.f,tb_mul32)
-test_branch_unit:    ; $(call run_test,tb/core/filelist_branch_unit.f,tb_branch_unit)
-test_csr_rw:         ; $(call run_test,tb/core/filelist_csr_rw.f,tb_csr_rw)
-test_clic_ctrl:      ; $(call run_test,tb/core/filelist_clic_ctrl.f,tb_clic_ctrl)
-test_lsu:            ; $(call run_test,tb/core/filelist_load_store_unit.f,tb_load_store_unit)
-test_load_fmt:       ; $(call run_test,tb/core/filelist_load_formatter.f,tb_load_formatter)
-test_memwb:          ; $(call run_test,tb/core/filelist_mem_wb_reg.f,tb_mem_wb_reg)
-test_pc_gen:         ; $(call run_test,tb/core/filelist_pc_gen.f,tb_garuda_pc_gen)
-test_prefetch:       ; $(call run_test,tb/core/filelist_prefetch_buffer.f,tb_garuda_prefetch_buffer)
-test_iport:          ; $(call run_test,tb/core/filelist_iport_ahb_master.f,tb_garuda_iport_ahb_master)
-test_dport:          ; $(call run_test,tb/core/filelist_d_port_ahb_master.f,tb_d_port_ahb_master)
-test_mem_stage:      ; $(call run_test,tb/core/filelist_mem_stage.f,tb_mem_stage)
-test_if_stage:       ; $(call run_test,tb/core/filelist_if_stage_top.f,tb_garuda_if_stage_top)
+# ---- per-element SV unit TBs (Sec. 18.2 directed tests, block level) ----
+# One core element from the block diagram per target, verified on its own
+# against AERO-GARUDA-DS-001. These follow the same SystemVerilog convention
+# as the six tb_top TBs above -- interface + bound SVA, rand/constraint
+# stimulus, reference model, covergroup, [PASS]/[FAIL] scoreboard -- so they
+# need -64bit for the randomisation library and their top module is tb_top.
+#
+# Unlike run_tb_top this keeps the log's RESULT and coverage lines, which is
+# what actually tells you WHICH check failed rather than only how many did.
+# See docs/CORE_ELEMENT_VERIFICATION.md for the element -> spec section ->
+# C-test mapping.
+define run_tb_elem
+	@mkdir -p $(SIM_DIR)/elem_$(1) && \
+	  $(XRUN) -64bit -f tb/core/filelist_$(1).f -top tb_top \
+	    -xmlibdirname $(SIM_DIR)/elem_$(1)/xcelium.d \
+	    -l $(SIM_DIR)/elem_$(1)/run.log > /dev/null 2>&1; \
+	  printf "%-26s PASS=%-6s FAIL=%-4s %s\n" "$(1)" \
+	    "$$(grep -c '\[PASS\]' $(SIM_DIR)/elem_$(1)/run.log)" \
+	    "$$(grep -c '\[FAIL\]' $(SIM_DIR)/elem_$(1)/run.log)" \
+	    "$$(grep -hE '^ RESULT:' $(SIM_DIR)/elem_$(1)/run.log | head -1)"; \
+	  grep -hE '\[FAIL\]|\[SVA-FAIL\]|^\*E|^xmelab: \*E' $(SIM_DIR)/elem_$(1)/run.log | head -20
+endef
+
+test_alu:            ; $(call run_tb_elem,alu)
+test_mul32:          ; $(call run_tb_elem,mul32)
+test_branch_unit:    ; $(call run_tb_elem,branch_unit)
+test_csr_rw:         ; $(call run_tb_elem,csr_rw)
+test_clic_ctrl:      ; $(call run_tb_elem,clic_ctrl)
+test_lsu:            ; $(call run_tb_elem,load_store_unit)
+test_load_fmt:       ; $(call run_tb_elem,load_formatter)
+test_memwb:          ; $(call run_tb_elem,mem_wb_reg)
+test_pc_gen:         ; $(call run_tb_elem,garuda_pc_gen)
+test_prefetch:       ; $(call run_tb_elem,garuda_prefetch_buffer)
+test_iport:          ; $(call run_tb_elem,garuda_iport_ahb_master)
+test_dport:          ; $(call run_tb_elem,d_port_ahb_master)
+test_mem_stage:      ; $(call run_tb_elem,mem_stage)
+test_if_stage:       ; $(call run_tb_elem,garuda_if_stage_top)
 
 # Every core element with its own TB, in block-diagram order:
 # IF -> EX -> MEM -> WB -> CONTROL.
