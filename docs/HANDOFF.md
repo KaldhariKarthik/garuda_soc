@@ -1,6 +1,7 @@
 # GARUDA verification — handoff
 
-Last updated 2026-08-04. Covers the core (`rtl/core`) and the DSU (`rtl/dsu`).
+Last updated 2026-09-02. Covers the core (`rtl/core`) and the DSU (`rtl/dsu`).
+Interconnect work is §11.
 
 ---
 
@@ -15,17 +16,26 @@ instruction-by-instruction lockstep against Spike.
 | ISA (rv32ui + rv32um + rv32mi), self-check **and** Spike lockstep | **63/63** | `make regress` |
 | — same, with fixed AHB wait states | 63/63 | `make regress_wait` |
 | — same, randomised waits 0..8 | 63/63 | `make regress_rand SEED=n` |
-| Core Sanity directed tests | **9/9** | `make test_sanity` |
+| Core Sanity directed tests | **8/9** — see note | `make test_sanity` |
 | DSU vs cycle-accurate golden model | **645/645** (seeds 1,2,3,5,7) | `make test_dsu` |
 | Block-level unit TBs | **14,359 checks, 0 fail** | `make test_units` |
 | Legacy unit smokes | 7/7 | `make test_core` |
 | Boot / first C program | pass | `make test_boot` / `make test_c` |
+| AHB-Lite protocol, both ports, every test above | **0 violations** | always on, now fatal; `docs/ORACLES.md` |
 
-**23 RTL bugs found and fixed** (see §4). Zero known RTL defects outstanding.
+> **`t_clic` currently TIMEOUTs**, so the sanity suite is 8/9, not the 9/9 recorded on
+> 2026-08-04. This is **pre-existing and unrelated to the bus errata** — it was confirmed
+> by re-running the suite against the unmodified RTL (`git stash`), where it times out
+> identically. It reports `iport=0 dport=0`, so it is not a protocol failure. Not yet
+> diagnosed; it is the first thing to look at before trusting this table again.
 
-> Correction to earlier verbal counts: the authoritative number is **23** numbered
-> errata, taken from the `ERRATUM` markers in the RTL. Figures of 22 or 25 quoted during
-> the work were miscounts.
+**27 RTL bugs found and fixed** (see §4). Zero known RTL defects outstanding.
+
+> The authoritative number is taken from the `ERRATUM` markers in the RTL
+> (`grep -rn "ERRATUM [A-Z]*-[0-9]" rtl/`). It was 23 through 2026-08-04; the four
+> AHB-Lite protocol errata **BUS-A/B/C/D** were added 2026-09-02 as prerequisite work
+> for the interconnect (§11). Figures of 22 or 25 quoted verbally during the first round
+> were miscounts.
 
 ---
 
@@ -97,7 +107,7 @@ raises illegal on correct instructions and the whole test "diverges". Currently
 
 ---
 
-## 4. Errata index — 23 fixed bugs
+## 4. Errata index — 27 fixed bugs
 
 Every one is documented in full at its fix site; search the RTL for `ERRATUM <id>`.
 
@@ -106,6 +116,21 @@ Every one is documented in full at its fix site; search the RTL for `ERRATUM <id
 |---|---|---|
 | **I-1** | `garuda_iport_ahb_master.v` | Sampled HRDATA during the **address** phase, so every instruction was paired with the previous cycle's data. The first fetch returned `0x00000000` and the core trapped on instruction one. **It could not execute a single instruction.** |
 | **D-1** | `d_port_ahb_master.v` | Same conflation on the data side. HWDATA was driven in the address phase and collapsed to 0 before the slave sampled it — **every store wrote zero**. Loads sampled HRDATA a cycle early. |
+
+### AHB-Lite protocol (all I-port; the D-port was clean in every configuration)
+
+Found by `tb/ahb/ahb_lite_checker.v`, the first thing in the project ever to read HBURST.
+All four are **silent** against `ahb_mem_slave.v`, which services every transfer as an
+independent SINGLE and returns correct data no matter what the burst signalling claims —
+which is why they survived 63 passing ISA tests, 9 directed tests and every coverage run.
+Full write-up in `docs/ORACLES.md`.
+
+| id | file | defect |
+|---|---|---|
+| **BUS-A** | `garuda_iport_ahb_master.v` | HBURST derived from the **current** HTRANS, so the opening NONSEQ beat declared SINGLE and every following SEQ beat declared INCR. Breaks two rules at once: HBURST must be constant across a burst, and a SINGLE burst has exactly one transfer. **494 violations in one `add.hex` run.** |
+| **BUS-B** | `garuda_iport_ahb_master.v` | The "next beat must be NONSEQ" flag tracked only redirects, so a burst broken by a **full prefetch buffer** resumed with SEQ — a SEQ beat with no open burst. Needed a specific stall shape to appear; no amount of extra random ISA stimulus would have found it. |
+| **BUS-C** | `garuda_iport_ahb_master.v` | On redirect, an address phase already presented but not yet accepted was **retracted to IDLE**. AHB-Lite has no cancel — a presented transfer must be held to acceptance and its data discarded. The old comment asserted the opposite, which is what made the bug look correct. |
+| **BUS-D** | `garuda_iport_ahb_master.v`, `ahb_lite_checker.v` | Bursts could **cross a 1 KB boundary**. Neither enforced nor checked. Harmless against a flat memory model; a decode defect the moment a fabric exists, since 1 KB is the minimum AHB slave window. Found by asking what the protocol requires, not what the TB noticed. |
 
 ### Pipeline control
 | id | file | defect |
@@ -146,7 +171,15 @@ Every one is documented in full at its fix site; search the RTL for `ERRATUM <id
 
 ### Patterns worth internalising
 
-Four of these (**F-1, P-1, P-2, P-3**) are the same shape: *a flush or hold whose
+**BUS-A/B/C/D share a different shape from the rest, and it is the more general lesson:**
+they were not missed for lack of stimulus or coverage — the code ran constantly, at 98.5%
+statement coverage. They were missed because **nothing in the testbench was asking the
+question.** A functional model answers "what data comes back?"; protocol legality is a
+different question needing a separate, passive observer that cannot be satisfied by the
+thing it is checking. Adding tests could never have found these. Adding an oracle found
+all four in an afternoon.
+
+Four of the others (**F-1, P-1, P-2, P-3**) are the same shape as each other: *a flush or hold whose
 premise is that an instruction has already advanced, firing while a stall is holding it
 in place.* If you touch `pipe_ctrl`, check that every flush term is gated against every
 hold source.
@@ -294,3 +327,61 @@ TCM — `ahb_mem_slave.v` stands in for both, and its header states plainly that
 verifies nothing about arbitration, address decoding or the AHB-to-APB bridge.
 
 A passing regression here says the **core and DSU** work. It says nothing about the SoC.
+
+---
+
+## 11. Interconnect work — started 2026-09-02
+
+Building the AHB-Lite fabric and APB subsystem per the TRM (§III). Decisions taken:
+
+- **Multi-layer bus matrix**, not a single shared layer. The TRM's own "different banks —
+  zero stall" claim (§III.II) is only achievable with a per-slave arbiter and mux. Note
+  the TRM is internally inconsistent here: it lists **three** masters (CPU I-port, CPU
+  D-port, DMA) while calling the bus AHB-Lite, which has exactly one master by
+  definition. The matrix resolves this — one AHB-Lite layer per slave. DMA's port is
+  stubbed until `rtl/dma/` exists; the matrix means it lands later with no redesign.
+- **Synchronous 2:1 clock-enable bridge**, not async CDC. The 100 MHz peripheral clock is
+  derived from the 200 MHz core clock by division, so the domains are phase-aligned and
+  this is not a true CDC. An enable-gated bridge is smaller, has deterministic latency,
+  and matches the TRM's "~3–4 cycles" access cost (§III.III). Writing 2FF synchronisers
+  here would add latency and verification burden for a hazard that does not exist.
+
+### Step 1 — DONE: close the bus errata first
+
+BUS-A/B/C/D fixed, and `+AHBCHK_FATAL` flipped so protocol violations now **fail** by
+default (`+NO_AHBCHK_FATAL` demotes). This was sequenced first deliberately: the fabric
+is the **first consumer in the project that actually reads HBURST**, so a master that
+mis-signals bursts would have produced fabric bugs indistinguishable from its own, and
+under an advisory checker the fabric's own violations would have been invisible in the
+existing noise.
+
+### Step 2 — NEXT: memory-map migration, before any fabric RTL
+
+`sw/common/link.ld` puts text, data, bss and stack in **one flat 256 KB RWX region at
+`0x1000_0000`**, with `_tohost_addr = 0x1000F000`. Under the TRM map (§III.IV) that
+address is inside **Boot ROM — 4 KB, read-only**:
+
+| region | base | size | bus |
+|---|---|---|---|
+| Instruction SRAM | `0x0000_0000` | 64 KB | AHB |
+| Boot ROM | `0x1000_0000` | 4 KB | AHB |
+| Data SRAM | `0x2000_0000` | 64 KB | AHB |
+| Peripherals | `0x4000_0000` | 4 KB per peripheral | APB |
+
+So `tohost` is both **outside the 4 KB window and a write to ROM**. That handshake is the
+pass/fail mechanism for all 63 ISA tests, the 9 sanity tests and `tools/lockstep.py`.
+
+**Do this migration as its own step, against the existing flat memory model, and prove
+63/63 on both sides of it.** Landing it together with the fabric makes every subsequent
+failure ambiguous between a decode bug and a linker-script bug. `RESET_VECTOR` is already
+a parameter and `link.ld`'s header anticipates the change, so it is tractable.
+
+### Step 3 — the fabric itself
+
+Decoder + matrix, ISRAM/DSRAM/BROM slaves, AHB→APB bridge, one APB peripheral to prove
+the path end to end.
+
+**Write the APB protocol checker before the bridge**, on the same principle that produced
+BUS-A/B/C/D: `ahb_lite_checker.v` explicitly disclaims decode, arbitration and
+multi-master behaviour, so it cannot cover any of the new failure modes. A bridge built
+before its oracle is a bridge nobody is looking at.

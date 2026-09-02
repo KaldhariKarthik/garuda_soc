@@ -35,7 +35,13 @@
 
 module tb_dsu_top;
 
-    localparam integer MAX_TESTS = 4096;
+    // Sized for the --clamp-walk suite, not the everyday one. Reaching the top
+    // of the 48-bit accumulator range takes a ~32,768-instruction ramp (the
+    // largest single contribution any DSU instruction can make is 2^31), so
+    // the vector set that exercises the overflow logic at all is an order of
+    // magnitude longer than the functional suite. The end-of-stimulus X marker
+    // means a short file still runs in a short time.
+    localparam integer MAX_TESTS = 40960;
     localparam integer STIM_W    = 4;
     localparam integer EXP_W     = 8;
 

@@ -93,6 +93,13 @@ data, addresses spread across the map, every writable CSR, and a routine linked 
 | decode | 86.98% |
 | dsu | 64.00% |
 
+> **The 88.54% AHB figure is inflated and must not be quoted as-is.** `cg_ahb`
+> counted every SEQ transfer as coverage with no cross against HBURST, so the
+> number went *up* because of ERRATUM BUS-A — a coverpoint that rewarded a
+> protocol violation. The cross now exists (`x_i_trans_burst`) with the illegal
+> combination in `ignore_bins`, so this figure will move when re-measured.
+> See `docs/ORACLES.md`.
+
 **The signoff bar of ≥95% statement/branch/toggle is NOT met.** What follows is the
 per-module accounting the plan's Coverage row 10 requires: every module below the bar
 either carries a written justification or a named next action. Nothing here is waived

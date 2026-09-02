@@ -67,8 +67,8 @@ if grep -qE "^xrun: \*[EF]|^xmelab: \*[EF]" "$RUNDIR/elab.log"; then
 fi
 
 pass=0; fail=0; FAILED=""
-printf "\n%-12s %-10s %-10s %s\n" TEST TOHOST LOCKSTEP NOTE
-printf -- "------------------------------------------------------------\n"
+printf "\n%-12s %-10s %-10s %-9s %s\n" TEST TOHOST LOCKSTEP AHB-I/D NOTE
+printf -- "----------------------------------------------------------------------\n"
 
 for t in $TESTS; do
     hex="$HEXDIR/$t.hex"
@@ -79,15 +79,37 @@ for t in $TESTS; do
     rlog="$RUNDIR/$t.run.log"
     slog="$RUNDIR/$t.spike.log"
 
+    # Destroy the previous run's evidence BEFORE producing this run's.
+    # Without this, a simulation that never started (a license checkout
+    # failure, most easily) leaves the old commit log in place, lockstep.py
+    # happily compares it against Spike, and the table prints
+    #     add     NORESULT   MATCH
+    # -- a green oracle column for a test that did not run. Observed, not
+    # hypothetical. An oracle reading stale evidence is worse than no oracle.
+    rm -f "$clog" "$RUNDIR/$t.lockstep.txt"
+
     xrun -R -xmlibdirname "$RUNDIR/xcelium.d" -snapshot garuda_boot \
          -l "$rlog" +HEX="$hex" +COMMIT="$clog" +MAXCYC="$MAXCYC" +QUIET ${EXTRA_ARGS:-} \
          > /dev/null 2>&1
 
-    if   grep -q "PASSED" "$rlog"; then th=PASS
+    if   grep -q "NOLICN" "$rlog"; then th="NOLICENSE"
+    elif grep -q "PASSED" "$rlog"; then th=PASS
     elif grep -q "FAILED" "$rlog"; then th="FAIL$(grep -oP 'test \K[0-9]+' "$rlog" | head -1)"
     else th="NORESULT"; fi
 
-    if [ -z "${NO_LOCKSTEP##* $t *}" ]; then
+    # AHB-Lite protocol verdict, reported per test alongside the functional
+    # one. tb_boot always runs the checkers; this surfaces them here so a
+    # protocol regression is visible in the primary table rather than buried
+    # in a log nobody opens.
+    ahb=$(grep -oP 'AHB-PROTOCOL: iport=\K[0-9]+' "$rlog" | head -1)
+    dahb=$(grep -oP 'AHB-PROTOCOL: iport=[0-9]+ dport=\K[0-9]+' "$rlog" | head -1)
+    if [ -n "$ahb" ]; then ahb_v="$ahb/$dahb"; else ahb_v="-"; fi
+
+    if [ ! -s "$clog" ]; then
+        # No commit log means no simulation. Say so; do not run an oracle
+        # against a file that is not there.
+        ls_v="NO-RUN"
+    elif [ -z "${NO_LOCKSTEP##* $t *}" ]; then
         ls_v="n/a"
     elif [ -f "$elf" ]; then
         ls_out=$(python3 tools/lockstep.py --rtl "$clog" --elf "$elf" \
@@ -104,11 +126,12 @@ for t in $TESTS; do
     else
         fail=$((fail+1)); FAILED="$FAILED $t"
         [ "$ls_v" = "DIVERGE" ] && note="see $RUNDIR/$t.lockstep.txt"
+        [ "$th" = "NOLICENSE" ] && note="simulator licence unavailable - NOT a test result"
     fi
-    printf "%-12s %-10s %-10s %s\n" "$t" "$th" "$ls_v" "$note"
+    printf "%-12s %-10s %-10s %-9s %s\n" "$t" "$th" "$ls_v" "$ahb_v" "$note"
 done
 
-printf -- "------------------------------------------------------------\n"
+printf -- "----------------------------------------------------------------------\n"
 echo "PASS=$pass FAIL=$fail"
 [ -n "$FAILED" ] && echo "failing:$FAILED"
 [ "$fail" -eq 0 ]

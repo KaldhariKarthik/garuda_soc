@@ -16,6 +16,10 @@
 //   +TOHOST=<hex>      tohost byte address (default 0x1000F000)
 //   +IWAIT=<n>/+DWAIT=<n>  inject AHB wait states on the I/D port
 //   +QUIET             suppress per-instruction commit lines on stdout
+//   +NO_AHBCHK_FATAL   demote AHB-Lite protocol violations to advisory.
+//                      Violations FAIL the test by default (BUS-A/B/C/D are
+//                      fixed). The checkers ALWAYS run and always report;
+//                      this only controls the verdict. See finish_sim.
 //
 // Exit protocol (riscv-tests convention):
 //   write 1        to tohost -> PASS
@@ -48,6 +52,7 @@ module tb_boot;
     integer      err_en; reg [31:0] err_base, err_size;
     reg [31:0]   tohost_addr;
     reg          quiet;
+    reg          ahbchk_fatal;   // protocol violations fail the test (default 1)
 
     integer      fh_commit;
     integer      cyc, ninstr;
@@ -165,6 +170,35 @@ module tb_boot;
     );
 
     // =========================================================================
+    // AHB-Lite protocol checkers -- one per master port, passive
+    //
+    // These exist because u_mem is a FUNCTIONAL model, not a protocol model:
+    // it services every transfer as an independent SINGLE and does not even
+    // have an HBURST port.  That means burst-protocol violations were
+    // invisible to every test in the suite, indefinitely, while all of them
+    // passed.  The checker is a separate passive observer for exactly that
+    // reason -- it cannot be satisfied by the model it sits next to.
+    //
+    // Wired into the PLAIN filelist, so every existing test checks protocol
+    // from now on at no extra stimulus cost.
+    // =========================================================================
+    wire [31:0] i_viol, d_viol;
+
+    ahb_lite_checker u_ichk (
+        .clk_i(clk), .rst_n_i(rst_n),
+        .haddr_i(i_haddr), .htrans_i(i_htrans), .hsize_i(i_hsize),
+        .hburst_i(i_hburst), .hwrite_i(i_hwrite), .hwdata_i(i_hwdata),
+        .hready_i(i_hready), .hresp_i(i_hresp), .viol_count_o(i_viol)
+    );
+
+    ahb_lite_checker u_dchk (
+        .clk_i(clk), .rst_n_i(rst_n),
+        .haddr_i(d_haddr), .htrans_i(d_htrans), .hsize_i(d_hsize),
+        .hburst_i(d_hburst), .hwrite_i(d_hwrite), .hwdata_i(d_hwdata),
+        .hready_i(d_hready), .hresp_i(d_hresp), .viol_count_o(d_viol)
+    );
+
+    // =========================================================================
     // Commit-log probe
     // =========================================================================
     reg [31:0] shadow_pc_wb;
@@ -242,6 +276,31 @@ module tb_boot;
     task finish_sim;
         input integer code;
         begin
+            // ---- AHB-Lite protocol verdict ---------------------------------
+            // Always reported, on every run, pass or fail. It is deliberately
+            // NOT possible to turn this off: the whole reason BUS-A/B/C
+            // survived 63 passing ISA tests is that nobody was looking.
+            //
+            // A violation now FAILS the test. This default was advisory while
+            // BUS-A/B/C were open, because a fatal default would have turned
+            // the whole regression red and made a new functional regression
+            // indistinguishable from the known protocol noise. BUS-A/B/C/D
+            // are fixed and the I- and D-ports are clean across the ISA
+            // regression, the wait-state and randomised-wait variants, the
+            // sanity suite and a 20-configuration stall/redirect sweep, so
+            // the reason to be advisory is gone -- and a checker whose
+            // failures are permanently advisory decays back into decoration,
+            // which is how BUS-A survived 63 passing tests in the first
+            // place. +NO_AHBCHK_FATAL demotes it again if a future bring-up
+            // genuinely needs to run against a known-dirty bus.
+            u_ichk.report_result;
+            u_dchk.report_result;
+            $display("AHB-PROTOCOL: iport=%0d dport=%0d violations", i_viol, d_viol);
+            if (((i_viol != 0) || (d_viol != 0)) && ahbchk_fatal && (code == 0)) begin
+                $display("\n*** AHB PROTOCOL VIOLATIONS -> FAILED (use +NO_AHBCHK_FATAL to demote) ***");
+                code = 3;
+            end
+
             // Functional coverage self-report, if the covergroups are bound in
             // (filelist_boot_cov.f). Guarded so the plain filelist still runs.
 `ifdef GARUDA_COV
@@ -283,6 +342,7 @@ module tb_boot;
         if (!$value$plusargs("DWAIT=%d", dwait))       dwait    = 0;
         if (!$value$plusargs("TOHOST=%h", tohost_addr))tohost_addr = 32'h1000_F000;
         quiet = $test$plusargs("QUIET");
+        ahbchk_fatal = !$test$plusargs("NO_AHBCHK_FATAL");
 
         if (!$value$plusargs("COVTAG=%s", covtag)) covtag = "run";
         if (!$value$plusargs("COMMIT=%s", commitfile)) commitfile = "commit.log";

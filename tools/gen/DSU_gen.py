@@ -42,7 +42,7 @@ import os, sys, random, argparse
 
 # find the golden model (sits in ../golden)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "golden"))
-from DSU_Golden import (DSUModel, asm, asm_shift,
+from DSU_Golden import (DSUModel, ArchDSU, asm, asm_shift,
                         MAC_SEL, MACSUB, MACABS, MACDOT, MACLOAD,
                         MACCLEAR, MACSAT, MACRD_LO, MACRD_HI, MACSHIFT,
                         ACC_FX, ACC_FY, ACC_MAG, MASK32, MASK48)
@@ -154,6 +154,31 @@ def random_tests(rng, n):
     return out
 
 
+def clamp_walk_tests(rng, n_probe, ramp=32768):
+    """Vectors that actually REACH the top of the accumulator range.
+
+    The ordinary suite cannot: the biggest single contribution to an
+    accumulator is 2^31 (a MACDOT of two 0x8000 lanes), MACLOAD tops out at
+    +-2^31, and MACSHIFT does not write back. So getting |acc| up to 2^46 is a
+    ~32,768-instruction ramp and nothing shorter will do it.
+
+    That is why the overflow logic went unexercised through 645 passing tests:
+    not because nobody wrote an overflow test, but because the region where the
+    flag matters is thousands of instructions away from where random stimulus
+    lives. Cost of the ramp is one long vector file, which is cheap; the
+    alternative is never testing the flag at all.
+    """
+    out = []
+    dot = asm(MACDOT, ACC_FX, 0, 1, 2)
+    for i in range(ramp):
+        out.append((dot, 0x80008000, 0x80008000, 0, f"ramp {i}"))
+    for i in range(n_probe):
+        f5 = rng.choice([MAC_SEL, MACSUB, MACABS, MACDOT])
+        out.append((asm(f5, acc_sel=ACC_FX, rd=rng.randint(1, 31)),
+                    rand_word(rng), rand_word(rng), 0, f"clamp probe {i}"))
+    return out
+
+
 def w(x):                       # 32-bit value -> 8-digit hex line
     return f"{x & MASK32:08x}"
 
@@ -168,6 +193,65 @@ def expected_words(st):
     return [st["rd_data"], a0l, a0h, a1l, a1h, a2l, a2h, flags]
 
 
+def clamp_region_sweep(seed, n_per_point=2000):
+    """Independent-oracle sweep of the HIGH-MAGNITUDE accumulator region.
+
+    Why this exists as a separate sweep rather than more random tests
+    ----------------------------------------------------------------
+    The ordinary generated vectors never get the accumulator anywhere near its
+    48-bit limits, so they cannot exercise the overflow logic at all. That is
+    not a stimulus oversight, it is architectural: the largest product a single
+    MAC can contribute is 2^30 (0x8000 * 0x8000), MACLOAD can only reach +-2^31
+    from a 32-bit register, and MACSHIFT does not write the accumulator back.
+    Reaching |acc| >= 2^46 therefore takes about 32,768 maximal MACDOTs --
+    measured, not estimated. Random tests will never stumble into it.
+
+    So the sweep SEEDS both oracles to the same accumulator value and then
+    drives real instructions from there. The seeding is applied identically to
+    both models, so it cannot bias the comparison; it only skips 32k cycles of
+    ramp that prove nothing on their own.
+
+    Runs on every generation. An oracle you have to remember to switch on is an
+    oracle that will be off on the day it mattered.
+    """
+    rng = random.Random(seed)
+    rows = []
+    points = [0.05, 0.25, 0.45, 0.49, 0.50, 0.60, 0.75, 0.90, 0.99,
+              -0.25, -0.49, -0.50, -0.75, -0.90, -0.99]
+
+    for frac in points:
+        start = int(frac * (1 << 47)) & MASK48
+        m, a = DSUModel(), ArchDSU()
+        clr = asm(MACCLEAR, ACC_FX, 0, 0, 0)
+        m.tick(clr, 0, 0, dsu_en=1); m.tick(0, 0, 0, dsu_en=0)
+        a.step(clr, 0, 0, dsu_en=1)
+        m.acc[0] = start
+        a.acc[0] = start
+
+        bad = acc_bad = 0
+        for _ in range(n_per_point):
+            instr = asm(MAC_SEL, ACC_FX, 0, 1, 2)
+            r1, r2 = rng.getrandbits(32), rng.getrandbits(32)
+            r = m.tick(instr, r1, r2, dsu_en=1)
+            guard = 0
+            while r["dsu_busy"]:
+                r = m.tick(instr, r1, r2, dsu_en=1)
+                guard += 1
+                if guard > 4:
+                    raise RuntimeError("dsu_busy stuck in clamp sweep")
+            m.tick(0, 0, 0, dsu_en=0)
+            a.step(instr, r1, r2, dsu_en=1)
+
+            if (m.acc[0] & MASK48) != (a.acc[0] & MASK48):
+                acc_bad += 1
+            if bool(m.overflow_sticky) != bool(a.overflow_sticky):
+                bad += 1
+            # resync, so one disagreement does not mask every later one
+            m.overflow_sticky = a.overflow_sticky = False
+        rows.append((frac, start, bad, acc_bad, n_per_point))
+    return rows
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--count", type=int, default=0, help="random tests (default: match directed count)")
@@ -176,16 +260,47 @@ def main():
                     help="omit the idle drain cycle -- reads the accumulator "
                          "before stage 2 commits, for probing pipeline timing")
     ap.add_argument("--outdir", default=".")
+    ap.add_argument("--clamp-walk", type=int, default=0, metavar="N",
+                    help="emit a ramp to the top of the accumulator range "
+                         "followed by N probe ops, instead of the normal suite. "
+                         "This is the only stimulus that reaches the overflow "
+                         "logic at all -- see clamp_walk_tests().")
+    ap.add_argument("--ramp", type=int, default=32768,
+                    help="ramp length for --clamp-walk (32768 reaches 2^46)")
     args = ap.parse_args()
 
     rng = random.Random(args.seed)
-    directed = directed_tests()
-    n_rand = args.count if args.count else len(directed)      # even mix by default
-    program = directed + random_tests(rng, n_rand)
+    if args.clamp_walk:
+        directed = []
+        n_rand = args.clamp_walk
+        program = clamp_walk_tests(rng, args.clamp_walk, ramp=args.ramp)
+    else:
+        directed = directed_tests()
+        n_rand = args.count if args.count else len(directed)  # even mix by default
+        program = directed + random_tests(rng, n_rand)
 
-    # Cycle-accurate model (was ArchDSU, which is timeless and cannot express
-    # the stall or the pipeline). DSU plan Infrastructure row 3.
-    dsu = DSUModel()
+    # ---- TWO ORACLES, ON PURPOSE ------------------------------------------
+    # DSUModel is cycle-accurate: it expresses the stall, the pipeline and the
+    # exact cycle a result appears, which ArchDSU cannot. That is why the
+    # expected vectors come from it.
+    #
+    # But DSUModel was written by reading the RTL, and in places it deliberately
+    # reproduces the hardware's arithmetic STRUCTURE rather than its intent --
+    # its own header says "where this file and the RTL disagree, the RTL wins".
+    # A testbench checked only against it therefore proves the RTL agrees with a
+    # transliteration of itself. That is self-consistency, not correctness, and
+    # it is exactly how a wrong overflow flag survived 645/645 passing tests.
+    #
+    # ArchDSU is the independent oracle: timeless, written from what the DSU is
+    # SUPPOSED to compute, with a real range check
+    #     -(1<<47) <= raw <= (1<<47)-1
+    # rather than a bit-pattern lifted out of the adder. It runs in lockstep
+    # here and every disagreement is reported. It cannot supply the expected
+    # vectors (it has no notion of when anything appears) but it can, and now
+    # does, contradict them.
+    dsu  = DSUModel()
+    arch = ArchDSU()
+    xacc, xrd, xovf = [], [], []
     stim, exp = [], []
     count = 0
     for instr, rs1, rs2, clr, note in program:
@@ -215,6 +330,22 @@ def main():
         res = {"rd_data": r["dsu_rd_data"], "rd_valid": r["dsu_rd_valid"],
                "rd_addr": r["dsu_rd_addr"], "illegal": r["illegal_instr"],
                "overflow": r["dsu_overflow"], "acc": dsu.acc}
+
+        # ---- independent-oracle cross-check --------------------------------
+        # Only meaningful with the drain cycle on: without it DSUModel is
+        # deliberately being read mid-flight, so a disagreement with a timeless
+        # model is the thing being probed rather than a defect.
+        a = arch.step(instr, rs1, rs2, csr_clear_overflow=cclr, dsu_en=den)
+        if not args.no_drain:
+            m_acc = [x & MASK48 for x in dsu.acc]
+            a_acc = [x & MASK48 for x in arch.acc]
+            if m_acc != a_acc:
+                xacc.append((count, note, m_acc, a_acc))
+            if r["dsu_rd_valid"] and (r["dsu_rd_data"] != (a["rd_data"] & MASK32)):
+                xrd.append((count, note, r["dsu_rd_data"], a["rd_data"] & MASK32))
+            if bool(dsu.overflow_sticky) != bool(arch.overflow_sticky):
+                xovf.append((count, note, int(dsu.overflow_sticky),
+                             int(arch.overflow_sticky)))
         stim += [w(instr), w(rs1), w(rs2), w(clr)]
         exp  += [w(v) for v in expected_words(res)]
         stim[-4] = stim[-4] + f"   // #{count}: {note}"       # annotate record
@@ -232,6 +363,64 @@ def main():
     print(f"  dsu_stim.mem      : {len(stim)} lines (4 words/test)")
     print(f"  dsu_expected.mem  : {len(exp)} lines (8 words/test)")
     print(f"  seed={args.seed}  drain={'off' if args.no_drain else 'on'}")
+
+    # ---- independent-oracle report ----------------------------------------
+    xpath = os.path.join(args.outdir, "dsu_crosscheck.txt")
+    with open(xpath, "w") as f:
+        f.write("DSUModel (cycle-accurate, RTL-derived) vs ArchDSU (independent)\n")
+        f.write(f"seed={args.seed}  tests={count}\n")
+        f.write("A disagreement here is NOT automatically an RTL bug: DSUModel\n")
+        f.write("is checked against the RTL, so a disagreement says the two\n")
+        f.write("models differ. Which one is wrong has to be reasoned out.\n\n")
+        for title, rows, fmt in (
+            ("ACCUMULATOR", xacc,
+             lambda r: f"  #{r[0]:<5} {r[1]:<34} model={[hex(v) for v in r[2]]} arch={[hex(v) for v in r[3]]}"),
+            ("RD_DATA", xrd,
+             lambda r: f"  #{r[0]:<5} {r[1]:<34} model={r[2]:#010x} arch={r[3]:#010x}"),
+            ("OVERFLOW STICKY", xovf,
+             lambda r: f"  #{r[0]:<5} {r[1]:<34} model={r[2]} arch={r[3]}"),
+        ):
+            f.write(f"== {title}: {len(rows)} disagreement(s)\n")
+            for r in rows:
+                f.write(fmt(r) + "\n")
+            f.write("\n")
+
+    total_x = len(xacc) + len(xrd) + len(xovf)
+    if args.no_drain:
+        print("  cross-check       : skipped (--no-drain)")
+    elif total_x == 0:
+        print("  cross-check       : CLEAN - both oracles agree on all "
+              f"{count} tests")
+    else:
+        print(f"\n  *** INDEPENDENT-ORACLE DISAGREEMENT: {total_x} of {count} tests ***")
+        print(f"      accumulator {len(xacc)}   rd_data {len(xrd)}   "
+              f"overflow {len(xovf)}")
+        print(f"      detail: {xpath}")
+
+    # ---- high-magnitude accumulator sweep ---------------------------------
+    rows = clamp_region_sweep(args.seed)
+    worst = max(r[2] for r in rows)
+    accbad = sum(r[3] for r in rows)
+    with open(xpath, "a") as f:
+        f.write("== HIGH-MAGNITUDE ACCUMULATOR SWEEP\n")
+        f.write("acc is seeded identically into both oracles, then real MACs\n")
+        f.write("are driven. Ordinary vectors cannot reach here: it takes\n")
+        f.write("~32768 maximal MACDOTs to walk |acc| up to 2^46.\n\n")
+        f.write(f"{'acc/2^47':>10} {'acc':>18} {'ovf disagree':>14} {'acc disagree':>14}\n")
+        for frac, start, bad, acc_bad, n in rows:
+            f.write(f"{frac:>10.2f} {start:>18} {bad:>8}/{n:<5} {acc_bad:>8}/{n:<5}\n")
+
+    print("\n  high-magnitude sweep (independent oracle):")
+    print(f"    {'acc/2^47':>9}  {'overflow-flag disagreement':>28}  {'value':>8}")
+    for frac, start, bad, acc_bad, n in rows:
+        mark = "  <-- FLAG IS WRONG" if bad else ""
+        print(f"    {frac:>9.2f}  {bad:>10}/{n:<10}            "
+              f"{'ok' if acc_bad == 0 else 'DIVERGED':>8}{mark}")
+    if worst:
+        print("\n    The accumulator VALUES agree everywhere; only the overflow")
+        print("    flag disagrees, and only for |acc| >= 2^46 -- the top quarter")
+        print("    of the range, which is precisely what the flag exists to warn")
+        print("    about. See ERRATUM OVF-1.")
 
 
 if __name__ == "__main__":

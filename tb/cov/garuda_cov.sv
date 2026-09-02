@@ -50,6 +50,7 @@ module garuda_cov (
     input wire [2:0]  em_funct3,
     input wire [31:0] d_haddr,
     input wire [1:0]  d_htrans, i_htrans,
+    input wire [2:0]  d_hburst, i_hburst,
     input wire        d_hresp,  i_hresp,
     input wire        d_hready, i_hready
 );
@@ -172,6 +173,34 @@ module garuda_cov (
         cp_d_err:   coverpoint d_hresp;
         x_i_trans_wait: cross cp_i_trans, cp_i_wait;
         x_d_trans_wait: cross cp_d_trans, cp_d_wait;
+
+        // ---- HBURST, and the cross that should never have been missing ----
+        // Until this cross existed, cp_i_trans counted every SEQ as coverage
+        // with no opinion about the burst it claimed to belong to -- so the
+        // AHB functional-coverage number went UP because of ERRATUM BUS-A.
+        // A coverpoint that rewards a protocol violation is worse than no
+        // coverpoint: it converts a defect into evidence of thoroughness.
+        //
+        // PROMOTED to illegal_bins 2026-09-02, as the note above said to do
+        // once BUS-A/B/C were fixed. It was ignore_bins only because an
+        // illegal_bin is a runtime error and would have aborted every run
+        // while the erratum was open.
+        //
+        // With BUS-A fixed, i_hburst_o is the constant INCR: this port issues
+        // undefined-length incrementing bursts and nothing else. So `single`
+        // and `other` are no longer coverage holes to be chased, they are
+        // states the design must never enter -- which is what illegal_bins
+        // says, and it says it at the point of sampling rather than leaving a
+        // permanently-0% bin dragging the number down for a reader to
+        // rediscover and waive.
+        cp_i_burst: coverpoint i_hburst {
+            bins incr = {3'b001};
+            illegal_bins not_incr = {3'b000, [3'b010:3'b111]};
+        }
+        // Every surviving cross bin is reachable and meaningful; the
+        // seq-inside-a-SINGLE-burst combination that BUS-A produced can no
+        // longer be constructed, because its HBURST half is now illegal.
+        x_i_trans_burst: cross cp_i_trans, cp_i_burst;
     endgroup
 
     // ---------------------------------------------------------------------
@@ -247,6 +276,7 @@ bind garuda_core_top garuda_cov u_cov (
     .trap_enter(tr_enter), .trap_cause(tr_cause),
     .em_funct3(em_funct3), .d_haddr(d_haddr_o),
     .d_htrans(d_htrans_o), .i_htrans(i_htrans_o),
+    .d_hburst(d_hburst_o), .i_hburst(i_hburst_o),
     .d_hresp(d_hresp_i),   .i_hresp(i_hresp_i),
     .d_hready(d_hready_i), .i_hready(i_hready_i)
 );
