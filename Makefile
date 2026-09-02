@@ -53,7 +53,10 @@ endif
         test_ex test_ex_dsu test_idex test_exmem test_pipe test_csr test_trap \
         test_core sw isa_tests test_boot test_c regress regress_wait test_flag2 \
         test_sanity regress_rand coverage test_dsu test_units test_decode_control \
-        test_imm_gen test_reg_file test_branch_predict test_hazard_forward_unit test_id_stage
+        test_imm_gen test_reg_file test_branch_predict test_hazard_forward_unit \
+        test_id_stage test_elements test_alu test_mul32 test_branch_unit \
+        test_csr_rw test_clic_ctrl test_lsu test_load_fmt test_memwb \
+        test_pc_gen test_prefetch test_iport test_dport test_mem_stage test_if_stage
 
 help:
 	@echo "GARUDA SoC build targets:"
@@ -62,6 +65,9 @@ help:
 	@echo "  make elab_core_dsu   -- elaborate core + REAL DSU (integration)"
 	@echo "  make test_core       -- every core unit smoke + the six unit TBs"
 	@echo "  make test_units      -- the six constrained-random unit TBs only"
+	@echo "  make test_elements   -- the 14 per-element core TBs, NOT YET RUN (ALU, MUL, branch,"
+	@echo "                          CSR_RW, LSU, load-fmt, D-port, MEM, MEM/WB,"
+	@echo "                          PC-gen, prefetch, I-port, IF top, CLIC)"
 	@echo "  make test_ex_dsu     -- EX smoke against the real DSU"
 	@echo "  make sw              -- build bare-metal tests (boot6, ctest1, dsu_flag2)"
 	@echo "  make isa_tests       -- build riscv-tests rv32ui + rv32um"
@@ -142,6 +148,37 @@ test_csr:
 test_trap:
 	$(call run_test,tb/core/filelist_trap_ctrl.f,tb_trap_ctrl)
 
+# ---- per-element unit TBs (Sec. 18.2 directed tests, block level) ----
+# One core element from the block diagram per target, checked on its own
+# against AERO-GARUDA-DS-001. Same run_test flow as the smokes above; top
+# module is tb_<module>. See docs/CORE_ELEMENT_VERIFICATION.md for the
+# element -> spec section -> C-test mapping.
+test_alu:            ; $(call run_test,tb/core/filelist_alu.f,tb_alu)
+test_mul32:          ; $(call run_test,tb/core/filelist_mul32.f,tb_mul32)
+test_branch_unit:    ; $(call run_test,tb/core/filelist_branch_unit.f,tb_branch_unit)
+test_csr_rw:         ; $(call run_test,tb/core/filelist_csr_rw.f,tb_csr_rw)
+test_clic_ctrl:      ; $(call run_test,tb/core/filelist_clic_ctrl.f,tb_clic_ctrl)
+test_lsu:            ; $(call run_test,tb/core/filelist_load_store_unit.f,tb_load_store_unit)
+test_load_fmt:       ; $(call run_test,tb/core/filelist_load_formatter.f,tb_load_formatter)
+test_memwb:          ; $(call run_test,tb/core/filelist_mem_wb_reg.f,tb_mem_wb_reg)
+test_pc_gen:         ; $(call run_test,tb/core/filelist_pc_gen.f,tb_garuda_pc_gen)
+test_prefetch:       ; $(call run_test,tb/core/filelist_prefetch_buffer.f,tb_garuda_prefetch_buffer)
+test_iport:          ; $(call run_test,tb/core/filelist_iport_ahb_master.f,tb_garuda_iport_ahb_master)
+test_dport:          ; $(call run_test,tb/core/filelist_d_port_ahb_master.f,tb_d_port_ahb_master)
+test_mem_stage:      ; $(call run_test,tb/core/filelist_mem_stage.f,tb_mem_stage)
+test_if_stage:       ; $(call run_test,tb/core/filelist_if_stage_top.f,tb_garuda_if_stage_top)
+
+# Every core element with its own TB, in block-diagram order:
+# IF -> EX -> MEM -> WB -> CONTROL.
+test_elements: test_pc_gen test_prefetch test_iport test_if_stage \
+               test_alu test_mul32 test_branch_unit test_csr_rw \
+               test_lsu test_load_fmt test_dport test_mem_stage \
+               test_memwb test_clic_ctrl
+
+# NOTE: test_elements is deliberately NOT in test_core yet. The element TBs
+# have not been run against a simulator, so folding them into the standard
+# regression would make test_core's result depend on unproven testbenches.
+# Move test_elements into this list once it reports clean.
 test_core: test_ex test_ex_dsu test_idex test_exmem test_pipe test_csr test_trap test_units
 
 clean:
