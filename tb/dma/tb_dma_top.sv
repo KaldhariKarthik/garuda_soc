@@ -182,6 +182,7 @@ module tb_dma_top;
 
     integer checks = 0, failures = 0;
     integer ack_count [0:5];
+    integer err_count [0:5];   // bus-error events per channel (see probe below)
     integer ack_width_bad = 0;
     reg [5:0] ack_prev = 6'h0;
 
@@ -218,6 +219,16 @@ module tb_dma_top;
                 if (dma_ack[k] && ack_prev[k]) ack_width_bad = ack_width_bad + 1;
             end
             ack_prev <= dma_ack;
+
+            // Per-channel BUS-ERROR counter. dma_ack only pulses on a beat
+            // that actually moved data, so a channel stuck re-attempting a
+            // faulting transfer is completely invisible to ack_count - it
+            // moves no beats at all. Counting the error events is the only way
+            // to see "the channel tried again" from the testbench, and T20b
+            // needs exactly that. Probed hierarchically off the qualified
+            // per-channel strobe, the same way ack_count probes dma_ack.
+            for (k = 0; k < 6; k = k + 1)
+                if (u_dut.ch_bus_error[k]) err_count[k] = err_count[k] + 1;
         end
     end
 
@@ -1331,12 +1342,322 @@ module tb_dma_top;
     endtask
 
     // =======================================================================
+    // T18 - ERRATUM DMA-3: re-arming a channel that is still TRANSFERRING
+    //
+    // Before the fix the arm event was tested only in IDLE, so this one was
+    // dropped on the floor: the channel finished its first transfer, went
+    // idle, and CR.EN stayed 1 forever on a channel that would never run
+    // again. The block looked healthy - no error flag, no interrupt, nothing
+    // in SR to point at - which is exactly what makes it expensive to debug.
+    //
+    // The check is deliberately on the DATA, not on a status bit: a second
+    // transfer must actually MOVE a second set of beats, to a re-programmed
+    // destination, which also proves the deferred start re-reads the
+    // descriptor rather than replaying a stale copy.
+    // =======================================================================
+    task t18_rearm_while_busy;
+        integer i;
+        begin
+            $display("--- T18: re-arm while TRANSFERRING is deferred, not dropped ---");
+
+            u_slave.init_model();
+            // 8 beats for the first transfer, 8 more for the deferred restart.
+            for (i = 0; i < 16; i = i + 1)
+                u_slave.push_rd(0, 32'h0000_0040 + i);
+            ack_count[0] = 0;
+
+            cfg_channel(0, FIFO_BASE, MEM_BASE + 32'h1600, 16'd8,
+                        mk_cr(DIR_P2M, SZ_BYTE, 1'b0, 1'b1, 1'b0,
+                              1'b1, 1'b1, 3'd7, 1'b1));
+            set_req_auto(6'b000001);
+
+            // Wait until the channel is genuinely mid-transfer, then re-arm it
+            // with a DIFFERENT destination.
+            wait (ack_count[0] == 3);
+            apb_write(0, R_DAR, MEM_BASE + 32'h1700);
+            apb_write(0, R_CR,  mk_cr(DIR_P2M, SZ_BYTE, 1'b0, 1'b1, 1'b0,
+                                      1'b1, 1'b1, 3'd7, 1'b1));
+
+            // Both laps must complete: 8 + 8 beats.
+            hclk_wait(1200);
+            chk_eq(ack_count[0], 16,
+                   "T18: both the original and the deferred transfer ran");
+
+            // First lap at the original destination...
+            for (i = 0; i < 8; i = i + 1)
+                chk_eq(u_slave.mem_byte(MEM_BASE + 32'h1600 + i),
+                       8'h40 + i[7:0], "T18: first transfer data");
+            // ...second lap at the re-programmed destination.
+            for (i = 0; i < 8; i = i + 1)
+                chk_eq(u_slave.mem_byte(MEM_BASE + 32'h1700 + i),
+                       8'h48 + i[7:0], "T18: deferred transfer used the NEW descriptor");
+
+            // And the register must now tell the truth: single-shot, both laps
+            // done, hardware clears EN.
+            apb_read(0, R_CR, rd);
+            chk(rd[B_EN] === 1'b0,
+                "T18: CR.EN cleared once the deferred transfer finished");
+
+            set_req(6'b000000);
+            clear_all_channels();
+        end
+    endtask
+
+    // =======================================================================
+    // T19 - ERRATUM DMA-3: the COMPLETE-window race, swept
+    //
+    // COMPLETE is a single hclk cycle. An arm toggle takes three hclk flops to
+    // cross from pclk, so a completion ISR that re-arms the channel lands in
+    // that cycle purely by luck of the clock phase - firmware cannot avoid it
+    // and cannot detect it. This is the window that turns DMA-3 from a
+    // theoretical "don't do that" into a real hang.
+    //
+    // Swept in 1-hclk steps across the completion neighbourhood, the same way
+    // T17 sweeps the DMA-2 collision. Every phase must end with the second
+    // transfer having run.
+    // =======================================================================
+    task t19_rearm_complete_race;
+        integer trial, i;
+        integer lost;
+        begin
+            $display("--- T19: re-arm colliding with the COMPLETE window (phase sweep) ---");
+            lost = 0;
+
+            // The arm write is LAUNCHED BEFORE THE TRANSFER ENDS, and the
+            // launch point is stepped in 1-hclk increments. That is the only
+            // way to land the arm pulse in the COMPLETE cycle: an APB write
+            // takes 2 pclk (4 hclk) and the arm toggle then crosses 3 more
+            // hclk flops, so a write issued AFTER completion always arrives
+            // once the channel is safely back in IDLE - where even the broken
+            // RTL handled it. Sweeping the launch point walks the arrival
+            // across TRANSFERRING, COMPLETE and IDLE in turn.
+            //
+            // Only CR is written (not DAR) to keep the arrival latency tight
+            // and the sweep resolution meaningful.
+            for (trial = 0; trial < 30; trial = trial + 1) begin
+                u_slave.init_model();
+                for (i = 0; i < 12; i = i + 1)
+                    u_slave.push_rd(0, 32'h0000_0090 + i);
+                ack_count[0] = 0;
+
+                // A 6-beat transfer, then a 6-beat deferred restart.
+                cfg_channel(0, FIFO_BASE, MEM_BASE + 32'h1800, 16'd6,
+                            mk_cr(DIR_P2M, SZ_BYTE, 1'b0, 1'b1, 1'b0,
+                                  1'b1, 1'b1, 3'd7, 1'b1));
+                set_req_auto(6'b000001);
+
+                // Sample on the hardware event, never on an APB poll: this is
+                // the TB-5 lesson from Sec. 9.2 - polling SR to find
+                // "completion" returns up to ~9 hclk late and would smear the
+                // very window being swept.
+                wait (ack_count[0] == 3);
+                hclk_wait(trial);
+
+                apb_write(0, R_CR, mk_cr(DIR_P2M, SZ_BYTE, 1'b0, 1'b1, 1'b0,
+                                         1'b1, 1'b1, 3'd7, 1'b1));
+
+                hclk_wait(900);
+
+                // Whatever phase the arm landed in, it must not vanish.
+                if (ack_count[0] !== 12) begin
+                    lost = lost + 1;
+                    $display("       phase %0d: arm LOST - only %0d of 12 beats moved",
+                             trial, ack_count[0]);
+                end
+
+                set_req(6'b000000);
+                clear_all_channels();
+            end
+
+            chk_eq(lost, 0, "T19: no arm lost at any collision phase (30 phases swept)");
+        end
+    endtask
+
+    // =======================================================================
+    // T20 - ERRATUM DMA-3: the two ways a queued start must be CANCELLED
+    //
+    // The deferred start introduced new state (arm_pending_r), and new state
+    // that is only ever set is a latent bug waiting for the right sequence.
+    // Both consume paths are checked here, because both protect against a
+    // channel springing back to life long after software thought it had
+    // stopped it.
+    //
+    //   20a  a disable overtakes a queued start -> the start is void
+    //   20b  a circular lap absorbs a queued start -> it does not sit latched
+    //        for the life of the channel and then fire when CIRC is stopped
+    // =======================================================================
+    task t20_deferred_start_cancel;
+        integer i;
+        integer beats_after;
+        reg [31:0] sr;
+        begin
+            $display("--- T20: a queued start is cancelled by a disable / absorbed by CIRC ---");
+
+            // ---- 20a: EN=1 (queued) then EN=0 (disable) while busy --------
+            //
+            // The transfer is deliberately LONG (40 beats) and the two writes
+            // are issued after only 3 of them. An APB write is 2 pclk = 4 hclk
+            // and a beat is ~5 hclk, so against a short transfer both writes
+            // land after the channel has already finished - which tests the
+            // ordinary arm-from-IDLE path and proves nothing about the queue.
+            // 37 remaining beats leaves an unambiguous window.
+            u_slave.init_model();
+            for (i = 0; i < 80; i = i + 1)
+                u_slave.push_rd(0, 32'h0000_00C0 + i);
+            ack_count[0] = 0;
+
+            cfg_channel(0, FIFO_BASE, MEM_BASE + 32'h1A00, 16'd40,
+                        mk_cr(DIR_P2M, SZ_BYTE, 1'b0, 1'b1, 1'b0,
+                              1'b1, 1'b1, 3'd7, 1'b1));
+            set_req_auto(6'b000001);
+
+            wait (ack_count[0] == 3);
+            // Queue a restart...
+            apb_write(0, R_CR, mk_cr(DIR_P2M, SZ_BYTE, 1'b0, 1'b1, 1'b0,
+                                     1'b1, 1'b1, 3'd7, 1'b1));
+            // ...then change our mind. The disable is the newer intent.
+            apb_write(0, R_CR, 32'h0);
+
+            hclk_wait(2000);
+            beats_after = ack_count[0];
+            chk_eq(beats_after, 40,
+                   "T20a: a disable cancelled the queued start (no second transfer)");
+            apb_read(0, R_CR, rd);
+            chk(rd[B_EN] === 1'b0, "T20a: CR.EN stays 0 after the disable");
+
+            set_req(6'b000000);
+            clear_all_channels();
+
+            // ---- 20b: a queued start must not resurrect a FAULTED CIRC channel
+            //
+            // This is what the CIRC-absorb actually protects, and it took a
+            // mutation run to find out: an obvious "disable the circular
+            // channel and check nothing else fires" test passes either way,
+            // because the WAITING abort path clears the queued start anyway.
+            //
+            // The case that genuinely needs the absorb is CIRC + bus error.
+            // SPEC-6 (docs/BUGS.md) requires a circular channel that faults to
+            // STOP - the !err_abort_r guard in COMPLETE exists so it cannot
+            // reload and re-fault forever. But a queued start latched on an
+            // earlier lap would survive to that same COMPLETE, fall through to
+            // the deferred-start branch with EN still set, and restart the
+            // channel straight back onto the faulting address. The Sec. 6 guard
+            // would be defeated by the Sec. 4 feature. Absorbing the request on
+            // every lap is what keeps them from meeting.
+            u_slave.init_model();
+            for (i = 0; i < 60; i = i + 1)
+                u_slave.push_rd(1, 32'h0000_00E0 + i);
+            ack_count[1] = 0;
+            err_count[1] = 0;
+
+            // The fault is injected LATE, not from the start. A circular
+            // channel reloads DAR to the same base every lap, so an error
+            // window overlapping the destination would fault on lap ONE - and
+            // on lap one no clean COMPLETE has happened yet, so the absorb has
+            // not run and both the fixed and the broken RTL behave the same.
+            // Letting two clean laps retire first is what separates them.
+            sl_err_en   = 1'b0;
+
+            cfg_channel(1, FIFO_BASE + 32'h4, MEM_BASE + 32'h1B00, 16'd4,
+                        mk_cr(DIR_P2M, SZ_BYTE, 1'b0, 1'b1, 1'b1,   // CIRC=1
+                              1'b1, 1'b1, 3'd4, 1'b1));
+            set_req_auto(6'b000010);
+
+            // Queue a start while the circular channel is mid-lap.
+            wait (ack_count[1] == 2);
+            apb_write(1, R_CR, mk_cr(DIR_P2M, SZ_BYTE, 1'b0, 1'b1, 1'b1,
+                                     1'b1, 1'b1, 3'd4, 1'b1));
+
+            // Two clean laps: the CIRC reload absorbs the queued start.
+            wait (ack_count[1] >= 8);
+
+            // Now break the destination.
+            sl_err_base = MEM_BASE + 32'h1B00;
+            sl_err_size = 32'h10;
+            sl_err_en   = 1'b1;
+
+            wait_flag(1, 1, 600, sr);
+            chk(sr[1] === 1'b1, "T20b: circular channel reported the bus error");
+
+            hclk_wait(200);
+            beats_after = ack_count[1];
+            hclk_wait(800);
+
+            // The discriminating check is the ERROR COUNT, not the beat count.
+            // A channel that restarts onto a faulting address moves no data at
+            // all - dma_ack never pulses on a failed beat - so ack_count and
+            // the destination memory look identical whether it retried or not.
+            // It also ends up disabled either way, because the retry consumes
+            // the queued start and the next COMPLETE declines. The single
+            // observable difference is that it faulted TWICE.
+            chk_eq(err_count[1], 1,
+                   "T20b: faulted CIRC channel faulted exactly once - no queued start resurrected it");
+            chk_eq(ack_count[1], beats_after,
+                   "T20b: faulted CIRC channel moved no further data");
+            apb_read(1, R_CR, rd);
+            chk(rd[B_EN] === 1'b0,
+                "T20b: CR.EN cleared - the channel is disarmed");
+
+            sl_err_en = 1'b0;
+            set_req(6'b000000);
+            clear_all_channels();
+
+            // ---- 20c: a disable that lands while the channel is PARKED -----
+            //
+            // The third and last consume path, and the one an obvious test
+            // misses. T20a disables a channel that is streaming flat out, and
+            // a top-priority channel with a non-empty FIFO is granted the same
+            // cycle it enters WAITING - `go_i` wins the branch every time, so
+            // the WAITING abort never executes and it is the COMPLETE decline
+            // that does the cancelling there.
+            //
+            // To exercise the WAITING abort the channel has to be PARKED: the
+            // source FIFO is deliberately run dry mid-transfer so it sits in
+            // WAITING with no request. A queued start is then dropped in, then
+            // the disable, then the FIFO is refilled. If the abort path does
+            // not cancel the queued start, IDLE consumes it on the very next
+            // cycle and the channel restarts - a transfer running after
+            // firmware disabled the channel and walked away.
+            u_slave.init_model();
+            for (i = 0; i < 4; i = i + 1)            // only 4 entries: runs dry
+                u_slave.push_rd(0, 32'h0000_0070 + i);
+            ack_count[0] = 0;
+
+            cfg_channel(0, FIFO_BASE, MEM_BASE + 32'h1C00, 16'd8,
+                        mk_cr(DIR_P2M, SZ_BYTE, 1'b0, 1'b1, 1'b0,
+                              1'b1, 1'b1, 3'd7, 1'b1));
+            set_req_auto(6'b000001);
+
+            wait (ack_count[0] == 4);                // FIFO empty, channel parks
+            hclk_wait(30);
+
+            apb_write(0, R_CR, mk_cr(DIR_P2M, SZ_BYTE, 1'b0, 1'b1, 1'b0,
+                                     1'b1, 1'b1, 3'd7, 1'b1));   // queue a start
+            apb_write(0, R_CR, 32'h0);                            // then disable
+
+            hclk_wait(60);
+            for (i = 0; i < 20; i = i + 1)           // refill: the channel now
+                u_slave.push_rd(0, 32'h0000_0080 + i); // COULD run if it woke
+            hclk_wait(800);
+
+            chk_eq(ack_count[0], 4,
+                   "T20c: a disabled, parked channel did not wake and run the queued start");
+            apb_read(0, R_CR, rd);
+            chk(rd[B_EN] === 1'b0, "T20c: CR.EN stays 0");
+
+            set_req(6'b000000);
+            clear_all_channels();
+        end
+    endtask
+
+    // =======================================================================
     // Main
     // =======================================================================
     integer seed_arg;
 
     initial begin
         for (k = 0; k < 6; k = k + 1) ack_count[k] = 0;
+        for (k = 0; k < 6; k = k + 1) err_count[k] = 0;
         u_slave.init_model();
 
         // Global bus-timing controls. A failing randomised run replays exactly
@@ -1387,6 +1708,9 @@ module tb_dma_top;
         t14_software_abort();
         t15_edge_cases();
         t17_en_clr_collision();
+        t18_rearm_while_busy();
+        t19_rearm_complete_race();
+        t20_deferred_start_cancel();
         t16_random_soak();
 
         // Protocol monitors

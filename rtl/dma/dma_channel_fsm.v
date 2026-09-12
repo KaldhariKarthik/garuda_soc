@@ -80,6 +80,61 @@
 // overflow coinciding with its own clear was lost. Ordering in the always
 // block is what enforces it - the flag-set assignments appear after the clear
 // assignments, and the last non-blocking write wins.
+//
+// =============================================================================
+// DESIGN NOTE 4 - DEFERRED START: what happens if the channel is armed while
+//                 it is already busy (ERRATUM DMA-3)
+// =============================================================================
+// arm_pulse used to be tested ONLY in IDLE. An arm event arriving in any other
+// state was discarded with no record - and the register bank had already
+// accepted the CR write that produced it, so CR.EN read 1 on a channel that
+// would never run. That is the same failure shape as ERRATUM DMA-2 (the block's
+// status register lying about it) except worse, because the block genuinely
+// does nothing: no beats, no interrupt, no error. Firmware waits forever.
+//
+// The window that makes this a real defect rather than a theoretical one is
+// COMPLETE. It is a single hclk cycle, and firmware cannot avoid it: the arm
+// toggle takes three hclk flops to cross from pclk, so a completion ISR that
+// re-arms the channel lands there purely by luck of the clock phase. In that
+// cycle the previous transfer HAS finished, so the request is entirely
+// legitimate and dropping it is simply wrong.
+//
+// RESOLUTION - a deferred start (a "doorbell", the usual arrangement for DMA
+// engines that take work from a register write):
+//
+//     an arm event is LATCHED in arm_pending_r from any state, and consumed
+//     when the channel next reaches a point where it can start
+//
+// so the contract becomes uniform and has no undefined corner:
+//
+//     a CR write with EN=1 ALWAYS starts a transfer. If the channel is busy,
+//     it starts when the current transfer finishes.
+//
+// Four properties of this that are deliberate:
+//
+//   1. COALESCED TO ONE BIT. Ten CR writes while the channel is busy queue ONE
+//      restart, not ten. A counter would turn a firmware bug into ten
+//      unwanted transfers; a single bit bounds the damage at one, and since
+//      CONFIGURED re-reads SAR/DAR/TCR/CR, that one restart uses the LATEST
+//      descriptor rather than a stale queued copy.
+//   2. EN IS NOT CLEARED on the deferred-start path out of COMPLETE. The
+//      channel is going straight back out, so CR.EN=1 is the truth. Clearing
+//      it and immediately running would be the mirror image of the original
+//      bug - a channel running with CR.EN reading 0.
+//   3. A PENDING START IS CANCELLED BY A DISABLE. If firmware writes EN=1 and
+//      then EN=0, the disable is the newer intent and the queued start is
+//      void. Guarded with !arm_pulse so a same-cycle re-arm still survives.
+//   4. A CIRC LAP ABSORBS IT. A circular reload is itself a restart, so it
+//      satisfies the pending request. Without this the bit would sit latched
+//      for the entire life of a circular channel and then fire once, long
+//      afterwards, when firmware finally disabled it.
+//
+// CONSIDERED AND REJECTED: the ARM PL330 arrangement, where a start issued to
+// a channel that is not stopped is refused and raises a fault. It is the other
+// defensible answer and it is fail-safe, but it needs a new SR bit - and SR's
+// layout is published in Sec. 6.7 with firmware macros written against it in
+// Sec. 13.1 - and, more importantly, it gets the COMPLETE window WRONG: the
+// one case that must be accepted is the one it would report as an error.
 // =============================================================================
 
 `include "dma_defs.vh"
@@ -172,6 +227,7 @@ module dma_channel_fsm (
     reg                  circ_r;
     reg [2:0]            pri_r;
     reg                  err_abort_r;   // this COMPLETE was reached via bus error
+    reg                  arm_pending_r; // deferred start request (ERRATUM DMA-3)
 
     assign state_o    = state;
     assign src_addr_o = src_addr_r;
@@ -277,6 +333,7 @@ module dma_channel_fsm (
             circ_r       <= 1'b0;
             pri_r        <= 3'b0;
             err_abort_r  <= 1'b0;
+            arm_pending_r<= 1'b0;
             done_flag_o  <= 1'b0;
             err_flag_o   <= 1'b0;
             en_clr_tog_o <= 1'b0;
@@ -293,13 +350,25 @@ module dma_channel_fsm (
             if (clr_done) done_flag_o <= 1'b0;
             if (clr_err)  err_flag_o  <= 1'b0;
 
+            // ---------------------------------------------------------------
+            // Deferred start (ERRATUM DMA-3, DESIGN NOTE 4). Latch the arm
+            // event here, before the state machine, so that EVERY state
+            // records it. The case arms below consume it by writing 0 later in
+            // the same block; last non-blocking write wins, so an arm arriving
+            // in the very cycle it is consumed is correctly treated as
+            // consumed rather than re-queued.
+            // ---------------------------------------------------------------
+            if (arm_pulse) arm_pending_r <= 1'b1;
+
             case (state)
 
                 // -----------------------------------------------------------
                 `DMA_ST_IDLE: begin
                     err_abort_r <= 1'b0;
-                    if (arm_pulse)
-                        state <= `DMA_ST_CONFIGURED;
+                    if (arm_pulse || arm_pending_r) begin
+                        arm_pending_r <= 1'b0;
+                        state         <= `DMA_ST_CONFIGURED;
+                    end
                 end
 
                 // -----------------------------------------------------------
@@ -340,6 +409,25 @@ module dma_channel_fsm (
                         // Aborting is only allowed at a beat boundary - never
                         // from TRANSFERRING - so no bus transaction is ever
                         // abandoned mid-flight.
+                        //
+                        // A queued start is cancelled by the disable that
+                        // overtook it (DESIGN NOTE 4 #3): firmware wrote EN=1
+                        // and then EN=0, and the disable is the newer intent.
+                        // The !arm_pulse guard preserves an arm arriving in
+                        // this same cycle, which is newer still.
+                        //
+                        // HONEST NOTE ON COVERAGE: this clear is defence in
+                        // depth and is currently REDUNDANT - no test fails when
+                        // it is removed, and that was checked rather than
+                        // assumed. This branch only runs with en_h already low,
+                        // so a retained request would be consumed by IDLE and
+                        // immediately re-abort here on the next pass: one
+                        // pointless CONFIGURED->WAITING->IDLE lap that moves no
+                        // data and changes no status. It is kept because it
+                        // stops being redundant the moment anyone weakens the
+                        // en_h qualifier in COMPLETE, and one line is a cheap
+                        // way to not depend on that. Do not read it as tested.
+                        if (!arm_pulse) arm_pending_r <= 1'b0;
                         state <= `DMA_ST_IDLE;
                     end
                 end
@@ -394,10 +482,77 @@ module dma_channel_fsm (
                         //   !tcr_is_zero - CIRC with TCR=0 would spin
                         //     CONFIGURED->COMPLETE->CONFIGURED forever, setting
                         //     SR.COMPLETE every other cycle.
-                        state <= `DMA_ST_CONFIGURED;
+                        //
+                        // The lap restart IS a restart, so it satisfies any
+                        // queued start (DESIGN NOTE 4 #4). Leaving the bit set
+                        // would park it for the whole life of the circular
+                        // channel and fire it once, much later, when firmware
+                        // finally disabled the channel.
+                        arm_pending_r <= 1'b0;
+                        state         <= `DMA_ST_CONFIGURED;
+                    end else if ((arm_pulse || arm_pending_r) && en_h) begin
+                        // ERRATUM DMA-3 - deferred start. Firmware asked for a
+                        // new transfer while this one was still in flight, or
+                        // in the single-cycle COMPLETE window that a
+                        // completion ISR cannot avoid. Honour it.
+                        //
+                        // QUALIFIED WITH en_h, and that qualifier is load-
+                        // bearing rather than defensive. The WAITING abort path
+                        // above is the only other place a disable takes effect,
+                        // and it can be bypassed entirely: a top-priority
+                        // channel with a non-empty FIFO is granted in the same
+                        // cycle it enters WAITING, so `go_i` wins the branch
+                        // every time and the channel never observes an
+                        // abortable cycle. Without this test a queued start
+                        // would then fire at COMPLETE on a channel software had
+                        // already disabled - a transfer arriving after firmware
+                        // believed the channel was dead. Found by T20a.
+                        //
+                        // The consume in IDLE deliberately does NOT carry this
+                        // qualifier: arming is event-driven by design (DESIGN
+                        // NOTE 1), and en_h lags a CR write by two pclk
+                        // synchroniser stages, so requiring it there would
+                        // reintroduce exactly the start-up race SPEC-5 resolved.
+                        //
+                        // CR.EN is deliberately NOT cleared here: the channel
+                        // is going straight back out, so EN=1 is the truth and
+                        // clearing it would make the register lie in the other
+                        // direction (DESIGN NOTE 4 #2).
+                        //
+                        // This path is taken after a bus error too. Unlike the
+                        // CIRC reload above it cannot livelock, because every
+                        // restart costs firmware an explicit CR write - it is
+                        // an instruction, not an automatic loop - so the
+                        // "hammer the faulting address forever" argument that
+                        // guards CIRC does not apply. err_abort_r is cleared so
+                        // the new transfer starts from a clean slate;
+                        // SR.ERROR stays set until firmware clears it (W1C).
+                        arm_pending_r <= 1'b0;
+                        err_abort_r   <= 1'b0;
+                        state         <= `DMA_ST_CONFIGURED;
                     end else begin
                         // Single-shot (or a stopped circular channel): clear
                         // CR.EN back in the pclk domain and go idle.
+                        //
+                        // Any queued start is DECLINED here, and declining it
+                        // means dropping it - not leaving it latched. Reaching
+                        // this branch with arm_pending_r set means the start
+                        // was overtaken by a disable (the only way the branch
+                        // above can fail once a start is queued), so the start
+                        // is void. Leaving the bit set would hand it straight
+                        // to IDLE on the very next cycle, which is exactly the
+                        // "channel springs back to life after software stopped
+                        // it" failure this whole path exists to prevent. Found
+                        // by T20a.
+                        //
+                        // The !arm_pulse guard is insurance rather than a live
+                        // case: en_h and arm_pulse come from the same CR write
+                        // through a 2-flop and a 3-flop crossing respectively,
+                        // and both present the new value on the SAME hclk
+                        // cycle, so a pulse with en_h still low cannot happen
+                        // today. It would start happening the moment either
+                        // crossing changed depth, and this is one line.
+                        if (!arm_pulse) arm_pending_r <= 1'b0;
                         en_clr_tog_o <= ~en_clr_tog_o;
                         state        <= `DMA_ST_IDLE;
                     end
