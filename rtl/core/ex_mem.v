@@ -46,8 +46,16 @@ module ex_mem (
     output reg         reg_write_o,
     output reg         valid_o
 );
+    // ERRATUM CORE-1 -- flush_i must not appear in the ASYNCHRONOUS reset test.
+    // See rtl/core/if_id.v for the full explanation; the same defect was in all
+    // three pipeline registers. Priority is unchanged: reset, then flush, then
+    // stall.
     always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i || flush_i) begin
+        if (!rst_n_i) begin
+            ex_result_o<=32'd0; store_data_o<=32'd0; funct3_o<=3'd0; rd_o<=5'd0; pc_o<=32'd0;
+            mem_read_o<=1'b0; mem_write_o<=1'b0; mem_to_reg_o<=1'b0; reg_write_o<=1'b0;
+            valid_o<=1'b0;
+        end else if (flush_i) begin
             ex_result_o<=32'd0; store_data_o<=32'd0; funct3_o<=3'd0; rd_o<=5'd0; pc_o<=32'd0;
             mem_read_o<=1'b0; mem_write_o<=1'b0; mem_to_reg_o<=1'b0; reg_write_o<=1'b0;
             valid_o<=1'b0;

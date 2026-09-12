@@ -48,12 +48,26 @@ module mem_wb_reg (
     output reg         retire_o
 );
 
+    // ERRATUM CORE-1 -- flush_i must not appear in the ASYNCHRONOUS reset test.
+    // See rtl/core/if_id.v for the full explanation; the same defect was in all
+    // three pipeline registers, and this is the one Yosys names when it refuses
+    // to synthesise the SoC ("Multiple edge sensitive events found for this
+    // signal" on mem_wb_reg.rd_o).
+    //
+    // This register has no hold path by design (bubble-on-wait, never hold --
+    // see the note above), so there are only three branches, not four.
     always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i || flush_i) begin
-            // Reset / bubble -> no writeback
+        if (!rst_n_i) begin
+            // Reset -> no writeback
             wb_data_o   <= 32'd0;
             rd_o        <= 5'd0;
             reg_write_o <= 1'b0;    // write-enable LOW = no WB
+            retire_o    <= 1'b0;
+        end else if (flush_i) begin
+            // Bubble -> no writeback
+            wb_data_o   <= 32'd0;
+            rd_o        <= 5'd0;
+            reg_write_o <= 1'b0;
             retire_o    <= 1'b0;    // a bubble never retires
         end else begin
             wb_data_o   <= wb_data_i;

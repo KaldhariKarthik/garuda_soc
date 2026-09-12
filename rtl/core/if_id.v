@@ -29,8 +29,24 @@ module if_id (
     output reg         valid_o,
     output reg         fault_o
 );
+    // ERRATUM CORE-1 -- flush_i must not appear in the ASYNCHRONOUS reset test.
+    // This was  if (!rst_n_i || flush_i)  inside an  always @(posedge clk_i or
+    // negedge rst_n_i)  block. flush_i is a SYNCHRONOUS signal and is not in
+    // the sensitivity list, so the block describes two different things to two
+    // different readers: simulation samples flush_i on the clock edge (the
+    // intended behaviour), while synthesis sees a term in the async-reset
+    // condition and has to guess. Yosys refuses outright ("Multiple edge
+    // sensitive events found for this signal"); a tool that instead ACCEPTS it
+    // may infer flush as a second asynchronous reset, which is a functional
+    // difference in silicon rather than a lint nit.
+    //
+    // The bubble body is identical either way, so it is simply moved into its
+    // own synchronous branch. Priority is unchanged: reset, then flush, then
+    // stall -- flush still wins over stall (Sec. 11.4, "flush wins over hold").
     always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i || flush_i) begin
+        if (!rst_n_i) begin
+            instr_o<=32'h0000_0013; pc_o<=32'd0; valid_o<=1'b0; fault_o<=1'b0;
+        end else if (flush_i) begin
             instr_o<=32'h0000_0013; pc_o<=32'd0; valid_o<=1'b0; fault_o<=1'b0;
         end else if (stall_i) begin
             // hold
