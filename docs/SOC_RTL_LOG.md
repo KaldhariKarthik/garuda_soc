@@ -26,9 +26,12 @@ words while all three masters contend; that passes across 28 timing
 configurations. **Three defects in the interconnect specification were found and
 fixed in RTL, one of which (AHB-2) silently starves the DMA and one of which
 (AHB-4) deadlocks the SoC at reset.** Five mutation tests confirm the regression
-actually catches each fix. None of this has been compiled by the team's
-simulator, no coverage was collected, no SDC exists, and the memories and bridge
-are testbench models. Sections 8–10 say precisely what is and is not proven.
+actually catches each fix. Two pre-existing defects in the core and DSU that
+blocked whole-SoC synthesis were found and fixed, so `garuda_soc_top` now
+synthesises end to end — 38,094 cells, 4,377 flops, zero latches. None of this
+has been compiled by the team's simulator, no coverage was collected, no SDC
+exists, and the memories and bridge are testbench models. Sections 8–10 say
+precisely what is and is not proven.
 
 ### 1. What was asked, and what was delivered
 
@@ -224,7 +227,7 @@ this Windows machine.
 |---|---|---:|---:|
 | `tb_ahb_interconnect` | 6 wait configs × 12 seeds = **72 runs** | **57,312** | **0** |
 | `tb_soc_ahb` | 7 wait configs × 4 seeds = **28 runs** | **2,296** | **0** |
-| `tb_dma_top` (re-run, unchanged RTL) | 6 wait configs × 12 seeds = **72 runs** | **49,020** | **0** |
+| `tb_dma_top` (after the DMA-3 fix, +5 tests) | 6 wait configs × 12 seeds = **72 runs** | **50,964** | **0** |
 
 All four AHB-Lite protocol checkers report **0 violations** in every
 configuration, including the slave-side one.
@@ -304,18 +307,33 @@ Latches:    0
 state (2), plus the response-hold flops inside each `ahb_master_port`. That is
 consistent with spec §13.2's "~30 gates" claim for the arbiter itself.
 
-**Whole SoC:** blocked by two **pre-existing** defects in the core and DSU
+**Whole SoC:** was blocked by two **pre-existing** defects in the core and DSU
 (`CORE-1` and `DSU-10` in `docs/BUGS.md`) — not by anything written this
-session. With both fixes applied in a scratch copy, `garuda_soc_top`
-synthesises:
+session. Both are now fixed, and `garuda_soc_top` synthesises:
 
 ```
 Found and reported 0 problems.  (x3)
-34,395 wires · 38,101 cells
-Flip-flops: 4,371    Latches: 0
+34,023 wires · 38,094 cells
+Flip-flops: 4,377    Latches: 0
 ```
 
-(992 of those flops are the register file, which correctly has no reset.)
+(992 of those flops are the register file, which correctly has no reset. The
+flop count is 6 higher than the first measurement because of the DMA-3 fix —
+one `arm_pending_r` per channel.)
+
+`CORE-1` was a synchronous `flush_i` sitting inside an asynchronous reset
+condition in all three pipeline registers, which means one thing to a simulator
+and something else to a synthesiser. The refactor is intended to be behaviour-
+preserving, and "intended" is not evidence, so it was checked: an old-vs-new
+equivalence testbench drove the pre-fix and post-fix versions of all three
+registers from identical stimulus for **20,000 cycles**, including flush and
+stall asserted together and async reset released while flush was high —
+**0 mismatches**.
+
+`DSU-10` was four `$signed()` casts on module port connections whose formals are
+already declared `signed`, i.e. semantic no-ops that nonetheless crashed the
+Yosys front end. The DSU block testbench was re-run after removing them:
+90/90 tests, 0 mismatches.
 
 ### 7. The software problem, and how it was worked around
 
@@ -399,10 +417,11 @@ transcribed from `rtl/dsu/dsu_decoder.v` and commented in the `.S`.
 
 **In priority order:**
 
-1. **Apply `CORE-1` and `DSU-10`** (`docs/BUGS.md` §4, §5). Both are one-line
-   classes of change, both are validated as unblocking full-SoC synthesis, and
-   both should be applied by the block owner with that block's testbench re-run.
-   Until then the SoC does not synthesise.
+1. ~~**Apply `CORE-1` and `DSU-10`.**~~ **Done.** Both are fixed, both block
+   testbenches were re-run, and `CORE-1` was additionally proven
+   behaviour-preserving by a 20,000-cycle old-vs-new equivalence check. The SoC
+   synthesises end to end. The core and DSU owners should still review the
+   diffs — they are small, but they are in someone else's block.
 
 2. **Compile everything under VCS before anything else.** Expect fixes. The
    riskiest constructs are `htrans_i[2*grant_o +: 2]` in `ahb_arbiter.v` and the
@@ -461,8 +480,10 @@ integration of the CPU core, the DSU and the DMA onto one bus
 all three masters concurrently against three different slaves, and checks the
 result independently of the software's own verdict. Three defects in the
 interconnect specification were found and resolved on the record — one of which
-deadlocks the chip at reset and one of which silently starves the DMA — along
-with two pre-existing synthesis blockers in the core and DSU.
+deadlocks the chip at reset and one of which silently starves the DMA — plus two
+pre-existing synthesis blockers in the core and DSU, and one in the DMA
+(DMA-3: a start request the block accepted and then silently threw away). The
+SoC now synthesises end to end with zero latches.
 
 **What this is not:** a verified SoC. It has never been compiled by the team's
 simulator, has zero coverage, has no timing constraints, runs against modelled

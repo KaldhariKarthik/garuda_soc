@@ -7,6 +7,9 @@ cross-block ones are the expensive ones.
 Last updated: 2026-09-12 · Covers Blocks 1 (core), 2 (DSU), 6 (interconnect),
 9 (DMA), plus toolchain and testbench defects.
 
+Related: `docs/SOC_RTL_LOG.md` (interconnect + SoC reasoning), `docs/DMA_RTL_LOG.md`
+(Block 9 narrative).
+
 ---
 
 ## How to read this
@@ -27,19 +30,27 @@ mutation test was run to prove that, it is named.
 
 | Block | Fixed | Open | Waived | Spec defects |
 |---|---:|---:|---:|---:|
-| 1 — RV32IM core | 6 | 2 | 0 | 0 |
-| 2 — DSU | 9 (prior sessions) | 1 | 0 | 0 |
+| 1 — RV32IM core | 7 | 1 | 0 | 0 |
+| 2 — DSU | 10 | 0 | 0 | 0 |
 | 6 — AHB-Lite interconnect | 3 | 0 | 0 | 3 |
-| 9 — DMA controller | 2 | 1 | 3 | 12 |
+| 9 — DMA controller | 3 | 0 | 3 | 12 |
 | Testbench / toolchain | 11 | 0 | 1 | — |
 
-**The three most dangerous entries in this document, if you read nothing else:**
+**Every RTL defect found so far is fixed.** What remains open is a small set of
+waived limitations and one uncovered-but-redundant line, all named below.
+
+**The four most instructive entries, if you read nothing else:**
 
 - **AHB-2** — the arbitration rule the interconnect spec prescribes silently
   starves the DMA, which is the one master that must never be starved.
 - **TOOL-4** — a seeded regression that was not actually varying with the seed,
   reporting ten passes for one stimulus. It recurred this session as **TB-11**.
-- **DMA-2** — a status register that lied while the block kept working.
+- **DMA-2** and **DMA-3** — a status register that lied while the block kept
+  working, and a start request the block accepted and then silently discarded.
+  Both have the same shape: correct-looking hardware, a register saying
+  something untrue, and nothing in any status bit to point at it.
+- **CORE-1** — RTL that means one thing to a simulator and something else to a
+  synthesiser, and had done for the life of the project.
 
 ---
 
@@ -217,28 +228,69 @@ Full narrative in `docs/DMA_RTL_LOG.md`.
 - **Test:** T17 sweeps the collision phase in 1-hclk steps across 14 trials;
   2 of 14 failed before the fix, 0 after.
 
-### DMA-3 — an arm event delivered outside IDLE is silently discarded  ·  `OPEN` · **Severity: medium**
+### DMA-3 — an arm event delivered outside IDLE was silently discarded  ·  `FIXED` · **Severity: medium**
 
-**New this session. Found by code review, not by simulation. Not fixed —
-deliberately; see below.**
+Found by code review, not by simulation. Fixed 2026-09-12 with a deferred start.
 
 - **Where:** `rtl/dma/dma_channel_fsm.v`, the main state machine.
-- **What happens:** `arm_pulse` is tested only in `DMA_ST_IDLE`. An arm event
-  that arrives while the channel is in CONFIGURED, WAITING, TRANSFERRING or
-  COMPLETE is dropped with no record. The register bank has already accepted the
-  CR write, so **CR.EN reads 1 on a channel that will never run** — the same
-  failure shape as DMA-2, and worse, because the block genuinely does nothing.
-- **The dangerous window** is the single-hclk COMPLETE state: firmware re-arming
-  at the moment a transfer completes loses the arm. The wider windows
-  (CONFIGURED/WAITING/TRANSFERRING) correspond to re-arming a *running* channel,
-  which §6.6 leaves undefined.
-- **Why it is not fixed here:** the fix is small (latch a pending arm and consume
-  it on entry to IDLE) but it *changes defined behaviour* — a channel re-armed
-  mid-transfer would then restart once it finished, where today it does not.
-  That is a programming-model decision for the DMA owner and the specification,
-  not something to change unilaterally while wiring the SoC. **Recommended
-  action:** decide the semantics, then implement with a directed test that
-  sweeps the arm-vs-COMPLETE collision phase the way T17 sweeps DMA-2's.
+- **What was wrong:** `arm_pulse` was tested only in `DMA_ST_IDLE`. An arm event
+  arriving while the channel was in CONFIGURED, WAITING, TRANSFERRING or
+  COMPLETE was dropped with no record. The register bank had already accepted
+  the CR write that produced it, so **CR.EN read 1 on a channel that would never
+  run** — the same failure shape as DMA-2, and worse, because the block genuinely
+  did nothing: no beats, no interrupt, no error bit. Firmware waits forever.
+- **The window that makes it real** is COMPLETE. It is a single hclk cycle and
+  firmware cannot avoid it: the arm toggle takes three hclk flops to cross from
+  pclk, so a completion ISR that re-arms the channel lands there purely on the
+  luck of the clock phase. In that cycle the previous transfer **has** finished,
+  so the request is entirely legitimate and dropping it is simply wrong.
+- **Fix — a deferred start ("doorbell"), the usual arrangement for a DMA engine
+  that takes work from a register write.** An arm event is latched in
+  `arm_pending_r` from any state and consumed when the channel next reaches a
+  point where it can start. The contract becomes uniform with no undefined
+  corner: *a CR write with EN=1 always starts a transfer; if the channel is
+  busy, it starts when the current transfer finishes.*
+  - **Coalesced to one bit.** Ten CR writes while busy queue ONE restart, not
+    ten, and because CONFIGURED re-reads SAR/DAR/TCR/CR that restart uses the
+    **latest** descriptor rather than a stale queued copy.
+  - **EN is not cleared** on the deferred-start path out of COMPLETE — the
+    channel is going straight back out, so CR.EN=1 is the truth. Clearing it
+    would be the mirror image of the original bug.
+  - **Qualified with `en_h`**, and that qualifier is load-bearing, not
+    decorative — see the near-miss below.
+  - **A CIRC lap absorbs a queued start**, so the bit cannot sit latched for the
+    life of a circular channel.
+- **Considered and rejected: the ARM PL330 arrangement**, where a start issued
+  to a channel that is not stopped is refused and raises a fault. It is the
+  other defensible answer and it is fail-safe, but it needs a new SR bit — SR's
+  layout is published in spec §6.7 with firmware macros written against it in
+  §13.1 — and, more importantly, **it gets the COMPLETE window wrong**: the one
+  case that must be accepted is the one it would report as an error.
+- **Tests:** T18 (re-arm mid-TRANSFERRING, checked on the data and on a
+  re-programmed destination), T19 (30-phase sweep of the COMPLETE collision),
+  T20a/b/c (the cancel paths). **Mutation-proven** — see §6.1.
+
+#### DMA-3a — two near-misses inside the fix itself
+
+Both were found by tests written for the fix, and both are recorded because
+each was a *silent* wrong answer that the obvious test did not catch:
+
+1. **The deferred start was not qualified with EN.** A queued start would then
+   fire at COMPLETE on a channel software had already disabled. The WAITING
+   abort path does not save you: a top-priority channel with a non-empty FIFO is
+   granted in the same cycle it enters WAITING, so `go_i` wins that branch every
+   time and the channel never observes an abortable cycle. Found by T20a.
+2. **The declined start was not cleared.** With EN low the COMPLETE branch
+   correctly refused the restart — and left `arm_pending_r` set, so IDLE
+   consumed it on the very next cycle and the channel ran anyway. The qualifier
+   without the clear is worth nothing. Also found by T20a.
+
+A third clear, on the WAITING abort path, is **deliberately kept but is
+redundant today and is not claimed as covered** — removing it fails no test, and
+that was checked rather than assumed. With `en_h` already low a retained request
+is consumed by IDLE and re-aborts on the next pass: one pointless
+CONFIGURED→WAITING→IDLE lap that moves no data and changes no status. It is kept
+because it stops being redundant the moment anyone weakens the `en_h` qualifier.
 
 ### DMA-4 — `SR.REMAINING` is unreliable across the TCR load  ·  `WAIVED` · **Severity: low**
 
@@ -297,7 +349,7 @@ Found in prior sessions; listed here so the register is complete.
 | BUS-B | FIXED | medium | A burst broken by a full prefetch buffer resumed with SEQ — a SEQ beat with no open burst. |
 | BUS-C | FIXED | medium | On redirect the master retracted an already-presented address phase. **AHB-Lite has no cancel.** |
 | BUS-D | FIXED | medium | Nothing enforced the 1 KB burst boundary. Harmless against a flat memory; a decode bug the moment a fabric exists — which it now does. |
-| **CORE-1** | **OPEN** | **medium (synthesis blocker)** | **New this session.** `rtl/core/mem_wb_reg.v`, `ex_mem.v` and `if_id.v` all write `always @(posedge clk_i or negedge rst_n_i) … if (!rst_n_i \|\| flush_i)`. A **synchronous** signal appears in an **asynchronous** reset condition without being in the sensitivity list. Simulation treats `flush_i` as synchronous (correct); synthesis cannot tell, and Yosys 0.69 refuses outright: `ERROR: Multiple edge sensitive events found for this signal!` on `mem_wb_reg.rd_o`. A tool that *accepts* it may infer flush as a second asynchronous reset — a functional difference in silicon. **Validated fix:** keep the async reset and move the flush into `else if (flush_i)` with the same body; the SoC then synthesises cleanly (38,101 cells, 4,371 flops, **zero latches**, 3× "Found and reported 0 problems"). Not applied here: it touches three core files with their own testbenches, and those should be re-run by the core owner. |
+| **CORE-1** | **FIXED** | medium (synthesis blocker) | `rtl/core/mem_wb_reg.v`, `ex_mem.v` and `if_id.v` all wrote `always @(posedge clk_i or negedge rst_n_i) … if (!rst_n_i \|\| flush_i)`. A **synchronous** signal in an **asynchronous** reset condition, not in the sensitivity list. Simulation treats `flush_i` as synchronous (correct); synthesis cannot tell, and Yosys 0.69 refused outright: `ERROR: Multiple edge sensitive events found for this signal!` on `mem_wb_reg.rd_o`. A tool that *accepts* it may infer flush as a second asynchronous reset — a functional difference in silicon, not a lint nit. **Fix:** keep the async reset, move the flush to `else if (flush_i)` with the same body. Priority is unchanged (reset, then flush, then stall). **Proven behaviour-preserving** by an old-vs-new equivalence testbench: both versions of all three registers driven from identical stimulus for 20,000 cycles, including flush and stall asserted together and async reset overlapping flush — **0 mismatches**. Unblocks full-SoC synthesis. |
 | CORE-2 | OPEN | low | `garuda_core_top` and `csr_file` carry an unused parameter (Verilator `UNUSEDPARAM`). Cosmetic. |
 
 ---
@@ -311,7 +363,7 @@ RTL as the shape its W1C ordering avoids.
 
 | ID | Status | Severity | One-line |
 |---|---|---|---|
-| **DSU-10** | **OPEN** | **medium (synthesis blocker)** | **New this session.** `rtl/dsu/mac_unit.v:43–44` connects `$signed(a0)` / `$signed(b0)` to `mult_16x16`'s ports. Yosys 0.69 aborts with an internal assertion: `Assert 'arg->is_signed == sig.as_wire()->is_signed' failed`. **The casts are semantically no-ops** — `mult_16x16` already declares `input wire signed [15:0] a, b`, and a port connection's signedness is governed by the *formal*, not the actual. **Validated fix:** delete the four `$signed()` casts; the DSU and then the whole SoC synthesise. Icarus and Verilator both accept the file as-is, so this has been invisible. Not applied here: it is the DSU owner's block and its testbench should confirm. |
+| **DSU-10** | **FIXED** | medium (synthesis blocker) | `rtl/dsu/mac_unit.v:43–44` connected `$signed(a0)` / `$signed(b0)` to `mult_16x16`'s ports. Yosys 0.69 aborted with an internal assertion: `Assert 'arg->is_signed == sig.as_wire()->is_signed' failed` (genrtlil.cc:2145). **The four casts were semantic no-ops** — `mult_16x16` already declares `input wire signed [15:0] a, b`, and a port connection's signedness is governed by the *formal*, not the actual, so the multiply was already signed with or without them. **Fix:** delete them. Icarus and Verilator both accept the casts, which is why this stayed invisible until the first full-SoC synthesis run. DSU block TB re-run after the change: 90/90 tests, 0 mismatches. Unblocks full-SoC synthesis. |
 
 ---
 
@@ -422,6 +474,40 @@ nanoseconds. Every such check was converted to sample on a hardware event.
 | TOOL-3 | `yosys.exe` needs `oss-cad-suite/lib` **before** `bin` on PATH, with unix-style paths. |
 | TOOL-5 | No Cadence/Synopsys/Vivado tools available. **The team flow is unexercised.** |
 | TOOL-6 | *(new)* No RISC-V toolchain on this machine, so the SoC test program is built with the stopgap `tools/gen/mini_rv32_asm.py`. The `.S` is plain GNU as syntax and builds either way; delete the generated `.hex` once `sw/Makefile` can run. |
+
+---
+
+## 6.1 Mutation testing — do the tests actually catch the bugs?
+
+A green regression proves nothing unless it goes red for the right reason. Every
+fix in this document that is marked FIXED with a named mutation was reverted in
+a scratch copy and the regression re-run.
+
+| ID | Mutation | Result |
+|---|---|---|
+| MUT-1 | AHB-1: HWDATA muxed on `grant` (as spec §3.1 says) | **8 failures**, all T14 |
+| MUT-2 | AHB-2: `force_owner` reinstated (spec §7.2 literally) | **1 failure**, T12 — DMA starved |
+| MUT-3 | AHB-2: response hold disabled | **39 failures**, T13 and the soak |
+| MUT-4 | AHB-3: SEQ→NONSEQ rewrite removed | slave-side checker: **79** `SEQ following a SINGLE burst` |
+| MUT-5 | Data-phase select bypassed (use address-phase HSEL) | **394 failures** across T1, T13, T16 |
+| MUT-6 | DMA-3: arm latch removed (pre-fix behaviour) | **10 failures**, T18 and T19 |
+| MUT-7 | DMA-3a: `en_h` qualifier removed from the deferred start | **1 failure**, T20a |
+| MUT-8a | DMA-3: WAITING abort-path clear removed | **PASSES — uncovered, and known to be redundant.** See DMA-3a. |
+| MUT-8b | DMA-3a: COMPLETE decline-path clear removed | **1 failure**, T20a |
+| MUT-9 | DMA-3: CIRC absorb removed | **1 failure**, T20b |
+
+**9 of 10 caught**, each by the test that claims to cover it. MUT-8a is reported
+as a miss rather than quietly dropped: the line it removes is genuinely
+redundant today, the test that would have covered it was written and does not
+discriminate, and that is stated in DMA-3a rather than papered over.
+
+> **A note on the harness itself.** The first run of MUT-9 appeared to fail
+> `T20a`, a test with CIRC disabled — which made no sense. The cause was a
+> working-directory bug in the mutation script: MUT-9's tree was copied from
+> MUT-8's already-mutated tree, so it carried both mutations. Two mutations at
+> once is not a mutation test. The script now copies from the repository by
+> absolute path. Worth recording because the wrong conclusion — "the CIRC absorb
+> is covered" — was one shrug away from being written down as fact.
 
 ---
 
