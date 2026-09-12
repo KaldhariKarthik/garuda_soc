@@ -40,8 +40,18 @@ module mac_unit(
     );       
     
     wire signed [31:0] product_a, product_b;
-    mult_16x16 U_mult_a (.a ($signed(a0)),  .b ($signed(b0)), .p (product_a));
-    mult_16x16 U_mult_b (.a ($signed(a1)),  .b ($signed(b1)), .p (product_b));
+    // ERRATUM DSU-10 -- the $signed() casts that used to wrap these four
+    // actuals are removed. They were semantic no-ops: mult_16x16 declares its
+    // ports as "input wire signed [15:0]", and the signedness of a port
+    // connection is governed by the FORMAL, not the actual, so the multiply was
+    // already signed with or without them. They were not harmless, though --
+    // Yosys 0.69 aborts on them with an internal assertion failure
+    // (arg->is_signed == sig.as_wire()->is_signed, genrtlil.cc:2145), which
+    // blocked synthesis of the DSU and therefore of the whole SoC. Icarus and
+    // Verilator both accept the casts, which is why this stayed invisible until
+    // the first full-SoC synthesis run.
+    mult_16x16 U_mult_a (.a (a0),  .b (b0), .p (product_a));
+    mult_16x16 U_mult_b (.a (a1),  .b (b1), .p (product_b));
     
     wire [47:0] pa_ext = {{16{product_a[31]}}, product_a};
     wire [47:0] pb_ext = {{16{product_b[31]}}, product_b};
