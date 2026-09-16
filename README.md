@@ -57,9 +57,9 @@ None of those were RTL bugs. All three were a document promising something the h
 
 Four of the five block documents that stood between this project and a fully specified chip are now written — the bridge, the CLIC, the three memories as one subsystem, and clock/reset — and RTL for all four exists, wired into a SoC that also generates its own clocks and resets. Timers and debug remain unspecified.
 
-All of it compiles, simulates and synthesises: six testbenches run **1,007 self-checking assertions with zero failures**, and the whole chip — core, DSU, DMA, interconnect, three memories, bridge, CLIC, clock and reset — synthesises to 50,662 cells with **zero latches inferred**. The SoC boots real code out of the real Boot ROM and moves 64 words through the DMA while all three masters contend for the bus, with every AHB protocol checker clean.
+All of it compiles, simulates and synthesises: six testbenches run **1,007 self-checking assertions with zero failures**, and the whole chip — core, DSU, DMA, interconnect, three memories, bridge, CLIC, clock and reset — synthesises to 50,535 cells with **zero latches inferred**. The SoC boots real code out of the real Boot ROM and moves 64 words through the DMA while all three masters contend for the bus, with every AHB protocol checker clean.
 
-The honest caveat matters as much as the result. That was Icarus and Yosys, not the team's Xcelium signoff flow; no gate-level, no coverage, no SDC, no timing. And the testbenches were written by the same hand, at the same sitting, from the same reading of the specifications as the RTL — so a shared misreading would pass both. The evidence for that risk is concrete: the first run of every new testbench failed, and **fifteen of the seventeen failures were defects in the testbenches, not the RTL**. That says the tests were the less trustworthy half. Independent verification is still owed.
+The honest caveat matters as much as the result. That was Icarus and Yosys, not the team's Xcelium signoff flow; no gate-level, no coverage, no SDC, no timing. And the testbenches were written by the same hand, at the same sitting, from the same reading of the specifications as the RTL — so a shared misreading would pass both. The evidence for that risk is concrete: the first run of every new testbench failed, and **all seventeen of those failures were defects in the testbenches — not one was an RTL defect**. That says the tests were the less trustworthy half. Independent verification is still owed.
 
 ---
 
@@ -71,7 +71,7 @@ After that: multi-master AHB arbitration, the AHB-to-APB bridge clock-domain cro
 
 The bridge, CLIC, memory and clock/reset blocks have moved from "unwritten" to "written, simulating and synthesising." Writing them surfaced two defects in released specifications that would each have reached silicon quietly — a bridge that drops every second back-to-back peripheral write, and a whole-chip reset asserted for 5ns — and both are fixed in RTL, logged, and now have tests that fail without the fix.
 
-What is still missing is the part that decides a tapeout. The interrupt path is wired and checked for connectivity but **never fires**, because the boot program predates the CLIC and sets `CR.IE=0`; taking a real interrupt needs an ISR that does not exist yet. Nothing has been through Xcelium, gate-level, or static timing, and no SDC exists — so a 50,662-cell netlist says the design is structurally sound and says nothing at all about closing 200MHz. GDSII is targeted for end of October. Tapeout is December 1.
+What is still missing is the part that decides a tapeout. The interrupt path is wired and checked for connectivity but **never fires**, because the boot program predates the CLIC and sets `CR.IE=0`; taking a real interrupt needs an ISR that does not exist yet. Nothing has been through Xcelium, gate-level, or static timing, and no SDC exists — so a 50,535-cell netlist says the design is structurally sound and says nothing at all about closing 200MHz. GDSII is targeted for end of October. Tapeout is December 1.
 
 There is no slack in that sentence.
 

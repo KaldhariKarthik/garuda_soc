@@ -101,6 +101,22 @@ module clic_apb_regs #(
     wire [9:0]  idx   = paddr_i[9:0];
     wire        idx_ok = (idx < CLIC_N[9:0]);
 
+    // Array index, sized to the arrays it indexes.
+    //
+    // idx stays 10 bits wide because the RANGE CHECK above needs the full
+    // offset: narrowing it there would fold a stray address back onto a live
+    // source, which is the precise failure idx_ok exists to prevent (see the
+    // aliasing note above). But indexing 32-entry arrays with that 10-bit value
+    // is a width truncation, and Verilator flags it as WIDTHTRUNC at all ten
+    // index sites in this file.
+    //
+    // aidx is the same value cut to the width the arrays actually have. It is
+    // only ever used AFTER idx_ok has qualified the access, so narrowing here
+    // discards nothing that mattered - the out-of-range case has already been
+    // rejected by that point.
+    localparam integer IDX_W = (CLIC_N <= 1) ? 1 : $clog2(CLIC_N);
+    wire [IDX_W-1:0] aidx = idx[IDX_W-1:0];
+
     wire        access = psel_i && penable_i;
     wire        wr     = access && pwrite_i && idx_ok;
 
@@ -140,14 +156,14 @@ module clic_apb_regs #(
                         // W1C: writing 1 clears an edge-latched pending. A
                         // level source re-sets immediately while its line is
                         // high, which is intended (Sec. 6.3, Sec. 8.4).
-                        if (pwdata_i[0]) ip_w1c_q[idx[9:0]] <= 1'b1;
+                        if (pwdata_i[0]) ip_w1c_q[aidx] <= 1'b1;
                     end
-                    `CLIC_GRP_IE:   ie_q[idx[9:0]]   <= pwdata_i[0];
+                    `CLIC_GRP_IE:   ie_q[aidx]   <= pwdata_i[0];
                     `CLIC_GRP_ATTR: begin
-                        trig_q[idx[9:0]] <= pwdata_i[`CLIC_ATTR_TRIG];
-                        shv_q [idx[9:0]] <= pwdata_i[`CLIC_ATTR_SHV];
+                        trig_q[aidx] <= pwdata_i[`CLIC_ATTR_TRIG];
+                        shv_q [aidx] <= pwdata_i[`CLIC_ATTR_SHV];
                     end
-                    default:        lvl_q[idx[9:0]]  <=
+                    default:        lvl_q[aidx]  <=
                                       pwdata_i[`CLIC_CTL_LVL_HI:`CLIC_CTL_LVL_LO];
                 endcase
             end
@@ -163,12 +179,12 @@ module clic_apb_regs #(
         prdata_o = 32'h0000_0000;
         if (psel_i && !pwrite_i && idx_ok) begin
             case (grp)
-                `CLIC_GRP_IP:   prdata_o = {31'b0, ip_i[idx[9:0]]};
-                `CLIC_GRP_IE:   prdata_o = {31'b0, ie_q[idx[9:0]]};
-                `CLIC_GRP_ATTR: prdata_o = {30'b0, shv_q[idx[9:0]],
-                                                   trig_q[idx[9:0]]};
+                `CLIC_GRP_IP:   prdata_o = {31'b0, ip_i[aidx]};
+                `CLIC_GRP_IE:   prdata_o = {31'b0, ie_q[aidx]};
+                `CLIC_GRP_ATTR: prdata_o = {30'b0, shv_q[aidx],
+                                                   trig_q[aidx]};
                 default:        prdata_o = {24'b0,
-                                            lvl_q[idx[9:0]],
+                                            lvl_q[aidx],
                                             5'b0};   // LEVEL in [7:5]
             endcase
         end

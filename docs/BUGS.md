@@ -42,9 +42,9 @@ mutation test was run to prove that, it is named.
 | 8 — AHB-to-APB bridge | 0 | 0 | 0 | 1 |
 | 9 — DMA controller | 3 | 0 | 3 | 12 |
 | 3/4/5 — Memory subsystem | 0 | 0 | 0 | 1 |
-| 16 — CLIC | 0 | 0 | 0 | 0 |
+| 16 — CLIC | 1 | 0 | 0 | 0 |
 | 22/23 — Clock and reset | 0 | 0 | 0 | 1 |
-| Testbench / toolchain | 17 | 0 | 1 | — |
+| Testbench / toolchain | 18 | 0 | 1 | — |
 
 Blocks 8, 16 and 22/23 and the memory subsystem list **zero RTL defects**, and
 that row should be read carefully. Their RTL was written on 2026-09-16 and now
@@ -216,9 +216,13 @@ Specifications: `GARUDA-BRG-SPEC-001` Rev 2.0, `GARUDA-CRG-SPEC-001` Rev 2.0.
 RTL: `rtl/ahb2apb/`, `rtl/clk_div/`, `rtl/reset_ctrl/`.
 Narrative: `docs/RTL_LOG_2026-09-16.md`.
 
-Both are defects in the specification, found by implementing it. The RTL as
-written does not contain them, and **both now have a passing test that exercises
-the fix** — `tb_ahb2apb` T8 for BRG-1 and `tb_crg` T9 for CRG-1.
+BRG-1 and CRG-1 are defects in the **specification**, found by implementing it.
+The RTL as written does not contain them, and both have a passing test that
+exercises the fix — `tb_ahb2apb` T8 for BRG-1 and `tb_crg` T9 for CRG-1.
+
+CLIC-1 is different in kind: a defect in the **RTL**, found by Verilator lint
+after the block was already written, simulating and synthesising. It is the only
+RTL defect in the new blocks found by a tool rather than by reading.
 
 ### BRG-1 — "accepts only from H_IDLE" silently drops every second back-to-back access · `SPEC` / `FIXED IN RTL` · **Severity: high (silent data loss)**
 
@@ -268,6 +272,36 @@ the fix** — `tb_ahb2apb` T8 for BRG-1 and `tb_crg` T9 for CRG-1.
   requires the reset to be held materially longer than one cycle, then requires
   the chip to leave reset rather than latch in it.
 - **Spec action:** §7.1 should specify a minimum assertion width.
+
+### CLIC-1 — 32-entry arrays indexed with a 10-bit index · `FIXED` · **Severity: low (latent)**
+
+- **Where:** `rtl/clic/clic_apb_regs.v`, ten index sites (lines 143–150 write
+  path, 166–172 read mux).
+- **The defect:** `ie_q`, `trig_q`, `shv_q`, `lvl_q`, `ip_w1c_q` and `ip_i` all
+  hold `CLIC_N` = 32 entries and need a 5-bit index, but were indexed with
+  `idx[9:0]` — the full 10-bit APB register offset. Verilator:
+  `WIDTHTRUNC: Bit extraction of var[31:0] requires 5 bit index, not 10 bits`,
+  at every one of the ten sites.
+- **Why it was harmless in practice, and why it still matters:** `idx_ok`
+  (`idx < CLIC_N`) gates every write and the read mux, so an out-of-range index
+  never reaches an array in the current design. The truncation is therefore
+  latent rather than active — but it is exactly the construct that turns into a
+  silent aliasing bug the moment `CLIC_N` changes or the qualification is
+  restructured, and it is the kind of thing a reader has to re-derive `idx_ok`
+  to convince themselves about.
+- **Fix:** added `IDX_W = $clog2(CLIC_N)` and `aidx = idx[IDX_W-1:0]`, used for
+  array indexing only. `idx` deliberately stays 10 bits wide because the range
+  check needs the full offset — narrowing it *there* would fold a stray address
+  onto a live source, which is the precise failure `idx_ok` exists to prevent.
+  No architectural or behavioural change.
+- **Confirmed:** `WIDTHTRUNC` 7+ → **0**; `tb_clic` 33/33 with 0 failures;
+  `clic_top` synthesis 3,449 → **3,322** cells (the narrower index removes
+  width-extension logic), 0 latches; full regression still 1,007 / 0.
+- **How it was found, and the process defect behind it:** only after two earlier
+  Verilator attempts had aborted and been *misreported as clean*. The working
+  invocation was already documented in this register as **TOOL-2**
+  (`VERILATOR_ROOT`, and `+incdir+path` not `-I path`) and was not consulted.
+  The register had the answer; nobody read it.
 
 ---
 
