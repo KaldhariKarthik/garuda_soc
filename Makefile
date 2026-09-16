@@ -56,7 +56,9 @@ endif
         test_imm_gen test_reg_file test_branch_predict test_hazard_forward_unit \
         test_id_stage test_elements test_alu test_mul32 test_branch_unit \
         test_csr_rw test_clic_ctrl test_lsu test_load_fmt test_memwb \
-        test_pc_gen test_prefetch test_iport test_dport test_mem_stage test_if_stage
+        test_pc_gen test_prefetch test_iport test_dport test_mem_stage test_if_stage \
+        test_mem test_bridge test_clic test_crg test_soc_ahb test_blocks \
+        synth synth_soc synth_blocks
 
 help:
 	@echo "GARUDA SoC build targets:"
@@ -198,6 +200,47 @@ test_elements: test_pc_gen test_prefetch test_iport test_if_stage \
 # regression would make test_core's result depend on unproven testbenches.
 # Move test_elements into this list once it reports clean.
 test_core: test_ex test_ex_dsu test_idex test_exmem test_pipe test_csr test_trap test_units
+
+# =============================================================================
+# Block-level testbenches for Blocks 3/4/5, 8, 16 and 22/23
+#
+# These blocks were specified and written in one session (docs/RTL_LOG_2026-09-16.md)
+# and NONE of them has been run: this machine has no simulator installed. Each
+# target below is the command that runs when one is available - see the log for
+# exactly what is and is not proven.
+# =============================================================================
+test_mem:                                        ## Blocks 3/4/5 - memory subsystem
+	$(call run_test,tb/mem/filelist_mem.f,tb_mem_subsystem,tb_mem)
+
+test_bridge:                                     ## Block 8 - AHB-to-APB bridge
+	$(call run_test,tb/ahb2apb/filelist_ahb2apb.f,tb_ahb2apb,tb_bridge)
+
+test_clic:                                       ## Block 16 - CLIC
+	$(call run_test,tb/clic/filelist_clic.f,tb_clic,tb_clic)
+
+test_crg:                                        ## Blocks 22/23 - clock and reset
+	$(call run_test,tb/clk_div/filelist_crg.f,tb_crg,tb_crg)
+
+test_soc_ahb:                                    ## the wired SoC
+	$(call run_test,tb/soc/filelist_soc_ahb.f,tb_soc_ahb,tb_soc_ahb)
+
+# Every new block, in dependency order: clocks and reset first, because
+# everything else assumes they work.
+test_blocks: test_crg test_mem test_bridge test_clic
+
+# =============================================================================
+# Synthesis (yosys). Structural check + latch detection, not signoff.
+# =============================================================================
+synth:                                           ## whole chip
+	@./scripts/run_synth.sh garuda_chip_top
+
+synth_soc:
+	@./scripts/run_synth.sh garuda_soc_top
+
+synth_blocks:
+	@for t in clk_div reset_ctrl isram_top ahb2apb_bridge clic_top; do \
+	   ./scripts/run_synth.sh $$t || exit 1; \
+	 done
 
 clean:
 	rm -rf $(SIM_DIR) xcelium.d xrun.history xrun.log xrun.key
