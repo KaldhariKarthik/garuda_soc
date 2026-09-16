@@ -32,24 +32,29 @@ This shows up concretely in the core design document. The original EX-stage resu
 
 That is the discipline this whole project runs on: ambiguity gets resolved and documented, not smoothed over. A spec that lies to its own RTL is worse than no spec at all.
 
+The four block documents written in September put the same rule to work against each other rather than against RTL, and three of them came back with a released document to correct. The memory subsystem spec refused to inherit the claim — carried in both the TRM and the DMA spec — that CPU and DMA accesses to different Data SRAM banks proceed in parallel. Under the frozen interconnect they cannot: Block 6 serialises the masters before either reaches the memory, so the bank map is a locality convention and nothing more. An earlier draft had a bank arbiter inside the Data SRAM; it was deleted, because a block that cannot see two requests cannot arbitrate between them. The clock/reset spec killed a second one: the TRM describes the 100MHz fallback as inserting another divide-by-2 in the core clock path, which read literally would drag pclk down to 50MHz and silently halve every UART divisor, SPI divider and timer prescale on the chip. Fallback now halves the core clock and nothing else, frozen in writing. And the bridge spec replaced the TRM's loose "3-4 core cycles" for a peripheral access with the cycle-accurate figure the FSM actually produces — about 6 pclk, which is 12 core cycles, not 3.
+
+None of those were RTL bugs. All three were a document promising something the hardware around it had already made impossible.
+
 ---
 
 ## What Is Actually Done
 
 | Block | Status |
 |---|---|
-|AHB-Lite (+ interconnect)| Design doc complete, RTL complete | 
+| AHB-Lite (+ interconnect) | Design doc complete, RTL complete |
 | DMA controller | Design doc complete, RTL complete |
 | DSU (collision avoidance coprocessor) | Design doc complete, RTL complete, integrated into EX — unverified |
 | Core pipeline | Design doc complete (Rev 1.1), RTL complete, elaborates with the real DSU |
-| AHB2APB bridge | Pending |
-| CLIC | Pending |
-| Memory subsystem | Pending |
+| AHB2APB bridge (Block 8) | Design doc complete (Rev 2.0) — RTL not started |
+| CLIC (Block 16) | Design doc complete (Rev 2.0) — RTL not started |
+| Memory subsystem — ISRAM / DSRAM / Boot ROM (Blocks 3/4/5) | Design doc complete (Rev 2.0) — RTL not started |
+| Clock & reset generation (Blocks 22/23) | Design doc complete (Rev 2.0) — RTL not started |
 | Timers | Pending |
 | Debug (RISC-V DM v0.13 + JTAG TAP) | Pending |
 | VLSI Society peripherals (SPI/I2C/UART/PWM/GPIO) | Integration notes only — no full spec needed |
 
-Five block documents stand between this project and a fully specified chip. None of them are glamorous. All of them are load-bearing.
+Four of the five block documents that stood between this project and a fully specified chip are now written: the bridge, the CLIC, the three memories as one subsystem, and clock/reset. Timers and debug remain. None of them are glamorous. All of them are load-bearing.
 
 ---
 
@@ -57,7 +62,7 @@ Five block documents stand between this project and a fully specified chip. None
 
 The blocks that list called out as load-bearing — CSR file, M-mode privilege, trap and exception logic, CLIC trap entry, JAL/JALR, the M-extension, and DSU integration into the core pipeline — are now written and elaborating as one netlist. The three Rev 1.1 gaps flagged in `garuda_core_top.v` are closed: minstret counts real retirement through a dedicated retire tag, WFI is a drain-precise hold, and the machine timer has an actual takeable interrupt path. What has NOT happened is verification: six unit smokes and an elaboration are not a verified core. A bug in the DSU produces a wrong collision-avoidance vector. A bug in the trap path produces a chip that locks up in ways that don't reproduce the same way twice. That asymmetry is why the privilege infrastructure gets the most scrutiny before freeze, not the most lines of code.
 
-After that: multi-master AHB arbitration, the AHB-to-APB bridge clock-domain crossing, riscv-arch-test compliance, a Python golden reference model, a directed test suite, and static timing closure at 200MHz. GDSII is targeted for end of October. Tapeout is December 1.
+After that: multi-master AHB arbitration, the AHB-to-APB bridge clock-domain crossing, riscv-arch-test compliance, a Python golden reference model, a directed test suite, and static timing closure at 200MHz. The bridge, CLIC, memory and clock/reset blocks are now specified to RTL-ready depth, which moves them from "unknown" to "unwritten" — a real change, and a smaller one than it sounds. Four specifications are four blocks of RTL that do not exist yet, on a schedule where GDSII is targeted for end of October and tapeout is December 1.
 
 There is no slack in that sentence.
 

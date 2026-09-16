@@ -4,8 +4,14 @@
 Not per-block: a bug that crosses a boundary belongs in one list, and the
 cross-block ones are the expensive ones.
 
-Last updated: 2026-09-12 · Covers Blocks 1 (core), 2 (DSU), 6 (interconnect),
+Last updated: 2026-09-16 · Covers Blocks 1 (core), 2 (DSU), 6 (interconnect),
 9 (DMA), plus toolchain and testbench defects.
+
+Specification-only entries now also reach blocks that have no RTL yet: the
+Rev 2.0 documents for Blocks 3/4/5 (memory), 8 (bridge), 16 (CLIC) and 22/23
+(clock/reset) resolved **AHB-5** and raised the cross-document defect recorded
+in `docs/DECISIONS.md` (D-1). A spec defect found before the RTL exists is the
+cheapest one this project will ever fix.
 
 Related: `docs/SOC_RTL_LOG.md` (interconnect + SoC reasoning), `docs/DMA_RTL_LOG.md`
 (Block 9 narrative).
@@ -172,13 +178,21 @@ HREADY logic. Full derivation is in the header of `rtl/ahb/ahb_master_port.v`.
 - **Test:** implicitly every test — nothing runs without it. Explicitly, T0's
   post-reset HREADY check and the SoC testbench booting at all.
 
-### AHB-5 — spec §9.1's peripheral-access latency is optimistic  ·  `SPEC` / `OPEN (documentation)` · **Severity: low**
+### AHB-5 — spec §9.1's peripheral-access latency is optimistic  ·  `SPEC` / `RESOLVED (documentation)` · **Severity: low**
 
 - §9.1 budgets "~3–4 core" cycles for a peripheral access via the bridge. Any
   bridge built on a two-phase toggle handshake across 200/100 MHz costs roughly
   2 hclk + 3 pclk + 2 hclk ≈ **10–12 hclk**; `tb/ahb/ahb2apb_bridge_model.v`
-  measures 12–13. Not an RTL defect — the number in the specification should be
-  corrected when Block 8 is specified, or the bridge needs write posting.
+  measures 12–13. Not an RTL defect — the number in the specification was wrong.
+- **Resolved 2026-09-16** when Block 8 was specified. `GARUDA-BRG-SPEC-001` Rev 2.0
+  §9.1 is now the authoritative figure and supersedes the TRM's loose wording:
+  a base peripheral access is **≈6 pclk = 12 hclk ≈ 60 ns** with no wait-states,
+  plus one pclk (2 hclk) per PREADY wait-state the peripheral inserts. That agrees
+  with the 12–13 measured against the bridge model. The bridge spec states the
+  TRM's "3–4 core cycle" wording is superseded and must not be used, and that no
+  other block may re-count this latency. Write posting was considered and
+  deliberately rejected (BRG §13.3) — it would break in-order two-cycle-ERROR
+  reporting, which the DMA depends on.
 
 ---
 
