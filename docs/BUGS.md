@@ -39,8 +39,22 @@ mutation test was run to prove that, it is named.
 | 1 — RV32IM core | 7 | 1 | 0 | 0 |
 | 2 — DSU | 10 | 0 | 0 | 0 |
 | 6 — AHB-Lite interconnect | 3 | 0 | 0 | 3 |
+| 8 — AHB-to-APB bridge | 0 | 0 | 0 | 1 |
 | 9 — DMA controller | 3 | 0 | 3 | 12 |
-| Testbench / toolchain | 11 | 0 | 1 | — |
+| 3/4/5 — Memory subsystem | 0 | 0 | 0 | 1 |
+| 16 — CLIC | 0 | 0 | 0 | 0 |
+| 22/23 — Clock and reset | 0 | 0 | 0 | 1 |
+| Testbench / toolchain | 17 | 0 | 1 | — |
+
+Blocks 8, 16 and 22/23 and the memory subsystem list **zero RTL defects**, and
+that row should be read carefully. Their RTL was written on 2026-09-16 and now
+compiles, simulates (1,007 checks, 0 failures across six testbenches) and
+synthesises with zero latches — so the row is no longer "unproven". But it was
+verified under Icarus and Yosys only, never Xcelium, with no gate-level, coverage
+or timing, and by testbenches written by the same author at the same sitting as
+the RTL. Their spec-defect counts (BRG-1, CRG-1, and D-1 for the memories) are
+real findings from implementing the documents. Read the row as "passes its own
+tests", not "verified".
 
 **Every RTL defect found so far is fixed.** What remains open is a small set of
 waived limitations and one uncovered-but-redundant line, all named below.
@@ -193,6 +207,67 @@ HREADY logic. Full derivation is in the header of `rtl/ahb/ahb_master_port.v`.
   other block may re-count this latency. Write posting was considered and
   deliberately rejected (BRG §13.3) — it would break in-order two-cycle-ERROR
   reporting, which the DMA depends on.
+
+---
+
+## 2b. Blocks 8 / 22 / 23 — found while writing the RTL, 2026-09-16
+
+Specifications: `GARUDA-BRG-SPEC-001` Rev 2.0, `GARUDA-CRG-SPEC-001` Rev 2.0.
+RTL: `rtl/ahb2apb/`, `rtl/clk_div/`, `rtl/reset_ctrl/`.
+Narrative: `docs/RTL_LOG_2026-09-16.md`.
+
+Both are defects in the specification, found by implementing it. The RTL as
+written does not contain them, and **both now have a passing test that exercises
+the fix** — `tb_ahb2apb` T8 for BRG-1 and `tb_crg` T9 for CRG-1.
+
+### BRG-1 — "accepts only from H_IDLE" silently drops every second back-to-back access · `SPEC` / `FIXED IN RTL` · **Severity: high (silent data loss)**
+
+- **Where:** bridge spec §7.5; RTL `rtl/ahb2apb/ahb2apb_hclk_fsm.v`.
+- **The defect:** §7.5 states "the bridge accepts a new transaction only from
+  H_IDLE". But `H_RESP_OKAY` and `H_ERROR_2` both drive `HREADYOUT` **high** —
+  they must, that is how the transfer completes — and a high HREADY is by
+  definition the condition under which the master's next address phase *is
+  accepted*, in that same cycle. A bridge that latched only from `H_IDLE` would
+  let the master consider the transfer accepted and move on while the bridge
+  ignored it.
+- **Failure mode:** the access never reaches APB. HREADYOUT stays high, no error
+  is raised anywhere, and the master gets stale or zero read data. Firmware
+  configuring a peripheral with a run of consecutive stores — which is exactly
+  how the DMA and the CLIC get programmed at boot — would lose every second
+  write. A half-configured DMA channel is a transfer that silently does the
+  wrong thing.
+- **Fix:** acceptance is qualified on `hreadyout_o` being high rather than on
+  one state, so `H_IDLE`, `H_RESP_OKAY` and `H_ERROR_2` all accept.
+  `rtl/ahb/ahb_default_slave.v` already reasons this way for the identical
+  reason ("S_ERR2 can accept a new transfer directly"), so the bridge is now
+  consistent with the block beside it.
+- **Test:** `tb/ahb2apb/tb_ahb2apb.sv` T8 — issues 8 back-to-back transfers and
+  requires the APB slave model's own access counter to read 8. Counting at the
+  far side is the point: a dropped transfer is invisible from the AHB side.
+- **Spec action:** §7.5 should read "only states asserting HREADYOUT accept
+  work", which is the property actually intended.
+
+### CRG-1 — a one-cycle watchdog pulse asserts the whole-chip reset for 5 ns · `SPEC` / `FIXED IN RTL` · **Severity: medium**
+
+- **Where:** CRG spec §7.1; RTL `rtl/reset_ctrl/reset_ctrl.v`.
+- **The defect:** §7.1 combines the sources as a bare term — `rst_n_qual` low
+  when `por_n_i` is low **or** `wdt_reset_i` is high. Taken literally with the
+  one-cycle watchdog pulse Block 19 produces, the entire chip's reset asserts
+  for exactly one hclk period (5 ns) and then releases.
+- **Failure mode:** too narrow to rely on. Reset is distributed through a
+  buffered tree across a 1.45 mm die; a 5 ns pulse can arrive degraded or, after
+  tree insertion-delay skew, fail to overlap at every leaf. The result is a
+  *partial* reset — some flops cleared, some not — which is indistinguishable
+  from corrupted state and would be blamed on anything but the reset controller.
+- **Fix:** the watchdog request is stretched to `WDT_STRETCH` (default 16) hclk
+  cycles. POR is untouched and remains fully asynchronous with no minimum width,
+  because it arrives from outside and is already wide. The stretch counter is
+  reset by `por_n_i` **only**, never by its own output — a counter cleared by
+  the reset it generates would truncate its own pulse.
+- **Test:** `tb/clk_div/tb_crg.sv` T9 — drives a single-cycle `wdt_reset_i` and
+  requires the reset to be held materially longer than one cycle, then requires
+  the chip to leave reset rather than latch in it.
+- **Spec action:** §7.1 should specify a minimum assertion width.
 
 ---
 
@@ -488,6 +563,121 @@ nanoseconds. Every such check was converted to sample on a hardware event.
 | TOOL-3 | `yosys.exe` needs `oss-cad-suite/lib` **before** `bin` on PATH, with unix-style paths. |
 | TOOL-5 | No Cadence/Synopsys/Vivado tools available. **The team flow is unexercised.** |
 | TOOL-6 | *(new)* No RISC-V toolchain on this machine, so the SoC test program is built with the stopgap `tools/gen/mini_rv32_asm.py`. The `.S` is plain GNU as syntax and builds either way; delete the generated `.hex` once `sw/Makefile` can run. |
+
+---
+
+### TB-16 — the clock-alignment monitor raced the clock it was monitoring  ·  `FIXED` · **Severity: medium (falsely alarming)**
+
+- **Where:** `tb/clk_div/tb_crg.sv`, edge-alignment monitor.
+- **Symptom:** three failures against a divider that was behaving perfectly,
+  all in fallback mode.
+- **Root cause:** the check asked "was the last hclk rise at the same `$time` as
+  this pclk rise?", comparing a timestamp written by one `always @(posedge)`
+  block from inside another. Two always blocks woken by the same edge run in an
+  arbitrary order, so the hclk block had often not written its timestamp yet.
+  In **fallback that is guaranteed**, because hclk and pclk are then literally
+  the same net and both blocks wake on the identical event.
+- **Fix:** sample the hclk *level* 10 ps after the pclk edge instead. No
+  ordering dependency: if the edges coincide, hclk is high, in both modes.
+- **Lesson:** an event-ordering comparison between two always blocks is not a
+  measurement, it is a race. Sample a level at a defined offset.
+
+### TB-17 — a reset check written as absolute-time modulo  ·  `FIXED` · **Severity: low**
+
+- **Where:** `tb/clk_div/tb_crg.sv` T8.
+- **Root cause:** "hreset_n de-asserts on an hclk edge" was checked as
+  `($time % hclk_period) == 0`. That assumes clock edges fall on exact multiples
+  of absolute zero, so any earlier test that offsets time by a sub-period amount
+  (T7 did, by 100 ps) breaks it for the rest of the run.
+- **Fix:** check the property that actually matters — that release is *delayed*
+  by the synchroniser depth, at least two hclk edges after the source released.
+
+### TB-18 — the watchdog test armed its wait after the event  ·  `FIXED` · **Severity: high (test hung)**
+
+- **Where:** `tb/clk_div/tb_crg.sv` T9. Symptom: the whole testbench **hung** and
+  hit its 50 µs timeout.
+- **Root cause:** `wdt_reset` was driven, and only *then* did the test
+  `@(negedge hreset_n)`. But `hreset_n` drops combinationally the instant
+  `wdt_reset_i` rises, so the edge had already happened; the wait then blocked
+  forever on a second falling edge that never came.
+- **Fix:** `fork` the wait so it is armed before the stimulus is driven.
+- **Lesson:** for any signal that responds combinationally to stimulus, arm the
+  wait first. "Drive, then wait" only works across a clock edge.
+
+### TB-19 — an APB monitor check that is invalid for a shared-PENABLE bus  ·  `FIXED` · **Severity: medium (falsely alarming)**
+
+- **Where:** `tb/ahb2apb/apb_slave_model.v`.
+- **Symptom:** 25 `[APB-PROTO] PENABLE without PSEL` violations and two failed
+  checks, against a bridge whose APB signalling was correct.
+- **Root cause:** the model flagged `PENABLE && !PSEL`. APB fans out a **shared**
+  PENABLE and selects peripherals with a per-slave PSEL, so during an access to
+  window 9 the window 5 model legitimately sees PENABLE high with its own PSEL
+  low. A real slave ignores PENABLE unless its PSEL is asserted.
+- **Fix:** check removed; the valid "PENABLE in the same cycle PSEL rises" check
+  is retained.
+- **Lesson:** this is the TB-15 shape again. A monitor that cries wolf on legal
+  traffic is worse than no monitor, because the next real violation lands in a
+  log everyone has learned to ignore.
+
+### TB-20 — CLIC latency sampled one edge early, and a stale source left asserted  ·  `FIXED` · **Severity: medium (falsely alarming)**
+
+- **Where:** `tb/clic/tb_clic.sv` T4/T5/T7/T12. Seven failures against correct RTL.
+- **Root causes, three of them:**
+  1. Latency was sampled one clk edge early. Spec §9.1 budgets one clk from
+     *pending* to `clic_irq` — but pending is itself registered, so from the
+     source **line** rising it is two edges. Confirmed with a directed probe:
+     `ip` sets at edge 1, the winner register and `clic_irq` follow at edge 2.
+  2. T7 acknowledged a level source while its line was still high, then expected
+     a different winner. Re-firing is *correct* behaviour (§8.4) — the test was
+     asserting the opposite of the specification.
+  3. T12 never cleared `irq_src[3]` from T4, so a level-4 source outranked the
+     level-2 source under test and kept the request asserted.
+- **Fix:** sample after two edges, clear the source before acknowledging, and
+  clear all sources before the enable/disable test.
+
+### TB-21 — the SoC interrupt check asserted behaviour the firmware had disabled  ·  `FIXED` · **Severity: medium (falsely alarming)**
+
+- **Where:** `tb/soc/tb_soc_ahb.sv`, interrupt-path check. Failed **twice**, in
+  two different forms, against correct RTL.
+- **First form:** sampled `dma_irq[0]` and the CLIC pending bit at the END of the
+  run — a point sample of a transient. The firmware polls `SR.COMPLETE` and then
+  W1C-clears it, which drops `dma_irq[0]` long before the check runs. Replaced
+  with sticky observers.
+- **Second form, the real one:** with sticky observers the check *still* failed,
+  which proved `dma_irq[0]` was never high at any point. Cause:
+  `soc_dma_smoke.S` programs CR with **IE=0 and EIE=0** — stated plainly in its
+  own header — because it was written before the CLIC existed and polls instead.
+  `dma_irq[n]` is raised only when `SR.COMPLETE` is set **and** `CR.IE=1`, so the
+  DMA was correct to raise nothing. The testbench was asserting that hardware
+  should do something the software had explicitly switched off.
+- **Fix:** assert the correct behaviour (no interrupt raised, no CLIC source
+  pending) and add a **continuous** monitor that the DMA's 12 lines equal CLIC
+  sources [11:0] every cycle — which proves the wiring without needing an
+  interrupt to fire.
+- **Coverage gap this exposed, and it is real:** the DMA→CLIC→core interrupt
+  path is wired and structurally checked but **never fires in any test**.
+  Exercising it end to end needs a boot image with `CR.IE=1`, a CLIC level
+  programmed over APB, and an ISR. That test does not exist yet and is the
+  single most obvious next thing to write.
+- **Lesson:** before asserting that hardware did something, check that the
+  software asked it to.
+
+### TOOL-5 — the static checker reported success having checked nothing  ·  `FIXED` · **Severity: high (falsely reassuring)**
+
+- **Where:** the ad-hoc elaboration checker used while no simulator was
+  available (`scripts/`-adjacent, session tooling).
+- **Symptom:** "0 errors, 0 warnings" on its first run, with no output at all —
+  indistinguishable from "matched nothing".
+- **Root cause:** the instantiation regex matched nothing on the first attempt,
+  and a checker that checks nothing reports a clean run.
+- **Fix:** it now counts the instantiations it cross-checked and **exits
+  non-zero if that count is zero**, and it was validated against deliberately
+  corrupted copies (a mistyped port, a missing module, an undefined macro)
+  before any of its results were believed.
+- **Lesson:** this is **TOOL-4 and TB-11 wearing a third set of clothes**. Any
+  check that can pass by doing nothing must report how much it did. Three
+  separate instances of this failure mode are now in this register; it is the
+  single most recurrent defect class in the project.
 
 ---
 
