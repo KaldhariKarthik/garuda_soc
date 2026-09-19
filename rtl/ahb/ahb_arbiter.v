@@ -116,13 +116,14 @@ module ahb_arbiter (
     endgenerate
 
     // -----------------------------------------------------------------------
-    // Fixed priority: DMA > D-Port > I-Port (Sec. 7.1). Written as a plain
+    // Fixed priority: DMA > SBA > D-Port > I-Port (Rev 4.0 Sec. 7.1, ADR-0004). Written as a plain
     // descending cascade rather than a loop so the priority order is legible
     // in the source and cannot be inverted by an off-by-one in a scan.
     // With no requester the winner is the I-Port, whose HTRANS is IDLE in that
     // case, so the slave side sees an idle bus.
     // -----------------------------------------------------------------------
     wire [1:0] winner = req[`AHB_M_DMA]   ? `AHB_M_DMA   :
+                        req[`AHB_M_SBA]   ? `AHB_M_SBA   :
                         req[`AHB_M_DPORT] ? `AHB_M_DPORT :
                                             `AHB_M_IPORT ;
 

@@ -19,7 +19,7 @@
 // -----------------------------------------------------------------------------
 // Geometry (Sec. 2)
 // -----------------------------------------------------------------------------
-`define AHB_NMASTERS   3
+`define AHB_NMASTERS   4
 `define AHB_NSLAVES    4     // ISRAM, ROM, DSRAM, Bridge  (default slave is
                              // tracked separately - it is not a decoded region)
 
@@ -30,7 +30,8 @@
 // -----------------------------------------------------------------------------
 `define AHB_M_IPORT    2'd0   // M0 - CPU I-Port   (lowest priority)
 `define AHB_M_DPORT    2'd1   // M1 - CPU D-Port
-`define AHB_M_DMA      2'd2   // M2 - DMA          (highest priority)
+`define AHB_M_SBA      2'd2   // M2 - Debug SBA    (Rev 4.0, ADR-0004/0012)
+`define AHB_M_DMA      2'd3   // M3 - DMA          (highest priority)
 
 // -----------------------------------------------------------------------------
 // Slave indices / one-hot select bit positions (Sec. 6).
@@ -82,5 +83,6 @@
 //   bit3 = 0 non-cacheable
 // -----------------------------------------------------------------------------
 `define AHB_HPROT_DMA     4'b0011
+`define AHB_HPROT_SBA     4'b0011
 
 `endif // GARUDA_AHB_DEFS_VH

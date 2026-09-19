@@ -71,7 +71,15 @@ module ahb_master_mux (
     input  wire [3:0]  d_hprot_i,
     input  wire [31:0] d_hwdata_i,
 
-    // ---- M2 : DMA (no HPROT at its boundary, Sec. 7.6) ----
+    // ---- M2 : Debug SBA (no HPROT at its boundary) ----
+    input  wire [31:0] s_haddr_i,
+    input  wire [1:0]  s_htrans_i,
+    input  wire        s_hwrite_i,
+    input  wire [2:0]  s_hsize_i,
+    input  wire [2:0]  s_hburst_i,
+    input  wire [31:0] s_hwdata_i,
+
+    // ---- M3 : DMA (no HPROT at its boundary, Sec. 7.6) ----
     input  wire [31:0] m_haddr_i,
     input  wire [1:0]  m_htrans_i,
     input  wire        m_hwrite_i,
@@ -103,6 +111,14 @@ module ahb_master_mux (
                 hsize_o    = d_hsize_i;
                 hburst_o   = d_hburst_i;
                 hprot_o    = d_hprot_i;
+            end
+            `AHB_M_SBA: begin
+                haddr_o    = s_haddr_i;
+                htrans_sel = s_htrans_i;
+                hwrite_o   = s_hwrite_i;
+                hsize_o    = s_hsize_i;
+                hburst_o   = s_hburst_i;
+                hprot_o    = `AHB_HPROT_SBA;
             end
             `AHB_M_DMA: begin
                 haddr_o    = m_haddr_i;
@@ -139,6 +155,7 @@ module ahb_master_mux (
     always @(*) begin
         case (dph_master_i)
             `AHB_M_DPORT: hwdata_o = d_hwdata_i;
+            `AHB_M_SBA:   hwdata_o = s_hwdata_i;
             `AHB_M_DMA:   hwdata_o = m_hwdata_i;
             default:      hwdata_o = i_hwdata_i;
         endcase

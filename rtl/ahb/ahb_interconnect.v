@@ -106,7 +106,18 @@ module ahb_interconnect (
     output wire        d_hready_o,
     output wire        d_hresp_o,
 
-    // ---- M2 : DMA (no HPROT, Sec. 7.6) ----
+    // ---- M2 : Debug SBA (Rev 4.0, no HPROT) ----
+    input  wire [31:0] s_haddr_i,
+    input  wire [1:0]  s_htrans_i,
+    input  wire        s_hwrite_i,
+    input  wire [2:0]  s_hsize_i,
+    input  wire [2:0]  s_hburst_i,
+    input  wire [31:0] s_hwdata_i,
+    output wire [31:0] s_hrdata_o,
+    output wire        s_hready_o,
+    output wire        s_hresp_o,
+
+    // ---- M3 : DMA (no HPROT, Sec. 7.6) ----
     input  wire [31:0] m_haddr_i,
     input  wire [1:0]  m_htrans_i,
     input  wire        m_hwrite_i,
@@ -133,6 +144,7 @@ module ahb_interconnect (
     output wire [3:0]  hprot_o,
     output wire [31:0] hwdata_o,
     output wire        hready_o,     // global HREADY to every slave
+    output wire        hmaster_is_sba_o, // to ISRAM only: address phase is M2 (R-7, [N-7.14])
 
     input  wire [31:0] hrdata_isram_i,   input wire hreadyout_isram_i,  input wire hresp_isram_i,
     input  wire [31:0] hrdata_rom_i,     input wire hreadyout_rom_i,    input wire hresp_rom_i,
@@ -148,7 +160,7 @@ module ahb_interconnect (
     wire       dph_valid;
     wire [1:0] dph_master;
 
-    wire [`AHB_NMASTERS*2-1:0] htrans_bus = {m_htrans_i, d_htrans_i, i_htrans_i};
+    wire [`AHB_NMASTERS*2-1:0] htrans_bus = {m_htrans_i, s_htrans_i, d_htrans_i, i_htrans_i};
 
     ahb_arbiter u_arb (
         .hclk_i       (hclk_i),
@@ -176,6 +188,10 @@ module ahb_interconnect (
         .d_haddr_i (d_haddr_i), .d_htrans_i(d_htrans_i), .d_hwrite_i(d_hwrite_i),
         .d_hsize_i (d_hsize_i), .d_hburst_i(d_hburst_i), .d_hprot_i (d_hprot_i),
         .d_hwdata_i(d_hwdata_i),
+
+        .s_haddr_i (s_haddr_i), .s_htrans_i(s_htrans_i), .s_hwrite_i(s_hwrite_i),
+        .s_hsize_i (s_hsize_i), .s_hburst_i(s_hburst_i),
+        .s_hwdata_i(s_hwdata_i),
 
         .m_haddr_i (m_haddr_i), .m_htrans_i(m_htrans_i), .m_hwrite_i(m_hwrite_i),
         .m_hsize_i (m_hsize_i), .m_hburst_i(m_hburst_i),
@@ -259,7 +275,10 @@ module ahb_interconnect (
     // =====================================================================
     wire i_dph = dph_valid && (dph_master == `AHB_M_IPORT);
     wire d_dph = dph_valid && (dph_master == `AHB_M_DPORT);
+    wire s_dph = dph_valid && (dph_master == `AHB_M_SBA  );
     wire m_dph = dph_valid && (dph_master == `AHB_M_DMA  );
+
+    assign hmaster_is_sba_o = (grant == `AHB_M_SBA);
 
     ahb_master_port u_mp_i (
         .hclk_i          (hclk_i),
@@ -287,6 +306,20 @@ module ahb_interconnect (
         .hready_o        (d_hready_o),
         .hrdata_o        (d_hrdata_o),
         .hresp_o         (d_hresp_o)
+    );
+
+    ahb_master_port u_mp_s (
+        .hclk_i          (hclk_i),
+        .hreset_n_i      (hreset_n_i),
+        .htrans_i        (s_htrans_i),
+        .granted_i       (grant == `AHB_M_SBA),
+        .dph_own_i       (s_dph),
+        .hready_shared_i (hready_o),
+        .hrdata_shared_i (hrdata_shared),
+        .hresp_shared_i  (hresp_shared),
+        .hready_o        (s_hready_o),
+        .hrdata_o        (s_hrdata_o),
+        .hresp_o         (s_hresp_o)
     );
 
     ahb_master_port u_mp_m (

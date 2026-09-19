@@ -11,7 +11,8 @@
 //   T15  SEQ re-opened as NONSEQ after an interrupting transfer  (ERRATUM AHB-3)
 //
 // Structure
-//   3 x ahb_lite_master_bfm   M0 = I-Port stand-in (INCR), M1 = D-Port, M2 = DMA
+//   4 x ahb_lite_master_bfm   M0 = I-Port stand-in (INCR), M1 = D-Port,
+//                             M2 = Debug SBA (u_ms, Rev 4.0), M3 = DMA (u_m2)
 //   4 x ahb_lite_sram         S0 ISRAM, S1 ROM (read-only), S2 DSRAM, S3 Bridge
 //   5 x ahb_lite_checker      one per master port + one on the shared slave bus
 //
@@ -130,6 +131,22 @@ module tb_ahb_interconnect;
         .hrdata_i(m2_hrdata), .hready_i(m2_hready), .hresp_i(m2_hresp)
     );
 
+    // Debug SBA (Rev 4.0 master M2). Like the DMA it has no HPROT at the
+    // interconnect boundary. Named u_ms so the DMA keeps its historical u_m2.
+    wire [31:0] ms_haddr, ms_hwdata, ms_hrdata;
+    wire [1:0]  ms_htrans;
+    wire        ms_hwrite, ms_hready, ms_hresp;
+    wire [2:0]  ms_hsize, ms_hburst;
+    wire [3:0]  ms_hprot;
+    wire        is_sba;
+    ahb_lite_master_bfm #(.HPROT(4'b1111)) u_ms (
+        .hclk_i(hclk), .hreset_n_i(hreset_n),
+        .haddr_o(ms_haddr), .htrans_o(ms_htrans), .hwrite_o(ms_hwrite),
+        .hsize_o(ms_hsize), .hburst_o(ms_hburst), .hprot_o(ms_hprot),
+        .hwdata_o(ms_hwdata),
+        .hrdata_i(ms_hrdata), .hready_i(ms_hready), .hresp_i(ms_hresp)
+    );
+
     // -----------------------------------------------------------------------
     // Slave side
     // -----------------------------------------------------------------------
@@ -213,6 +230,11 @@ module tb_ahb_interconnect;
         .d_hwdata_i(m1_hwdata),
         .d_hrdata_o(m1_hrdata), .d_hready_o(m1_hready), .d_hresp_o(m1_hresp),
 
+        .s_haddr_i(ms_haddr), .s_htrans_i(ms_htrans), .s_hwrite_i(ms_hwrite),
+        .s_hsize_i(ms_hsize), .s_hburst_i(ms_hburst),
+        .s_hwdata_i(ms_hwdata),
+        .s_hrdata_o(ms_hrdata), .s_hready_o(ms_hready), .s_hresp_o(ms_hresp),
+
         .m_haddr_i(m2_haddr), .m_htrans_i(m2_htrans), .m_hwrite_i(m2_hwrite),
         .m_hsize_i(m2_hsize), .m_hburst_i(m2_hburst),
         .m_hwdata_i(m2_hwdata),
@@ -223,7 +245,7 @@ module tb_ahb_interconnect;
 
         .haddr_o(haddr_s), .htrans_o(htrans_s), .hwrite_o(hwrite_s),
         .hsize_o(hsize_s), .hburst_o(hburst_s), .hprot_o(hprot_s),
-        .hwdata_o(hwdata_s), .hready_o(hready_s),
+        .hwdata_o(hwdata_s), .hready_o(hready_s), .hmaster_is_sba_o(is_sba),
 
         .hrdata_isram_i(hrdata_s0),  .hreadyout_isram_i(hreadyout_s0),  .hresp_isram_i(hresp_s0),
         .hrdata_rom_i(hrdata_s1),    .hreadyout_rom_i(hreadyout_s1),    .hresp_rom_i(hresp_s1),
@@ -234,7 +256,13 @@ module tb_ahb_interconnect;
     // -----------------------------------------------------------------------
     // Protocol checkers
     // -----------------------------------------------------------------------
-    wire [31:0] v_m0, v_m1, v_m2, v_sl;
+    wire [31:0] v_m0, v_m1, v_m2, v_ms, v_sl;
+
+    ahb_lite_checker u_chk_ms (
+        .clk_i(hclk), .rst_n_i(hreset_n),
+        .haddr_i(ms_haddr), .htrans_i(ms_htrans), .hsize_i(ms_hsize),
+        .hburst_i(ms_hburst), .hwrite_i(ms_hwrite), .hwdata_i(ms_hwdata),
+        .hready_i(ms_hready), .hresp_i(ms_hresp), .viol_count_o(v_ms));
 
     ahb_lite_checker u_chk_m0 (
         .clk_i(hclk), .rst_n_i(hreset_n),
@@ -281,7 +309,8 @@ module tb_ahb_interconnect;
             guard = 0;
             while (((u_m0.q_head !== u_m0.q_tail) || u_m0.addr_outstanding || u_m0.data_outstanding ||
                     (u_m1.q_head !== u_m1.q_tail) || u_m1.addr_outstanding || u_m1.data_outstanding ||
-                    (u_m2.q_head !== u_m2.q_tail) || u_m2.addr_outstanding || u_m2.data_outstanding)
+                    (u_m2.q_head !== u_m2.q_tail) || u_m2.addr_outstanding || u_m2.data_outstanding ||
+                    (u_ms.q_head !== u_ms.q_tail) || u_ms.addr_outstanding || u_ms.data_outstanding)
                    && (guard < 20000)) begin
                 @(posedge hclk);
                 guard = guard + 1;
@@ -298,6 +327,7 @@ module tb_ahb_interconnect;
         u_m0.r_head = 0; u_m0.r_tail = 0;
         u_m1.r_head = 0; u_m1.r_tail = 0;
         u_m2.r_head = 0; u_m2.r_tail = 0;
+        u_ms.r_head = 0; u_ms.r_tail = 0;
     end endtask
 
     function integer n_rsp0; begin n_rsp0 = (u_m0.r_tail - u_m0.r_head + 256) % 256; end endfunction
@@ -324,6 +354,8 @@ module tb_ahb_interconnect;
     integer sel_onehot_viol;          // T2 : HSEL must be one-hot every cycle
     integer grant_swing_viol;         // T5 : grant must not move while HREADY low
     integer hprot_dma_viol;           // T10: HPROT must be 0x3 whenever DMA granted
+    integer sba_ind_viol = 0;         // T17: hmaster_is_sba tracks the grant
+    always @(posedge hclk) if (hreset_n && (is_sba !== (u_ic.grant == 2'd2))) sba_ind_viol = sba_ind_viol + 1;
     reg [1:0] prev_grant;
     reg       prev_hready;
 
@@ -347,7 +379,7 @@ module tb_ahb_interconnect;
                 grant_swing_viol <= grant_swing_viol + 1;
 
             // Sec. 7.6: DMA has no HPROT; the fabric substitutes 0x3.
-            if ((u_ic.grant == 2'd2) && (hprot_s !== 4'b0011))
+            if ((u_ic.grant == 2'd3) && (hprot_s !== 4'b0011))
                 hprot_dma_viol <= hprot_dma_viol + 1;
 
             prev_grant  <= u_ic.grant;
@@ -503,7 +535,7 @@ module tb_ahb_interconnect;
             @(posedge hclk);
             if (m0_htrans[1] && m1_htrans[1] && m2_htrans[1]) saw_all3 = 1;
             if (hready_s && htrans_s[1]) begin
-                if (u_ic.grant == 2'd2 && b2 < 0) b2 = i;
+                if (u_ic.grant == 2'd3 && b2 < 0) b2 = i;
                 if (u_ic.grant == 2'd1 && b1 < 0) b1 = i;
                 if (u_ic.grant == 2'd0 && b0 < 0) b0 = i;
             end
@@ -682,7 +714,7 @@ module tb_ahb_interconnect;
         for (i = 0; i < 400; i = i + 1) begin
             @(posedge hclk);
             if (hready_s && htrans_s[1]) begin
-                if (u_ic.grant == 2'd2) begin
+                if (u_ic.grant == 2'd3) begin
                     if (m2_boundary < 0) begin
                         m2_boundary    = boundaries;
                         first_m2_cycle = i;
@@ -775,6 +807,39 @@ module tb_ahb_interconnect;
         end
 
         // ===================================================================
+        // T17 - Rev 4.0 fourth master: Debug SBA (M2)
+        // ===================================================================
+        $display("--- T17: Debug SBA master ---");
+        clear_rsp();
+        sba_ind_viol = 0;
+        u_ms.push_xfer(32'h0000_2000, 1'b1, 32'h5BA0_0001, SZ_W, BURST_SINGLE, T_NONSEQ, 8'd0);
+        u_ms.push_xfer(32'h0000_2000, 1'b0, 32'h0,         SZ_W, BURST_SINGLE, T_NONSEQ, 8'd0);
+        u_ms.push_xfer(32'h2000_2004, 1'b1, 32'h5BA0_0002, SZ_W, BURST_SINGLE, T_NONSEQ, 8'd0);
+        u_ms.push_xfer(32'h2000_2004, 1'b0, 32'h0,         SZ_W, BURST_SINGLE, T_NONSEQ, 8'd0);
+        u_ms.push_xfer(32'h8000_0000, 1'b0, 32'h0,         SZ_W, BURST_SINGLE, T_NONSEQ, 8'd0);
+        drain();
+        chk_eq(u_ms.r_data[1], 32'h5BA0_0001, "T17: SBA write/read ISRAM");
+        chk_eq(u_ms.r_data[3], 32'h5BA0_0002, "T17: SBA write/read DSRAM");
+        chk_eq(u_ms.r_resp[4], 1'b1,          "T17: SBA unmapped access gets ERROR");
+        chk_eq(sba_ind_viol, 0,               "T17: hmaster_is_sba == (grant == M2) every cycle");
+        // priority: DMA > SBA > D-Port
+        clear_rsp();
+        u_m1.push_xfer(32'h2000_0100, 1'b0, 32'h0, SZ_W, BURST_SINGLE, T_NONSEQ, 8'd200);
+        u_ms.push_xfer(32'h2000_0100, 1'b0, 32'h0, SZ_W, BURST_SINGLE, T_NONSEQ, 8'd200);
+        u_m2.push_xfer(32'h2000_0100, 1'b0, 32'h0, SZ_W, BURST_SINGLE, T_NONSEQ, 8'd200);
+        b0 = -1; b1 = -1; b2 = -1;
+        for (i = 0; i < 80; i = i + 1) begin
+            @(posedge hclk);
+            if (hready_s && htrans_s[1]) begin
+                if (u_ic.grant == 2'd3 && b2 < 0) b2 = i;
+                if (u_ic.grant == 2'd2 && b0 < 0) b0 = i;
+                if (u_ic.grant == 2'd1 && b1 < 0) b1 = i;
+            end
+        end
+        chk((b2 >= 0) && (b0 > b2) && (b1 > b0), "T17: accepted in priority order DMA, SBA, D-Port");
+        drain();
+
+        // ===================================================================
         // Final protocol verdict
         // ===================================================================
         hwait(10);
@@ -782,11 +847,13 @@ module tb_ahb_interconnect;
         u_chk_m0.report_result();
         u_chk_m1.report_result();
         u_chk_m2.report_result();
+        u_chk_ms.report_result();
         u_chk_sl.report_result();
 
         chk_eq(v_m0, 0, "protocol: I-Port port clean");
         chk_eq(v_m1, 0, "protocol: D-Port port clean");
         chk_eq(v_m2, 0, "protocol: DMA port clean");
+        chk_eq(v_ms, 0, "protocol: SBA port clean");
         chk_eq(v_sl, 0, "protocol: SLAVE-SIDE bus clean");
         chk_eq(sel_onehot_viol,  0, "final: HSEL one-hot throughout");
         chk_eq(grant_swing_viol, 0, "final: grant never swung mid-beat");
