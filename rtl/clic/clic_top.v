@@ -1,212 +1,69 @@
 `timescale 1ns/1ps
 `default_nettype none
 // =============================================================================
-// GARUDA SoC - Block 16: CLIC (Core-Local Interrupt Controller)
-// clic_top.v - block boundary
+// GARUDA SoC - Block 10 : Core-Local Interrupt Controller
+// clic_top.v
 //
-// Spec reference: GARUDA-CLIC-SPEC-001 Rev 2.0, Sec. 3, Sec. 5, Sec. 8, Sec. 11
+// Spec: GARUDA-CLIC-SPEC-001 Rev 2.0 (Rev 4.0 set); ADR-0009, ADR-0010
 //
-// =============================================================================
-// WHAT THIS BLOCK IS - AND WHAT IT IS NOT
-// =============================================================================
-// This is the one EXTERNAL interrupt controller in GARUDA. It collects every
-// peripheral interrupt line, applies enable/priority/threshold policy, and
-// presents the single highest-priority pending source to the CPU over the
-// frozen CLIC sideband.
+// Aggregates 32 level-triggered sources into one winning {id, level} for the
+// core's clic_ctrl, which makes the take decision against mstatus.MIE,
+// mintthresh and mintstatus.mil ([N-1.1]). This block has no threshold input,
+// no acknowledge, no edge detection and no vectoring - Rev 2.0 of this
+// document removed all four, and the Rev 2.0-set RTL that had them is gone.
 //
-// It is NOT the core's trap CSRs. mstatus/mie/mip/mtvec/mcause/mepc live inside
-// Block 1, every RISC-V hart has them, and they are the core's privileged trap
-// plumbing - not a second CLIC. Calling that block "a CLIC" is a category error
-// the naming here is careful to avoid. The split is deliberate (Sec. 13.1): the
-// core owns architectural trap state because the ISA defines it; this block
-// owns POLICY - which sources, what priority - because that is SoC integration
-// state that changes as peripherals are added. Splitting them keeps the core
-// boundary frozen while letting the interrupt map grow.
+//   pending[n] = irq_src_i[n]        combinational ([N-7.1])
+//   cand[n]    = pending[n] & CLICIE[n]
+//   winner     = max {level, ~id} over cand ([N-7.5])
 //
+// The ID map is applied by the SoC top (irq_src_i is positioned per the
+// generated GARUDA_CLIC_ID_* constants, [N-5.2]). irq_src_i[0] must be tied
+// low (ID 0 is the sentinel, [N-7.12]).
 // =============================================================================
-// FLAGGED, CARRIED FORWARD: GENUINELY ASYNCHRONOUS SOURCES (Sec. 11.1)
-// =============================================================================
-// Every source line is sampled DIRECTLY in clk_i. That is correct for sources
-// generated in either on-chip clock domain, because pclk is a ÷2 of clk from
-// the same source and the two are related (Sec. 5.1.1).
-//
-// It is NOT correct for a source genuinely asynchronous to clk_i - the clearest
-// candidate being a GPIO interrupt driven from an external pad, whose edge
-// bears no relationship to any internal clock. Such a source MUST be passed
-// through a two-flop synchroniser BEFORE it reaches this block, and an
-// edge-triggered pad input additionally needs the edge detected AFTER the
-// synchroniser, never before.
-//
-// This block assumes every line arriving at irq_src_i is already clean and
-// clk_i-relatable. The GPIO specification must state explicitly whether the pad
-// interrupt is synchronised inside the GPIO block or is expected to arrive raw
-// here - and if raw, a synchroniser must be added at this boundary. Tracked in
-// docs/DECISIONS.md under carried-forward open items. Nothing in the current
-// SoC trips it: the only sources wired today are the DMA's twelve, which are
-// generated in clk_i.
-//
-// =============================================================================
-// THE THREE PRIORITY SYSTEMS - DO NOT CONFLATE THEM (Sec. 10.1)
-// =============================================================================
-//   DMA arbiter         decides which DMA CHANNEL gets the AHB bus. Block 9.
-//   DMA IRQ aggregator  a passive collector that ORs channel flags into the
-//                       dma_irq/dma_err lines. No prioritisation at all.
-//   CLIC (this block)   decides which interrupt SOURCE the CPU services, by
-//                       level. The dma_irq/dma_err lines are just twelve of
-//                       its inputs.
-// =============================================================================
-
-`include "clic_defs.vh"
 
 module clic_top #(
-    parameter integer CLIC_N = `CLIC_N_DEFAULT,
-    parameter integer ID_W   = 5                  // ceil(log2(CLIC_N))
+    parameter integer N       = 32,
+    parameter [31:0]  IE_MASK = 32'h007F_9FFE
 )(
-    // ---- clocks and resets ------------------------------------------------
-    input  wire        clk_i,          // 200 MHz: fabric and core presentation
-    input  wire        rst_n_i,
-    input  wire        pclk_i,         // 100 MHz: APB configuration port
-    input  wire        preset_n_i,
+    input  wire          hclk_i,
+    input  wire          hreset_n_i,
+    input  wire          pclk_i,
+    input  wire          preset_n_i,
 
-    // ---- APB v3 configuration slave (behind Block 8) ----------------------
-    input  wire        psel_i,
-    input  wire        penable_i,
-    input  wire        pwrite_i,
-    input  wire [11:0] paddr_i,
-    input  wire [31:0] pwdata_i,
-    output wire [31:0] prdata_o,
-    output wire        pready_o,
-    output wire        pslverr_o,
+    // ---- APB slave, window 10 ----------------------------------------------
+    input  wire          psel_i,
+    input  wire          penable_i,
+    input  wire          pwrite_i,
+    input  wire [11:0]   paddr_i,
+    input  wire [31:0]   pwdata_i,
+    output wire [31:0]   prdata_o,
+    output wire          pready_o,
+    output wire          pslverr_o,
 
-    // ---- interrupt sources (Sec. 5.4) -------------------------------------
-    // GARUDA mapping: [5:0] = dma_irq, [11:6] = dma_err, then peripherals.
-    input  wire [CLIC_N-1:0] irq_src_i,
+    // ---- sources (hclk domain, level) ----------------------------------------
+    input  wire [N-1:0]  irq_src_i,
 
-    // ---- core sideband (frozen names, core Sec. 4.1) ----------------------
-    output wire                        clic_irq_o,
-    output wire [`CLIC_CORE_ID_W-1:0]  clic_irq_id_o,
-    output wire [`CLIC_CORE_LVL_W-1:0] clic_irq_lvl_o,
-    output wire                        clic_irq_shv_o,
-    input  wire                        clic_irq_ack_i,
-    input  wire [`CLIC_CORE_ID_W-1:0]  clic_irq_id_ack_i,
-    input  wire [`CLIC_CORE_LVL_W-1:0] mintthresh_i
+    // ---- to the core ------------------------------------------------------------
+    output wire          clic_irq_valid_o,
+    output wire [4:0]    clic_irq_id_o,
+    output wire [7:0]    clic_irq_level_o
 );
 
-    // -----------------------------------------------------------------------
-    // Configuration registers (pclk domain)
-    // -----------------------------------------------------------------------
-    wire [CLIC_N-1:0]               ie;
-    wire [CLIC_N-1:0]               trig;
-    wire [CLIC_N-1:0]               shv;
-    wire [(CLIC_N*`CLIC_LVL_W)-1:0] lvl_flat;
-    wire [CLIC_N-1:0]               ip;
-    wire [CLIC_N-1:0]               ip_w1c;
+    wire [N-1:0]   ie;
+    wire [N*8-1:0] level;
 
-    clic_apb_regs #(.CLIC_N(CLIC_N)) u_regs (
-        .pclk_i     (pclk_i),
-        .preset_n_i (preset_n_i),
-        .psel_i     (psel_i),
-        .penable_i  (penable_i),
-        .pwrite_i   (pwrite_i),
-        .paddr_i    (paddr_i),
-        .pwdata_i   (pwdata_i),
-        .prdata_o   (prdata_o),
-        .pready_o   (pready_o),
-        .pslverr_o  (pslverr_o),
-        .ie_o       (ie),
-        .trig_o     (trig),
-        .shv_o      (shv),
-        .lvl_flat_o (lvl_flat),
-        .ip_i       (ip),
-        .ip_w1c_o   (ip_w1c)
-    );
+    clic_apb #(.N(N), .IE_MASK(IE_MASK)) u_apb (
+        .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+        .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
+        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
+        .pready_o(pready_o), .pslverr_o(pslverr_o),
+        .pending_i(irq_src_i), .ie_o(ie), .level_o(level));
 
-    // -----------------------------------------------------------------------
-    // Acknowledge decode (Sec. 1.4 - NORMATIVE)
-    //
-    // The acknowledge is a one-cycle pulse from the core naming the taken id.
-    // It MUST clear the pending state of EXACTLY that source and MUST NOT
-    // disturb any other. A decode that cleared a range, or that cleared the
-    // current winner rather than the acknowledged id, would drop a
-    // higher-priority source that went pending in the same cycle the core took
-    // a lower one - and that loss is silent.
-    // -----------------------------------------------------------------------
-    wire [CLIC_N-1:0] ack_clr;
+    clic_select #(.N(N)) u_sel (
+        .cand_i(irq_src_i & ie), .level_i(level),
+        .valid_o(clic_irq_valid_o), .id_o(clic_irq_id_o), .level_o(clic_irq_level_o));
 
-    genvar a;
-    generate
-        for (a = 0; a < CLIC_N; a = a + 1) begin : g_ack
-            assign ack_clr[a] = clic_irq_ack_i &&
-                                (clic_irq_id_ack_i == a[`CLIC_CORE_ID_W-1:0]);
-        end
-    endgenerate
-
-    // -----------------------------------------------------------------------
-    // Per-source conditioning (clk domain)
-    // -----------------------------------------------------------------------
-    generate
-        for (a = 0; a < CLIC_N; a = a + 1) begin : g_src
-            clic_source_cond u_cond (
-                .clk_i      (clk_i),
-                .rst_n_i    (rst_n_i),
-                .src_i      (irq_src_i[a]),
-                .trig_i     (trig[a]),
-                .ack_clr_i  (ack_clr[a]),
-                .w1c_clr_i  (ip_w1c[a]),
-                .ip_o       (ip[a])
-            );
-        end
-    endgenerate
-
-    // -----------------------------------------------------------------------
-    // Arbitration (combinational) and presentation (registered)
-    // -----------------------------------------------------------------------
-    wire                    winner_valid;
-    wire [ID_W-1:0]         winner_id;
-    wire [`CLIC_LVL_W-1:0]  winner_lvl;
-
-    clic_arbiter #(.CLIC_N(CLIC_N), .ID_W(ID_W)) u_arb (
-        .ip_i           (ip),
-        .ie_i           (ie),
-        .lvl_flat_i     (lvl_flat),
-        .winner_valid_o (winner_valid),
-        .winner_id_o    (winner_id),
-        .winner_lvl_o   (winner_lvl)
-    );
-
-    // shv for the winning source. A mux on the recovered id rather than a
-    // parallel tree - one tree decides the winner, everything else is a lookup
-    // against that single answer (Sec. 7.2).
-    wire winner_shv = shv[winner_id];
-
-    clic_present #(.ID_W(ID_W)) u_present (
-        .clk_i          (clk_i),
-        .rst_n_i        (rst_n_i),
-        .winner_valid_i (winner_valid),
-        .winner_id_i    (winner_id),
-        .winner_lvl_i   (winner_lvl),
-        .winner_shv_i   (winner_shv),
-        .mintthresh_i   (mintthresh_i),
-        .clic_irq_o     (clic_irq_o),
-        .clic_irq_id_o  (clic_irq_id_o),
-        .clic_irq_lvl_o (clic_irq_lvl_o),
-        .clic_irq_shv_o (clic_irq_shv_o)
-    );
-
-    // -----------------------------------------------------------------------
-    // Simulation-only invariants from Sec. 12's assertion set.
-    // -----------------------------------------------------------------------
-`ifndef SYNTHESIS
-    always @(posedge clk_i) begin
-        if (rst_n_i && clic_irq_o && (clic_irq_lvl_o == {`CLIC_CORE_LVL_W{1'b0}}))
-            $display("[CLIC-ASSERT] request asserted with a level-0 winner t=%0t",
-                     $time);
-        if (rst_n_i && clic_irq_ack_i &&
-            (clic_irq_id_ack_i >= CLIC_N[`CLIC_CORE_ID_W-1:0]))
-            $display("[CLIC-ASSERT] ack for unimplemented id %0d t=%0t",
-                     clic_irq_id_ack_i, $time);
-    end
-`endif
+    wire _unused = |{hclk_i, hreset_n_i};
 
 endmodule
 
