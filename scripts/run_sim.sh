@@ -18,7 +18,6 @@
 # USAGE
 #     ./scripts/run_sim.sh tb_crg
 #     ./scripts/run_sim.sh tb_clic +VERBOSE
-#     ./scripts/run_sim.sh tb_soc_ahb +MAXCYC=400000
 #
 # Output lands in sim/<top>/.
 # =============================================================================
@@ -36,11 +35,9 @@ case "$TOP" in
     tb_mem_subsystem)    FLIST=tb/mem/filelist_mem.f           ;;
     tb_ahb2apb)          FLIST=tb/ahb2apb/filelist_ahb2apb.f   ;;
     tb_clic)             FLIST=tb/clic/filelist_clic.f         ;;
-    tb_soc_ahb)          FLIST=tb/soc/filelist_soc_ahb.f       ;;
     tb_ahb_interconnect) FLIST=tb/ahb/filelist_ahb_ic.f        ;;
     "")
         echo "usage: $0 <top> [+plusargs]"
-        echo "  tops: tb_crg tb_mem_subsystem tb_ahb2apb tb_clic tb_soc_ahb tb_ahb_interconnect"
         exit 1 ;;
     *) echo "unknown top '$TOP'"; exit 1 ;;
 esac
