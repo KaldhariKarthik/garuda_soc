@@ -40,8 +40,32 @@ None of those were RTL bugs. All three were a document promising something the h
 
 ## What Is Actually Done
 
-| Block | Status |
-|---|---|
+**Rev 4.0 (2026-09-19).** The RTL now implements the Rev 4.0 specification set
+(`Design_Docs/garuda_system.yaml` + the `GARUDA-*-SPEC-001` documents); where
+those documents contradicted each other the ruling is recorded in
+`Docs/DECISIONS.md` (D-4..D-20). All numbers below are Xcelium 22.09 results.
+
+| Block (SYS-001 #) | RTL | Verification (Xcelium) |
+|---|---|---|
+| 1 Core (RV32IM, CLIC mode, WFI clock gate) | complete, Rev 3.0 boundary | ISA 63/63 + Spike lockstep (incl. random wait states), sanity 10/10, unit TBs 0 fail |
+| 2 DSU | complete, OVF-1 fixed | 400-vector model check + clamp walk 33 168/0, oracle sweep 0 disagreements |
+| 3/4/5 ISRAM / Boot ROM / DSRAM | complete (sync-read macro wrapper, ILOCK) | `tb_mem` 18/18 |
+| 6 AHB-Lite interconnect (4 masters) | complete | `tb_ahb_ic` 802/802 |
+| 7/8 APB fabric + AHB2APB bridge (synchronous) | complete | `tb_bridge` 20/20 |
+| 9 DMA (Rev 3.0, no CDC) | complete | `tb_dma` 25/25 |
+| 10 CLIC (level-only, 32 IDs) | complete | `tb_clic` 15/15 |
+| 11 Timers + watchdog | complete | `tb_timers` 22/22 (real watchdog reset through reset_ctrl) |
+| 12 Debug (JTAG TAP, DTM, DMI CDC, DM, SBA) | complete | `tb_debug` 25/25 over the JTAG pins |
+| 21/22 Clock divider + reset controller | complete | `tb_crg` 43/43 |
+| Boot ROM firmware | complete (flash path waits on the SPI IP) | runs on every chip test |
+| **SoC + chip integration** (`garuda_soc_top`, `garuda_chip_top`, 28-pin list) | **complete** | `make test_chip`: boot, interrupts (DMA/timer/WDT), real watchdog reset, JTAG load-and-run — all pass, zero AHB protocol violations |
+| 13, 15–20 SPI-M, I²C, UART×3, GPIO, PWM (sourced IP) | **not in repo** | windows masked (fault cleanly), pins at safe idle, plug-in points documented in `garuda_chip_top.v` |
+
+Not done: the sourced peripheral IP, coverage closure, SDC/STA, gate-level
+simulation, the foundry SRAM/ROM macros (behavioural models behind
+`sram_wrapper.v`), the pad ring. Those are the path from here to GDSII.
+
+---|---|
 | AHB-Lite (+ interconnect) | Design doc complete, RTL complete |
 | DMA controller | Design doc complete, RTL complete |
 | DSU (collision avoidance coprocessor) | Design doc complete, RTL complete, integrated into EX — unverified |

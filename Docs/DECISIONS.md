@@ -143,6 +143,202 @@ number that was wrong.
 
 ---
 
+## D-4 — Rev 4.0 (`GARUDA-SYS-001`, `garuda_system.yaml`) supersedes the Rev 2.0 block specs
+
+**Decided 2026-09-19 · Owner:** Karthik (architecture sign-off)
+
+The RTL landed on 2026-09-16 (D-1..D-3 above, Blocks 3/4/5/6/8/16/22/23) was
+written to the Rev 2.0 documents: 200/100 MHz, an asynchronous bridge crossing,
+three AHB masters, CLIC at APB window 9, timers at window 8. The Rev 4.0 set
+(`Design_Docs/GARUDA-*-SPEC-001.md`, `GARUDA-TRM-001.md`, `GARUDA-ADR-001.md`,
+`garuda_system.yaml`, all dated 2026-09-18) is now normative. The RTL is
+migrated to it; block numbers in RTL comments follow the yaml (CLIC = 10,
+timers = 11, clk_div = 21, reset_ctrl = 22).
+
+Where the Rev 4.0 documents contradict each other, the rulings D-5..D-13 below
+apply. The general rule is the yaml's own: **the yaml wins over prose**, except
+where the yaml is itself inconsistent with a later ADR, in which case the
+ruling says which way and why. Cross-block numbers reach the RTL and firmware
+only through `tools/garuda_gen.py` → `rtl/include/garuda_map.vh` /
+`sw/common/garuda_map.h`.
+
+D-2 (reset cause out of scope) is **superseded**: Rev 4.0 specifies
+`RSTREASON` (CLKRST §6.1) and it is implemented.
+
+## D-5 — pclk exists; APB register interfaces are on pclk; no synchronisers
+
+ADR-0002's title ("There is no pclk") and ADR R1 ("delete pclk") contradict the
+yaml (`clocks.pclk.exists: true`, "ADR-0002 rev 2"), the TRM (§2, R1 as
+restated in §9.2), CLKRST, AHB2APB, CLIC §9 and DMA §9.
+**Ruling:** pclk = hclk ÷ 2 (125 MHz) from a toggle flop, edges a strict subset
+of hclk edges. The APB bus and every block's APB register interface run on
+pclk; block cores run on hclk. Values cross pclk→hclk on shared edges with no
+synchroniser (not a CDC). The DMA's three `dma_cdc_*` modules are deleted. The
+yaml keys `apb.clock: hclk` and `dma.cdc: none` are read as "no CDC", not as
+"no pclk".
+
+## D-6 — APB window addresses are normative; unmapped = 0x0 and 0xC–0xF
+
+The yaml numbers windows 1–11 and the TRM/AHB2APB 0–10 in places, but every
+document agrees on the base addresses. **Ruling:** window n is
+`0x4000_0000 + 0x1000·n`; PSEL bit n = `haddr[15:12]`. The AHB2APB [N-7.19] /
+`a_unmapped` / `t_apb_unmapped` set "0xB–0xF" is an erratum — 0xB is the
+timers window. Unmapped windows are 0x0 and 0xC–0xF. Windows with no RTL yet
+(the deferred peripherals 1–4, 6–8) are masked and fault with the two-cycle
+ERROR until their IP lands. Aliasing across the 256 MiB region is by design
+(yaml: decode on `HADDR[31:28]` plus in-region offset).
+
+## D-7 — Master reachability: decode is the only gate
+
+The yaml `master_reachability` omits Boot ROM for the DMA; DMA R-9 /
+`a_no_isram` also forbids ISRAM. ADR-0005 forbids structural restrictions.
+**Ruling:** ADR-0005 + yaml for the fabric: no master is structurally blocked
+by the interconnect. The DMA's own R-9 restriction is enforced inside the DMA
+(see D-16).
+
+## D-8 — Reset reason register layout and domain
+
+yaml (`por_n`=0, `ext`=1, `wdt`=2, `ndm`=3, reset only by POR) vs CLKRST §6.1
+(`EXT`=0, `WDT`=1, `NDM`=2, `SW`=3, `BOOTFAIL`=4) vs ADR-0019 (no POR).
+**Ruling:** CLKRST §6.1 layout. With no POR cell, `ext_rst_n` is the only
+source that clears the register, and it sets `EXT`; every internal source sets
+its own bit and leaves the others. W1C.
+
+## D-9 — Every reset source is stretched; the DM and TAP sit outside ndmreset
+
+ADR-0003 says "roughly 10 µs"; CLKRST/TRM say 1024 refclk cycles (≈2.05 µs).
+DEBUG [N-7.14] lets `ndmreset` bypass the stretch; CLKRST [N-7.7] stretches
+everything. **Ruling:** 1024 refclk cycles for every source including
+`ndmreset` — one mechanism, no special case. `reset_ctrl` provides a separate
+`dm_rst_n_o` (external and watchdog only) so the Debug Module survives the
+`ndmreset` it issues.
+
+## D-10 — Pin list: ADR-0020 supersedes ADR-0013
+
+28 signal pins, `gpio0..1`, no SPI slave, 2 spare. DEBUG R-1's citation of
+ADR-0013 is stale.
+
+## D-11 — Boot image header: MEM §8.1 (32 bytes, two CRCs) is normative
+
+The yaml `boot.sequence` 16-byte, single-CRC description is stale.
+
+## D-12 — DSU instruction set: the RTL is normative
+
+yaml `instructions: 9` vs DSU §7.1 (11). Per the project rule "when the RTL and
+the document disagree, the RTL wins" for the frozen DSU boundary; the documents
+are corrected to the decoder in `rtl/dsu/dsu_decoder.v`.
+
+## D-13 — Documentation-only stale figures
+
+ADR-0002/0004 "100 MHz", CORE [N-7.30] "4 ms loop", DMA [N-7.12] "125 million
+beats", TRM "8 peripherals" are stale text with no RTL consequence.
+
+---
+
+## D-14 — Stretch counter clock, BOOTFAIL set path
+
+**Decided 2026-09-19 · Raised by** CLKRST §7.2 [N-7.8] vs CLKRST R-10 / ADR-0018 / PHYS [N-5.6]
+
+CLKRST puts the 1024-cycle stretch counter and `RSTREASON` on `refclk`, while
+R-10 / ADR-0018 confine the 500 MHz net to the single pad-adjacent divider
+flop, and PHYS declares `refclk` and `hclk` logically exclusive. Both cannot
+hold. **Ruling:** the stretch counter, request capture and `RSTREASON` are
+clocked by `aon_clk` — the output of the pad-adjacent ÷2 toggle flop (250 MHz),
+which is reset only by the raw pin, runs through every reset, and does not
+change with `DIVSEL`. 1024 `aon_clk` cycles = 2048 refclk cycles, which meets
+R-5 (≥1024 reference cycles). The 500 MHz net reaches one flop, as R-10
+requires. The SDC gets `aon_clk` as a generated clock (÷2 of `refclk`), with
+`hclk`/`pclk` generated from it.
+
+`RSTREASON` is W1C, so the bootloader cannot set `BOOTFAIL` through it.
+**Ruling:** `RSTCTL[4]` (`SETBOOTFAIL`, write-1, self-clearing) sets it. This
+uses a bit CLKRST §6.2 marks reserved.
+
+---
+
+## D-15 — Core CLIC surface: one trap vector, mintstatus address, misa
+
+**Decided 2026-09-19 · Raised by** CORE-SPEC Rev 3.0 §6.1 / §15 T-5 vs the ratified CLIC
+
+- `mtvec.MODE` reads 3 (CLIC). Exceptions **and** interrupts vector to
+  `{mtvec[31:2], 2'b00}` — CORE erratum T-5's 4-byte alignment, applied to both
+  so there is one rule. SHV and `mtvt` are removed (the Rev 4.0 CLIC has no
+  per-source vectoring); the handler reads `mcause[4:0]`.
+- `mintstatus` is at 0x346 as CORE §6.1 states; the ratified CLIC address
+  0xFB1 is kept as a read-only alias so standard tooling still works.
+- `misa` = 0x4000_1100 exactly as specified (the X bit is not set).
+- `mie` implements MTIE only; `mip` shows MTIP only; `mnxti` reads 0.
+
+## D-16 — DMA: R-9 enforced by the DMA itself; `dma_ack` width
+
+**Decided 2026-09-19 · Raised by** DMA-SPEC R-9 / [N-7.20] vs ADR-0005 (and D-7)
+
+- ADR-0005 forbids *structural* reachability restrictions in the fabric; DMA
+  R-9 requires that the DMA never touch ISRAM or Boot ROM. Both hold: the
+  interconnect stays universal, and the DMA engine checks its own SAR/DAR and
+  refuses an ISRAM/Boot ROM address with ERROR/ERRPHASE and no bus transfer.
+  D-7's first sentence stands for the fabric; this refines it for the DMA.
+- `dma_ack` is held for 2 hclk cycles (one pclk period, parameter
+  `ACK_CYCLES`) instead of one: a pclk-domain peripheral is guaranteed exactly
+  one pclk edge on which to see it. A single-hclk pulse could fall between
+  pclk edges and be missed.
+
+## D-17 — Watchdog early warning is held, not a one-cycle level
+
+**Decided 2026-09-19 · Raised by** TIMERS [N-6.6]/[N-6.8]
+
+The spec asserts the warning only while `WDTVAL == WDTWARN` — one hclk cycle.
+A level-triggered CLIC source that short is lost if the core is not taking
+interrupts in that exact cycle (MIE briefly clear, another handler at a higher
+level). **Ruling:** `warn = EN & WARNEN & (WDTVAL <= WDTWARN)`, held until a
+kick (which reloads the counter above the threshold) or until firmware clears
+`WARNEN`. The handler's contract is unchanged: record diagnostics, then either
+kick or clear `WARNEN`.
+
+## D-18 — Debug implementation details
+
+**Decided 2026-09-19 · Raised by** DEBUG-SPEC §5, §6.8, §9
+
+- The DM registers, including `dmactive`, are in hclk on `dm_rst_n`
+  (external, watchdog, SWRST — not `ndmreset`, not `hartreset`), which meets
+  R-8's intent: a debug-initiated reset never ends the session.
+- The TAP additionally takes a power-on reset from the `ext_rst_n` pin. There
+  is no TRST, and IEEE 1149.1 needs a defined TAP state at power-up; the
+  5×TMS-high reset still works at any time.
+- The core exposes one sticky DSU overflow flag (the three MAC flags are ORed
+  inside the DSU); `dsuovf` reports it in bit 0.
+- `dmi_cdc` re-arms after an hclk-only reset by adopting the tck-side request
+  toggle, so a watchdog reset during a session cannot replay the last DMI
+  request (possibly an `ndmreset` write).
+
+---
+
+## D-19 — How firmware reads `boot_sel`
+
+**Decided 2026-09-19 · Raised by** MEM-SPEC §8.2 step 2 ("Sample boot_sel") — no
+register is specified anywhere in the Rev 4.0 set.
+**Ruling:** the pin is two-flop synchronised in `reset_ctrl` and read at
+`CLKSTAT[8]` (`0x4000_9008`), next to the other boot/reset status the
+bootloader already reads.
+
+## D-20 — JTAG recovery hand-over: the DSRAM mailbox
+
+**Decided 2026-09-19 · Raised by** MEM §8.2 step 12 / DEBUG [N-7.8], [N-7.18]
+
+With `boot_sel = 1` the ROM "spins with ISRAM unlocked", and the debugger
+"releases hartreset to start" the loaded image — but releasing `hartreset`
+restarts the core at the reset vector ([N-7.9]), the ROM samples `boot_sel`
+again and spins again. Nothing in the documents hands control to the image.
+**Ruling:** the recovery loop polls a mailbox in the last 16 bytes of DSRAM
+(`0x2000_FFF0`): word 0 = `0x4A54_4147` ("JTAG"), word 1 = entry. On a match
+the ROM clears word 0 and jumps. The debugger's flow is: halt, load ISRAM over
+SBA, write entry then magic, resume. Words 2/3 receive `mcause`/`mepc` if the
+ROM itself traps, so a boot fault is readable over JTAG. The ROM stack sits
+just below the mailbox (`0x2000_FF00`). Firmware must not use the top 256
+bytes of DSRAM before its own init. Proven end to end by `make test_chip_jtag`.
+
+---
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. Neither blocks RTL.

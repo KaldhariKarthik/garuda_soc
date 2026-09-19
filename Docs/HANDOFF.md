@@ -1,7 +1,48 @@
 # GARUDA verification — handoff
 
-Last updated 2026-09-02. Covers the core (`rtl/core`) and the DSU (`rtl/dsu`).
-Interconnect work is §11.
+Last updated 2026-09-19 (§0 below). §1 onward is the 2026-09-02 core/DSU
+handoff, kept as history; where it disagrees with §0, §0 is current.
+
+---
+
+## 0. Rev 4.0 SoC — status 2026-09-19
+
+The RTL implements the Rev 4.0 set (`Design_Docs/garuda_system.yaml`, the
+`GARUDA-*-SPEC-001` documents); contradictions between those documents were
+ruled on in `Docs/DECISIONS.md` D-4..D-20. Cross-block numbers reach RTL and C
+only through `tools/garuda_gen.py` -> `rtl/include/garuda_map.vh`,
+`sw/common/garuda_map.h` (run it after any yaml change; `--check` for CI).
+
+**One command:** `source scripts/setup_env.sh && make regress_all`
+(or the pieces below). Everything listed passes on Xcelium 22.09.
+
+| suite | result | command |
+|---|---|---|
+| core unit smokes + 6 constrained-random unit TBs | all pass | `make test_core` |
+| core sanity (IRQ, WFI + clock gate, bus error, DSU, CLIC, T-8 timer wake) | 10/10 | `make test_sanity` |
+| ISA rv32ui/um/mi + Spike lockstep | 63/63 (and 63/63 random waits) | `make regress`, `make regress_rand` |
+| DSU vs model (+ clamp walk, oracle sweep) | pass, 0 mismatches | `make test_dsu` |
+| block TBs: crg ahb_ic bridge mem dma clic timers debug | 43, 802, 20, 18, 25, 15, 22, 25 checks, 0 fail | `make test_blocks` |
+| whole chip from the pins: basic / irq / wdt / jtag | all pass, 0 AHB violations | `make test_chip` |
+| per-element core TBs | 8/14 pass, 6 are testbench issues (BUGS.md ELEM-1..6) | `make test_elements` |
+| structural synthesis, whole chip (Genus 21.1, stand-in 180 nm lib, SRAMs black-boxed) | 54 887 cells, 4 856 flops, 0 unresolved / undriven / multi-driven, 1 latch = the intended ICG in `core_clk_gate` | `make synth` |
+
+**Development loop on the chip** (`make test_chip_jtag` is the executable
+spec): `boot_sel = 1` -> ROM recovery loop -> debugger halts the hart, streams
+the image into ISRAM over SBA, writes `{0x4A544147, entry}` to the DSRAM
+mailbox at `0x2000_FFF0`, resumes -> ROM jumps (D-20).
+
+**Next, in order:**
+1. Land the sourced peripheral IP (SPI-M, I²C, UART×3, GPIO, PWM): per IP, one
+   instance in `garuda_chip_top.v` on its `apb_ext` window, IRQ, DMA req/ack,
+   pins, and its bit in `APB_WINDOW_MASK` (table in the file header). Then fill
+   `spim_read_word()` in `sw/bootrom/boot.c` and test the flash boot path with
+   an SPI flash model (MEM [N-11.1]).
+2. Triage the six element TBs (BUGS.md ELEM-1..6).
+3. SDC from PHYS §5.2 (+ `aon_clk` generated clock, D-14), foundry SRAM/ROM
+   macros behind `sram_wrapper.v`, ICG cell in `core_clk_gate.v`, then STA at
+   250 MHz with the 28 nm library.
+4. Coverage closure on the new blocks (none collected yet), gate-level sim.
 
 ---
 

@@ -4,7 +4,7 @@
 Not per-block: a bug that crosses a boundary belongs in one list, and the
 cross-block ones are the expensive ones.
 
-Last updated: 2026-09-16 · Covers Blocks 1 (core), 2 (DSU), 6 (interconnect),
+Last updated: 2026-09-19 (Rev 4.0 migration, §1b) · Covers Blocks 1 (core), 2 (DSU), 6 (interconnect),
 9 (DMA), plus toolchain and testbench defects.
 
 Specification-only entries now also reach blocks that have no RTL yet: the
@@ -71,6 +71,30 @@ waived limitations and one uncovered-but-redundant line, all named below.
   something untrue, and nothing in any status bit to point at it.
 - **CORE-1** — RTL that means one thing to a simulator and something else to a
   synthesiser, and had done for the life of the project.
+
+---
+
+## 1b. Rev 4.0 migration — 2026-09-19
+
+Found or closed while bringing the RTL to the Rev 4.0 set (`Docs/DECISIONS.md`
+D-4..D-20). Every FIXED entry has a test that fails without the fix; the two
+marked *proved* were re-run against the reverted RTL to show it.
+
+| ID | Block | Status | Severity | Summary | Found by | Test |
+|---|---|---|---|---|---|---|
+| **OVF-1** | 2 DSU | FIXED | high (wrong overflow flag, top quarter of range) | 48-bit carry-save path dropped `maj[47]`; the adder's bit 48 carried no sign. Path widened to 49 bits, operands sign-extended before compression; `DSUModel` updated. Was open since `Docs/ORACLES.md` found it and missing from this register. Closes OPEN-9. | ArchDSU oracle sweep | `test_dsu` + clamp walk 33 168/0; oracle sweep 0/2000 at every magnitude (was 845–1023/2000) |
+| **T-8** | 1 core | FIXED, *proved* | medium (core sleeps forever) | `wfi_active` cleared only on a CLIC wake while `wfi_hold` released on CLIC **or** timer: after a timer-only WFI wake, clearing MTIP re-froze the pipeline. | RTL audit | `t_mtip` (sanity); fails with the old term |
+| **C-5** | 1 core | FIXED | medium (undefined bus traffic) | Reserved funct3 of JALR/BRANCH/LOAD/STORE, SYSTEM funct3=100 and non-architectural funct3=000 SYSTEM words decoded as legal: silent NOPs, not-taken branches, HSIZE=64-bit on AHB. Now illegal-instruction, as Spike. | RTL audit | `test_decode_control`, `test_id_stage` (models updated), ISA 63/63 |
+| **CORE-3** | 1 core | FIXED | low | `RESET_VECTOR` parameter ignored (`garuda_pc_gen` hard-coded it). | RTL audit | chip tests boot from the parameter |
+| **CRG-2** | 22 reset | FIXED | medium (glitch on an async clear) | Rev 2.0 `reset_ctrl` drove an async clear from combinational logic. Rewritten: every async clear comes from a flop. | RTL audit | `tb_crg` 43/43 |
+| **DMA-7** | 9 DMA | FIXED (by design) | medium | Rev 2.0 `dma_ack` was one hclk wide; a pclk peripheral could miss it. Now one pclk period (D-16). | RTL audit | `tb_dma_top` P2M handshake |
+| **ENG-1** | 9 DMA | FIXED | medium (duplicate beat) | New engine regranted in the cycle before the channel had decremented REMAINING. Caught during design, guarded in `dma_engine.v`. | review | `tb_dma_top` one-ack-per-request |
+| OPEN-8 | 1 core | CLOSED — not a bug | — | `t_clic` TIMEOUT was the sanity runner's 50 k-cycle budget; the test is interrupt-bound (IRQ every 40 cycles) and needs ~60 k. `run_sanity.sh` default is now 200 k. | re-run | sanity 10/10 |
+| TB-15 | TB | MOOT | — | The Rev 3.0 DMA never has a second transfer queued when an ERROR returns, so the error-cancel case the checker mis-flags cannot occur; `tb_dma_top` now binds the checker and it is clean. The checker gap itself remains for any future pipelined master. | — | `tb_dma_top` |
+| DMA-4/5/6 | 9 DMA | MOOT | — | All three were properties of the deleted CDC / Rev 2.x register bank. | — | — |
+| ELEM-1..6 | TB | OPEN (testbench) | low | First-ever run of the 14 per-element TBs (Sep 2): 8 pass. `pc_gen` scoreboard samples one cycle late (its own SVA on the RTL passes); `prefetch_buffer` stimulus overfills the FIFO, violating the I-port slot-reservation contract; `iport` SVA encodes the pre-BUS-A HBURST; `load_store_unit` TB has a SystemVerilog syntax error (line 114); `if_stage_top`, `mem_stage` not yet triaged. The RTL they target is covered by ISA 63/63 lockstep incl. random waits. | `make test_elements` | owner: element-TB author |
+
+Spec defects resolved by ruling rather than RTL are D-5..D-20 in `Docs/DECISIONS.md`.
 
 ---
 
