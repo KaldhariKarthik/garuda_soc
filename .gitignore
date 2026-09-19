@@ -64,3 +64,6 @@ sw/riscv-tests/build/
 imc.key
 __pycache__/
 *.pyc
+
+# host tool timestamps
+.rs_*.tstamp
