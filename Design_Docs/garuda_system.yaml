@@ -1,0 +1,406 @@
+---
+# =============================================================================
+# GARUDA SoC - System Definition (Single Source of Truth)
+# GARUDA-SYS-001  Rev 4.0
+#
+# NORMATIVE. Every cross-block fact in this project lives here exactly once:
+# clocks, block numbers, address map, APB windows, CLIC IDs, DMA channels,
+# pins, reset sources. No prose document restates these values by hand -
+# tools/garuda_gen.py renders them into the specs, the RTL header and the
+# firmware header. If a spec and this file disagree, this file wins and the
+# spec is stale by construction.
+#
+# Consumers:
+#   rtl/include/garuda_map.vh   (Verilog-2001 `define)
+#   sw/common/garuda_map.h      (C)
+#   spec/generated/*.md         (document tables)
+#   tb generated address-decode and register-map checkers
+# =============================================================================
+
+meta:
+  doc_id: GARUDA-SYS-001
+  revision: "4.0"
+  date: "2026-09-18"
+  status: Normative
+  owner: Team AeroSoC
+  process: 28nm CMOS
+  die_edge_mm: 1.45
+  tapeout: 2026-12-01
+  gdsii_handoff: 2026-10-31
+
+# -----------------------------------------------------------------------------
+# CLOCKS  (see ADR-0001)
+# -----------------------------------------------------------------------------
+clocks:
+  refclk:
+    source: external_500mhz_reference   # fixed by the 1-TOPS programme - ADR-0001
+    freq_mhz: 500.0
+    pins: 1
+    floorplan: divider_flop_abuts_pad   # ADR-0018: 500 MHz exists only at the pad
+    duty_tolerance_pct: 45..55
+    jitter_ps_pp_max: 200
+  hclk:
+    derived_from: refclk
+    divider: clk_div
+    div_default: 2
+    div_options: [2, 4, 8, 16]        # DIV=4 (125 MHz) is the timing fallback - ADR-0001
+    freq_mhz: 250.0
+    domain_of: [core, dsu, ahb, dma, clic, timers, bridge, apb, debug_dm, memories]
+  pclk:
+    exists: true                      # ADR-0002 rev 2: real 125 MHz clock, toggle flop
+    derived_from: hclk
+    scheme: toggle_flop_div2          # NOT an ICG: an ICG gives 25% duty, not 50%
+    freq_mhz: 125.0
+    div_default: 2
+    div_options: [2, 4, 8]            # per-window override if an IP needs slower
+    cdc_required: false
+    cdc_argument: "Every pclk rising edge coincides with an hclk rising edge, so pclk
+                   edges are a strict subset of hclk edges and both sides always sample
+                   on a shared edge. Synchronous multi-frequency, not a crossing."
+  tck:
+    source: external_jtag_probe
+    freq_mhz_max: 20.0
+    asynchronous_to: hclk
+    note: "The only genuinely asynchronous clock in the chip."
+
+clock_domains:
+  count: 3
+  list: [hclk, pclk, tck]
+  synchronous_set: [hclk, pclk]     # integer ratio, shared edges, no CDC
+  cdc_locations:
+    - block: debug
+      crossing: tck <-> hclk
+      scheme: 2-flop req/ack handshake on DMI
+  cdc_forbidden_elsewhere: true
+  note: "hclk<->pclk is NOT a CDC: see clocks.pclk.cdc_argument."
+
+# -----------------------------------------------------------------------------
+# RESET  (see ADR-0003)
+# -----------------------------------------------------------------------------
+reset:
+  sources:
+    - name: por_n
+      kind: external_supervisor_pin_shared_with_ext_rst   # ADR-0019: no analog POR cell
+      async: true
+      resets: [everything]
+      reason_bit: 0
+      note: "Board-level supply supervisor holds ext_rst_n low until the rail is stable.
+             The chip has no analog POR dependency."
+    - name: ext_rst_n
+      kind: pin
+      async: true
+      resets: [everything_except_reason_register]
+      reason_bit: 1
+    - name: wdt_rst_n
+      kind: internal
+      from: timers
+      resets: [everything_except_reason_register, everything_except_watchdog_source_flop]
+      reason_bit: 2
+    - name: ndm_rst_n
+      kind: internal
+      from: debug
+      resets: [everything_except_reason_register, everything_except_debug]
+      reason_bit: 3
+  stretch:
+    implemented_in: reset_ctrl
+    clock: refclk                     # refclk, NOT hclk - hclk is gated off during reset
+    cycles: 1024
+    reason: "ADR-0003: an unstretched internal reset source clears itself in one flop
+             delay and produces a runt pulse. Stretch is mandatory, not optional."
+  release: synchronous_deassert_2ff
+  reason_register:
+    reset_by: [por_n]                 # ONLY por_n, else the reason is destroyed
+    clear: W1C
+  rules:
+    - "No reset source may be in the reset domain it drives."
+    - "clk_div's divider is reset by raw (unstretched, unsynchronised) por_n|ext_rst_n only."
+    - "The Debug Module and JTAG TAP are outside ndm_rst_n."
+
+# -----------------------------------------------------------------------------
+# BLOCKS  (numbering is normative here; no spec may assign its own)
+# -----------------------------------------------------------------------------
+blocks:
+  - {num: 1,  name: core,        spec: GARUDA-CORE-SPEC-001,   rtl: exists}
+  - {num: 2,  name: dsu,         spec: GARUDA-DSU-SPEC-001,    rtl: exists, parent: core}
+  - {num: 3,  name: isram,       spec: GARUDA-MEM-SPEC-001,    rtl: missing}
+  - {num: 4,  name: bootrom,     spec: GARUDA-MEM-SPEC-001,    rtl: missing}
+  - {num: 5,  name: dsram,       spec: GARUDA-MEM-SPEC-001,    rtl: missing}
+  - {num: 6,  name: ahb_ic,      spec: GARUDA-AHB-SPEC-001,    rtl: exists}
+  - {num: 7,  name: apb_fabric,  spec: GARUDA-AHB2APB-SPEC-001, rtl: missing, note: "generated inside block 8"}
+  - {num: 8,  name: ahb2apb,     spec: GARUDA-AHB2APB-SPEC-001, rtl: missing}
+  - {num: 9,  name: dma,         spec: GARUDA-DMA-SPEC-001,    rtl: exists}
+  - {num: 10, name: clic,        spec: GARUDA-CLIC-SPEC-001,   rtl: missing}
+  - {num: 11, name: timers,      spec: GARUDA-TIMERS-SPEC-001, rtl: missing}
+  - {num: 12, name: debug,       spec: GARUDA-DEBUG-SPEC-001,  rtl: missing}
+  - {num: 13, name: spi_master,  spec: GARUDA-SPIM-SPEC-001,   rtl: sourced_ip}
+  - {num: 14, name: reserved_spi_slave, spec: none, rtl: not_instantiated, note: "ADR-0020: dropped for pin budget; block number held for the 36-pin variant"}
+  - {num: 15, name: i2c,         spec: GARUDA-I2C-SPEC-001,    rtl: sourced_ip}
+  - {num: 16, name: uart0,       spec: GARUDA-UART-SPEC-001,   rtl: sourced_ip}
+  - {num: 17, name: uart1,       spec: GARUDA-UART-SPEC-001,   rtl: sourced_ip}
+  - {num: 18, name: uart2,       spec: GARUDA-UART-SPEC-001,   rtl: sourced_ip}
+  - {num: 19, name: gpio,        spec: GARUDA-GPIO-SPEC-001,   rtl: sourced_ip}
+  - {num: 20, name: pwm,         spec: GARUDA-PWM-SPEC-001,    rtl: sourced_ip}
+  - {num: 21, name: clk_div,     spec: GARUDA-CLKRST-SPEC-001, rtl: missing}
+  - {num: 22, name: reset_ctrl,  spec: GARUDA-CLKRST-SPEC-001, rtl: missing}
+# Blocks 23/24 do not exist. The 24-block count was an artefact of an earlier
+# numbering; 22 blocks is the real figure (ADR-0011).
+
+# -----------------------------------------------------------------------------
+# AHB-LITE FABRIC  (see ADR-0004)
+# -----------------------------------------------------------------------------
+ahb:
+  protocol: AMBA_AHB_Lite_IHI0033A
+  data_width: 32
+  topology: shared_single_layer
+  masters:
+    - {id: 0, name: iport,  from: core,  priority: 0, bursts: [SINGLE, INCR], access: [read]}
+    - {id: 1, name: dport,  from: core,  priority: 1, bursts: [SINGLE],       access: [read, write]}
+    - {id: 2, name: sba,    from: debug, priority: 2, bursts: [SINGLE],       access: [read, write]}
+    - {id: 3, name: dma,    from: dma,   priority: 3, bursts: [SINGLE],       access: [read, write]}
+  arbitration:
+    policy: fixed_priority
+    granularity: per_beat
+    highest: dma
+    note: "ADR-0004: priority ascending, dma highest. Re-evaluated every beat, never
+           mid data-phase. Bursts are split at beat boundaries, never aborted."
+  master_reachability:
+    # ADR-0005: every master reaches every slave. Address decode is the ONLY
+    # restriction. Structural reachability restrictions are forbidden - they broke
+    # the boot CRC, .rodata and JTAG load in the Rev 3.0 multi-layer proposal.
+    iport: [isram, bootrom, dsram, apb]
+    dport: [isram, bootrom, dsram, apb]
+    sba:   [isram, bootrom, dsram, apb]
+    dma:   [isram, dsram, apb]
+  hprot: pass_through_not_decoded
+  default_slave:
+    on_undecoded: two_cycle_ERROR
+    note: "ERROR raises a precise fault in the owning master. The bus never hangs."
+  isram_write_lock:
+    register: MEMCTL.ILOCK
+    set_by: bootloader_before_jump
+    clear_by: reset_only
+    reason: "ADR-0006: flight code cannot corrupt its own instruction memory."
+
+# -----------------------------------------------------------------------------
+# ADDRESS MAP  (normative; decode is on HADDR[31:28] plus in-region offset)
+# -----------------------------------------------------------------------------
+address_map:
+  decode_bits: "31:28"
+  regions:
+    - {name: ISRAM,   base: 0x00000000, size_kib: 64,  slaves: 1, access: rw,  waits: 0}
+    - {name: BOOTROM, base: 0x10000000, size_kib: 4,   slaves: 1, access: r,   waits: 0}
+    - {name: DSRAM,   base: 0x20000000, size_kib: 64,  slaves: 1, access: rw,  waits: 0,
+       note: "4 x 16 KiB macros behind one AHB slave port - ADR-0007"}
+    - {name: APB,     base: 0x40000000, size_kib: 48,  slaves: 12, access: rw, waits: "2..N"}
+  units: KiB_1024_bytes           # 'KB' was ambiguous in earlier revisions
+  macro_assumption: plain_single_port_sram   # ADR-0021: no retain/sleep pins assumed
+
+# -----------------------------------------------------------------------------
+# APB WINDOWS  (4 KiB each, base 0x4000_0000 + 0x1000*index)
+# -----------------------------------------------------------------------------
+apb:
+  protocol: APB3
+  clock: hclk
+  window_size_kib: 4
+  access: word_only
+  slverr_on: [byte_access, halfword_access, unmapped_offset]
+  timeout_cycles: 16
+  timeout_response: two_cycle_AHB_ERROR
+  windows:
+    - {index: 1,  base: 0x40001000, block: 13, name: spi_master}
+    - {index: 2,  base: 0x40002000, block: 15, name: i2c}
+    - {index: 3,  base: 0x40003000, block: 16, name: uart0}
+    - {index: 4,  base: 0x40004000, block: 17, name: uart1}
+    - {index: 5,  base: 0x40005000, block: 9,  name: dma_cfg}
+    - {index: 6,  base: 0x40006000, block: 18, name: uart2}
+    - {index: 7,  base: 0x40007000, block: 19, name: gpio}
+    - {index: 8,  base: 0x40008000, block: 20, name: pwm}
+    - {index: 9,  base: 0x40009000, block: 22, name: reset_ctrl}
+    - {index: 10, base: 0x4000A000, block: 10, name: clic_cfg}
+    - {index: 11, base: 0x4000B000, block: 11, name: timers_cfg}
+
+# -----------------------------------------------------------------------------
+# PERIPHERAL FUNCTION ASSIGNMENT  (see ADR-0008 - one table, no duplicates)
+# -----------------------------------------------------------------------------
+peripheral_functions:
+  - {block: 13, name: spi_master, function: "IMU + boot flash", cs_lines: 2, dma_ch: 0, clic_id: 15}
+  - {block: 15, name: i2c,        function: "barometer, magnetometer, sonar", dma_ch: 1, clic_id: 16}
+  - {block: 16, name: uart0,      function: "GPS", dma_ch: 2, clic_id: 17}
+  - {block: 17, name: uart1,      function: "ground link (telemetry radio OR LoRa - one part, board choice)", dma_ch: 3, clic_id: 18}
+  - {block: 18, name: uart2,      function: "debug console", dma_ch: 5, clic_id: 19}
+  - {block: 19, name: gpio,       function: "discrete IO, pin-change aggregate", dma_ch: null, clic_id: 20}
+  - {block: 20, name: pwm,        function: "motor ESC outputs", dma_ch: null, clic_id: 21}
+
+# -----------------------------------------------------------------------------
+# DMA  (see ADR-0008; one peripheral per channel, no sharing)
+# -----------------------------------------------------------------------------
+dma:
+  channels: 6
+  beat: SINGLE_only
+  arbitration: {policy: fixed_priority, granularity: per_beat}
+  modes: [P2M, M2P, M2M]
+  clock: hclk
+  cdc: none                         # ADR-0002: config port is on hclk
+  assignment:
+    - {ch: 0, peripheral: spi_master, function: IMU,          priority: 5}
+    - {ch: 1, peripheral: i2c,        function: baro_mag_sonar, priority: 3}
+    - {ch: 2, peripheral: uart0,      function: GPS,          priority: 1}
+    - {ch: 3, peripheral: uart1,      function: ground_link,  priority: 2}
+    - {ch: 4, peripheral: reserved,   function: spare,        priority: 4}
+    - {ch: 5, peripheral: uart2,      function: console,      priority: 0}
+  priority_note: "5 = highest. IMU highest because it is the control loop's
+                  hard-real-time input; console lowest because nothing depends on it."
+
+# -----------------------------------------------------------------------------
+# CLIC INTERRUPT MAP  (see ADR-0009)
+# -----------------------------------------------------------------------------
+clic:
+  id_width: 32
+  mode: clic_only                   # mtvec.MODE = 3
+  trigger: level_fixed_in_hardware
+  reset_state: all_disabled
+  map:
+    - {id: 0,          source: reserved_sentinel, note: "never assigned; an ID-0 request is a bug indicator"}
+    - {id: "1..6",     source: dma_complete_ch0_5, block: 9}
+    - {id: "7..12",    source: dma_error_ch0_5,    block: 9}
+    - {id: 13,         source: reserved, note: "ADR-0010: mtip does NOT route through CLIC"}
+    - {id: 14,         source: reserved}
+    - {id: 15,         source: spi_master, block: 13}
+    - {id: 16,         source: i2c,        block: 15}
+    - {id: 17,         source: uart0,      block: 16}
+    - {id: 18,         source: uart1,      block: 17}
+    - {id: 19,         source: uart2,      block: 18}
+    - {id: 20,         source: gpio_aggregate, block: 19}
+    - {id: 21,         source: pwm_fault,  block: 20}
+    - {id: 22,         source: wdt_early_warning, block: 11}
+    - {id: "23..31",   source: reserved}
+  take_condition: "pending & mstatus.MIE & (level > mintthresh) & (level > mintstatus.mil)"
+  strict_greater: true              # equal never preempts
+
+# -----------------------------------------------------------------------------
+# TIMERS  (see ADR-0010)
+# -----------------------------------------------------------------------------
+timers:
+  clock: hclk
+  machine_timer:
+    counter_width: 64
+    compare_in_block: true          # block 11 does the compare
+    core_interface: mtip_single_bit # NOT 64-bit mtime/mtimecmp buses into the core
+    core_path: mip.MTIP
+    torn_read: hardware_shadow_on_low_word_read
+    mtimecmp_update: three_step_sequence
+  watchdog:
+    counter_width: 32
+    early_warning: clic_id_22
+    timeout: wdt_rst_n_to_reset_ctrl
+    kick: magic_value_write
+    source_flop_reset_domain: por_ext_only   # ADR-0003
+
+# -----------------------------------------------------------------------------
+# DEBUG  (see ADR-0012)
+# -----------------------------------------------------------------------------
+debug:
+  standard: riscv_debug_0_13
+  wires: 4                          # TCK TMS TDI TDO; no TRST_n
+  trst: absent
+  trst_alternative: five_tms_high_ieee1149_1
+  dm_features: [system_bus_access, dsu_accumulator_taps, ndmreset, hartreset]
+  dm_features_excluded: [abstract_access_register, program_buffer, hart_array, abstractauto]
+  sba:
+    master: ahb_master_id_2
+    widths: [32]
+    reach: [isram, bootrom, dsram, apb]
+  core_changes_required: none       # ADR-0012: this is the whole point
+  capabilities:
+    - "Load a firmware image into ISRAM over JTAG - no SPI reflash in the dev loop."
+    - "Read and write DSRAM and every peripheral register while the core is held reset."
+    - "Halt = hold the core in hartreset; resume = release it."
+    - "Read the three 48-bit DSU accumulators through always-live taps."
+  not_supported:
+    - "GPR/CSR access on a running or halted-not-reset core."
+    - "Hardware breakpoints and single-step."
+  v2_upgrade_path: "Add dcsr/dpc/dscratch0/dscratch1 and a program buffer to the core;
+                    SBA stays and remains the firmware-load path."
+
+# -----------------------------------------------------------------------------
+# PIN BUDGET  (signal pins; power/ground pads are counted separately - ADR-0013)
+# -----------------------------------------------------------------------------
+pins:
+  pad_ring_total: 40
+  power_pads_assumed: 12            # ADR-0020: assume power/ground are inside the 40
+  signal_budget: 28
+  expandable_to: 36                 # if power pads turn out to be separate
+  allocation:
+    - {function: refclk,      pins: 1,  names: [refclk]}
+    - {function: reset,       pins: 1,  names: [ext_rst_n]}
+    - {function: jtag,        pins: 4,  names: [tck, tms, tdi, tdo]}
+    - {function: spi_master,  pins: 5,  names: [sclk, mosi, miso, cs_flash_n, cs_imu_n]}
+    - {function: i2c,         pins: 2,  names: [scl, sda]}
+    - {function: uart0,       pins: 2,  names: [rx, tx]}
+    - {function: uart1,       pins: 2,  names: [rx, tx]}
+    - {function: uart2,       pins: 2,  names: [rx, tx]}
+    - {function: pwm,         pins: 4,  names: [pwm0, pwm1, pwm2, pwm3]}
+    - {function: gpio,        pins: 2,  names: [gpio0, gpio1]}
+    - {function: boot_mode,   pins: 1,  names: [boot_sel]}
+  total_allocated: 26
+  spare: 2
+  notes:
+    - "boot_sel: 0 = boot from flash, 1 = halt in reset and wait for JTAG. ADR-0014."
+    - "PWM is dedicated, not GPIO-muxed: an ESC output that a GPIO write can steal is
+       a flight-safety hazard, and 4 pins is affordable inside this budget."
+
+# -----------------------------------------------------------------------------
+# BOOT  (see ADR-0014)
+# -----------------------------------------------------------------------------
+boot:
+  reset_vector: 0x10000000
+  rom_size_kib: 4
+  loader: polled_spi_pio             # ADR-0015: no DMA in the boot path
+  sequence:
+    - "Sample boot_sel. If 1, spin in a tight ROM loop with ISRAM unlocked so JTAG SBA
+       can load an image, then release via hartreset."
+    - "Configure SPI master, CS_FLASH_N, mode 0."
+    - "Read the 16-byte image header: magic, length, entry offset, CRC32."
+    - "Copy length bytes flash -> ISRAM by polled word writes on the D-port."
+    - "Copy the .data init image flash -> DSRAM the same way."
+    - "CRC32 over ISRAM[0..length) via D-port reads. Compare to header."
+    - "On match: set MEMCTL.ILOCK, jump to entry. On mismatch: set the reset-reason
+       BOOTFAIL bit, then spin with ISRAM unlocked so JTAG can recover the board."
+  checksum:
+    algorithm: CRC32_IEEE_802_3
+    poly: 0x04C11DB7
+    init: 0xFFFFFFFF
+    reason: "ADR-0016: CRC-32 over a 64 KiB image, not CRC-16. Same instruction budget,
+             2^32 rather than 2^16 collision space."
+  on_fail: spin_with_jtag_recovery   # ADR-0016: never a dead halt
+  rom_fill: illegal_instruction_pattern
+
+# -----------------------------------------------------------------------------
+# FLIGHT PIPELINE BUDGET  (informative, firmware scope)
+# -----------------------------------------------------------------------------
+flight:
+  loop_rate_hz: 1000
+  cycles_per_loop: 250000            # at 250 MHz
+  stages: [apf, ekf, pid]
+  apf_inner_loop_cycles: 300         # 10 neighbours
+  ahb_utilisation_pct: 7             # AHB-SPEC bandwidth analysis at 250 MHz
+  headroom_note: "The loop uses ~0.1% of the budget on APF and ~7% of bus bandwidth. The
+                  headroom is what makes DIV=4 a viable fallback if 250 MHz does not close."
+
+# -----------------------------------------------------------------------------
+# DSU  (numeric contract - see ADR-0017)
+# -----------------------------------------------------------------------------
+dsu:
+  macs: 3
+  accumulators: [ACC_FX, ACC_FY, ACC_MAG]
+  acc_width: 48
+  operand_width: 16
+  operand_format: Q1.15
+  product_format: Q2.30
+  accumulator_format: Q18.30
+  max_accumulations_without_saturation: 65536
+  opcode_space: custom_0
+  instructions: 9
+  acc_sel_11: reserved_illegal
+  ekf_scope: "Bounded-range terms only. Covariance propagation that needs more than
+              Q1.15 input range is firmware in RV32IM. ADR-0017 states the split."
