@@ -809,10 +809,16 @@ class id_stage_ref_model;
             7'b0110111: begin r.reg_write=1; r.alu_src=1; r.alu_op=`ALU_PASSB; r.imm_sel=`IMM_U; end
             7'b0010111: begin r.reg_write=1; r.alu_src=1; r.alu_a_pc=1; r.alu_op=`ALU_ADD; r.imm_sel=`IMM_U; end
             7'b1101111: begin r.reg_write=1; r.jal=1; r.imm_sel=`IMM_J; end
-            7'b1100111: begin r.reg_write=1; r.jalr=1; r.imm_sel=`IMM_I; end
-            7'b1100011: begin r.branch=1; r.alu_op=`ALU_SUB; r.imm_sel=`IMM_B; end
-            7'b0000011: begin r.reg_write=1; r.mem_read=1; r.mem_to_reg=1; r.alu_src=1; r.alu_op=`ALU_ADD; r.imm_sel=`IMM_I; end
-            7'b0100011: begin r.mem_write=1; r.alu_src=1; r.alu_op=`ALU_ADD; r.imm_sel=`IMM_S; end
+            // ERRATUM C-5: reserved funct3 encodings of JALR/BRANCH/LOAD/STORE
+            // and SYSTEM are illegal (RV32I, as Spike implements it).
+            7'b1100111: if (f3 == 3'b000) begin r.reg_write=1; r.jalr=1; r.imm_sel=`IMM_I; end
+                        else r.illegal = 1;
+            7'b1100011: if (f3 == 3'b010 || f3 == 3'b011) r.illegal = 1;
+                        else begin r.branch=1; r.alu_op=`ALU_SUB; r.imm_sel=`IMM_B; end
+            7'b0000011: if (f3 inside {3'b011, 3'b110, 3'b111}) r.illegal = 1;
+                        else begin r.reg_write=1; r.mem_read=1; r.mem_to_reg=1; r.alu_src=1; r.alu_op=`ALU_ADD; r.imm_sel=`IMM_I; end
+            7'b0100011: if (f3[2] || f3 == 3'b011) r.illegal = 1;
+                        else begin r.mem_write=1; r.alu_src=1; r.alu_op=`ALU_ADD; r.imm_sel=`IMM_S; end
             7'b0010011: begin
                 r.reg_write=1; r.alu_src=1; r.imm_sel=`IMM_I;
                 case (f3)
@@ -853,7 +859,12 @@ class id_stage_ref_model;
             end
             7'b1110011: begin
                 r.is_system=1;
-                if (f3 != 3'b000) begin r.csr_en=1; r.csr_op=f3; r.reg_write=1; r.imm_sel=`IMM_CSR; end
+                if (f3 == 3'b100) r.illegal = 1;
+                else if (f3 == 3'b000) begin
+                    if (!(instr inside {32'h0000_0073, 32'h0010_0073, 32'h3020_0073, 32'h1050_0073}))
+                        r.illegal = 1;
+                end
+                else begin r.csr_en=1; r.csr_op=f3; r.reg_write=1; r.imm_sel=`IMM_CSR; end
             end
             7'b0001011: begin r.dsu_en=1; end
             // ERRATUM C-2: FENCE (MISC-MEM, funct3=000) is a no-op on GARUDA -

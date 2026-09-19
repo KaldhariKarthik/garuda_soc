@@ -134,32 +134,59 @@ module decode_control (
                 imm_sel_o   = `IMM_J;
             end
 
+            // ERRATUM C-5 (Rev 4.0 audit): JALR, BRANCH, LOAD, STORE and
+            // SYSTEM had reserved funct3 encodings that decoded as legal. A
+            // BRANCH with funct3 010/011 resolved as not-taken, a LOAD/STORE
+            // with funct3 011/110/111 put HSIZE=3'b011 (64-bit) on the AHB
+            // D-port, SYSTEM funct3=100 executed as a CSR op and any funct3=000
+            // SYSTEM word other than ECALL/EBREAK/MRET/WFI (DRET, SRET, URET,
+            // SFENCE.VMA ...) retired as a silent NOP. Spike raises
+            // illegal-instruction for every one of them; so does this decoder
+            // now, with no side effects enabled.
             OP_JALR: begin
-                reg_write_o = 1'b1;
-                jalr_o      = 1'b1;
-                imm_sel_o   = `IMM_I;
+                if (funct3 == 3'b000) begin
+                    reg_write_o = 1'b1;
+                    jalr_o      = 1'b1;
+                    imm_sel_o   = `IMM_I;
+                end else begin
+                    illegal_instr_o = 1'b1;
+                end
             end
 
             OP_BRANCH: begin
-                branch_o  = 1'b1;
-                alu_op_o  = `ALU_SUB;  // comparison base op; funct3 selects relation in EX
-                imm_sel_o = `IMM_B;
+                if (funct3 == 3'b010 || funct3 == 3'b011) begin
+                    illegal_instr_o = 1'b1;
+                end else begin
+                    branch_o  = 1'b1;
+                    alu_op_o  = `ALU_SUB;  // comparison base op; funct3 selects relation in EX
+                    imm_sel_o = `IMM_B;
+                end
             end
 
             OP_LOAD: begin
-                reg_write_o  = 1'b1;
-                mem_read_o   = 1'b1;
-                mem_to_reg_o = 1'b1;
-                alu_src_o    = 1'b1;
-                alu_op_o     = `ALU_ADD;
-                imm_sel_o    = `IMM_I;
+                // LB LH LW LBU LHU only
+                if (funct3 == 3'b011 || funct3 == 3'b110 || funct3 == 3'b111) begin
+                    illegal_instr_o = 1'b1;
+                end else begin
+                    reg_write_o  = 1'b1;
+                    mem_read_o   = 1'b1;
+                    mem_to_reg_o = 1'b1;
+                    alu_src_o    = 1'b1;
+                    alu_op_o     = `ALU_ADD;
+                    imm_sel_o    = `IMM_I;
+                end
             end
 
             OP_STORE: begin
-                mem_write_o = 1'b1;
-                alu_src_o   = 1'b1;
-                alu_op_o    = `ALU_ADD;
-                imm_sel_o   = `IMM_S;
+                // SB SH SW only
+                if (funct3[2] || funct3 == 3'b011) begin
+                    illegal_instr_o = 1'b1;
+                end else begin
+                    mem_write_o = 1'b1;
+                    alu_src_o   = 1'b1;
+                    alu_op_o    = `ALU_ADD;
+                    imm_sel_o   = `IMM_S;
+                end
             end
 
             OP_IMM: begin
@@ -217,7 +244,15 @@ module decode_control (
 
             OP_SYSTEM: begin
                 is_system_o = 1'b1;
-                if (funct3 != 3'b000) begin
+                if (funct3 == 3'b100) begin
+                    illegal_instr_o = 1'b1;
+                end else if (funct3 == 3'b000) begin
+                    // Only these four exist on an M-mode-only, no-debug-mode
+                    // core; trap_ctrl discriminates them by the same words.
+                    if (instr_i != 32'h0000_0073 && instr_i != 32'h0010_0073 &&
+                        instr_i != 32'h3020_0073 && instr_i != 32'h1050_0073)
+                        illegal_instr_o = 1'b1;
+                end else begin
                     // CSRRW/CSRRS/CSRRC/CSRRWI/CSRRSI/CSRRCI
                     csr_en_o    = 1'b1;
                     csr_op_o    = funct3;

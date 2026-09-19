@@ -662,17 +662,28 @@ class decode_ref_model;
         bit [2:0] f3     = instr[14:12];
         bit [6:0] f7     = instr[31:25];
 
+        // Reserved funct3 encodings are illegal (RV32I; rtl ERRATUM C-5, which
+        // brought the decoder in line with Spike). SYSTEM keeps is_system set
+        // on its illegal forms, exactly as the RTL presents them.
         case (opcode)
             OPC_LUI:     return decode_lui();
             OPC_AUIPC:   return decode_auipc();
             OPC_JAL:     return decode_jal();
-            OPC_JALR:    return decode_jalr();
-            OPC_BRANCH:  return decode_branch();
-            OPC_LOAD:    return decode_load();
-            OPC_STORE:   return decode_store();
+            OPC_JALR:    return (f3 == 3'b000) ? decode_jalr() : decode_illegal();
+            OPC_BRANCH:  return (f3 == 3'b010 || f3 == 3'b011) ? decode_illegal() : decode_branch();
+            OPC_LOAD:    return (f3 inside {3'b011, 3'b110, 3'b111}) ? decode_illegal() : decode_load();
+            OPC_STORE:   return (f3[2] || f3 == 3'b011) ? decode_illegal() : decode_store();
             OPC_IMM:     return decode_op_imm(f3, f7);
             OPC_REG:     return decode_op_reg(f3, f7);
-            OPC_SYSTEM:  return decode_system(f3);
+            OPC_SYSTEM: begin
+                decode_result_t r = decode_system(f3);
+                if (f3 == 3'b100 ||
+                    (f3 == 3'b000 && !(instr inside {32'h0000_0073, 32'h0010_0073,
+                                                     32'h3020_0073, 32'h1050_0073}))) begin
+                    r = base_defaults(); r.is_system = 1; r.illegal = 1;
+                end
+                return r;
+            end
             OPC_CUSTOM0: return decode_custom0();
             default:     return decode_illegal();
         endcase
