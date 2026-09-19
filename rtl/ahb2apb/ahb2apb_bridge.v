@@ -1,68 +1,67 @@
 `timescale 1ns/1ps
 `default_nettype none
 // =============================================================================
-// GARUDA SoC - Block 8: AHB-to-APB Bridge
-// ahb2apb_bridge.v - block boundary: AHB-Lite slave S3 <-> APB4 master
+// GARUDA SoC - Block 8 : AHB-Lite to APB3 bridge (with Block 7, the APB fabric)
+// ahb2apb_bridge.v - AHB slave side (hclk) + instances of the APB FSM (pclk)
+//                    and the fabric
 //
-// Spec reference: GARUDA-BRG-SPEC-001 Rev 2.0, Sec. 3, Sec. 5, Sec. 13.1
+// Spec: GARUDA-AHB2APB-SPEC-001 Rev 2.0 (Rev 4.0 set)
+//       Rulings: Docs/DECISIONS.md D-5 (synchronous pclk), D-6 (window map)
 //
-// =============================================================================
-// THIS IS THE SoC's ONLY CLOCK-DOMAIN CROSSING, BY DESIGN
-// =============================================================================
-// Every 200/100 MHz crossing in GARUDA is concentrated in this one block. The
-// alternative - letting each peripheral or the interconnect cross clocks
-// locally - would scatter metastability risk across a dozen blocks, each
-// needing its own CDC sign-off. Concentrating it here is precisely why the
-// core, the interconnect, the DMA and every peripheral can be single-domain and
-// timing-trivial. This is inherited from the core specification (Sec. 2.1,
-// Sec. 4.3), not invented here, and NO OTHER BLOCK MAY ADD A SECOND CDC SITE.
+// -----------------------------------------------------------------------------
+// WHAT CHANGED FROM THE REV 2.0-SET BRIDGE (2026-09-16)
+// -----------------------------------------------------------------------------
+// The previous bridge treated pclk as asynchronous and crossed it with toggle
+// synchronisers (ahb2apb_cdc.v). Under Rev 4.0 pclk is hclk/2 from a toggle
+// flop: every pclk edge is an hclk edge ([N-7.4]), so every path between the
+// two sides is an ordinary synchronous path timed by STA. The synchronisers are
+// gone; the request/acknowledge toggles below remain only as an EVENT
+// protocol - they make "one request, one response" independent of the hclk:pclk
+// ratio, so a two-hclk-long pclk DONE can never be seen as two completions
+// (the failure mode behind erratum BRG-1).
 //
-// (The one apparent exception is not one: the CLIC spans pclk and hclk for its
-// configuration registers, but Sec. 5.1.1 of that spec establishes those clocks
-// as synchronous and integer-related, so it is not an asynchronous crossing and
-// instantiates no synchronisers. If the clock relationship ever changes, that
-// block needs CDC and this comment needs revisiting - see clk_div.v.)
+// -----------------------------------------------------------------------------
+// WINDOWS (D-6)
+// -----------------------------------------------------------------------------
+// PSEL bit n = haddr[15:12] = window n at 0x4000_0000 + 0x1000*n. Windows are
+// present when WINDOW_MASK[n] is set. Window 0 (the removed SPI slave) and
+// 0xC-0xF never exist. An access to an absent window, a sub-word access, a
+// PSLVERR and a 16-pclk PREADY timeout all return the same two-cycle AHB ERROR
+// ([N-7.21]) and generate no APB transfer for the first two.
 //
-// =============================================================================
-// SINGLE-OUTSTANDING AND NON-POSTED (Sec. 13.3)
-// =============================================================================
-// Exactly one transfer is in flight at a time and the AHB side completes only
-// after the APB side has. RTL must not add a write buffer, a posted-write path
-// or a second outstanding transaction. Posting would let the CPU retire a store
-// before APB finished, which (a) adds a second thing to get right across the
-// CDC, (b) breaks the in-order two-cycle-ERROR reporting the interconnect and
-// the DMA depend on - a posted write that later errors has no master still
-// waiting to receive the fault - and (c) buys nothing measurable, since
-// peripheral traffic is around 0.2% of the control-loop budget.
+// -----------------------------------------------------------------------------
+// hclk-SIDE SEQUENCE
+// -----------------------------------------------------------------------------
+//   H_IDLE  hreadyout=1. Accept a transfer: bad -> H_ERR1, good -> H_CAPT.
+//   H_CAPT  data phase cycle 1: capture hwdata, toggle req. hreadyout=0.
+//   H_WAIT  hreadyout=0 until the APB side toggles ack.
+//   H_OK    hreadyout=1, hresp=OKAY, hrdata = captured PRDATA.
+//   H_ERR1  hreadyout=0, hresp=ERROR.
+//   H_ERR2  hreadyout=1, hresp=ERROR.
 //
-// It also makes the bundled-data invariant hold by construction rather than by
-// timing argument, which is the quiet benefit that matters most.
+// The capture registers (addr/win/write/wdata) change only in H_IDLE/H_CAPT,
+// i.e. only while the APB side is idle, so they are stable whenever the pclk
+// FSM samples them ([N-7.8], a_capture_stable_at_phase). pclk_phase_i is
+// therefore not needed for correctness and is kept on the port list for the
+// assertion and the spec's interface contract.
 //
+// Reset ([N-9.2], [N-9.3]): hreadyout resets low and is released only once
+// both hreset_n and preset_n are deasserted. preset_n is sampled on hclk
+// directly - it releases on a pclk edge, which is an hclk edge.
 // =============================================================================
-// PORT NOTES
-// =============================================================================
-// HBURST is not brought to the interface at all (Sec. 5.2, Sec. 13.6): accesses
-// to this region are single-beat, so there is no burst to decompose. HPROT is
-// dropped because GARUDA is M-mode with no MPU. Both are genuinely absent
-// rather than tied off, so a reader cannot mistake them for something consumed.
-//
-// paddr_o is 16 bits, not 32: the interconnect has already consumed the region
-// nibble, and within the bridge only PADDR[15:0] is meaningful - [15:12] picks
-// the window, [11:0] the register offset (Sec. 5.3.1).
-// =============================================================================
-
-`include "ahb2apb_defs.vh"
 
 module ahb2apb_bridge #(
-    parameter [15:0] WINDOW_MASK = `BRG_WINDOW_MASK_DEFAULT
+    parameter [15:0] WINDOW_MASK = 16'h0FFE,      // GARUDA_APB_WINDOW_MASK_ALL
+    parameter [23:0] APB_DIV     = 24'h0,         // 2 bits per window 0..11
+    parameter integer TIMEOUT    = 16             // GARUDA_APB_TIMEOUT_PCLK
 )(
-    // ---- clocks and resets (Block 23; coordinated, Sec. 10.1) -------------
     input  wire        hclk_i,
     input  wire        hreset_n_i,
     input  wire        pclk_i,
     input  wire        preset_n_i,
+    input  wire        pclk_phase_i,
 
-    // ---- AHB-Lite slave S3 (frozen bundle, interconnect Sec. 5.3) --------
+    // ---- AHB-Lite slave ------------------------------------------------------
     input  wire        hsel_i,
     input  wire [31:0] haddr_i,
     input  wire [1:0]  htrans_i,
@@ -70,125 +69,164 @@ module ahb2apb_bridge #(
     input  wire [2:0]  hsize_i,
     input  wire [31:0] hwdata_i,
     input  wire        hready_i,
-    output wire [31:0] hrdata_o,
+    output reg  [31:0] hrdata_o,
     output wire        hreadyout_o,
     output wire        hresp_o,
 
-    // ---- APB4 master (Sec. 5.3) -------------------------------------------
-    output wire [15:0] psel_o,
+    // ---- APB3 master (pclk), one PSEL per window ----------------------------
+    output wire [11:0] psel_o,
     output wire        penable_o,
     output wire        pwrite_o,
-    output wire [15:0] paddr_o,
+    output wire [11:0] paddr_o,
     output wire [31:0] pwdata_o,
-    output wire [3:0]  pstrb_o,
-    input  wire [31:0] prdata_i,
-    input  wire        pready_i,
-    input  wire        pslverr_i
+    input  wire [12*32-1:0] prdata_i,             // window n at [32n +: 32]
+    input  wire [11:0] pready_i,
+    input  wire [11:0] pslverr_i
 );
 
-    // ---- request payload and toggle (hclk -> pclk) ------------------------
-    wire [15:0] req_addr;
-    wire        req_write;
-    wire [3:0]  req_strb;
-    wire [31:0] req_wdata;
-    wire        req_tog;
-    wire        req_pulse;
+    localparam [2:0] H_IDLE = 3'd0, H_CAPT = 3'd1, H_WAIT = 3'd2,
+                     H_OK   = 3'd3, H_ERR1 = 3'd4, H_ERR2 = 3'd5;
 
-    // ---- response payload and toggle (pclk -> hclk) -----------------------
-    wire [31:0] rsp_rdata;
-    wire        rsp_err;
-    wire        ack_tog;
-    wire        ack_pulse;
+    // =========================================================================
+    // Reset release gate
+    // =========================================================================
+    reg prst_ok_q;
+    always @(posedge hclk_i or negedge hreset_n_i)
+        if (!hreset_n_i) prst_ok_q <= 1'b0;
+        else             prst_ok_q <= preset_n_i;
 
-    // ---- address-phase decode --------------------------------------------
-    wire [3:0]  dec_win;
-    wire [15:0] dec_psel_unused;
-    wire        dec_err;
+    // =========================================================================
+    // Address-phase decode
+    // =========================================================================
+    wire [3:0] win     = haddr_i[15:12];
+    wire       win_ok  = WINDOW_MASK[win];
+    wire       word_ok = (hsize_i == 3'b010);
+    wire       xfer    = hsel_i & htrans_i[1] & hready_i;
 
-    // =======================================================================
-    // Address-phase decode. Combinational off the bus address so the decode
-    // fault is known at capture time and the access can be faulted without
-    // ever crossing to the APB side (Sec. 8.5).
-    // =======================================================================
-    ahb2apb_decoder #(.WINDOW_MASK(WINDOW_MASK)) u_dec_ap (
-        .win_i     (dec_win),
-        .psel_o    (dec_psel_unused),
-        .dec_err_o (dec_err)
+    // =========================================================================
+    // hclk-side FSM and capture
+    // =========================================================================
+    reg  [2:0]  hstate;
+    reg  [3:0]  win_cap;
+    reg  [11:0] addr_cap;
+    reg         write_cap;
+    reg  [31:0] wdata_cap;
+    reg         req_tgl;
+
+    wire        ack_tgl;
+    wire        apb_err;
+    wire [31:0] apb_rdata;
+    reg         ack_seen;
+    wire        ack_new = (ack_tgl != ack_seen);
+
+    always @(posedge hclk_i or negedge hreset_n_i) begin
+        if (!hreset_n_i) begin
+            hstate    <= H_IDLE;
+            win_cap   <= 4'd0;
+            addr_cap  <= 12'd0;
+            write_cap <= 1'b0;
+            wdata_cap <= 32'd0;
+            req_tgl   <= 1'b0;
+            ack_seen  <= 1'b0;
+            hrdata_o  <= 32'd0;
+        end else begin
+            case (hstate)
+                H_IDLE, H_OK, H_ERR2: begin
+                    // A new address phase can be accepted in any cycle where
+                    // the bus is ready. One accepted during the [N-9.2] window
+                    // (APB side still in reset) is captured and simply waits:
+                    // the pclk FSM picks it up when preset_n releases.
+                    if (!prst_ok_q && hstate == H_ERR2) begin
+                        hstate <= H_ERR2;          // hold the 2nd ERROR cycle
+                    end else if (xfer) begin
+                        if (!win_ok || !word_ok) begin
+                            hstate <= H_ERR1;
+                        end else begin
+                            hstate    <= H_CAPT;
+                            win_cap   <= win;
+                            addr_cap  <= haddr_i[11:0];
+                            write_cap <= hwrite_i;
+                        end
+                    end else begin
+                        hstate <= H_IDLE;
+                    end
+                end
+                H_CAPT: begin
+                    if (write_cap) wdata_cap <= hwdata_i;
+                    req_tgl <= ~req_tgl;
+                    hstate  <= H_WAIT;
+                end
+                H_WAIT: begin
+                    if (ack_new) begin
+                        ack_seen <= ack_tgl;
+                        hrdata_o <= apb_rdata;
+                        hstate   <= apb_err ? H_ERR1 : H_OK;
+                    end
+                end
+                H_ERR1:  hstate <= H_ERR2;
+                default: hstate <= H_IDLE;
+            endcase
+        end
+    end
+
+    assign hreadyout_o = prst_ok_q &&
+                         (hstate == H_IDLE || hstate == H_OK || hstate == H_ERR2);
+    assign hresp_o     = (hstate == H_ERR1) || (hstate == H_ERR2);
+
+    // =========================================================================
+    // APB side (pclk)
+    // =========================================================================
+    wire [31:0] prdata_sel;
+    wire        pready_sel, pslverr_sel;
+
+    ahb2apb_apb_fsm #(
+        .APB_DIV (APB_DIV),
+        .TIMEOUT (TIMEOUT)
+    ) u_fsm (
+        .pclk_i        (pclk_i),
+        .preset_n_i    (preset_n_i),
+        .req_tgl_i     (req_tgl),
+        .win_i         (win_cap),
+        .addr_i        (addr_cap),
+        .write_i       (write_cap),
+        .wdata_i       (wdata_cap),
+        .ack_tgl_o     (ack_tgl),
+        .err_o         (apb_err),
+        .rdata_o       (apb_rdata),
+        .psel_o        (psel_o),
+        .penable_o     (penable_o),
+        .pwrite_o      (pwrite_o),
+        .paddr_o       (paddr_o),
+        .pwdata_o      (pwdata_o),
+        .prdata_sel_i  (prdata_sel),
+        .pready_sel_i  (pready_sel),
+        .pslverr_sel_i (pslverr_sel)
     );
 
-    // =======================================================================
-    // hclk side
-    // =======================================================================
-    ahb2apb_hclk_fsm u_hclk (
-        .hclk_i      (hclk_i),
-        .hreset_n_i  (hreset_n_i),
-        .hsel_i      (hsel_i),
-        .haddr_i     (haddr_i),
-        .htrans_i    (htrans_i),
-        .hwrite_i    (hwrite_i),
-        .hsize_i     (hsize_i),
-        .hwdata_i    (hwdata_i),
-        .hready_i    (hready_i),
-        .hrdata_o    (hrdata_o),
-        .hreadyout_o (hreadyout_o),
-        .hresp_o     (hresp_o),
-        .req_addr_o  (req_addr),
-        .req_write_o (req_write),
-        .req_strb_o  (req_strb),
-        .req_wdata_o (req_wdata),
-        .req_tog_o   (req_tog),
-        .rsp_rdata_i (rsp_rdata),
-        .rsp_err_i   (rsp_err),
-        .ack_pulse_i (ack_pulse),
-        .dec_win_o   (dec_win),
-        .dec_err_i   (dec_err)
+    ahb2apb_fabric u_fabric (
+        .psel_i        (psel_o),
+        .prdata_i      (prdata_i),
+        .pready_i      (pready_i),
+        .pslverr_i     (pslverr_i),
+        .prdata_o      (prdata_sel),
+        .pready_o      (pready_sel),
+        .pslverr_o     (pslverr_sel)
     );
 
-    // =======================================================================
-    // pclk side
-    // =======================================================================
-    ahb2apb_pclk_fsm #(.WINDOW_MASK(WINDOW_MASK)) u_pclk (
-        .pclk_i      (pclk_i),
-        .preset_n_i  (preset_n_i),
-        .req_addr_i  (req_addr),
-        .req_write_i (req_write),
-        .req_strb_i  (req_strb),
-        .req_wdata_i (req_wdata),
-        .req_pulse_i (req_pulse),
-        .rsp_rdata_o (rsp_rdata),
-        .rsp_err_o   (rsp_err),
-        .ack_tog_o   (ack_tog),
-        .psel_o      (psel_o),
-        .penable_o   (penable_o),
-        .pwrite_o    (pwrite_o),
-        .paddr_o     (paddr_o),
-        .pwdata_o    (pwdata_o),
-        .pstrb_o     (pstrb_o),
-        .prdata_i    (prdata_i),
-        .pready_i    (pready_i),
-        .pslverr_i   (pslverr_i)
-    );
-
-    // =======================================================================
-    // The crossing itself. Two toggles, two destination-side synchronisers,
-    // and nothing else passes between the domains except payload held stable
-    // in registers (Sec. 7.3).
-    // =======================================================================
-    ahb2apb_cdc u_req_sync (
-        .clk_i   (pclk_i),
-        .rst_n_i (preset_n_i),
-        .tog_i   (req_tog),
-        .pulse_o (req_pulse)
-    );
-
-    ahb2apb_cdc u_ack_sync (
-        .clk_i   (hclk_i),
-        .rst_n_i (hreset_n_i),
-        .tog_i   (ack_tog),
-        .pulse_o (ack_pulse)
-    );
-
-    wire _unused = |dec_psel_unused;
+`ifndef SYNTHESIS
+    // a_capture_stable_at_phase: the captures never move between two cycles
+    // that are both inside an APB transfer (H_WAIT), so every pclk edge the
+    // FSM samples on sees a stable value.
+    reg [44:0] cap_prev;
+    reg [2:0]  hstate_d;
+    always @(posedge hclk_i) begin
+        if (hreset_n_i && hstate == H_WAIT && hstate_d == H_WAIT &&
+            cap_prev !== {win_cap, addr_cap, write_cap, wdata_cap[27:0]})
+            $display("[BRG-ASSERT] capture moved during an APB transfer at %0t", $time);
+        cap_prev <= {win_cap, addr_cap, write_cap, wdata_cap[27:0]};
+        hstate_d <= hstate;
+    end
+`endif
 
 endmodule
 

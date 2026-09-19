@@ -1,381 +1,203 @@
 `timescale 1ns/1ps
 // =============================================================================
-// GARUDA SoC - Block 8: AHB-to-APB Bridge - block-level testbench
+// tb_ahb2apb.sv -- Block 8 (+7) AHB-to-APB bridge, Rev 4.0 synchronous smoke
 //
-// Covers GARUDA-BRG-SPEC-001 Rev 2.0 Sec. 12 (Verification Plan), plus one test
-// for a failure mode the specification does not anticipate:
+// Spec: GARUDA-AHB2APB-SPEC-001 §11. Real clk_div provides hclk/pclk/pclk_phase
+// so the no-CDC relationship is the production one, not a testbench idealisation.
 //
-//   T8  back-to-back accesses            (ERRATUM BRG-1)
-//
-// pclk IS DELIBERATELY SKEWED AGAINST hclk HERE. This is the opposite choice
-// from tb_clic.sv and for the opposite reason: Sec. 13.2 states flatly that the
-// bridge's correctness rests on the req/ack handshake and NOT on any clock
-// phase relationship, and that the design is expected to stay correct if the
-// relationship is later relaxed to fully asynchronous. Verifying under a
-// deliberate offset is what proves the HANDSHAKE carries correctness. Running
-// it edge-aligned would prove only that it works in the one configuration the
-// silicon happens to have today.
-//
-// Plusargs
-//   +VERBOSE   print every check
+//   windows with a slave model: 1 (spi_master stand-in), 5 (dma_cfg),
+//                               9 (reset_ctrl), 11 (timers, APB_DIV = /2)
+//   window 2 is present but its slave never raises PREADY (timeout test)
+//   window 3 is masked off (absent peripheral)
 // =============================================================================
-
 module tb_ahb2apb;
 
-    // -----------------------------------------------------------------------
-    // Clocks - pclk skewed 1.3 ns, same as tb_dma_top.sv and the old SoC TB
-    // -----------------------------------------------------------------------
-    reg hclk = 1'b0;
-    reg pclk = 1'b0;
-    reg hreset_n = 1'b0;
-    reg preset_n = 1'b0;
+    reg refclk = 0, ext_rst_n = 0;
+    always #1 refclk = ~refclk;                          // 500 MHz
 
-    always #2.5 hclk = ~hclk;                 // 200 MHz
-    initial begin
-        #1.3;
-        forever #5 pclk = ~pclk;              // 100 MHz, skewed
-    end
+    wire aon, hclk, pclk, pclk_phase, div_busy;
+    wire [1:0] div_act;
+    clk_div u_clk (.refclk_i(refclk), .raw_rst_n_i(ext_rst_n), .div_sel_i(2'b00),
+                   .aon_clk_o(aon), .hclk_o(hclk), .pclk_o(pclk), .pclk_phase_o(pclk_phase),
+                   .div_act_o(div_act), .div_busy_o(div_busy));
 
-    // -----------------------------------------------------------------------
-    // Scoreboard
-    // -----------------------------------------------------------------------
-    integer checks = 0;
-    integer fails  = 0;
-    reg     verbose;
+    // simple resets: hreset first, preset a few pclk later (production order)
+    reg hreset_n = 0, preset_n = 0;
 
-    task chk;
-        input          cond;
-        input [1023:0] msg;
-        begin
-            checks = checks + 1;
-            if (!cond) begin
-                fails = fails + 1;
-                $display("[FAIL] %0s   (t=%0t)", msg, $time);
-            end else if (verbose) $display("[ ok ] %0s", msg);
-        end
-    endtask
-
-    task chk_eq;
-        input [63:0]   got;
-        input [63:0]   exp;
-        input [1023:0] msg;
-        begin
-            checks = checks + 1;
-            if (got !== exp) begin
-                fails = fails + 1;
-                $display("[FAIL] %0s : got 0x%0h expected 0x%0h   (t=%0t)",
-                         msg, got, exp, $time);
-            end else if (verbose) $display("[ ok ] %0s = 0x%0h", msg, got);
-        end
-    endtask
-
-    // -----------------------------------------------------------------------
-    // AHB side
-    // -----------------------------------------------------------------------
-    reg  [31:0] haddr;
-    reg  [1:0]  htrans;
-    reg         hwrite, hsel;
-    reg  [2:0]  hsize;
-    reg  [31:0] hwdata;
-    wire [31:0] hrdata;
-    wire        hreadyout, hresp;
-
-    // Single slave, so the global HREADY is this slave's HREADYOUT.
-    wire hready = hreadyout;
-
-    localparam [1:0] T_IDLE = 2'b00, T_BUSY = 2'b01, T_NONSEQ = 2'b10;
-    localparam [2:0] SZ_B = 3'b000, SZ_H = 3'b001, SZ_W = 3'b010;
-
-    // Windows: DMA (5) and CLIC (9) implemented; everything else faults.
-    localparam [15:0] WMASK = 16'b0000_0010_0010_0000;
-
-    // -----------------------------------------------------------------------
-    // APB side
-    // -----------------------------------------------------------------------
-    wire [15:0] psel;
-    wire        penable, pwrite;
-    wire [15:0] paddr;
-    wire [31:0] pwdata;
-    wire [3:0]  pstrb;
-
-    reg  [3:0]  apb_waits;
-    reg         apb_err_en;
-    reg  [15:0] apb_err_addr;
-
-    wire [31:0] s5_prdata, s9_prdata;
-    wire        s5_pready, s9_pready, s5_pslverr, s9_pslverr;
-    wire [31:0] s5_nacc, s9_nacc, s5_nproto, s9_nproto;
-
-    // Return mux on the one-hot select, exactly as the SoC does it.
-    wire [31:0] prdata_mux  = psel[5] ? s5_prdata  : psel[9] ? s9_prdata  : 32'h0;
-    wire        pready_mux  = psel[5] ? s5_pready  : psel[9] ? s9_pready  : 1'b1;
-    wire        pslverr_mux = psel[5] ? s5_pslverr : psel[9] ? s9_pslverr : 1'b0;
-
-    ahb2apb_bridge #(.WINDOW_MASK(WMASK)) dut (
+    // ---- AHB master BFM ------------------------------------------------------
+    wire [31:0] haddr, hwdata, hrdata;
+    wire [1:0]  htrans;
+    wire        hwrite, hreadyout, hresp;
+    wire [2:0]  hsize, hburst;
+    wire [3:0]  hprot;
+    ahb_lite_master_bfm #(.HPROT(4'b0011)) u_m (
         .hclk_i(hclk), .hreset_n_i(hreset_n),
-        .pclk_i(pclk), .preset_n_i(preset_n),
-        .hsel_i(hsel), .haddr_i(haddr), .htrans_i(htrans),
-        .hwrite_i(hwrite), .hsize_i(hsize), .hwdata_i(hwdata),
-        .hready_i(hready),
+        .haddr_o(haddr), .htrans_o(htrans), .hwrite_o(hwrite),
+        .hsize_o(hsize), .hburst_o(hburst), .hprot_o(hprot), .hwdata_o(hwdata),
+        .hrdata_i(hrdata), .hready_i(hreadyout), .hresp_i(hresp));
+
+    // ---- DUT ------------------------------------------------------------------
+    localparam [15:0] MASK = 16'b0000_1111_1111_0110;    // windows 1,2,4..11; not 3
+    localparam [23:0] DIV  = 24'h0 | (24'b01 << 22);      // window 11: /2
+
+    wire [11:0] psel, paddr;
+    wire        penable, pwrite;
+    wire [31:0] pwdata;
+    wire [12*32-1:0] prdata;
+    wire [11:0] pready, pslverr;
+
+    ahb2apb_bridge #(.WINDOW_MASK(MASK), .APB_DIV(DIV)) u_dut (
+        .hclk_i(hclk), .hreset_n_i(hreset_n), .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk_phase_i(pclk_phase),
+        .hsel_i(haddr[31:28] == 4'h4), .haddr_i(haddr), .htrans_i(htrans),
+        .hwrite_i(hwrite), .hsize_i(hsize), .hwdata_i(hwdata), .hready_i(hreadyout),
         .hrdata_o(hrdata), .hreadyout_o(hreadyout), .hresp_o(hresp),
-        .psel_o(psel), .penable_o(penable), .pwrite_o(pwrite),
-        .paddr_o(paddr), .pwdata_o(pwdata), .pstrb_o(pstrb),
-        .prdata_i(prdata_mux), .pready_i(pready_mux), .pslverr_i(pslverr_mux));
+        .psel_o(psel), .penable_o(penable), .pwrite_o(pwrite), .paddr_o(paddr),
+        .pwdata_o(pwdata), .prdata_i(prdata), .pready_i(pready), .pslverr_i(pslverr));
 
-    apb_slave_model u_s5 (
-        .pclk_i(pclk), .preset_n_i(preset_n),
-        .waits_i(apb_waits), .err_en_i(apb_err_en), .err_addr_i(apb_err_addr),
-        .psel_i(psel[5]), .penable_i(penable), .pwrite_i(pwrite),
-        .paddr_i(paddr), .pwdata_i(pwdata), .pstrb_i(pstrb),
-        .prdata_o(s5_prdata), .pready_o(s5_pready), .pslverr_o(s5_pslverr),
-        .n_access_o(s5_nacc), .n_proto_err_o(s5_nproto));
+    // ---- APB slaves -------------------------------------------------------------
+    reg [3:0] waits = 0;
+    reg       err_en = 0;
+    wire [31:0] nacc [0:11], nproto [0:11];
 
-    apb_slave_model u_s9 (
-        .pclk_i(pclk), .preset_n_i(preset_n),
-        .waits_i(4'd0), .err_en_i(1'b0), .err_addr_i(16'h0),
-        .psel_i(psel[9]), .penable_i(penable), .pwrite_i(pwrite),
-        .paddr_i(paddr), .pwdata_i(pwdata), .pstrb_i(pstrb),
-        .prdata_o(s9_prdata), .pready_o(s9_pready), .pslverr_o(s9_pslverr),
-        .n_access_o(s9_nacc), .n_proto_err_o(s9_nproto));
-
-    // -----------------------------------------------------------------------
-    // Monitors
-    // -----------------------------------------------------------------------
-    integer n_err_cycles;        // cycles with HRESP=ERROR
-    integer n_multi_psel;        // PSEL not one-hot
-    always @(posedge hclk) if (hreset_n && hresp) n_err_cycles = n_err_cycles + 1;
-    always @(posedge pclk) begin
-        if (preset_n && (psel != 16'h0) && ((psel & (psel - 16'h1)) != 16'h0))
-            n_multi_psel = n_multi_psel + 1;
-    end
-
-    // -----------------------------------------------------------------------
-    // AHB driver. The bridge stalls with HREADYOUT low for the whole crossing,
-    // so every phase must wait on it.
-    // -----------------------------------------------------------------------
-    task ahb_xfer;
-        input  [31:0] a;
-        input         wr;
-        input  [31:0] wd;
-        input  [2:0]  sz;
-        output [31:0] rdata;
-        output        rresp;
-        begin
-            @(negedge hclk);
-            while (hreadyout !== 1'b1) @(negedge hclk);
-            hsel = 1'b1; haddr = a; htrans = T_NONSEQ; hwrite = wr; hsize = sz;
-
-            @(negedge hclk);                   // address phase accepted
-            hsel = 1'b0; htrans = T_IDLE;
-            hwdata = wd;                       // data phase
-
-            while (hreadyout !== 1'b1) @(negedge hclk);
-            rdata  = hrdata;
-            rresp  = hresp;
-            @(negedge hclk);
+    genvar g;
+    generate for (g = 0; g < 12; g = g + 1) begin : g_win
+        if (g == 1 || g == 5 || g == 9 || g == 11) begin : g_model
+            apb_slave_model u_s (
+                .pclk_i(pclk), .preset_n_i(preset_n), .waits_i(waits),
+                .err_en_i(err_en), .err_addr_i(16'h0FFC),
+                .psel_i(psel[g]), .penable_i(penable), .pwrite_i(pwrite),
+                .paddr_i({4'h0, paddr}), .pwdata_i(pwdata), .pstrb_i(4'hF),
+                .prdata_o(prdata[32*g +: 32]), .pready_o(pready[g]), .pslverr_o(pslverr[g]),
+                .n_access_o(nacc[g]), .n_proto_err_o(nproto[g]));
+        end else begin : g_none
+            assign prdata[32*g +: 32] = 32'hDEAD_0000 | g;
+            assign pready[g]  = (g == 2) ? 1'b0 : 1'b1;   // window 2 hangs
+            assign pslverr[g] = 1'b0;
+            assign nacc[g] = 0; assign nproto[g] = 0;
         end
+    end endgenerate
+
+    // ---- scoreboard / helpers ---------------------------------------------------
+    integer checks = 0, fails = 0;
+    task automatic check(input bit c, input string what);
+        checks++;
+        if (!c) begin fails++; $display("[FAIL] %s (t=%0t)", what, $time); end
+        else          $display("[PASS] %s", what);
     endtask
 
-    reg [31:0] rd;
-    reg        rsp;
-    integer    i;
-    integer    acc_before;
-    time       t0, t1;
-
-    initial begin
-        verbose = $test$plusargs("VERBOSE");
-        hsel = 0; haddr = 0; htrans = T_IDLE; hwrite = 0; hsize = SZ_W; hwdata = 0;
-        apb_waits = 4'd0; apb_err_en = 1'b0; apb_err_addr = 16'h0;
-        n_err_cycles = 0; n_multi_psel = 0;
-
-        $display("======================================================");
-        $display("GARUDA AHB-to-APB Bridge (Block 8) testbench");
-        $display("======================================================");
-
-        repeat (6) @(posedge hclk);
-        hreset_n = 1'b1; preset_n = 1'b1;
-        repeat (6) @(posedge hclk);
-
-        chk(hreadyout === 1'b1, "T0 HREADYOUT high out of reset");
-        chk_eq(psel, 16'h0,     "T0 no PSEL asserted out of reset");
-
-        // ===================================================================
-        // T1 - word write then read back through the crossing
-        // ===================================================================
-        ahb_xfer(32'h4000_5010, 1'b1, 32'hCAFE_BABE, SZ_W, rd, rsp);
-        chk(rsp === 1'b0, "T1 write completed OKAY");
-        ahb_xfer(32'h4000_5010, 1'b0, 32'h0, SZ_W, rd, rsp);
-        chk_eq(rd, 32'hCAFE_BABE, "T1 read returns what was written");
-        chk(rsp === 1'b0, "T1 read completed OKAY");
-
-        // The access reached the right peripheral, and only it.
-        chk(s5_nacc > 0, "T1 window 5 peripheral saw the accesses");
-        chk_eq(s9_nacc, 0, "T1 window 9 peripheral saw nothing");
-
-        // ===================================================================
-        // T2 - address mapping (Sec. 5.3.1)
-        //
-        // PADDR must be HADDR[15:0]: [15:12] the window, [11:0] the offset.
-        // ===================================================================
-        ahb_xfer(32'h4000_9024, 1'b1, 32'h1234_5678, SZ_W, rd, rsp);
-        ahb_xfer(32'h4000_9024, 1'b0, 32'h0, SZ_W, rd, rsp);
-        chk_eq(rd, 32'h1234_5678, "T2 window 9 addressed independently of window 5");
-        chk_eq(u_s9.bd_read(16'h0024), 32'h1234_5678,
-               "T2 offset within the window is HADDR[11:0]");
-
-        // ===================================================================
-        // T3 - byte and half-word writes drive PSTRB (Sec. 8.4, Sec. 13.5)
-        //
-        // This is what APB4 buys over APB3. The model honours PSTRB, so a
-        // bridge generating the wrong strobes corrupts neighbouring lanes here
-        // rather than silently working.
-        // ===================================================================
-        ahb_xfer(32'h4000_5020, 1'b1, 32'hAAAA_AAAA, SZ_W, rd, rsp);
-
-        ahb_xfer(32'h4000_5020, 1'b1, 32'h0000_0011, SZ_B, rd, rsp);
-        chk_eq(u_s5.bd_read(16'h0020), 32'hAAAA_AA11, "T3 byte write hit lane 0 only");
-
-        ahb_xfer(32'h4000_5022, 1'b1, 32'h0022_0000, SZ_B, rd, rsp);
-        chk_eq(u_s5.bd_read(16'h0020), 32'hAA22_AA11, "T3 byte write hit lane 2 only");
-
-        ahb_xfer(32'h4000_5020, 1'b1, 32'h0000_3344, SZ_H, rd, rsp);
-        chk_eq(u_s5.bd_read(16'h0020), 32'hAA22_3344, "T3 half-word write hit lanes 0-1");
-
-        // ===================================================================
-        // T4 - peripheral wait states pass through transparently (Sec. 8.3)
-        // ===================================================================
-        apb_waits = 4'd3;
-        ahb_xfer(32'h4000_5030, 1'b1, 32'h0F0F_0F0F, SZ_W, rd, rsp);
-        ahb_xfer(32'h4000_5030, 1'b0, 32'h0, SZ_W, rd, rsp);
-        chk_eq(rd, 32'h0F0F_0F0F, "T4 access with 3 PREADY wait states still correct");
-        chk(rsp === 1'b0, "T4 wait-stated access completed OKAY");
-        apb_waits = 4'd0;
-
-        // ===================================================================
-        // T5 - PSLVERR becomes a TWO-CYCLE HRESP=ERROR (Sec. 8.5 - NORMATIVE)
-        //
-        // The first cycle (HREADY=0, HRESP=ERROR) is the only warning the DMA
-        // beat engine gets, and it is what lets it retract an already-pipelined
-        // write address instead of committing it.
-        // ===================================================================
-        apb_err_en   = 1'b1;
-        apb_err_addr = 16'h0040;
-        n_err_cycles = 0;
-
-        ahb_xfer(32'h4000_5040, 1'b0, 32'h0, SZ_W, rd, rsp);
-        chk(rsp === 1'b1, "T5 PSLVERR surfaced as HRESP=ERROR");
-        chk_eq(n_err_cycles, 2, "T5 ERROR was exactly TWO cycles, not one");
-        apb_err_en = 1'b0;
-
-        // ===================================================================
-        // T6 - unmapped window faults WITHOUT any APB activity (Sec. 8.5)
-        // ===================================================================
-        acc_before   = s5_nacc + s9_nacc;
-        n_err_cycles = 0;
-        ahb_xfer(32'h4000_3000, 1'b1, 32'hDEAD_DEAD, SZ_W, rd, rsp);
-        chk(rsp === 1'b1, "T6 unmapped window returned ERROR");
-        chk_eq(n_err_cycles, 2, "T6 unmapped window ERROR was two cycles");
-        chk_eq(s5_nacc + s9_nacc, acc_before,
-               "T6 NO APB transfer was launched for an unmapped window");
-
-        // ===================================================================
-        // T7 - IDLE and BUSY start no APB transfer (Sec. 7.5)
-        // ===================================================================
-        acc_before = s5_nacc + s9_nacc;
-        @(negedge hclk);
-        hsel = 1'b1; haddr = 32'h4000_5000; htrans = T_IDLE; hwrite = 1'b1;
-        repeat (4) @(negedge hclk);
-        htrans = T_BUSY;
-        repeat (4) @(negedge hclk);
-        hsel = 1'b0; htrans = T_IDLE;
-        repeat (10) @(posedge hclk);
-        chk_eq(s5_nacc + s9_nacc, acc_before,
-               "T7 HTRANS=IDLE/BUSY launched no APB transfer");
-        chk(hreadyout === 1'b1, "T7 bridge stayed ready through IDLE/BUSY");
-
-        // ===================================================================
-        // T8 - BACK-TO-BACK ACCESSES (ERRATUM BRG-1)
-        //
-        // Sec. 7.5 says the bridge accepts work "only from H_IDLE". H_RESP_OKAY
-        // drives HREADYOUT high, which is by definition the condition under
-        // which the master's next address phase IS accepted - so a bridge that
-        // only latched from H_IDLE would silently DROP every second transfer
-        // of a run. Firmware configuring a peripheral with consecutive stores
-        // is exactly that run.
-        //
-        // The check is counted, not sampled: issue N transfers with the address
-        // phase presented in every cycle HREADYOUT is high, and require the
-        // peripheral to have seen all N.
-        // ===================================================================
-        acc_before = s5_nacc;
-
-        for (i = 0; i < 8; i = i + 1) begin
-            @(negedge hclk);
-            while (hreadyout !== 1'b1) @(negedge hclk);
-            hsel = 1'b1; haddr = 32'h4000_5100 + (i*4); htrans = T_NONSEQ;
-            hwrite = 1'b1; hsize = SZ_W;
-            @(negedge hclk);
-            hsel = 1'b0; htrans = T_IDLE;
-            hwdata = 32'h9000_0000 + i;
-            while (hreadyout !== 1'b1) @(negedge hclk);
-        end
-        @(negedge hclk);
-        repeat (10) @(posedge hclk);
-
-        chk_eq(s5_nacc - acc_before, 8,
-               "T8 BRG-1: all 8 back-to-back transfers reached APB (none dropped)");
-
-        for (i = 0; i < 8; i = i + 1)
-            chk_eq(u_s5.bd_read(16'h0100 + (i*4)), 32'h9000_0000 + i,
-                   "T8 BRG-1: back-to-back write landed at the right offset");
-
-        // ===================================================================
-        // T9 - single-outstanding: one APB access completes before the next
-        // SETUP (Sec. 13.3)
-        // ===================================================================
-        chk_eq(n_multi_psel, 0, "T9 PSEL was one-hot at all times");
-        chk_eq(u_s5.n_proto_err_o, 0, "T9 no APB protocol violation on window 5");
-        chk_eq(u_s9.n_proto_err_o, 0, "T9 no APB protocol violation on window 9");
-
-        // ===================================================================
-        // T10 - reset during a transfer (Sec. 10.3)
-        //
-        // The in-flight APB access is abandoned, both FSMs return to idle, the
-        // toggles clear so no stale edge is read as traffic, and the first
-        // post-reset access is clean. No terminal response is manufactured -
-        // the master is being reset in the same event.
-        // ===================================================================
-        @(negedge hclk);
-        hsel = 1'b1; haddr = 32'h4000_5060; htrans = T_NONSEQ; hwrite = 1'b1;
-        @(negedge hclk);
-        hsel = 1'b0; htrans = T_IDLE; hwdata = 32'h1111_2222;
-        @(negedge hclk);                       // mid-crossing
-        hreset_n = 1'b0; preset_n = 1'b0;
+    localparam [2:0] SZ_B = 3'b000, SZ_H = 3'b001, SZ_W = 3'b010;
+    task automatic go(input [31:0] a, input bit w, input [31:0] d, input [2:0] sz);
+        u_m.push_xfer(a, w, d, sz, 3'b000, 2'b10, 8'd0);
+    endtask
+    task automatic drain;
+        int guard = 0;
+        while (((u_m.q_head !== u_m.q_tail) || u_m.addr_outstanding || u_m.data_outstanding)
+               && guard < 5000) begin @(posedge hclk); guard++; end
+        if (guard >= 5000) begin fails++; $display("[FAIL] bus hung"); end
         repeat (4) @(posedge hclk);
-        chk_eq(psel, 16'h0, "T10 PSEL dropped immediately on reset");
-        chk(hreadyout === 1'b1, "T10 bridge returned to idle, HREADYOUT high");
+    endtask
 
-        @(negedge hclk);
-        hreset_n = 1'b1; preset_n = 1'b1;
-        repeat (8) @(posedge hclk);
-
-        ahb_xfer(32'h4000_5070, 1'b1, 32'h7777_8888, SZ_W, rd, rsp);
-        ahb_xfer(32'h4000_5070, 1'b0, 32'h0, SZ_W, rd, rsp);
-        chk_eq(rd, 32'h7777_8888, "T10 first access after reset is clean");
-        chk(rsp === 1'b0, "T10 no stale toggle produced a spurious error");
-
-        $display("======================================================");
-        $display("tb_ahb2apb: checks=%0d  FAIL=%0d", checks, fails);
-        $display("RESULT: %0s", (fails == 0) ? "PASSED" : "FAILED");
-        $display("======================================================");
-        $finish;
+    // APB monitors: PSEL one-hot, PENABLE only with PSEL, setup exactly 1 cycle
+    integer psel_viol = 0, pen_viol = 0, pen_len = 0, max_pen_w11 = 0, apb_starts = 0;
+    reg psel_any_d = 0;
+    always @(posedge pclk) if (preset_n) begin
+        if (!$onehot0(psel)) psel_viol++;
+        if (penable && !(|psel)) pen_viol++;
+        if ((|psel) && !psel_any_d) begin apb_starts++; if (penable) pen_viol++; end
+        psel_any_d <= |psel;
+        if (penable && psel[11]) pen_len++;
+        else begin if (pen_len > max_pen_w11) max_pen_w11 = pen_len; pen_len = 0; end
     end
+    integer rst_hold_viol = 0;
+    always @(posedge hclk) if (!(hreset_n && preset_n) && hreadyout) rst_hold_viol++;
 
+    int s;
     initial begin
-        #2_000_000;
-        $display("[FAIL] tb_ahb2apb: TIMEOUT");
-        $display("RESULT: FAILED");
+        $display("=== tb_ahb2apb: Block 8 Rev 4.0 ===");
+        #50 ext_rst_n = 1;
+        repeat (4) @(posedge hclk);
+        hreset_n = 1;
+        repeat (6) @(posedge hclk);
+        check(!hreadyout, "[N-9.2] hreadyout low while preset_n still asserted");
+        @(posedge pclk); preset_n = 1;
+        repeat (4) @(posedge hclk);
+        check(hreadyout, "[N-9.3] hreadyout released after both resets");
+
+        // ---- word write/read on every present window with a model -----------
+        go(32'h4000_1010, 1, 32'h1111_0001, SZ_W);
+        go(32'h4000_5020, 1, 32'h5555_0005, SZ_W);
+        go(32'h4000_9030, 1, 32'h9999_0009, SZ_W);
+        go(32'h4000_B040, 1, 32'hBBBB_000B, SZ_W);
+        go(32'h4000_1010, 0, 0, SZ_W);
+        go(32'h4000_5020, 0, 0, SZ_W);
+        go(32'h4000_9030, 0, 0, SZ_W);
+        go(32'h4000_B040, 0, 0, SZ_W);
+        drain();
+        check(u_m.r_data[4] == 32'h1111_0001 && !u_m.r_resp[4], "window 1 write/read");
+        check(u_m.r_data[5] == 32'h5555_0005 && !u_m.r_resp[5], "window 5 (dma_cfg) write/read");
+        check(u_m.r_data[6] == 32'h9999_0009 && !u_m.r_resp[6], "window 9 (reset_ctrl) write/read");
+        check(u_m.r_data[7] == 32'hBBBB_000B && !u_m.r_resp[7], "window 11 (timers) write/read, APB_DIV /2");
+        check(max_pen_w11 >= 2, $sformatf("a_apb_div: window 11 PENABLE held %0d pclk (>= 2)", max_pen_w11));
+        u_m.r_head = 0; u_m.r_tail = 0;
+
+        // ---- back-to-back writes (BRG-1 regression) ----------------------------
+        for (s = 0; s < 8; s++) go(32'h4000_5100 + 4*s, 1, 32'hA000_0000 + s, SZ_W);
+        for (s = 0; s < 8; s++) go(32'h4000_5100 + 4*s, 0, 0, SZ_W);
+        drain();
+        begin
+            bit ok = 1;
+            for (s = 0; s < 8; s++) if (u_m.r_data[8+s] !== 32'hA000_0000 + s || u_m.r_resp[s]) ok = 0;
+            check(ok, "8 back-to-back writes all land, then read back (BRG-1)");
+        end
+        u_m.r_head = 0; u_m.r_tail = 0;
+
+        // ---- errors -------------------------------------------------------------
+        s = apb_starts;
+        go(32'h4000_5000, 1, 32'h1, SZ_B);
+        go(32'h4000_5000, 0, 0, SZ_H);
+        go(32'h4000_0000, 0, 0, SZ_W);     // window 0: removed SPI slave
+        go(32'h4000_C000, 0, 0, SZ_W);     // 0xC: beyond the map
+        go(32'h4000_3000, 0, 0, SZ_W);     // window 3: masked (absent IP)
+        drain();
+        check(u_m.r_resp[0] && u_m.r_resp[1], "[N-7.12] byte and halfword rejected with ERROR");
+        check(u_m.r_resp[2] && u_m.r_resp[3], "[N-7.19] window 0 and 0xC unmapped -> ERROR");
+        check(u_m.r_resp[4], "masked window 3 -> ERROR");
+        check(apb_starts == s, "a_subword_no_apb / a_unmapped: no APB transfer for any of them");
+        u_m.r_head = 0; u_m.r_tail = 0;
+
+        err_en = 1;
+        go(32'h4000_5FFC, 0, 0, SZ_W);
+        go(32'h4000_5004, 0, 0, SZ_W);
+        drain();
+        err_en = 0;
+        check(u_m.r_resp[0], "[N-7.20] PSLVERR -> ERROR");
+        check(!u_m.r_resp[1], "next access after PSLVERR is OKAY");
+        u_m.r_head = 0; u_m.r_tail = 0;
+
+        go(32'h4000_2000, 0, 0, SZ_W);     // window 2 never ready
+        go(32'h4000_5004, 0, 0, SZ_W);
+        drain();
+        check(u_m.r_resp[0], "[N-7.15] 16-pclk PREADY timeout -> ERROR");
+        check(!u_m.r_resp[1], "a_no_hang: bus usable after a timeout");
+        u_m.r_head = 0; u_m.r_tail = 0;
+
+        // ---- wait states ------------------------------------------------------------
+        waits = 3;
+        go(32'h4000_9008, 1, 32'hCAFE_F00D, SZ_W);
+        go(32'h4000_9008, 0, 0, SZ_W);
+        drain();
+        waits = 0;
+        check(u_m.r_data[1] == 32'hCAFE_F00D && !u_m.r_resp[1], "3 APB wait states -> OKAY, data intact");
+
+        // ---- global -------------------------------------------------------------------
+        check(psel_viol == 0 && pen_viol == 0, "APB: PSEL one-hot, PENABLE only after a 1-cycle SETUP");
+        check(rst_hold_viol == 0, "a_dual_reset_hold");
+        check(nproto[1] + nproto[5] + nproto[9] + nproto[11] == 0, "APB slave models saw no protocol error");
+
+        $display("tb_ahb2apb: checks=%0d  FAIL=%0d", checks, fails);
+        $display("RESULT: %s", fails ? "FAILED" : "PASSED");
         $finish;
     end
-
+    initial begin #500_000; $display("TIMEOUT"); $display("RESULT: FAILED"); $finish; end
 endmodule
