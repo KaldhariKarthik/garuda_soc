@@ -57,8 +57,9 @@ endif
         test_id_stage test_elements test_alu test_mul32 test_branch_unit \
         test_csr_rw test_clic_ctrl test_lsu test_load_fmt test_memwb \
         test_pc_gen test_prefetch test_iport test_dport test_mem_stage test_if_stage \
-        test_mem test_bridge test_clic test_crg test_soc_ahb test_blocks \
-        synth synth_soc synth_blocks
+        test_crg test_ahb_ic test_bridge test_mem test_dma test_clic test_timers \
+        test_debug test_blocks test_chip test_chip_basic test_chip_irq test_chip_wdt \
+        test_chip_jtag elab_chip regress_all synth
 
 help:
 	@echo "GARUDA SoC build targets:"
@@ -67,7 +68,7 @@ help:
 	@echo "  make elab_core_dsu   -- elaborate core + REAL DSU (integration)"
 	@echo "  make test_core       -- every core unit smoke + the six unit TBs"
 	@echo "  make test_units      -- the six constrained-random unit TBs only"
-	@echo "  make test_elements   -- the 14 per-element SV core TBs, NOT YET RUN (ALU, MUL,"
+	@echo "  make test_elements   -- the 14 per-element SV core TBs (ALU, MUL,"
 	@echo "                          branch, CSR_RW, LSU, load-fmt, D-port, MEM, MEM/WB,"
 	@echo "                          PC-gen, prefetch, I-port, IF top, CLIC)"
 	@echo "  make test_ex_dsu     -- EX smoke against the real DSU"
@@ -82,6 +83,12 @@ help:
 	@echo "  make regress_wait    -- same, with AHB wait states injected"
 	@echo "  make regress_rand    -- same, randomised waits 0..8 (SEED=n)"
 	@echo "  make coverage        -- functional coverage sweep (code cov: see script)"
+	@echo "  ---- Rev 4.0 SoC ----"
+	@echo "  make test_blocks     -- every block TB: crg ahb_ic bridge mem dma clic timers debug"
+	@echo "  make test_chip       -- whole chip from the pins: basic, irq, wdt, jtag"
+	@echo "  make elab_chip       -- elaborate garuda_chip_top"
+	@echo "  make regress_all     -- everything above plus core, sanity, DSU and ISA"
+	@echo "  make synth           -- Genus structural synthesis check (latches, drivers)"
 	@echo "  make clean           -- remove all simulation artifacts"
 	@echo ""
 	@echo "Select simulator with SIM=xrun (default) or SIM=xsim."
@@ -195,52 +202,60 @@ test_elements: test_pc_gen test_prefetch test_iport test_if_stage \
                test_lsu test_load_fmt test_dport test_mem_stage \
                test_memwb test_clic_ctrl
 
-# NOTE: test_elements is deliberately NOT in test_core yet. The element TBs
-# have not been run against a simulator, so folding them into the standard
-# regression would make test_core's result depend on unproven testbenches.
-# Move test_elements into this list once it reports clean.
+# test_elements is run separately (and by regress_all) - see the help text.
 test_core: test_ex test_ex_dsu test_idex test_exmem test_pipe test_csr test_trap test_units
 
 # =============================================================================
-# Block-level testbenches for Blocks 3/4/5, 8, 16 and 22/23
-#
-# These blocks were specified and written in one session (docs/RTL_LOG_2026-09-16.md)
-# and NONE of them has been run: this machine has no simulator installed. Each
-# target below is the command that runs when one is available - see the log for
-# exactly what is and is not proven.
+# Rev 4.0 block-level testbenches (GARUDA-SYS-001; Docs/DECISIONS.md D-4..D-20)
+# Every one is self-checking, prints [PASS]/[FAIL] lines and "RESULT:".
 # =============================================================================
-test_mem:                                        ## Blocks 3/4/5 - memory subsystem
-	$(call run_test,tb/mem/filelist_mem.f,tb_mem_subsystem,tb_mem)
+define run_blk
+	@mkdir -p $(SIM_DIR)/$(3) && \
+	  $(XRUN) -64bit -f $(1) -top $(2) -xmlibdirname $(SIM_DIR)/$(3)/xcelium.d \
+	    -l $(SIM_DIR)/$(3)/run.log $(4) > /dev/null 2>&1; \
+	  printf "%-14s " "$(3)"; grep -hE "^RESULT:|checks=|TB: .* checks" $(SIM_DIR)/$(3)/run.log | tr '\n' ' '; echo; \
+	  grep -hE "\[FAIL\]|^xmelab: \*E|^xmvlog: \*E" $(SIM_DIR)/$(3)/run.log | head -10
+endef
 
-test_bridge:                                     ## Block 8 - AHB-to-APB bridge
-	$(call run_test,tb/ahb2apb/filelist_ahb2apb.f,tb_ahb2apb,tb_bridge)
+test_crg:     ; $(call run_blk,tb/clk_div/filelist_crg.f,tb_crg,tb_crg)                 ## 21/22 clock + reset
+test_ahb_ic:  ; $(call run_blk,tb/ahb/filelist_ahb_ic.f,tb_ahb_interconnect,tb_ahb_ic)  ## 6 interconnect (4 masters)
+test_bridge:  ; $(call run_blk,tb/ahb2apb/filelist_ahb2apb.f,tb_ahb2apb,tb_bridge)      ## 7/8 AHB2APB + fabric
+test_mem:     ; $(call run_blk,tb/mem/filelist_mem.f,tb_mem_subsystem,tb_mem)           ## 3/4/5 memories
+test_dma:     ; $(call run_blk,tb/dma/filelist_dma_top.f,tb_dma_top,tb_dma)             ## 9 DMA
+test_clic:    ; $(call run_blk,tb/clic/filelist_clic.f,tb_clic,tb_clic)                 ## 10 CLIC
+test_timers:  ; $(call run_blk,tb/timers/filelist_timers.f,tb_timers,tb_timers)         ## 11 timers + WDT
+test_debug:   ; $(call run_blk,tb/debug/filelist_debug.f,tb_debug,tb_debug)             ## 12 debug (JTAG/DM/SBA)
 
-test_clic:                                       ## Block 16 - CLIC
-	$(call run_test,tb/clic/filelist_clic.f,tb_clic,tb_clic)
-
-test_crg:                                        ## Blocks 22/23 - clock and reset
-	$(call run_test,tb/clk_div/filelist_crg.f,tb_crg,tb_crg)
-
-test_soc_ahb:                                    ## the wired SoC
-	$(call run_test,tb/soc/filelist_soc_ahb.f,tb_soc_ahb,tb_soc_ahb)
-
-# Every new block, in dependency order: clocks and reset first, because
-# everything else assumes they work.
-test_blocks: test_crg test_mem test_bridge test_clic
+# Every block, clocks and reset first because everything else assumes them.
+test_blocks: test_crg test_ahb_ic test_bridge test_mem test_dma test_clic test_timers test_debug
 
 # =============================================================================
-# Synthesis (yosys). Structural check + latch detection, not signoff.
+# Whole chip (garuda_chip_top) from the pins, real Boot ROM, boot_sel = 1:
+#   basic  boot path, ILOCK, precise bus faults, DMA R-9
+#   irq    DMA completion via CLIC, machine timer, WDT warning (WFI + clock gate)
+#   wdt    a real watchdog reset: RSTREASON = WDT, DSRAM survives
+#   jtag   halt -> load ISRAM over JTAG SBA -> mailbox -> resume -> run
 # =============================================================================
+CHIP_FL = tb/soc/filelist_chip.f
+test_chip_basic: ; $(call run_blk,$(CHIP_FL),tb_chip,chip_basic,+MODE=basic +TEST=sw/build/t_chip_basic.hex)
+test_chip_irq:   ; $(call run_blk,$(CHIP_FL),tb_chip,chip_irq,+MODE=irq +TEST=sw/build/t_chip_irq.hex)
+test_chip_wdt:   ; $(call run_blk,$(CHIP_FL),tb_chip,chip_wdt,+MODE=wdt +TEST=sw/build/t_chip_wdt.hex)
+test_chip_jtag:  ; $(call run_blk,$(CHIP_FL),tb_chip,chip_jtag,+MODE=jtag +TEST=sw/build/t_chip_jtag.hex +MAXUS=1500)
+test_chip: sw test_chip_basic test_chip_irq test_chip_wdt test_chip_jtag
+
+elab_chip:                                       ## whole-chip elaboration
+	$(call run_blk,rtl/soc/filelist_chip.f,garuda_chip_top,elab_chip,-elaborate)
+
+# Everything that is expected to be green, in one command.
+regress_all: test_core test_elements test_blocks test_sanity test_dsu regress test_chip
+
+# =============================================================================
+# Synthesis check with Cadence Genus (generic mapping, no library): unresolved
+# modules, multiple drivers, latches. Structural only - not timing signoff.
+# =============================================================================
+GENUS ?= /home/install/GENUS211/tools/bin/genus
 synth:                                           ## whole chip
-	@./scripts/run_synth.sh garuda_chip_top
-
-synth_soc:
-	@./scripts/run_synth.sh garuda_soc_top
-
-synth_blocks:
-	@for t in clk_div reset_ctrl isram_top ahb2apb_bridge clic_top; do \
-	   ./scripts/run_synth.sh $$t || exit 1; \
-	 done
+	@./scripts/run_genus.sh garuda_chip_top rtl/soc/filelist_chip.f
 
 clean:
 	rm -rf $(SIM_DIR) xcelium.d xrun.history xrun.log xrun.key
