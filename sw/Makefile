@@ -32,12 +32,33 @@ COMMON  = common/crt0.S
 
 CTESTS  = ctest1
 ATESTS  = boot6 dsu_flag2 t_loadbranch t_mem t_clic t_cov \
-          t_buserr t_irq t_wfi t_flush t_dsu
+          t_buserr t_irq t_wfi t_flush t_dsu t_mtip
 
 ALL     = $(addprefix $(BUILD)/,$(addsuffix .hex,$(CTESTS) $(ATESTS)))
 
-.PHONY: all clean dump
-all: $(ALL)
+# ---- Rev 4.0 chip: Boot ROM image and ISRAM-resident chip-level tests -------
+CHIPTESTS = t_chip_basic t_chip_irq t_chip_wdt t_chip_jtag
+CHIPFLAGS = -Icommon -Ichip
+CHIP_ALL  = $(BUILD)/bootrom.hex $(addprefix $(BUILD)/,$(addsuffix .hex,$(CHIPTESTS)))
+
+.PHONY: all chip clean dump
+all: $(ALL) $(CHIP_ALL)
+chip: $(CHIP_ALL)
+
+$(BUILD)/bootrom.elf: bootrom/rom_start.S bootrom/boot.c bootrom/link_rom.ld common/garuda_map.h | $(BUILD)
+	$(CC) $(CFLAGS) $(CHIPFLAGS) -T bootrom/link_rom.ld -no-pie -static \
+	    bootrom/rom_start.S bootrom/boot.c -o $@
+
+# 1024 words: unused ROM is 0x0000_0000, an illegal instruction (rom_fill)
+$(BUILD)/bootrom.hex: $(BUILD)/bootrom.bin
+	python3 ../tools/elf2hex.py $< $@ --base 0x10000000 --words 1024
+
+$(BUILD)/t_chip_%.elf: chip/t_chip_%.c chip/crt0_chip.S chip/chip.h chip/link_chip.ld common/garuda_map.h | $(BUILD)
+	$(CC) $(CFLAGS) $(CHIPFLAGS) -T chip/link_chip.ld -no-pie -static \
+	    chip/crt0_chip.S $< -o $@
+
+$(BUILD)/t_chip_%.hex: $(BUILD)/t_chip_%.bin
+	python3 ../tools/elf2hex.py $< $@ --base 0x00000000
 
 $(BUILD):
 	@mkdir -p $(BUILD)
