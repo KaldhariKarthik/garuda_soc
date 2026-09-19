@@ -8,4 +8,5 @@
 // 23 are built separately despite sharing one specification document.
 // =============================================================================
 
+rtl/reset_ctrl/reset_ctrl_apb.v
 rtl/reset_ctrl/reset_ctrl.v

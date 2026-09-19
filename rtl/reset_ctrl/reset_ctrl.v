@@ -1,175 +1,207 @@
 `timescale 1ns/1ps
 `default_nettype none
 // =============================================================================
-// GARUDA SoC - Block 23: Reset Controller
-// reset_ctrl.v - source qualification + per-domain async-assert/sync-de-assert
+// GARUDA SoC - Block 22 : reset controller
+// reset_ctrl.v
 //
-// Spec reference: GARUDA-CRG-SPEC-001 Rev 2.0, Sec. 3.2, Sec. 6, Sec. 7,
-//                 Sec. 8.1-8.3
+// Spec: GARUDA-CLKRST-SPEC-001 Rev 2.0 (Rev 4.0 set), §5.2, §6, §7.2-§7.5
+//       Rulings: Docs/DECISIONS.md D-8 (RSTREASON), D-9 (stretch, DM domain),
+//                D-14 (stretch clock)
 //
-// This block exists because of one asymmetry: a reset must be APPLIED
-// immediately and asynchronously, so the chip reaches a known state even if the
-// clock is dead, but REMOVED synchronously, so every flop in a domain leaves
-// reset on the same clock edge.
+// -----------------------------------------------------------------------------
+// SOURCES AND DOMAINS ([N-7.11])
+// -----------------------------------------------------------------------------
+//   request         resets                               does NOT reset
+//   ext_rst_n       everything                           RSTREASON (sets EXT)
+//   wdt_rst_req     hreset/preset/core/dm                watchdog request flop,
+//                                                        RSTREASON, DIVSEL
+//   swrst (RSTCTL)  hreset/preset/core/dm                RSTREASON, DIVSEL
+//   ndm_rst_req     hreset/preset/core                   DM + TAP (dm_rst_n_o),
+//                                                        RSTREASON, DIVSEL
+//   hartreset_req   core only (not stretched, [N-7.13])  everything else
 //
-// Without synchronous de-assertion, flops near the reset driver leave reset an
-// edge earlier than flops far from it, so part of the chip begins executing
-// while the rest is still held - producing corrupted state on the first cycle
-// with nothing to indicate why.
+// The watchdog's request flop sits on ext_hrst_n_o, which only the pin drives
+// ([N-7.12]). DIVSEL sits on an ext-only pclk reset ([N-6.5]).
 //
-// =============================================================================
-// ASSERTION IS SIMULTANEOUS; DE-ASSERTION IS PER-DOMAIN AND THEREFORE SKEWED
-// =============================================================================
-// Both outputs are driven from the same qualified source term, so they assert
-// together, asynchronously, the instant any source fires. The Bridge depends on
-// this: its reset-during-transfer behaviour (Bridge Sec. 10.3) is only correct
-// because both of its domains reset as one event, which is what lets it abandon
-// an in-flight transfer without manufacturing a terminal response.
+// -----------------------------------------------------------------------------
+// STRETCH ([N-7.7]..[N-7.10])
+// -----------------------------------------------------------------------------
+// One 1024-cycle down counter on aon_clk (refclk/2, always running - D-14). Any
+// request reloads it; the functional resets stay asserted until it expires.
+// 1024 aon cycles = 2048 refclk cycles, which meets R-5's ">= 1024 reference
+// cycles" while keeping the 500 MHz net confined to the divider flop (R-10).
 //
-// De-assertion is released through a synchroniser clocked by each domain's own
-// clock, so preset_n_o can release up to one pclk period (10 ns) after
-// hreset_n_o. That skew is unavoidable if de-assertion is to be synchronous in
-// each domain, and it is safe: the two domains interact only through the
-// bridge, whose pclk side is still held during the window, so no APB transfer
-// can be initiated or completed in it. In practice the window is never
-// exercised - after reset the core fetches from the Boot ROM, an hclk-domain
-// slave, and the first peripheral access does not occur until the bootloader
-// initialises SPI many cycles later.
+// -----------------------------------------------------------------------------
+// ASSERTION / RELEASE ([N-7.14], [N-7.15], [N-7.17])
+// -----------------------------------------------------------------------------
+// Every async clear in this file is driven by a FLOP output (or the raw pin),
+// never by combinational logic, so no reset net can glitch. Each domain
+// releases through its own 2-flop synchroniser. preset_n's synchroniser shifts
+// in hreset_n rather than 1, so pclk can never leave reset before hclk.
 //
-// =============================================================================
-// THE WATCHDOG RESET MUST NOT CREATE A RESET LOOP (Sec. 8.2)
-// =============================================================================
-// A watchdog reset has to clear the watchdog's own counter, or the chip
-// immediately re-resets and never boots. The counter is reset by hreset_n_o
-// like any other hclk-domain flop, which breaks the loop: the reset event
-// clears the counter, the counter reloads to its timeout on release, and
-// firmware has a full timeout period to feed it.
-//
-// This makes the watchdog reset self-clearing and NON-LATCHING. There is no
-// status bit here recording that the last reset came from the watchdog.
-// Firmware cannot distinguish a watchdog reset from a power-on reset. That is a
-// real capability gap and it is a DECIDED one, not an oversight: see
-// docs/DECISIONS.md D-2. Reset-cause reporting is out of scope for the first
-// tapeout because the register would have to survive the reset it records,
-// needing either an always-on domain or a flop cleared only by por_n_i, and
-// whether GARUDA has an always-on domain at all is undecided. Do not add one
-// here without that decision.
-//
-// =============================================================================
-// DEPARTURE FROM THE SPECIFICATION: THE WATCHDOG PULSE IS STRETCHED
-// =============================================================================
-// Sec. 7.1 combines the sources as a bare term: rst_n_qual low when por_n_i is
-// low OR wdt_reset_i is high. Taken literally with a one-cycle watchdog pulse,
-// that asserts the whole chip's reset for exactly one hclk period - 5 ns - and
-// then releases it.
-//
-// That is too narrow to rely on. The reset is distributed through a buffered
-// reset tree across a 1.45 mm die; a 5 ns pulse can arrive at the far end
-// degraded or, after tree insertion delay skew, not overlap at every leaf. The
-// spec's own requirement that assertion reach EVERY flop (Sec. 8.4,
-// "metastability" row) is what is at risk, and the failure mode is a partial
-// reset - some flops cleared, some not - which is indistinguishable from
-// corrupted state.
-//
-// So the watchdog request is stretched to WDT_STRETCH hclk cycles here. POR is
-// untouched and remains fully asynchronous with no minimum width, because it is
-// driven from outside and is already wide. This is an addition to the spec, it
-// is logged in docs/BUGS.md as CRG-1, and Sec. 7.1 should be amended to match.
-//
-// The stretch counter is reset by por_n_i ONLY, never by its own output. A
-// counter cleared by the reset it generates would truncate its own pulse - the
-// same shape of bug as the watchdog reset loop above, one level down.
+// All request inputs come from hclk/pclk logic, whose rising edges are a subset
+// of aon_clk's rising edges; sampling them on aon_clk is a synchronous path,
+// and a one-hclk-cycle pulse lasts at least one aon cycle.
 // =============================================================================
 
 module reset_ctrl #(
-    parameter integer WDT_STRETCH = 16     // hclk cycles, see header
+    parameter integer STRETCH = 1024          // GARUDA_RESET_STRETCH_CYCLES
 )(
-    // ---- sources (Sec. 6.2) ------------------------------------------------
-    input  wire por_n_i,          // external / power-on reset, async, active-low
-    input  wire wdt_reset_i,      // watchdog request, active-high, hclk domain
+    // ---- clocks ------------------------------------------------------------
+    input  wire        aon_clk_i,             // stretch + RSTREASON clock
+    input  wire        hclk_i,
+    input  wire        pclk_i,
 
-    // ---- domain clocks -----------------------------------------------------
-    input  wire hclk_i,           // 200 MHz
-    input  wire pclk_i,           // 100 MHz
+    // ---- sources -----------------------------------------------------------
+    input  wire        ext_rst_n_i,           // pin, async, active-low
+    input  wire        wdt_rst_req_i,         // hclk, pulse
+    input  wire        ndm_rst_req_i,         // hclk, level (dmcontrol.ndmreset)
+    input  wire        hartreset_req_i,       // hclk, level (dmcontrol.hartreset/haltreq)
+    input  wire        boot_sel_i,            // pin, async (read at CLKSTAT[8], D-19)
+
+    // ---- APB slave, window 9 (pclk) ----------------------------------------
+    input  wire        psel_i,
+    input  wire        penable_i,
+    input  wire        pwrite_i,
+    input  wire [11:0] paddr_i,
+    input  wire [31:0] pwdata_i,
+    output wire [31:0] prdata_o,
+    output wire        pready_o,
+    output wire        pslverr_o,
+
+    // ---- clk_div interface -------------------------------------------------
+    output wire [1:0]  div_sel_o,
+    input  wire [1:0]  div_act_i,
+    input  wire        div_busy_i,
+
+    // ---- MEMCTL ------------------------------------------------------------
+    output wire        ilock_o,               // to isram (hclk-domain consumer)
 
     // ---- distributed resets ------------------------------------------------
-    output wire hreset_n_o,       // hclk domain, async assert / sync de-assert
-    output wire preset_n_o        // pclk domain, async assert / sync de-assert
+    output wire        hreset_n_o,            // fabric, memories, DMA, CLIC, timers
+    output wire        preset_n_o,            // bridge pclk side, APB registers
+    output wire        core_rst_n_o,          // core + DSU
+    output wire        dm_rst_n_o,            // Debug Module (outside ndmreset)
+    output wire        ext_hrst_n_o           // ext-only, hclk (watchdog request flop)
 );
 
-    // -----------------------------------------------------------------------
-    // Watchdog pulse stretch (see header - departure from Sec. 7.1)
-    // -----------------------------------------------------------------------
-    localparam integer CW = (WDT_STRETCH <= 2) ? 1 : $clog2(WDT_STRETCH);
+    localparam integer CW = $clog2(STRETCH + 1);
 
-    reg [CW-1:0] wdt_cnt;
-    reg          wdt_active;
+    // =========================================================================
+    // Strobes from the APB register block (pclk domain, one pclk cycle long)
+    // =========================================================================
+    wire       swrst_stb;
+    wire [4:0] reason_w1c;
+    wire       bootfail_set;
 
-    always @(posedge hclk_i or negedge por_n_i) begin
-        if (!por_n_i) begin
-            wdt_cnt    <= {CW{1'b0}};
-            wdt_active <= 1'b0;
-        end else if (wdt_reset_i) begin
-            // Re-trigger reloads: a second request during a stretch extends it
-            // rather than being ignored.
-            wdt_cnt    <= WDT_STRETCH[CW-1:0] - 1'b1;
-            wdt_active <= 1'b1;
-        end else if (wdt_active) begin
-            if (wdt_cnt == {CW{1'b0}}) wdt_active <= 1'b0;
-            else                       wdt_cnt    <= wdt_cnt - 1'b1;
-        end
-    end
+    // =========================================================================
+    // aon domain: ext synchroniser, stretch counter, request flops
+    // =========================================================================
+    reg [1:0] ext_sync_q;
+    always @(posedge aon_clk_i or negedge ext_rst_n_i)
+        if (!ext_rst_n_i) ext_sync_q <= 2'b00;
+        else              ext_sync_q <= {ext_sync_q[0], 1'b1};
+    wire ext_held = ~ext_sync_q[1];
 
-    // -----------------------------------------------------------------------
-    // Source qualification (Sec. 7.1)
-    //
-    // One internal active-low term drives the asynchronous reset input of BOTH
-    // domain synchronisers, which is what makes assertion simultaneous across
-    // the chip. Neither source is maskable and there is no partial or per-block
-    // reset in GARUDA - every reset is a full system reset of both domains.
-    // -----------------------------------------------------------------------
-    wire rst_n_qual = por_n_i && !wdt_active && !wdt_reset_i;
+    wire req_dm_scope = wdt_rst_req_i | swrst_stb;      // resets the DM too
+    wire req_any      = ext_held | req_dm_scope | ndm_rst_req_i;
 
-    // -----------------------------------------------------------------------
-    // Per-domain reset-release synchronisers (Sec. 7.3, Sec. 7.4)
-    //
-    // A constant 1 shifted through two flops whose asynchronous clear is
-    // rst_n_qual. Assertion is asynchronous and needs no clock; release happens
-    // two edges of THAT DOMAIN'S clock later, simultaneously for every flop in
-    // the domain.
-    //
-    // Two stages is the baseline depth. Sec. 7.4 is explicit that depth cannot
-    // be justified from clock frequency alone: the final depth is confirmed
-    // against the 28 nm library's metastability parameters at sign-off, taking
-    // the source event rate and required MTBF into account. If that analysis
-    // calls for three stages, adding one here is trivial and should be done
-    // rather than argued against.
-    // -----------------------------------------------------------------------
-    (* ASYNC_REG = "TRUE" *) reg hmeta, hq;
-    (* ASYNC_REG = "TRUE" *) reg pmeta, pq;
+    reg [CW-1:0] cnt_q;
+    reg          dm_scope_q;
+    wire [CW-1:0] cnt_nxt = req_any       ? STRETCH[CW-1:0] :
+                            (cnt_q != 0)  ? cnt_q - 1'b1    : cnt_q;
+    wire dm_scope_nxt = (ext_held | req_dm_scope) ? 1'b1 :
+                        (cnt_nxt == 0)            ? 1'b0 : dm_scope_q;
 
-    always @(posedge hclk_i or negedge rst_n_qual) begin
-        if (!rst_n_qual) begin
-            hmeta <= 1'b0;
-            hq    <= 1'b0;
+    reg sys_req_q, dm_req_q, core_req_q;
+    always @(posedge aon_clk_i or negedge ext_rst_n_i) begin
+        if (!ext_rst_n_i) begin
+            cnt_q      <= STRETCH[CW-1:0];
+            dm_scope_q <= 1'b1;
+            sys_req_q  <= 1'b1;
+            dm_req_q   <= 1'b1;
+            core_req_q <= 1'b1;
         end else begin
-            hmeta <= 1'b1;
-            hq    <= hmeta;
+            cnt_q      <= cnt_nxt;
+            dm_scope_q <= dm_scope_nxt;
+            sys_req_q  <= (cnt_nxt != 0);
+            dm_req_q   <= (cnt_nxt != 0) & dm_scope_nxt;
+            core_req_q <= (cnt_nxt != 0) | hartreset_req_i;
         end
     end
 
-    always @(posedge pclk_i or negedge rst_n_qual) begin
-        if (!rst_n_qual) begin
-            pmeta <= 1'b0;
-            pq    <= 1'b0;
+    // =========================================================================
+    // RSTREASON (aon domain, cleared only by the pin - D-8, [N-6.1])
+    // Exactly one of [3:0] per reset event ([N-6.2]); BOOTFAIL is orthogonal.
+    // =========================================================================
+    reg [3:0] reason_q;       // {SW, NDM, WDT, EXT}
+    reg       bootfail_q;
+    always @(posedge aon_clk_i or negedge ext_rst_n_i) begin
+        if (!ext_rst_n_i) begin
+            reason_q   <= 4'b0001;
+            bootfail_q <= 1'b0;
         end else begin
-            pmeta <= 1'b1;
-            pq    <= pmeta;
+            if      (wdt_rst_req_i) reason_q <= 4'b0010;
+            else if (swrst_stb)     reason_q <= 4'b1000;
+            else if (ndm_rst_req_i) reason_q <= 4'b0100;
+            else                    reason_q <= reason_q & ~reason_w1c[3:0];
+
+            if      (bootfail_set)  bootfail_q <= 1'b1;
+            else if (reason_w1c[4]) bootfail_q <= 1'b0;
         end
     end
 
-    assign hreset_n_o = hq;
-    assign preset_n_o = pq;
+    // =========================================================================
+    // Release synchronisers
+    // =========================================================================
+    reg [1:0] hrst_q, core_q, dm_q, exth_q;
+    always @(posedge hclk_i or posedge sys_req_q)
+        if (sys_req_q) hrst_q <= 2'b00; else hrst_q <= {hrst_q[0], 1'b1};
+    always @(posedge hclk_i or posedge core_req_q)
+        if (core_req_q) core_q <= 2'b00; else core_q <= {core_q[0], 1'b1};
+    always @(posedge hclk_i or posedge dm_req_q)
+        if (dm_req_q) dm_q <= 2'b00; else dm_q <= {dm_q[0], 1'b1};
+    always @(posedge hclk_i or negedge ext_rst_n_i)
+        if (!ext_rst_n_i) exth_q <= 2'b00; else exth_q <= {exth_q[0], 1'b1};
+
+    reg [1:0] prst_q, extp_q;
+    always @(posedge pclk_i or posedge sys_req_q)
+        if (sys_req_q) prst_q <= 2'b00; else prst_q <= {prst_q[0], hrst_q[1]};
+    always @(posedge pclk_i or negedge ext_rst_n_i)
+        if (!ext_rst_n_i) extp_q <= 2'b00; else extp_q <= {extp_q[0], 1'b1};
+
+    assign hreset_n_o   = hrst_q[1];
+    assign core_rst_n_o = core_q[1];
+    assign dm_rst_n_o   = dm_q[1];
+    assign ext_hrst_n_o = exth_q[1];
+    assign preset_n_o   = prst_q[1];
+    wire   ext_prst_n   = extp_q[1];
+
+    // =========================================================================
+    // APB registers (pclk)
+    // =========================================================================
+    reset_ctrl_apb u_apb (
+        .pclk_i        (pclk_i),
+        .preset_n_i    (prst_q[1]),
+        .ext_prst_n_i  (ext_prst_n),
+        .psel_i        (psel_i),
+        .penable_i     (penable_i),
+        .pwrite_i      (pwrite_i),
+        .paddr_i       (paddr_i),
+        .pwdata_i      (pwdata_i),
+        .prdata_o      (prdata_o),
+        .pready_o      (pready_o),
+        .pslverr_o     (pslverr_o),
+        .reason_i      ({bootfail_q, reason_q}),
+        .reason_w1c_o  (reason_w1c),
+        .bootfail_set_o(bootfail_set),
+        .swrst_o       (swrst_stb),
+        .div_sel_o     (div_sel_o),
+        .div_act_i     (div_act_i),
+        .div_busy_i    (div_busy_i),
+        .boot_sel_i    (boot_sel_i),
+        .ilock_o       (ilock_o)
+    );
 
 endmodule
 
