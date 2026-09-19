@@ -37,12 +37,15 @@ MAXCYC=${MAXCYC:-100000}
 #     illegal-instruction trap and emulates in software, retiring ~100
 #     instructions where Spike's hardware divider retires one. The streams
 #     cannot match and it would be wrong if they did.
-#   p-csr / p-mcsr / p-ma_fetch : misa bit 23 ("X", non-standard extension
-#     present) is set by csr_file.v:85 because of the Custom-0 DSU. Spike knows
-#     nothing about the DSU and reports 0x40001100 where GARUDA correctly
-#     reports 0x40801100. Each of these tests reads misa into a register.
+#   p-sbreak : reads mtvec. CORE-SPEC Rev 3.0 §6.1 hardwires mtvec.MODE to 3
+#     (CLIC mode); Spike has no CLIC and reads MODE 0. The test's own tohost
+#     verdict still has to pass.
+#   p-mcsr : reads mimpid, which is implementation-defined; GARUDA reports
+#     0x0000_0110, Spike 0.
+#   (p-csr / p-ma_fetch were excluded while misa carried the X bit; Rev 3.0
+#    sets misa to 0x4000_1100, identical to Spike, so they now lockstep.)
 # ---------------------------------------------------------------------------
-NO_LOCKSTEP=" p-div p-divu p-rem p-remu p-csr p-mcsr p-ma_fetch "
+NO_LOCKSTEP=" p-div p-divu p-rem p-remu p-sbreak p-mcsr "
 
 mkdir -p "$RUNDIR"
 

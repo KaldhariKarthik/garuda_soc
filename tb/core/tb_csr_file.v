@@ -4,14 +4,14 @@ module tb_csr_file;
   integer errors=0; reg [31:0] prev_ir;
   reg clk=0; always #5 clk=~clk;
   reg rst_n, csr_en; reg [11:0] addr; reg [31:0] wdata; reg [1:0] op;
-  reg instret, dsu_ovf, trap_enter, mret; reg [31:0] tpc,tcause,ttval; reg clic_mip;
-  wire [31:0] rdata; wire illegal, clr_ovf; wire [31:0] mtvec,mtvt,mepc; wire mie; wire [7:0] ithr;
+  reg instret, dsu_ovf, trap_enter, mret; reg [31:0] tpc,tcause,ttval; reg mtip;
+  wire [31:0] rdata; wire illegal, clr_ovf; wire [31:0] mtvec,mepc; wire mie; wire [7:0] ithr;
   csr_file dut(.clk_i(clk),.rst_n_i(rst_n),.csr_en_i(csr_en),.csr_addr_i(addr),
     .csr_wdata_i(wdata),.csr_op_i(op),.csr_rdata_o(rdata),.illegal_csr_o(illegal),
     .instret_i(instret),.dsu_overflow_i(dsu_ovf),.csr_clear_overflow_o(clr_ovf),
     .trap_enter_i(trap_enter),.mret_i(mret),.is_interrupt_i(1'b0),.clic_level_i(8'd0),.trap_pc_i(tpc),.trap_cause_i(tcause),
-    .trap_tval_i(ttval),.clic_mip_i(clic_mip),.mstatus_mie_o(mie),.mtvec_o(mtvec),
-    .mtvt_o(mtvt),.mepc_o(mepc),.mintthresh_o(ithr),.mintstatus_mil_o());
+    .trap_tval_i(ttval),.mtip_i(mtip),.mstatus_mie_o(mie),.mtvec_o(mtvec),
+    .mti_pending_o(),.mepc_o(mepc),.mintthresh_o(ithr),.mintstatus_mil_o());
   task c32(input [127:0] n,input [31:0] g,input [31:0] e);
     begin if(g!==e)begin $display("FAIL %0s got %h exp %h",n,g,e);errors=errors+1;end end endtask
   task c1(input [127:0] n,input g,input e);
@@ -19,12 +19,20 @@ module tb_csr_file;
   task wr(input [11:0] a,input [31:0] d,input [1:0] o);
     begin @(negedge clk); csr_en=1;addr=a;wdata=d;op=o; @(negedge clk); csr_en=0;op=0; end endtask
   initial begin
-    {rst_n,csr_en,instret,dsu_ovf,trap_enter,mret,clic_mip}=0; addr=0;wdata=0;op=0;
+    {rst_n,csr_en,instret,dsu_ovf,trap_enter,mret,mtip}=0; addr=0;wdata=0;op=0;
     tpc=0;tcause=0;ttval=0;
     @(negedge clk) rst_n=1;
     // write mtvec then read back
     wr(12'h305,32'h1000_0100,`CSR_RW); #1; c32("mtvec_wr",mtvec,32'h1000_0100);
-    addr=12'h305;csr_en=1;op=`CSR_RS;wdata=0; #1; c32("mtvec_rd",rdata,32'h1000_0100); csr_en=0;op=0;
+    addr=12'h305;csr_en=1;op=`CSR_RS;wdata=0; #1; c32("mtvec_rd (MODE reads 3)",rdata,32'h1000_0103); csr_en=0;op=0;
+    // Rev 3.0 CSR surface: misa, mip.MTIP, mintstatus @0x346, mnxti reads 0, mtvt gone
+    addr=12'h301;csr_en=1;op=`CSR_RS;wdata=0; #1; c32("misa",rdata,32'h4000_1100); csr_en=0;op=0;
+    mtip=1; addr=12'h344;csr_en=1;op=`CSR_RS;wdata=0; #1; c32("mip.MTIP",rdata,32'h0000_0080); csr_en=0;op=0; mtip=0;
+    addr=12'h345;csr_en=1;op=`CSR_RS;wdata=0; #1; c32("mnxti",rdata,32'h0); c1("mnxti_legal",illegal,1'b0); csr_en=0;op=0;
+    addr=12'h346;csr_en=1;op=`CSR_RS;wdata=0; #1; c1("mintstatus_legal",illegal,1'b0); csr_en=0;op=0;
+    addr=12'h307;csr_en=1;op=`CSR_RS;wdata=0; #1; c1("mtvt_illegal",illegal,1'b1); csr_en=0;op=0;
+    addr=12'h7B0;csr_en=1;op=`CSR_RS;wdata=0; #1; c1("dcsr_illegal",illegal,1'b1); csr_en=0;op=0;
+    wr(12'h304,32'hFFFF_FFFF,`CSR_RW); addr=12'h304;csr_en=1;op=`CSR_RS;wdata=0; #1; c32("mie=MTIE only",rdata,32'h80); csr_en=0;op=0;
     // mscratch RS/RC
     wr(12'h340,32'hF0F0_F0F0,`CSR_RW);
     wr(12'h340,32'h0000_00FF,`CSR_RS); addr=12'h340;csr_en=1;op=`CSR_RS;wdata=0;#1;

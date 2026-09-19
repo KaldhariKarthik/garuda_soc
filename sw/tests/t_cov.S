@@ -239,8 +239,9 @@ _start:
 
     csrw    0x347, x10                  # mintthresh (8 bits of it)
     csrw    0x347, x11
-    csrw    0x307, x10                  # mtvt
-    csrw    0x307, x11
+    csrr    x15, 0x346                  # mintstatus (CORE Rev 3.0 address)
+    csrr    x15, 0x345                  # mnxti: implemented, reads 0
+    bnez    x15, fail
     csrw    mie,  x10
     csrw    mie,  x11
     csrw    mtval, x10

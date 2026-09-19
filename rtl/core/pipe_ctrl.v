@@ -60,8 +60,21 @@ module pipe_ctrl (
     output wire        id_ex_flush_o,
     output wire        ex_mem_stall_o,
     output wire        ex_mem_flush_o,
-    output wire        mem_wb_flush_o        // mem_wb has flush only (terminal-side)
+    output wire        mem_wb_flush_o,       // mem_wb has flush only (terminal-side)
+
+    // ---- clock gating (CORE-SPEC Rev 3.0 §7.7) ----
+    input  wire        bus_idle_i,           // no I/D-port transfer requested or in flight
+    input  wire        wfi_settled_i,        // H5 has held for 2+ cycles
+    output wire        quiescent_o           // -> core_clk_gate enable (inverted)
 );
+    // [N-7.28]: the pipeline is held by H5 (WFI) and nothing is in flight.
+    // This is the ONLY definition of "the core is idle" in the design
+    // ([N-7.29]); the clock gate consumes it and nothing re-derives it.
+    // dsu_busy and mem_stall are included so a gate can never freeze a DSU
+    // accumulate or a D-port data phase part-way.
+    assign quiescent_o = wfi_hold_i & wfi_settled_i & bus_idle_i &
+                         ~dsu_busy_i & ~mem_stall_i;
+
     // ERRATUM P-2 (found by riscv-tests rv32mi/ma_addr)
     // -----------------------------------------------
     // An ID-stage (predicted-taken) redirect is only meaningful if the branch

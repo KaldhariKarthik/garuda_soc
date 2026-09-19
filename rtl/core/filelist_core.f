@@ -39,6 +39,7 @@ rtl/core/csr_file.v
 rtl/core/clic_ctrl.v
 rtl/core/trap_ctrl.v
 rtl/core/pipe_ctrl.v
+rtl/core/core_clk_gate.v
 
 // core top
 rtl/core/garuda_core_top.v

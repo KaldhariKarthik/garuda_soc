@@ -11,7 +11,9 @@
 // Spec Ref    : AERO-GARUDA-DS-001 Rev 1.0, §5, §6, §16
 // ============================================================================
 
-module garuda_if_stage_top (
+module garuda_if_stage_top #(
+    parameter [31:0] RESET_VECTOR = 32'h1000_0000
+) (
     // ----------------------------------------------------------------
     // Infrastructure
     // ----------------------------------------------------------------
@@ -65,7 +67,7 @@ module garuda_if_stage_top (
     // ------------------------------------------------------------------
     // 1. PC Generator
     // ------------------------------------------------------------------
-    garuda_pc_gen u_pc_gen (
+    garuda_pc_gen #(.RESET_VECTOR(RESET_VECTOR)) u_pc_gen (
         .clk_i         (clk_i),
         .rst_n_i       (rst_n_i),
         .redirect_i    (redirect_i),

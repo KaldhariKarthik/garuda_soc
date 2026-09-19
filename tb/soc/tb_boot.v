@@ -84,8 +84,12 @@ module tb_boot;
     // be legal to drop and the test would silently prove nothing. +IRQ_EVERY
     // re-arms it periodically so a single run can hit many different offsets
     // into a loop rather than one fixed point in the instruction stream.
+    // Rev 4.0: the CLIC interface is level-triggered with no acknowledge. The
+    // testbench models a source that its handler clears by retiring the take:
+    // it drops the request on the core's own take strobe (whitebox), which is
+    // what a peripheral cleared by the ISR looks like from the core's side.
     reg  irq_req;
-    wire irq_ack;
+    wire irq_ack = dut.clic_take;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) irq_req <= 1'b0;
         else if (irq_ack) irq_req <= 1'b0;
@@ -106,13 +110,13 @@ module tb_boot;
         else if (irq_ack)      sweep_ix <= sweep_ix + 4'd1;
     end
 
-    wire [11:0] sweep_id  = (sweep_ix == 4'd0) ? 12'h000 :
-                            (sweep_ix == 4'd1) ? 12'hFFF :
-                            (sweep_ix == 4'd2) ? 12'h555 :
-                            (sweep_ix == 4'd3) ? 12'hAAA :
-                            (sweep_ix == 4'd4) ? 12'h001 :
-                            (sweep_ix == 4'd5) ? 12'hFFE :
-                            (sweep_ix == 4'd6) ? 12'h800 : 12'h7FF;
+    wire [4:0]  sweep_id  = (sweep_ix == 4'd0) ? 5'h01 :
+                            (sweep_ix == 4'd1) ? 5'h1F :
+                            (sweep_ix == 4'd2) ? 5'h15 :
+                            (sweep_ix == 4'd3) ? 5'h0A :
+                            (sweep_ix == 4'd4) ? 5'h01 :
+                            (sweep_ix == 4'd5) ? 5'h1E :
+                            (sweep_ix == 4'd6) ? 5'h10 : 5'h0F;
     // Levels stay high enough to beat mintthresh/mil most of the time, but the
     // low ones deliberately fail the take condition so both arms of each
     // comparison are covered.
@@ -124,7 +128,7 @@ module tb_boot;
                             (sweep_ix == 4'd5) ? 8'h80 :
                             (sweep_ix == 4'd6) ? 8'h7F : 8'hFF;
 
-    wire [11:0] irq_id_eff  = irq_sweep[0] ? sweep_id  : irq_id[11:0];
+    wire [4:0]  irq_id_eff  = irq_sweep[0] ? sweep_id  : irq_id[4:0];
     wire [7:0]  irq_lvl_eff = irq_sweep[0] ? sweep_lvl : irq_lvl[7:0];
     // shv alternates with the sweep. It was briefly disabled here while SHV
     // interrupts appeared to corrupt mepc - that turned out to be ERRATUM T-4
@@ -135,10 +139,26 @@ module tb_boot;
     // also settles clic_ctrl.v's open question in favour of the
     // jump-instruction interpretation: that is what the RTL implements and it
     // is now demonstrated end to end.
-    wire        irq_shv_eff = irq_sweep[0] ? sweep_ix[0] : irq_shv[0];
+    // (SHV vectoring was removed in Rev 4.0 - every trap enters at mtvec.)
+
+    // ---- machine timer stand-in: +MTIP_AT=<cyc> raises mtip until the core
+    // takes the timer trap (cause 0x8000_0007). Tied low otherwise.
+    integer mtip_at;
+    reg     mtip;
+    wire    core_sleep;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) mtip <= 1'b0;
+        else if (dut.tr_enter && dut.tr_cause == 32'h8000_0007) mtip <= 1'b0;
+        // software "advances mtimecmp": a store to 0x1000_F100 drops mtip
+        else if (d_htrans[1] && d_hwrite && d_hready && d_haddr == 32'h1000_F100) mtip <= 1'b0;
+        else if (mtip_at > 0 && cyc == mtip_at) mtip <= 1'b1;
+    end
+    integer sleep_cycles;
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) sleep_cycles <= 0; else if (core_sleep) sleep_cycles <= sleep_cycles + 1;
 
     garuda_core_top #(.RESET_VECTOR(BASE_ADDR)) dut (
-        .clk_i(clk), .rst_n_i(rst_n),
+        .clk_i(clk), .core_rst_n_i(rst_n), .hartreset_n_i(1'b1),
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize),
         .i_hburst_o(i_hburst), .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite),
         .i_hwdata_o(i_hwdata), .i_hrdata_i(i_hrdata), .i_hready_i(i_hready),
@@ -147,11 +167,11 @@ module tb_boot;
         .d_hburst_o(d_hburst), .d_hprot_o(d_hprot), .d_hwrite_o(d_hwrite),
         .d_hwdata_o(d_hwdata), .d_hrdata_i(d_hrdata), .d_hready_i(d_hready),
         .d_hresp_i(d_hresp),
-        .clic_irq_i(irq_req), .clic_irq_id_i(irq_id_eff),
-        .clic_irq_lvl_i(irq_lvl_eff), .clic_irq_shv_i(irq_shv_eff),
-        .clic_irq_ack_o(irq_ack), .clic_irq_id_ack_o(), .clic_mintthresh_o(),
-        .mtime_i(64'd0), .mtimecmp_i(64'hFFFF_FFFF_FFFF_FFFF),
-        .dbg_acc_0_o(dbg_acc0), .dbg_acc_1_o(dbg_acc1), .dbg_acc_2_o(dbg_acc2)
+        .clic_irq_valid_i(irq_req), .clic_irq_id_i(irq_id_eff),
+        .clic_irq_level_i(irq_lvl_eff),
+        .mtip_i(mtip),
+        .dbg_acc_0_o(dbg_acc0), .dbg_acc_1_o(dbg_acc1), .dbg_acc_2_o(dbg_acc2),
+        .dsu_ovf_o(), .core_sleep_o(core_sleep)
     );
 
     ahb_mem_slave #(
@@ -263,7 +283,7 @@ module tb_boot;
             (u_mem.b_da == tohost_addr) && (d_hwdata != 32'h0)) begin
             tohost_val = d_hwdata;
             if (tohost_val == 32'h1) begin
-                $display("\n*** TOHOST=1 -> PASSED (%0d instructions retired) ***", ninstr);
+                $display("\n*** TOHOST=1 -> PASSED (%0d instructions retired, %0d cycles clock-gated) ***", ninstr, sleep_cycles);
                 finish_sim(0);
             end else begin
                 $display("\n*** TOHOST=%08x -> FAILED (test %0d, %0d retired) ***",
@@ -326,6 +346,7 @@ module tb_boot;
         if (!$value$plusargs("IRQ_SHV=%d", irq_shv))   irq_shv   = 0;
         if (!$value$plusargs("IRQ_EVERY=%d", irq_every)) irq_every = 0;
         if (!$value$plusargs("IRQ_SWEEP=%d", irq_sweep))  irq_sweep = 0;
+        if (!$value$plusargs("MTIP_AT=%d", mtip_at))      mtip_at   = 0;
         if (!$value$plusargs("IRAND=%d", irand))       irand     = 0;
         if (!$value$plusargs("DRAND=%d", drand))       drand     = 0;
         if (!$value$plusargs("ERR_EN=%d", err_en))     err_en    = 0;

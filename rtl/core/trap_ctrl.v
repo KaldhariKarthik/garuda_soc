@@ -27,7 +27,7 @@
 // Taking the interrupt on wake reuses this same entry path.
 // =============================================================================
 module trap_ctrl #(
-    parameter ID_W = 12
+    parameter ID_W = 5
 )(
     input  wire        clk_i,
     input  wire        rst_n_i,
@@ -59,7 +59,7 @@ module trap_ctrl #(
     input  wire [ID_W-1:0] clic_irq_id_i,
     input  wire [7:0]  clic_irq_lvl_i,
     input  wire [31:0] clic_vector_target_i,
-    output wire        clic_take_o,           // -> clic_ctrl.take_i (ack pulse)
+    output wire        clic_take_o,           // a CLIC interrupt is entered this cycle
 
     // ---- machine timer interrupt (Sec.14.6) ----
     input  wire        mti_pending_i,     // mip.MTIP & mie.MTIE (NOT gated by mstatus.MIE)
@@ -117,16 +117,22 @@ module trap_ctrl #(
                            e3?idex_pc_i : (e4|e6)?ex_addr_i : 32'd0;
 
     // WFI drain-stall hold
-    reg wfi_active;
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i)                              wfi_active <= 1'b0;
-        else if (is_wfi & ~wfi_active)             wfi_active <= 1'b1;
-        else if (wfi_active & clic_wake_cond_i)    wfi_active <= 1'b0;
-    end
     // WFI wakes on ANY pending-and-locally-enabled interrupt, CLIC or timer,
     // independent of mstatus.MIE (Sec.14.5): with MIE clear the hart still
     // resumes at the instruction after the WFI rather than sleeping forever.
     wire wake_cond    = clic_wake_cond_i | mti_pending_i;
+
+    // ERRATUM T-8 (Rev 4.0 audit): wfi_active was cleared only by the CLIC
+    // wake term, while wfi_hold_o released on CLIC *or* timer. After a
+    // timer-only wake the latch stayed set, so the pipeline re-froze the
+    // moment the handler cleared MTIP (by advancing mtimecmp) and slept until
+    // some unrelated CLIC interrupt arrived. Both now use the same wake term.
+    reg wfi_active;
+    always @(posedge clk_i or negedge rst_n_i) begin
+        if (!rst_n_i)                              wfi_active <= 1'b0;
+        else if (is_wfi & ~wfi_active)             wfi_active <= 1'b1;
+        else if (wfi_active & wake_cond)           wfi_active <= 1'b0;
+    end
     assign wfi_hold_o = wfi_active & ~wake_cond;
 
     // Arbitration: MEM exc > EX exc > interrupt. (MRET is exit, handled separately.)
@@ -162,8 +168,7 @@ module trap_ctrl #(
     wire any_int      = take_int | take_mti;
     wire trap_now     = (exception | any_int) & ~is_mret;
 
-    // MTI is level-sensitive in the timer, not a CLIC vector: no ack pulse and
-    // no CLIC level to push, so it enters at mil level 0.
+    // MTI is not a CLIC source: no CLIC level to push, so it enters at mil 0.
     assign clic_take_o     = take_int;
     assign is_interrupt_o  = any_int;
     assign clic_level_o    = take_int ? clic_irq_lvl_i : 8'd0;

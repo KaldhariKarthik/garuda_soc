@@ -49,13 +49,11 @@ module csr_file (
     input  wire [31:0] trap_pc_i,        // -> mepc
     input  wire [31:0] trap_cause_i,     // -> mcause (bit31 = interrupt)
     input  wire [31:0] trap_tval_i,      // -> mtval
-    input  wire        clic_mip_i,       // CLIC external pending summary -> mip.MEIP
-    input  wire        mtip_i,           // machine timer pending, mtime >= mtimecmp (Sec.14.6)
+    input  wire        mtip_i,           // machine timer interrupt from block 11 (ADR-0010)
 
     // ---- architectural exports (to trap_ctrl / clic_ctrl) ----
     output wire        mstatus_mie_o,
     output wire [31:0] mtvec_o,
-    output wire [31:0] mtvt_o,
     output wire [31:0] mepc_o,
     output wire [7:0]  mintthresh_o,
     output wire [7:0]  mintstatus_mil_o, // current active interrupt level (Sec.14.3 take cond)
@@ -68,9 +66,12 @@ module csr_file (
 );
     // ---------------- addresses (Sec. 13.2) ----------------
     localparam MISA=12'h301, MVENDORID=12'hF11, MARCHID=12'hF12, MIMPID=12'hF13,
-               MHARTID=12'hF14, MSTATUS=12'h300, MTVEC=12'h305, MTVT=12'h307,
+               MHARTID=12'hF14, MSTATUS=12'h300, MTVEC=12'h305,
                MIE=12'h304, MIP=12'h344, MEPC=12'h341, MCAUSE=12'h342, MTVAL=12'h343,
-               MSCRATCH=12'h340, MINTSTATUS=12'hFB1, MINTTHRESH=12'h347, MNXTI=12'h345,
+               MSCRATCH=12'h340, MINTTHRESH=12'h347, MNXTI=12'h345,
+               // CORE-SPEC Rev 3.0 §6.1 places mintstatus at 0x346; the ratified
+               // CLIC address 0xFB1 is kept as a read-only alias (D-15).
+               MINTSTATUS=12'h346, MINTSTATUS_STD=12'hFB1,
                MCYCLE=12'hB00, MCYCLEH=12'hB80, MINSTRET=12'hB02, MINSTRETH=12'hB82,
                DSU_OVF=12'hBC0,
                // ERRATUM C-4 (Zicntr): user-level read-only shadows of the
@@ -87,18 +88,21 @@ module csr_file (
 
     // ---------------- state ----------------
     reg        mstatus_mie, mstatus_mpie;   // MPP fixed 2'b11 (M-only)
-    reg [31:0] mtvec_r, mtvt_r, mie_r, mepc_r, mcause_r, mtval_r, mscratch_r;
+    reg [31:0] mtvec_r, mie_r, mepc_r, mcause_r, mtval_r, mscratch_r;
     reg [7:0]  mintthresh_r;
     reg [7:0]  mil_r, mpil_r;            // mintstatus: current / previous interrupt level
     reg [63:0] mcycle_r, minstret_r;
 
     wire [31:0] mstatus_val = {19'd0, 2'b11 /*MPP*/, 3'd0, mstatus_mpie, 3'd0, mstatus_mie, 3'd0};
-    wire [31:0] misa_val    = {2'b01 /*MXL=32*/, 4'd0, 26'h0001100 /*I+M*/} | (32'd1<<23 /*X*/);
+    // CORE-SPEC Rev 3.0 §6.1: 0x4000_1100, RV32IM. The X bit is not set: the
+    // DSU's Custom-0 space is a non-standard extension but misa.X is optional
+    // and the spec value is normative.
+    wire [31:0] misa_val    = {2'b01 /*MXL=32*/, 4'd0, 26'h0001100 /*I+M*/};
     wire [31:0] mintstatus_val = {16'd0, mpil_r, mil_r};   // [15:8]=mpil [7:0]=mil
 
-    // mip is read-only hardware state (Sec.13.2): MEIP[11] = CLIC pending summary,
-    // MTIP[7] = machine timer. Both are driven by hardware, never by a CSR write.
-    wire [31:0] mip_val = {20'd0, clic_mip_i, 3'd0, mtip_i, 7'd0};
+    // mip is read-only hardware state: MTIP[7] only (CORE §6.1, [N-6.1]). CLIC
+    // interrupts do not appear in mip/mie in CLIC mode.
+    wire [31:0] mip_val = {24'd0, mtip_i, 7'd0};
     localparam MTIE_BIT = 7;
     assign mti_pending_o = mtip_i & mie_r[MTIE_BIT];
 
@@ -114,8 +118,7 @@ module csr_file (
             MIMPID:    rdata = 32'h0000_0110;      // Rev 1.1
             MHARTID:   rdata = 32'd0;
             MSTATUS:   rdata = mstatus_val;
-            MTVEC:     rdata = mtvec_r;
-            MTVT:      rdata = mtvt_r;
+            MTVEC:     rdata = {mtvec_r[31:2], 2'b11};   // MODE hardwired to 3 (CLIC)
             MIE:       rdata = mie_r;
             MIP:       rdata = mip_val;
             MEPC:      rdata = mepc_r;
@@ -123,6 +126,8 @@ module csr_file (
             MTVAL:     rdata = mtval_r;
             MSCRATCH:  rdata = mscratch_r;
             MINTSTATUS:rdata = mintstatus_val;
+            MINTSTATUS_STD: rdata = mintstatus_val;
+            MNXTI:     rdata = 32'd0;                     // not implemented, reads 0 (§13)
             MINTTHRESH:rdata = {24'd0, mintthresh_r};
             MCYCLE:    rdata = mcycle_r[31:0];
             MCYCLEH:   rdata = mcycle_r[63:32];
@@ -155,6 +160,7 @@ module csr_file (
     // have no effect; it only had to stop being reported as illegal.
     wire is_ro = (csr_addr_i==MVENDORID)||(csr_addr_i==MARCHID)||(csr_addr_i==MIMPID)||
                  (csr_addr_i==MHARTID)||(csr_addr_i==MINTSTATUS)||
+                 (csr_addr_i==MINTSTATUS_STD)||(csr_addr_i==MNXTI)||
                  (csr_addr_i==DSU_OVF)||(csr_addr_i==MIP)||
                  // Zicntr shadows are read-only by architecture: writes go to
                  // the machine counters, never through these addresses.
@@ -184,8 +190,7 @@ module csr_file (
     wire [31:0] mintthresh_next = nextv({24'd0,mintthresh_r}, csr_wdata_i, csr_op_i);
 
     assign mstatus_mie_o = mstatus_mie;
-    assign mtvec_o       = mtvec_r;
-    assign mtvt_o        = mtvt_r;
+    assign mtvec_o       = {mtvec_r[31:2], 2'b00};   // BASE; MODE is implied (CLIC)
     assign mepc_o        = mepc_r;
     assign mintthresh_o    = mintthresh_r;
     assign mintstatus_mil_o= mil_r;
@@ -193,13 +198,19 @@ module csr_file (
     always @(posedge clk_i or negedge rst_n_i) begin
         if (!rst_n_i) begin
             mstatus_mie<=1'b0; mstatus_mpie<=1'b0;
-            mtvec_r<=32'd0; mtvt_r<=32'd0; mie_r<=32'd0; mepc_r<=32'd0;
+            mtvec_r<=32'd0; mie_r<=32'd0; mepc_r<=32'd0;
             mcause_r<=32'd0; mtval_r<=32'd0; mscratch_r<=32'd0; mintthresh_r<=8'd0;
             mcycle_r<=64'd0; minstret_r<=64'd0;
             mil_r<=8'd0; mpil_r<=8'd0;
         end else begin
-            mcycle_r   <= mcycle_r + 64'd1;
-            if (instret_i) minstret_r <= minstret_r + 64'd1;
+            // Counters. mcycle/minstret are RW (CORE §6.1): a CSR write
+            // replaces the half it targets and wins over the increment.
+            if      (wr_ok && csr_addr_i == MCYCLE)  mcycle_r[31:0]  <= nextv(mcycle_r[31:0],  csr_wdata_i, csr_op_i);
+            else if (wr_ok && csr_addr_i == MCYCLEH) mcycle_r[63:32] <= nextv(mcycle_r[63:32], csr_wdata_i, csr_op_i);
+            else                                     mcycle_r        <= mcycle_r + 64'd1;
+            if      (wr_ok && csr_addr_i == MINSTRET)  minstret_r[31:0]  <= nextv(minstret_r[31:0],  csr_wdata_i, csr_op_i);
+            else if (wr_ok && csr_addr_i == MINSTRETH) minstret_r[63:32] <= nextv(minstret_r[63:32], csr_wdata_i, csr_op_i);
+            else if (instret_i)                        minstret_r        <= minstret_r + 64'd1;
 
             // Trap entry/exit take precedence over CSR-instruction writes.
             if (trap_enter_i) begin
@@ -221,8 +232,8 @@ module csr_file (
                     MSTATUS:  begin mstatus_mie <= mstatus_next[3];
                                     mstatus_mpie<= mstatus_next[7]; end
                     MTVEC:    mtvec_r    <= nextv(mtvec_r,    csr_wdata_i, csr_op_i);
-                    MTVT:     mtvt_r     <= nextv(mtvt_r,     csr_wdata_i, csr_op_i);
-                    MIE:      mie_r      <= nextv(mie_r,      csr_wdata_i, csr_op_i);
+                    // mie: only MTIE is implemented (CORE §6.1).
+                    MIE:      mie_r      <= nextv(mie_r,      csr_wdata_i, csr_op_i) & 32'h0000_0080;
                     MEPC:     mepc_r     <= nextv(mepc_r,     csr_wdata_i, csr_op_i) & ~32'd1;
                     MCAUSE:   mcause_r   <= nextv(mcause_r,   csr_wdata_i, csr_op_i);
                     MTVAL:    mtval_r    <= nextv(mtval_r,    csr_wdata_i, csr_op_i);

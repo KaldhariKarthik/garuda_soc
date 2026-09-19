@@ -18,7 +18,9 @@
 // target address in the same cycle (§6.2, §6.5).
 // ============================================================================
 
-module garuda_pc_gen (
+module garuda_pc_gen #(
+    parameter [31:0] RESET_VECTOR = 32'h1000_0000   // Boot ROM (GARUDA_RESET_VECTOR)
+) (
     input  wire        clk_i,
     input  wire        rst_n_i,
 
@@ -38,8 +40,6 @@ module garuda_pc_gen (
     output reg  [31:0] pc_o,
     output reg  [31:0] fetch_pc_o
 );
-
-    localparam RESET_VECTOR = 32'h1000_0000;   // Boot ROM (§2.1, §17)
 
     always @(posedge clk_i or negedge rst_n_i) begin
         if (!rst_n_i) begin

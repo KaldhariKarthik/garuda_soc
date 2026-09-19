@@ -17,7 +17,7 @@ cd "$ROOT"
 source "$ROOT/scripts/setup_env.sh" > /dev/null
 
 RUNDIR=${RUNDIR:-sim/sanity}
-MAXCYC=${MAXCYC:-50000}
+MAXCYC=${MAXCYC:-200000}   # t_clic needs ~60k: an IRQ every 40 cycles (OPEN-8, not a hang)
 SEED=${SEED:-7}
 mkdir -p "$RUNDIR"
 
@@ -32,6 +32,7 @@ SANITY_TESTS=(
   "t_mem|item 6: width x offset matrix, byte enables, misalign traps|"
   "t_clic|18: CLIC id/level/threshold sweep, take and block|+IRQ_EVERY=40 +IRQ_SWEEP=1"
   "t_cov|coverage closure: FENCE, reserved encodings, CSR sweep, toggle walks|"
+  "t_mtip|T-8: timer-only WFI wake, then clear, core keeps running|+MTIP_AT=300"
 )
 
 echo "elaborating..."

@@ -5,7 +5,7 @@
 # regression, because t_irq drives ONE interrupt configuration and software
 # never writes mtvt. The module is small and mostly combinational, so the gap
 # is almost entirely unexercised BUSES rather than unexercised logic:
-# NOTE: mtvt (0x307) and mintthresh (0x347) are CLIC CSRs, not base RISC-V, so
+# NOTE: mintstatus (0x346) and mintthresh (0x347) are CLIC CSRs, not base RISC-V, so
 # the assembler does not know their names - they are written numerically here.
 #
 #   clic_irq_id_i   12 bits    clic_irq_lvl_i   8 bits
@@ -13,8 +13,10 @@
 #   vector_target_o 32 bits
 #
 # Two halves, and both are needed:
-#   - the testbench sweeps id / level / shv per interrupt (+IRQ_SWEEP=1)
-#   - this test drives the CSR side: mtvt, mtvec and mintthresh
+#   - the testbench sweeps id / level per interrupt (+IRQ_SWEEP=1)
+#   - this test drives the CSR side: mtvec, mintstatus, mnxti and mintthresh
+# Rev 4.0: 5-bit ids, level-triggered, no SHV/mtvt - every trap enters at
+# mtvec BASE and the handler reads mcause[4:0].
 #
 # It also covers both arms of every term in the take condition (Sec. 14.3):
 #     irq & MIE & (lvl > mintthresh) & (lvl > mintstatus.mil)
@@ -36,21 +38,25 @@ _start:
     li      x21, 0                      # last mcause
     li      x22, 0                      # exceptions (must stay 0)
 
-    # ================= 1. mtvt is writable and read-backable =============
-    # Also the point at which mtvt's 32 bits finally toggle. Values are
-    # 64-byte aligned because CLIC mode masks mtvt[5:0].
+    # ================= 1. Rev 4.0 CLIC CSR surface =======================
+    # CORE-SPEC Rev 3.0 §6.1: mtvec.MODE reads 3 (CLIC), mintstatus lives at
+    # 0x346 (0xFB1 kept as an alias), mnxti (0x345) is present and reads 0,
+    # and mtvt (0x307) no longer exists - SHV vectoring was removed.
     li      x3, 1
-    li      x10, 0xAAAAAAC0
-    csrw    0x307, x10
-    csrr    x11, 0x307
-    li      x10, 0x55555540
-    csrw    0x307, x10
-    csrr    x12, 0x307
-    beq     x11, x12, fail              # two distinct values must read back differently
-
-    # park mtvt somewhere sane for the rest of the test
-    lla     x10, vector_table
-    csrw    0x307, x10
+    csrr    x10, mtvec
+    andi    x10, x10, 3
+    li      x11, 3
+    bne     x10, x11, fail              # MODE must read 3
+    csrr    x10, 0x346
+    csrr    x11, 0xFB1
+    bne     x10, x11, fail              # both mintstatus addresses agree
+    csrr    x10, 0x345
+    bnez    x10, fail                   # mnxti reads 0
+    li      x22, 0
+    csrr    x10, 0x307                  # mtvt: must trap (illegal)
+    li      x11, 1
+    bne     x22, x11, fail
+    li      x22, 0
 
     # ================= 2. mintthresh is writable ==========================
     # Sweeping it toggles the 8-bit threshold bus and moves the lvl>thresh
@@ -149,27 +155,3 @@ trap_vector:
 8:  addi    x20, x20, 1
     mret
 
-    # =========================================================================
-    # SHV vector table -- one entry PER INTERRUPT ID, holding a jump.
-    #
-    # clic_ctrl vectors an SHV interrupt to mtvt_base + id*4 and fetch lands
-    # there directly, so each entry must be a real instruction, and the table
-    # must span every id that can be presented. The testbench sweeps ids up to
-    # 0xFFF, so the table needs 4096 entries (16 KB); a short table sends the
-    # core off the end into blank memory, where it executes zeros and
-    # trap-loops forever. That is precisely the ambiguity clic_ctrl.v's header
-    # flags: "if the table holds handler pointers requiring a hardware
-    # dereference, trap_ctrl issues that vector fetch; if it holds jump
-    # instructions, fetch lands here directly. Flagged for reconciliation with
-    # the SHV memory-model decision."
-    #
-    # This test resolves it the second way - jump instructions - because that
-    # is what the RTL actually does today. It lives in .text, not .data: these
-    # are instructions.
-    # =========================================================================
-    .section .text.init, "ax"
-    .align 6
-vector_table:
-    .rept 4096
-    j       trap_vector
-    .endr
