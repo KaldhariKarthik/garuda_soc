@@ -53,15 +53,35 @@ module mac_unit(
     mult_16x16 U_mult_a (.a (a0),  .b (b0), .p (product_a));
     mult_16x16 U_mult_b (.a (a1),  .b (b1), .p (product_b));
     
-    wire [47:0] pa_ext = {{16{product_a[31]}}, product_a};
-    wire [47:0] pb_ext = {{16{product_b[31]}}, product_b};
+    // -----------------------------------------------------------------------
+    // ERRATUM OVF-1 (Docs/ORACLES.md; closes OPEN-9) -- overflow flag wrong
+    // for |acc| >= 2^46
+    // -----------------------------------------------------------------------
+    // The carry-save path was 48 bits wide and the 49-bit adder was fed
+    // SIGN-EXTENDED csa sum and carry. A carry-save pair is not two signed
+    // numbers: csa_3to2 shifts the majority left and drops maj[47], so the pair
+    // reconstructs the true value only modulo 2^48, and bit 48 of the adder
+    // carried no sign information. The low 48 bits (the accumulator value)
+    // were always right; the overflow flag was wrong for about half of all
+    // accumulates in the top quarter of the range.
+    //
+    // Fix: run the whole carry-save path one bit wider. Every operand is
+    // sign-extended to 49 bits BEFORE compression, so the pair reconstructs
+    // (acc + P) exactly modulo 2^49. |acc| < 2^47 and |P| < 2^34, so the true
+    // sum always fits a 49-bit signed value, and result[48] ^ result[47] is
+    // exactly signed overflow of the 48-bit accumulator. No carry-propagate
+    // logic is added to stage 1; the CSA/Kogge-Stone structure is unchanged
+    // apart from one bit of width.
+    // -----------------------------------------------------------------------
+    wire [48:0] pa_ext = {{17{product_a[31]}}, product_a};
+    wire [48:0] pb_ext = {{17{product_b[31]}}, product_b};
     
-    wire [47:0] pa_eff = pa_ext ^ {48{add_sub}};
-    wire [47:0] pb_eff = pb_ext ^ {48{add_sub}};
-    wire [47:0] sub_k = {46'b0, add_sub , 1'b0};
+    wire [48:0] pa_eff = pa_ext ^ {49{add_sub}};
+    wire [48:0] pb_eff = pb_ext ^ {49{add_sub}};
+    wire [48:0] sub_k = {47'b0, add_sub , 1'b0};
     
-    wire [47:0] csa1_sum, csa1_carry;
-    csa_3to2 #(.WIDTH(48)) u_csa1 (
+    wire [48:0] csa1_sum, csa1_carry;
+    csa_3to2 #(.WIDTH(49)) u_csa1 (
         .a (pa_eff),
         .b (pb_eff),
         .c (sub_k),
@@ -69,7 +89,7 @@ module mac_unit(
         .carry (csa1_carry)
     );
     
-    reg [47:0] sum_reg, carry_reg;
+    reg [48:0] sum_reg, carry_reg;
     wire write_en = (en | sat_writeback_en) & ~flush;
 
     // -----------------------------------------------------------------------
@@ -99,16 +119,16 @@ module mac_unit(
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            sum_reg   <= 48'b0;
-            carry_reg <= 48'b0;
+            sum_reg   <= 49'b0;
+            carry_reg <= 49'b0;
         end
         else if (flush) begin
-            sum_reg   <= 48'b0;
-            carry_reg <= 48'b0;
+            sum_reg   <= 49'b0;
+            carry_reg <= 49'b0;
         end
         else if (pend_clr) begin
-            sum_reg   <= 48'b0;
-            carry_reg <= 48'b0;
+            sum_reg   <= 49'b0;
+            carry_reg <= 49'b0;
         end
         else if (prod_en) begin
             sum_reg   <= csa1_sum;
@@ -117,21 +137,19 @@ module mac_unit(
     end
     
     reg signed [47:0] acc;
-    wire [47:0] csa2_sum, csa2_carry;
-    csa_3to2 #(.WIDTH(48)) u_csa2(
-        .a (acc),
+    wire [48:0] csa2_sum, csa2_carry;
+    csa_3to2 #(.WIDTH(49)) u_csa2(
+        .a ({acc[47], acc}),                  // sign-extended to 49 (OVF-1)
         .b (sum_reg),
         .c (carry_reg),
         .sum (csa2_sum),
         .carry (csa2_carry)
     );
-    
-    wire [48:0] s_ext = {csa2_sum[47], csa2_sum};
-    wire [48:0] c_ext = {csa2_carry[47], csa2_carry}; 
+    // csa2 is 49 bits wide: its sum/carry feed the adder directly (OVF-1).
     wire [48:0] result_ext;
     kogge_stone_49 u_ks (
-        .a (s_ext),
-        .b (c_ext),
+        .a (csa2_sum),
+        .b (csa2_carry),
         .cin (1'b0),
         .sum (result_ext)
     );

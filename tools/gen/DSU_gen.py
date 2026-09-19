@@ -226,7 +226,11 @@ def clamp_region_sweep(seed, n_per_point=2000):
         m.tick(clr, 0, 0, dsu_en=1); m.tick(0, 0, 0, dsu_en=0)
         a.step(clr, 0, 0, dsu_en=1)
         m.acc[0] = start
-        a.acc[0] = start
+        # ArchDSU holds a SIGNED Python int; handing it the raw 48-bit pattern
+        # of a negative start made it see a huge positive value and flag one
+        # spurious overflow per negative point (found re-running this sweep
+        # after the OVF-1 fix).
+        a.acc[0] = start - (1 << 48) if start >> 47 else start
 
         bad = acc_bad = 0
         for _ in range(n_per_point):

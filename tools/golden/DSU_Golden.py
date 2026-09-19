@@ -308,17 +308,19 @@ class DSUModel:
         # ---- mult_16x16 + sign-extend to 48 ------------------------------
         pa = (s16(a0) * s16(b0)) & MASK32
         pb = (s16(a1) * s16(b1)) & MASK32
-        pa_ext = sext(pa, 32, 48)
-        pb_ext = sext(pb, 32, 48)
+        # ERRATUM OVF-1: the carry-save path is 49 bits wide, inputs
+        # sign-extended before compression (mirrors mac_unit.v).
+        pa_ext = sext(pa, 32, 49)
+        pb_ext = sext(pb, 32, 49)
 
         # ---- subtract trick: invert both products, add +2 correction -----
         # Valid only because pb == 0 whenever add_sub is set (MACSUB is not a
         # dot product, so the high lane is forced to zero by operand_router).
-        inv = MASK48 if d.add_sub else 0
+        inv = MASK49 if d.add_sub else 0
         pa_eff = pa_ext ^ inv
         pb_eff = pb_ext ^ inv
         sub_k = 2 if d.add_sub else 0
-        csa1_sum, csa1_carry = csa_3to2(pa_eff, pb_eff, sub_k)
+        csa1_sum, csa1_carry = csa_3to2(pa_eff, pb_eff, sub_k, width=49)
 
         # ---- saturation_unit.v (combinational, reads the SELECTED acc) ---
         # NOTE: cluster_out is `acc`, so this does NOT see a pending product.
@@ -348,9 +350,9 @@ class DSUModel:
             write_en = (en_i or sat_we_i) and not flush
 
             # stage 2: CSA2(acc, sum_reg, carry_reg) -> 49-bit Kogge-Stone
-            csa2_sum, csa2_carry = csa_3to2(self.acc[i], self.sum_reg[i],
-                                            self.carry_reg[i])
-            result_ext = kogge_stone_49(_sext49(csa2_sum), _sext49(csa2_carry))
+            csa2_sum, csa2_carry = csa_3to2(_sext49(self.acc[i]), self.sum_reg[i],
+                                            self.carry_reg[i], width=49)
+            result_ext = kogge_stone_49(csa2_sum, csa2_carry)
             adder_result = result_ext & MASK48
             accum_ovf = ((result_ext >> 48) & 1) ^ ((result_ext >> 47) & 1)
 
