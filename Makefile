@@ -58,7 +58,8 @@ endif
         test_csr_rw test_clic_ctrl test_lsu test_load_fmt test_memwb \
         test_pc_gen test_prefetch test_iport test_dport test_mem_stage test_if_stage \
         test_crg test_ahb_ic test_bridge test_mem test_dma test_clic test_timers \
-        test_debug test_blocks test_chip test_chip_basic test_chip_irq test_chip_wdt \
+        test_apb_shim test_spim \
+        test_debug test_blocks test_chip test_chip_basic test_chip_irq test_chip_wdt test_chip_flash \
         test_chip_jtag elab_chip regress_all synth
 
 help:
@@ -84,7 +85,7 @@ help:
 	@echo "  make regress_rand    -- same, randomised waits 0..8 (SEED=n)"
 	@echo "  make coverage        -- functional coverage sweep (code cov: see script)"
 	@echo "  ---- Rev 4.0 SoC ----"
-	@echo "  make test_blocks     -- every block TB: crg ahb_ic bridge mem dma clic timers debug"
+	@echo "  make test_blocks     -- every block TB: crg ahb_ic bridge mem dma clic timers debug apb_shim spim"
 	@echo "  make test_chip       -- whole chip from the pins: basic, irq, wdt, jtag"
 	@echo "  make elab_chip       -- elaborate garuda_chip_top"
 	@echo "  make regress_all     -- everything above plus core, sanity, DSU and ISA"
@@ -225,9 +226,12 @@ test_dma:     ; $(call run_blk,tb/dma/filelist_dma_top.f,tb_dma_top,tb_dma)     
 test_clic:    ; $(call run_blk,tb/clic/filelist_clic.f,tb_clic,tb_clic)                 ## 10 CLIC
 test_timers:  ; $(call run_blk,tb/timers/filelist_timers.f,tb_timers,tb_timers)         ## 11 timers + WDT
 test_debug:   ; $(call run_blk,tb/debug/filelist_debug.f,tb_debug,tb_debug)             ## 12 debug (JTAG/DM/SBA)
+test_apb_shim:; $(call run_blk,tb/common/filelist_shim.f,tb_apb_shim,tb_apb_shim)     ## shared peripheral front end
+test_spim:    ; $(call run_blk,tb/spi_master/filelist_spim.f,tb_spim,tb_spim)          ## 13 SPI master + flash
 
 # Every block, clocks and reset first because everything else assumes them.
-test_blocks: test_crg test_ahb_ic test_bridge test_mem test_dma test_clic test_timers test_debug
+test_blocks: test_crg test_ahb_ic test_bridge test_mem test_dma test_clic test_timers test_debug \
+             test_apb_shim test_spim
 
 # =============================================================================
 # Whole chip (garuda_chip_top) from the pins, real Boot ROM, boot_sel = 1:
@@ -241,7 +245,8 @@ test_chip_basic: ; $(call run_blk,$(CHIP_FL),tb_chip,chip_basic,+MODE=basic +TES
 test_chip_irq:   ; $(call run_blk,$(CHIP_FL),tb_chip,chip_irq,+MODE=irq +TEST=sw/build/t_chip_irq.hex)
 test_chip_wdt:   ; $(call run_blk,$(CHIP_FL),tb_chip,chip_wdt,+MODE=wdt +TEST=sw/build/t_chip_wdt.hex)
 test_chip_jtag:  ; $(call run_blk,$(CHIP_FL),tb_chip,chip_jtag,+MODE=jtag +TEST=sw/build/t_chip_jtag.hex +MAXUS=1500)
-test_chip: sw test_chip_basic test_chip_irq test_chip_wdt test_chip_jtag
+test_chip_flash: ; $(call run_blk,$(CHIP_FL),tb_chip,chip_flash,+MODE=flash +TEST=sw/build/flash.hex +MAXUS=3000)
+test_chip: sw test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_jtag
 
 elab_chip:                                       ## whole-chip elaboration
 	$(call run_blk,rtl/soc/filelist_chip.f,garuda_chip_top,elab_chip,-elaborate)
