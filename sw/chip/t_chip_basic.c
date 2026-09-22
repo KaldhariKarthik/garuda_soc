@@ -56,9 +56,14 @@ int main(void)
     v = *(volatile uint32_t *)0x30000000u;
     if (!fault(5) || last_tval != 0x30000000u)      return 8;
 
-    /* 9: deferred peripheral window (spi_master, masked) faults, never hangs */
-    v = *(volatile uint32_t *)GARUDA_APB_BASE_SPI_MASTER;
+    /* 9a: a still-deferred peripheral window (i2c, masked) faults, never hangs */
+    v = *(volatile uint32_t *)GARUDA_APB_BASE_I2C;
     if (!fault(5))                                  return 9;
+
+    /* 9b: and a window that HAS landed answers - spi_master identifies itself */
+    if (*(volatile uint32_t *)(GARUDA_APB_BASE_SPI_MASTER + 0xFECu)
+        != 0x6A5D0D01u)                             return 9;
+    if (exc_count != 0)                             return 9;   /* and no trap */
 
     /* 10: APB is word-only */
     v = *(volatile uint8_t *)(GARUDA_APB_BASE_CLIC_CFG + 4);
