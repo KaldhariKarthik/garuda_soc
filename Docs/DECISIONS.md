@@ -339,6 +339,100 @@ bytes of DSRAM before its own init. Proven end to end by `make test_chip_jtag`.
 
 ---
 
+## D-21 — The peripheral contract: held interrupts, and DMA requests that drop
+
+**Decided 2026-09-22 · Raised by** adapting third-party IP to GARUDA's fabric
+
+Every peripheral window presents the same front end, `rtl/common/garuda_apb_shim.v`,
+whatever the IP behind it does natively. Four rules, implemented once:
+
+1. **PREADY is driven high, always.** The bridge abandons a transfer after 16
+   pclk (AHB2APB [N-7.15]), so an IP that stalls the bus while a wire
+   transaction completes would turn a register access into a bus fault. All four
+   vendored IPs tie PREADY high; a simulation assertion in the shim fires if a
+   re-vendor ever changes that.
+2. **Interrupts are captured sticky.** Upstream sources are a mix of pulses
+   (SPI `events_o`), read-to-clear levels (GPIO) and state bits (16550 IIR). The
+   shim captures each into `IRQSTAT`, so the line the CLIC sees is a held level
+   cleared only by firmware — the D-17 rule applied uniformly. A source still
+   asserted cannot be cleared by W1C (set beats clear), so an interrupt cannot be
+   lost in the act of acknowledging it.
+3. **DMA requests must drop after every beat.** `rtl/dma/dma_chan.v` takes
+   exactly one beat per request assertion: its `taken_q` sets on `beat_done` and
+   clears only when `req_i` drops. A FIFO-level request that stays high would
+   therefore move one beat and then stall the channel **silently**. The shim
+   drops `dma_req` on `dma_ack` and holds it off for one pclk.
+   `tb/common/dma_req_checker.sv` enforces this and is bound in every block TB.
+4. **Peripheral DMA beats are word-sized.** The bridge is word-only, so a DMA
+   beat to an APB address must be a word. UART and I²C therefore expose their
+   byte data register as one byte in bits [7:0] of a word; SPI keeps native
+   32-bit words.
+
+Common register tail in every window: `0xFE0 IRQSTAT` (W1C), `0xFE4 IRQEN`,
+`0xFE8 DMACTL`, `0xFEC ID`.
+
+## D-22 — Third-party RTL is vendored, never edited
+
+**Decided 2026-09-22 · Raised by** sourcing the seven peripherals
+
+The sourced peripheral IP never arrived, so the five peripheral functions are
+adapted from open-source IP: PULP (`apb_spi_master` + `axi_spi_master`,
+`apb_uart_sv`, `apb_gpio`, Solderpad 0.51) and the OpenCores I²C master
+(Richard Herveille, notice-preserving licence). PWM is written in-house — the
+only PULP option is the much larger `apb_adv_timer`, and an ESC output's
+safe-idle requirement is cheaper to prove on a counter-compare.
+
+**PULP's `apb_i2c.sv` register front end is deliberately not vendored**: it
+carries no licence header and its repository has no LICENSE file. Only the
+OpenCores bit/byte controllers underneath it are taken, and our own register
+layer sits on top. Provenance a tapeout can stand behind matters more than the
+~200 lines saved.
+
+Policy: upstream files live under `rtl/third_party/` and are **never edited** —
+every delta belongs in the GARUDA wrapper. An unavoidable change goes in
+`<ip>/patches/*.patch` with a `Docs/BUGS.md` entry; an empty `patches/` is the
+goal state. `rtl/third_party/MANIFEST.yaml` records url, commit and licence;
+`HASHES.txt` records what was vendored; `tools/vendor_sync.py --check` fails if
+anything drifts. Each IP compiles into its own Xcelium library (`-makelib`),
+because PULP's generic module names (`clk_div`, FIFOs, clock gates) collide with
+GARUDA's own. Licences are reproduced in `Docs/THIRD_PARTY_NOTICES.md` and ship
+with the design.
+
+---
+
+## D-23 — Adapted IP is integrated against its source, not its port names
+
+**Decided 2026-09-22 · Raised by** the first vendored block, SPI master
+
+Bringing up `apb_spi_master` cost an afternoon to a two-character mistake. The
+wrapper connected MISO to `spi_sdi0`, which is what the name suggests for a
+single-bit SPI master. The upstream lanes are **quad-SPI pads**, and single-bit
+mode uses a different lane in each direction: `spi_master_tx` drives IO0
+(`sdo0` → MOSI) and `spi_master_rx` shifts in IO1 —
+`data_int_next = {data_int[30:0], sdi1}` — because that is where MISO sits on a
+quad-capable flash.
+
+The failure mode is the reason this is a ruling. Nothing complained. The
+transfer ran, the chip select and SCLK were perfect, the flash model decoded
+the command and the address and returned the right bytes, the RX FIFO reported
+a word — and every word read back as zero. On a board this looks like a dead
+flash, and the scope agrees with you.
+
+**Rule: for every vendored module, the integration is written from the RTL that
+*uses* a port, not from the port's name or the datasheet.** In practice, for
+each wrapper: find the assignment or shift expression each connected signal
+actually reaches, and put the line of upstream that decides it in a comment next
+to the connection. `garuda_spim_top.v` and [N-7.6] are the worked example.
+
+Corollary for verification: a block TB must move **real data end to end through
+the pins**, not just prove the registers read back. `tb_spim` passed eleven
+contract checks — PREADY, PSLVERR, IRQ, DMA hold-off, chip-select exclusivity,
+SCLK rate — with MISO connected to the wrong pin. Only `t_spim_flash_read`,
+which compares bytes against a flash model that was programmed with a known
+pattern, caught it.
+
+---
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. Neither blocks RTL.

@@ -1,11 +1,11 @@
 # GARUDA verification — handoff
 
-Last updated 2026-09-19 (§0 below). §1 onward is the 2026-09-02 core/DSU
+Last updated 2026-09-22 (§0 below). §1 onward is the 2026-09-02 core/DSU
 handoff, kept as history; where it disagrees with §0, §0 is current.
 
 ---
 
-## 0. Rev 4.0 SoC — status 2026-09-19
+## 0. Rev 4.0 SoC — status 2026-09-22
 
 The RTL implements the Rev 4.0 set (`Design_Docs/garuda_system.yaml`, the
 `GARUDA-*-SPEC-001` documents); contradictions between those documents were
@@ -22,8 +22,8 @@ only through `tools/garuda_gen.py` -> `rtl/include/garuda_map.vh`,
 | core sanity (IRQ, WFI + clock gate, bus error, DSU, CLIC, T-8 timer wake) | 10/10 | `make test_sanity` |
 | ISA rv32ui/um/mi + Spike lockstep | 63/63 (and 63/63 random waits) | `make regress`, `make regress_rand` |
 | DSU vs model (+ clamp walk, oracle sweep) | pass, 0 mismatches | `make test_dsu` |
-| block TBs: crg ahb_ic bridge mem dma clic timers debug | 43, 802, 20, 18, 25, 15, 22, 25 checks, 0 fail | `make test_blocks` |
-| whole chip from the pins: basic / irq / wdt / jtag | all pass, 0 AHB violations | `make test_chip` |
+| block TBs: crg ahb_ic bridge mem dma clic timers debug apb_shim spim | 43, 802, 20, 18, 25, 15, 22, 25, 22, 24 checks, 0 fail | `make test_blocks` |
+| whole chip from the pins: basic / irq / wdt / **flash** / jtag | all pass, 0 AHB violations | `make test_chip` |
 | per-element core TBs | 8/14 pass, 6 are testbench issues (BUGS.md ELEM-1..6) | `make test_elements` |
 | structural synthesis, whole chip (Genus 21.1, stand-in 180 nm lib, SRAMs black-boxed) | 54 887 cells, 4 856 flops, 0 unresolved / undriven / multi-driven, 1 latch = the intended ICG in `core_clk_gate` | `make synth` |
 
@@ -32,17 +32,40 @@ spec): `boot_sel = 1` -> ROM recovery loop -> debugger halts the hart, streams
 the image into ISRAM over SBA, writes `{0x4A544147, entry}` to the DSRAM
 mailbox at `0x2000_FFF0`, resumes -> ROM jumps (D-20).
 
+**The chip now boots itself from SPI flash.** `make test_chip_flash` is the
+first test that runs `boot.c` steps 3–11 for real: nothing is placed in ISRAM
+and no mailbox is posted — with `boot_sel = 0` the ROM reads the image off the
+SPI pins word by word, checks its CRC-32, sets ILOCK and jumps. The image comes
+from `tools/mkbootimg.py` (32-byte header + payload) into
+`tb/models/spi_flash_model.sv`. 1.12 ms for a 700-byte image; see SPIM
+[N-7.3a] for why a full 64 KiB image would take ~67 ms and how to halve it.
+
+**Peripherals: 1 of 7 landed.** `spi_master` (block 13, window 1, CLIC 15, DMA
+channel 0) is instantiated in `garuda_chip_top.v` and is the worked example for
+the other six — the file header table says which window, IRQ and DMA channel
+each one takes. The shared front end `rtl/common/garuda_apb_shim.v` (window
+decode, PSLVERR, sticky IRQ, DMA hold-off, pad sync, the `0xFE0`–`0xFEC` tail)
+already exists and is tested, so each remaining block is a wrapper plus a TB.
+Vendored IP for all of them is in `rtl/third_party/` (D-22,
+`tools/vendor_sync.py --check`).
+
+**Read `Docs/DECISIONS.md` D-23 before integrating the next one.** The SPI
+bring-up lost an afternoon to MISO connected to upstream's `sdi0` instead of
+`sdi1`; every register-level check passed and every data word read as zero.
+
 **Next, in order:**
-1. Land the sourced peripheral IP (SPI-M, I²C, UART×3, GPIO, PWM): per IP, one
-   instance in `garuda_chip_top.v` on its `apb_ext` window, IRQ, DMA req/ack,
-   pins, and its bit in `APB_WINDOW_MASK` (table in the file header). Then fill
-   `spim_read_word()` in `sw/bootrom/boot.c` and test the flash boot path with
-   an SPI flash model (MEM [N-11.1]).
+1. The remaining six peripherals — i2c (win 2), uart0/1/2 (win 3/4/6, one
+   wrapper), gpio (win 7), pwm (win 8, in-house). Per block: spec, wrapper,
+   block TB, then the five-line chip-top integration and its `APB_WINDOW_MASK`
+   bit. Specs for these five are still unwritten; SPIM-SPEC-001 is the template.
 2. Triage the six element TBs (BUGS.md ELEM-1..6).
 3. SDC from PHYS §5.2 (+ `aon_clk` generated clock, D-14), foundry SRAM/ROM
    macros behind `sram_wrapper.v`, ICG cell in `core_clk_gate.v`, then STA at
    250 MHz with the 28 nm library.
 4. Coverage closure on the new blocks (none collected yet), gate-level sim.
+5. `make synth` per new block as it lands, not at the end — PULP targets
+   50–100 MHz and we run APB at 125 MHz; `APB_DIV` is the per-window escape
+   hatch if a block cannot make it (AHB2APB [N-7.10]).
 
 ---
 
