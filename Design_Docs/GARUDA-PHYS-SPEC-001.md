@@ -131,8 +131,11 @@ bus. No previous document accounted for the second one.
 
 ### 3.2 The 36-pin expansion (contingent)
 
-**[N-3.6]** If supply pads prove to be outside the 40, these are added. Additive only —
-nothing in §3.1 moves.
+**[N-3.6]** ESP-NOW is **required** (ADR-0020 Rev 2 — it is APF's neighbour-position
+source), so the SPI-slave port below is in scope, not contingent. *How* it is added
+depends on OPEN-2: if supply pads are **outside** the 40, these pins are additive and
+nothing in §3.1 moves; if they are **inside** the 40, 4 pins are reclaimed (baseline:
+2 spares + console UART2 — see ADR-0020 Rev 2). OPEN-2 remains the PD mentor's call.
 
 | # | Name | Dir | Function | Block |
 |---|---|---|---|---|

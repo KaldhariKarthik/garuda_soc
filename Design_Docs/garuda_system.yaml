@@ -45,7 +45,7 @@ clocks:
     div_default: 2
     div_options: [2, 4, 8, 16]        # DIV=4 (125 MHz) is the timing fallback - ADR-0001
     freq_mhz: 250.0
-    domain_of: [core, dsu, ahb, dma, clic, timers, bridge, apb, debug_dm, memories]
+    domain_of: [core, dsu, ahb, dma, clic, timers, bridge, debug_dm, memories]   # apb peripherals moved to pclk (ADR-0002 Rev 2)
   pclk:
     exists: true                      # ADR-0002 rev 2: real 125 MHz clock, toggle flop
     derived_from: hclk
@@ -200,7 +200,7 @@ address_map:
 # -----------------------------------------------------------------------------
 apb:
   protocol: APB3
-  clock: hclk
+  clock: pclk                       # ADR-0002 Rev 2: APB peripherals on pclk (125 MHz) for dynamic power
   window_size_kib: 4
   access: word_only
   slverr_on: [byte_access, halfword_access, unmapped_offset]
@@ -239,8 +239,9 @@ dma:
   beat: SINGLE_only
   arbitration: {policy: fixed_priority, granularity: per_beat}
   modes: [P2M, M2P, M2M]
-  clock: hclk
-  cdc: none                         # ADR-0002: config port is on hclk
+  clock: hclk                       # DMA data engine is an hclk AHB master (M3)
+  cfg_clock: pclk                   # ADR-0002 Rev 2: config port (APB window 4) on pclk, like every APB window
+  cdc: none                         # pclk rising edges are a subset of hclk edges - synchronous, no crossing
   assignment:
     - {ch: 0, peripheral: spi_master, function: IMU,          priority: 5}
     - {ch: 1, peripheral: i2c,        function: baro_mag_sonar, priority: 3}

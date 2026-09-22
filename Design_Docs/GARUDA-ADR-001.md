@@ -62,7 +62,21 @@ Non-power-of-2 division: 500 → 200 MHz needs 2.5×, and 250 MHz avoids the que
 **Impact.** CLKRST (DIV and the fallback), CORE, AHB2APB (OPEN-1), TRM. RTL: no logic
 change; `garuda_soc_top.v`'s 200/100 MHz comments are stale against the generated header.
 
-## ADR-0002 — There is no pclk. APB runs on hclk.
+>> ## ADR-0002 — pclk restored: 125 MHz toggle-flop for peripheral power (Rev 2)
+>>
+>> **Rev 2 (current) — pclk is KEPT.** Reverses Rev 1's removal. pclk exists as a real
+>> 125 MHz clock (hclk / 2, toggle flop, 50% duty), generated in `clk_div` (`pclk_o`,
+>> `Docs/DECISIONS.md D-5`). It clocks the 11 APB peripherals, the APB fabric, and the DMA
+>> config port (APB window 4). hclk and pclk are a synchronous set - every pclk rising edge
+>> is an hclk rising edge (`AHB2APB §7.2`), so there is NO CDC. **Reason:** without a real
+>> pclk, peripheral flops toggle at 250 MHz through idle and save no power; a real half-rate
+>> clock stops them (Level 3 dynamic power). The DMA *data engine* stays an hclk AHB master;
+>> only its *config port* is pclk. **RTL status:** `clk_div` already generates pclk;
+>> `dma_apb_slave.v` still runs on hclk and is the one pending RTL change.
+>>
+>> The Rev 1 text below is retained as history and is **SUPERSEDED**.
+
+## ADR-0002 [SUPERSEDED Rev 1] — There is no pclk. APB runs on hclk.
 
 **Supersedes:** AHB2APB Rev 1.4 §7 (pclk = hclk through an ICG at 125 MHz) and DMA
 §15.3 (real CDC primitives on the config port).
@@ -296,6 +310,11 @@ MEM (ILOCK bypass), TRM.
 
 ---
 
+>> **[Superseded - pin counts]** The "36 of 40, 4 spare" figure is superseded by ADR-0020
+>> (28-pin baseline: 26 used, 2 spare) and amended again by **ADR-0020 Rev 2** (ESP-NOW
+>> restored). The *allocation principles* below (dedicated PWM, two SPI chip-selects,
+>> `boot_sel`) stand; only the counts moved. ADR-by-number rule: highest-numbered ADR wins.
+
 ## ADR-0013 — 36 of 40 signal pins allocated, 4 spare, power pads to be confirmed.
 
 **Supersedes:** TRM §4.2's "GPIO = remaining budget" and "PWM shares GPIO pins".
@@ -454,6 +473,25 @@ a flight-safety hazard.
 **Cost.** No ESP-NOW mesh in the 28-pin configuration. DMA CH4 and CLIC ID 14 become spare.
 
 **Impact.** TRM, GPIO, PWM, DMA, CLIC, and the new pin-out/floorplan document.
+
+>> **Rev 2 (current) — ESP-NOW is RESTORED and REQUIRED.** Reverses Rev 1's cut.
+>> **Reason:** the ESP-NOW mesh is the neighbour-position source for APF collision
+>> avoidance - the workload the DSU exists to accelerate. Without it the swarm feature has
+>> no input, so it is NOT the "least essential system function" Rev 1 assumed; it is
+>> load-bearing. The SPI-slave port (pins 29-32 `spis_sclk/mosi/miso/cs_n`, block 14,
+>> CLIC ID 14, DMA CH4) is reinstated.
+>>
+>> **Pin plan - gated on OPEN-2 (still open; PD mentor's call against the pad frame):**
+>> - **Supply pads OUTSIDE the 40** -> the 4 pins are additive per PHYS §3.2; nothing in
+>>   the 28-pin allocation moves. Result: 30 signal pins used.
+>> - **Supply pads INSIDE the 40** -> reclaim 4 pins: the 2 spares + drop console UART2
+>>   (2 pins; DMA priority 0, nothing waits on it; console moves to the ground link at
+>>   bring-up). Alternative: ESP32 on the SPI-master bus as a 3rd chip-select (1 pin,
+>>   poll-mode) instead of the 4-pin slave port.
+>>
+>> This ADR does NOT resolve OPEN-2 - it states the decision (ESP-NOW required) and both
+>> pin outcomes. **RTL work items:** build `rtl/spi_slave/`; un-tie `dma_req_i[4]` in
+>> `dma_top`/`soc_top`; pad-ring edit (PD).
 
 ---
 

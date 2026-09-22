@@ -240,10 +240,11 @@ Generated from `GARUDA-SYS-001` `dma.assignment`:
 | 4 | — | spare | 4 | 5 | 11 |
 | 5 | `uart2` | console | 0 (lowest) | 6 | 12 |
 
-**[N-6.4]** Channel 4 is spare: it was the SPI slave (ESP32 mesh) before ADR-0020 removed
-that port for the pin budget. Its registers, interrupts and arbiter position all exist and
-work; only `dma_req_i[4]` is tied low at the top level. This keeps the 36-pin variant a
-top-level wiring change rather than a redesign.
+**[N-6.4]** Channel 4 serves the SPI slave (ESP32 / ESP-NOW mesh), **restored and required
+per ADR-0020 Rev 2** (APF's neighbour-position source). Its registers, interrupts and
+arbiter position already exist and work; `dma_req_i[4]` is still tied low at the top level
+and **must be un-tied when `rtl/spi_slave/` is built** (RTL work item). Pending that, CH4
+carries no traffic. The final pin outcome is gated on OPEN-2 (ADR-0020 Rev 2).
 
 **[N-6.5]** The priority order is by consequence of not being serviced. The IMU is the
 control loop's hard-real-time input and is highest. The console is lowest because nothing

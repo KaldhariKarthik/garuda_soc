@@ -205,7 +205,7 @@ Decode on `HADDR[31:28]`. Sizes in KiB = 1024 bytes.
 | 2 | `sba` | debug | | SINGLE | read, write |
 | 3 | `dma` | dma | **highest** | SINGLE | read, write |
 
-Every master reaches every slave, except that the DMA has no Boot ROM or ISRAM path.
+Every master reaches every slave, except that the DMA has no Boot ROM path. The DMA reaches ISRAM, DSRAM and APB (SSOT `dma: [isram, dsram, apb]`, ADR-0005). *(Corrected: the prior "no ISRAM path" contradicted both the SSOT and the AHB decoder RTL, which applies no DMA-specific ISRAM block. RTL is normative; TRM was wrong.)*
 
 ### 3.5 Peripheral function, DMA channel, CLIC ID
 
