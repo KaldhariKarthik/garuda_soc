@@ -37,17 +37,22 @@ ATESTS  = boot6 dsu_flag2 t_loadbranch t_mem t_clic t_cov \
 ALL     = $(addprefix $(BUILD)/,$(addsuffix .hex,$(CTESTS) $(ATESTS)))
 
 # ---- Rev 4.0 chip: Boot ROM image and ISRAM-resident chip-level tests -------
-CHIPTESTS = t_chip_basic t_chip_irq t_chip_wdt t_chip_jtag
+CHIPTESTS = t_chip_basic t_chip_irq t_chip_wdt t_chip_jtag t_chip_flash
 CHIPFLAGS = -Icommon -Ichip
-CHIP_ALL  = $(BUILD)/bootrom.hex $(addprefix $(BUILD)/,$(addsuffix .hex,$(CHIPTESTS)))
+CHIP_ALL  = $(BUILD)/bootrom.hex $(BUILD)/flash.hex \
+            $(addprefix $(BUILD)/,$(addsuffix .hex,$(CHIPTESTS)))
 
 .PHONY: all chip clean dump
 all: $(ALL) $(CHIP_ALL)
 chip: $(CHIP_ALL)
 
-$(BUILD)/bootrom.elf: bootrom/rom_start.S bootrom/boot.c bootrom/link_rom.ld common/garuda_map.h | $(BUILD)
-	$(CC) $(CFLAGS) $(CHIPFLAGS) -T bootrom/link_rom.ld -no-pie -static \
-	    bootrom/rom_start.S bootrom/boot.c -o $@
+# GARUDA_HAVE_SPIM swaps boot.c's stub for the real block 13 driver; without it
+# the flash reads as erased and boot always takes the recovery path.
+$(BUILD)/bootrom.elf: bootrom/rom_start.S bootrom/boot.c bootrom/spim.c \
+                      bootrom/link_rom.ld common/garuda_map.h | $(BUILD)
+	$(CC) $(CFLAGS) $(CHIPFLAGS) -DGARUDA_HAVE_SPIM \
+	    -T bootrom/link_rom.ld -no-pie -static \
+	    bootrom/rom_start.S bootrom/boot.c bootrom/spim.c -o $@
 
 # 1024 words: unused ROM is 0x0000_0000, an illegal instruction (rom_fill)
 $(BUILD)/bootrom.hex: $(BUILD)/bootrom.bin
@@ -59,6 +64,13 @@ $(BUILD)/t_chip_%.elf: chip/t_chip_%.c chip/crt0_chip.S chip/chip.h chip/link_ch
 
 $(BUILD)/t_chip_%.hex: $(BUILD)/t_chip_%.bin
 	python3 ../tools/elf2hex.py $< $@ --base 0x00000000
+
+# The SPI flash image: a boot header plus t_chip_flash, byte per line for the
+# flash model's backing store. This is the only image the chip loads itself.
+# --entry 0 because link_chip.ld places .text.init (_start) first in ISRAM.
+$(BUILD)/flash.hex: $(BUILD)/t_chip_flash.bin | $(BUILD)
+	python3 ../tools/mkbootimg.py $< $@ --entry 0x0 --size 69632 \
+	    --bin $(BUILD)/flash.bin
 
 $(BUILD):
 	@mkdir -p $(BUILD)

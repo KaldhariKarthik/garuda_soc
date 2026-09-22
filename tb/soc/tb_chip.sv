@@ -10,7 +10,7 @@
 // Bus Access, which is the development loop of DEBUG-SPEC §7.6.
 //
 //   +TEST=<hex>   ISRAM image (sw/build/t_chip_*.hex)
-//   +MODE=basic | irq | wdt | jtag
+//   +MODE=basic | irq | wdt | jtag | flash
 //   +MAXUS=<n>    timeout in microseconds (default 400)
 //
 // Pass = the program writes 1 to tohost (0x2000_F000); (n<<1)|1 = step n
@@ -22,7 +22,7 @@ module tb_chip;
     reg tck = 0, tms = 1, tdi = 0;
     always #1 refclk = ~refclk;
 
-    wire tdo, spim_sclk, spim_mosi, spim_cs_flash_n, spim_cs_imu_n;
+    wire tdo, spim_sclk, spim_mosi, spim_cs_flash_n, spim_cs_imu_n, spim_miso;
     wire i2c_scl, i2c_sda, gpio0, gpio1;
     wire uart0_tx, uart1_tx, uart2_tx, pwm0, pwm1, pwm2, pwm3;
     pullup (i2c_scl); pullup (i2c_sda);
@@ -30,7 +30,7 @@ module tb_chip;
     garuda_chip_top #(.BROM_INIT_FILE("sw/build/bootrom.hex")) dut (
         .refclk(refclk), .ext_rst_n(ext_rst_n),
         .tck(tck), .tms(tms), .tdi(tdi), .tdo(tdo),
-        .spim_sclk(spim_sclk), .spim_mosi(spim_mosi), .spim_miso(1'b0),
+        .spim_sclk(spim_sclk), .spim_mosi(spim_mosi), .spim_miso(spim_miso),
         .spim_cs_flash_n(spim_cs_flash_n), .spim_cs_imu_n(spim_cs_imu_n),
         .i2c_scl(i2c_scl), .i2c_sda(i2c_sda),
         .uart0_rx(1'b1), .uart0_tx(uart0_tx), .uart1_rx(1'b1), .uart1_tx(uart1_tx),
@@ -113,6 +113,11 @@ module tb_chip;
 
     localparam [31:0] TOHOST = 32'h2000_F000, MBOX = 32'h2000_FFF0, MBOX_MAGIC = 32'h4A54_4147;
 
+    // The boot flash. Present in every mode - in the others nothing ever
+    // selects it - so the pin path is always the real one.
+    spi_flash_model #(.MAX_MHZ(20.0)) u_flash (
+        .cs_n(spim_cs_flash_n), .sclk(spim_sclk), .mosi(spim_mosi), .miso(spim_miso));
+
     task automatic post_mailbox;
         dut.u_soc.u_dsram.bd_write(MBOX + 4, 32'h0000_0000);     // entry = ISRAM base
         dut.u_soc.u_dsram.bd_write(MBOX,     MBOX_MAGIC);
@@ -130,16 +135,25 @@ module tb_chip;
         if (!$value$plusargs("MAXUS=%d", maxus))   maxus    = 400;
         $display("=== tb_chip: garuda_chip_top, MODE=%0s TEST=%0s ===", mode, test_hex);
 
-        for (i = 0; i < 16384; i++) img[i] = 32'hx;
-        $readmemh(test_hex, img);
-        for (nwords = 0; nwords < 16384 && img[nwords] !== 32'hx; nwords++) ;
-
         // SRAM is not reset: start from a known tohost and an empty mailbox
         dut.u_soc.u_dsram.bd_write(TOHOST, 32'h0);
         dut.u_soc.u_dsram.bd_write(MBOX, 32'h0);
-        if (mode != "jtag") begin
-            for (i = 0; i < nwords; i++) dut.u_soc.u_isram.bd_write(4 * i, img[i]);
-            post_mailbox();
+
+        if (mode == "flash") begin
+            // Nothing is placed anywhere and no mailbox is posted: the ROM
+            // reads the image off the SPI bus itself. boot_sel low selects the
+            // flash path instead of recovery.
+            boot_sel = 1'b0;
+            u_flash.bd_load_hex(test_hex);
+            $display("[tb_chip] flash image %0s loaded, booting from SPI", test_hex);
+        end else begin
+            for (i = 0; i < 16384; i++) img[i] = 32'hx;
+            $readmemh(test_hex, img);
+            for (nwords = 0; nwords < 16384 && img[nwords] !== 32'hx; nwords++) ;
+            if (mode != "jtag") begin
+                for (i = 0; i < nwords; i++) dut.u_soc.u_isram.bd_write(4 * i, img[i]);
+                post_mailbox();
+            end
         end
 
         #50 ext_rst_n = 1;
