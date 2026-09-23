@@ -33,8 +33,13 @@ module tb_chip;
         .spim_sclk(spim_sclk), .spim_mosi(spim_mosi), .spim_miso(spim_miso),
         .spim_cs_flash_n(spim_cs_flash_n), .spim_cs_imu_n(spim_cs_imu_n),
         .i2c_scl(i2c_scl), .i2c_sda(i2c_sda),
-        .uart0_rx(1'b1), .uart0_tx(uart0_tx), .uart1_rx(1'b1), .uart1_tx(uart1_tx),
-        .uart2_rx(1'b1), .uart2_tx(uart2_tx),
+        // Each UART's tx is looped back to its own rx. Nothing else in the chip
+        // depends on these pins, and it lets t_chip_uart prove both directions
+        // AND that the three instances do not talk to each other, with no
+        // model on the board.
+        .uart0_rx(uart0_tx), .uart0_tx(uart0_tx),
+        .uart1_rx(uart1_tx), .uart1_tx(uart1_tx),
+        .uart2_rx(uart2_tx), .uart2_tx(uart2_tx),
         .pwm0(pwm0), .pwm1(pwm1), .pwm2(pwm2), .pwm3(pwm3),
         .gpio0(gpio0), .gpio1(gpio1), .boot_sel(boot_sel));
 

@@ -9,7 +9,7 @@
 // is a physical-design handoff item; tri-state and open-drain pins are
 // modelled with 'z' here and become pad OE/PE controls at PD.
 //
-// DEFERRED PERIPHERALS (i2c, uart0/1/2, gpio, pwm - sourced IP): their pins
+// DEFERRED PERIPHERALS (i2c, gpio, pwm - sourced IP): their pins
 // exist, driven to the SAFE IDLE state below, and their APB windows are masked
 // in the bridge so an access faults rather than hangs.
 // When an IP lands: instantiate it here on apb_ext_* window n, connect its
@@ -20,14 +20,14 @@
 //   window  block        IRQ (CLIC)          DMA ch   pins
 //   1       spi_master   periph_irq[0] (15)  0        spim_*      LANDED
 //   2       i2c          periph_irq[1] (16)  1        i2c_scl, i2c_sda
-//   3       uart0        periph_irq[2] (17)  2        uart0_rx/tx
-//   4       uart1        periph_irq[3] (18)  3        uart1_rx/tx
-//   6       uart2        periph_irq[4] (19)  5        uart2_rx/tx
+//   3       uart0        periph_irq[2] (17)  2        uart0_rx/tx  LANDED
+//   4       uart1        periph_irq[3] (18)  3        uart1_rx/tx  LANDED
+//   6       uart2        periph_irq[4] (19)  5        uart2_rx/tx  LANDED
 //   7       gpio         periph_irq[5] (20)  -        gpio0..1
 //   8       pwm          periph_irq[6] (21)  -        pwm0..3
 //
-// Safe idle: PWM low (ESCs see no pulse - motors off), UART TX high (line
-// idle), I2C released (board pull-ups),
+// Safe idle: PWM low (ESCs see no pulse - motors off), I2C released
+// (board pull-ups),
 // GPIO released (input). JTAG TDO is tri-stated outside Shift-IR/DR.
 // =============================================================================
 `include "garuda_map.vh"
@@ -43,7 +43,10 @@ module garuda_chip_top #(
                                         (16'd1 << `GARUDA_APB_WIN_RESET_CTRL) |
                                         (16'd1 << `GARUDA_APB_WIN_CLIC_CFG)   |
                                         (16'd1 << `GARUDA_APB_WIN_TIMERS_CFG) |
-                                        (16'd1 << `GARUDA_APB_WIN_SPI_MASTER)
+                                        (16'd1 << `GARUDA_APB_WIN_SPI_MASTER) |
+                                        (16'd1 << `GARUDA_APB_WIN_UART0)      |
+                                        (16'd1 << `GARUDA_APB_WIN_UART1)      |
+                                        (16'd1 << `GARUDA_APB_WIN_UART2)
 )(
     input  wire refclk,              //  1  500 MHz reference
     input  wire ext_rst_n,           //  2  board supervisor reset
@@ -124,7 +127,42 @@ module garuda_chip_top #(
         .spim_cs_flash_n_o(spim_cs_flash_n), .spim_cs_imu_n_o(spim_cs_imu_n));
 
     // =========================================================================
-    // APB expansion return path: window 1 = spi_master, window 9 = reset_ctrl;
+    // Blocks 16/17/18: UART x3 (windows 3, 4, 6) - one design, three instances
+    // =========================================================================
+    wire [31:0] uart_prdata [0:2];
+    wire [2:0]  uart_pready, uart_pslverr, uart_irq, uart_dma_req;
+    wire [2:0]  uart_tx, uart_rx;
+
+    assign uart_rx = {uart2_rx, uart1_rx, uart0_rx};
+    assign uart0_tx = uart_tx[0];
+    assign uart1_tx = uart_tx[1];
+    assign uart2_tx = uart_tx[2];
+
+    // Window and DMA channel per instance. uart2 sits on window 6 and channel 5,
+    // not 5 and 4, because window 5 is dma_cfg and channel 4 is the SPI slave.
+    // Ternary chains rather than a parameter array: this file is Verilog-2001,
+    // and each expression is still a constant within its generate iteration.
+    genvar u;
+    generate for (u = 0; u < 3; u = u + 1) begin : g_uart
+        localparam integer WIN = (u == 0) ? `GARUDA_APB_WIN_UART0 :
+                                 (u == 1) ? `GARUDA_APB_WIN_UART1 :
+                                            `GARUDA_APB_WIN_UART2;
+        localparam integer DCH = (u == 0) ? 2 : (u == 1) ? 3 : 5;
+
+        garuda_uart_top #(.BLOCK_NUM(8'd16 + u[7:0])) u_uart (
+            .pclk_i(pclk), .preset_n_i(preset_n),
+            .psel_i(ext_psel[WIN]), .penable_i(ext_penable),
+            .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
+            .prdata_o(uart_prdata[u]), .pready_o(uart_pready[u]),
+            .pslverr_o(uart_pslverr[u]),
+            .irq_o(uart_irq[u]), .dma_req_o(uart_dma_req[u]),
+            .dma_ack_i(dma_ack[DCH]),
+            .uart_tx_o(uart_tx[u]), .uart_rx_i(uart_rx[u]));
+    end endgenerate
+
+    // =========================================================================
+    // APB expansion return path: window 1 = spi_master, 3/4/6 = uart0/1/2,
+    // window 9 = reset_ctrl;
     // every other external window has no IP yet (masked in the bridge, so an
     // access faults rather than hangs; answers SLVERR if unmasked).
     // =========================================================================
@@ -140,6 +178,18 @@ module garuda_chip_top #(
             assign ext_prdata[32*w +: 32] = spim_prdata;
             assign ext_pready[w]          = spim_pready;
             assign ext_pslverr[w]         = spim_pslverr;
+        end else if (w == `GARUDA_APB_WIN_UART0) begin : g_uart0
+            assign ext_prdata[32*w +: 32] = uart_prdata[0];
+            assign ext_pready[w]          = uart_pready[0];
+            assign ext_pslverr[w]         = uart_pslverr[0];
+        end else if (w == `GARUDA_APB_WIN_UART1) begin : g_uart1
+            assign ext_prdata[32*w +: 32] = uart_prdata[1];
+            assign ext_pready[w]          = uart_pready[1];
+            assign ext_pslverr[w]         = uart_pslverr[1];
+        end else if (w == `GARUDA_APB_WIN_UART2) begin : g_uart2
+            assign ext_prdata[32*w +: 32] = uart_prdata[2];
+            assign ext_pready[w]          = uart_pready[2];
+            assign ext_pslverr[w]         = uart_pslverr[2];
         end else begin : g_none
             assign ext_prdata[32*w +: 32] = 32'd0;
             assign ext_pready[w]          = 1'b1;
@@ -155,8 +205,11 @@ module garuda_chip_top #(
     // Peripheral interrupts (CLIC IDs 15..21) and DMA channels; one bit per
     // block, zero where the IP has not landed yet.
     //   periph_irq[0] = spi_master (CLIC 15)   dma_req[0] = spi_master
-    wire [6:0] periph_irq = {6'd0, spim_irq};
-    wire [5:0] dma_req    = {5'd0, spim_dma_req};
+    //   periph_irq[2..4] = uart0/1/2 (17/18/19)  dma_req[2,3,5] = uart0/1/2
+    wire [6:0] periph_irq = {2'd0, uart_irq[2], uart_irq[1], uart_irq[0],
+                             1'b0, spim_irq};
+    wire [5:0] dma_req    = {uart_dma_req[2], 1'b0,
+                             uart_dma_req[1], uart_dma_req[0], 1'b0, spim_dma_req};
 
     garuda_soc_top #(
         .BROM_INIT_FILE(BROM_INIT_FILE), .APB_WINDOW_MASK(APB_WINDOW_MASK),
@@ -185,9 +238,6 @@ module garuda_chip_top #(
     // still at safe idle.
     assign i2c_scl         = 1'bz;
     assign i2c_sda         = 1'bz;
-    assign uart0_tx        = 1'b1;
-    assign uart1_tx        = 1'b1;
-    assign uart2_tx        = 1'b1;
     assign pwm0            = 1'b0;
     assign pwm1            = 1'b0;
     assign pwm2            = 1'b0;
@@ -195,8 +245,7 @@ module garuda_chip_top #(
     assign gpio0           = 1'bz;
     assign gpio1           = 1'bz;
 
-    wire _unused = |{uart0_rx, uart1_rx, uart2_rx, i2c_scl, i2c_sda,
-                     gpio0, gpio1, dma_ack[5:1]};
+    wire _unused = |{i2c_scl, i2c_sda, gpio0, gpio1, dma_ack[4], dma_ack[1]};
 
 endmodule
 

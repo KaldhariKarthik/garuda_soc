@@ -37,7 +37,7 @@ ATESTS  = boot6 dsu_flag2 t_loadbranch t_mem t_clic t_cov \
 ALL     = $(addprefix $(BUILD)/,$(addsuffix .hex,$(CTESTS) $(ATESTS)))
 
 # ---- Rev 4.0 chip: Boot ROM image and ISRAM-resident chip-level tests -------
-CHIPTESTS = t_chip_basic t_chip_irq t_chip_wdt t_chip_jtag t_chip_flash
+CHIPTESTS = t_chip_basic t_chip_irq t_chip_wdt t_chip_jtag t_chip_flash t_chip_uart
 CHIPFLAGS = -Icommon -Ichip
 CHIP_ALL  = $(BUILD)/bootrom.hex $(BUILD)/flash.hex \
             $(addprefix $(BUILD)/,$(addsuffix .hex,$(CHIPTESTS)))
