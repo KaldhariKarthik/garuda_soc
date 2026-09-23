@@ -7,5 +7,8 @@
 -f rtl/reset_ctrl/filelist.f
 -f rtl/spi_master/filelist.f
 -f rtl/uart/filelist.f
+-f rtl/i2c/filelist.f
+-f rtl/gpio/filelist.f
+-f rtl/pwm/filelist.f
 
 rtl/soc/garuda_chip_top.v

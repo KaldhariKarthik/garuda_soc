@@ -58,8 +58,8 @@ endif
         test_csr_rw test_clic_ctrl test_lsu test_load_fmt test_memwb \
         test_pc_gen test_prefetch test_iport test_dport test_mem_stage test_if_stage \
         test_crg test_ahb_ic test_bridge test_mem test_dma test_clic test_timers \
-        test_apb_shim test_spim test_uart \
-        test_debug test_blocks test_chip test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_uart \
+        test_apb_shim test_spim test_uart test_i2c test_gpio test_pwm \
+        test_debug test_blocks test_chip test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_uart test_chip_periph \
         test_chip_jtag elab_chip regress_all synth
 
 help:
@@ -85,7 +85,7 @@ help:
 	@echo "  make regress_rand    -- same, randomised waits 0..8 (SEED=n)"
 	@echo "  make coverage        -- functional coverage sweep (code cov: see script)"
 	@echo "  ---- Rev 4.0 SoC ----"
-	@echo "  make test_blocks     -- every block TB: crg ahb_ic bridge mem dma clic timers debug apb_shim spim uart"
+	@echo "  make test_blocks     -- every block TB: crg ahb_ic bridge mem dma clic timers debug apb_shim spim uart i2c gpio pwm"
 	@echo "  make test_chip       -- whole chip from the pins: basic, irq, wdt, jtag"
 	@echo "  make elab_chip       -- elaborate garuda_chip_top"
 	@echo "  make regress_all     -- everything above plus core, sanity, DSU and ISA"
@@ -229,10 +229,13 @@ test_debug:   ; $(call run_blk,tb/debug/filelist_debug.f,tb_debug,tb_debug)     
 test_apb_shim:; $(call run_blk,tb/common/filelist_shim.f,tb_apb_shim,tb_apb_shim)     ## shared peripheral front end
 test_spim:    ; $(call run_blk,tb/spi_master/filelist_spim.f,tb_spim,tb_spim)          ## 13 SPI master + flash
 test_uart:    ; $(call run_blk,tb/uart/filelist_uart.f,tb_uart,tb_uart)              ## 16/17/18 UART x3
+test_i2c:     ; $(call run_blk,tb/i2c/filelist_i2c.f,tb_i2c,tb_i2c)                 ## 15 I2C master
+test_gpio:    ; $(call run_blk,tb/gpio/filelist_gpio.f,tb_gpio,tb_gpio)              ## 19 GPIO
+test_pwm:     ; $(call run_blk,tb/pwm/filelist_pwm.f,tb_pwm,tb_pwm)                 ## 20 PWM (in-house)
 
 # Every block, clocks and reset first because everything else assumes them.
 test_blocks: test_crg test_ahb_ic test_bridge test_mem test_dma test_clic test_timers test_debug \
-             test_apb_shim test_spim test_uart
+             test_apb_shim test_spim test_uart test_i2c test_gpio test_pwm
 
 # =============================================================================
 # Whole chip (garuda_chip_top) from the pins, real Boot ROM, boot_sel = 1:
@@ -248,7 +251,8 @@ test_chip_wdt:   ; $(call run_blk,$(CHIP_FL),tb_chip,chip_wdt,+MODE=wdt +TEST=sw
 test_chip_jtag:  ; $(call run_blk,$(CHIP_FL),tb_chip,chip_jtag,+MODE=jtag +TEST=sw/build/t_chip_jtag.hex +MAXUS=1500)
 test_chip_flash: ; $(call run_blk,$(CHIP_FL),tb_chip,chip_flash,+MODE=flash +TEST=sw/build/flash.hex +MAXUS=3000)
 test_chip_uart:  ; $(call run_blk,$(CHIP_FL),tb_chip,chip_uart,+MODE=basic +TEST=sw/build/t_chip_uart.hex)
-test_chip: sw test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_uart test_chip_jtag
+test_chip_periph:; $(call run_blk,$(CHIP_FL),tb_chip,chip_periph,+MODE=basic +TEST=sw/build/t_chip_periph.hex +MAXUS=1200)
+test_chip: sw test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_uart test_chip_periph test_chip_jtag
 
 elab_chip:                                       ## whole-chip elaboration
 	$(call run_blk,rtl/soc/filelist_chip.f,garuda_chip_top,elab_chip,-elaborate)

@@ -118,6 +118,15 @@ module tb_chip;
 
     localparam [31:0] TOHOST = 32'h2000_F000, MBOX = 32'h2000_FFF0, MBOX_MAGIC = 32'h4A54_4147;
 
+    // An I2C slave on the real open-drain bus, and pull-downs on the GPIO pins
+    // so a released pin reads a defined level. Present in every mode; nothing
+    // touches them unless firmware does.
+    pullup (weak1) p_scl (i2c_scl);
+    pullup (weak1) p_sda (i2c_sda);
+    i2c_slave_model #(.ADDR(7'h48)) u_i2c_slv (.scl(i2c_scl), .sda(i2c_sda));
+    pulldown (weak0) p_g0 (gpio0);
+    pulldown (weak0) p_g1 (gpio1);
+
     // The boot flash. Present in every mode - in the others nothing ever
     // selects it - so the pin path is always the real one.
     spi_flash_model #(.MAX_MHZ(20.0)) u_flash (

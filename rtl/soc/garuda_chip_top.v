@@ -9,26 +9,25 @@
 // is a physical-design handoff item; tri-state and open-drain pins are
 // modelled with 'z' here and become pad OE/PE controls at PD.
 //
-// DEFERRED PERIPHERALS (i2c, gpio, pwm - sourced IP): their pins
-// exist, driven to the SAFE IDLE state below, and their APB windows are masked
-// in the bridge so an access faults rather than hangs.
-// When an IP lands: instantiate it here on apb_ext_* window n, connect its
-// pins, IRQ (periph_irq[k]) and DMA request/ack, and add bit n to
-// APB_WINDOW_MASK. Nothing else in the chip changes - u_spim below is the
-// worked example.
+// ALL SEVEN PERIPHERALS ARE NOW INSTANTIATED. Window 5 (dma_cfg), 9
+// (reset_ctrl + MEMCTL), 10 (CLIC) and 11 (timers) are inside garuda_soc_top;
+// windows 1, 2, 3, 4, 6, 7 and 8 are the blocks below. Every window in
+// APB_WINDOW_MASK answers; an access to any other faults rather than hangs.
 //
 //   window  block        IRQ (CLIC)          DMA ch   pins
 //   1       spi_master   periph_irq[0] (15)  0        spim_*      LANDED
-//   2       i2c          periph_irq[1] (16)  1        i2c_scl, i2c_sda
+//   2       i2c          periph_irq[1] (16)  1        i2c_scl/sda  LANDED
 //   3       uart0        periph_irq[2] (17)  2        uart0_rx/tx  LANDED
 //   4       uart1        periph_irq[3] (18)  3        uart1_rx/tx  LANDED
 //   6       uart2        periph_irq[4] (19)  5        uart2_rx/tx  LANDED
-//   7       gpio         periph_irq[5] (20)  -        gpio0..1
-//   8       pwm          periph_irq[6] (21)  -        pwm0..3
+//   7       gpio         periph_irq[5] (20)  -        gpio0..1    LANDED
+//   8       pwm          periph_irq[6] (21)  -        pwm0..3     LANDED
 //
-// Safe idle: PWM low (ESCs see no pulse - motors off), I2C released
-// (board pull-ups),
-// GPIO released (input). JTAG TDO is tri-stated outside Shift-IR/DR.
+// Safe idle out of reset, which every block below is responsible for and every
+// block TB checks: PWM low (an ESC reads that as no signal - motors stopped),
+// SPI chip selects high, UART TX high (line idle), I2C released (board
+// pull-ups), GPIO released (input). JTAG TDO is tri-stated outside
+// Shift-IR/DR.
 // =============================================================================
 `include "garuda_map.vh"
 
@@ -46,7 +45,10 @@ module garuda_chip_top #(
                                         (16'd1 << `GARUDA_APB_WIN_SPI_MASTER) |
                                         (16'd1 << `GARUDA_APB_WIN_UART0)      |
                                         (16'd1 << `GARUDA_APB_WIN_UART1)      |
-                                        (16'd1 << `GARUDA_APB_WIN_UART2)
+                                        (16'd1 << `GARUDA_APB_WIN_UART2)      |
+                                        (16'd1 << `GARUDA_APB_WIN_I2C)        |
+                                        (16'd1 << `GARUDA_APB_WIN_GPIO)       |
+                                        (16'd1 << `GARUDA_APB_WIN_PWM)
 )(
     input  wire refclk,              //  1  500 MHz reference
     input  wire ext_rst_n,           //  2  board supervisor reset
@@ -127,6 +129,22 @@ module garuda_chip_top #(
         .spim_cs_flash_n_o(spim_cs_flash_n), .spim_cs_imu_n_o(spim_cs_imu_n));
 
     // =========================================================================
+    // Block 15: I2C master (window 2) - sensors on an open-drain bus
+    // =========================================================================
+    wire [31:0] i2c_prdata;
+    wire        i2c_pready, i2c_pslverr, i2c_irq, i2c_dma_req;
+    wire        i2c_scl_out, i2c_scl_oe, i2c_sda_out, i2c_sda_oe;
+
+    garuda_i2c_top u_i2c (
+        .pclk_i(pclk), .preset_n_i(preset_n),
+        .psel_i(ext_psel[`GARUDA_APB_WIN_I2C]), .penable_i(ext_penable),
+        .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
+        .prdata_o(i2c_prdata), .pready_o(i2c_pready), .pslverr_o(i2c_pslverr),
+        .irq_o(i2c_irq), .dma_req_o(i2c_dma_req), .dma_ack_i(dma_ack[1]),
+        .i2c_scl_i(i2c_scl), .i2c_scl_o(i2c_scl_out), .i2c_scl_oe(i2c_scl_oe),
+        .i2c_sda_i(i2c_sda), .i2c_sda_o(i2c_sda_out), .i2c_sda_oe(i2c_sda_oe));
+
+    // =========================================================================
     // Blocks 16/17/18: UART x3 (windows 3, 4, 6) - one design, three instances
     // =========================================================================
     wire [31:0] uart_prdata [0:2];
@@ -161,6 +179,37 @@ module garuda_chip_top #(
     end endgenerate
 
     // =========================================================================
+    // Block 19: GPIO (window 7) - two bidirectional pins
+    // =========================================================================
+    wire [31:0] gpio_prdata;
+    wire        gpio_pready, gpio_pslverr, gpio_irq;
+    wire [1:0]  gpio_out, gpio_oe, gpio_in;
+
+    assign gpio_in = {gpio1, gpio0};
+
+    garuda_gpio_top #(.BLOCK_NUM(8'd19), .PAD_NUM(2)) u_gpio (
+        .pclk_i(pclk), .preset_n_i(preset_n),
+        .psel_i(ext_psel[`GARUDA_APB_WIN_GPIO]), .penable_i(ext_penable),
+        .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
+        .prdata_o(gpio_prdata), .pready_o(gpio_pready), .pslverr_o(gpio_pslverr),
+        .irq_o(gpio_irq),
+        .gpio_i(gpio_in), .gpio_o(gpio_out), .gpio_oe(gpio_oe));
+
+    // =========================================================================
+    // Block 20: PWM (window 8) - four ESC outputs
+    // =========================================================================
+    wire [31:0] pwm_prdata;
+    wire        pwm_pready, pwm_pslverr, pwm_irq;
+    wire [3:0]  pwm_pins;
+
+    garuda_pwm_top #(.BLOCK_NUM(8'd20), .NCH(4)) u_pwm (
+        .pclk_i(pclk), .preset_n_i(preset_n),
+        .psel_i(ext_psel[`GARUDA_APB_WIN_PWM]), .penable_i(ext_penable),
+        .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
+        .prdata_o(pwm_prdata), .pready_o(pwm_pready), .pslverr_o(pwm_pslverr),
+        .irq_o(pwm_irq), .pwm_o(pwm_pins));
+
+    // =========================================================================
     // APB expansion return path: window 1 = spi_master, 3/4/6 = uart0/1/2,
     // window 9 = reset_ctrl;
     // every other external window has no IP yet (masked in the bridge, so an
@@ -178,6 +227,10 @@ module garuda_chip_top #(
             assign ext_prdata[32*w +: 32] = spim_prdata;
             assign ext_pready[w]          = spim_pready;
             assign ext_pslverr[w]         = spim_pslverr;
+        end else if (w == `GARUDA_APB_WIN_I2C) begin : g_i2c
+            assign ext_prdata[32*w +: 32] = i2c_prdata;
+            assign ext_pready[w]          = i2c_pready;
+            assign ext_pslverr[w]         = i2c_pslverr;
         end else if (w == `GARUDA_APB_WIN_UART0) begin : g_uart0
             assign ext_prdata[32*w +: 32] = uart_prdata[0];
             assign ext_pready[w]          = uart_pready[0];
@@ -190,6 +243,14 @@ module garuda_chip_top #(
             assign ext_prdata[32*w +: 32] = uart_prdata[2];
             assign ext_pready[w]          = uart_pready[2];
             assign ext_pslverr[w]         = uart_pslverr[2];
+        end else if (w == `GARUDA_APB_WIN_GPIO) begin : g_gpio
+            assign ext_prdata[32*w +: 32] = gpio_prdata;
+            assign ext_pready[w]          = gpio_pready;
+            assign ext_pslverr[w]         = gpio_pslverr;
+        end else if (w == `GARUDA_APB_WIN_PWM) begin : g_pwm
+            assign ext_prdata[32*w +: 32] = pwm_prdata;
+            assign ext_pready[w]          = pwm_pready;
+            assign ext_pslverr[w]         = pwm_pslverr;
         end else begin : g_none
             assign ext_prdata[32*w +: 32] = 32'd0;
             assign ext_pready[w]          = 1'b1;
@@ -206,10 +267,12 @@ module garuda_chip_top #(
     // block, zero where the IP has not landed yet.
     //   periph_irq[0] = spi_master (CLIC 15)   dma_req[0] = spi_master
     //   periph_irq[2..4] = uart0/1/2 (17/18/19)  dma_req[2,3,5] = uart0/1/2
-    wire [6:0] periph_irq = {2'd0, uart_irq[2], uart_irq[1], uart_irq[0],
-                             1'b0, spim_irq};
+    //   periph_irq[5] = gpio (CLIC 20)   periph_irq[6] = pwm (CLIC 21)
+    wire [6:0] periph_irq = {pwm_irq, gpio_irq,
+                             uart_irq[2], uart_irq[1], uart_irq[0],
+                             i2c_irq, spim_irq};
     wire [5:0] dma_req    = {uart_dma_req[2], 1'b0,
-                             uart_dma_req[1], uart_dma_req[0], 1'b0, spim_dma_req};
+                             uart_dma_req[1], uart_dma_req[0], i2c_dma_req, spim_dma_req};
 
     garuda_soc_top #(
         .BROM_INIT_FILE(BROM_INIT_FILE), .APB_WINDOW_MASK(APB_WINDOW_MASK),
@@ -236,16 +299,21 @@ module garuda_chip_top #(
 
     // spim_* are driven by u_spim above; the rest are deferred peripherals
     // still at safe idle.
-    assign i2c_scl         = 1'bz;
-    assign i2c_sda         = 1'bz;
-    assign pwm0            = 1'b0;
-    assign pwm1            = 1'b0;
-    assign pwm2            = 1'b0;
-    assign pwm3            = 1'b0;
-    assign gpio0           = 1'bz;
-    assign gpio1           = 1'bz;
+    // I2C is open drain: the block only ever pulls a line low or releases it,
+    // so these become pad OE controls with the output tied low at PD.
+    assign i2c_scl = i2c_scl_oe ? i2c_scl_out : 1'bz;
+    assign i2c_sda = i2c_sda_oe ? i2c_sda_out : 1'bz;
+    assign pwm0 = pwm_pins[0];
+    assign pwm1 = pwm_pins[1];
+    assign pwm2 = pwm_pins[2];
+    assign pwm3 = pwm_pins[3];
 
-    wire _unused = |{i2c_scl, i2c_sda, gpio0, gpio1, dma_ack[4], dma_ack[1]};
+    // GPIO is bidirectional: driven when its direction bit says output,
+    // released otherwise. Becomes a pad OE control at PD.
+    assign gpio0 = gpio_oe[0] ? gpio_out[0] : 1'bz;
+    assign gpio1 = gpio_oe[1] ? gpio_out[1] : 1'bz;
+
+    wire _unused = |{dma_ack[4]};
 
 endmodule
 

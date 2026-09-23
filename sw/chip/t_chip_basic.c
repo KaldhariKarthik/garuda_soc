@@ -56,11 +56,14 @@ int main(void)
     v = *(volatile uint32_t *)0x30000000u;
     if (!fault(5) || last_tval != 0x30000000u)      return 8;
 
-    /* 9a: a still-deferred peripheral window (i2c, masked) faults, never hangs */
-    v = *(volatile uint32_t *)GARUDA_APB_BASE_I2C;
+    /* 9a: an APB window with nothing behind it faults, never hangs. Every
+     *     peripheral window 1..11 is now populated, so window 0 is the one
+     *     left masked in the bridge. */
+    v = *(volatile uint32_t *)0x40000000u;
     if (!fault(5))                                  return 9;
 
-    /* 9b: and a window that HAS landed answers - spi_master identifies itself */
+    /* 9b: and a populated window answers as itself - spi_master on window 1.
+     *     t_chip_periph checks all seven; this is the one-line smoke test. */
     if (*(volatile uint32_t *)(GARUDA_APB_BASE_SPI_MASTER + 0xFECu)
         != 0x6A5D0D01u)                             return 9;
     if (exc_count != 0)                             return 9;   /* and no trap */
