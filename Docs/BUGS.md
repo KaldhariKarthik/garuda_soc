@@ -4,7 +4,7 @@
 Not per-block: a bug that crosses a boundary belongs in one list, and the
 cross-block ones are the expensive ones.
 
-Last updated: 2026-09-19 (Rev 4.0 migration, §1b) · Covers Blocks 1 (core), 2 (DSU), 6 (interconnect),
+Last updated: 2026-09-23 (peripherals, §1c) · Covers Blocks 1 (core), 2 (DSU), 6 (interconnect),
 9 (DMA), plus toolchain and testbench defects.
 
 Specification-only entries now also reach blocks that have no RTL yet: the
@@ -95,6 +95,25 @@ marked *proved* were re-run against the reverted RTL to show it.
 | ELEM-1..6 | TB | OPEN (testbench) | low | First-ever run of the 14 per-element TBs (Sep 2): 8 pass. `pc_gen` scoreboard samples one cycle late (its own SVA on the RTL passes); `prefetch_buffer` stimulus overfills the FIFO, violating the I-port slot-reservation contract; `iport` SVA encodes the pre-BUS-A HBURST; `load_store_unit` TB has a SystemVerilog syntax error (line 114); `if_stage_top`, `mem_stage` not yet triaged. The RTL they target is covered by ISA 63/63 lockstep incl. random waits. | `make test_elements` | owner: element-TB author |
 
 Spec defects resolved by ruling rather than RTL are D-5..D-20 in `Docs/DECISIONS.md`.
+
+---
+
+## 1c. Peripherals — vendored IP and wrappers, 2026-09-22/23
+
+Found while adapting the open-source peripheral IP (D-22). The `ERR-*` entries
+are **defects in third-party RTL that we are NOT fixing in place** — upstream
+files are never edited — so each one records how the GARUDA wrapper avoids it
+and which test pins the behaviour, so a future re-vendor cannot change it
+silently.
+
+| ID | Block | Status | Severity | Summary | Found by | Test |
+|---|---|---|---|---|---|---|
+| **SPIM-1** | 13 SPI | FIXED | **high** (every read returns zero) | Our wrapper connected MISO to the vendored engine's `spi_sdi0`. Upstream's lanes are quad-SPI pads: single-bit mode drives IO0 (`sdo0` = MOSI) and shifts in **IO1** (`data_int_next = {data_int[30:0], sdi1}`). Nothing complained — chip select, SCLK, command and address were all correct on the wire and the flash returned the right bytes; only the data read back as zero. Ruling D-23 came out of this. | `tb_spim` byte compare | `t_spim_flash_read`; 11 register-level checks passed *with the bug present* |
+| **UART-1** | 16/17/18 | FIXED | **high** (every read off by one byte, for ever) | `garuda_apb_shim`'s pad synchronisers reset to 0. An idle serial line is **high**, so out of reset the receiver saw a start bit, framed a garbage byte, and left it at the head of the RX FIFO — after which every `RBR` read returned the previous byte. Shim gained `SYNC_RESET`; the UART passes 1. | `tb_uart` RX mismatch | `t_uart_rxidle`, and the loopback tests that failed without it |
+| **ERR-U1** | 16/17/18 | WORKED AROUND | medium (wrong interrupt source) | `apb_uart.sv` wires its interrupt unit's receiver-data-available input to the wrong flag: `.RDA_i(regs_n[LSR][5])` is `THRE`, the **transmit** FIFO empty bit, where `regs_n[LSR][0]` (`DR`) belongs. With `IER[0]` set a 16550 driver takes an "RX data available" interrupt whenever the transmitter drains. Compounded: `trigger_level_reached` compares with `==` not `>=`, and `CTI_i` is tied to 0. | reading upstream per D-23 | wrapper leaves `event_o` unconnected and derives all events from `LSR` ([N-7.5]); `t_uart_irq` |
+| **ERR-U2** | 16/17/18 | **OPEN — R-7 not met** | medium (silent data corruption) | Parity errors can never be reported, two independent ways. (1) `apb_uart.sv` ties `uart_rx.err_clr_i` to `1'b1`; the flop is `if (err_clr_i) err_o<=0; else if (set_error) err_o<=1;` so `set_error` is unreachable and `err_o` is constant 0. (2) `uart_rx` pushes the byte to the FIFO in `SAVE_DATA` with `{parity_error, rx_data}` and only *then* enters `PARITY` to check the bit, so the stored flag can never describe its own byte. Framing errors are not checked at all. | reading upstream per D-23 | `t_uart_parity_gap` asserts `LSR[2]` stays clear — pins today's behaviour. Options and a recommendation: UART-SPEC **OPEN-U3**. Owner's call. |
+| **UART-2** | 16/17/18 | DOCUMENTED | low | `MCR` (0x10), `MSR` (0x18) and `SCR` (0x1C) are not implemented upstream at all — no write case, no read case, they fall to `default`. They decode without `PSLVERR` and read 0. `SCR` in particular is not a usable scratch register. | `tb_uart` | `t_uart_wordmap` asserts they read 0 |
+| **TOOL-5** | build | FIXED | low | Two vendored IPs in one elaboration passed `-timescale` twice and `xrun` failed `*E,OPTNOML`. The option is now in `rtl/third_party/timescale.f`, included once by each top-level filelist and never by a per-IP one. | `make test_chip_uart` | every chip target |
 
 ---
 
