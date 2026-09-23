@@ -488,6 +488,38 @@ it would not be acceptable on the strength of the diff looking small.
 
 ---
 
+## D-25 — PWM is written, not adapted; I²C's register layer likewise
+
+**Decided 2026-09-23 · Raised by** completing the seven peripherals
+
+D-22 makes adaptation the default. Two blocks are exceptions, for two different
+reasons, and both are worth stating so the next engineer does not "fix" them by
+replacing them with something off the shelf.
+
+**PWM is in-house because of the verification cost, not the design cost.** The
+only PULP option is `apb_adv_timer`: four timers with four channels each, an
+event unit and a capture/trigger matrix. Adapting it is a day. *Proving* that
+no reachable combination of its mode, trigger and channel registers can glitch
+an output is not, and the thing on the other end of these four wires is a
+propeller. `garuda_pwm_core.v` is one counter and four comparators, so the
+argument is exhaustive: the output is high only when the global enable, the
+channel enable and the comparator all say so, and every other combination is
+low by construction. That is a page of reasoning instead of a campaign.
+
+**I²C's register layer is in-house because of provenance.** PULP's `apb_i2c.sv`
+carries no licence header and its repository has no LICENSE file. The bit and
+byte controllers underneath it are Richard Herveille's OpenCores code with a
+proper notice, so those are vendored and the ~200-line register file above them
+is ours. Two hundred lines is a cheap price for being able to state where every
+line in the chip came from.
+
+**The rule this leaves:** adapt by default; write it yourself when the
+verification argument is the deliverable, or when the provenance cannot be
+stated. Do not write it yourself merely because the upstream code is unfamiliar
+or unattractive — that is how a schedule disappears.
+
+---
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. Neither blocks RTL.

@@ -27,7 +27,7 @@ Copyright ETH Zurich and University of Bologna.
 | `apb_spi_master` | Block 13 SPI master — boot flash and IMU | <https://github.com/pulp-platform/apb_spi_master> |
 | `axi_spi_master` | the SPI datapath `apb_spi_master` builds on (clkgen, controller, FIFO, RX, TX) | <https://github.com/pulp-platform/axi_spi_master> |
 | `apb_uart_sv` | Blocks 16/17/18 — uart0, uart1, uart2 · **MODIFIED, see below** | <https://github.com/pulp-platform/apb_uart_sv> |
-| `apb_gpio` | Block 19 — GPIO | <https://github.com/pulp-platform/apb_gpio> |
+| `apb_gpio` | Block 19 — GPIO, 2 pins | <https://github.com/pulp-platform/apb_gpio> |
 
 Licensed under the Solderpad Hardware License, Version 0.51 (the "License");
 you may not use these files except in compliance with the License. You may
@@ -90,7 +90,8 @@ indirect, incidental, special, exemplary or consequential damages.
 normally sits on top of these controllers, carries no licence header and its
 repository has no LICENSE file. GARUDA supplies its own register layer in
 `rtl/i2c/garuda_i2c_top.v` rather than ship RTL whose provenance cannot be
-stated (D-22).
+stated (D-22, D-25). That file is GARUDA's own work and carries no OpenCores
+obligation; only the two controllers below it do.
 
 ---
 
@@ -113,3 +114,8 @@ and the shared `rtl/common/garuda_apb_shim.v` are GARUDA code that instantiates
 the IP above; they are not derivatives of it in the copyright sense, but they
 are useless without it, which is the practical reason this file must stay
 accurate.
+
+**`rtl/pwm/` contains no third-party code at all** — `garuda_pwm_core.v` and
+`garuda_pwm_top.v` are written from scratch (D-25). `rtl/i2c/garuda_i2c_top.v`
+is likewise GARUDA's own register layer, written rather than vendored precisely
+so that this file can be accurate.
