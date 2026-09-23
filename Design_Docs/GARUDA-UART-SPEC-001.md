@@ -56,10 +56,19 @@ times. Each is 8-bit, one start bit, configurable parity and stop bits, with a
 `rtl/uart/garuda_uart_top.v`. The upstream block is a 16550-style register file
 over a plain start/data/parity/stop shifter pair with 16-entry FIFOs.
 
-**What the wrapper had to take over, and why, is the substance of this
-document.** Upstream's interrupt unit is not usable as it stands ([N-7.5],
-§15 ERR-U1), so GARUDA derives its interrupts from the Line Status Register
-instead. That is a wrapper change, not an upstream edit, in line with D-22.
+**What had to be taken over, and why, is the substance of this document.**
+Upstream's interrupt unit is not usable as it stands ([N-7.5], §15 ERR-U1), so
+GARUDA derives its interrupts from the Line Status Register instead — a wrapper
+change, in line with D-22.
+
+One defect could **not** be handled in the wrapper: upstream cannot report a
+receive error at all (§15 ERR-U2), and the wrapper sees only the APB side and
+the raw `rx` pin, so detecting one there would mean reimplementing the receiver.
+R-7 is therefore met by a recorded patch to the vendored RTL —
+`patches/0001-report-parity-and-framing-errors.patch`, governed by **D-24**,
+verified by `tools/vendor_sync.py --check`, and declared in
+`Docs/THIRD_PARTY_NOTICES.md` as Solderpad 0.51 requires. It is the only
+modified third-party file in the design.
 
 ---
 
@@ -73,7 +82,7 @@ instead. That is a wrapper change, not an upstream edit, in line with D-22.
 | R-4 | Never stall the APB bus. | AHB2APB [N-7.15] | met |
 | R-5 | One held, level interrupt per instance to its CLIC ID. | CLIC §7.2, D-17 | met |
 | R-6 | DMA request/acknowledge on the instance's channel, one beat per assertion, word-sized beats carrying one byte in `[7:0]`. | DMA §7.3, D-21 | met |
-| R-7 | Report parity and framing errors to firmware without losing received data. | SYS §6.4 | **NOT MET** — see ERR-U2 / OPEN-U3 |
+| R-7 | Report parity and framing errors to firmware without losing received data. | SYS §6.4 | met, via vendored patch 0001 (D-24) |
 | R-8 | `tx` high (line idle) from reset until firmware acts; `rx` synchronised before use. | Board safety, D-14 | met |
 | R-9 | Three instances are independent: no shared register, interrupt, DMA channel or clock enable. | §1.1 | met |
 
@@ -144,7 +153,7 @@ tail common to every peripheral (D-21).
 | 0x08 | `IIR` (R) / `FCR` (W) | — | R / W | 0 | upstream interrupt ID / FIFO control |
 | 0x0C | `LCR` | — | RW | 0 | line control: word length, stop bits, parity, DLAB |
 | 0x10 | `MCR` | — | — | 0 | **not implemented** ([N-13.1]) |
-| 0x14 | `LSR` | — | RO | 0x60 | line status ([N-6.3]) |
+| 0x14 | `LSR` | — | RO | 0x60 | line status ([N-6.3]) — `[3]` exists only because of patch 0001 |
 | 0x18 | `MSR` | — | — | 0 | **not implemented** ([N-13.1]) |
 | 0x1C | `SCR` | — | — | 0 | **not implemented** ([N-13.2]) |
 | 0xFE0 | `IRQSTAT` | | W1C | 0 | `[0]` RX data available, `[1]` TX holding empty, `[2]` line error |
@@ -181,13 +190,15 @@ see, rather than a baud rate silently overwritten with payload bytes.
 
 ### 6.3 `LSR` (0x14)
 
-**[N-6.3]** Bits GARUDA relies on, all of them **levels** recomputed every
-`pclk` from FIFO occupancy, not sticky flags:
+**[N-6.3]** Bits GARUDA relies on. Bits 0, 5 and 6 are **levels** recomputed
+every `pclk` from FIFO occupancy; bits 2 and 3 describe **the byte currently at
+the head of the RX FIFO** and travel with it:
 
 | Bit | Name | Meaning |
 |---|---|---|
 | 0 | `DR` | RX FIFO is not empty — a byte can be read |
 | 2 | `PE` | parity error on the byte currently at the head of the RX FIFO |
+| 3 | `FE` | framing error (stop bit low) on that same byte |
 | 5 | `THRE` | TX FIFO is empty — bytes can be written |
 | 6 | `TEMT` | TX FIFO **and** the shift register are empty — the line is idle |
 
@@ -280,7 +291,12 @@ sticky tail (D-21):
 |---|---|---|
 | 0 | `LSR[0]` — RX data available | W1C, and it re-arms while data remains |
 | 1 | `LSR[5]` — TX holding register empty | W1C |
-| 2 | `LSR[2]` — parity error at the FIFO head | W1C |
+| 2 | `LSR[2] \| LSR[3]` — parity **or** framing error at the FIFO head | W1C |
+
+**[N-7.5a]** Bit 2 is one "line error" event for both causes: the interrupt only
+has to say *the byte at the head of the FIFO is suspect*. Firmware reads `LSR`
+to tell them apart, and the distinction is worth having — a parity error means
+noise on the line, a framing error means the baud rate is wrong.
 
 `irq_o = |(IRQSTAT & IRQEN)`, held until firmware writes `IRQSTAT` — which is
 the CLIC's requirement (D-17) and is *not* what upstream provides.
@@ -416,7 +432,7 @@ a_dma_dlab: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
 ## 11 Verification plan
 
 `make test_uart` — `tb/uart/tb_uart.sv` against `tb/models/uart_model.sv`,
-42 checks, 0 failures.
+53 checks, 0 failures.
 
 | Req | Test | Oracle | Status |
 |---|---|---|---|
@@ -430,8 +446,11 @@ a_dma_dlab: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
 | R-4 | `t_uart_pready` | `PREADY` high in every cycle of every access, FIFO full and empty | pass |
 | R-5 | `t_uart_irq` | held ≥50 `pclk`, drops only on W1C | pass |
 | R-6 | `t_uart_dma` | `dma_req_checker`; and no request while `DLAB` is set | pass |
-| R-1 | `t_uart_parity` | an 8E1 frame carries data correctly | pass |
-| — | `t_uart_parity_gap` | a wrong-parity frame is delivered and `LSR[2]` stays clear — pins ERR-U2 | pass |
+| R-1 | `t_uart_parity` | a clean 8E1 frame carries data and raises no error | pass |
+| R-7 | `t_uart_parity_err` | a wrong-parity frame sets `LSR[2]` and `IRQSTAT[2]`, **and still delivers the byte** | pass |
+| R-7 | `t_uart_frame_err` | a low stop bit sets `LSR[3]` and the same event | pass |
+| R-7 | `t_uart_err_noleak` | neither flag leaks into the following byte | pass |
+| — | `t_uart_b2b` | 16 frames with **no inter-frame gap** — the timing patch 0001 changes ([N-8.2]) | pass |
 | R-8 | `t_uart_reset` | `tx` high out of reset | pass |
 | R-9 | `t_chip_uart` | three instances, three windows, three CLIC IDs, no crosstalk | new |
 | — | `t_uart_rxidle` | `rx` synchroniser resets high, so no garbage byte at power-on ([N-9.3]) | pass |
@@ -483,21 +502,11 @@ direction pin, no 9-bit address mode.
 - **OPEN-U1** — *closed 2026-09-23.* Measured at **at least ±6%** ([N-8.1]),
   the full range the sweep covers; the receiver did not fail at either end. No
   board-level constraint is needed.
-- **OPEN-U3 — parity and framing error reporting (R-7) is not met.** See
-  ERR-U2. Three ways out, in increasing cost:
-  **(a) accept it** — run 8N1 and rely on the protocol checksums MAVLink, UBX
-  and the console all carry anyway. Zero work, and it is what the block does
-  today.
-  **(b) patch the vendored RTL** — needs two changes, not one: give
-  `uart_rx.err_clr_i` a real clear strobe instead of `1'b1`, and move the FIFO
-  push from `SAVE_DATA` to after `PARITY` so the flag travels with its own
-  byte. That is a behavioural change to third-party RTL, which D-22 permits via
-  `patches/` but does not encourage.
-  **(c) write our own receiver** — `rtl/uart/garuda_uart_rx.v`, roughly the
-  size of the PWM core, replacing only `uart_rx` and keeping the register file.
-  **Recommendation: (a) now, (c) if a link ever needs error statistics.**
-  This is an owner's call because it trades a written requirement against
-  schedule — it is not mine to close.
+- **OPEN-U3** — *closed 2026-09-23.* R-7 is met by vendored patch 0001 (D-24).
+  The recommendation at the time was to accept the gap and rely on protocol
+  checksums; that was overruled by the owner, correctly — a checksum tells
+  firmware to drop a packet, it does not say why, and error counters are how a
+  flaky connector is told from EMI in the field.
 
 - **OPEN-U2** — no RX FIFO overrun status. Upstream's `LSR[1]` (overrun) is
   never written by the register file, so a byte lost to a full FIFO is silent.
@@ -525,22 +534,56 @@ depend on the unit either way.
 
 ---
 
-**ERR-U2 — parity errors can never be reported, for two independent reasons.**
+**ERR-U2 — parity errors could never be reported, for two independent reasons.**
+**FIXED by vendored patch 0001** (D-24). Recorded here because a re-vendor must
+re-apply or re-derive it.
 
-1. `apb_uart.sv` instantiates the receiver with `.err_clr_i(1'b1)`. In
+1. `apb_uart.sv` instantiated the receiver with `.err_clr_i(1'b1)`. In
    `uart_rx` the error flop is `if (err_clr_i) err_o <= 0; else if (set_error)
-   err_o <= 1;` — with the clear tied high the `set_error` branch is
-   unreachable and `err_o` is a constant 0.
-2. Even if it were not, the ordering is wrong. `uart_rx` pushes the byte to the
-   RX FIFO in `SAVE_DATA` with `data_i = {parity_error, rx_data}`, and only
-   *then* advances to `PARITY` to check the bit. The flag stored beside a byte
-   therefore belongs to the previous frame, whatever its value.
+   err_o <= 1;` — with the clear tied high the `set_error` branch was
+   unreachable and `err_o` a constant 0.
+2. The ordering was wrong regardless. `uart_rx` pushed the byte to the RX FIFO
+   in `SAVE_DATA` with `data_i = {parity_error, rx_data}`, and only *then*
+   advanced to `PARITY` to check the bit, so the flag stored beside a byte
+   belonged to the previous frame.
 
-`LSR[2]` is driven from that FIFO bit, so it never sets. Framing errors are not
-detected at all — `uart_rx` does not validate the stop bit.
+`LSR[2]` is driven from that FIFO bit, so it never set. Framing errors were not
+detected at all — the stop bit was never examined — and `apb_uart.sv` never
+drove `LSR[3]`.
 
-**Measured, not inferred:** `tb_uart` sends a frame with deliberately wrong
-parity, confirms the byte still arrives, and asserts that `LSR[2]` stays clear.
-That test pins today's behaviour so a re-vendor cannot change it silently.
+**Why this one was patched and ERR-U1 was not.** ERR-U1 is a miswired input
+whose effect the wrapper can simply decline to use. ERR-U2 cannot be worked
+around from outside: the wrapper sees the APB side and the raw `rx` pin, and
+nothing else, so detecting a parity error there would mean reimplementing the
+receiver. That is the unavoidable case D-22 kept `patches/` for, and D-24
+records the ruling.
 
-R-7 is recorded as **not met**; the options are OPEN-U3.
+**What the patch changes, and the risk it carries.** The push moves into the
+`STOP_BIT` `bit_done` cycle — after both checks, but *not* into a later state,
+because `s_rx_fall` is true for exactly one clock and an extra state makes the
+receiver miss the start bit of a frame that follows with no gap. The error
+outputs are combinational (flop OR set-strobe) so they are valid in the cycle
+they are captured. `SAVE_DATA` survives for the FIFO-full case only.
+
+The consequence worth stating plainly: **we are the only people who have run
+this receiver.** `t_uart_b2b` — sixteen frames with no inter-frame gap — exists
+for that reason and for no other. It is the test that would fail if the timing
+argument above is wrong.
+
+---
+
+**ERR-U3 — an inferred latch, 24 of them.** `apb_uart.sv` gave `fifo_tx_data`
+no default in the register-write `always_comb`, assigning it only inside the
+`THR` branch, so synthesis inferred an 8-bit latch per instance. **FIXED by the
+same patch 0001.** Functionally harmless — the TX FIFO samples the bus only
+when `fifo_tx_valid` is high, which is exactly when that branch assigns it —
+but latches break scan insertion and must be constrained by hand at STA.
+
+Found by `make synth`, which reported 25 latches against a budget of 1. **No
+simulation would ever have found it**, which is the argument for running
+synthesis as each block lands rather than once at the end.
+
+*(During bring-up `t_uart_b2b` did fail, 1 frame of 16. The cause was a
+testbench bug — both `fork` branches incremented the same module-level loop
+index — not the patch. Worth recording: the first instinct was to blame the
+new RTL, and that instinct would have led to "fixing" working logic.)*

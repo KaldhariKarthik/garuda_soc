@@ -391,7 +391,8 @@ layer sits on top. Provenance a tapeout can stand behind matters more than the
 Policy: upstream files live under `rtl/third_party/` and are **never edited** —
 every delta belongs in the GARUDA wrapper. An unavoidable change goes in
 `<ip>/patches/*.patch` with a `Docs/BUGS.md` entry; an empty `patches/` is the
-goal state. `rtl/third_party/MANIFEST.yaml` records url, commit and licence;
+preferred state, but **not at the cost of a requirement** — see D-24, which
+governs when to reach for it and what it costs. `rtl/third_party/MANIFEST.yaml` records url, commit and licence;
 `HASHES.txt` records what was vendored; `tools/vendor_sync.py --check` fails if
 anything drifts. Each IP compiles into its own Xcelium library (`-makelib`),
 because PULP's generic module names (`clk_div`, FIFOs, clock gates) collide with
@@ -430,6 +431,60 @@ contract checks — PREADY, PSLVERR, IRQ, DMA hold-off, chip-select exclusivity,
 SCLK rate — with MISO connected to the wrong pin. Only `t_spim_flash_read`,
 which compares bytes against a flash model that was programmed with a known
 pattern, caught it.
+
+---
+
+## D-24 — A stated requirement outranks an untouched vendored file
+
+**Decided 2026-09-23 · Raised by** UART parity/framing reporting (ERR-U2) ·
+**Owner's call (Karthik), overruling the recommendation on this page's author**
+
+D-22 says vendored RTL is never edited and every delta lives in a wrapper, with
+`patches/` as an escape hatch whose goal state is empty. Faced with the first
+real test of that — the vendored UART cannot report parity or framing errors,
+two independent upstream defects — the proposal was to accept the gap, record
+R-7 as not met, and rely on the checksums that MAVLink, UBX and the console
+already carry.
+
+**That was the wrong trade and it was rejected.** Two reasons, and both
+generalise:
+
+1. **"Empty `patches/`" is a preference; R-7 is a requirement.** D-22 provided
+   the mechanism precisely for the unavoidable case, and this is unavoidable in
+   the strict sense: the wrapper sees only the APB side and the raw `rx` pin, so
+   detecting a parity error there would mean reimplementing the receiver. When
+   the wrapper genuinely cannot do it, the escape hatch is the intended path,
+   not a failure of discipline.
+2. **A protocol checksum is not an error report.** It tells firmware to drop a
+   packet; it does not say why. Error counters are how a flaky connector, EMI,
+   or a baud mismatch get told apart on a GNSS or telemetry link in the field.
+   Trading that away rests on an assumption about what firmware will always do,
+   and that is not hardware's assumption to make.
+
+**Rule: when a written requirement can only be met inside vendored RTL, patch
+it — and pay the full price of doing so properly.** The price is not the diff.
+It is:
+
+- the pristine file snapshotted under `<ip>/patches/orig/`, so the delta stays
+  auditable offline and forever;
+- a patch file that states the defect, the fix, and *why the wrapper could not
+  do it*;
+- `tools/vendor_sync.py --check` extended to verify that the working files are
+  still exactly `orig/` + the recorded patch, so an unrecorded edit fails CI —
+  the mechanism existed only as a comment before this;
+- a `Docs/BUGS.md` entry and a `THIRD_PARTY_NOTICES.md` modification notice,
+  which Solderpad 0.51 requires of a modified file, plus a marker on every
+  changed line;
+- **tests for what the patch changes, not just for what it fixes.** Moving the
+  UART's FIFO push changed when the receiver returns to `IDLE` relative to the
+  next start bit, and `s_rx_fall` is true for exactly one clock. That is a
+  behaviour no upstream user has ever exercised, because no upstream user has
+  this patch. `t_uart_b2b` — sixteen frames with no inter-frame gap — exists for
+  that reason and for no other.
+
+The last point is the one that makes this affordable. Patching third-party RTL
+is acceptable *because* we can state exactly what we changed and show it works;
+it would not be acceptable on the strength of the diff looking small.
 
 ---
 

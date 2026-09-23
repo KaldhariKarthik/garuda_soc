@@ -22,10 +22,10 @@ only through `tools/garuda_gen.py` -> `rtl/include/garuda_map.vh`,
 | core sanity (IRQ, WFI + clock gate, bus error, DSU, CLIC, T-8 timer wake) | 10/10 | `make test_sanity` |
 | ISA rv32ui/um/mi + Spike lockstep | 63/63 (and 63/63 random waits) | `make regress`, `make regress_rand` |
 | DSU vs model (+ clamp walk, oracle sweep) | pass, 0 mismatches | `make test_dsu` |
-| block TBs: crg ahb_ic bridge mem dma clic timers debug apb_shim spim uart | 43, 802, 20, 18, 25, 15, 22, 25, 22, 24, 42 checks, 0 fail | `make test_blocks` |
+| block TBs: crg ahb_ic bridge mem dma clic timers debug apb_shim spim uart | 43, 802, 20, 18, 25, 15, 22, 25, 22, 24, 53 checks, 0 fail | `make test_blocks` |
 | whole chip from the pins: basic / irq / wdt / **flash** / **uart** / jtag | all pass, 0 AHB violations | `make test_chip` |
 | per-element core TBs | 8/14 pass, 6 are testbench issues (BUGS.md ELEM-1..6) | `make test_elements` |
-| structural synthesis, whole chip (Genus 21.1, stand-in 180 nm lib, SRAMs black-boxed) | 54 887 cells, 4 856 flops, 0 unresolved / undriven / multi-driven, 1 latch = the intended ICG in `core_clk_gate` | `make synth` |
+| structural synthesis, whole chip (Genus 21.1, stand-in 180 nm lib, SRAMs black-boxed) | 68 403 cells, 7 210 flops, 0 unresolved / undriven / multi-driven, 1 latch = the intended ICG in `core_clk_gate` | `make synth` |
 
 **Development loop on the chip** (`make test_chip_jtag` is the executable
 spec): `boot_sel = 1` -> ROM recovery loop -> debugger halts the hart, streams
@@ -56,17 +56,27 @@ UART's rx synchroniser resetting low instead of high. Both were caught only by
 comparing real bytes end to end, and §1c also lists two defects in upstream's
 UART that the wrapper routes around.
 
-**One decision is waiting for you: UART-SPEC OPEN-U3 / BUGS ERR-U2.** The
-vendored UART cannot report parity or framing errors — two independent upstream
-defects — so **R-7 is recorded as not met**. Options are accept it and rely on
-protocol checksums (zero work, what ships today), patch the vendored RTL, or
-write our own receiver. Recommendation is to accept it now.
+**One vendored file is now modified, and that is a policy change (D-24).** The
+vendored UART could not report parity or framing errors — two independent
+upstream defects, ERR-U2 — and the wrapper could not work around them, because
+it sees only the APB side and the raw `rx` pin. R-7 is met by
+`rtl/third_party/pulp/apb_uart_sv/patches/0001-*.patch`. The pristine files are
+kept under `patches/orig/`, `tools/vendor_sync.py --check` now fails if the
+working files stop matching `orig/` + the recorded patch, and the modification
+is declared in `Docs/THIRD_PARTY_NOTICES.md` as Solderpad 0.51 requires.
+**Anyone re-vendoring `apb_uart_sv` must re-apply or re-derive it.**
+
+The same patch also removes an inferred latch (ERR-U3): upstream gave
+`fifo_tx_data` no default in its register-write `always_comb`, which cost 24
+latches across the three instances. **`make synth` found that; no simulation
+could have.** Run it per block as each one lands, not at the end.
 
 **Next, in order:**
 1. The remaining three peripherals — i2c (win 2), gpio (win 7), pwm (win 8,
    in-house). Per block: spec, wrapper, block TB, then the chip-top integration
    and its `APB_WINDOW_MASK` bit. SPIM-SPEC-001 and UART-SPEC-001 are the
-   templates; the UART one also shows how to record an unmet requirement.
+   templates; the UART one also shows how a requirement that can only be met
+   inside vendored RTL is handled (D-24).
 2. Triage the six element TBs (BUGS.md ELEM-1..6).
 3. SDC from PHYS §5.2 (+ `aon_clk` generated clock, D-14), foundry SRAM/ROM
    macros behind `sram_wrapper.v`, ICG cell in `core_clk_gate.v`, then STA at
