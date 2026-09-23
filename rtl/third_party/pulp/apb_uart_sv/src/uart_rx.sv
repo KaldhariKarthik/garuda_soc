@@ -19,6 +19,7 @@ module uart_rx (
         // input  logic            cfg_stop_bits_i,
         output logic            busy_o,
         output logic            err_o,
+        output logic            frame_err_o,      // GARUDA patch 0001
         input  logic            err_clr_i,
         output logic [7:0]      rx_data_o,
         output logic            rx_valid_o,
@@ -42,6 +43,8 @@ module uart_rx (
     logic        parity_bit_next;
 
     logic        sampleData;
+    logic        set_frame_err;                    // GARUDA patch 0001
+    logic        err_q, frame_err_q;                // GARUDA patch 0001
 
     logic [15:0] baud_cnt;
     logic        baudgen_en;
@@ -72,6 +75,7 @@ module uart_rx (
     begin
         NS = CS;
         sampleData = 1'b0;
+        set_frame_err = 1'b0;                      // GARUDA patch 0001
         reg_bit_count_next  = reg_bit_count;
         reg_data_next = reg_data;
         rx_valid_o = 1'b0;
@@ -121,7 +125,11 @@ module uart_rx (
                     if (reg_bit_count == s_target_bits)
                     begin
                         reg_bit_count_next = 'h0;
-                        NS = SAVE_DATA;
+                        // GARUDA patch 0001: was NS = SAVE_DATA
+                        if (cfg_parity_en_i)
+                            NS = PARITY;
+                        else
+                            NS = STOP_BIT;
                     end
                     else
                     begin
@@ -129,16 +137,10 @@ module uart_rx (
                     end
                 end
             end
-            SAVE_DATA:
-            begin
-                baudgen_en = 1'b1;
-                rx_valid_o = 1'b1;
-                if(rx_ready_i)
-                    if (cfg_parity_en_i)
-                        NS = PARITY;
-                    else
-                        NS = STOP_BIT;
-            end
+            // GARUDA patch 0001: SAVE_DATA moved to the END of the frame.
+            // Upstream pushed the byte here, one state BEFORE PARITY, so the
+            // error flag stored beside a byte belonged to the previous frame.
+            // Order is now DATA -> PARITY -> STOP_BIT -> SAVE_DATA -> IDLE.
             PARITY:
             begin
                 baudgen_en = 1'b1;
@@ -154,8 +156,27 @@ module uart_rx (
                 baudgen_en = 1'b1;
                 if (bit_done)
                 begin
-                    NS = IDLE;
+                    // GARUDA patch 0001: a stop bit must be high; upstream
+                    // never looked at it, so framing errors went undetected.
+                    if (reg_rx_sync[2] != 1'b1)
+                        set_frame_err = 1'b1;
+
+                    // Push in THIS cycle, so the FSM returns to IDLE exactly
+                    // as fast as it did upstream. s_rx_fall is true for one
+                    // clock only; an extra state here makes the receiver miss
+                    // the start bit of a frame that follows with no gap.
+                    // err_o/frame_err_o are combinational for the same reason -
+                    // the flags must be valid in the cycle they are captured.
+                    rx_valid_o = 1'b1;
+                    NS = rx_ready_i ? IDLE : SAVE_DATA;
                 end
+            end
+            SAVE_DATA:
+            begin
+                // Only reached when the RX FIFO was full at the end of a frame.
+                rx_valid_o = 1'b1;
+                if(rx_ready_i)
+                    NS = IDLE;
             end
             default:
                 NS = IDLE;
@@ -239,21 +260,31 @@ module uart_rx (
     begin
         if (rstn_i == 1'b0)
         begin
-            err_o <= 1'b0;
+            err_q       <= 1'b0;
+            frame_err_q <= 1'b0;                   // GARUDA patch 0001
         end
         else
         begin
             if(err_clr_i)
             begin
-                err_o <= 1'b0;
+                err_q       <= 1'b0;
+                frame_err_q <= 1'b0;
             end
             else
             begin
                 if(set_error)
-                    err_o <= 1'b1;
+                    err_q <= 1'b1;
+                if(set_frame_err)                  // GARUDA patch 0001
+                    frame_err_q <= 1'b1;
             end
         end
     end
+
+    // GARUDA patch 0001: the flops hold a flag while the FIFO is full; the
+    // OR makes it visible in the same cycle it is detected, which is the
+    // cycle the byte is pushed.
+    assign err_o       = err_q       | set_error;
+    assign frame_err_o = frame_err_q | set_frame_err;
 
     assign rx_data_o = reg_data;
 

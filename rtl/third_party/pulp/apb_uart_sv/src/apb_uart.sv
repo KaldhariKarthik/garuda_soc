@@ -46,6 +46,7 @@ module apb_uart_sv
     logic [7:0]       rx_data;
     // parity error
     logic             parity_error;
+    logic             frame_error;                 // GARUDA patch 0001
     logic [3:0]       IIR_o;
     logic [3:0]       clr_int;
 
@@ -68,7 +69,7 @@ module apb_uart_sv
     logic             rx_ready;
 
     logic             [7:0] fifo_tx_data;
-    logic             [8:0] fifo_rx_data;
+    logic             [9:0] fifo_rx_data;          // GARUDA patch 0001
 
     logic             [7:0] tx_data;
     logic             [$clog2(TX_FIFO_DEPTH):0] tx_elements;
@@ -89,7 +90,12 @@ module apb_uart_sv
         .busy_o             (                               ),
         /* lint_on */
         .err_o              ( parity_error                  ),
-        .err_clr_i          ( 1'b1                          ),
+        .frame_err_o        ( frame_error                   ), // GARUDA patch 0001
+        // GARUDA patch 0001: was tied to 1'b1, which made the error flop's
+        // set branch unreachable and err_o a constant 0. Clearing on the FIFO
+        // push means each flag is captured with its own byte and does not
+        // leak into the next frame.
+        .err_clr_i          ( rx_valid & rx_ready           ),
         .rx_data_o          ( rx_data                       ),
         .rx_valid_o         ( rx_valid                      ),
         .rx_ready_i         ( rx_ready                      )
@@ -116,7 +122,7 @@ module apb_uart_sv
 
     io_generic_fifo
     #(
-        .DATA_WIDTH         ( 9                             ),
+        .DATA_WIDTH         ( 10                            ), // GARUDA patch 0001
         .BUFFER_DEPTH       ( RX_FIFO_DEPTH                 )
     )
     uart_rx_fifo_i
@@ -133,7 +139,7 @@ module apb_uart_sv
         .ready_i            ( fifo_rx_ready                 ),
 
         .valid_i            ( rx_valid                      ),
-        .data_i             ( { parity_error, rx_data }     ),
+        .data_i             ( { frame_error, parity_error, rx_data } ), // GARUDA patch 0001
         .ready_o            ( rx_ready                      )
     );
 
@@ -198,6 +204,14 @@ module apb_uart_sv
         trigger_level_n = trigger_level_q;
 
         fifo_tx_valid   = 1'b0;
+        // GARUDA patch 0001: fifo_tx_data had no default in this always_comb -
+        // it was assigned only inside the THR branch - so synthesis inferred an
+        // 8-bit LATCH per instance (24 across GARUDA's three UARTs). Harmless
+        // functionally, because the FIFO samples it only when fifo_tx_valid is
+        // high, but latches break scan insertion and need constraining at STA.
+        // The THR branch below still assigns it; this default makes the block
+        // complete. Behaviour is identical.
+        fifo_tx_data    = PWDATA[7:0];
         tx_fifo_clr_n   = 1'b0; // self clearing
         rx_fifo_clr_n   = 1'b0; // self clearing
 
@@ -206,6 +220,9 @@ module apb_uart_sv
 
         // parity error on receiving part has occured
         regs_n[LSR][2] = fifo_rx_data[8]; // parity error is detected when element is retrieved
+        // GARUDA patch 0001: framing error, same rule - it describes the byte
+        // currently at the head of the RX FIFO.
+        regs_n[LSR][3] = fifo_rx_data[9];
 
         // tx status register
         regs_n[LSR][5] = ~ (|tx_elements); // fifo is empty
