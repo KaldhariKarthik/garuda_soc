@@ -1,8 +1,7 @@
 // pulp-platform apb_spi_master + the axi_spi_master datapath it shares.
 // Own library: PULP's generic module names collide with GARUDA's (rtl/clk_div).
-// upstream carries no `timescale directive; supply one here rather than
-// editing the file (D-22)
--timescale 1ns/1ps
+// upstream carries no `timescale directive; the top-level filelist supplies
+// one via rtl/third_party/timescale.f (D-22, and -timescale is once-only)
 -makelib pulp_spim
   -sv
   rtl/third_party/pulp/axi_spi_master/src/spi_master_clkgen.sv
