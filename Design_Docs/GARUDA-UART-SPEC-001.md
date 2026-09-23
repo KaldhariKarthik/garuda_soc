@@ -16,7 +16,7 @@
 
 | Rev | Change | Driver |
 |---|---|---|
-| 1.0 | First specification. An adaptation of `pulp-platform/apb_uart_sv` behind a GARUDA wrapper, not vendor IP. The interrupt model is GARUDA's, not the 16550's — see [N-7.5] and §15. | D-21, D-22, D-23 |
+| 1.0 | First specification. An adaptation of `pulp-platform/apb_uart_sv` behind a GARUDA wrapper, not vendor IP. The interrupt model is GARUDA's, not the 16550's ([N-7.5]); the vendored RTL carries one recorded patch, for receive-error reporting and an inferred latch (§15). | D-21, D-22, D-23, D-24 |
 
 ## 0.3 Normative references
 
@@ -24,7 +24,7 @@
 2. `GARUDA-AHB2APB-SPEC-001` Rev 2.0 — the APB contract this block must satisfy.
 3. `GARUDA-DMA-SPEC-001` Rev 3.0 §7.3 — the request/acknowledge handshake.
 4. `GARUDA-CLIC-SPEC-001` Rev 2.0 §7.2 — level interrupts.
-5. `Docs/DECISIONS.md` D-16, D-21, D-22, D-23.
+5. `Docs/DECISIONS.md` D-16, D-21, D-22, D-23, **D-24** (why this IP is patched).
 6. `GARUDA-SPIM-SPEC-001` Rev 1.0 — the first block built this way; the shared tail is identical.
 
 ---
@@ -52,9 +52,11 @@ times. Each is 8-bit, one start bit, configurable parity and stop bits, with a
 
 ### 1.3 Where the RTL comes from
 
-`rtl/third_party/pulp/apb_uart_sv` (Solderpad 0.51), **unmodified**, behind
+`rtl/third_party/pulp/apb_uart_sv` (Solderpad 0.51), behind
 `rtl/uart/garuda_uart_top.v`. The upstream block is a 16550-style register file
 over a plain start/data/parity/stop shifter pair with 16-entry FIFOs.
+
+It is the **one modified vendored IP in the design** — see below and §15.
 
 **What had to be taken over, and why, is the substance of this document.**
 Upstream's interrupt unit is not usable as it stands ([N-7.5], §15 ERR-U1), so
@@ -65,10 +67,14 @@ One defect could **not** be handled in the wrapper: upstream cannot report a
 receive error at all (§15 ERR-U2), and the wrapper sees only the APB side and
 the raw `rx` pin, so detecting one there would mean reimplementing the receiver.
 R-7 is therefore met by a recorded patch to the vendored RTL —
-`patches/0001-report-parity-and-framing-errors.patch`, governed by **D-24**,
+`patches/0001-error-reporting-and-latch-fix.patch`, governed by **D-24**,
 verified by `tools/vendor_sync.py --check`, and declared in
-`Docs/THIRD_PARTY_NOTICES.md` as Solderpad 0.51 requires. It is the only
-modified third-party file in the design.
+`Docs/THIRD_PARTY_NOTICES.md` as Solderpad 0.51 requires.
+
+The same patch also removes an inferred latch that has nothing to do with R-7
+(§15 ERR-U3) — upstream left `fifo_tx_data` without a default, which cost 24
+latches across the three instances. `make synth` found it; no simulation
+could have.
 
 ---
 
