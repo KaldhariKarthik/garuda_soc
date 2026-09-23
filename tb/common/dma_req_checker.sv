@@ -26,14 +26,21 @@ module dma_req_checker #(
 );
     int viol_ack_no_req = 0, viol_stuck = 0;
     int since_ack = -1;
-    logic req_d = 0;
+    // A peripheral whose request is a level over its own data register drops it
+    // the moment the DMA reads that register - BEFORE the ack arrives at the
+    // end of the beat. So "was a request outstanding" has to be remembered
+    // until the ack, not sampled one cycle back; otherwise every such block
+    // looks like it is acking out of nowhere.
+    logic req_seen = 0;
 
     always @(posedge clk_i) begin
         if (!rst_n_i) begin
             since_ack <= -1;
         end else begin
-            req_d <= req_i;
-            if (ack_i && !req_i && !req_d && since_ack < 0) begin
+            if (req_i)      req_seen <= 1'b1;
+            else if (ack_i) req_seen <= 1'b0;
+
+            if (ack_i && !req_i && !req_seen && since_ack < 0) begin
                 viol_ack_no_req++;
                 $display("[DMA-CHK %0s] ack with no request at %0t", NAME, $time);
             end
