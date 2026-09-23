@@ -37,6 +37,7 @@
 // pclk from FIFO occupancy:
 //   [0] DR   RX FIFO not empty      [5] THRE TX FIFO empty
 //   [2] PE   parity error at head   [6] TEMT TX FIFO and shifter empty
+//   [3] FE   framing error at head  (both come from patch 0001 - see below)
 // =============================================================================
 
 module garuda_uart_top #(
@@ -94,7 +95,13 @@ module garuda_uart_top #(
 
     wire lsr_dr   = lsr_q[0];               // a received byte is waiting
     wire lsr_pe   = lsr_q[2];               // parity error on that byte
+    wire lsr_fe   = lsr_q[3];               // framing error on that byte
     wire lsr_thre = lsr_q[5];               // the TX FIFO has room
+
+    // One "line error" event covers both. Firmware reads LSR to tell them
+    // apart - parity says noise, framing says the baud rate is wrong - but the
+    // interrupt only has to say "the byte at the head of the FIFO is suspect".
+    wire lsr_err  = lsr_pe | lsr_fe;
 
     // =========================================================================
     // DLAB shadow ([N-6.2a])
@@ -116,7 +123,7 @@ module garuda_uart_top #(
     wire [2:0] evt;
     assign evt[0] = lsr_dr;                 // RX data available
     assign evt[1] = lsr_thre;               // TX holding register empty
-    assign evt[2] = lsr_pe;                 // line error
+    assign evt[2] = lsr_err;                // line error: parity or framing
 
     garuda_apb_shim #(
         .N_EVT(3), .SYNC_W(1), .SYNC_RESET(8'h01), .IP_LIMIT(IP_LIMIT),
@@ -160,7 +167,7 @@ module garuda_uart_top #(
         .rx_i(rx_sync), .tx_o(uart_tx_o),
         .event_o());                        // unused on purpose - ERR-U1
 
-    wire _unused = |{dmactl, lsr_q[7:6], lsr_q[4:3], lsr_q[1]};
+    wire _unused = |{dmactl, lsr_q[7:6], lsr_q[4], lsr_q[1]};
 
 endmodule
 

@@ -42,7 +42,7 @@ module tb_uart;
                       R_LSR = 12'h014, R_MSR = 12'h018, R_SCR = 12'h01C,
                       R_IRQSTAT = 12'hFE0, R_IRQEN = 12'hFE4,
                       R_DMACTL  = 12'hFE8, R_ID    = 12'hFEC;
-    localparam LSR_DR = 0, LSR_PE = 2, LSR_THRE = 5;
+    localparam LSR_DR = 0, LSR_PE = 2, LSR_FE = 3, LSR_THRE = 5;
 
     // 125 MHz / (div+1); div 124 = 1 us per bit, div 1084 = 115207 baud
     localparam int DIV_FAST = 124, DIV_115K = 1084;
@@ -221,32 +221,96 @@ module tb_uart;
                         lo_ok, hi_ok));
         u_term.bit_ns = 1000.0;
 
-        // ---- parity: 8E1 carries data, but errors are NOT reported (ERR-U2) -------
-        // Upstream cannot report a parity error for two independent reasons:
-        // apb_uart.sv ties uart_rx's err_clr_i to 1'b1, which holds err_o at 0
-        // permanently; and uart_rx pushes the byte to the FIFO in SAVE_DATA,
-        // one state BEFORE it enters PARITY and checks the bit, so the flag
-        // stored beside a byte could never describe that byte anyway.
-        //
-        // This test pins the behaviour we actually ship. If a future re-vendor
-        // fixes it, these two checks fail and force the spec to be updated
-        // rather than letting a silent change through.
+        // ---- parity and framing are REPORTED (patch 0001, was ERR-U2) -------------
+        // Upstream could not do this: err_clr_i was tied high so the error flop
+        // could never set, and the byte was pushed to the FIFO one state before
+        // the parity bit was even checked. Both are fixed in
+        // rtl/third_party/pulp/apb_uart_sv/patches/0001-*.patch.
         set_baud(DIV_FAST, 1);                        // 8E1
         drain_rx();
         bfm.wr(R_IRQSTAT, 32'h7);
         u_term.clear();
         u_term.send(8'h3C, 1'b0);                     // correct parity
         wait_dr(ok);
+        bfm.read(R_LSR, d, e);
+        check(ok && !d[LSR_PE], "[R-7] a clean 8E1 frame sets no parity error");
         bfm.read(R_RBR, d, e);
-        check(ok && d[7:0] == 8'h3C, "[R-1] 8E1 frames carry data correctly");
+        check(d[7:0] == 8'h3C, "[R-1] and carries its data");
+
         drain_rx();
+        bfm.wr(R_IRQSTAT, 32'h7);
         u_term.send(8'h3C, 1'b1);                     // deliberately WRONG parity
         wait_dr(ok);
         bfm.read(R_LSR, d, e);
-        check(!d[LSR_PE], "[ERR-U2] a parity error is NOT reported - known gap, OPEN-U3");
+        check(d[LSR_PE], "[R-7] LSR[2] flags the parity error");
         bfm.read(R_RBR, d, e);
-        check(d[7:0] == 8'h3C, "[ERR-U2] the byte itself is still delivered");
+        check(d[7:0] == 8'h3C, "[R-7] and the byte is still delivered, not dropped");
+        bfm.read(R_IRQSTAT, d, e);
+        check(d[2], "[R-7] IRQSTAT[2] captured the line error");
+
+        // the flag belongs to ITS OWN byte and must not leak into the next one
+        drain_rx();
+        u_term.send(8'h5A, 1'b0);                     // clean, right after a bad one
+        wait_dr(ok);
+        bfm.read(R_LSR, d, e);
+        check(!d[LSR_PE], "[R-7] the error does not leak into the following byte");
+        bfm.read(R_RBR, d, e);
+        check(d[7:0] == 8'h5A, "[R-7] which is itself correct");
+
+        // framing: hold the stop bit low
         set_baud(DIV_FAST, 0);
+        drain_rx();
+        bfm.wr(R_IRQSTAT, 32'h7);
+        u_term.send_framing_error(8'h96);
+        wait_dr(ok);
+        bfm.read(R_LSR, d, e);
+        check(d[LSR_FE], "[R-7] LSR[3] flags a low stop bit (framing error)");
+        bfm.read(R_RBR, d, e);
+        check(d[7:0] == 8'h96, "[R-7] and that byte is still delivered");
+        bfm.read(R_IRQSTAT, d, e);
+        check(d[2], "[R-7] framing raises the same line-error event");
+
+        drain_rx();
+        u_term.send(8'h69);
+        wait_dr(ok);
+        bfm.read(R_LSR, d, e);
+        check(!d[LSR_FE], "[R-7] framing error does not leak into the next byte");
+        bfm.read(R_RBR, d, e);
+        check(d[7:0] == 8'h69, "[R-7] which is itself correct");
+
+        // ---- back-to-back frames, no inter-frame gap ------------------------------
+        // Patch 0001 moved the FIFO push to after STOP_BIT, so the receiver now
+        // returns to IDLE at the stop/next-start boundary instead of one state
+        // earlier. This is the test for that: 16 frames with zero idle time
+        // between them, which is the worst case for missing the next start bit.
+        drain_rx();
+        u_term.clear();
+        nbad = 0;
+        // Each branch needs its OWN index: a shared module-level loop variable
+        // is incremented by both threads and the test then checks nonsense.
+        fork
+            begin : b2b_send
+                int si;
+                for (si = 0; si < 16; si++) u_term.send(8'h80 + si[7:0]);
+            end
+            begin : b2b_recv
+                int ri;
+                logic [31:0] rd;
+                bit re, rok;
+                for (ri = 0; ri < 16; ri++) begin
+                    wait_dr(rok);
+                    bfm.read(R_RBR, rd, re);
+                    if (!rok || rd[7:0] != 8'h80 + ri[7:0]) begin
+                        nbad++;
+                        $display("[B2B] index %0d: expected %02h got %02h ok=%b at %0t",
+                                 ri, 8'h80 + ri[7:0], rd[7:0], rok, $time);
+                    end
+                end
+            end
+        join
+        check(nbad == 0, $sformatf("[N-8.2] 16 back-to-back frames, no gap (%0d wrong)", nbad));
+        bfm.read(R_LSR, d, e);
+        check(!d[LSR_FE] && !d[LSR_PE], "[N-8.2] and none of them framed badly");
         drain_rx();
 
         // ---- interrupt --------------------------------------------------------------------

@@ -59,6 +59,27 @@ module uart_model #(
         #(bit_ns);
     endtask
 
+    // A frame whose stop bit is held LOW - what a baud mismatch or a broken
+    // driver looks like on the wire. The receiver must flag it and still
+    // deliver the byte.
+    task automatic send_framing_error(input byte unsigned d);
+        int i;
+        dut_rx_o = 1'b0;                    // start
+        #(bit_ns);
+        for (i = 0; i < 8; i++) begin
+            dut_rx_o = d[i];
+            #(bit_ns);
+        end
+        if (parity_en) begin
+            dut_rx_o = ^d;
+            #(bit_ns);
+        end
+        dut_rx_o = 1'b0;                    // stop bit LOW - the violation
+        #(bit_ns);
+        dut_rx_o = 1'b1;                    // return the line to idle
+        #(bit_ns * 2);
+    endtask
+
     task automatic send_str(input string s);
         int i;
         for (i = 0; i < s.len(); i++) send(byte'(s[i]));
