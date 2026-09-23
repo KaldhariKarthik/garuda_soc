@@ -31,7 +31,12 @@
 //     assertion (its taken_q clears only when req drops), so a FIFO-level
 //     request that stays high would move one beat and then stall forever.
 //     req_o therefore drops for one pclk after every dma_ack_i.
-//  5. Pad input synchronisers, for the wrapper to use (SYNC_W bits).
+//  5. Pad input synchronisers, for the wrapper to use (SYNC_W bits). Their
+//     RESET VALUE is SYNC_RESET, one bit per pad, because a synchroniser that
+//     resets to the wrong idle level presents a false signal to the IP for two
+//     pclk out of reset. For a UART that is a low rx line, which is a start
+//     bit: the receiver frames a garbage byte at power-on and every read from
+//     then on returns the previous byte. Set it to the pad's idle state.
 //
 // -----------------------------------------------------------------------------
 // REGISTER TAIL (same in every window)
@@ -49,6 +54,7 @@
 module garuda_apb_shim #(
     parameter integer N_EVT     = 4,        // interrupt sources from the IP
     parameter integer SYNC_W    = 1,        // asynchronous pad inputs to sync
+    parameter [7:0]   SYNC_RESET = 8'h00,   // idle level of each synced pad
     parameter [11:0]  IP_LIMIT  = 12'h100,  // offsets < IP_LIMIT belong to the IP
     parameter integer ADDR_SHIFT = 0,       // 2 = re-map word offsets onto a
                                             //     byte-addressed IP (16550)
@@ -154,11 +160,13 @@ module garuda_apb_shim #(
     // =========================================================================
     // Pad input synchronisers
     // =========================================================================
+    localparam [SYNC_W-1:0] SYNC_IDLE = SYNC_RESET[SYNC_W-1:0];
+
     reg [SYNC_W-1:0] sync0_q, sync1_q;
     always @(posedge pclk_i or negedge preset_n_i) begin
         if (!preset_n_i) begin
-            sync0_q <= {SYNC_W{1'b0}};
-            sync1_q <= {SYNC_W{1'b0}};
+            sync0_q <= SYNC_IDLE;
+            sync1_q <= SYNC_IDLE;
         end else begin
             sync0_q <= pad_async_i;
             sync1_q <= sync0_q;
