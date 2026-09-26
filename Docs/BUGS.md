@@ -4,7 +4,7 @@
 Not per-block: a bug that crosses a boundary belongs in one list, and the
 cross-block ones are the expensive ones.
 
-Last updated: 2026-09-26 (doc-vs-RTL audit, §1d) · Covers Blocks 1 (core), 2 (DSU), 6 (interconnect),
+Last updated: 2026-09-26 (block 14, §1e) · Covers Blocks 1 (core), 2 (DSU), 6 (interconnect),
 9 (DMA), plus toolchain and testbench defects.
 
 Specification-only entries now also reach blocks that have no RTL yet: the
@@ -179,6 +179,17 @@ naming rather than behaviour.
 places nothing executes — a table the generator does not read, a column of
 index numbers, a test named in a spec but never written, and a set of exports
 with no generator behind them. Everything the toolchain touches was correct.
+
+---
+
+## 1e. Block 14 (SPI slave) — 2026-09-26
+
+| ID | Where | Status | Summary |
+|---|---|---|---|
+| **SPIS-1** | design decision | — | An SPI slave's shift clock comes from the far end of the wire, so the textbook build clocks the shifter on `sclk` and crosses to `pclk` through an async FIFO. That would have made DEBUG [N-7.16] — "`dmi_cdc` is the only asynchronous crossing in the chip" — false, for one peripheral. `garuda_spis_core.v` oversamples in `pclk` instead. The chip keeps one CDC; the cost is SCLK ≤ pclk/6 = 20 MHz, specified, and scaling with DIVSEL. |
+| **SPIS-2** | `t_spis_rate` | MEASURED, caveated | The rate sweep passes at every half period down to 9 ns, far below the specified 24 ns limit. **That is simulation being kinder than silicon**: ideal edges cannot exercise metastability or finite edge rates, which is what actually sets the limit. The sweep confirms correctness at and above the spec figure; it does not derive it, and the log says so rather than letting a reader infer headroom that is not there. Half periods are deliberately not `pclk` multiples, because aligned edges make an oversampler look better than it is. |
+| **SPIS-3** | `[N-9.2a]` | ACCEPTED, bounded | `miso_oe` drops **2 `pclk` (16 ns) after `cs_n` rises**, because `cs_n` arrives through the shim's synchroniser. Releasing from the raw pin would remove the tail but put a combinational path from an async pad input onto a pad output enable — on the one block whose premise is adding no async timing. Bounded instead: `t_spis_reset` fails above 3 `pclk`, and at max SCLK a bit is 50 ns so no master can reselect inside it. |
+| **TOOL-6** | this session | FIXED | The commit that added block 14 went in with `rtl/include/garuda_map.vh` and `sw/common/garuda_map.h` **stale** against the yaml. `garuda_gen.py --check` had reported it, but the check was `&&`-chained ahead of a doc update while `git commit` sat on its own line, so the failure aborted the docs and not the commit. Regenerated in the next commit. The lesson is the shape of the command, not the tool: a gate that does not gate the thing it is protecting is decoration. |
 
 ---
 

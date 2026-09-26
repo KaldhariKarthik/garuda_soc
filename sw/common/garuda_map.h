@@ -49,6 +49,7 @@
 /* ---- CLIC IDs ---- */
 #define GARUDA_CLIC_ID_DMA_COMPLETE_CH0_5_FIRST 1  /* 1..6 */
 #define GARUDA_CLIC_ID_DMA_ERROR_CH0_5_FIRST 7  /* 7..12 */
+#define GARUDA_CLIC_ID_SPI_SLAVE            14
 #define GARUDA_CLIC_ID_SPI_MASTER           15
 #define GARUDA_CLIC_ID_I2C                  16
 #define GARUDA_CLIC_ID_UART0                17

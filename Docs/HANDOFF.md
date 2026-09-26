@@ -22,10 +22,10 @@ only through `tools/garuda_gen.py` -> `rtl/include/garuda_map.vh`,
 | core sanity (IRQ, WFI + clock gate, bus error, DSU, CLIC, T-8 timer wake) | 10/10 | `make test_sanity` |
 | ISA rv32ui/um/mi + Spike lockstep | 63/63 (and 63/63 random waits) | `make regress`, `make regress_rand` |
 | DSU vs model (+ clamp walk, oracle sweep) | pass, 0 mismatches | `make test_dsu` |
-| block TBs: crg ahb_ic bridge mem dma clic timers debug apb_shim spim uart i2c gpio pwm | 43, 802, 20, 18, 25, 15, 22, 25, 22, 24, 53, 42, 25, 26 checks, 0 fail | `make test_blocks` |
+| block TBs: crg ahb_ic bridge mem dma clic timers debug apb_shim spim uart i2c gpio pwm spis | 43, 802, 20, 18, 25, 15, 23, 25, 22, 24, 53, 42, 25, 26, 32 checks, 0 fail | `make test_blocks` |
 | whole chip from the pins: basic / irq / wdt / flash / uart / **periph** / jtag | all pass, 0 AHB violations | `make test_chip` |
 | per-element core TBs | 8/14 pass, 6 are testbench issues (BUGS.md ELEM-1..6) | `make test_elements` |
-| structural synthesis, whole chip (Genus 21.1, stand-in 180 nm lib, SRAMs black-boxed) | 65 933 cells, 7 647 flops, 0 unresolved / undriven / multi-driven, 1 latch = the intended ICG in `core_clk_gate` | `make synth` |
+| structural synthesis, whole chip (Genus 21.1, stand-in 180 nm lib, SRAMs black-boxed) | 67 460 cells, 7 909 flops, 0 unresolved / undriven / multi-driven, 1 latch = the intended ICG in `core_clk_gate` | `make synth` |
 
 **Development loop on the chip** (`make test_chip_jtag` is the executable
 spec): `boot_sel = 1` -> ROM recovery loop -> debugger halts the hart, streams
@@ -84,6 +84,13 @@ errors lived where nothing executes. Outcomes:
   in every core simulation. `make pipe_matrix` measures the [N-11.2] matrix.
 - **Two sources of truth were ruled on**: the `.md` is normative,
   `make check_docs` fails on drift (`Design_Docs/README.md`).
+
+**Block 14 (`spi_slave`) is built** — `rtl/spi_slave/`, in-house, 32/32 on
+`make test_spis`, window 0, CLIC 14, DMA channel 4 now un-tied. That was the
+last missing block: **every block in `garuda_system.yaml` now has RTL.** Its
+four pins are present on `garuda_chip_top` and gated by `WITH_SPI_SLAVE`
+(default 1); setting it to 0 gives back the exact 28-pin build, because the
+bonding question is OPEN-2 and not ours.
 
 **Two things an owner still has to decide:**
 
