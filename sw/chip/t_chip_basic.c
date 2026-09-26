@@ -56,10 +56,11 @@ int main(void)
     v = *(volatile uint32_t *)0x30000000u;
     if (!fault(5) || last_tval != 0x30000000u)      return 8;
 
-    /* 9a: an APB window with nothing behind it faults, never hangs. Every
-     *     peripheral window 1..11 is now populated, so window 0 is the one
-     *     left masked in the bridge. */
-    v = *(volatile uint32_t *)0x40000000u;
+    /* 9a: an APB window with nothing behind it faults, never hangs. Windows
+     *     0..11 are all populated now that block 14 (spi_slave) has taken
+     *     window 0, so the unmapped probe moves to window 12 - 0xC..0xF never
+     *     exist (AHB2APB [N-7.19]). */
+    v = *(volatile uint32_t *)0x4000C000u;
     if (!fault(5))                                  return 9;
 
     /* 9b: and a populated window answers as itself - spi_master on window 1.

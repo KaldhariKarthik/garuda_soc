@@ -84,7 +84,8 @@ module garuda_soc_top #(
 
     // ---- peripheral sideband (deferred IP plugs in here) --------------------
     input  wire [6:0]  periph_irq_i,       // CLIC 15..21: spi, i2c, uart0/1/2, gpio, pwm
-    input  wire [5:0]  dma_req_i,          // ch4 tied low inside - see below
+    input  wire        spis_irq_i,         // CLIC 14: spi_slave (block 14)
+    input  wire [5:0]  dma_req_i,          // all six channels live
     output wire [5:0]  dma_ack_o,
 
     // ---- observability -------------------------------------------------------------
@@ -163,12 +164,10 @@ module garuda_soc_top #(
         .haddr_o(m_haddr), .htrans_o(m_htrans), .hwrite_o(m_hwrite), .hsize_o(m_hsize),
         .hburst_o(m_hburst), .hwdata_o(m_hwdata), .hrdata_i(m_hrdata), .hready_i(m_hready),
         .hresp_i(m_hresp),
-        // Channel 4 belongs to the SPI SLAVE (ESP-NOW mesh), restored and
-        // required by ADR-0020 Rev 2 - it is the neighbour-position source the
-        // DSU's collision avoidance runs on. It is tied low only because
-        // rtl/spi_slave/ has not been written yet; DMA [N-6.4] records
-        // un-tying this as an explicit RTL work item. It is NOT spare.
-        .dma_req_i({dma_req_i[5], 1'b0, dma_req_i[3:0]}),   // ch4: see above
+        // Channel 4 is the SPI SLAVE's (ESP-NOW mesh), per ADR-0020 Rev 2 and
+        // DMA [N-6.4]. It was tied low for as long as rtl/spi_slave/ did not
+        // exist; block 14 now does, so it is connected like every other.
+        .dma_req_i(dma_req_i),
 
         .dma_ack_o(dma_ack_o),
         .dma_complete_o(dma_complete), .dma_error_o(dma_error));
@@ -269,7 +268,10 @@ module garuda_soc_top #(
     assign irq_src[0]     = 1'b0;                         // sentinel ([N-7.12])
     assign irq_src[6:1]   = dma_complete;                 // IDs 1-6
     assign irq_src[12:7]  = dma_error;                    // IDs 7-12
-    assign irq_src[14:13] = 2'b00;                        // reserved
+    // ID 13 stays reserved: mtip goes straight to the core (ADR-0010).
+    // ID 14 is block 14, the SPI slave (ADR-0020 Rev 2).
+    assign irq_src[13]    = 1'b0;
+    assign irq_src[14]    = spis_irq_i;
     assign irq_src[21:15] = periph_irq_i;                 // IDs 15-21
     assign irq_src[22]    = wdt_warn;                     // ID 22
     assign irq_src[31:23] = 9'd0;

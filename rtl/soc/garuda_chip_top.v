@@ -15,6 +15,7 @@
 // APB_WINDOW_MASK answers; an access to any other faults rather than hangs.
 //
 //   window  block        IRQ (CLIC)          DMA ch   pins
+//   0       spi_slave    CLIC 14             4        spis_*      LANDED
 //   1       spi_master   periph_irq[0] (15)  0        spim_*      LANDED
 //   2       i2c          periph_irq[1] (16)  1        i2c_scl/sda  LANDED
 //   3       uart0        periph_irq[2] (17)  2        uart0_rx/tx  LANDED
@@ -34,6 +35,13 @@
 module garuda_chip_top #(
     parameter         BROM_INIT_FILE = "",
     parameter         CORE_CLK_GATE  = 1,
+    // Block 14, the ESP-NOW companion link. ADR-0020 Rev 2 makes it REQUIRED;
+    // whether its four pins are additive or reclaimed is OPEN-2, the PD
+    // mentor's call against the pad frame (PHYS [N-3.6], SPIS OPEN-S1). The
+    // RTL is present either way - set this to 0 and the block is not
+    // instantiated, window 0 stays masked and the pins sit at safe idle,
+    // which is exactly the 28-pin build.
+    parameter         WITH_SPI_SLAVE = 1,
     // Per-window APB access-rate divider (2 bits each, /1 /2 /4 /8). The escape
     // hatch for a peripheral IP whose INTERFACE timing cannot take an 8 ns
     // access; it does not slow the IP's own flops (AHB2APB [N-7.10]).
@@ -48,7 +56,8 @@ module garuda_chip_top #(
                                         (16'd1 << `GARUDA_APB_WIN_UART2)      |
                                         (16'd1 << `GARUDA_APB_WIN_I2C)        |
                                         (16'd1 << `GARUDA_APB_WIN_GPIO)       |
-                                        (16'd1 << `GARUDA_APB_WIN_PWM)
+                                        (16'd1 << `GARUDA_APB_WIN_PWM)        |
+                                        (WITH_SPI_SLAVE ? 16'd1 : 16'd0)
 )(
     input  wire refclk,              //  1  500 MHz reference
     input  wire ext_rst_n,           //  2  board supervisor reset
@@ -75,7 +84,13 @@ module garuda_chip_top #(
     output wire pwm3,                // 23
     inout  wire gpio0,               // 24
     inout  wire gpio1,               // 25
-    input  wire boot_sel             // 26  pull-down at the pad
+    input  wire boot_sel,            // 26  pull-down at the pad
+    // ---- pins 29-32, block 14 (PHYS §3.2). Bonded only in the 36-pin
+    //      variant; harmless and driven to safe idle when WITH_SPI_SLAVE = 0.
+    input  wire spis_sclk,           // 29
+    input  wire spis_mosi,           // 30
+    output wire spis_miso,           // 31  tri-state
+    input  wire spis_cs_n            // 32
 );
 
     // =========================================================================
@@ -210,7 +225,39 @@ module garuda_chip_top #(
         .irq_o(pwm_irq), .pwm_o(pwm_pins));
 
     // =========================================================================
-    // APB expansion return path: window 1 = spi_master, 3/4/6 = uart0/1/2,
+    // Block 14: SPI slave (window 0) - the ESP32 / ESP-NOW companion link
+    // =========================================================================
+    wire [31:0] spis_prdata;
+    wire        spis_pready, spis_pslverr, spis_irq, spis_dma_req;
+    wire        spis_miso_d, spis_miso_oe;
+
+    generate if (WITH_SPI_SLAVE) begin : g_spis
+        garuda_spis_top #(.BLOCK_NUM(8'd14), .FIFO_DEPTH(16)) u_spis (
+            .pclk_i(pclk), .preset_n_i(preset_n),
+            .psel_i(ext_psel[0]), .penable_i(ext_penable),
+            .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
+            .prdata_o(spis_prdata), .pready_o(spis_pready),
+            .pslverr_o(spis_pslverr),
+            .irq_o(spis_irq), .dma_req_o(spis_dma_req), .dma_ack_i(dma_ack[4]),
+            .spis_sclk_i(spis_sclk), .spis_mosi_i(spis_mosi),
+            .spis_cs_n_i(spis_cs_n),
+            .spis_miso_o(spis_miso_d), .spis_miso_oe_o(spis_miso_oe));
+    end else begin : g_no_spis
+        // The 28-pin build: window 0 masked, pins at safe idle.
+        assign spis_prdata  = 32'd0;
+        assign spis_pready  = 1'b1;
+        assign spis_pslverr = 1'b1;
+        assign spis_irq     = 1'b0;
+        assign spis_dma_req = 1'b0;
+        assign spis_miso_d  = 1'b0;
+        assign spis_miso_oe = 1'b0;
+    end endgenerate
+
+    assign spis_miso = spis_miso_oe ? spis_miso_d : 1'bz;
+
+    // =========================================================================
+    // APB expansion return path: window 0 = spi_slave, 1 = spi_master,
+    // 3/4/6 = uart0/1/2,
     // window 9 = reset_ctrl;
     // every other external window has no IP yet (masked in the bridge, so an
     // access faults rather than hangs; answers SLVERR if unmasked).
@@ -223,6 +270,10 @@ module garuda_chip_top #(
             assign ext_prdata[32*w +: 32] = rst_prdata;
             assign ext_pready[w]          = rst_pready;
             assign ext_pslverr[w]         = rst_pslverr;
+        end else if (w == 0) begin : g_spis_rt
+            assign ext_prdata[32*w +: 32] = spis_prdata;
+            assign ext_pready[w]          = spis_pready;
+            assign ext_pslverr[w]         = spis_pslverr;
         end else if (w == `GARUDA_APB_WIN_SPI_MASTER) begin : g_spim
             assign ext_prdata[32*w +: 32] = spim_prdata;
             assign ext_pready[w]          = spim_pready;
@@ -271,7 +322,8 @@ module garuda_chip_top #(
     wire [6:0] periph_irq = {pwm_irq, gpio_irq,
                              uart_irq[2], uart_irq[1], uart_irq[0],
                              i2c_irq, spim_irq};
-    wire [5:0] dma_req    = {uart_dma_req[2], 1'b0,
+    //   dma_req[4] = spi_slave (ADR-0020 Rev 2) - no longer tied low
+    wire [5:0] dma_req    = {uart_dma_req[2], spis_dma_req,
                              uart_dma_req[1], uart_dma_req[0], i2c_dma_req, spim_dma_req};
 
     garuda_soc_top #(
@@ -289,7 +341,8 @@ module garuda_chip_top #(
         .apb_ext_pwdata_o(ext_pwdata),
         .apb_ext_prdata_i(ext_prdata), .apb_ext_pready_i(ext_pready),
         .apb_ext_pslverr_i(ext_pslverr),
-        .periph_irq_i(periph_irq), .dma_req_i(dma_req), .dma_ack_o(dma_ack),
+        .periph_irq_i(periph_irq), .spis_irq_i(spis_irq),
+        .dma_req_i(dma_req), .dma_ack_o(dma_ack),
         .core_sleep_o());
 
     // =========================================================================
@@ -313,7 +366,6 @@ module garuda_chip_top #(
     assign gpio0 = gpio_oe[0] ? gpio_out[0] : 1'bz;
     assign gpio1 = gpio_oe[1] ? gpio_out[1] : 1'bz;
 
-    wire _unused = |{dma_ack[4]};
 
 endmodule
 

@@ -3,7 +3,7 @@
  *
  * Every block has a different job, so this test does not try to exercise each
  * one deeply - the block TBs do that. It proves the thing only a chip-level
- * test can: that all seven are actually wired to the bus, at the right window,
+ * test can: that all eight are actually wired to the bus, at the right window,
  * answering as themselves, with no window stealing another's accesses.
  *
  * Returns 0 = pass, n = failed step n.
@@ -28,13 +28,14 @@ int main(void)
     /* 1: every window identifies itself, and none answers for another.
      *    ID is {0x6A5D, block, rev}, so a wrong window shows up immediately. */
     {
-        static const uint32_t base[7] = {
+        static const uint32_t base[8] = {
+            0x40000000u,                       /* block 14, spi_slave, window 0 */
             GARUDA_APB_BASE_SPI_MASTER, GARUDA_APB_BASE_I2C,
             GARUDA_APB_BASE_UART0, GARUDA_APB_BASE_UART1,
             GARUDA_APB_BASE_UART2, GARUDA_APB_BASE_GPIO,
             GARUDA_APB_BASE_PWM };
-        static const uint32_t blk[7] = { 13, 15, 16, 17, 18, 19, 20 };
-        for (i = 0; i < 7; i++)
+        static const uint32_t blk[8] = { 14, 13, 15, 16, 17, 18, 19, 20 };
+        for (i = 0; i < 8; i++)
             if (PREG(base[i], ID_OFF) != (0x6A5D0000u | (blk[i] << 8) | 1u))
                 return 1;
     }

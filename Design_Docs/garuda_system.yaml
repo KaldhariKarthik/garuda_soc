@@ -133,7 +133,7 @@ blocks:
   - {num: 11, name: timers,      spec: GARUDA-TIMERS-SPEC-001, rtl: exists}
   - {num: 12, name: debug,       spec: GARUDA-DEBUG-SPEC-001,  rtl: exists}
   - {num: 13, name: spi_master,  spec: GARUDA-SPIM-SPEC-001,   rtl: exists, note: "PULP apb_spi_master + rtl/spi_master wrapper"}
-  - {num: 14, name: spi_slave,   spec: none, rtl: not_built, note: "ADR-0020 Rev 2: ESP-NOW RESTORED and REQUIRED - CLIC ID 14, DMA CH4, pins gated on OPEN-2. RTL not written yet."}
+  - {num: 14, name: spi_slave,   spec: GARUDA-SPIS-SPEC-001, rtl: exists, note: "in-house (D-25); window 0, CLIC 14, DMA CH4; pin bonding gated on OPEN-2 via WITH_SPI_SLAVE"}
   - {num: 15, name: i2c,         spec: GARUDA-I2C-SPEC-001,    rtl: exists, note: "OpenCores controllers + GARUDA register layer (D-25)"}
   - {num: 16, name: uart0,       spec: GARUDA-UART-SPEC-001,   rtl: exists, note: "PULP apb_uart_sv, patched (D-24)"}
   - {num: 17, name: uart1,       spec: GARUDA-UART-SPEC-001,   rtl: exists}
@@ -265,7 +265,7 @@ clic:
     - {id: "1..6",     source: dma_complete_ch0_5, block: 9}
     - {id: "7..12",    source: dma_error_ch0_5,    block: 9}
     - {id: 13,         source: reserved, note: "ADR-0010: mtip does NOT route through CLIC"}
-    - {id: 14,         source: reserved}
+    - {id: 14,         source: spi_slave,  block: 14}
     - {id: 15,         source: spi_master, block: 13}
     - {id: 16,         source: i2c,        block: 15}
     - {id: 17,         source: uart0,      block: 16}

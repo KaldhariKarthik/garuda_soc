@@ -4,4 +4,5 @@ tb/ahb/ahb_lite_checker.v
 -sv
 tb/models/spi_flash_model.sv
 tb/models/i2c_slave_model.sv
+tb/models/spi_master_model.sv
 tb/soc/tb_chip.sv

@@ -10,5 +10,6 @@
 -f rtl/i2c/filelist.f
 -f rtl/gpio/filelist.f
 -f rtl/pwm/filelist.f
+-f rtl/spi_slave/filelist.f
 
 rtl/soc/garuda_chip_top.v

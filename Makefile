@@ -58,7 +58,7 @@ endif
         test_csr_rw test_clic_ctrl test_lsu test_load_fmt test_memwb \
         test_pc_gen test_prefetch test_iport test_dport test_mem_stage test_if_stage \
         test_crg test_ahb_ic test_bridge test_mem test_dma test_clic test_timers \
-        test_apb_shim test_spim test_uart test_i2c test_gpio test_pwm \
+        test_apb_shim test_spim test_uart test_i2c test_gpio test_pwm test_spis \
         test_debug test_blocks test_chip test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_uart test_chip_periph \
         test_chip_jtag elab_chip regress_all synth
 
@@ -85,7 +85,7 @@ help:
 	@echo "  make regress_rand    -- same, randomised waits 0..8 (SEED=n)"
 	@echo "  make coverage        -- functional coverage sweep (code cov: see script)"
 	@echo "  ---- Rev 4.0 SoC ----"
-	@echo "  make test_blocks     -- every block TB: crg ahb_ic bridge mem dma clic timers debug apb_shim spim uart i2c gpio pwm"
+	@echo "  make test_blocks     -- every block TB: crg ahb_ic bridge mem dma clic timers debug apb_shim spim uart i2c gpio pwm spis"
 	@echo "  make test_chip       -- whole chip from the pins: basic, irq, wdt, jtag"
 	@echo "  make elab_chip       -- elaborate garuda_chip_top"
 	@echo "  make regress_all     -- everything above plus core, sanity, DSU and ISA"
@@ -232,10 +232,11 @@ test_uart:    ; $(call run_blk,tb/uart/filelist_uart.f,tb_uart,tb_uart)         
 test_i2c:     ; $(call run_blk,tb/i2c/filelist_i2c.f,tb_i2c,tb_i2c)                 ## 15 I2C master
 test_gpio:    ; $(call run_blk,tb/gpio/filelist_gpio.f,tb_gpio,tb_gpio)              ## 19 GPIO
 test_pwm:     ; $(call run_blk,tb/pwm/filelist_pwm.f,tb_pwm,tb_pwm)                 ## 20 PWM (in-house)
+test_spis:    ; $(call run_blk,tb/spi_slave/filelist_spis.f,tb_spis,tb_spis)        ## 14 SPI slave (in-house)
 
 # Every block, clocks and reset first because everything else assumes them.
 test_blocks: test_crg test_ahb_ic test_bridge test_mem test_dma test_clic test_timers test_debug \
-             test_apb_shim test_spim test_uart test_i2c test_gpio test_pwm
+             test_apb_shim test_spim test_uart test_i2c test_gpio test_pwm test_spis
 
 # =============================================================================
 # Whole chip (garuda_chip_top) from the pins, real Boot ROM, boot_sel = 1:

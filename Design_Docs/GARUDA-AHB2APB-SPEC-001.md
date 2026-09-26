@@ -192,8 +192,10 @@ Generated from `GARUDA-SYS-001` `apb.windows`.
 
 **The window number IS the address nibble**: window *n* is at
 `0x4000_0000 + 0x1000 x n`, and PSEL bit *n* is `haddr[15:12]`, exactly as
-`ahb2apb_bridge.v` decodes it (`wire [3:0] win = haddr_i[15:12]`). There is no
-window 0 — `0x4000_0000` is unmapped and faults.
+`ahb2apb_bridge.v` decodes it (`wire [3:0] win = haddr_i[15:12]`). **Window 0
+(`0x4000_0000`) is block 14, the SPI slave** — ADR-0020 held the slot unmapped
+rather than compacting the map when the block was cut, and ADR-0020 Rev 2
+restored the block into it. Windows 12–15 (`0xC`–`0xF`) never exist and fault.
 
 *(Corrected 2026-09-26: this table previously numbered the rows 0..10 against
 the same base addresses, making every window number one lower than the
@@ -202,6 +204,7 @@ The base addresses were right throughout; only the index was wrong.)*
 
 | Window | Base | Block | Peripheral | `APB_DIV` default |
 |---|---|---|---|---|
+| 0 | `0x4000_0000` | 14 | `spi_slave` | ÷1 |
 | 1 | `0x4000_1000` | 13 | `spi_master` | ÷1 |
 | 2 | `0x4000_2000` | 15 | `i2c` | ÷1 |
 | 3 | `0x4000_3000` | 16 | `uart0` | ÷1 |

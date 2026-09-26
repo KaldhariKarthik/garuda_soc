@@ -25,6 +25,7 @@ module tb_chip;
     wire tdo, spim_sclk, spim_mosi, spim_cs_flash_n, spim_cs_imu_n, spim_miso;
     wire i2c_scl, i2c_sda, gpio0, gpio1;
     wire uart0_tx, uart1_tx, uart2_tx, pwm0, pwm1, pwm2, pwm3;
+    wire spis_sclk, spis_mosi, spis_miso, spis_cs_n;
     pullup (i2c_scl); pullup (i2c_sda);
 
     garuda_chip_top #(.BROM_INIT_FILE("sw/build/bootrom.hex")) dut (
@@ -41,7 +42,9 @@ module tb_chip;
         .uart1_rx(uart1_tx), .uart1_tx(uart1_tx),
         .uart2_rx(uart2_tx), .uart2_tx(uart2_tx),
         .pwm0(pwm0), .pwm1(pwm1), .pwm2(pwm2), .pwm3(pwm3),
-        .gpio0(gpio0), .gpio1(gpio1), .boot_sel(boot_sel));
+        .gpio0(gpio0), .gpio1(gpio1), .boot_sel(boot_sel),
+        .spis_sclk(spis_sclk), .spis_mosi(spis_mosi),
+        .spis_miso(spis_miso), .spis_cs_n(spis_cs_n));
 
     // ---- AHB-Lite protocol checkers --------------------------------------------
     wire hclk = dut.hclk;
@@ -117,6 +120,10 @@ module tb_chip;
     integer rc;
 
     localparam [31:0] TOHOST = 32'h2000_F000, MBOX = 32'h2000_FFF0, MBOX_MAGIC = 32'h4A54_4147;
+
+    // The ESP32 companion on block 14's pins, present in every mode.
+    spi_master_model u_esp (.sclk(spis_sclk), .mosi(spis_mosi),
+                            .cs_n(spis_cs_n), .miso(spis_miso));
 
     // An I2C slave on the real open-drain bus, and pull-downs on the GPIO pins
     // so a released pin reads a defined level. Present in every mode; nothing
