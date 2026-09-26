@@ -112,7 +112,7 @@ Rev 2.0 does the comparison here and sends one wire. The core keeps its existing
    │  └──────────────────────────────────────────────────┘      │
    │                                                            │
    │  ┌──────────────────────────────────────────────────┐      │
-   │  │  timers_apb  — window 10 (0x4000_B000)           │◀─ APB │
+   │  │  timers_apb  — window 11 (0x4000_B000)           │◀─ APB │
    │  └──────────────────────────────────────────────────┘      │
    └────────────────────────────────────────────────────────────┘
 ```
@@ -130,7 +130,7 @@ Rev 2.0 does the comparison here and sends one wire. The core keeps its existing
 | `wdt_ctr` | seq (hclk) | `wdt.v` | 32-bit down counter. |
 | `wdt_warn` | comb | `wdt.v` | Early-warning threshold comparison. |
 | `wdt_rst_req_flop` | seq (**ext-reset domain**) | `wdt.v` | Holds the reset request. See §7.6. |
-| `timers_apb` | seq (pclk) | `timers_apb.v` | Window 10 register interface. |
+| `timers_apb` | seq (pclk) | `timers_apb.v` | Window 11 register interface. |
 
 ---
 
@@ -144,14 +144,19 @@ Rev 2.0 does the comparison here and sends one wire. The core keeps its existing
 | `mtip_o` | out | 1 | hclk | 0 | To the core's `mip.MTIP`. **The only timer signal the core sees.** |
 | `wdt_warn_irq_o` | out | 1 | hclk | 0 | To CLIC ID 22. |
 | `wdt_rst_req_o` | out | 1 | hclk | 0 | To `reset_ctrl`. |
-| APB slave | — | — | pclk | — | Window 10. |
+| APB slave | — | — | pclk | — | Window 11. |
 
 **[N-5.1]** `mtime_i` and `mtimecmp_i` as 64-bit inputs to the core are **deleted**. The
 core's port list loses 128 signals and its in-core comparator; see RTL delta R4.
 
 ---
 
-## 6 Register map — APB window 10 (`0x4000_B000`)
+## 6 Register map — APB window 11 (`0x4000_B000`)
+
+*(Window number corrected 2026-09-26: was stated as 10, inherited from the
+0-based table in GARUDA-AHB2APB-SPEC-001. The hardware decodes window *n* at
+`0x4000_0000 + 0x1000 x n` (`haddr[15:12]`), so the base address quoted here was
+always right and only the index was wrong.)*
 
 | Offset | Name | Access | Reset | Description |
 |---|---|---|---|---|
@@ -596,6 +601,17 @@ spurious interrupt at 17-second intervals.
 
 ## 14 Open items
 
+
+- **OPEN-T1 — the APB side is still on `hclk`, not `pclk`.** `timers_apb.v` takes only `hclk_i`, though §4 lists it as `seq (pclk)` and §5 as an APB slave on pclk. ADR-0002 Rev 2 and
+  `garuda_system.yaml` (`apb.clock: pclk`) both specify pclk here, and ADR-0002
+  names this as the one pending RTL change. **Not a functional bug**: pclk edges
+  are a subset of hclk edges (D-5), so the sampling is synchronous and the whole
+  regression passes. Two things it does cost:
+  **(a)** PRDATA is combinational out of hclk registers, so it can move at the
+  hclk edge in the middle of a pclk access phase — the effective setup window at
+  the bridge is 4 ns, not 8 ns, and the SDC must say so;
+  **(b)** these flops run at 250 MHz, which is the dynamic power ADR-0002 Rev 2
+  restored pclk to save. Decide before STA: migrate, or constrain and document.
 None.
 
 ---

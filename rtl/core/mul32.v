@@ -16,12 +16,13 @@
 //   MULHU   (011): u x u  -> product[63:32]
 //
 // The behavioral '*' is intentional (same policy as the DSU partial-product
-// generation): at 200 MHz / 28 nm a synthesized Booth/Wallace tree from the
+// generation): at 250 MHz / 28 nm a synthesized Booth/Wallace tree from the
 // '*' operator is the expected implementation and the critical path is the
 // full EX cone (multiplier in series with the EX result mux), measured at
-// synthesis -- not asserted here. Fallback per Section 8.2 timing note is the
-// TRM 100 MHz clock, no RTL change. Do NOT hand-instantiate a multiplier
-// macro here.
+// synthesis -- not asserted here. The timing fallback is DIVSEL = 4, i.e.
+// hclk 125 MHz (ADR-0001), with no RTL change. Do NOT hand-instantiate a
+// multiplier macro here.
+// (Was "200 MHz / TRM 100 MHz clock" - stale since ADR-0001.)
 //
 // This module has no pipeline registers (Section 8.2: "no internal pipeline
 // registers").

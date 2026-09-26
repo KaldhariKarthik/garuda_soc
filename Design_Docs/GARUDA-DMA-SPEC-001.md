@@ -122,7 +122,7 @@ now polled PIO (ADR-0015), so the DMA has no boot-time role and no ISRAM path.
   │              └────────────────┘                         │
   │                                                         │
   │  ┌──────────────────────────┐                           │
-  │  │ dma_apb  window 4        │◀── APB, pclk              │
+  │  │ dma_apb  window 5        │◀── APB, pclk              │
   │  │ NO CDC  (ADR-0002)       │                           │
   │  └──────────────────────────┘                           │
   │                                                         │
@@ -143,7 +143,7 @@ now polled PIO (ADR-0015), so the DMA has no boot-time role and no ISRAM path.
 | `ch_arbiter` | comb | `dma_arbiter.v` | Fixed-priority select among requesting channels. |
 | `xfer_engine` | seq (hclk) | `dma_engine.v` | Read beat, then write beat. |
 | `dma_ahb_master` | seq (hclk) | `dma_ahb_master.v` | AHB-Lite master M3. |
-| `dma_apb` | seq (pclk) | `dma_apb_slave.v` | Window 4. **No CDC.** |
+| `dma_apb` | seq (pclk) | `dma_apb_slave.v` | Window 5. **No CDC.** |
 
 **[N-4.1]** Deleted in Rev 3.0: `dma_cdc_gray.v`, `dma_cdc_pulse.v`, `dma_cdc_sync.v`.
 
@@ -160,7 +160,7 @@ now polled PIO (ADR-0015), so the DMA has no boot-time role and no ISRAM path.
 | `dma_complete_o` | out | 6 | hclk | 0 | To CLIC IDs 1–6. |
 | `dma_error_o` | out | 6 | hclk | 0 | To CLIC IDs 7–12. |
 | AHB M3 | — | — | hclk | — | Per `GARUDA-AHB-SPEC-001` §5.1. |
-| APB slave | — | — | pclk | — | Window 4. |
+| APB slave | — | — | pclk | — | Window 5. |
 
 **[N-5.1]** `pclk_i` and `preset_n_i` remain as ports because the APB side genuinely runs on
 `pclk`. What is deleted is the *synchroniser logic* between the domains, not the second
@@ -169,7 +169,12 @@ clock. The register file's `hclk`-visible values are sampled directly, per
 
 ---
 
-## 6 Register map — APB window 4 (`0x4000_5000`)
+## 6 Register map — APB window 5 (`0x4000_5000`)
+
+*(Window number corrected 2026-09-26: was stated as 4, inherited from the
+0-based table in GARUDA-AHB2APB-SPEC-001. The hardware decodes window *n* at
+`0x4000_0000 + 0x1000 x n` (`haddr[15:12]`), so the base address quoted here was
+always right and only the index was wrong.)*
 
 Per channel *n* (0–5), base offset `0x20 × n`:
 
@@ -602,6 +607,17 @@ directed, cycle-accurate trigger.
 
 ## 14 Open items
 
+
+- **OPEN-D1 — the APB side is still on `hclk`, not `pclk`.** `dma_apb_slave.v` takes only `hclk_i`, and `dma_top` receives `pclk_i`/`preset_n_i` and discards them (`wire _unused = |{pclk_i, preset_n_i}`). ADR-0002 Rev 2 and
+  `garuda_system.yaml` (`apb.clock: pclk`) both specify pclk here, and ADR-0002
+  names this as the one pending RTL change. **Not a functional bug**: pclk edges
+  are a subset of hclk edges (D-5), so the sampling is synchronous and the whole
+  regression passes. Two things it does cost:
+  **(a)** PRDATA is combinational out of hclk registers, so it can move at the
+  hclk edge in the middle of a pclk access phase — the effective setup window at
+  the bridge is 4 ns, not 8 ns, and the SDC must say so;
+  **(b)** these flops run at 250 MHz, which is the dynamic power ADR-0002 Rev 2
+  restored pclk to save. Decide before STA: migrate, or constrain and document.
 None.
 
 ---

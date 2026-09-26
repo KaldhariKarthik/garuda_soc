@@ -4,9 +4,23 @@
 // GARUDA SoC - Block 11 : timers APB interface (window 11, 0x4000_B000)
 // timers_apb.v
 //
-// Spec: GARUDA-TIMERS-SPEC-001 Rev 2.0 §6, §9 [N-9.1]
+// Spec: GARUDA-TIMERS-SPEC-001 Rev 2.0 §6, §9 [N-9.1]//
+// *** CLOCK GAP - READ BEFORE STA (open item TIMERS OPEN-T1) ***
+// This module is clocked ENTIRELY BY hclk. ADR-0002 Rev 2, GARUDA-SYS-001
+// (`apb.clock: pclk`) and GARUDA-TIMERS-SPEC-001 §4/§5 all specify the APB side on pclk;
+// that migration has not been done. It is not a functional bug - pclk edges
+// are a subset of hclk edges (D-5), so sampling is synchronous and every test
+// passes - but it has two consequences that matter:
 //
-// Same pattern as the DMA: APB on pclk, registers in hclk, and each APB access
+//   1. PRDATA is combinational out of hclk-domain registers, so it can change
+//      at the hclk edge in the MIDDLE of a pclk access phase. The bridge
+//      samples it at the pclk edge, so the effective setup window is half a
+//      pclk period (4 ns), not 8 ns. STA must be told.
+//   2. These flops toggle at 250 MHz, which is exactly the dynamic power
+//      ADR-0002 Rev 2 restored pclk to avoid.
+//
+//
+// Same pattern as the DMA: APB SPECIFIED on pclk, registers in hclk, and each APB access
 // is edge-detected into ONE hclk strobe (an access phase spans two hclk
 // cycles). That matters twice here: a write must apply once, and a READ of
 // MTIME_LO has a side effect (latching the shadow) that must happen once, at

@@ -52,7 +52,7 @@ reads.
 ### 1.2 In scope
 
 Interrupt aggregation, the per-ID register file, level-based selection, and the APB
-configuration interface on window 9.
+configuration interface on window 10.
 
 ### 1.3 Out of scope
 
@@ -126,7 +126,7 @@ configuration interface on window 9.
 | `irq_capture` | comb | `clic_top.v` | Maps source lines to ID positions. Pure wiring, no state. |
 | `clic_regfile` | seq | `clic_regfile.v` | `enable`, `level` per ID. APB-writable. |
 | `level_select` | comb | `clic_select.v` | Two-stage comparison tree over 32 IDs. |
-| `clic_apb` | seq (pclk) | `clic_apb.v` | Window 9 register interface. |
+| `clic_apb` | seq (pclk) | `clic_apb.v` | Window 10 register interface. |
 
 ---
 
@@ -139,7 +139,7 @@ configuration interface on window 9.
 | `clic_irq_id_o` | out | 5 | hclk | 0 | Winning ID. |
 | `clic_irq_level_o` | out | 8 | hclk | 0 | Winning level. |
 | `clic_irq_valid_o` | out | 1 | hclk | 0 | At least one enabled source is pending. |
-| APB slave | — | — | pclk | — | Window 9. |
+| APB slave | — | — | pclk | — | Window 10. |
 
 **[N-5.1]** There is no `mintthresh` input to this block. Rev 1.1 implied one, and the core
 RTL exposes a `clic_mintthresh_o` port that no consumer reads. The threshold comparison is
@@ -154,7 +154,12 @@ exactly one place.
 
 ---
 
-## 6 Register map — APB window 9 (`0x4000_A000`)
+## 6 Register map — APB window 10 (`0x4000_A000`)
+
+*(Window number corrected 2026-09-26: was stated as 9, inherited from the
+0-based table in GARUDA-AHB2APB-SPEC-001. The hardware decodes window *n* at
+`0x4000_0000 + 0x1000 x n` (`haddr[15:12]`), so the base address quoted here was
+always right and only the index was wrong.)*
 
 | Offset | Name | Access | Reset | Description |
 |---|---|---|---|---|

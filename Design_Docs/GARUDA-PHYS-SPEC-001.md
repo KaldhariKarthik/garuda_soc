@@ -194,6 +194,28 @@ chip is 250 MHz or slower.** This converts a chip-wide risk into a local, inspec
 **[N-5.5]** The reference clock and the two derived clocks, for the SDC. This expands
 `GARUDA-CLKRST-SPEC-001` §7.6:
 
+> **[N-5.3] This SDC does not match the RTL as written (audit 2026-09-26).**
+> It is a sketch of intent, not a constraint file that will elaborate. Four
+> concrete mismatches, all in `rtl/clk_div/clk_div.v`:
+>
+> | SDC says | RTL has |
+> |---|---|
+> | `[get_ports refclk_i]` | the chip pin is **`refclk`**; `refclk_i` is `clk_div`'s internal port name |
+> | `u_clk_div/u_clkdiv_toggle_hclk/Q` | the flop is `t1_q` (no such instance name exists) |
+> | `u_clk_div/u_clkdiv_toggle_pclk/Q` | the flop is `pclk_q` |
+> | `create_generated_clock ... -divide_by 2` from refclk to one flop | hclk comes from a **4-way mux** over toggle stages `t1_q..t4_q`, selected by `div_sel` — ÷2/÷4/÷8/÷16 (250/125/62.5/31.25 MHz) |
+>
+> The last row is the substantive one: a fixed `-divide_by 2` does not describe
+> a programmable divider, and ADR-0001 makes DIV=4 the **timing fallback**, so
+> the other ratios are design intent and must be constrained too. `aon_clk`
+> (D-14) is also absent from this block entirely.
+>
+> Either name the flops in RTL to match this SDC, or write the SDC against
+> `t1_q`/`pclk_q` and the mux. **Naming the RTL is the better half of that
+> trade** — [N-5.2] wants the hclk flop abutting the `refclk` pad, and a flop
+> you can name in a placement constraint is one you can find in the netlist.
+> Owner: PD, before the first STA run.
+
 ```tcl
 # ---- reference: 500 MHz, 2 ns. The only net at this frequency.
 create_clock -name refclk -period 2.0 [get_ports refclk_i]

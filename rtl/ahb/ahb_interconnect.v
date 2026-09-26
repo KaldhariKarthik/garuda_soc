@@ -69,8 +69,10 @@
 // WHAT THIS BLOCK DOES NOT CONTAIN (Sec. 11)
 // -----------------------------------------------------------------------------
 // No registers, no CDC, no HMASTLOCK/HBUSREQ/HGRANT, no HPROT decode, no
-// crossbar. One 200 MHz domain. All 200/100 MHz crossing lives in the
-// AHB-to-APB bridge (Block 8).
+// crossbar. One hclk domain at 250 MHz. The step down to pclk (125 MHz) lives
+// in the AHB-to-APB bridge (Block 8), and it is a SYNCHRONOUS step, not a
+// crossing: every pclk edge is an hclk edge (D-5, AHB2APB [N-7.2]).
+// (Was "200/100 MHz" - stale since ADR-0001 set 500 -> 250 -> 125.)
 // =============================================================================
 
 `include "ahb_defs.vh"

@@ -4,9 +4,23 @@
 // GARUDA SoC - Block 9 : DMA APB register interface (window 5, 0x4000_5000)
 // dma_apb_slave.v
 //
-// Spec: GARUDA-DMA-SPEC-001 Rev 3.0 §6, §9 ([N-5.1]: pclk port, NO CDC)
+// Spec: GARUDA-DMA-SPEC-001 Rev 3.0 §6, §9 ([N-5.1]: pclk port, NO CDC)//
+// *** CLOCK GAP - READ BEFORE STA (open item DMA OPEN-D1) ***
+// This module is clocked ENTIRELY BY hclk. ADR-0002 Rev 2, GARUDA-SYS-001
+// (`apb.clock: pclk`) and GARUDA-DMA-SPEC-001 [N-5.1] all specify the APB side on pclk;
+// that migration has not been done. It is not a functional bug - pclk edges
+// are a subset of hclk edges (D-5), so sampling is synchronous and every test
+// passes - but it has two consequences that matter:
 //
-// The APB protocol runs on pclk. The registers themselves live in the hclk
+//   1. PRDATA is combinational out of hclk-domain registers, so it can change
+//      at the hclk edge in the MIDDLE of a pclk access phase. The bridge
+//      samples it at the pclk edge, so the effective setup window is half a
+//      pclk period (4 ns), not 8 ns. STA must be told.
+//   2. These flops toggle at 250 MHz, which is exactly the dynamic power
+//      ADR-0002 Rev 2 restored pclk to avoid.
+//
+//
+// The APB protocol is SPECIFIED on pclk. The registers themselves live in the hclk
 // channel logic (dma_chan), because hardware updates them at hclk rate. A
 // write is presented as a one-hclk strobe: the access phase (psel & penable &
 // pwrite, one pclk = two hclk cycles) is edge-detected in hclk, so each APB

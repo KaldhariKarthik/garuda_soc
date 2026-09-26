@@ -188,21 +188,31 @@ of §7.5–§7.7, which surface as precise faults in the accessing master. `mem_
 
 ### 6.1 Window map
 
-Generated from `GARUDA-SYS-001` `apb.windows`:
+Generated from `GARUDA-SYS-001` `apb.windows`.
+
+**The window number IS the address nibble**: window *n* is at
+`0x4000_0000 + 0x1000 x n`, and PSEL bit *n* is `haddr[15:12]`, exactly as
+`ahb2apb_bridge.v` decodes it (`wire [3:0] win = haddr_i[15:12]`). There is no
+window 0 — `0x4000_0000` is unmapped and faults.
+
+*(Corrected 2026-09-26: this table previously numbered the rows 0..10 against
+the same base addresses, making every window number one lower than the
+hardware's. GARUDA-DMA/CLIC/TIMERS/CLKRST-SPEC-001 each inherited that error.
+The base addresses were right throughout; only the index was wrong.)*
 
 | Window | Base | Block | Peripheral | `APB_DIV` default |
 |---|---|---|---|---|
-| 0 | `0x4000_1000` | 13 | `spi_master` | ÷1 |
-| 1 | `0x4000_2000` | 15 | `i2c` | ÷1 |
-| 2 | `0x4000_3000` | 16 | `uart0` | ÷1 |
-| 3 | `0x4000_4000` | 17 | `uart1` | ÷1 |
-| 4 | `0x4000_5000` | 9 | `dma_cfg` | ÷1 |
-| 5 | `0x4000_6000` | 18 | `uart2` | ÷1 |
-| 6 | `0x4000_7000` | 19 | `gpio` | ÷1 |
-| 7 | `0x4000_8000` | 20 | `pwm` | ÷1 |
-| 8 | `0x4000_9000` | 22 | `reset_ctrl` + `mem_ctl` | ÷1 |
-| 9 | `0x4000_A000` | 10 | `clic_cfg` | ÷1 |
-| 10 | `0x4000_B000` | 11 | `timers_cfg` | ÷1 |
+| 1 | `0x4000_1000` | 13 | `spi_master` | ÷1 |
+| 2 | `0x4000_2000` | 15 | `i2c` | ÷1 |
+| 3 | `0x4000_3000` | 16 | `uart0` | ÷1 |
+| 4 | `0x4000_4000` | 17 | `uart1` | ÷1 |
+| 5 | `0x4000_5000` | 9 | `dma_cfg` | ÷1 |
+| 6 | `0x4000_6000` | 18 | `uart2` | ÷1 |
+| 7 | `0x4000_7000` | 19 | `gpio` | ÷1 |
+| 8 | `0x4000_8000` | 20 | `pwm` | ÷1 |
+| 9 | `0x4000_9000` | 22 | `reset_ctrl` + `mem_ctl` | ÷1 |
+| 10 | `0x4000_A000` | 10 | `clic_cfg` | ÷1 |
+| 11 | `0x4000_B000` | 11 | `timers_cfg` | ÷1 |
 
 **[N-6.2]** `0x4000_0000` (window index 0 of the old map) is unmapped: it held the SPI slave,
 which ADR-0020 removed for the pin budget. An access there returns SLVERR per §7.7. The

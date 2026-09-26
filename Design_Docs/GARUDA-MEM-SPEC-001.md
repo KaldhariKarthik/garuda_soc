@@ -358,10 +358,24 @@ dummy bytes and read four received bytes, polling each. Roughly 20 instructions 
 20 MHz SCLK: about 8 bits × 4 bytes per word × 16,384 = 524,288 bit times ≈ 26 ms. Boot
 takes tens of milliseconds, once, at power-on. Nothing in the system cares.
 
+**[N-8.6a] MEASURED, 2026-09-23 — the estimate above is 2.6x optimistic.** The flash
+boot path is now built and `make test_chip_flash` runs it. A 32-bit word costs **64** SCLK,
+not 32: eight command bits and twenty-four address bits precede every thirty-two data bits,
+because `spim_read_word()` issues one command per word. At the boot `CLKDIV = 3`
+(15.6 MHz SCLK) that is **4.1 us per word**, so a full 64 KiB image is **~67 ms**, not
+26 ms. Measured end to end: a 700-byte image boots in **1.12 ms**.
+
+The conclusion of [N-8.6] survives — boot happens once, at power-on — but the number to
+quote is 67 ms. GARUDA-SPIM-SPEC-001 [N-7.3a] records how a burst read would halve it, and
+why that is not done today.
+
 **[N-8.7]** The DMA alternative was rejected because a P2M transfer from the SPI master
 requires that peripheral's data register to produce a new byte per read without a per-byte
-command sequence, and no document in this project has verified that the sourced IP behaves
-that way. Boot is the one path where an unverified assumption is unrecoverable: if it is
+command sequence, and no document in this project had verified that the sourced IP behaves
+that way. *(That gap is now closed in the other direction: GARUDA-SPIM-SPEC-001 documents
+the engine, and [N-7.7] of that spec confirms the RX FIFO does stream — but the decision
+stands. Boot still depends only on the core, the ROM, the bus, the SPI master and ISRAM,
+and that is worth more than the milliseconds.)* Boot is the one path where an unverified assumption is unrecoverable: if it is
 wrong, the chip never reaches firmware, and there is no in-system fix. Spending 26 ms to
 remove that risk is the right trade. It also removes DMA, its arbiter path and its
 interrupt from the boot dependency set entirely — boot depends only on the core, the ROM,
@@ -390,6 +404,11 @@ cycles ≈ 17 ms at 250 MHz. Acceptable for the same reason as [N-8.6].
 | Recovery path and `boot_sel` | ~40 bytes |
 | Reset vector and trap stub | ~40 bytes |
 | **Total** | **~500 bytes of 4096** |
+
+**[N-8.10a] MEASURED:** the built ROM is **820 bytes** (205 words of 1024), against this
+~500-byte estimate. The difference is mostly the bounded spin loops in
+`sw/bootrom/spim.c` — every wait there has a timeout so a dead SPI bus fails MAGIC and
+lands in `boot_fail()` instead of hanging until the watchdog. Still 20% of the budget.
 
 **[N-8.11]** The remaining ROM is filled with an illegal-instruction pattern
 (`0x00000000`), so a jump into unused ROM raises an illegal-instruction exception rather

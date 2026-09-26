@@ -122,7 +122,7 @@ substance of §7.3.
 | `rst_reason` | seq (ext-reset domain only) | `reset_ctrl.v` | Sticky W1C cause bits. |
 | `rst_release_hclk` | seq | `reset_ctrl.v` | 2-flop synchronous deassert onto hclk. |
 | `rst_release_pclk` | seq | `reset_ctrl.v` | 2-flop synchronous deassert onto pclk. |
-| `apb_regs` | seq (pclk) | `reset_ctrl_apb.v` | APB register interface, window 8. |
+| `apb_regs` | seq (pclk) | `reset_ctrl_apb.v` | APB register interface, window 9. |
 
 ---
 
@@ -153,7 +153,7 @@ substance of §7.3.
 | `hreset_n_o` | out | 1 | hclk | 0 | Reset for the AHB fabric, memories, DMA, CLIC, timers. |
 | `preset_n_o` | out | 1 | pclk | 0 | Reset for the APB bridge and peripherals. |
 | `core_rst_n_o` | out | 1 | hclk | 0 | Reset for core + DSU. Asserts with `hreset_n_o`, and additionally for `hartreset`. |
-| APB slave | — | — | pclk | — | Window 8. See §6. |
+| APB slave | — | — | pclk | — | Window 9. See §6. |
 
 **`preset_n_o` and `hreset_n_o` deassert on different clocks and therefore at different
 times.** The bridge is the only block spanning both, and `GARUDA-AHB2APB-SPEC-001` §9
@@ -161,7 +161,12 @@ states its requirement: the bridge must hold `hreadyout` low until both are deas
 
 ---
 
-## 6 Register map — `reset_ctrl`, APB window 8
+## 6 Register map — `reset_ctrl`, APB window 9
+
+*(Window number corrected 2026-09-26: was stated as 8, inherited from the
+0-based table in GARUDA-AHB2APB-SPEC-001. The hardware decodes window *n* at
+`0x4000_0000 + 0x1000 x n` (`haddr[15:12]`), so the base address quoted here was
+always right and only the index was wrong.)*
 
 Machine-readable source: `spec/regs/reset_ctrl.yaml`.
 

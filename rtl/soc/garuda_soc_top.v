@@ -84,7 +84,7 @@ module garuda_soc_top #(
 
     // ---- peripheral sideband (deferred IP plugs in here) --------------------
     input  wire [6:0]  periph_irq_i,       // CLIC 15..21: spi, i2c, uart0/1/2, gpio, pwm
-    input  wire [5:0]  dma_req_i,          // ch4 is spare and tied low inside
+    input  wire [5:0]  dma_req_i,          // ch4 tied low inside - see below
     output wire [5:0]  dma_ack_o,
 
     // ---- observability -------------------------------------------------------------
@@ -163,7 +163,13 @@ module garuda_soc_top #(
         .haddr_o(m_haddr), .htrans_o(m_htrans), .hwrite_o(m_hwrite), .hsize_o(m_hsize),
         .hburst_o(m_hburst), .hwdata_o(m_hwdata), .hrdata_i(m_hrdata), .hready_i(m_hready),
         .hresp_i(m_hresp),
-        .dma_req_i({dma_req_i[5], 1'b0, dma_req_i[3:0]}),   // ch4 spare ([N-6.4])
+        // Channel 4 belongs to the SPI SLAVE (ESP-NOW mesh), restored and
+        // required by ADR-0020 Rev 2 - it is the neighbour-position source the
+        // DSU's collision avoidance runs on. It is tied low only because
+        // rtl/spi_slave/ has not been written yet; DMA [N-6.4] records
+        // un-tying this as an explicit RTL work item. It is NOT spare.
+        .dma_req_i({dma_req_i[5], 1'b0, dma_req_i[3:0]}),   // ch4: see above
+
         .dma_ack_o(dma_ack_o),
         .dma_complete_o(dma_complete), .dma_error_o(dma_error));
 

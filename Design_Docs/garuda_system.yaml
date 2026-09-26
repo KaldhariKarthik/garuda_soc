@@ -122,26 +122,26 @@ reset:
 blocks:
   - {num: 1,  name: core,        spec: GARUDA-CORE-SPEC-001,   rtl: exists}
   - {num: 2,  name: dsu,         spec: GARUDA-DSU-SPEC-001,    rtl: exists, parent: core}
-  - {num: 3,  name: isram,       spec: GARUDA-MEM-SPEC-001,    rtl: missing}
-  - {num: 4,  name: bootrom,     spec: GARUDA-MEM-SPEC-001,    rtl: missing}
-  - {num: 5,  name: dsram,       spec: GARUDA-MEM-SPEC-001,    rtl: missing}
+  - {num: 3,  name: isram,       spec: GARUDA-MEM-SPEC-001,    rtl: exists}
+  - {num: 4,  name: bootrom,     spec: GARUDA-MEM-SPEC-001,    rtl: exists}
+  - {num: 5,  name: dsram,       spec: GARUDA-MEM-SPEC-001,    rtl: exists}
   - {num: 6,  name: ahb_ic,      spec: GARUDA-AHB-SPEC-001,    rtl: exists}
-  - {num: 7,  name: apb_fabric,  spec: GARUDA-AHB2APB-SPEC-001, rtl: missing, note: "generated inside block 8"}
-  - {num: 8,  name: ahb2apb,     spec: GARUDA-AHB2APB-SPEC-001, rtl: missing}
+  - {num: 7,  name: apb_fabric,  spec: GARUDA-AHB2APB-SPEC-001, rtl: exists, note: "rtl/ahb2apb/ahb2apb_fabric.v"}
+  - {num: 8,  name: ahb2apb,     spec: GARUDA-AHB2APB-SPEC-001, rtl: exists}
   - {num: 9,  name: dma,         spec: GARUDA-DMA-SPEC-001,    rtl: exists}
-  - {num: 10, name: clic,        spec: GARUDA-CLIC-SPEC-001,   rtl: missing}
-  - {num: 11, name: timers,      spec: GARUDA-TIMERS-SPEC-001, rtl: missing}
-  - {num: 12, name: debug,       spec: GARUDA-DEBUG-SPEC-001,  rtl: missing}
-  - {num: 13, name: spi_master,  spec: GARUDA-SPIM-SPEC-001,   rtl: sourced_ip}
-  - {num: 14, name: reserved_spi_slave, spec: none, rtl: not_instantiated, note: "ADR-0020: dropped for pin budget; block number held for the 36-pin variant"}
-  - {num: 15, name: i2c,         spec: GARUDA-I2C-SPEC-001,    rtl: sourced_ip}
-  - {num: 16, name: uart0,       spec: GARUDA-UART-SPEC-001,   rtl: sourced_ip}
-  - {num: 17, name: uart1,       spec: GARUDA-UART-SPEC-001,   rtl: sourced_ip}
-  - {num: 18, name: uart2,       spec: GARUDA-UART-SPEC-001,   rtl: sourced_ip}
-  - {num: 19, name: gpio,        spec: GARUDA-GPIO-SPEC-001,   rtl: sourced_ip}
-  - {num: 20, name: pwm,         spec: GARUDA-PWM-SPEC-001,    rtl: sourced_ip}
-  - {num: 21, name: clk_div,     spec: GARUDA-CLKRST-SPEC-001, rtl: missing}
-  - {num: 22, name: reset_ctrl,  spec: GARUDA-CLKRST-SPEC-001, rtl: missing}
+  - {num: 10, name: clic,        spec: GARUDA-CLIC-SPEC-001,   rtl: exists}
+  - {num: 11, name: timers,      spec: GARUDA-TIMERS-SPEC-001, rtl: exists}
+  - {num: 12, name: debug,       spec: GARUDA-DEBUG-SPEC-001,  rtl: exists}
+  - {num: 13, name: spi_master,  spec: GARUDA-SPIM-SPEC-001,   rtl: exists, note: "PULP apb_spi_master + rtl/spi_master wrapper"}
+  - {num: 14, name: spi_slave,   spec: none, rtl: not_built, note: "ADR-0020 Rev 2: ESP-NOW RESTORED and REQUIRED - CLIC ID 14, DMA CH4, pins gated on OPEN-2. RTL not written yet."}
+  - {num: 15, name: i2c,         spec: GARUDA-I2C-SPEC-001,    rtl: exists, note: "OpenCores controllers + GARUDA register layer (D-25)"}
+  - {num: 16, name: uart0,       spec: GARUDA-UART-SPEC-001,   rtl: exists, note: "PULP apb_uart_sv, patched (D-24)"}
+  - {num: 17, name: uart1,       spec: GARUDA-UART-SPEC-001,   rtl: exists}
+  - {num: 18, name: uart2,       spec: GARUDA-UART-SPEC-001,   rtl: exists}
+  - {num: 19, name: gpio,        spec: GARUDA-GPIO-SPEC-001,   rtl: exists, note: "PULP apb_gpio, PAD_NUM=2"}
+  - {num: 20, name: pwm,         spec: GARUDA-PWM-SPEC-001,    rtl: exists, note: "in-house (D-25)"}
+  - {num: 21, name: clk_div,     spec: GARUDA-CLKRST-SPEC-001, rtl: exists}
+  - {num: 22, name: reset_ctrl,  spec: GARUDA-CLKRST-SPEC-001, rtl: exists}
 # Blocks 23/24 do not exist. The 24-block count was an artefact of an earlier
 # numbering; 22 blocks is the real figure (ADR-0011).
 
