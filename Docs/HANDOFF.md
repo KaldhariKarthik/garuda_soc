@@ -1,11 +1,11 @@
 # GARUDA verification — handoff
 
-Last updated 2026-09-23 (§0 below). §1 onward is the 2026-09-02 core/DSU
+Last updated 2026-09-26 (§0 below). §1 onward is the 2026-09-02 core/DSU
 handoff, kept as history; where it disagrees with §0, §0 is current.
 
 ---
 
-## 0. Rev 4.0 SoC — status 2026-09-23
+## 0. Rev 4.0 SoC — status 2026-09-26
 
 The RTL implements the Rev 4.0 set (`Design_Docs/garuda_system.yaml`, the
 `GARUDA-*-SPEC-001` documents); contradictions between those documents were
@@ -69,6 +69,33 @@ like an RTL bug first.
 `patches/` with the pristine originals, machine-verified by
 `tools/vendor_sync.py --check`, and declared in `THIRD_PARTY_NOTICES.md`.
 Anyone re-vendoring it must re-apply or re-derive that patch.
+
+**Documents and RTL were reconciled on 2026-09-26** (`Docs/BUGS.md` §1d,
+AUD-1..AUD-10). 267 normative notes across eleven specifications were compared
+against the RTL. Everything the toolchain touches was already correct; the
+errors lived where nothing executes. Outcomes:
+
+- **ADR-0002 Rev 2 is now implemented.** `dma_apb_slave` and `timers_apb` run
+  their protocol side on `pclk` with registers still on `hclk`. PRDATA is
+  registered on pclk, so the 4 ns hclk-to-pclk hop is local to each block
+  instead of crossing to the bridge. `tb_timers` counts mid-access PRDATA
+  movement: 3 on the old RTL, 0 on the new.
+- **The core's named properties exist** (`rtl/core/pipe_ctrl_sva.sv`) and run
+  in every core simulation. `make pipe_matrix` measures the [N-11.2] matrix.
+- **Two sources of truth were ruled on**: the `.md` is normative,
+  `make check_docs` fails on drift (`Design_Docs/README.md`).
+
+**Two things an owner still has to decide:**
+
+1. **AUD-8 — formal on `pipe_ctrl`.** All four hold-versus-flush collision
+   cells are reached **zero** times by any test, and they are where errata P-1,
+   P-2 and P-3 came from. They may be unreachable by construction. Simulation
+   cannot tell "unreachable" from "untested"; formal can, and will either
+   retire the concern or hand you the sequence the directed test needs.
+2. **AUD-9 — DSU naming.** The DSU's ports do not match its spec
+   (`dsu_busy` vs `dsu_busy_o`, `dsu_rd_data` vs `dsu_result_o`, …) and it is
+   the only block without `_i`/`_o` suffixes. Rename the RTL or correct the
+   spec; renaming touches the core/DSU interface, so it is not free.
 
 **Next, in order:**
 1. **Physical design is now the critical path, not RTL.** SDC from PHYS §5.2

@@ -39,6 +39,10 @@ rtl/core/csr_file.v
 rtl/core/clic_ctrl.v
 rtl/core/trap_ctrl.v
 rtl/core/pipe_ctrl.v
+// [N-11.3] properties, bound at garuda_core_top. Simulation only; -sv because
+// the rest of this filelist is Verilog-2001.
+-sv
+rtl/core/pipe_ctrl_sva.sv
 rtl/core/core_clk_gate.v
 
 // core top

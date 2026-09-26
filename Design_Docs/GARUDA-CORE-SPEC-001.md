@@ -613,6 +613,17 @@ regression tests — is retained and must continue to pass. Rev 3.0's additions:
 | §7.2 | `t_core_div_trap` | all four M-extension divide instructions trap and return correctly | 4 instructions × edge operands | extend |
 | §6 | `t_core_debug_csr` | `dcsr`/`dpc`/`dscratch` raise illegal instruction | 4 CSRs | new |
 
+**[N-11.2a] STATUS 2026-09-26.** The properties of [N-11.3] now exist
+(`rtl/core/pipe_ctrl_sva.sv`, bound at `garuda_core_top`) and the matrix is
+measurable with `make pipe_matrix`. Measured across every test hex: the nine
+plain hold x register cells are all reached; **all four hold-versus-flush
+collision cells are reached zero times** — and those four are where errata
+P-1, P-2 and P-3 came from. They may be unreachable by construction
+(`load_use_stall` and `ex_redirect` both key off the instruction in ID/EX, and
+one instruction cannot be both a load and a branch). Simulation cannot separate
+"unreachable" from "untested"; formal can, which makes [N-11.3] the next step
+rather than the directed test. See `Docs/BUGS.md` AUD-8.
+
 **[N-11.2]** **`t_core_hold_flush_matrix` is the most valuable new test in this project.**
 Four errata came from this cross product and all four were found by someone thinking of the
 case. The matrix is 20 entries; enumerating it exhaustively costs a day and closes the

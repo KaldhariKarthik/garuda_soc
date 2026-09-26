@@ -258,7 +258,10 @@ test_chip: sw test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_c
 # Design documents. The .md is normative; the .docx is an export (see
 # Design_Docs/README.md). check_docs fails if an export has fallen behind.
 # =============================================================================
-.PHONY: docs check_docs
+.PHONY: docs check_docs pipe_matrix
+pipe_matrix:                                  ## which CORE [N-11.2] matrix cells any test reaches
+	@./scripts/run_pipe_matrix.sh
+
 check_docs:                                   ## are any .docx stale against their .md?
 	@python3 tools/check_docs.py --check
 

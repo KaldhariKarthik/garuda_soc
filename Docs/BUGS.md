@@ -138,9 +138,26 @@ than a patch-up.
 | **AUD-6** | `ahb_interconnect.v`, `mul32.v` | FIXED | Comments still described the pre-ADR-0001 clock plan — "one 200 MHz domain", "200/100 MHz crossing", "TRM 100 MHz clock". The plan has been 500 → 250 → 125 since ADR-0001. |
 | **AUD-7** | `garuda_soc_top.v` | FIXED | `dma_req_i[4]` was commented "ch4 is spare", citing DMA [N-6.4] — which now says the opposite: channel 4 serves the SPI slave and is **required** (ADR-0020 Rev 2). The tie-off itself is still correct because `rtl/spi_slave/` does not exist; the comment now says that, and names un-tying it as the work item. |
 
-| **AUD-8** | CORE §11 | **OPEN** | **The core's stated verification does not exist.** [N-11.2] calls `t_core_hold_flush_matrix` "the most valuable new test in this project" — a 20-entry cross product that it says produced four errata, all found by inspection rather than by a test. **There is no such test**, under that name or any other. [N-11.3] names five SVA assertions for `pipe_ctrl` — `a_flush_beats_hold`, `a_trap_beats_branch`, `a_h2_defers_flush`, `a_no_gate_with_bus`, `a_no_gate_with_flush` — and **`pipe_ctrl.v` contains no assertions at all**. The hold/flush composition is the part of the core the spec itself calls out as the one worth proving formally, and it is the part with the least coverage. |
+| **AUD-8** | CORE §11 | **PARTLY CLOSED 2026-09-26** | **The core's stated verification does not exist.** [N-11.2] calls `t_core_hold_flush_matrix` "the most valuable new test in this project" — a 20-entry cross product that it says produced four errata, all found by inspection rather than by a test. **There is no such test**, under that name or any other. [N-11.3] names five SVA assertions for `pipe_ctrl` — `a_flush_beats_hold`, `a_trap_beats_branch`, `a_h2_defers_flush`, `a_no_gate_with_bus`, `a_no_gate_with_flush` — and **`pipe_ctrl.v` contains no assertions at all**. **The five properties now exist** as `rtl/core/pipe_ctrl_sva.sv`, bound at `garuda_core_top` on the **ungated** clock (bound to `gclk` they would stop being evaluated at the moment the gate closes, which is the moment they check). 22 assertions and covers elaborate and run in every simulation that instantiates the core. **The matrix is now measured**, by `make pipe_matrix`, and the result is the finding: across *every* test hex in the build, the nine plain hold x register cells are reached — H1 40/25, H2 112, H4 5, H5 399 962 — and **all four hold-versus-flush collision cells are reached zero times**. Those four are exactly where errata P-1, P-2 and P-3 came from. `t_core_hold_flush_matrix` as a directed test is still unwritten; see the note below for why that may be the wrong instrument. |
 | **AUD-9** | DSU §5 vs `rtl/dsu/` | **OPEN** | **The DSU's port names diverge from its spec wholesale, and from the house style.** Spec §5 names `dsu_busy_o`, `dsu_result_o`, `dsu_illegal_o`, `dsu_acc_o`, `dsu_ovf_o`; the RTL has `dsu_busy`, `dsu_rd_data`, `illegal_instr`, `dsu_overflow`. Internal names the spec uses — `dsu_idle`, `dsu_interlock`, `dsu_decode`, `dsu_taps` — do not exist either. The DSU is also **the only block in the chip with no `_i`/`_o` suffixes**. Nothing is functionally wrong; the cost is that the spec cannot be read against the code. Decide which way to converge — renaming the RTL touches the core/DSU interface, so it is not free. |
 | **AUD-10** | `Design_Docs/*.docx` | PROCESS FIXED | **A second, hand-maintained source of truth.** No generator exists between `.md` and `.docx`. **Seven `.docx` are stale** — including every spec AUD-2 corrected, so a reviewer working from Word still reads the window-numbering error — and **five specifications have no `.docx` at all** (SPIM, I2C, UART, GPIO, PWM). Ruled in `Design_Docs/README.md`: the `.md` is normative. `make check_docs` now fails on drift; `make docs` regenerates via pandoc, which is not installed on the sim host. |
+
+**On AUD-8, and why the missing test may be the wrong fix.** The four
+uncovered cells may be *unreachable by construction* rather than merely
+untested. `load_use_stall` is raised by ID against the instruction sitting in
+ID/EX; `ex_redirect` is raised by the branch unit acting on that same ID/EX
+instruction. One instruction cannot be both a load and a branch, so H1 versus
+an EX redirect looks structurally impossible. If that holds for the other three
+as well, the arbitration logic for those combinations is dead, and a directed
+test could never reach them no matter how long it ran.
+
+**Simulation cannot tell those two cases apart** — "never happened" and "cannot
+happen" produce identical coverage. Formal can, and that is now the concrete
+argument for CORE [N-11.3]'s recommendation rather than a general preference:
+run formal on `pipe_ctrl`, and either it proves the cells unreachable (delete
+the concern, and possibly the logic) or it produces the counterexample that
+tells you exactly what `t_core_hold_flush_matrix` has to contain. Writing the
+directed test first is guessing at a sequence that may not exist.
 
 **What the audit did not find:** every register offset checked (DMA `GSTAT`,
 CLIC `CLICINFO`/`CLICIE`/`CLICIP`) matches its spec; every spec revision cited
