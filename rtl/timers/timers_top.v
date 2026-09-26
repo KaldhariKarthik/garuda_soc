@@ -39,6 +39,7 @@ module timers_top (
 
     timers_apb u_apb (
         .hclk_i(hclk_i), .hreset_n_i(hreset_n_i),
+        .pclk_i(pclk_i), .preset_n_i(preset_n_i),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i), .paddr_i(paddr_i),
         .pwdata_i(pwdata_i), .prdata_o(prdata_o), .pready_o(pready_o), .pslverr_o(pslverr_o),
         .wr_mtime_lo_o(wr_lo), .wr_mtime_hi_o(wr_hi), .wr_cmp_lo_o(wr_clo), .wr_cmp_hi_o(wr_chi),
@@ -59,7 +60,6 @@ module timers_top (
         .wdata_i(wdata), .ctl_o(ctl), .load_o(load), .val_o(val), .warn_o(warn),
         .warn_irq_o(wdt_warn_irq_o), .rst_req_o(wdt_rst_req_o));
 
-    wire _unused = |{pclk_i, preset_n_i};
 
 endmodule
 

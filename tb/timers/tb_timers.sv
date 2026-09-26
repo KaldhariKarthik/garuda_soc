@@ -42,6 +42,24 @@ module tb_timers;
         .hreset_n_o(hreset_n), .preset_n_o(preset_n), .core_rst_n_o(core_rst_n),
         .dm_rst_n_o(dm_rst_n), .ext_hrst_n_o(ext_hrst_n));
 
+    // ---- ADR-0002 Rev 2: PRDATA must be stable for the whole access phase ----
+    // WDTVAL is a free-running hclk down-counter, so before the pclk migration
+    // PRDATA moved at the hclk edge in the middle of every access phase. This
+    // counts any such movement; it is the check that distinguishes the pclk
+    // front end from the hclk one, and it FAILS on the old RTL.
+    // The access phase spans two hclk cycles. The update AT the setup-to-access
+    // edge is legitimate, so the comparison starts from the second cycle: if
+    // PRDATA differs between the two, it moved DURING the phase.
+    integer prdata_moved = 0;
+    reg [31:0] prd_hold;
+    reg        acc_d;
+    always @(posedge hclk) begin
+        if (sel[1] && penable && acc_d && !pwrite && $time > 1000)
+            if (prd_hold !== prd_t) prdata_moved = prdata_moved + 1;
+        prd_hold <= prd_t;
+        acc_d    <= sel[1] & penable;
+    end
+
     timers_top dut (.hclk_i(hclk), .hreset_n_i(hreset_n), .ext_rst_n_i(ext_hrst_n),
         .pclk_i(pclk), .preset_n_i(preset_n),
         .psel_i(sel[1]), .penable_i(penable), .pwrite_i(pwrite), .paddr_i(paddr),
@@ -143,6 +161,8 @@ module tb_timers;
         apb(R, 0, 12'h000, 0, r, e); check(r == 32'h2, "RSTREASON = WDT after the watchdog reset");
         apb(T, 0, 12'h010, 0, r, e); check(r == 0, "[N-9.2] watchdog restarts disabled after the reset");
         check(!warn_irq, "warning cleared by the reset");
+
+        check(prdata_moved == 0, $sformatf("[ADR-0002 Rev 2] PRDATA never moved mid-access-phase (%0d moves)", prdata_moved));
 
         $display("tb_timers: checks=%0d  FAIL=%0d", checks, fails);
         $display("RESULT: %s", fails ? "FAILED" : "PASSED");

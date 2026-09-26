@@ -64,6 +64,7 @@ module dma_top #(
     wire [2:0]  grant_ch;
 
     dma_apb_slave u_apb (
+        .pclk_i(pclk_i), .preset_n_i(preset_n_i),
         .hclk_i(hclk_i), .hreset_n_i(hreset_n_i),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
@@ -99,7 +100,6 @@ module dma_top #(
         .hburst_o(hburst_o), .hwdata_o(hwdata_o), .hrdata_i(hrdata_i),
         .hready_i(hready_i), .hresp_i(hresp_i), .busy_o());
 
-    wire _unused = |{pclk_i, preset_n_i};
 
 endmodule
 

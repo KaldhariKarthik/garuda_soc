@@ -132,11 +132,15 @@ than a patch-up.
 |---|---|---|---|
 | **AUD-1** | `garuda_system.yaml` | FIXED | The SSOT's `blocks:` table described a chip from three weeks ago: **ten blocks marked `rtl: missing` that all exist** (isram, bootrom, dsram, apb_fabric, ahb2apb, clic, timers, debug, clk_div, reset_ctrl) and **seven marked `rtl: sourced_ip` that are all implemented**. Block 14 still said "dropped for pin budget" after ADR-0020 Rev 2 restored it. Every document calls this file normative. `tools/garuda_gen.py` does not read `blocks:`, which is why nothing caught it. |
 | **AUD-2** | AHB2APB §6 + 4 specs | FIXED | **Two incompatible window numberings.** The AHB2APB window table was 0-based (`window 0 = 0x4000_1000`); the RTL decodes `win = haddr[15:12]`, so window *n* is at `0x4000_0000 + 0x1000n` — 1-based. DMA, CLIC, TIMERS and CLKRST each inherited the error and stated a window one lower than the hardware's. Base addresses were right everywhere; only the index was wrong. CLIC's "window 9" was `reset_ctrl`'s. |
-| **AUD-3** | `dma_apb_slave.v`, `timers_apb.v` | **OPEN** (DMA OPEN-D1, TIMERS OPEN-T1) | Both are clocked **entirely by hclk**, while ADR-0002 Rev 2, `apb.clock: pclk` and both specs' §4/§5 say the APB side is pclk. `dma_top` even takes `pclk_i`/`preset_n_i` and discards them. Not a functional bug — pclk edges are a subset of hclk edges (D-5) — but PRDATA is combinational out of hclk registers, so it can move mid-access and the bridge's effective setup window is **4 ns, not 8**; and these flops run at 250 MHz, which is the power ADR-0002 Rev 2 restored pclk to save. Headers now state the gap instead of claiming pclk. **Decide before STA.** |
+| **AUD-3** | `dma_apb_slave.v`, `timers_apb.v` | **FIXED 2026-09-26** | Both are clocked **entirely by hclk**, while ADR-0002 Rev 2, `apb.clock: pclk` and both specs' §4/§5 say the APB side is pclk. `dma_top` even takes `pclk_i`/`preset_n_i` and discards them. Not a functional bug — pclk edges are a subset of hclk edges (D-5) — but PRDATA is combinational out of hclk registers, so it can move mid-access and the bridge's effective setup window is **4 ns, not 8**; and these flops run at 250 MHz, which is the power ADR-0002 Rev 2 restored pclk to save. **Migrated.** The APB side is now pclk with the registers still hclk, and PRDATA is registered on pclk so it holds for the whole access phase — the 4 ns hop is now local to each block instead of crossing to the bridge. `tb_timers` gained a monitor counting mid-access PRDATA movement: **3 against the old RTL, 0 against the new**, so the test discriminates. Synthesis after: 7712 flops (+65), still 1 latch, 0 unresolved. |
 | **AUD-4** | PHYS §5 SDC | **OPEN** ([N-5.3]) | The SDC sketch will not elaborate: it constrains `[get_ports refclk_i]` (the pin is `refclk`), and `u_clk_div/u_clkdiv_toggle_hclk/Q` and `..._pclk/Q` (the flops are `t1_q` and `pclk_q`). Substantively, it declares a fixed `-divide_by 2` while `clk_div` implements a **selectable** ÷2/÷4/÷8/÷16 mux — and ADR-0001 makes ÷4 the timing fallback, so the other ratios need constraining too. `aon_clk` (D-14) is absent entirely. |
 | **AUD-5** | MEM §8.3, §8.5 | FIXED | Boot-time and ROM estimates predated a working boot path. §8.6 assumed 32 SCLK per word; it is **64** (command + address precede every word), so a 64 KiB image is **~67 ms, not 26**. The ROM is **820 bytes**, not ~500. Both now carry the measured figures. [N-8.7]'s "no document has verified the sourced IP" is also stale — GARUDA-SPIM-SPEC-001 now does. |
 | **AUD-6** | `ahb_interconnect.v`, `mul32.v` | FIXED | Comments still described the pre-ADR-0001 clock plan — "one 200 MHz domain", "200/100 MHz crossing", "TRM 100 MHz clock". The plan has been 500 → 250 → 125 since ADR-0001. |
 | **AUD-7** | `garuda_soc_top.v` | FIXED | `dma_req_i[4]` was commented "ch4 is spare", citing DMA [N-6.4] — which now says the opposite: channel 4 serves the SPI slave and is **required** (ADR-0020 Rev 2). The tie-off itself is still correct because `rtl/spi_slave/` does not exist; the comment now says that, and names un-tying it as the work item. |
+
+| **AUD-8** | CORE §11 | **OPEN** | **The core's stated verification does not exist.** [N-11.2] calls `t_core_hold_flush_matrix` "the most valuable new test in this project" — a 20-entry cross product that it says produced four errata, all found by inspection rather than by a test. **There is no such test**, under that name or any other. [N-11.3] names five SVA assertions for `pipe_ctrl` — `a_flush_beats_hold`, `a_trap_beats_branch`, `a_h2_defers_flush`, `a_no_gate_with_bus`, `a_no_gate_with_flush` — and **`pipe_ctrl.v` contains no assertions at all**. The hold/flush composition is the part of the core the spec itself calls out as the one worth proving formally, and it is the part with the least coverage. |
+| **AUD-9** | DSU §5 vs `rtl/dsu/` | **OPEN** | **The DSU's port names diverge from its spec wholesale, and from the house style.** Spec §5 names `dsu_busy_o`, `dsu_result_o`, `dsu_illegal_o`, `dsu_acc_o`, `dsu_ovf_o`; the RTL has `dsu_busy`, `dsu_rd_data`, `illegal_instr`, `dsu_overflow`. Internal names the spec uses — `dsu_idle`, `dsu_interlock`, `dsu_decode`, `dsu_taps` — do not exist either. The DSU is also **the only block in the chip with no `_i`/`_o` suffixes**. Nothing is functionally wrong; the cost is that the spec cannot be read against the code. Decide which way to converge — renaming the RTL touches the core/DSU interface, so it is not free. |
+| **AUD-10** | `Design_Docs/*.docx` | PROCESS FIXED | **A second, hand-maintained source of truth.** No generator exists between `.md` and `.docx`. **Seven `.docx` are stale** — including every spec AUD-2 corrected, so a reviewer working from Word still reads the window-numbering error — and **five specifications have no `.docx` at all** (SPIM, I2C, UART, GPIO, PWM). Ruled in `Design_Docs/README.md`: the `.md` is normative. `make check_docs` now fails on drift; `make docs` regenerates via pandoc, which is not installed on the sim host. |
 
 **What the audit did not find:** every register offset checked (DMA `GSTAT`,
 CLIC `CLICINFO`/`CLICIE`/`CLICIP`) matches its spec; every spec revision cited
@@ -144,10 +148,20 @@ in an RTL header matches the document's actual revision; the 26 chip pins match
 PHYS §3.1 name for name; and `tools/garuda_gen.py --check` is clean, so the
 address map and CLIC IDs in RTL and C agree with the yaml.
 
-**The pattern worth remembering:** the two errors that survived longest
-(AUD-1, AUD-2) were both in places nothing executes — a table the generator
-does not read, and a column of index numbers. Everything the toolchain touches
-was correct.
+**Second pass, 2026-09-26** — 127 normative notes across CORE, DSU and DEBUG,
+every RTL identifier they name checked for existence. The three specs
+themselves hold up well: `mepc` bit 0 is masked on write, `mtvec` MODE is
+hardwired to 3, `IDCODE` is `0x0000_0DB1`, DTMCS reports version 1 / abits 7 /
+idle 5, the reset vector comes from the generated header, the core is one clock
+domain behind one gate on `~quiescent`, the MAC cluster has three accumulators
+each with its own reset and overflow, and `tb_debug` checks nine DEBUG notes by
+number. The gaps are AUD-8 and AUD-9, and both are about verification and
+naming rather than behaviour.
+
+**The pattern worth remembering:** the errors that survived longest were all in
+places nothing executes — a table the generator does not read, a column of
+index numbers, a test named in a spec but never written, and a set of exports
+with no generator behind them. Everything the toolchain touches was correct.
 
 ---
 

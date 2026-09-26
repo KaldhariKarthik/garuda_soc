@@ -254,6 +254,25 @@ test_chip_uart:  ; $(call run_blk,$(CHIP_FL),tb_chip,chip_uart,+MODE=basic +TEST
 test_chip_periph:; $(call run_blk,$(CHIP_FL),tb_chip,chip_periph,+MODE=basic +TEST=sw/build/t_chip_periph.hex +MAXUS=1200)
 test_chip: sw test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_uart test_chip_periph test_chip_jtag
 
+# =============================================================================
+# Design documents. The .md is normative; the .docx is an export (see
+# Design_Docs/README.md). check_docs fails if an export has fallen behind.
+# =============================================================================
+.PHONY: docs check_docs
+check_docs:                                   ## are any .docx stale against their .md?
+	@python3 tools/check_docs.py --check
+
+docs:                                         ## regenerate the .docx exports (needs pandoc)
+	@command -v pandoc >/dev/null || { \
+	  echo "pandoc not installed - the .md files remain normative, see Design_Docs/README.md"; \
+	  exit 1; }
+	@for f in Design_Docs/*.md; do \
+	  [ "$$(basename $$f)" = "README.md" ] && continue; \
+	  echo "  pandoc $$f"; \
+	  pandoc -f gfm -t docx -o "$${f%.md}.docx" "$$f"; \
+	done
+	@python3 tools/check_docs.py --report
+
 elab_chip:                                       ## whole-chip elaboration
 	$(call run_blk,rtl/soc/filelist_chip.f,garuda_chip_top,elab_chip,-elaborate)
 

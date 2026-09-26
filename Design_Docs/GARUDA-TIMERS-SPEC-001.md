@@ -602,19 +602,15 @@ spurious interrupt at 17-second intervals.
 ## 14 Open items
 
 
-- **OPEN-T1 — the APB side is still on `hclk`, not `pclk`.** `timers_apb.v` takes only `hclk_i`, though §4 lists it as `seq (pclk)` and §5 as an APB slave on pclk. ADR-0002 Rev 2 and
-  `garuda_system.yaml` (`apb.clock: pclk`) both specify pclk here, and ADR-0002
-  names this as the one pending RTL change. **Not a functional bug**: pclk edges
-  are a subset of hclk edges (D-5), so the sampling is synchronous and the whole
-  regression passes. Two things it does cost:
-  **(a)** PRDATA is combinational out of hclk registers, so it can move at the
-  hclk edge in the middle of a pclk access phase — the effective setup window at
-  the bridge is 4 ns, not 8 ns, and the SDC must say so;
-  **(b)** these flops run at 250 MHz, which is the dynamic power ADR-0002 Rev 2
-  restored pclk to save. Decide before STA: migrate, or constrain and document.
-None.
-
----
+- **OPEN-T1** — *closed 2026-09-26.* The APB side now runs on `pclk`, with the
+  registers still on `hclk` as ADR-0002 Rev 2 asks. PRDATA is **registered on
+  pclk** at the setup-to-access edge, so it is stable for the whole access
+  phase: the 4 ns hclk-to-pclk hop still exists but is now local to the block,
+  a few gates from the source flop, and what crosses to the bridge is
+  pclk-to-pclk with a full period. `tb_timers` gained a permanent monitor that
+  counts any PRDATA movement during an access phase; it reports 3 movements
+  against the pre-migration RTL and 0 after, so the check discriminates rather
+  than merely passing.
 
 ## 15 Errata
 
