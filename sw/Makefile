@@ -72,6 +72,21 @@ $(BUILD)/flash.hex: $(BUILD)/t_chip_flash.bin | $(BUILD)
 	python3 ../tools/mkbootimg.py $< $@ --entry 0x0 --size 69632 \
 	    --bin $(BUILD)/flash.bin
 
+# ---- KV260 FPGA bring-up programs (fpga/kv260/README.md) --------------------
+# Same crt0/link/tohost contract as the chip tests, so the host runner loads
+# them the same way. PCLK_HZ is the FPGA build's pclk (hclk/2 = 25 MHz).
+FPGATESTS = t_fpga_hello
+PCLK_HZ  ?= 25000000
+.PHONY: fpga
+fpga: $(BUILD)/bootrom.hex $(addprefix $(BUILD)/,$(addsuffix .hex,$(CHIPTESTS) $(FPGATESTS)))
+
+$(BUILD)/t_fpga_%.elf: fpga/t_fpga_%.c chip/crt0_chip.S chip/chip.h chip/link_chip.ld common/garuda_map.h | $(BUILD)
+	$(CC) $(CFLAGS) $(CHIPFLAGS) -DPCLK_HZ=$(PCLK_HZ)u -T chip/link_chip.ld -no-pie -static \
+	    chip/crt0_chip.S $< -o $@
+
+$(BUILD)/t_fpga_%.hex: $(BUILD)/t_fpga_%.bin
+	python3 ../tools/elf2hex.py $< $@ --base 0x00000000
+
 $(BUILD):
 	@mkdir -p $(BUILD)
 

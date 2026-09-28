@@ -67,3 +67,11 @@ __pycache__/
 
 # host tool timestamps
 .rs_*.tstamp
+
+# KV260 FPGA build outputs
+fpga/kv260/prj/
+fpga/kv260/out/
+fpga/kv260/.Xil/
+fpga/kv260/garuda.dtbo
+*.jou
+*.log.bak

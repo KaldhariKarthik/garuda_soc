@@ -80,7 +80,7 @@ module garuda_pwm_top #(
                 end
                 default: begin
                     for (k = 0; k < NCH; k = k + 1)
-                        if (ip_paddr == (A_DUTY0 + 12'(4*k)))
+                        if (ip_paddr == (A_DUTY0 + 4*k))
                             duty_q[k] <= pwdata_i[15:0];
                 end
             endcase
@@ -120,7 +120,7 @@ module garuda_pwm_top #(
             A_STATUS:   reg_rdata = {{(12-NCH){1'b0}}, clamp, count};
             default: begin
                 for (k = 0; k < NCH; k = k + 1)
-                    if (ip_paddr == (A_DUTY0 + 12'(4*k)))
+                    if (ip_paddr == (A_DUTY0 + 4*k))
                         reg_rdata = {16'd0, duty_q[k]};
             end
         endcase

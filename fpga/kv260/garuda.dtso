@@ -1,0 +1,39 @@
+// =============================================================================
+// GARUDA on KV260 - device-tree overlay for the stock Kria Ubuntu 22.04 image
+//   dtc -@ -I dts -O dtb -o garuda.dtbo garuda.dtso
+// Loaded by xmutil/dfx-mgr together with garuda.bit.bin (see README.md).
+//
+// No drivers are bound: the host script reaches AXI GPIO (0xA000_0000) and
+// UartLite (0xA001_0000) through /dev/mem. This overlay only
+//   - names the bitstream for the FPGA manager and pulses PL reset 0,
+//   - sets pl_clk0 to 100 MHz,
+//   - sets the FPD HPM0 port width to 128 bits, matching the block design
+//     (PSU__MAXIGP0__DATA_WIDTH 128). afi_fs reg 14: [9:8] HPM0, [11:10] HPM1,
+//     and 2 = 128 bit.
+// =============================================================================
+/dts-v1/;
+/plugin/;
+
+&fpga_full {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    firmware-name = "garuda.bit.bin";
+    resets = <&zynqmp_reset 116>;
+    pid = <0x0>;
+    uid = <0x0>;
+};
+
+&amba {
+    garuda_afi0: garuda_afi0 {
+        compatible = "xlnx,afi-fpga";
+        config-afi = <14 0xa00>, <15 0x000>;
+    };
+    garuda_clk0: garuda_clk0 {
+        compatible = "xlnx,fclk";
+        clocks = <&zynqmp_clk 71>;
+        clock-output-names = "garuda_pl_clk0";
+        #clock-cells = <0>;
+        assigned-clocks = <&zynqmp_clk 71>;
+        assigned-clock-rates = <100000000>;
+    };
+};
