@@ -44,19 +44,24 @@ divergence is silent.
 | Testbench | Checks | Failures | Verdict |
 |---|---:|---:|---|
 | `tb_ahb_checker_selftest` | 6 | 0 | PASSED |
+| `tb_apb_checker_selftest` | 35 | 0 | PASSED |
 | `tb_crg` | 43 | 0 | PASSED |
 | `tb_ahb_interconnect` | 802 | 0 | PASSED |
-| `tb_ahb2apb` | 20 | 0 | PASSED |
+| `tb_ahb2apb` | 22 | 0 | PASSED |
 | `tb_dma_top` | 25 | 0 | PASSED |
-| `tb_clic` | 15 | 0 | PASSED |
+| `tb_clic` | 17 | 0 | PASSED |
 | `tb_timers` | 23 | 0 | PASSED |
 | `tb_debug` | 25 | 0 | PASSED |
-| `tb_apb_shim` | 22 | 0 | PASSED |
-| `tb_i2c` | 42 | 0 | PASSED |
-| `tb_pwm` | 26 | 0 | PASSED |
-| `tb_spis` | 32 | 0 | PASSED |
+| `tb_apb_shim` | 25 | 0 | PASSED |
+| `tb_i2c` | 44 | 0 | PASSED |
+| `tb_pwm` | 28 | 0 | PASSED |
+| `tb_spis` | 34 | 0 | PASSED |
 | `tb_dsu_top` | 90 vectors | 0 | PASSED |
-| **13 ran** | **1,171** | **0** | **PASSED** |
+| **14 ran** | **1,219** | **0** | **PASSED** |
+
+Two of those testbenches are the protocol checkers' own negative controls, and
+they are listed first on purpose: a clean run from an unproven checker is worth
+nothing, so they are the two results everything below depends on.
 
 `tb_dsu_top` needs generated stimulus first:
 `python3 tools/gen/DSU_gen.py --outdir sim/dsu`. Without it the testbench prints
@@ -98,8 +103,8 @@ settle; the README row is left as it stands rather than guessed at.
 
 **The "1,007 self-checking assertions" headline is unreproducible** and should
 be retired. It was `27+37+33+25+796+89`, and the 89 came from
-`tb/soc/tb_soc_ahb.sv`, deleted in `36e9630`. Today's figure is **1,171** across
-13 testbenches, and it can be regenerated on demand.
+`tb/soc/tb_soc_ahb.sv`, deleted in `36e9630`. Today's figure is **1,219** across
+14 testbenches, and it can be regenerated on demand.
 
 ---
 
@@ -261,6 +266,76 @@ Verilog string argument narrower than the literal passed to it drops the
 *leading* characters silently. Three of the eighteen messages overflowed; the
 two-cycle-ERROR message lost 17 characters off the front, so the log named no
 rule at all. Widened to 96.
+
+---
+
+## 6b. The APB protocol checker
+
+`Docs/HANDOFF.md` section 11 step 3 said to write this before the bridge. The
+bridge, the shim and all seven peripherals shipped without it; the nearest thing
+that existed was one rule inside `tb/ahb2apb/apb_slave_model.v`, which lives in
+a **responder** and so was checking the bus it was also driving.
+
+`tb/common/apb_checker.v` is a passive monitor with ten per-rule counters,
+Verilog-2001 and no SVA so it compiles under both xrun 22.09 and irun 15.20
+without an assertion licence. Verilator lint: **0 warnings**.
+
+Its negative control, `tb/common/tb_apb_checker_selftest.v`, is **35 checks**.
+Every rule is fired one at a time by an injected violation, and each scenario
+also requires `v_total == 1` so that the injection fires *that* rule and nothing
+else — a checker whose rules cross-trigger reports three violations for one
+defect. Legal traffic, including the cases closest to the rules (back-to-back
+accesses through SETUP, wait states, PSLVERR inside its access), must be silent
+*and* must leave a non-zero access count: a clean report from a checker that saw
+no traffic is treated as a failure here.
+
+Bound so far, with the check counts it added:
+
+| Testbench | Where bound | APB accesses seen | Checks |
+|---|---|---:|---|
+| `tb_ahb2apb` | the four modelled windows (1, 5, 9, 11) | 2 per window | 20 → 22 |
+| `tb_apb_shim` | **both** sides — upstream bus, and the APB the shim generates out to the wrapped IP | 21 / 2 | 22 → 25 |
+| `tb_clic` | the CLIC config port | 257 | 15 → 17 |
+| `tb_i2c` | the I²C config port | 22,276 | 42 → 44 |
+| `tb_pwm` | the PWM config port | 42 | 26 → 28 |
+| `tb_spis` | the SPI-slave config port | 117 | 32 → 34 |
+
+All six are clean. The shim's downstream port is the one worth noting: the shim
+generates its own APB out to the IP it wraps, and nothing in this project had
+ever looked at whether that bus was legal.
+
+The access counts are quoted because they are the evidence that a binding is
+looking at anything. `tb_i2c`'s 22,276 are mostly status polling, which is the
+point: the protocol on that port had never been observed at all, and it has now
+been watched across twenty-two thousand accesses. Every binding asserts a
+non-zero count, so a silent checker fails rather than passes.
+
+### Two things it found immediately
+
+**A defect in itself (`TB-24`).** On the first bind the access counter triggered
+on PENABLE's falling edge without also requiring the slave's own PSEL — and APB
+fans a *shared* PENABLE out to every window, so each per-slave checker was
+counting the whole bus. The tell was windows 1 and 11 reporting byte-identical
+totals for two different windows. The self-test had missed it because it drives
+a single PSEL, which is the same blind spot as checking a per-slave rule on a
+single-slave bus. Fixed, and scenario M added; with the fix reverted, scenario M
+fails, so it discriminates.
+
+**A deviation in the bridge (`APB-1`).** On the 16-pclk timeout
+`ahb2apb_apb_fsm.v:97-101` drops PSEL and PENABLE with PREADY still low. APB has
+no abort. Measured on `tb_ahb2apb`'s deliberately-hanging window 2: a PREADY
+stall of exactly 16 cycles, one abandoned access, one violation — while
+`[N-7.15] 16-pclk PREADY timeout -> ERROR` passes, so it is intended. The
+alternative is hanging AHB, and therefore the core, forever on a slave that is
+already broken. **It is a reasonable trade-off that no document in the
+repository mentioned**, so it is recorded for an owner ruling rather than
+changed. The checker stays strict so the next occurrence is still reported.
+
+Related and benign: the per-window APB divider keeps PENABLE high for extra
+pclk cycles after PREADY, which is also past the strict end of an access. Rather
+than exempting that silently, the checker takes `EXTEND_MAX` — 0 (strict) by
+default, and window 11 binds with 1 because it runs /2. The stretch is reported
+either way, and measured at exactly 1 cycle as predicted.
 
 ---
 
