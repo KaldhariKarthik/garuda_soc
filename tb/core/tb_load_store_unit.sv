@@ -110,12 +110,22 @@ class lsu_cycle;
 
     // Force the interesting alignment cases rather than waiting for random
     // addresses to land on them.
+    // ELEM-4. The nested implications here were a syntax error under xrun.
+    // Rather than argue about how "a -> (b -> c)" should be spelled -- the
+    // tools disagree, Verilator accepts the parenthesised form and rejects the
+    // braced constraint_set form, xrun the other way round -- these are
+    // rewritten so there is no nesting to parse at all.
+    //
+    // (A -> (B -> C)) and ((A && B) -> C) are the same proposition: both say
+    // "if A and B then C". The second is a flat implication with a conjunction
+    // on the left, which is uncontroversial in every tool. Semantics are
+    // unchanged; the stimulus distribution is unchanged.
     constraint c_alignment {
-        (kind == LK_ALIGNED) -> ((f3[1:0] == 2'b10) -> (addr[1:0] == 2'b00));
-        (kind == LK_ALIGNED) -> ((f3[1:0] == 2'b01) -> (addr[0]   == 1'b0));
+        (kind == LK_ALIGNED    && f3[1:0] == 2'b10) -> (addr[1:0] == 2'b00);
+        (kind == LK_ALIGNED    && f3[1:0] == 2'b01) -> (addr[0]   == 1'b0);
         (kind == LK_MISALIGNED) -> (f3[1:0] inside {2'b01, 2'b10});
-        (kind == LK_MISALIGNED) -> ((f3[1:0] == 2'b01) -> (addr[0] == 1'b1));
-        (kind == LK_MISALIGNED) -> ((f3[1:0] == 2'b10) -> (addr[1:0] != 2'b00));
+        (kind == LK_MISALIGNED && f3[1:0] == 2'b01) -> (addr[0]    == 1'b1);
+        (kind == LK_MISALIGNED && f3[1:0] == 2'b10) -> (addr[1:0] != 2'b00);
     }
 
     // Complementary data patterns: aimed at the wide-bus toggle shortfall
