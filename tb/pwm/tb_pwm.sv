@@ -52,6 +52,15 @@ module tb_pwm;
         end
     end endgenerate
 
+    // Independent APB protocol observer on this block's config port. The
+    // shared garuda_apb_bfm carries no PSTRB, so the strobes are tied high.
+    wire [31:0] apbviol;
+    apb_checker u_apbchk (
+        .clk_i(pclk), .rst_n_i(preset_n),
+        .psel_i(bfm.psel), .penable_i(bfm.penable), .pwrite_i(bfm.pwrite),
+        .paddr_i({20'h0, bfm.paddr}), .pwdata_i(bfm.pwdata), .pstrb_i(4'hF),
+        .pready_i(bfm.pready), .pslverr_i(bfm.pslverr), .viol_count_o(apbviol));
+
     int checks = 0, fails = 0;
     task automatic check(input bit c, input string what);
         checks++;
@@ -208,6 +217,10 @@ module tb_pwm;
         bfm.wr(R_CTRL, 32'h000);
 
         check(pready_viol == 0, "[R-4] PREADY high in every cycle of every access");
+
+        u_apbchk.report_result;
+        check(apbviol == 0, "APB protocol checker clean on the config port");
+        check(u_apbchk.n_access > 0, "APB protocol checker observed traffic");
 
         $display("tb_pwm: checks=%0d  FAIL=%0d", checks, fails);
         $display("RESULT: %s", fails ? "FAILED" : "PASSED");

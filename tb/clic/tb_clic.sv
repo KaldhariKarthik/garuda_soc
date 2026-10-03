@@ -34,6 +34,15 @@ module tb_clic;
         .irq_src_i(src), .clic_irq_valid_o(valid), .clic_irq_id_o(id),
         .clic_irq_level_o(level));
 
+    // Independent APB protocol observer on the CLIC's config port. No PSTRB on
+    // this bus, so the strobes are tied to all-ones.
+    wire [31:0] apbviol;
+    apb_checker u_apbchk (
+        .clk_i(pclk), .rst_n_i(rst_n),
+        .psel_i(psel), .penable_i(penable), .pwrite_i(pwrite),
+        .paddr_i({20'h0, paddr}), .pwdata_i(pwdata), .pstrb_i(4'hF),
+        .pready_i(pready), .pslverr_i(pslverr), .viol_count_o(apbviol));
+
     integer checks = 0, fails = 0;
     task automatic check(input bit c, input string what);
         checks++;
@@ -128,6 +137,10 @@ module tb_clic;
             end
         end
         check(bad == 0, $sformatf("random selection vs reference model: %0d/300 mismatches", bad));
+
+        u_apbchk.report_result;
+        check(apbviol == 0, "APB protocol checker clean on the CLIC config port");
+        check(u_apbchk.n_access > 0, "APB protocol checker observed traffic");
 
         $display("tb_clic: checks=%0d  FAIL=%0d", checks, fails);
         $display("RESULT: %s", fails ? "FAILED" : "PASSED");
