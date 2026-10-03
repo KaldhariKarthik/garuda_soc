@@ -52,6 +52,28 @@ module tb_apb_shim;
 
     // a trivial word-addressed IP: 8 registers, PREADY high
     logic [31:0] ipregs [0:7];
+    // Independent APB protocol observers, on BOTH sides of the shim.
+    //
+    // The upstream side checks the traffic the bridge BFM presents. The
+    // downstream side is the more interesting one: the shim synthesises its own
+    // APB out to the wrapped IP, and nothing in this project had ever looked at
+    // whether that generated bus is legal. Neither side has PSTRB, so the
+    // strobes are tied to all-ones.
+    wire [31:0] apbviol_in, apbviol_ip;
+    apb_checker u_chk_in (
+        .clk_i(pclk), .rst_n_i(preset_n),
+        .psel_i(bfm.psel), .penable_i(bfm.penable), .pwrite_i(bfm.pwrite),
+        .paddr_i({20'h0, bfm.paddr}), .pwdata_i(bfm.pwdata), .pstrb_i(4'hF),
+        .pready_i(bfm.pready), .pslverr_i(bfm.pslverr),
+        .viol_count_o(apbviol_in));
+
+    apb_checker u_chk_ip (
+        .clk_i(pclk), .rst_n_i(preset_n),
+        .psel_i(ip_psel), .penable_i(ip_penable), .pwrite_i(ip_pwrite),
+        .paddr_i({20'h0, ip_paddr}), .pwdata_i(ip_pwdata), .pstrb_i(4'hF),
+        .pready_i(ip_pready), .pslverr_i(1'b0),
+        .viol_count_o(apbviol_ip));
+
     always @(posedge pclk) if (ip_psel && ip_penable && ip_pwrite) ipregs[ip_paddr[4:2]] <= ip_pwdata;
     always @(*) ip_prdata = ipregs[ip_paddr[4:2]];
 
@@ -202,6 +224,13 @@ module tb_apb_shim;
         @(posedge pclk); #0.5 check(pad_sync, "pad sync: visible after 2 cycles, no X");
 
         check(pready_viol == 0, "PREADY never deasserted in the whole run");
+
+        u_chk_in.report_result;
+        u_chk_ip.report_result;
+        check(apbviol_in == 0, "APB protocol checker clean on the shim's upstream bus");
+        check(apbviol_ip == 0, "APB protocol checker clean on the APB the shim generates");
+        check(u_chk_in.n_access > 0 && u_chk_ip.n_access > 0,
+              "APB protocol checker observed traffic on both sides of the shim");
         $display("tb_apb_shim: checks=%0d  FAIL=%0d", checks, fails);
         $display("RESULT: %s", fails ? "FAILED" : "PASSED");
         $finish;
