@@ -83,7 +83,7 @@ simulation, the foundry SRAM/ROM macros (behavioural models behind
 >
 > - **"1,007 self-checking assertions" cannot be reproduced.** It was
 >   `27+37+33+25+796+89`, and the 89 came from `tb/soc/tb_soc_ahb.sv`, which was
->   deleted in `36e9630`. The current figure is **1,171** across 13
+>   deleted in `36e9630`. The current figure is **1,219** across 14
 >   testbenches, and `make local_sim` regenerates it on demand.
 > - **"50,535 cells" is stale.** It predates I²C, GPIO, PWM, the SPI slave and
 >   `pipe_ctrl_sva`. The chip is now **71,819** cells and **7,029** flops.
