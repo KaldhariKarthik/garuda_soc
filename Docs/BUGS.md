@@ -231,6 +231,57 @@ where `.gitignore` does **not** cover them.
 
 ---
 
+## 1g. The APB protocol checker — 2026-10-03
+
+`Docs/HANDOFF.md` section 11, step 3, written before any of this hardware
+existed: *"Write the APB protocol checker BEFORE the bridge ... A bridge built
+before its oracle is a bridge nobody is looking at."* The bridge was built, so
+were the shim and all seven peripherals, and the checker was not. The nearest
+thing that existed was a single rule inside `tb/ahb2apb/apb_slave_model.v`
+living in a **responder**, so it was only present in `tb_ahb2apb` and it was
+checking the bus it was also driving.
+
+`tb/common/apb_checker.v` now exists: a passive monitor, Verilog-2001 with no
+SVA so it compiles under both xrun 22.09 and irun 15.20 without an assertion
+licence, with ten per-rule counters and a `report_result` task. Its negative
+control is `tb/common/tb_apb_checker_selftest.v` — **35 checks**, every rule
+fired one at a time on an injected violation, plus legal traffic that must be
+silent. Each scenario also asserts `v_total == 1`, so an injected violation is
+required to fire *that* rule and no other; a checker whose rules cross-trigger
+reports three violations for one defect and sends the reader after the wrong
+signal.
+
+Bound in six places, all clean: the four modelled windows of `tb_ahb2apb`,
+**both sides** of `tb_apb_shim` (including the APB the shim generates out to the
+wrapped IP, which nothing had ever looked at), and the config ports of
+`tb_clic`, `tb_i2c`, `tb_pwm` and `tb_spis`. Check counts: bridge 20 → 22,
+shim 22 → 25, clic 15 → 17, i2c 42 → 44, pwm 26 → 28, spis 32 → 34.
+Accesses actually observed run from 2 per bridge window to **22,276** on the
+I²C port, and every binding asserts a non-zero count so a silent checker fails
+rather than passes.
+
+| ID | Where | Status | Severity | Summary | Found by |
+|---|---|---|---|---|---|
+| **APB-1** | `rtl/ahb2apb/ahb2apb_apb_fsm.v` | **OPEN — needs an owner ruling, not an RTL change** | low (deliberate, documented trade-off) | **The 16-pclk timeout abandons an APB access mid-flight, which strict APB does not permit.** On expiry (`ahb2apb_apb_fsm.v:97-101`) the FSM drops `psel_o` and `penable_o` with `PREADY` still low. APB has no abort: an access, once started, is supposed to complete. Measured on `tb_ahb2apb`'s deliberately-hanging window 2 — PREADY stall of exactly 16 cycles, one abandoned access, one `PSEL dropped mid-ACCESS` violation, while `[N-7.15] 16-pclk PREADY timeout -> ERROR` passes. So this is intended behaviour, not a bug: the alternative is hanging the AHB side, and therefore the core, forever on a slave that is already broken. It is recorded because **nothing in the repository said the bridge knowingly breaks APB to protect AHB**, and because a reviewer or a future integrator binding a checker to a real peripheral window will hit it. The ruling wanted is whether to state the deviation in GARUDA-AHB2APB-SPEC-001 §7.5 and accept it, or to hold PSEL and let STA/integration deal with a wedged window. The checker is left strict so the next occurrence is still reported. | `apb_checker` bound to window 2 |
+| **TB-24** | `tb/common/apb_checker.v` | **FIXED** | medium (would have mis-attributed traffic) | My own defect, found on the first bind and worth recording because of how it announced itself. The access counter triggered on `PENABLE`'s falling edge without also requiring the slave's own `PSEL` — and APB fans a **shared** PENABLE out to every window, so each per-slave checker counted the whole bus. The tell was windows 1 and 11 of `tb_ahb2apb` reporting byte-identical totals (28 accesses, 12 write, 16 read) for two different windows, and two "abandoned accesses" each that belonged to window 2's timeout. The self-test had not caught it because it drives a single PSEL, which is the same blind spot as checking a per-slave rule on a single-slave bus. Fixed by gating on `p_psel`, and scenario M was added — another window's traffic on the shared PENABLE must register as neither a violation **nor** an access. Verified to discriminate: with the fix reverted, scenario M fails. | first bind into `tb_ahb2apb` |
+
+**A note on `EXTEND_MAX`.** The bridge's per-window APB divider
+(GARUDA-AHB2APB-SPEC-001 §6.2) keeps `PENABLE` high for `div_cnt` further pclk
+cycles after the slave has raised `PREADY`, which strictly is also past the end
+of the access. That is the divider doing its job and `tb_ahb2apb` already
+measured it as `max_pen_w11`, so rather than exempting it silently or firing on
+it, the checker takes an `EXTEND_MAX` parameter: zero, strict APB, is the
+default, and window 11 binds with `EXTEND_MAX=1` because it runs /2. The
+stretch is reported either way as "longest PENABLE extension", so raising the
+parameter hides nothing. Measured on window 11: exactly 1 cycle, as predicted.
+
+**Still unbound:** `tb_timers`, `tb_dma`, `tb_debug`, and the three testbenches
+Icarus cannot build (`tb_uart`, `tb_gpio`, `tb_spim`). The three unbuildable
+ones can only be verified under xrun, so binding them is a change nobody could
+check locally — which is why they were left rather than done blind.
+
+---
+
 ## 2. Block 6 — AHB-Lite interconnect
 
 Specification: `Design_Docs/AHB_Int/GARUDA_AHB_Bus_Design_Spec_v2.0.docx`
