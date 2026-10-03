@@ -4,7 +4,7 @@
 
 ## The Chip, In One Breath
 
-200MHz core domain, 100MHz peripheral domain, 1.45mm die, 40 pins, 28nm. A custom Harvard-architecture pipeline with dual AHB-Lite master ports feeding instruction and data paths independently. A CLIC interrupt controller. A 6-channel DMA engine. An AHB-to-APB bridge gating a standard peripheral set — SPI, I2C, UART, PWM, GPIO — sourced from the VLSI Society so the team's silicon-original effort goes where it matters: the core and the accelerator, not a UART state machine that's been solved a thousand times.
+250MHz core domain, 125MHz peripheral domain (from a 500MHz reference), 1.45mm die, 40 pins, 28nm. A custom Harvard-architecture pipeline with dual AHB-Lite master ports feeding instruction and data paths independently. A CLIC interrupt controller. A 6-channel DMA engine. An AHB-to-APB bridge gating a standard peripheral set — SPI, I2C, UART, PWM, GPIO — sourced from the VLSI Society so the team's silicon-original effort goes where it matters: the core and the accelerator, not a UART state machine that's been solved a thousand times.
 
 384KB of TCM sits close to the core, sized for control-loop firmware that cannot afford to wait on a cache miss.
 
@@ -16,7 +16,7 @@ This is not a general-purpose application processor pretending to be embedded. I
 
 Strip away the bus fabric and the peripherals and you are left with the actual point of GARUDA — the **Digital Signal Unit**, a coprocessor bolted directly into the EX stage of the pipeline.
 
-The DSU is a 3-MAC cluster: 16x16 signed multiply, 48-bit accumulators, a 2-cycle pipeline built on a CSA tree (CSA1, a pipeline register, CSA2, then a Kogge-Stone final adder). That structure is not incidental — it exists specifically so the accumulate path never has to chain 48-bit additions inside a single cycle. Collapse it into a behavioral one-liner and the timing closure at 200MHz disappears along with the three-operand MACDOT compression path that makes the cluster worth having.
+The DSU is a 3-MAC cluster: 16x16 signed multiply, 48-bit accumulators, a 2-cycle pipeline built on a CSA tree (CSA1, a pipeline register, CSA2, then a Kogge-Stone final adder). That structure is not incidental — it exists specifically so the accumulate path never has to chain 48-bit additions inside a single cycle. Collapse it into a behavioral one-liner and the timing closure at 250MHz disappears along with the three-operand MACDOT compression path that makes the cluster worth having.
 
 Ten Custom-0 instructions expose this hardware to software, purpose-built for one job: real-time **artificial potential field (APF) collision avoidance** for autonomous swarm flight. This is a processor that does general-purpose RV32IM work in the morning and vector math for keeping drones from hitting each other in the afternoon, on the same silicon, in the same pipeline stage.
 
@@ -43,7 +43,16 @@ None of those were RTL bugs. All three were a document promising something the h
 **Rev 4.0 (2026-09-19).** The RTL now implements the Rev 4.0 specification set
 (`Design_Docs/garuda_system.yaml` + the `GARUDA-*-SPEC-001` documents); where
 those documents contradicted each other the ruling is recorded in
-`Docs/DECISIONS.md` (D-4..D-20). All numbers below are Xcelium 22.09 results.
+`Docs/DECISIONS.md` (D-4..D-20).
+
+**Provenance of the numbers in this section.** The per-block check counts are
+the testbenches' own self-reported totals. Thirteen of them are reproducible
+today with no licence at all — `make local_sim`, results and tool versions in
+`Docs/VERIFICATION_LOG_2026-10-03.md`. The firmware-dependent rows (the ISA
+regression, sanity, and `make test_chip`) need Xcelium and the RISC-V toolchain
+and are **not** reproducible from this checkout; `sw/build/` is empty. Nothing
+in this repository has been through gate-level simulation or static timing, and
+no SDC exists.
 
 | Block (SYS-001 #) | RTL | Verification (Xcelium) |
 |---|---|---|
@@ -54,36 +63,44 @@ those documents contradicted each other the ruling is recorded in
 | 7/8 APB fabric + AHB2APB bridge (synchronous) | complete | `tb_bridge` 20/20 |
 | 9 DMA (Rev 3.0, no CDC) | complete | `tb_dma` 25/25 |
 | 10 CLIC (level-only, 32 IDs) | complete | `tb_clic` 15/15 |
-| 11 Timers + watchdog | complete | `tb_timers` 22/22 (real watchdog reset through reset_ctrl) |
+| 11 Timers + watchdog | complete | `tb_timers` 23/23 (real watchdog reset through reset_ctrl) |
 | 12 Debug (JTAG TAP, DTM, DMI CDC, DM, SBA) | complete | `tb_debug` 25/25 over the JTAG pins |
 | 21/22 Clock divider + reset controller | complete | `tb_crg` 43/43 |
 | Boot ROM firmware | complete (flash path waits on the SPI IP) | runs on every chip test |
 | **SoC + chip integration** (`garuda_soc_top`, `garuda_chip_top`, 28-pin list) | **complete** | `make test_chip`: boot, interrupts (DMA/timer/WDT), real watchdog reset, JTAG load-and-run — all pass, zero AHB protocol violations |
-| 13, 15–20 SPI-M, I²C, UART×3, GPIO, PWM (sourced IP) | **not in repo** | windows masked (fault cleanly), pins at safe idle, plug-in points documented in `garuda_chip_top.v` |
+| 13, 15–20 SPI-M, I²C, UART×3, GPIO, PWM (sourced IP) | **complete** — all seven are in `rtl/`, wired in `garuda_chip_top`, and the chip boots from SPI flash | `tb_i2c` 42/42, `tb_pwm` 26/26, `tb_spis` 32/32 reproducible locally; `tb_spim`, `tb_uart`, `tb_gpio` need xrun (Icarus cannot build the vendored PULP RTL — see the verification log) |
 
-Not done: the sourced peripheral IP, coverage closure, SDC/STA, gate-level
+Not done: coverage closure, SDC/STA, gate-level
 simulation, the foundry SRAM/ROM macros (behavioural models behind
 `sram_wrapper.v`), the pad ring. Those are the path from here to GDSII.
 
----|---|
-| AHB-Lite (+ interconnect) | Design doc complete, RTL complete |
-| DMA controller | Design doc complete, RTL complete |
-| DSU (collision avoidance coprocessor) | Design doc complete, RTL complete, integrated into EX — unverified |
-| Core pipeline | Design doc complete (Rev 1.1), RTL complete, elaborates with the real DSU |
-| AHB2APB bridge (Block 8) | Design doc complete (Rev 2.0), RTL complete, block TB 37/37, synthesises |
-| CLIC (Block 16) | Design doc complete (Rev 2.0), RTL complete, block TB 33/33, synthesises |
-| Memory subsystem — ISRAM / DSRAM / Boot ROM (Blocks 3/4/5) | Design doc complete (Rev 2.0), RTL complete, block TB 25/25, synthesises |
-| Clock & reset generation (Blocks 22/23) | Design doc complete (Rev 2.0), RTL complete, block TB 27/27, synthesises |
-| SoC integration (`garuda_soc_top`, `garuda_chip_top`) | Ten blocks wired, boots from real Boot ROM, 89/89, whole chip synthesises with zero latches |
-| Timers | Pending |
-| Debug (RISC-V DM v0.13 + JTAG TAP) | Pending |
-| VLSI Society peripherals (SPI/I2C/UART/PWM/GPIO) | Integration notes only — no full spec needed |
-
-Four of the five block documents that stood between this project and a fully specified chip are now written — the bridge, the CLIC, the three memories as one subsystem, and clock/reset — and RTL for all four exists, wired into a SoC that also generates its own clocks and resets. Timers and debug remain unspecified.
-
-All of it compiles, simulates and synthesises: six testbenches run **1,007 self-checking assertions with zero failures**, and the whole chip — core, DSU, DMA, interconnect, three memories, bridge, CLIC, clock and reset — synthesises to 50,535 cells with **zero latches inferred**. The SoC boots real code out of the real Boot ROM and moves 64 words through the DMA while all three masters contend for the bus, with every AHB protocol checker clean.
-
-The honest caveat matters as much as the result. That was Icarus and Yosys, not the team's Xcelium signoff flow; no gate-level, no coverage, no SDC, no timing. And the testbenches were written by the same hand, at the same sitting, from the same reading of the specifications as the RTL — so a shared misreading would pass both. The evidence for that risk is concrete: the first run of every new testbench failed, and **all seventeen of those failures were defects in the testbenches — not one was an RTL defect**. That says the tests were the less trustworthy half. Independent verification is still owed.
+> **Superseded.** A second, older status table and its headline numbers used to
+> sit here, describing the Rev 2.0 chip: "six testbenches / 1,007 self-checking
+> assertions", "50,535 cells with zero latches", DSU "unverified", Timers and
+> Debug "Pending", the peripherals "integration notes only". All of it has been
+> overtaken by the table above, and three of the figures were wrong rather than
+> merely old:
+>
+> - **"1,007 self-checking assertions" cannot be reproduced.** It was
+>   `27+37+33+25+796+89`, and the 89 came from `tb/soc/tb_soc_ahb.sv`, which was
+>   deleted in `36e9630`. The current figure is **1,171** across 13
+>   testbenches, and `make local_sim` regenerates it on demand.
+> - **"50,535 cells" is stale.** It predates I²C, GPIO, PWM, the SPI slave and
+>   `pipe_ctrl_sva`. The chip is now **71,819** cells and **7,029** flops.
+> - **"Zero latches inferred" was never true.** There is exactly **one**, and it
+>   is `core_clk_gate`'s ICG enable latch — which is the cell, not a mistake;
+>   Genus reports the same one. The gate that printed "zero" was broken: it
+>   grepped its own log for a pattern that never matched the text Yosys writes.
+>   Fixed and given a negative control (`TOOL-7`).
+>
+> The one claim in that block that has held up exactly is the reason it is worth
+> keeping the caveat: the testbenches were written by the same hand, at the same
+> sitting, from the same reading of the specifications as the RTL, so a shared
+> misreading would pass both. **The first run of every new testbench failed, and
+> every one of those failures was a defect in the testbench, not the RTL.** That
+> pattern continued on 2026-10-03: five more testbench defects and five more
+> tooling defects, no new RTL defects. The tests remain the less trustworthy
+> half, and independent verification is still owed.
 
 ---
 
@@ -91,11 +108,11 @@ The honest caveat matters as much as the result. That was Icarus and Yosys, not 
 
 The blocks that list called out as load-bearing — CSR file, M-mode privilege, trap and exception logic, CLIC trap entry, JAL/JALR, the M-extension, and DSU integration into the core pipeline — are now written and elaborating as one netlist. The three Rev 1.1 gaps flagged in `garuda_core_top.v` are closed: minstret counts real retirement through a dedicated retire tag, WFI is a drain-precise hold, and the machine timer has an actual takeable interrupt path. What has NOT happened is verification: six unit smokes and an elaboration are not a verified core. A bug in the DSU produces a wrong collision-avoidance vector. A bug in the trap path produces a chip that locks up in ways that don't reproduce the same way twice. That asymmetry is why the privilege infrastructure gets the most scrutiny before freeze, not the most lines of code.
 
-After that: multi-master AHB arbitration, the AHB-to-APB bridge clock-domain crossing, riscv-arch-test compliance, a Python golden reference model, a directed test suite, and static timing closure at 200MHz.
+After that: multi-master AHB arbitration, the AHB-to-APB bridge clock-domain crossing, riscv-arch-test compliance, a Python golden reference model, a directed test suite, and static timing closure at 250MHz.
 
 The bridge, CLIC, memory and clock/reset blocks have moved from "unwritten" to "written, simulating and synthesising." Writing them surfaced two defects in released specifications that would each have reached silicon quietly — a bridge that drops every second back-to-back peripheral write, and a whole-chip reset asserted for 5ns — and both are fixed in RTL, logged, and now have tests that fail without the fix.
 
-What is still missing is the part that decides a tapeout. The interrupt path is wired and checked for connectivity but **never fires**, because the boot program predates the CLIC and sets `CR.IE=0`; taking a real interrupt needs an ISR that does not exist yet. Nothing has been through Xcelium, gate-level, or static timing, and no SDC exists — so a 50,535-cell netlist says the design is structurally sound and says nothing at all about closing 200MHz. GDSII is targeted for end of October. Tapeout is December 1.
+What is still missing is the part that decides a tapeout. The interrupt path **does** fire — `sw/chip/t_chip_irq.c` enables `mstatus.MIE`, sets `DMA_CR_IECOMP` and takes DMA-completion, machine-timer and watchdog-warning interrupts through a real trap handler, so the earlier "never fires" note here is obsolete. What has *not* happened is the rest: nothing in this repository has been through gate-level simulation or static timing, no SDC exists (`AUD-4`), and the one synthesis that can be run is generic structural synthesis with no library — so a **71,819**-cell netlist says the design is structurally sound and says nothing at all about closing 250 MHz. Coverage on all 15 Rev 4.0 blocks is still zero. GDSII is targeted for end of October. Tapeout is December 1.
 
 There is no slack in that sentence.
 
