@@ -15,7 +15,11 @@
 // =============================================================================
 module tb_debug;
     reg hclk = 0; always #2 hclk = ~hclk;
-    reg rst_n = 0;
+    reg rst_n = 1;
+    // TB-22: reset has to arrive as an edge. Declared `= 0`, this signal was
+    // low from time 0 with no negedge ever, so every async-reset flop in the
+    // DM stayed X and all 15 DMI-dependent checks failed.
+    initial #0 rst_n = 1'b0;
     reg tck = 0, tms = 1, tdi = 0;
     wire tdo, tdo_oe;
 
