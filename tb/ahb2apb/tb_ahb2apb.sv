@@ -12,7 +12,19 @@
 // =============================================================================
 module tb_ahb2apb;
 
-    reg refclk = 0, ext_rst_n = 0;
+    reg refclk = 0, ext_rst_n = 1;
+
+    // ---- reset must arrive as an EDGE, not merely be low at time 0 (TB-22) ---
+    // A Verilog async reset is edge-sensitive in simulation: `always @(... or
+    // negedge rst_n)` is not evaluated just because rst_n is already low when
+    // the run starts. A reset declared `= 0` therefore produces no negedge
+    // ever, and every flop whose only reset is that signal stays X for the
+    // whole simulation -- and `q <= ~q` on a clock divider keeps X forever, so
+    // the derived clock and its reset never resolve. Real silicon resets on a
+    // LEVEL and cannot behave this way; it is a simulation artefact, so the fix
+    // belongs here. Declare the reset de-asserted and assert it at time 0.
+    initial #0 ext_rst_n = 1'b0;
+
     always #1 refclk = ~refclk;                          // 500 MHz
 
     wire aon, hclk, pclk, pclk_phase, div_busy;
@@ -22,7 +34,8 @@ module tb_ahb2apb;
                    .div_act_o(div_act), .div_busy_o(div_busy));
 
     // simple resets: hreset first, preset a few pclk later (production order)
-    reg hreset_n = 0, preset_n = 0;
+    reg hreset_n = 1, preset_n = 1;
+    initial #0 begin hreset_n = 1'b0; preset_n = 1'b0; end   // TB-22, see above
 
     // ---- AHB master BFM ------------------------------------------------------
     wire [31:0] haddr, hwdata, hrdata;
