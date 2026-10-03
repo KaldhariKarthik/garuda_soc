@@ -53,7 +53,9 @@
 // WHAT IS CHECKED  (each has its own counter, so a hit is diagnosable)
 // -------------------------------------------------------------------
 //   Address-phase stability
-//     v_retract        NONSEQ/SEQ withdrawn to IDLE while HREADY was low.
+//     v_retract        NONSEQ/SEQ withdrawn to IDLE while HREADY was low,
+//                      EXCEPT after an ERROR first cycle, which is legal --
+//                      see the error-cancel note in check 1 below.
 //                      AHB-Lite has no cancel: once presented, a transfer must
 //                      be completed and its data discarded by the master.
 //     v_trans_change   HTRANS changed to a different active type during a wait
@@ -153,6 +155,7 @@ module ahb_lite_checker #(
     integer v_err_single, v_resp_no_dp;
     integer v_total, n_reported;
     integer n_addr_phases, n_bursts, n_wrap_unchecked, n_error_resp;
+    integer n_err_cancel;
 
     assign viol_count_o = v_total[31:0];
 
@@ -184,7 +187,13 @@ module ahb_lite_checker #(
     endfunction
 
     task viol;
-        input [8*72-1:0] msg;
+        // 96 characters, not 72.  A Verilog string argument narrower than the
+        // literal passed to it drops the LEADING characters silently: three of
+        // the messages below overflowed 72, and the two-cycle-ERROR one lost 17
+        // characters off the front, so the log read "requires HRESP high for
+        // two..." with no indication of which rule had been broken.  Sized with
+        // headroom; keep messages under 96 or widen this again.
+        input [8*96-1:0] msg;
         begin
             v_total = v_total + 1;
             if (n_reported < MAX_REPORT) begin
@@ -224,7 +233,7 @@ module ahb_lite_checker #(
             v_unaligned = 0; v_wdata_change = 0; v_err_single = 0;
             v_resp_no_dp = 0; v_total = 0; n_reported = 0;
             n_addr_phases = 0; n_bursts = 0; n_wrap_unchecked = 0;
-            n_error_resp = 0;
+            n_error_resp = 0; n_err_cancel = 0;
         end else begin
 
             // -----------------------------------------------------------------
@@ -236,12 +245,32 @@ module ahb_lite_checker #(
             //  -- the fetch was redirected, so the master 'cancels' it by going
             //  IDLE.  There is no cancel.  The transfer must complete and the
             //  master must discard the returned data.
+            //
+            //  THE ONE EXCEPTION (TB-15).  IHI 0033A s5.1.3: when a slave
+            //  responds ERROR, the master MAY cancel the remaining transfers of
+            //  the burst.  The first ERROR cycle is HRESP high with HREADY low,
+            //  which is exactly the "HREADY low" window this check polices, so
+            //  a master that legally abandons the burst there used to be
+            //  reported as retracting.  dma_ahb_master does precisely this, so
+            //  the check would have fired the first time a SoC-level test drove
+            //  a bus error into a DMA transfer.
+            //
+            //  p_hresp alone identifies the case: the enclosing condition has
+            //  already established !p_hready.  It is written out in full to
+            //  match the identical exemption in check 4 below, and the legal
+            //  cancels are COUNTED rather than ignored -- an exemption that
+            //  silently swallows traffic is indistinguishable from one that is
+            //  swallowing a real defect.
             // -----------------------------------------------------------------
             if (seen_first && p_active && !p_hready) begin
                 if (htrans_i != p_htrans) begin
                     if (htrans_i == T_IDLE) begin
-                        v_retract = v_retract + 1;
-                        viol("address phase RETRACTED to IDLE while HREADY low - AHB-Lite has no cancel");
+                        if (p_hresp && !p_hready) begin
+                            n_err_cancel = n_err_cancel + 1;
+                        end else begin
+                            v_retract = v_retract + 1;
+                            viol("address phase RETRACTED to IDLE while HREADY low - AHB-Lite has no cancel");
+                        end
                     end else begin
                         v_trans_change = v_trans_change + 1;
                         viol("HTRANS changed while HREADY low");
@@ -421,6 +450,7 @@ module ahb_lite_checker #(
             $display("  address phases observed : %0d", n_addr_phases);
             $display("  bursts opened           : %0d", n_bursts);
             $display("  ERROR responses seen    : %0d", n_error_resp);
+            $display("  legal error-cancels     : %0d", n_err_cancel);
             if (n_wrap_unchecked != 0)
                 $display("  WRAP bursts NOT CHECKED : %0d  <-- extend this checker",
                          n_wrap_unchecked);
