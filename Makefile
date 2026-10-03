@@ -363,3 +363,40 @@ regress_rand: isa_tests
 regress_wait: isa_tests
 	@RUNDIR=$(SIM_DIR)/regress_wait EXTRA_ARGS="+IWAIT=2 +DWAIT=3" MAXCYC=400000 \
 	   ./scripts/run_regression.sh
+
+# =============================================================================
+# Licence-free local flow (Icarus + Yosys + Verilator)
+# =============================================================================
+# These targets need no Cadence licence, no 28 nm library and no RISC-V
+# toolchain, so they run on a laptop. They are NOT a substitute for the xrun
+# signoff flow above: Icarus cannot build four of the block testbenches at all
+# (three are vendored third-party PULP RTL), and nothing here says anything
+# about timing. What they do give is a regression that anyone can reproduce
+# from a clean checkout, which is the thing the project did not have.
+#
+#   make local_sim     every block testbench Icarus can build, with a summary
+#   make local_lint    whole-chip Verilator lint
+#   make local_synth   whole-chip Yosys synthesis + the latch gate
+#   make local         all three, in that order
+#
+# Install: unpack the YosysHQ oss-cad-suite and put BOTH lib/ and bin/ on PATH,
+# lib FIRST, and export VERILATOR_ROOT (Docs/BUGS.md TOOL-2, TOOL-3).
+.PHONY: local local_sim local_lint local_synth
+
+local_sim:                                       ## all block TBs under Icarus
+	@./scripts/run_sim.sh all
+
+local_synth:                                     ## Yosys + latch gate
+	@./scripts/run_synth.sh garuda_chip_top
+
+# Verilator needs +incdir+, NOT -I with a space: given "-I path" it parses the
+# sources that follow as top-module names (Docs/BUGS.md TOOL-2).
+local_lint:                                      ## whole-chip Verilator lint
+	@set -e; \
+	 inc=$$(python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --incdirs \
+	        | sed 's/-I/+incdir+/g'); \
+	 src=$$(python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f | tr '\n' ' '); \
+	 echo "=== Verilator lint: garuda_chip_top ($$(echo $$src | wc -w) sources) ==="; \
+	 verilator --lint-only -sv --timing --top-module garuda_chip_top $$inc $$src
+
+local: local_sim local_lint local_synth
