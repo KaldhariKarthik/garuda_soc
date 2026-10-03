@@ -44,7 +44,7 @@ mutation test was run to prove that, it is named.
 | 3/4/5 — Memory subsystem | 0 | 0 | 0 | 1 |
 | 16 — CLIC | 1 | 0 | 0 | 0 |
 | 22/23 — Clock and reset | 0 | 0 | 0 | 1 |
-| Testbench / toolchain | 18 | 0 | 1 | — |
+| Testbench / toolchain | 25 | 7 | 1 | — |
 
 Blocks 8, 16 and 22/23 and the memory subsystem list **zero RTL defects**, and
 that row should be read carefully. Their RTL was written on 2026-09-16 and now
@@ -92,7 +92,9 @@ marked *proved* were re-run against the reverted RTL to show it.
 | OPEN-8 | 1 core | CLOSED — not a bug | — | `t_clic` TIMEOUT was the sanity runner's 50 k-cycle budget; the test is interrupt-bound (IRQ every 40 cycles) and needs ~60 k. `run_sanity.sh` default is now 200 k. | re-run | sanity 10/10 |
 | TB-15 | TB | MOOT | — | The Rev 3.0 DMA never has a second transfer queued when an ERROR returns, so the error-cancel case the checker mis-flags cannot occur; `tb_dma_top` now binds the checker and it is clean. The checker gap itself remains for any future pipelined master. | — | `tb_dma_top` |
 | DMA-4/5/6 | 9 DMA | MOOT | — | All three were properties of the deleted CDC / Rev 2.x register bank. | — | — |
-| ELEM-1..6 | TB | OPEN (testbench) | low | First-ever run of the 14 per-element TBs (Sep 2): 8 pass. `pc_gen` scoreboard samples one cycle late (its own SVA on the RTL passes); `prefetch_buffer` stimulus overfills the FIFO, violating the I-port slot-reservation contract; `iport` SVA encodes the pre-BUS-A HBURST; `load_store_unit` TB has a SystemVerilog syntax error (line 114); `if_stage_top`, `mem_stage` not yet triaged. The RTL they target is covered by ISA 63/63 lockstep incl. random waits. | `make test_elements` | owner: element-TB author |
+| ELEM-1..6 | TB | OPEN (testbench) | low | First-ever run of the 14 per-element TBs (Sep 2): 8 pass. `pc_gen` scoreboard samples one cycle late (its own SVA on the RTL passes); `prefetch_buffer` stimulus overfills the FIFO, violating the I-port slot-reservation contract; `iport` SVA encodes the pre-BUS-A HBURST; `load_store_unit` TB has a SystemVerilog syntax error (line 114) — see ELEM-4 below; `if_stage_top`, `mem_stage` not yet triaged. The RTL they target is covered by ISA 63/63 lockstep incl. random waits. | `make test_elements` | owner: element-TB author |
+| **ELEM-4** | TB | **changed by inspection 2026-10-03, UNVERIFIED** | low | The nested implications in `tb_load_store_unit.sv`'s `constraint c_alignment` are rewritten as flat implications with a conjunction on the left: `A -> (B -> C)` and `(A && B) -> C` are the same proposition, so semantics and the stimulus distribution are unchanged, and there is no nesting left to parse. Done this way because **the tools disagree about the spelling**: Verilator accepts the parenthesised form and rejects the braced `constraint_set` form, xrun the other way round. **This is not locally verifiable and must be confirmed under xrun** — Icarus cannot parse the file at all (no concurrent-assertion support, which blocks **13 of the 14** element TBs), and Verilator parses it and then **segfaults** on 13 of 14, so its "0 errors" is not evidence either. What *is* evidence: at the parse stage Verilator reports 5 errors for the braced form and 0 for this one. | xrun; re-checked with Verilator | `make test_elements` |
+| **ELEM-7** | docs | **OPEN (doc)** | low | `Docs/CORE_ELEMENT_VERIFICATION.md:157` cites covergroups `cp_lvl_vs_thresh` / `cp_lvl_vs_active` in `tb_clic_ctrl.sv` as the evidence that the strictly-greater-than threshold (test C24) was *"actually exercised rather than assumed"*. **That file is 74 lines and contains no covergroup and no SVA at all** — 9 directed vectors plus 5000 `$urandom` applications. The documented evidence does not exist. (It is also, not coincidentally, the only one of the 14 element TBs Icarus can compile, precisely because it has no SVA.) | reading the file against the doc | — |
 
 Spec defects resolved by ruling rather than RTL are D-5..D-20 in `Docs/DECISIONS.md`.
 
@@ -190,6 +192,42 @@ with no generator behind them. Everything the toolchain touches was correct.
 | **SPIS-2** | `t_spis_rate` | MEASURED, caveated | The rate sweep passes at every half period down to 9 ns, far below the specified 24 ns limit. **That is simulation being kinder than silicon**: ideal edges cannot exercise metastability or finite edge rates, which is what actually sets the limit. The sweep confirms correctness at and above the spec figure; it does not derive it, and the log says so rather than letting a reader infer headroom that is not there. Half periods are deliberately not `pclk` multiples, because aligned edges make an oversampler look better than it is. |
 | **SPIS-3** | `[N-9.2a]` | ACCEPTED, bounded | `miso_oe` drops **2 `pclk` (16 ns) after `cs_n` rises**, because `cs_n` arrives through the shim's synchroniser. Releasing from the raw pin would remove the tail but put a combinational path from an async pad input onto a pad output enable — on the one block whose premise is adding no async timing. Bounded instead: `t_spis_reset` fails above 3 `pclk`, and at max SCLK a bit is 50 ns so no master can reselect inside it. |
 | **TOOL-6** | this session | FIXED | The commit that added block 14 went in with `rtl/include/garuda_map.vh` and `sw/common/garuda_map.h` **stale** against the yaml. `garuda_gen.py --check` had reported it, but the check was `&&`-chained ahead of a doc update while `git commit` sat on its own line, so the failure aborted the docs and not the commit. Regenerated in the next commit. The lesson is the shape of the command, not the tool: a gate that does not gate the thing it is protecting is decoration. |
+
+---
+
+## 1f. The licence-free local flow — 2026-10-03
+
+Found while extending `scripts/run_sim.sh` from 5 of the 15 block testbenches to
+all of them, and getting whole-chip Verilator lint and Yosys synthesis to run.
+Full results and tool versions: `Docs/VERIFICATION_LOG_2026-10-03.md`.
+
+**Every entry here is a check that was reporting a result it had not measured.**
+That is this register's own recurring defect — `TOOL-4`, `TB-11` and the static
+checker that "reported success having checked nothing" are the same thing three
+times — and it is now five times.
+
+| ID | Where | Status | Severity | Summary | Found by |
+|---|---|---|---|---|---|
+| **TB-22** | 5 block TBs | **FIXED** | **high (falsely reassuring / wasted debug)** | A reset held low from time 0 never reaches the design. A Verilog async reset is **edge** sensitive in simulation: `always @(posedge clk or negedge rst_n)` is not evaluated merely because `rst_n` is already low at time 0. `tb_crg`, `tb_ahb2apb`, `tb_timers`, `tb_spim` and `tb_dsu_top` declared theirs `= 0`, so no `negedge` ever occurred and every flop whose only reset was that signal stayed X for the entire run. In `clk_div` that flop is `pclk_q`, and `pclk_q <= ~pclk_q` keeps X forever, so `pclk` and `preset_n` never resolved. Measured under Icarus: *neither* `reg a = 0;` *nor* `initial a = 0;` creates the edge — the `always` block is not armed until after time 0. In silicon the reset pin is level sensitive and this cannot happen, so the fix belongs in the testbench: declare the reset de-asserted, assert it at time 0. **`tb_crg` 0 → 43 checks; `tb_ahb2apb` 1 → 20; `tb_timers` 0 → 23; `tb_debug` 15 failures → 0.** | `make local_sim` |
+| **TOOL-7** | `scripts/run_synth.sh` | **FIXED** | **high (a gate that could not fail)** | The latch gate printed **"No latches inferred" while the netlist contained one**. It grepped its own log for `\$_?DLATCH`, a pattern that never matches the text yosys writes. It now reads the object list yosys emits with `select -list`, **refuses to report at all if that file is absent**, and allows `core_clk_gate`'s ICG enable latch **by name** so any other latch still fails the run. Proven by injecting a live latch into `clk_div`: exits 1 and names it; reverted, exits 0. The first attempt at that control was itself invalid — yosys optimised the injected latch away because nothing read it — which is also why log-grepping is unreliable in *both* directions: the "Latch inferred" warning fires for latches that are then deleted. Compare `ERR-U3`, where 24 real latches were caught only by synthesis. | building the negative control |
+| **TOOL-8** | `scripts/expand_filelist.py` | **FIXED** | medium (blocked chip-level lint) | The expander emitted **CRLF**, so every path it printed carried a trailing CR, and a shell does not word-split on CR. iverilog tolerates a stray CR in a filename — which is why the Icarus flow never noticed — but Verilator reports the path as a module it cannot find. This is what made the expanded filelist look unusable for lint and kept chip-level lint a manual, per-block job (`RTL_LOG_2026-09-16.md:320`). It applied to **every** invocation on Windows regardless of the filelist's own line endings. | whole-chip Verilator lint |
+| **TOOL-9** | `scripts/expand_filelist.py` | **FIXED** | medium (blocked whole-chip synthesis) | `--yosys` emitted `read_verilog` with no `-sv`, so yosys's Verilog-2005 front end rejected `input logic clk` at `spi_master_clkgen.sv:13` and **whole-chip synthesis failed outright** from the moment the vendored PULP SPI master joined the build. Flagged per file now, so Verilog-2005 sources keep being parsed as Verilog-2005. | `make local_synth` |
+| **TOOL-10** | `scripts/run_sim.sh` | **FIXED** | medium | Two kinds of stale result. (a) Per-testbench results accumulate through a file because the loop runs in a subshell, and the file was not deleted first — a second run reported both runs added together, the same class as a stale `.vvp`. (b) No wall-clock cap, so one hanging testbench hung the regression; and on Windows `timeout` returns 124 while the native `vvp` child **survives**, leaving an orphan spinning in a zero-delay loop that takes a core for the rest of the session. Both fixed; each `.vvp` is also deleted before building and the compile's real exit code gates the run. | running it twice |
+| **RTL-C1** | `rtl/dsu/mac_unit.v` | **FIXED** | low (blocked chip-level lint) | Verilator reads a comment whose **first word** is its own name as a lint pragma. A prose paragraph about yosys and the signed casts wrapped such that line 51 began *"Verilator both accept the casts…"*, so Verilator reported `BADVLTPRAGMA: Unknown verilator comment` and **aborted the whole-chip lint** — on a comment. Reworded, with a note not to re-wrap it back. | whole-chip Verilator lint |
+
+**Not defects, recorded so nobody re-derives them.** Four block testbenches
+cannot be built by Icarus, three of them because of vendored third-party PULP
+RTL: `tb_mem_subsystem` (associative array keyed by a packed type),
+`tb_uart`, `tb_gpio`, and `tb_spim` (compiles, but 12 × *"sorry: constant
+selects in `always_*` not fully supported"* mis-models tx/rx and it then spins
+with no simulation-time advance). They are listed in `run_sim.sh` with the
+message that produced each, and are **still built and run every regression** so
+that one which starts passing is reported as a stale entry — a skip list nobody
+re-tests becomes a list of tests nobody runs.
+
+Also: `tools/gen/DSU_gen.py` defaults `--outdir` to `.`, dropping
+`dsu_stim.mem`, `dsu_expected.mem` and `dsu_crosscheck.txt` into the repo root,
+where `.gitignore` does **not** cover them.
 
 ---
 
@@ -675,7 +713,7 @@ afterwards — pinning `HREADYOUT` low forever. Only visible at `GWAIT>0`
 explicit: burn the wait states, *then* respond. The comment in the file now says
 the ordering is load-bearing.
 
-### TB-15 — the AHB protocol checker flags the AMBA-legal error cancel  ·  `OPEN (checker gap)` · **Severity: low**
+### TB-15 — the AHB protocol checker flags the AMBA-legal error cancel  ·  `FIXED 2026-10-03` · **Severity: low**
 
 `tb/ahb/ahb_lite_checker.v`'s `v_retract` counter fires on any NONSEQ/SEQ
 withdrawn to IDLE while HREADY was low. ARM IHI 0033A §5.1.3 **permits** a
@@ -686,6 +724,46 @@ cycle carried `HRESP=ERROR` with `HREADY=0`. Not hit in the tests run so far
 (the DMA's error tests are at block level, where no checker is bound), but it
 **will** produce a false positive the first time a SoC-level test injects a bus
 error into a DMA read. **Fix:** exempt the retract when `p_hresp && !p_hready`.
+
+**Fixed 2026-10-03.** The exemption is applied, and the legal cancels are
+**counted** (`n_err_cancel`, reported in the summary) rather than discarded: an
+exemption that silently swallows traffic is indistinguishable from one that is
+swallowing a real defect.
+
+Verified by `tb/ahb/tb_ahb_checker_selftest.sv`, a new negative control for the
+checker — which had none, against `Docs/ORACLES.md`'s own rule that *a clean
+report from a checker that has not been shown to fail is worth nothing*. It
+drives the monitor's taps directly, so the corner is hit deterministically
+instead of being waited for, and the two scenarios differ in exactly one bit of
+history:
+
+| Scenario | Pre-fix | Post-fix |
+|---|---|---|
+| wait state **with** ERROR, then IDLE (legal cancel) | `v_retract=1` — false positive | `v_retract=0`, `n_err_cancel=1` |
+| plain wait state, then IDLE (genuine retraction) | `v_retract=1` | `v_retract=1` — still caught |
+
+The second row is the one that makes the first mean anything: without it,
+deleting the check outright would also have "passed".
+
+**The three contradictory statuses are now reconciled.** §1b's `MOOT` was
+correct only about the Rev 3.0 DMA not reaching the case; the checker gap it
+noted was real, is what this fixes, and §1's summary row saying *0 open*
+testbench defects was simply wrong.
+
+### TB-23 — `viol()` silently truncated its own messages  ·  `FIXED 2026-10-03` · **Severity: low (misleading logs)**
+
+`ahb_lite_checker.v`'s `viol()` declared its argument `input [8*72-1:0] msg`.
+A Verilog string argument narrower than the literal passed to it drops the
+**leading** characters, with no warning. Three of the eighteen messages
+overflowed 72 characters: the retract message printed as `ddress phase
+RETRACTED…`, and the two-cycle-ERROR message lost **17** characters off the
+front, so it began *"requires HRESP high for two…"* and named no rule at all.
+Widened to 96. Found while building the TB-15 negative control, which printed
+one of the three.
+
+> Pre-existing ID collisions, noted but deliberately not renumbered because
+> this file's own rule is never to renumber: `TOOL-5` names three unrelated
+> defects and `TOOL-6` two. Cite either by description, not by number.
 
 ### Earlier testbench bugs — TB-1 … TB-8
 
