@@ -71,6 +71,18 @@ def main():
         sys.stderr.write(__doc__)
         sys.exit(1)
 
+    # Emit LF, never CRLF.  On Windows, Python's text-mode stdout rewrites
+    # every newline as CR LF, so every path this script printed arrived at the
+    # consumer with a trailing CR glued to it: a shell's $(...) does not word
+    # split on CR, so the tool was handed "rtl/core/foo.v<CR>".  iverilog
+    # tolerates a stray CR in a filename, which is why the Icarus flow never
+    # noticed; Verilator does not, and reports the path as a module it cannot
+    # find.  That is what made the expanded filelist look unusable for lint
+    # and kept chip-level lint a manual, per-block job.  It applied to every
+    # call on Windows regardless of the filelist's own line endings.
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(newline=chr(10))
+
     top = sys.argv[1]
     mode = sys.argv[2] if len(sys.argv) > 2 else '--sources'
 
@@ -92,7 +104,15 @@ def main():
         for s in srcs:
             if s.endswith('.vh'):
                 continue            # headers are pulled in via `include
-            print('read_verilog %s %s' % (flags, s))
+            # A .sv file needs -sv. Without it yosys's Verilog-2005 frontend
+            # rejects a SystemVerilog port declaration -- the whole chip
+            # stopped synthesising at spi_master_clkgen.sv:13 ("input logic
+            # clk") the moment the vendored PULP SPI master joined the build,
+            # which is why the chip-level cell and latch counts could not be
+            # reproduced. Flagged per file rather than globally so the
+            # Verilog-2005 sources keep being parsed as Verilog-2005.
+            sv = ' -sv' if s.endswith('.sv') else ''
+            print('read_verilog%s %s %s' % (sv, flags, s))
     else:
         for s in srcs:
             print(s)
