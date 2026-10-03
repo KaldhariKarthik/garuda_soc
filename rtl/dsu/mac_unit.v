@@ -47,9 +47,15 @@ module mac_unit(
     // already signed with or without them. They were not harmless, though --
     // Yosys 0.69 aborts on them with an internal assertion failure
     // (arg->is_signed == sig.as_wire()->is_signed, genrtlil.cc:2145), which
-    // blocked synthesis of the DSU and therefore of the whole SoC. Icarus and
-    // Verilator both accept the casts, which is why this stayed invisible until
+    // blocked synthesis of the DSU and therefore of the whole SoC. Both Icarus
+    // and Verilator accept the casts, which is why this stayed invisible until
     // the first full-SoC synthesis run.
+    //
+    // (Keep "Verilator" off the START of a comment line here. Verilator reads
+    //  a comment whose first word is its own name as a lint pragma, so the
+    //  previous wrapping of this paragraph made it report
+    //  BADVLTPRAGMA "Unknown verilator comment" and ABORT -- which blocked
+    //  whole-chip lint entirely, on a prose comment.)
     mult_16x16 U_mult_a (.a (a0),  .b (b0), .p (product_a));
     mult_16x16 U_mult_b (.a (a1),  .b (b1), .p (product_b));
     
