@@ -72,6 +72,7 @@ module tb_ahb2apb;
     reg [3:0] waits = 0;
     reg       err_en = 0;
     wire [31:0] nacc [0:11], nproto [0:11];
+    wire [31:0] pviol [0:11];
 
     genvar g;
     generate for (g = 0; g < 12; g = g + 1) begin : g_win
@@ -83,11 +84,28 @@ module tb_ahb2apb;
                 .paddr_i({4'h0, paddr}), .pwdata_i(pwdata), .pstrb_i(4'hF),
                 .prdata_o(prdata[32*g +: 32]), .pready_o(pready[g]), .pslverr_o(pslverr[g]),
                 .n_access_o(nacc[g]), .n_proto_err_o(nproto[g]));
+
+            // Independent APB protocol observer on this window's slave port.
+            // Separate from the slave model's one inline rule on purpose: a
+            // responder cannot be the oracle for the bus it is also driving
+            // (see the header of tb/common/apb_checker.v).
+            //
+            // Window 11 is the /2 window per DIV above, so the bridge holds
+            // PENABLE for one pclk past PREADY on it. That is the divider
+            // working, and the TB measures it as max_pen_w11, so it is
+            // declared here rather than left to fire.
+            apb_checker #(.EXTEND_MAX((g == 11) ? 1 : 0)) u_chk (
+                .clk_i(pclk), .rst_n_i(preset_n),
+                .psel_i(psel[g]), .penable_i(penable), .pwrite_i(pwrite),
+                .paddr_i({20'h0, paddr}), .pwdata_i(pwdata), .pstrb_i(4'hF),
+                .pready_i(pready[g]), .pslverr_i(pslverr[g]),
+                .viol_count_o(pviol[g]));
         end else begin : g_none
             assign prdata[32*g +: 32] = 32'hDEAD_0000 | g;
             assign pready[g]  = (g == 2) ? 1'b0 : 1'b1;   // window 2 hangs
             assign pslverr[g] = 1'b0;
             assign nacc[g] = 0; assign nproto[g] = 0;
+            assign pviol[g] = 0;
         end
     end endgenerate
 
@@ -207,6 +225,19 @@ module tb_ahb2apb;
         check(psel_viol == 0 && pen_viol == 0, "APB: PSEL one-hot, PENABLE only after a 1-cycle SETUP");
         check(rst_hold_viol == 0, "a_dual_reset_hold");
         check(nproto[1] + nproto[5] + nproto[9] + nproto[11] == 0, "APB slave models saw no protocol error");
+
+        // The independent checker, and a check that it was looking at anything
+        // at all -- a clean report from an observer that saw no traffic is the
+        // failure mode this project has three recorded instances of.
+        g_win[1].g_model.u_chk.report_result;
+        g_win[11].g_model.u_chk.report_result;
+        check(pviol[1] + pviol[5] + pviol[9] + pviol[11] == 0,
+              "APB protocol checker clean on all four modelled windows");
+        check(g_win[1].g_model.u_chk.n_access  > 0 &&
+              g_win[5].g_model.u_chk.n_access  > 0 &&
+              g_win[9].g_model.u_chk.n_access  > 0 &&
+              g_win[11].g_model.u_chk.n_access > 0,
+              "APB protocol checker observed traffic on every modelled window");
 
         $display("tb_ahb2apb: checks=%0d  FAIL=%0d", checks, fails);
         $display("RESULT: %s", fails ? "FAILED" : "PASSED");
