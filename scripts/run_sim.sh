@@ -48,6 +48,7 @@ cd "$ROOT" || exit 1
 # -----------------------------------------------------------------------------
 TB_TABLE="
 tb_ahb_checker_selftest|tb/ahb/filelist_checker_selftest.f|tb_chk_self
+tb_apb_checker_selftest|tb/common/filelist_apb_checker_selftest.f|tb_apbchk_self
 tb_crg|tb/clk_div/filelist_crg.f|tb_crg
 tb_ahb_interconnect|tb/ahb/filelist_ahb_ic.f|tb_ahb_ic
 tb_ahb2apb|tb/ahb2apb/filelist_ahb2apb.f|tb_bridge
