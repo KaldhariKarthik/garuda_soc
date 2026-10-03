@@ -13,7 +13,19 @@ module tb_crg;
     localparam real TREF = 2.0;              // 500 MHz
 
     reg        refclk = 0;
-    reg        ext_rst_n = 0;
+    reg        ext_rst_n = 1;
+
+    // ---- reset must arrive as an EDGE, not merely be low at time 0 (TB-22) ---
+    // A Verilog async reset is edge-sensitive in simulation: `always @(... or
+    // negedge rst_n)` is not evaluated just because rst_n is already low when
+    // the run starts. A reset declared `= 0` therefore produces no negedge
+    // ever, and every flop whose only reset is that signal stays X for the
+    // whole simulation -- and `q <= ~q` on a clock divider keeps X forever, so
+    // the derived clock and its reset never resolve. Real silicon resets on a
+    // LEVEL and cannot behave this way; it is a simulation artefact, so the fix
+    // belongs here. Declare the reset de-asserted and assert it at time 0.
+    initial #0 ext_rst_n = 1'b0;
+
     reg        wdt_req = 0, ndm_req = 0, hart_req = 0;
 
     reg        psel = 0, penable = 0, pwrite = 0;
