@@ -51,7 +51,19 @@ module tb_dsu_top;
     reg clk = 1'b0;
     always #5 clk = ~clk;
 
-    reg         rst_n;
+    reg         rst_n = 1'b1;
+
+    // ---- reset must arrive as an EDGE, not merely be low at time 0 (TB-22) ---
+    // A Verilog async reset is edge-sensitive in simulation: `always @(... or
+    // negedge rst_n)` is not evaluated just because rst_n is already low when
+    // the run starts. A reset declared `= 0` therefore produces no negedge
+    // ever, and every flop whose only reset is that signal stays X for the
+    // whole simulation -- and `q <= ~q` on a clock divider keeps X forever, so
+    // the derived clock and its reset never resolve. Real silicon resets on a
+    // LEVEL and cannot behave this way; it is a simulation artefact, so the fix
+    // belongs here. Declare the reset de-asserted and assert it at time 0.
+    initial #0 rst_n = 1'b0;
+
     reg         flush;
     reg         dsu_en;
     reg  [31:0] instr, rs1, rs2;
