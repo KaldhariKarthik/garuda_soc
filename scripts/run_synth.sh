@@ -88,8 +88,14 @@ opt -full
 check -assert
 
 stat
-select -count t:\$dlatch t:\$_DLATCH_* %u
+# Write the latch list to a FILE rather than leaving it in the log for grep
+# to find. The previous gate grepped the log and printed "No latches
+# inferred" while the netlist contained one: the pattern never matched the
+# text yosys actually writes. A gate that cannot fail is not a gate -- see
+# TOOL-4, TOOL-5 and TB-11 in Docs/BUGS.md for the same defect three times.
+tee -q -o __LATCHFILE__ select -list t:\$dlatch t:\$_DLATCH_* %u
 EOF
+sed -i "s|__LATCHFILE__|$OUT/latches.txt|" "$OUT/synth.ys"
 
 echo "=== running yosys ==="
 yosys -q -l "$OUT/yosys.log" "$OUT/synth.ys"
@@ -106,14 +112,30 @@ fi
 sed -n '/=== design hierarchy ===/,/^$/p' "$OUT/yosys.log" | head -40
 grep -E "Number of cells|Number of wires|Number of memories" "$OUT/yosys.log" | tail -5
 
-LATCH=$(grep -cE '\\\$_?DLATCH' "$OUT/yosys.log")
+# ---- the latch gate ---------------------------------------------------------
+# Read the count from the object list yosys wrote, never from the log text.
+#
+# EXPECTED LATCHES. core_clk_gate is an integrated clock gate: its enable latch
+# IS the cell, not a mistake, and both yosys and Genus report it (HANDOFF's
+# Genus figure also says 1 latch -- this is that latch). It is allowed BY NAME
+# so that any other latch still fails the run. Do not widen this into "ignore
+# latches": ERR-U3 once put 24 latches in this netlist, and synthesis was the
+# only thing in the whole flow that caught it.
+LATCHFILE="$OUT/latches.txt"
 echo
-if [ "$LATCH" -gt 0 ]; then
-    echo "*** LATCHES INFERRED -- investigate before doing anything else ***"
-    grep -E '\\\$_?DLATCH' "$OUT/yosys.log" | head
+if [ ! -f "$LATCHFILE" ]; then
+    echo "*** LATCH GATE DID NOT RUN -- no $LATCHFILE was produced ***"
+    echo "    Refusing to report a latch result that was never measured."
     exit 1
-else
-    echo "No latches inferred."
+fi
+LATCH_ALL=$(grep -c . "$LATCHFILE")
+LATCH_BAD=$(grep -v "core_clk_gate" "$LATCHFILE" | grep -c .)
+echo "Latches: $LATCH_ALL total, $LATCH_BAD unexpected"
+echo "  (core_clk_gate's ICG enable latch is expected and allowed by name)"
+if [ "$LATCH_BAD" -gt 0 ]; then
+    echo "*** UNEXPECTED LATCHES INFERRED -- investigate before anything else ***"
+    grep -v "core_clk_gate" "$LATCHFILE" | head -20
+    exit 1
 fi
 
 echo "Full log: $OUT/yosys.log"
