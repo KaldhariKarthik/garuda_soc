@@ -72,7 +72,18 @@ module dtm (
                 case (ir_i)
                     IR_IDCODE: sh <= {9'd0, IDCODE};
                     IR_DTMCS:  sh <= {9'd0, dtmcs};
-                    IR_DMI:    sh <= {req_addr_o, rsp_q, busy ? 2'd3 : dmistat};
+                    IR_DMI: begin
+                        sh <= {req_addr_o, rsp_q, busy ? 2'd3 : dmistat};
+                        // ERRATUM DBG-1: a scan that captures busy must itself
+                        // be refused (Debug 0.13 6.1.5: "the data scanned into
+                        // dmi in this access will be ignored", sticky until
+                        // dmireset). The refusal was decided only at Update-DR,
+                        // 41+ tck later, by which time the previous request had
+                        // usually finished - so the debugger was told "busy,
+                        // ignored", retried, and the request ran twice (with
+                        // sbautoincrement: a word written twice / skipped).
+                        if (busy) dmistat <= 2'd3;
+                    end
                     default:   bypass <= 1'b0;
                 endcase
             end else if (shift_dr_i) begin

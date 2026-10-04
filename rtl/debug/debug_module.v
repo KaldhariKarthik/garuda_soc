@@ -71,7 +71,13 @@ module debug_module (
     reg [47:0] hold0, hold1, hold2;
     reg        pending_write;             // the running SBA transfer is a write
 
-    wire sbbusy = sba_busy_i | sba_start_o;
+    // ERRATUM DBG-2: sba_done_i is high one cycle AFTER sba_busy_i falls, and
+    // sbdata/sbaddr/sberror only take the result at the end of that cycle. With
+    // the done cycle counted as idle, an sbdata0 read landing in it returned the
+    // previous word with sbbusyerror clear, and an sbdata0 write started a new
+    // transfer past an sberror being set in the same cycle. The transfer is
+    // busy until its result is in the registers.
+    wire sbbusy = sba_busy_i | sba_start_o | sba_done_i;
 
     wire [31:0] dmcontrol = {2'b00, hartreset, 27'd0, ndmreset, dmactive};
     wire [31:0] dmstatus  = {12'd0, 1'b0 /*impebreak*/, 2'b00, 1'b0, 1'b0, 2'b00,
@@ -110,7 +116,7 @@ module debug_module (
             sba_start_o <= 1'b0;
 
             // ---- SBA completion ----------------------------------------------------------
-            if (sba_done_i) begin
+            if (sba_done_i && dmactive) begin
                 if (sba_err_i) sberror <= 3'd4;
                 else begin
                     if (!pending_write) sbdata <= sba_rdata_i;
@@ -119,12 +125,21 @@ module debug_module (
             end
 
             // ---- DMI writes -----------------------------------------------------------------
-            if (wr) begin
+            // ERRATUM DBG-3: dmactive = 0 "holds the DM in reset" (spec 6.5). It
+            // only cleared ndmreset/hartreset: sbcs, sberror, sbbusyerror and
+            // sbaddress0 survived the debugger's dmactive 0 -> 1 reset, and SBA
+            // ran with the DM inactive. Writing dmactive = 0 now returns the
+            // SBA registers to their reset values, and while dmactive is 0 only
+            // dmcontrol is writable and no transfer can start.
+            if (wr && (dmactive || addr_i == A_DMCONTROL)) begin
                 case (addr_i)
                     A_DMCONTROL: begin
                         dmactive <= wdata_i[0];
                         if (!wdata_i[0]) begin            // DM reset
                             ndmreset <= 1'b0; hartreset <= 1'b0;
+                            sbbusyerror <= 1'b0; sbreadonaddr <= 1'b0; sbautoinc <= 1'b0;
+                            sbreadondata <= 1'b0; sbaccess <= 3'd2; sberror <= 3'd0;
+                            sbaddr <= 32'd0; sbdata <= 32'd0;
                         end else begin
                             ndmreset <= wdata_i[1];
                             if      (wdata_i[31]) hartreset <= 1'b1;   // haltreq
@@ -172,7 +187,8 @@ module debug_module (
                     A_SBADDR0:    rdata_o <= sbaddr;
                     A_SBDATA0: begin
                         rdata_o <= sbdata;
-                        if (sbbusy) sbbusyerror <= 1'b1;
+                        if (!dmactive) ;                  // DBG-3: no side effects in reset
+                        else if (sbbusy) sbbusyerror <= 1'b1;
                         else if (sbreadondata && sberror == 0 && !sbbusyerror) kick(1'b0);
                     end
                     A_ACC0L: begin rdata_o <= dsu_acc0_i[31:0]; hold0 <= dsu_acc0_i; end
