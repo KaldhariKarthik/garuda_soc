@@ -305,12 +305,12 @@ module tb_top;
         // reservation contract (SVA A6); reads are gated on "not empty"
         // because that is what fifo_rd_en does in garuda_if_stage_top.
         repeat (2000) begin
-            bit rdir = ($urandom_range(0, 99) < 5);
-            bit we   = !rdir && (ref_fifo.size() < 4) && ($urandom_range(0, 99) < 60);
-            bit re   = !rdir && (ref_fifo.size() > 0) && ($urandom_range(0, 99) < 55);
-            bit [31:0] wi = $urandom();
-            bit [31:0] wp = $urandom() & 32'hFFFF_FFFC;
-            bit wf = ($urandom_range(0, 99) < 10);
+            automatic bit rdir = ($urandom_range(0, 99) < 5);
+            automatic bit we   = !rdir && (ref_fifo.size() < 4) && ($urandom_range(0, 99) < 60);
+            automatic bit re   = !rdir && (ref_fifo.size() > 0) && ($urandom_range(0, 99) < 55);
+            automatic bit [31:0] wi = $urandom();
+            automatic bit [31:0] wp = $urandom() & 32'hFFFF_FFFC;
+            automatic bit wf = ($urandom_range(0, 99) < 10);
             step(rdir, we, wi, wp, wf, re);
             check("soak");
         end

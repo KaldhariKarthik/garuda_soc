@@ -63,14 +63,16 @@ interface iport_if (input bit clk, input bit rst_n);
     a_fixed_pins: assert property (p_fixed_pins)
         else $error("[SVA-FAIL] a fixed I-port pin (HSIZE/HPROT/HWRITE/HWDATA) moved");
 
-    // A2: HBURST follows HTRANS -- INCR while SEQ (sequential prefetch),
-    //     SINGLE otherwise (Sec. 6.4).
-    property p_hburst_tracks_htrans;
-        @(posedge clk) (i_htrans == HTRANS_SEQ) ? (i_hburst == 3'b001)
-                                                : (i_hburst == 3'b000);
+    // A2: HBURST is INCR for the whole burst, the NONSEQ first beat included.
+    //     AMBA requires HBURST constant across a burst; this property used to
+    //     demand SINGLE on every beat that was not SEQ, which is the behaviour
+    //     rtl ERRATUM BUS-A removed (BUGS.md ELEM-3). HBURST during IDLE is a
+    //     don't-care on the bus and the RTL holds INCR there too.
+    property p_hburst_is_incr;
+        @(posedge clk) (i_hburst == 3'b001);
     endproperty
-    a_hburst: assert property (p_hburst_tracks_htrans)
-        else $error("[SVA-FAIL] HBURST does not track HTRANS (INCR only while SEQ)");
+    a_hburst: assert property (p_hburst_is_incr)
+        else $error("[SVA-FAIL] HBURST is not INCR");
 
     // A3: no new address phase is presented in a redirect cycle -- the
     //     master retracts to IDLE (Sec. 6.5).
@@ -204,6 +206,10 @@ module tb_top;
     bit  saw_first_after_redirect;
     bit [31:0] first_pc_after_redirect;
     bit  saw_tagged_fault;
+    bit  saw_nonseq_at_tgt;
+    always @(posedge clk)
+        if ((vif.i_htrans == HTRANS_NONSEQ) && (vif.i_haddr == 32'h3000_0000))
+            saw_nonseq_at_tgt = 1'b1;
 
     always @(posedge clk) begin
         if (rst_n) begin
@@ -368,22 +374,24 @@ module tb_top;
         // Neither may be delivered after the redirect, even though one
         // completes a cycle or more AFTER redirect_i has fallen -- that is
         // the drop_cnt obligation the RTL header describes.
+        // The fault for the C12 check below is armed HERE, before the redirect
+        // that starts the stream: the fetch runs a word per cycle, so arming it
+        // after the checks in between let the stream pass 0x3000_0020 first and
+        // the fault never happened (BUGS.md ELEM-3).
+        saw_tagged_fault = 0;
+        err_addr = 32'h3000_0020; err_arm = 1;
         expect_no_delivery = 1;
         saw_first_after_redirect = 0;
+        saw_nonseq_at_tgt = 0;
         do_redirect(32'h3000_0000);
         tick(); tick();                    // the owed data phases land here
         @(negedge clk); expect_no_delivery = 0;
         sb.pass("flush", "no stale delivery while data was owed after the redirect");
-        // the first transfer after a redirect is NONSEQ again
-        begin
-            bit found_nonseq = 0;
-            for (int i = 0; i < 8 && !found_nonseq; i++) begin
-                if ((vif.i_htrans == HTRANS_NONSEQ) && (vif.i_haddr == 32'h3000_0000))
-                    found_nonseq = 1;
-                tick();
-            end
-            sb.chk1("flush", "first post-redirect transfer is NONSEQ", found_nonseq, 1'b1);
-        end
+        // the first transfer after a redirect is NONSEQ again. Watched by a
+        // monitor from the redirect onwards: the NONSEQ is issued inside the
+        // two cycles above, so a loop starting here looked too late.
+        repeat (8) tick();
+        sb.chk1("flush", "first post-redirect transfer is NONSEQ", saw_nonseq_at_tgt, 1'b1);
         repeat (10) tick();
         sb.chk1("flush", "a word was delivered after the redirect",
                 saw_first_after_redirect, 1'b1);
@@ -394,8 +402,6 @@ module tb_top;
         // ---- HRESP = ERROR is TAGGED on the right entry (C12) -----------
         // Sec. 6.4: the fault is tagged here and only raised when the entry
         // reaches ID -- which is what makes C13 possible at all.
-        saw_tagged_fault = 0;
-        err_addr = 32'h3000_0020; err_arm = 1;
         repeat (24) tick();
         sb.chk1("fault", "the faulting fetch was tagged", saw_tagged_fault, 1'b1);
         err_arm = 0;

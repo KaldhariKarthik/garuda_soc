@@ -247,7 +247,10 @@ module tb_top;
         end
 
         // ---- reset asserted mid-stream ---------------------------------
-        rst_n = 0; #1;
+        // inputs are dropped with the reset: the stream above leaves
+        // fetch_issue high, and the soak model below starts from the reset
+        // vector, so one stray issue after release put it 4 behind for good
+        rst_n = 0; vif.redirect = 0; vif.fetch_issue = 0; vif.commit = 0; #1;
         sb.chk("re_reset", "pc",       vif.pc,       RESET_VECTOR);
         sb.chk("re_reset", "fetch_pc", vif.fetch_pc, RESET_VECTOR);
         @(negedge clk); rst_n = 1;
@@ -261,10 +264,10 @@ module tb_top;
             bit [31:0] model_fetch = RESET_VECTOR;
             bit [31:0] tag = RESET_VECTOR;
             repeat (600) begin
-                bit rdir = ($urandom_range(0, 99) < 15);
-                bit fiss = ($urandom_range(0, 99) < 60);
-                bit cmt  = ($urandom_range(0, 99) < 50);
-                bit [31:0] rpc = $urandom() & 32'hFFFF_FFFC;
+                automatic bit rdir = ($urandom_range(0, 99) < 15);
+                automatic bit fiss = ($urandom_range(0, 99) < 60);
+                automatic bit cmt  = ($urandom_range(0, 99) < 50);
+                automatic bit [31:0] rpc = $urandom() & 32'hFFFF_FFFC;
                 tag = $urandom() & 32'hFFFF_FFFC;
                 step(rdir, rpc, fiss, cmt, tag);
                 // Mirror the spec's own update rules, so the soak is

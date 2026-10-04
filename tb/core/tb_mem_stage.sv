@@ -292,19 +292,26 @@ module tb_top;
         sb.chk1("sb", "retires",          vif.retire,      1'b1);
         sb.chk1("sb", "no reg_write",     vif.reg_write_o, 1'b0);
 
+        // Back-to-back stores (BUGS.md ELEM-6). The previous store is still in
+        // its data phase when the next one is presented, so the first edge only
+        // ends that data phase: HSIZE belongs to the address phase that follows
+        // it and HWDATA to the edge after. This used to check HWDATA one edge
+        // early and read the previous store's data.
         @(negedge clk);
         clr(); vif.mem_write = 1; vif.ex_result = 32'h2000_0042;
         vif.funct3 = `F3_H; vif.rs2_data = 32'h1234_BEEF;
         tick(); #1;
-        sb.chk("sh", "HWDATA on the upper half", vif.d_hwdata, 32'hBEEF_0000);
         sb.chk("sh", "HSIZE half",               vif.d_hsize,  3'b001);
+        tick(); #1;
+        sb.chk("sh", "HWDATA on the upper half", vif.d_hwdata, 32'hBEEF_0000);
 
         @(negedge clk);
         clr(); vif.mem_write = 1; vif.ex_result = 32'h2000_0050;
         vif.funct3 = `F3_W; vif.rs2_data = 32'hCAFE_F00D;
         tick(); #1;
-        sb.chk("sw", "HWDATA unshifted", vif.d_hwdata, 32'hCAFE_F00D);
         sb.chk("sw", "HSIZE word",       vif.d_hsize,  3'b010);
+        tick(); #1;
+        sb.chk("sw", "HWDATA unshifted", vif.d_hwdata, 32'hCAFE_F00D);
 
         // =============================================================
         // MISALIGNMENT -- no bus transaction is ever issued (C11)
@@ -405,8 +412,8 @@ module tb_top;
         repeat (800) begin
             @(negedge clk);
             if (!vif.mem_stall) begin
-                bit do_load  = $urandom_range(0, 99) < 40;
-                bit do_store = !do_load && ($urandom_range(0, 99) < 50);
+                automatic bit do_load  = $urandom_range(0, 99) < 40;
+                automatic bit do_store = !do_load && ($urandom_range(0, 99) < 50);
                 vif.mem_read   = do_load;
                 vif.mem_write  = do_store;
                 vif.mem_to_reg = do_load;

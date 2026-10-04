@@ -213,10 +213,15 @@ module tb_top;
 
     // One-cycle redirect to tgt; re-arms the scoreboard so the first pop
     // afterwards becomes the new ordering anchor.
-    task automatic do_redirect(bit [31:0] tgt);
+    // guard = 1 also raises expect_no_pop, in the same half-cycle as the
+    // redirect itself. Callers used to raise it before calling, which in the
+    // soak loop was a full cycle early - a legitimate pop of the old stream,
+    // BEFORE the redirect, was reported as stale (BUGS.md ELEM-5).
+    task automatic do_redirect(bit [31:0] tgt, bit guard = 1'b0);
         @(negedge clk);
         vif.redirect    = 1'b1;
         vif.redirect_pc = tgt;
+        if (guard) expect_no_pop = 1'b1;
         armed           = 1'b0;
         expected_pc     = tgt;
         @(posedge clk); #1;
@@ -254,7 +259,10 @@ module tb_top;
         // ---- a stall freezes the head; SVA A2 is the checker ------------
         @(negedge clk); vif.stall = 1; #1;
         begin
-            int popped_before = popped;
+            // assigned, not initialised: an initialiser on a static variable
+            // runs once at time 0, when popped is still 0 (BUGS.md ELEM-5)
+            int popped_before;
+            popped_before = popped;
             repeat (6) tick();
             if (popped != popped_before)
                 sb.fail("stall", "instructions issued while stalled",
@@ -284,8 +292,7 @@ module tb_top;
         sb.pass("fetch_bubble", "starvation produced no phantom instructions");
 
         // ---- redirect with fetches in flight (C15) ----------------------
-        expect_no_pop = 1;
-        do_redirect(32'h2000_0000);
+        do_redirect(32'h2000_0000, 1'b1);
         tick(); tick();
         @(negedge clk); expect_no_pop = 0;
         repeat (30) tick();
@@ -332,8 +339,7 @@ module tb_top;
         err_addr = 32'h6000_0008; err_arm = 1;
         saw_fault_at_err_addr = 0;
         tick(); tick();
-        expect_no_pop = 1;
-        do_redirect(32'h7000_0000);
+        do_redirect(32'h7000_0000, 1'b1);
         tick(); tick();
         @(negedge clk); expect_no_pop = 0;
         err_arm = 0;
@@ -350,9 +356,8 @@ module tb_top;
             vif.stall    = $urandom_range(0, 99) < 25;
             vif.i_hready = $urandom_range(0, 99) < 80;
             if ($urandom_range(0, 999) < 15) begin
-                bit [31:0] tgt = $urandom() & 32'hFFFF_FFFC;
-                expect_no_pop = 1'b1;
-                do_redirect(tgt);
+                automatic bit [31:0] tgt = $urandom() & 32'hFFFF_FFFC;
+                do_redirect(tgt, 1'b1);
                 tick(); tick();
                 @(negedge clk); expect_no_pop = 1'b0;
             end else begin

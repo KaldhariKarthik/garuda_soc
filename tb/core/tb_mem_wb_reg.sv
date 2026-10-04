@@ -262,11 +262,11 @@ module tb_top;
         // property set is exercised on sequences the directed cases do not
         // enumerate (e.g. flush immediately following flush).
         repeat (400) begin
-            bit [31:0] d  = $urandom();
-            bit [4:0]  rd = $urandom_range(0, 31);
-            bit rw  = $urandom_range(0, 1);
-            bit ret = $urandom_range(0, 1);
-            bit fl  = ($urandom_range(0, 99) < 25);   // flush ~25% of cycles
+            automatic bit [31:0] d  = $urandom();
+            automatic bit [4:0]  rd = $urandom_range(0, 31);
+            automatic bit rw  = $urandom_range(0, 1);
+            automatic bit ret = $urandom_range(0, 1);
+            automatic bit fl  = ($urandom_range(0, 99) < 25);   // flush ~25% of cycles
             drive(d, rd, rw, ret, fl);
         end
         sb.pass("soak", "400 randomised cycles completed with SVA armed");
