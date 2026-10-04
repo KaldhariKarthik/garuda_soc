@@ -1,5 +1,49 @@
 # GARUDA coverage — status and signoff notes
 
+## 2026-10-04: first collection over the whole SoC
+
+Everything below this section is the 2026-08-04 core-and-DSU measurement and is
+kept as history. This is the first time coverage has been collected on the SoC
+blocks and the chip, and the first on the Rev 4.0 RTL.
+
+- Collected by the vManager session `flow/regress/garuda.vsif`: 119 runs (12 block
+  benches, 20 core unit benches, DSU vs model, 63 ISA tests, 12 sanity programs,
+  3 integration benches, 8 chip programs), all passing, each under irun 15.2 with
+  `-coverage all`. Merged with IMC by `flow/regress/merge_cov.sh` into
+  `sim/cov_merged/` (`imc -load sim/cov_merged/merged` to browse).
+- Numbers are IMC's overall average per module definition (block, expression and
+  toggle together), from `sim/cov_merged/module_summary.txt`.
+
+| Area | Module, overall average |
+|---|---|
+| **Core** | `garuda_core_top` 88.79%, `decode_control` 83.72%, `pipe_ctrl` 86.08%, `trap_ctrl` 82.50%, `csr_file` 72.85%, `garuda_if_stage_top` 60.57%, `id_stage` 91.99%, `ex_stage` 93.77%, `mem_stage` 84.77%, `d_port_ahb_master` 97.03%, `garuda_iport_ahb_master` 84.09%, `garuda_prefetch_buffer` 85.81%, `regfile` 100.00%, `clic_ctrl` 50.00% |
+| **DSU** | `dsu_top` 99.74%, `mac_unit` 97.57%, `saturation_unit` 81.68%, `overflow_flag` 83.33%, `barrel_shifter` 100.00%, `dsu_stall` 100.00% |
+| **Bus** | `ahb_interconnect` 68.41%, `ahb_arbiter` 96.77%, `ahb2apb_bridge` 86.21%, `ahb2apb_apb_fsm` 98.71%, `garuda_apb_shim` 95.60%, `ahb_mem_slave_if` 95.34% |
+| **System** | `dma_top` 55.45%, `dma_chan` 89.61%, `dma_engine` 94.26%, `dma_apb_slave` 77.03%, `clic_top` 64.52%, `clic_apb` 81.94%, `clic_select` 54.64%, `timers_top` 75.39%, `mtime` 87.20%, `wdt` 87.94%, `reset_ctrl` 87.26%, `reset_ctrl_apb` 90.09%, `clk_div` 97.73%, `debug_module` 81.53%, `dtm` 90.61%, `jtag_tap` 95.32%, `dmi_cdc` 97.06%, `sba_master` 94.03% |
+| **Peripherals** | `garuda_spim_top` 89.84%, `garuda_i2c_top` 92.45%, `garuda_uart_top` 88.59%, `garuda_gpio_top` 64.17%, `garuda_pwm_top` 95.76%, `garuda_pwm_core` 100.00%, `garuda_spis_top` 91.38%, `garuda_spis_core` 100.00% |
+| **Top** | `garuda_soc_top` 56.00%, `garuda_chip_top` 54.80% |
+
+Of the 54 design modules listed, 16 are at or above 95%, 18 are between 85% and
+95%, and 20 are below 85%. **Coverage is not closed and no bar is claimed.**
+
+Covergroups (`tb/cov/garuda_cov.sv`, core only): hazard 97.9%, ahb 92.5%,
+ldst 91.0%, trap 90.0%, decode 87.5%, dsu 82.0%; alu is fully covered and so does
+not appear in the uncovered report. There are no covergroups on the SoC blocks.
+
+What the low numbers are, as far as they have been looked at:
+
+- `garuda_chip_top`, `garuda_soc_top`, `dma_top`, `ahb_interconnect`, `timers_top`:
+  wiring-only modules whose score is toggle on wide buses (address and data bits
+  that the chip programs never drive high). Not reviewed bit by bit.
+- `clic_ctrl` 50%, `clic_select` 54.6%, `clic_top` 64.5%: the CLIC was not
+  reached by the block-level review on 2026-10-04 and its bench is the original
+  15 checks. This is a real gap.
+- `garuda_if_stage_top` 60.6%, `csr_file` 72.9%: the two gaps named in Category C
+  below (prefetch corners, CSR sweep) are still open.
+- `garuda_gpio_top` 64.2%: thin wrapper, bench not extended on 2026-10-04.
+
+---
+
 Generated 2026-08-04 from a merged database of 80 runs.
 See `docs/HANDOFF.md` for the full verification handoff; this file covers coverage only.
 Reproduce with `./scripts/run_coverage.sh`; reports land in `sim/cov/`.

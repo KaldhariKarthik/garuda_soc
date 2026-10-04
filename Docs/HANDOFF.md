@@ -1,7 +1,37 @@
 # GARUDA verification — handoff
 
-Last updated 2026-09-26 (§0 below). §1 onward is the 2026-09-02 core/DSU
+Last updated 2026-10-04 (§0a below). §1 onward is the 2026-09-02 core/DSU
 handoff, kept as history; where it disagrees with §0, §0 is current.
+
+---
+
+## 0a. Flow re-run, stages 1 to 6 — 2026-10-04
+
+The flow was run in order on Cadence tools (vPlan, static, block, core,
+integration, SoC top): commands in `flow/COMMANDS.md`, findings in
+`Docs/BUGS.md` §1h. Where §0 below disagrees with this section, this is current.
+
+| stage | what ran | result |
+|---|---|---|
+| 1 vPlan | vPlanner CSV plan generated from the spec notes (`flow/1_vplan/`) | 885 elements; 396 notes still have no check that cites them |
+| 2 Static | HAL lint on the chip, HAL clock-domain checks on `debug_top` | 696 errors down to 5, all dispositioned (`flow/2_static/hal_waivers.txt`); formal not run, no IFV licence |
+| 3 Block/IP | 15 block benches | all pass; DMA 63, debug 93, UART 116, I²C 88, PWM 56, SPI slave 71 checks |
+| 4 CPU core | 20 unit/element benches, 63 ISA tests, 57 of them also in Spike lockstep and 6 judged by their own result by design (plain and random waits), 12 sanity programs incl. the hold × flush matrix, DSU vs model | all pass, 0 assertion failures |
+| 5 Integration | interconnect, bridge, shim, `t_chip_integ` | all pass |
+| 6 SoC top | 8 chip programs from the pins, 2 of them also with X-propagation | all pass |
+
+**RTL changed on 2026-10-04** in `rtl/core` (decode, trap, pipeline control,
+CSR file, core top), `rtl/dsu`, `rtl/dma`, `rtl/debug`, `rtl/i2c`,
+`rtl/spi_slave`, `rtl/pwm`, `rtl/clic`, `rtl/soc`. **The KV260 bitstream
+predates all of it** and has to be rebuilt before the FPGA stage is repeated.
+
+**For the owner to decide:** the DMA error interrupts moved from CLIC IDs 7..12
+to 8..13 (INT-2); the ID tables in the CLIC, DMA and TRM documents and CLIC
+[N-6.2]/[N-6.3] (enable mask) still describe the old map.
+
+**Not done:** block-level note-by-note review for SPI master, CLIC, clock/reset,
+memories and GPIO; CSR sweep and exception-priority tests; random-program
+lockstep; coverage closure.
 
 ---
 
