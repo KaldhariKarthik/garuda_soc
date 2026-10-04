@@ -130,8 +130,14 @@ module dma_chan (
             end
 
             // ---- one beat per request assertion ([N-7.10]) -----------------------------
-            if (!req_i)          taken_q <= 1'b0;
-            else if (beat_done_i || beat_err_i) taken_q <= 1'b1;
+            // ERRATUM DMA-8 (2026-10-04): only a SUCCESSFUL beat consumes the
+            // request. A failed beat is never acknowledged, so the peripheral
+            // is still requesting ([N-7.7]); marking that request taken left
+            // the channel ACTIVE but never eligible after firmware repaired
+            // the address and set EN again - a hang with no status bit set.
+            // No duplicate beat is possible: the error clears EN on this edge.
+            if (!req_i)           taken_q <= 1'b0;
+            else if (beat_done_i) taken_q <= 1'b1;
         end
     end
 
