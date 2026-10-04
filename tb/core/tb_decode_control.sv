@@ -504,6 +504,21 @@ class decode_generator;
             add_seq("stress_alternating_legal_illegal", q);
         end
 
+        // 8b) Reserved funct7 encodings (rtl ERRATA C-13, C-14). The random
+        //     sequences reach these only by luck: funct7 is 7 random bits.
+        begin
+            decode_cycle q[$];
+            // funct7 = 0100000 on every funct3: legal only for SUB (000) and SRA (101)
+            for (int f = 0; f < 8; f++)
+                q.push_back(mk(OPC_REG, f[2:0], 7'b0100000, 5'd3, 5'd1, 5'd2));
+            // shift-immediates with a reserved funct7: illegal and must not write rd
+            q.push_back(mk(OPC_IMM, 3'b001, 7'b0100000, 5'd3, 5'd1, 5'd2));
+            q.push_back(mk(OPC_IMM, 3'b001, 7'b0000001, 5'd3, 5'd1, 5'd2));
+            q.push_back(mk(OPC_IMM, 3'b101, 7'b1000001, 5'd3, 5'd1, 5'd2));
+            q.push_back(mk(OPC_IMM, 3'b101, 7'b0000001, 5'd3, 5'd1, 5'd2));
+            add_seq("reserved_funct7", q);
+        end
+
         // 9) CONSTRAINED-RANDOM sequences
         for (int s = 0; s < num_random_seqs; s++) begin
             decode_cycle q[$];
@@ -602,6 +617,10 @@ class decode_ref_model;
                     else if (f7 == 7'b0100000) r.alu_op = `ALU_SRA;
                     else                       r.illegal = 1;
         endcase
+        // An illegal instruction writes nothing (assertion A6, rtl ERRATUM
+        // C-14). This model used to predict reg_write = 1 here, copying the
+        // RTL, while a_illegal_inert failed on every such instruction.
+        if (r.illegal) r.reg_write = 0;
         return r;
     endfunction
 
@@ -615,7 +634,9 @@ class decode_ref_model;
             r.reg_write = 1; r.mul_en = 1;
         end else if (is_div) begin
             r.illegal = 1;
-        end else if (f7 == 7'b0000000 || f7 == 7'b0100000) begin
+        // funct7 = 0100000 is defined only for SUB and SRA (rtl ERRATUM C-13).
+        end else if (f7 == 7'b0000000 ||
+                     (f7 == 7'b0100000 && (f3 == 3'b000 || f3 == 3'b101))) begin
             r.reg_write = 1;
             case (f3)
                 3'b000:  r.alu_op = f7[5] ? `ALU_SUB : `ALU_ADD;

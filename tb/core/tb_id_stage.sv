@@ -589,7 +589,10 @@ class id_cycle;
         (op == IDK_JALR) -> (instr_val[6:0] == 7'b1100111);
         (op == IDK_CSR_OP) -> (instr_val[6:0] == 7'b1110011 && instr_val[14:12] != 3'b000);
         (op == IDK_ILLEGAL) -> (instr_val[6:0] == 7'b0110011 && instr_val[31:25] == 7'b0000001 && instr_val[14]);
-        (op == IDK_LEGAL_ALU) -> (instr_val[6:0] == 7'b0110011 && instr_val[31:25] inside {7'b0000000, 7'b0100000});
+        // funct7 = 0100000 is legal only on SUB and SRA (rtl ERRATUM C-13)
+        (op == IDK_LEGAL_ALU) -> (instr_val[6:0] == 7'b0110011 &&
+                                  (instr_val[31:25] == 7'b0000000 ||
+                                   (instr_val[31:25] == 7'b0100000 && instr_val[14:12] inside {3'b000, 3'b101})));
     }
 
     function void fields(output bit [31:0] o_instr, output bit [31:0] o_pc, output bit o_fault, output bit o_valid,
@@ -845,7 +848,8 @@ class id_stage_ref_model;
                 bit is_div = is_muldiv && f3[2];
                 if (is_mul) begin r.reg_write=1; r.mul_en=1; end
                 else if (is_div) begin r.illegal=1; end
-                else if (f7 == 7'b0000000 || f7 == 7'b0100000) begin
+                else if (f7 == 7'b0000000 ||
+                         (f7 == 7'b0100000 && (f3 == 3'b000 || f3 == 3'b101))) begin
                     r.reg_write=1;
                     case (f3)
                         3'b000: r.alu_op = f7[5] ? `ALU_SUB : `ALU_ADD;
@@ -880,6 +884,8 @@ class id_stage_ref_model;
             7'b0001111: begin if (f3 != 3'b000 && f3 != 3'b001) r.illegal = 1; end
             default: r.illegal=1;
         endcase
+        // an illegal instruction writes nothing (rtl ERRATUM C-14)
+        if (r.illegal) r.reg_write = 0;
         return r;
     endfunction
 

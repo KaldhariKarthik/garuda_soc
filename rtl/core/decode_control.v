@@ -224,7 +224,12 @@ module decode_control (
                 end else if (is_div_family) begin
                     // DIV/DIVU/REM/REMU decoded but not executed (Sec. 7.2) -> illegal
                     illegal_instr_o = 1'b1;
-                end else if (funct7 == 7'b0000000 || funct7 == 7'b0100000) begin
+                // ERRATUM C-13 (2026-10-04): funct7 = 0100000 exists only for
+                // SUB (funct3 000) and SRA (funct3 101). It was accepted for
+                // every funct3, so e.g. 0x40209133 ran as SLL where Spike raises
+                // illegal-instruction. Same class as C-1, on the register forms.
+                end else if (funct7 == 7'b0000000 ||
+                             (funct7 == 7'b0100000 && (funct3 == 3'b000 || funct3 == 3'b101))) begin
                     reg_write_o = 1'b1;
                     case (funct3)
                         3'b000:  alu_op_o = funct7[5] ? `ALU_SUB : `ALU_ADD;      // SUB/ADD
@@ -305,6 +310,22 @@ module decode_control (
                 illegal_instr_o = 1'b1;
             end
         endcase
+
+        // ERRATUM C-14 (2026-10-04): an illegal instruction presents an inert
+        // bundle. OP_IMM set reg_write before it examined funct7, so a reserved
+        // shift-immediate reached EX flagged illegal with reg_write still high.
+        // Forced here, once, so no case above can leave a side effect enabled.
+        if (illegal_instr_o) begin
+            reg_write_o = 1'b0;
+            mem_read_o  = 1'b0;
+            mem_write_o = 1'b0;
+            branch_o    = 1'b0;
+            jal_o       = 1'b0;
+            jalr_o      = 1'b0;
+            mul_en_o    = 1'b0;
+            dsu_en_o    = 1'b0;
+            csr_en_o    = 1'b0;
+        end
     end
 
 endmodule
