@@ -1,0 +1,35 @@
+NAME,DEPTH,NODE_KIND,element_id,details,implementation_note,owner,priority
+GPIO verification plan,0,SECTION,GPIO,"Source: GARUDA-GPIO-SPEC-001, section 2 (requirements), section 10 (assertions) and section 11 (verification plan), written with the specification. Moved into vPlanner form on 2026-10-04; section 4 holds what the 2026-10-04 flow run added.",,,
+Requirements,1,SECTION,GPIO.REQ,From section 2 of the specification; planned tests from section 11.,,,
+R-1 Drive either pin high or low under firmware control.,2,SECTION,GPIO.R-1,Drive either pin high or low under firmware control.,Source: SYS §6.4,,high
+t_gpio_drive,3,TC,GPIO.R-1.t_gpio_drive,"Oracle: each pin drives high and low, independently","Status in the specification: pass. Bench: tb/gpio/tb_gpio.sv, checks tagged [R-1] (lines 87, 90) - 2 checks, all PASS in the 2026-10-04 regression.",,
+R-2 Read the level on either pin whether driven or not.,2,SECTION,GPIO.R-2,"Read the level on either pin, whether driven or not.",Source: SYS §6.4,,high
+t_gpio_read,3,TC,GPIO.R-2.t_gpio_read,Oracle: PADIN follows an externally driven pin,"Status in the specification: pass. Bench: tb/gpio/tb_gpio.sv, check [R-2] PADIN follows an external driver on pin 1 (line 107) - 1 checks, all PASS in the 2026-10-04 regression.",,
+t_gpio_readback,3,TC,GPIO.R-2.t_gpio_readback,Oracle: an output pin reads back the level it drives,"Status in the specification: pass. Bench: tb/gpio/tb_gpio.sv, checks tagged [R-2] output pin reads back (lines 97-100) - 3 checks, all PASS in the 2026-10-04 regression.",,
+R-3 Per-pin direction control independently.,2,SECTION,GPIO.R-3,"Per-pin direction control, independently.",Source: SYS §6.4,,high
+t_gpio_dir,3,TC,GPIO.R-3.t_gpio_dir,"Oracle: one pin output, one input, at the same time","Status in the specification: pass. Bench: tb/gpio/tb_gpio.sv, check [R-3] (line 84) - 1 checks, all PASS in the 2026-10-04 regression.",,
+R-4 Word-only APB 32-bit registers at word-aligned offsets.,2,SECTION,GPIO.R-4,"Word-only APB, 32-bit registers at word-aligned offsets.",Source: AHB2APB [N-7.12],,high
+t_gpio_regs,3,TC,GPIO.R-4.t_gpio_regs,Oracle: registers read back; PSLVERR on unmapped; [31:2] read 0,"Status in the specification: pass. Bench: tb/gpio/tb_gpio.sv, checks tagged [R-4], [N-6.2] and the ID read (lines 70-80) - 4 checks, all PASS in the 2026-10-04 regression.",,
+R-5 Never stall the APB bus.,2,SECTION,GPIO.R-5,Never stall the APB bus.,Source: AHB2APB [N-7.15],,high
+t_gpio_pready,3,TC,GPIO.R-5.t_gpio_pready,Oracle: PREADY high in every cycle of every access,"Status in the specification: pass. Bench: tb/gpio/tb_gpio.sv, check [R-5] PREADY high in every cycle (line 185) - 1 checks, all PASS in the 2026-10-04 regression.",,
+R-6 One held level interrupt to CLIC ID 20 from a per-pin edge or ...,2,SECTION,GPIO.R-6,"One held level interrupt to CLIC ID 20, from a per-pin edge or level condition.","Source: CLIC §7.2, D-17",,high
+t_gpio_irq,3,TC,GPIO.R-6.t_gpio_irq,Oracle: rising-edge interrupt; held across 60 pclk though the IP pulses for 1; W1C drops it,"Status in the specification: pass. Bench: tb/gpio/tb_gpio.sv, checks [R-6] lines 121-127 and [N-7.3] W1C line 134 - 4 checks, all PASS in the 2026-10-04 regression.",,
+t_gpio_irq_cause,3,TC,GPIO.R-6.t_gpio_irq_cause,Oracle: INTSTATUS names the pin and self-clears on read,"Status in the specification: pass. Bench: tb/gpio/tb_gpio.sv, checks [N-7.3] INTSTATUS names the pin and clears on read (line 137) - 2 checks, all PASS in the 2026-10-04 regression.",,
+t_gpio_irq_masked,3,TC,GPIO.R-6.t_gpio_irq_masked,Oracle: an edge on a pin with INTEN clear raises nothing,"Status in the specification: pass. Bench: tb/gpio/tb_gpio.sv, check [R-6] INTEN clear raises nothing (line 151) - 1 checks, all PASS in the 2026-10-04 regression.",,
+t_gpio_irq_type,3,TC,GPIO.R-6.t_gpio_irq_type,"Oracle: falling, rising and either-edge each fire correctly","Status in the specification: pass. Bench: tb/gpio/tb_gpio.sv, checks [R-6] falling-edge, either-edge (lines 161-175) - 4 checks, all PASS in the 2026-10-04 regression.",,
+R-7 Pad inputs synchronised before use.,2,SECTION,GPIO.R-7,Pad inputs synchronised before use.,Source: D-14,,high
+t_gpio_sync,3,TC,GPIO.R-7.t_gpio_sync,"Oracle: an input change is seen, with synchroniser latency","Status in the specification: pass. Bench: tb/gpio/tb_gpio.sv, check [R-7] input follows through the synchronisers (line 107-110); the latency itself is not measured - 1 checks, all PASS in the 2026-10-04 regression.",,
+R-8 Both pins released (inputs) from reset until firmware acts.,2,SECTION,GPIO.R-8,Both pins released (inputs) from reset until firmware acts.,Source: Board safety,,high
+t_gpio_reset,3,TC,GPIO.R-8.t_gpio_reset,Oracle: both gpio_oe are 0 out of reset,"Status in the specification: pass. Bench: tb/gpio/tb_gpio.sv, checks tagged [R-8] (lines 64-67) - 2 checks, all PASS in the 2026-10-04 regression.",,
+Planned tests not tied to one requirement,2,SECTION,GPIO.OTHER,,,,
+t_chip_gpio,3,TC,GPIO.OTHER.t_chip_gpio,"Oracle: both pins from the core, through the real fabric","Status in the specification: new. Bench: sw/chip/t_chip_periph.c step 2 (pin 0 driven high and low and read back through the pad, pin 1 input reads 0) and step 1 (ID); sim/chip_periph/run.log RESULT: PASSED in the 2026-10-04 regression. Pin 1 is only read as an input, not driven.",,
+Assertions,1,SECTION,GPIO.SVA,From section 10 of the specification.,,,
+a_pready,2,CHK,GPIO.SVA.a_pready,,"assert property in specification section 10. Checked procedurally in tb/gpio/tb_gpio.sv ([R-5] PREADY high in every cycle of every access, line 185).",,
+a_oe_reset,2,CHK,GPIO.SVA.a_oe_reset,,"assert property in specification section 10. Checked procedurally in tb/gpio/tb_gpio.sv ([R-8] both pins are inputs while in reset and out of reset, lines 64-67).",,
+a_irq_held,2,CHK,GPIO.SVA.a_irq_held,,"assert property in specification section 10. Checked procedurally in tb/gpio/tb_gpio.sv ([R-6] still asserted 60 pclk later, line 127).",,
+Coverage,1,SECTION,GPIO.COV,Merged code coverage from the vManager session of 2026-10-04 (sim/cov_merged). Not closed; no bar is claimed.,,,
+garuda_gpio_top,2,COV,GPIO.COV.garuda_gpio_top,Code coverage of module garuda_gpio_top: 64.17%,,,
+apb_gpio,2,COV,GPIO.COV.apb_gpio,Code coverage of module apb_gpio: 55.82%,,,
+Added in the 2026-10-04 run,1,SECTION,GPIO.NEW,Checks added and defects found when the flow was run in order on 2026-10-04. See Docs/BUGS.md section 1h.,,,
+No defect found in this block on 2026-10-04,2,CHK,GPIO.NEW.none,"The block-level review on 2026-10-04 did not reach this block, so no defect was raised against it.",No check added or changed.,,
+Bench checks added,2,CHK,GPIO.NEW.checks,Check count before and after: 25 -> 25 (not extended).,The bench was not extended: 25 checks before and after (sim/tb_gpio/run.log: checks=25 FAIL=0).,,

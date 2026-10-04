@@ -1,0 +1,42 @@
+NAME,DEPTH,NODE_KIND,element_id,details,implementation_note,owner,priority
+GARUDA SoC verification plan,0,SECTION,SOC,"Top-level plan for garuda_chip_top, Rev 4.0 specification set. Flow: vPlan, static, block and IP, CPU core, integration, SoC top. Each block has its own plan, taken from its specification (sections 2, 10, 11); this plan holds the stages and points at them. Results quoted are from the 2026-10-04 run (Xcelium make regress_all at 08:27, vManager session 119 of 119).",,,
+Stage 2 - Static,1,SECTION,SOC.S2,"Lint, clock-domain checks and formal, before any simulation result is trusted.",,,
+HAL lint on garuda_chip_top,2,CHK,SOC.S2.LINT,No HAL error left without a fix or a written reason.,"irun -hal with flow/2_static/hal.f. First run 696 errors; 5 remain, all dispositioned in flow/2_static/hal_waivers.txt (4 in vendored IP, 1 required by CORE N-7.33). Two RTL fixes came from lint: I2C-5, PWM-1.",,high
+Clock-domain crossings,2,CHK,SOC.S2.CDC,tck to hclk in dmi_cdc is the only asynchronous boundary; every crossing synchronised or justified.,HAL CLOCKDOMAIN on debug_top: synchronisers found on the request and acknowledge toggles; 5 qualified-data crossings waived on the handshake argument (BUGS.md CDC-1).,,high
+Formal on pipe_ctrl,2,CHK,SOC.S2.FV,"CORE N-11.3 properties proved, hold-versus-flush cells shown reachable or unreachable.",NOT RUN: no Incisive_Formal_Verifier licence on the server (BUGS.md FV-1). Set up in flow/2_static/fv_pipe_ctrl. The cells were closed in simulation instead (AUD-8).,,high
+Stage 3 - Block and IP,1,SECTION,SOC.S3,"Each block against its own specification, in its own bench.",,,
+PWM,2,TC,SOC.S3.PWM,Block plan: tb/pwm/GARUDA_PWM_vplan.csv (from GARUDA-PWM-SPEC-001).,"tb_pwm 58 checks, pass",,high
+SPI slave,2,TC,SOC.S3.SPIS,Block plan: tb/spi_slave/GARUDA_SPIS_vplan.csv (from GARUDA-SPIS-SPEC-001).,"tb_spis 73 checks, pass",,high
+SPI master,2,TC,SOC.S3.SPIM,Block plan: tb/spi_master/GARUDA_SPIM_vplan.csv (from GARUDA-SPIM-SPEC-001).,"tb_spim 24 checks, pass; Mirafra UVM environment 51 tests (BUGS.md VIP-1)",,high
+I2C master,2,TC,SOC.S3.I2C,Block plan: tb/i2c/GARUDA_I2C_vplan.csv (from GARUDA-I2C-SPEC-001).,"tb_i2c 90 checks, pass",,high
+UART x3,2,TC,SOC.S3.UART,Block plan: tb/uart/GARUDA_UART_vplan.csv (from GARUDA-UART-SPEC-001).,"tb_uart 116 checks, pass",,high
+GPIO,2,TC,SOC.S3.GPIO,Block plan: tb/gpio/GARUDA_GPIO_vplan.csv (from GARUDA-GPIO-SPEC-001).,"tb_gpio 25 checks, pass",,high
+DMA controller,2,TC,SOC.S3.DMA,Block plan: tb/dma/GARUDA_DMA_vplan.csv (from GARUDA-DMA-SPEC-001).,"tb_dma_top 63 checks, pass",,high
+Timers and watchdog,2,TC,SOC.S3.TIMERS,Block plan: tb/timers/GARUDA_TIMERS_vplan.csv (from GARUDA-TIMERS-SPEC-001).,"tb_timers 25 checks, pass",,high
+CLIC,2,TC,SOC.S3.CLIC,Block plan: tb/clic/GARUDA_CLIC_vplan.csv (from GARUDA-CLIC-SPEC-001).,"tb_clic 17 checks, pass",,high
+Clock divider and reset controller,2,TC,SOC.S3.CLKRST,Block plan: tb/clk_div/GARUDA_CLKRST_vplan.csv (from GARUDA-CLKRST-SPEC-001).,"tb_crg 43 checks, pass",,high
+Debug,2,TC,SOC.S3.DEBUG,Block plan: tb/debug/GARUDA_DEBUG_vplan.csv (from GARUDA-DEBUG-SPEC-001).,"tb_debug 93 checks, pass",,high
+Memories,2,TC,SOC.S3.MEM,Block plan: tb/mem/GARUDA_MEM_vplan.csv (from GARUDA-MEM-SPEC-001).,"tb_mem_subsystem 18 checks, pass",,high
+Stage 4 - CPU core,1,SECTION,SOC.S4,"The RV32IM core and the DSU, alone, against Spike and the DSU model.",,,
+Core plan,2,TC,SOC.S4.CORE,Block plan: tb/core/GARUDA_CORE_vplan.csv (from GARUDA-CORE-SPEC-001). The 2026-07-20 workbook tb/core/GARUDA_Core_Verification_Plan.xlsx holds the unit-level rows.,20 unit and element benches pass with 0 assertion failures.,,high
+DSU plan,2,TC,SOC.S4.DSU,Block plan: tb/dsu/GARUDA_DSU_vplan.csv (from GARUDA-DSU-SPEC-001). The 2026-07-20 workbook tb/dsu/GARUDA_DSU_Verification_Plan.xlsx holds the test-level rows.,"tb_dsu_top against the model: 445 compared, 0 mismatches.",,high
+ISA tests with Spike lockstep,2,TC,SOC.S4.ISA,"rv32ui, rv32um, rv32mi: each test checks itself; 57 of the 63 are also compared with Spike instruction for instruction; p-div, p-divu, p-rem, p-remu, p-sbreak and p-mcsr are judged by their own pass/fail only, because GARUDA and Spike differ there by design (software divide, CLIC mtvec, mimpid).",63 of 63; and under random bus waits (make regress_rand) 63 of 63 in the last run.,,high
+Directed core programs,2,TC,SOC.S4.SANITY,"Interrupts, WFI and clock gate, bus error, DSU, CLIC sweep, timer wake, hold-versus-flush matrix, DSU back to back.",12 of 12 (scripts/run_sanity.sh).,,high
+Hold versus flush matrix,2,TC,SOC.S4.MATRIX,"CORE N-11.2: every hold cause against every flush cause, 19 cells, checked on architectural state.","sw/tests/t_hold_flush_matrix.S passes under the interrupt-period and wait-state sweep (+IRQ_EVERY, +DWAIT, +DRAND) that found T-11 and P-8; found T-9, T-11, P-4 to P-8, C-15, DSU-13.",,high
+Stage 5 - Integration,1,SECTION,SOC.S5,The bus fabric and every wire between two blocks.,,,
+AHB-Lite interconnect,2,TC,SOC.S5.AHB,Block plan: tb/ahb/GARUDA_AHB_vplan.csv (from GARUDA-AHB-SPEC-001).,"tb_ahb_interconnect 802 checks, pass.",,high
+AHB to APB bridge with fabric and shim,2,TC,SOC.S5.AHB2APB,Block plan: tb/ahb2apb/GARUDA_AHB2APB_vplan.csv (from GARUDA-AHB2APB-SPEC-001).,"tb_ahb2apb 22 checks, tb_apb_shim 25 checks, pass.",,high
+Interrupt lines and DMA request lines and bus faults,2,TC,SOC.S5.INTEG,"Every DMA and peripheral interrupt reaches its CLIC ID; every DMA request reaches its own channel and no other; an unmapped offset in every window, an absent window and a sub-word access each give one precise bus fault.","sw/chip/t_chip_integ.c on tb_chip, pass. Found T-9, T-10, INT-2, INT-3.",,high
+Map generated from the system description,2,CHK,SOC.S5.MAP,garuda_map.vh and garuda_map.h match Design_Docs/garuda_system.yaml.,python3 tools/garuda_gen.py --check passes. INT-1 added the SPI slave window and DMA channel.,,medium
+Whole-chip elaboration,2,CHK,SOC.S5.ELAB,garuda_chip_top elaborates with nothing unresolved.,"make elab_chip; Genus check_design of 2026-09-26: 0 unresolved, undriven or multi-driven.",,medium
+Stage 6 - SoC top,1,SECTION,SOC.S6,"The chip from its pins, with the real boot ROM.",,,
+t_chip_basic,2,TC,SOC.S6.basic,"boot path, ILOCK, precise bus faults, DMA","pass, 0 assertion failures.",,high
+t_chip_irq,2,TC,SOC.S6.irq,"DMA completion through the CLIC, machine timer, watchdog warning, WFI and clock gate","pass, 0 assertion failures.",,high
+t_chip_wdt,2,TC,SOC.S6.wdt,"a real watchdog reset, RSTREASON, DSRAM survives","pass, 0 assertion failures.",,high
+t_chip_flash,2,TC,SOC.S6.flash,"boot from SPI flash: image read, CRC-32, ILOCK, jump","pass, 0 assertion failures.",,high
+t_chip_uart,2,TC,SOC.S6.uart,three UARTs through the pins,"pass, 0 assertion failures.",,high
+t_chip_periph,2,TC,SOC.S6.periph,"SPI master, I2C, GPIO, PWM, SPI slave through the pins","pass, 0 assertion failures.",,high
+t_chip_integ,2,TC,SOC.S6.integ,the stage 5 integration program,"pass, 0 assertion failures.",,high
+t_chip_jtag,2,TC,SOC.S6.jtag,"halt, load ISRAM over SBA, mailbox, resume, run","pass, 0 assertion failures.",,high
+X-propagation,2,CHK,SOC.S6.XPROP,No X reaches the bus or a pin after reset.,xrun -xprop F on t_chip_basic and t_chip_integ: pass. Other chip tests not run with X-propagation.,,medium
+Regression and coverage,2,CHK,SOC.S6.REGR,"All stages in one session, coverage merged.","vManager flow/regress/garuda.vsif: 119 of 119. IMC merge in sim/cov_merged: of 54 design modules 16 at or above 95 percent, 20 below 85 percent. Not closed (Docs/COVERAGE.md).",,high

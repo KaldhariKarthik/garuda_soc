@@ -1,0 +1,40 @@
+NAME,DEPTH,NODE_KIND,element_id,details,implementation_note,owner,priority
+SPI master verification plan,0,SECTION,SPIM,"Source: GARUDA-SPIM-SPEC-001, section 2 (requirements), section 10 (assertions) and section 11 (verification plan), written with the specification. Moved into vPlanner form on 2026-10-04; section 4 holds what the 2026-10-04 flow run added.",,,
+Requirements,1,SECTION,SPIM.REQ,From section 2 of the specification; planned tests from section 11.,,,
+R-1 Read the boot flash with a single-bit SPI mode-0 transfer command ...,2,SECTION,SPIM.R-1,"Read the boot flash with a single-bit SPI mode-0 transfer: command 0x03, 24-bit address, streamed data.",Source: MEM §8.2,,high
+t_spim_flash_read,3,TC,SPIM.R-1.t_spim_flash_read,Oracle: spi_flash_model returns the programmed bytes,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, checks tagged [R-1] (lines 128-133) - 3 checks, all PASS in the 2026-10-04 regression.",,
+R-2 Hold one chip select asserted across command address and data ...,2,SECTION,SPIM.R-2,"Hold one chip select asserted across command, address and data phases of a transfer.",Source: MEM §8.3,,high
+R-3 Two independent chip selects cs_flash_n cs_imu_n.,2,SECTION,SPIM.R-3,"Two independent chip selects: cs_flash_n, cs_imu_n.","Source: PHYS [N-3.5], ADR-0008",,high
+t_spim_cs,3,TC,SPIM.R-3.t_spim_cs,Oracle: only the selected CS falls; never both,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, checks tagged [R-3] and the CS release checks (lines 136-146) - 4 checks, all PASS in the 2026-10-04 regression.",,
+R-4 SCLK 20 MHz from pclk = 125 MHz.,2,SECTION,SPIM.R-4,SCLK ≤ 20 MHz from pclk = 125 MHz.,Source: MEM §8.2 step 3,,high
+t_spim_sclk_rate,3,TC,SPIM.R-4.t_spim_sclk_rate,Oracle: measured SCLK period ≥ 8 pclk at CLKDIV=3,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, checks [R-4] shortest SCLK half-period 32 ns and the flash-model protocol check (lines 134-135) - 2 checks, all PASS in the 2026-10-04 regression.",,
+R-5 Never stall the APB bus the register interface is polled.,2,SECTION,SPIM.R-5,Never stall the APB bus: the register interface is polled.,Source: AHB2APB [N-7.15],,high
+t_spim_pready,3,TC,SPIM.R-5.t_spim_pready,Oracle: PREADY high in every cycle of every access,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, check [R-5] PREADY high in every cycle (line 199) - 1 checks, all PASS in the 2026-10-04 regression.",,
+R-6 One held level interrupt to CLIC ID 15.,2,SECTION,SPIM.R-6,"One held, level interrupt to CLIC ID 15.","Source: CLIC §7.2, D-17",,high
+t_spim_irq,3,TC,SPIM.R-6.t_spim_irq,Oracle: held after a one-cycle event; cleared by W1C only,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, checks [R-6] and IRQSTAT capture (lines 159-164) - 3 checks, all PASS in the 2026-10-04 regression.",,
+R-7 DMA request acknowledge on channel 0 one beat per assertion.,2,SECTION,SPIM.R-7,"DMA request/acknowledge on channel 0, one beat per assertion.","Source: DMA §7.3, D-21",,high
+t_spim_dma,3,TC,SPIM.R-7.t_spim_dma,Oracle: dma_req_checker sees no stuck request,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, checks tagged [R-7] incl. dma_req_checker (lines 178-196) - 7 checks, all PASS in the 2026-10-04 regression.",,
+R-8 cs_x_n high and sclk low from reset until firmware acts.,2,SECTION,SPIM.R-8,cs_*_n high and sclk low from reset until firmware acts.,Source: Board safety,,high
+t_spim_reset,3,TC,SPIM.R-8.t_spim_reset,Oracle: pins at safe idle out of reset,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, checks tagged [R-8] (lines 114, 117) - 2 checks, all PASS in the 2026-10-04 regression.",,
+Planned tests not tied to one requirement,2,SECTION,SPIM.OTHER,,,,
+test_chip_flash,3,TC,SPIM.OTHER.test_chip_flash,Oracle: the real Boot ROM boots an image out of the flash model,"Status in the specification: pass. Bench: make test_chip_flash (tb/soc/tb_chip.sv, MODE=flash, boot ROM sw/bootrom/spim.c from tb/models/spi_flash_model.sv); sim/chip_flash/run.log shows the image loaded, tohost = 1 and RESULT: PASSED in the 2026-10-04 regression.",,
+Assertions,1,SECTION,SPIM.SVA,From section 10 of the specification.,,,
+a_pready,2,CHK,SPIM.SVA.a_pready,PREADY is never deasserted: the bridge would time out (R-5),"assert property in specification section 10. Checked procedurally in tb/spi_master/tb_spim.sv ([R-5] PREADY high in every cycle of every access, line 199).",,
+a_cs_excl,2,CHK,SPIM.SVA.a_cs_excl,chip selects are mutually exclusive and idle high when the engine is idle,"assert property in specification section 10. Checked procedurally in tb/spi_master/tb_spim.sv ([R-3] the two chip selects are never asserted together, line 136; released after transfer, line 137).",,
+a_cs_idle,2,CHK,SPIM.SVA.a_cs_idle,,"assert property in specification section 10. Checked procedurally in tb/spi_master/tb_spim.sv ([R-8] pins at safe idle, lines 114-117; chip selects released after the transfer, line 137).",,
+a_cs_held,2,CHK,SPIM.SVA.a_cs_held,the selected chip select stays asserted for the whole transfer (R-2),"assert property in specification section 10. Checked procedurally in tb/spi_master/tb_spim.sv (flash model protocol check [R-2/R-4] CS held for the whole transfer, line 134).",,
+a_sclk_rate,2,CHK,SPIM.SVA.a_sclk_rate,SCLK never exceeds 20 MHz: at least 3 pclk between edges (R-4),"assert property in specification section 10. Checked procedurally in tb/spi_master/tb_spim.sv ([R-4] shortest SCLK half-period 32 ns, line 135; flash-model protocol check line 134).",,
+a_dma_drop,2,CHK,SPIM.SVA.a_dma_drop,the DMA one-beat rule (D-21),"assert property in specification section 10. Checked procedurally in tb/spi_master/tb_spim.sv ([R-7] dma_req drops on ack, drops when the FIFO empties, dma_req_checker clean; lines 185-196).",,
+Coverage,1,SECTION,SPIM.COV,Merged code coverage from the vManager session of 2026-10-04 (sim/cov_merged). Not closed; no bar is claimed.,,,
+garuda_spim_top,2,COV,SPIM.COV.garuda_spim_top,Code coverage of module garuda_spim_top: 89.84%,,,
+apb_spi_master,2,COV,SPIM.COV.apb_spi_master,Code coverage of module apb_spi_master: 23.74%,,,
+spi_master_apb_if,2,COV,SPIM.COV.spi_master_apb_if,Code coverage of module spi_master_apb_if: 80.62%,,,
+spi_master_clkgen,2,COV,SPIM.COV.spi_master_clkgen,Code coverage of module spi_master_clkgen: 75.51%,,,
+spi_master_controller,2,COV,SPIM.COV.spi_master_controller,Code coverage of module spi_master_controller: 43.65%,,,
+spi_master_fifo,2,COV,SPIM.COV.spi_master_fifo,Code coverage of module spi_master_fifo: 84.86%,,,
+spi_master_rx,2,COV,SPIM.COV.spi_master_rx,Code coverage of module spi_master_rx: 55.63%,,,
+spi_master_tx,2,COV,SPIM.COV.spi_master_tx,Code coverage of module spi_master_tx: 88.53%,,,
+Added in the 2026-10-04 run,1,SECTION,SPIM.NEW,Checks added and defects found when the flow was run in order on 2026-10-04. See Docs/BUGS.md section 1h.,,,
+SPIM-2 MODE state has no exit,2,CHK,SPIM.NEW.SPIM-2,HAL TERMST/UNRCHS: state MODE in the vendored spi_master_controller is never entered and has no exit; in it chip-select is held low with the clock running.,"OPEN (vendored). No check covers it; the state is unreachable in normal operation, a recovery arc to IDLE is a one-line vendor patch not yet applied.",,
+Bench checks added,2,CHK,SPIM.NEW.checks,Check count before and after: 24 -> 24 (not extended).,The bench was not extended: 24 checks before and after (sim/tb_spim/run.log: checks=24 FAIL=0).,,
+Mirafra UVM environment,2,CHK,SPIM.NEW.mirafra,"Mirafra's pulpino__spi_master__ip_verification (APB VIP + SPI VIP + register model) run against garuda_spim_top on Xcelium: 51 tests, 16 with no UVM errors; result identical test for test to the same environment on Mirafra's own RTL. Its scoreboard checks the write path only.","tb/spi_master/uvm_mirafra/, results in sim/uvm_spim/all_tests.txt",,
