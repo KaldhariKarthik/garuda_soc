@@ -51,7 +51,10 @@ module garuda_spis_top #(
 
     localparam [11:0] A_RXDATA = 12'h000, A_TXDATA = 12'h004,
                       A_CTRL   = 12'h008, A_STATUS = 12'h00C;
-    localparam [11:0] IP_LIMIT = 12'h020;
+    // SPIS-7: four registers, 0x00..0x0C. This was 12'h020 (copied from the PWM
+    // block, which has eight), so 0x10..0x1C answered a read with 0 and swallowed
+    // a write instead of raising PSLVERR (AHB2APB [N-7.20]).
+    localparam [11:0] IP_LIMIT = 12'h010;
 
     wire        ip_psel, ip_penable, ip_pwrite;
     wire [11:0] ip_paddr;
@@ -139,12 +142,16 @@ module garuda_spis_top #(
                     default: ;
                 endcase
             end
-            if (rx_push & full) ovr_q  <= 1'b1;      // sticky ([N-7.5])
-            if (cs_rise)        done_q <= 1'b1;      // sticky
             // both clear with their interrupt bits, so there is one place to
             // acknowledge a fault rather than two
             if (irqstat_clr[2]) ovr_q  <= 1'b0;
             if (irqstat_clr[1]) done_q <= 1'b0;
+            // SPIS-6: set beats clear, as in the shim's IRQSTAT. These two lines
+            // used to come first, so a W1C in the cycle of a new event cleared
+            // the STATUS bit while IRQSTAT kept it: the interrupt said "overrun"
+            // or "packet done" and STATUS said it had not happened.
+            if (rx_push & full) ovr_q  <= 1'b1;      // sticky ([N-7.5])
+            if (cs_rise)        done_q <= 1'b1;      // sticky
         end
     end
 

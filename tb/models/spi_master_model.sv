@@ -68,6 +68,11 @@ module spi_master_model (
         close_frame();
     endtask
 
+    // cs_n with no built-in delay, for tests that have to place the edge on a
+    // chosen pclk (a W1C racing the packet-complete event, for instance)
+    task automatic select();   cs_n = 1'b0; endtask
+    task automatic deselect(); cs_n = 1'b1; endtask
+
     // a frame that ends mid-byte: nbits clock pulses, then cs_n rises
     task automatic partial_frame(input int nbits, input byte unsigned d);
         int i;

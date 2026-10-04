@@ -59,13 +59,28 @@ module garuda_spis_core (
     wire sclk_rise = ~sclk_q &  sclk_s_i;
     wire sclk_fall =  sclk_q & ~sclk_s_i;
 
-    assign cs_active_o = ~cs_n_s_i & en_i;
+    // SPIS-5: a packet is open only from a cs_n FALLING edge seen while enabled
+    // ([N-7.3], [N-9.3]). cs_active used to be just ~cs_n & en, so setting
+    // CTRL.EN while the master was already inside a frame - after a reset that
+    // landed mid-transfer, or after a disable - started the shifter on whatever
+    // bit came next and pushed misaligned bytes into the FIFO as data, then
+    // reported the packet complete. open_q remembers that this frame began with
+    // an edge; cs_fall_now keeps the first cycle exactly where it was.
+    wire cs_fall_now = cs_n_q & ~cs_n_s_i & en_i;
+    reg  open_q;
+
+    always @(posedge pclk_i or negedge preset_n_i)
+        if (!preset_n_i)             open_q <= 1'b0;
+        else if (cs_n_s_i || !en_i)  open_q <= 1'b0;
+        else if (cs_fall_now)        open_q <= 1'b1;
+
+    assign cs_active_o = ~cs_n_s_i & en_i & (open_q | cs_fall_now);
 
     always @(posedge pclk_i or negedge preset_n_i)
         if (!preset_n_i) begin cs_fall_o <= 1'b0; cs_rise_o <= 1'b0; end
         else begin
-            cs_fall_o <=  cs_n_q & ~cs_n_s_i & en_i;
-            cs_rise_o <= ~cs_n_q &  cs_n_s_i & en_i;
+            cs_fall_o <=  cs_fall_now;
+            cs_rise_o <= ~cs_n_q &  cs_n_s_i & en_i & open_q;   // only a packet that was opened can end
         end
 
     // ---- receive shifter -------------------------------------------------------
@@ -112,7 +127,12 @@ module garuda_spis_core (
         end else if (cs_fall_o) begin
             tx_sh <= txdata_i;                       // new packet: first byte
         end else if (cs_active_o && sclk_fall) begin
-            if (bitcnt == 3'd0) tx_sh <= {txdata_i[6:0], 1'b0};  // next byte
+            // SPIS-4: the eighth falling edge is the START of the next byte, so
+            // its MSB has to be the bit on the wire. This loaded
+            // {txdata_i[6:0], 1'b0}: every byte after the first went out shifted
+            // left by one (TXDATA 0xA5 was answered A5 4A 4A ...), which a
+            // one-byte test cannot see ([N-6.2]).
+            if (bitcnt == 3'd0) tx_sh <= txdata_i;               // next byte
             else                tx_sh <= {tx_sh[6:0], 1'b0};
         end
     end
