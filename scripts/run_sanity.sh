@@ -33,6 +33,8 @@ SANITY_TESTS=(
   "t_clic|18: CLIC id/level/threshold sweep, take and block|+IRQ_EVERY=40 +IRQ_SWEEP=1"
   "t_cov|coverage closure: FENCE, reserved encodings, CSR sweep, toggle walks|"
   "t_mtip|T-8: timer-only WFI wake, then clear, core keeps running|+MTIP_AT=300"
+  "t_hold_flush_matrix|[N-11.2] hold x flush matrix: 19 cells, interrupts and D-port waits|+IRQ_EVERY=61 +DWAIT=2 +DRAND=1 +SEED=3"
+  "t_dsu_b2b|DSU instructions back to back through the pipeline (DSU-11..13)|"
 )
 
 echo "elaborating..."

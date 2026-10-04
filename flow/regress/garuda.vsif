@@ -1,0 +1,85 @@
+// =============================================================================
+// GARUDA SoC regression for vManager - flow stages 3 to 6.
+//
+//   cd ~/garuda_soc && source scripts/setup_env.sh
+//   export GARUDA_ROOT=$PWD
+//   vmanager -local sim/vm_db &          then  Regression > Launch, this file
+//   (batch: vmanager -local sim/vm_db -batch -launch flow/regress/garuda.vsif)
+//
+// Every test is one call of flow/regress/run_test.sh <test name>: irun 15.2,
+// coverage on, assertions on. A run fails on any simulator error (assertion
+// failures included), any [FAIL] line, or a missing pass marker.
+// Launch one group for one flow stage, or the whole file for everything.
+// =============================================================================
+
+session garuda_soc {
+    top_dir              : $ENV(GARUDA_ROOT)/sim/vm_sessions;
+    output_mode          : log_only;
+    drm                  : "Parallel Local";
+    max_runs_in_parallel : 8;
+    description          : <text>GARUDA SoC, flow stages 3-6: block, core, integration, SoC top</text>;
+};
+
+group garuda {
+    run_script  : <text>GARUDA_RUN_DIR=$DIR(run) $ENV(GARUDA_ROOT)/flow/regress/run_test.sh $ATTR(test_name)</text>;
+    scan_script : "vm_scan.pl ius.flt ies_coverage.flt $ENV(GARUDA_ROOT)/flow/regress/garuda.flt";
+    timeout     : 900;
+    count       : 1;
+
+    // ---- stage 3: block and IP -------------------------------------------------
+    group block {
+        test tb_crg {}; test tb_mem {}; test tb_dma {}; test tb_clic {};
+        test tb_timers {}; test tb_debug {}; test tb_spim {}; test tb_spis {};
+        test tb_i2c {}; test tb_uart {}; test tb_gpio {}; test tb_pwm {};
+    };
+
+    // ---- stage 4: CPU core -----------------------------------------------------
+    // unit and element testbenches, DSU against its model, ISA tests in lockstep
+    // with Spike, directed sanity tests
+    group core {
+        group core_units {
+            test unit_decode_control {}; test unit_imm_gen {}; test unit_reg_file {};
+            test unit_branch_predict {}; test unit_hazard_forward_unit {}; test unit_id_stage {};
+            test unit_alu {}; test unit_mul32 {}; test unit_branch_unit {};
+            test unit_csr_rw {}; test unit_clic_ctrl {}; test unit_load_store_unit {};
+            test unit_load_formatter {}; test unit_mem_wb_reg {}; test unit_garuda_pc_gen {};
+            test unit_garuda_prefetch_buffer {}; test unit_garuda_iport_ahb_master {}; test unit_d_port_ahb_master {};
+            test unit_mem_stage {}; test unit_garuda_if_stage_top {};
+        };
+        group core_dsu {
+            test dsu {};
+        };
+        group core_isa {
+            test isa_add {}; test isa_addi {}; test isa_and {}; test isa_andi {}; test isa_auipc {};
+            test isa_beq {}; test isa_bge {}; test isa_bgeu {}; test isa_blt {}; test isa_bltu {};
+            test isa_bne {}; test isa_fence_i {}; test isa_jal {}; test isa_jalr {}; test isa_lb {};
+            test isa_lbu {}; test isa_ld_st {}; test isa_lh {}; test isa_lhu {}; test isa_lui {};
+            test isa_lw {}; test isa_mul {}; test isa_mulh {}; test isa_mulhsu {}; test isa_mulhu {};
+            test isa_or {}; test isa_ori {}; test isa_p_csr {}; test isa_p_div {}; test isa_p_divu {};
+            test isa_p_illegal {}; test isa_p_lh_misaligned {}; test isa_p_lw_misaligned {}; test isa_p_ma_addr {}; test isa_p_ma_data {};
+            test isa_p_ma_fetch {}; test isa_p_mcsr {}; test isa_p_rem {}; test isa_p_remu {}; test isa_p_sbreak {};
+            test isa_p_scall {}; test isa_p_sh_misaligned {}; test isa_p_shamt {}; test isa_p_sw_misaligned {}; test isa_p_zicntr {};
+            test isa_sb {}; test isa_sh {}; test isa_simple {}; test isa_sll {}; test isa_slli {};
+            test isa_slt {}; test isa_slti {}; test isa_sltiu {}; test isa_sltu {}; test isa_sra {};
+            test isa_srai {}; test isa_srl {}; test isa_srli {}; test isa_st_ld {}; test isa_sub {};
+            test isa_sw {}; test isa_xor {}; test isa_xori {};
+        };
+        group core_sanity {
+            test san_t_loadbranch {}; test san_t_flush {}; test san_t_buserr {}; test san_t_irq {};
+            test san_t_wfi {}; test san_t_dsu {}; test san_t_mem {}; test san_t_clic {};
+            test san_t_cov {}; test san_t_mtip {};
+            test san_t_hold_flush_matrix {}; test san_t_dsu_b2b {};
+        };
+    };
+
+    // ---- stage 5: integration --------------------------------------------------
+    group integ {
+        test tb_ahb_ic {}; test tb_bridge {}; test tb_apb_shim {};
+    };
+
+    // ---- stage 6: the chip from the pins ---------------------------------------
+    group soc {
+        test chip_basic {}; test chip_irq {}; test chip_wdt {}; test chip_flash {};
+        test chip_uart {}; test chip_periph {}; test chip_integ {}; test chip_jtag {};
+    };
+};

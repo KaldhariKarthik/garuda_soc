@@ -104,7 +104,7 @@ module tb_dsu_top;
 
     integer ntests, errors, checked, i;
     integer max_report;
-    reg [1023:0] stimfile, expfile;
+    reg [4095:0] stimfile, expfile;      // 512 characters: vManager run directories are long
 
     // Sampled on the completing (non-busy) cycle.
     reg [31:0] s_rd_data;

@@ -41,9 +41,9 @@ module tb_boot;
     localparam [31:0] BASE_ADDR  = 32'h1000_0000;
     localparam integer SIZE_B    = 32'h0004_0000;   // 256 KB
 
-    reg [1023:0] hexfile;
-    reg [1023:0] commitfile;
-    reg [1023:0] covtag;
+    reg [4095:0] hexfile;
+    reg [4095:0] commitfile;
+    reg [4095:0] covtag;
     integer      maxcyc, maxinstr, iwait, dwait;
     integer      dbgfrom, dbgto;
     integer      irq_at, irq_id, irq_lvl, irq_shv, irq_every, seed;

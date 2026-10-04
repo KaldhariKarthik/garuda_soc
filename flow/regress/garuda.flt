@@ -1,0 +1,23 @@
+# vManager scan filters for GARUDA logs, used on top of ius.flt (which already
+# turns every simulator *E / *F, assertion failures included, into a failure).
+# The testbenches report in their own words; these make vManager see them.
+
+add_filter ("garuda_check_fail", 4,
+            '^\[FAIL\]\s*([^\n]*)\n',
+            failure(1, 'tb', 'CHECK', "error", '$1')
+           );
+
+add_filter ("garuda_sva_fail", 4,
+            '^\[SVA-FAIL\]\s*([^\n]*)\n',
+            failure(1, 'tb', 'SVA', "error", '$1')
+           );
+
+add_filter ("garuda_timeout", 4,
+            '^(\*\*\* TIMEOUT[^\n]*)\n',
+            failure(1, 'tb', 'TIMEOUT', "error", '$1')
+           );
+
+add_filter ("garuda_result_fail", 4,
+            '^GARUDA_RESULT: FAIL\s*([^\n]*)\n',
+            failure(1, 'run_test', 'RESULT', "error", 'test $1 did not pass')
+           );

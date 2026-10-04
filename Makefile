@@ -59,7 +59,7 @@ endif
         test_pc_gen test_prefetch test_iport test_dport test_mem_stage test_if_stage \
         test_crg test_ahb_ic test_bridge test_mem test_dma test_clic test_timers \
         test_apb_shim test_spim test_uart test_i2c test_gpio test_pwm test_spis \
-        test_debug test_blocks test_chip test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_uart test_chip_periph \
+        test_debug test_blocks test_chip test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_uart test_chip_periph test_chip_integ \
         test_chip_jtag elab_chip regress_all synth
 
 help:
@@ -121,9 +121,10 @@ define run_tb_top
 	  $(XRUN) -64bit -f tb/core/filelist_$(1).f -top tb_top \
 	    -xmlibdirname $(SIM_DIR)/unit_$(1)/xcelium.d \
 	    -l $(SIM_DIR)/unit_$(1)/run.log > /dev/null 2>&1; \
-	  printf "%-22s PASS=%-5s FAIL=%s\n" "$(1)" \
+	  printf "%-22s PASS=%-5s FAIL=%-4s SVA_FAIL=%s\n" "$(1)" \
 	    "$$(grep -c '\[PASS\]' $(SIM_DIR)/unit_$(1)/run.log)" \
-	    "$$(grep -c '\[FAIL\]' $(SIM_DIR)/unit_$(1)/run.log)"
+	    "$$(grep -c '\[FAIL\]' $(SIM_DIR)/unit_$(1)/run.log)" \
+	    "$$(grep -c '\*E,ASRTST' $(SIM_DIR)/unit_$(1)/run.log)"
 endef
 
 test_units: test_decode_control test_imm_gen test_reg_file test_branch_predict \
@@ -174,9 +175,10 @@ define run_tb_elem
 	  $(XRUN) -64bit -f tb/core/filelist_$(1).f -top tb_top \
 	    -xmlibdirname $(SIM_DIR)/elem_$(1)/xcelium.d \
 	    -l $(SIM_DIR)/elem_$(1)/run.log > /dev/null 2>&1; \
-	  printf "%-26s PASS=%-6s FAIL=%-4s %s\n" "$(1)" \
+	  printf "%-26s PASS=%-6s FAIL=%-4s SVA_FAIL=%-4s %s\n" "$(1)" \
 	    "$$(grep -c '\[PASS\]' $(SIM_DIR)/elem_$(1)/run.log)" \
 	    "$$(grep -c '\[FAIL\]' $(SIM_DIR)/elem_$(1)/run.log)" \
+	    "$$(grep -c '\*E,ASRTST' $(SIM_DIR)/elem_$(1)/run.log)" \
 	    "$$(grep -hE '^ RESULT:' $(SIM_DIR)/elem_$(1)/run.log | head -1)"; \
 	  grep -hE '\[FAIL\]|\[SVA-FAIL\]|^\*E|^xmelab: \*E' $(SIM_DIR)/elem_$(1)/run.log | head -20
 endef
@@ -214,8 +216,10 @@ define run_blk
 	@mkdir -p $(SIM_DIR)/$(3) && \
 	  $(XRUN) -64bit -f $(1) -top $(2) -xmlibdirname $(SIM_DIR)/$(3)/xcelium.d \
 	    -l $(SIM_DIR)/$(3)/run.log $(4) > /dev/null 2>&1; \
-	  printf "%-14s " "$(3)"; grep -hE "^RESULT:|checks=|TB: .* checks" $(SIM_DIR)/$(3)/run.log | tr '\n' ' '; echo; \
-	  grep -hE "\[FAIL\]|^xmelab: \*E|^xmvlog: \*E" $(SIM_DIR)/$(3)/run.log | head -10
+	  printf "%-14s " "$(3)"; grep -hE "^RESULT:|checks=|TB: .* checks" $(SIM_DIR)/$(3)/run.log | tr '\n' ' '; \
+	  n=$$(grep -c '\*E,ASRTST' $(SIM_DIR)/$(3)/run.log); \
+	  [ "$$n" = 0 ] && echo || echo " ** $$n ASSERTION FAILURE(S), not counted in RESULT"; \
+	  grep -hE "\[FAIL\]|^xmelab: \*E|^xmvlog: \*E|\*E,ASRTST" $(SIM_DIR)/$(3)/run.log | head -10
 endef
 
 test_crg:     ; $(call run_blk,tb/clk_div/filelist_crg.f,tb_crg,tb_crg)                 ## 21/22 clock + reset
@@ -253,7 +257,8 @@ test_chip_jtag:  ; $(call run_blk,$(CHIP_FL),tb_chip,chip_jtag,+MODE=jtag +TEST=
 test_chip_flash: ; $(call run_blk,$(CHIP_FL),tb_chip,chip_flash,+MODE=flash +TEST=sw/build/flash.hex +MAXUS=3000)
 test_chip_uart:  ; $(call run_blk,$(CHIP_FL),tb_chip,chip_uart,+MODE=basic +TEST=sw/build/t_chip_uart.hex)
 test_chip_periph:; $(call run_blk,$(CHIP_FL),tb_chip,chip_periph,+MODE=basic +TEST=sw/build/t_chip_periph.hex +MAXUS=1200)
-test_chip: sw test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_uart test_chip_periph test_chip_jtag
+test_chip_integ: ; $(call run_blk,$(CHIP_FL),tb_chip,chip_integ,+MODE=basic +TEST=sw/build/t_chip_integ.hex +MAXUS=4000)
+test_chip: sw test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_uart test_chip_periph test_chip_integ test_chip_jtag
 
 # =============================================================================
 # Design documents. The .md is normative; the .docx is an export (see

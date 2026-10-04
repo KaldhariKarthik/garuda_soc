@@ -237,7 +237,7 @@ module garuda_cov (
     // Self-report. Written to both stdout and a file so the regression runner
     // can merge numbers across tests without IMC.
     // ---------------------------------------------------------------------
-    task automatic report_coverage(input [1023:0] tag);
+    task automatic report_coverage(input [4095:0] tag);
         integer fh;
         real d, a, l, h, t, b, u, total;
         begin
