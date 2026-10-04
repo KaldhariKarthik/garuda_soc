@@ -102,7 +102,9 @@ ships in the repository.
 
 | Component | Licence | Used for |
 |---|---|---|
-| *(none vendored yet)* | — | mbits-mirafra UVM VIP (MIT) is planned for I²C, and possibly UART, under `tb/uvm/` |
+| mbits-mirafra `pulpino__spi_master__ip_verification` (commit `9ebe7ea`) | MIT, Copyright (c) 2022 mbits-mirafra | UVM environment for the PULP SPI master: APB master agent, SPI slave agent, register model, scoreboard, 51 tests. **Not copied into this repository**: it is cloned to `~/external/mirafra/` and compiled from there through `MIRAFRA_SPIM` (`tb/spi_master/uvm_mirafra/verif.f`). |
+| `tb/spi_master/uvm_mirafra/hdl_top.sv` | MIT (derived work) | A copy of Mirafra's `src/dv/hdl_top/hdl_top.sv` with one change: the DUT instance is `garuda_spim_top` instead of the bare `apb_spi_master`. The MIT notice of the original applies to this file. |
+| mbits-mirafra `apb_avip`, `uart_avip`, `spi_avip` | MIT | Cloned beside it for a UART environment; not used yet. |
 
 ---
 
