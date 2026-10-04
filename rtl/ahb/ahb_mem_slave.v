@@ -130,8 +130,12 @@ module ahb_mem_slave #(
     // HREADYOUT low while wait states remain, or during the error's 1st cycle
     assign i_hready_o = (a_wcnt == 8'd0) && !(a_derr && !a_err2);
     assign d_hready_o = (b_wcnt == 8'd0) && !(b_derr && !b_err2);
-    assign i_hresp_o  = a_derr;
-    assign d_hresp_o  = b_derr;
+    // TB-29: an erroring transfer that also drew wait states serves the waits
+    // first, with HRESP low, and then the two-cycle ERROR. The error cycles used
+    // to run during the waits and were over before HREADY rose, so the transfer
+    // ended OKAY and a faulting access with +DWAIT/+IWAIT did not fault at all.
+    assign i_hresp_o  = a_derr && (a_wcnt == 8'd0);
+    assign d_hresp_o  = b_derr && (b_wcnt == 8'd0);
 
     wire [AW-1:0] a_widx = a_da[AW+1:2];
     wire [AW-1:0] b_widx = b_da[AW+1:2];
@@ -174,6 +178,8 @@ module ahb_mem_slave #(
         if (!rst_n_i) begin
             a_dv <= 1'b0; a_dw <= 1'b0; a_da <= 32'h0; a_ds <= 3'b010;
             a_wcnt <= 8'd0; a_derr <= 1'b0; a_err2 <= 1'b0;
+        end else if (a_derr && a_wcnt != 8'd0) begin
+            a_wcnt <= a_wcnt - 8'd1;              // waits before the ERROR (TB-29)
         end else if (a_derr && !a_err2) begin
             a_err2 <= 1'b1;                       // drive 2nd ERROR cycle
         end else if (a_derr && a_err2) begin
@@ -200,6 +206,8 @@ module ahb_mem_slave #(
         if (!rst_n_i) begin
             b_dv <= 1'b0; b_dw <= 1'b0; b_da <= 32'h0; b_ds <= 3'b010;
             b_wcnt <= 8'd0; b_derr <= 1'b0; b_err2 <= 1'b0;
+        end else if (b_derr && b_wcnt != 8'd0) begin
+            b_wcnt <= b_wcnt - 8'd1;              // waits before the ERROR (TB-29)
         end else if (b_derr && !b_err2) begin
             b_err2 <= 1'b1;
         end else if (b_derr && b_err2) begin

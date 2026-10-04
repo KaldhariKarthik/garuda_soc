@@ -121,9 +121,22 @@ module pipe_ctrl_sva (
     // A flush in flight is work the pipeline still owes. Stopping the clock
     // with one pending would leave the squashed slot latched and the redirect
     // unapplied - the core would wake up having silently executed it.
+    //
+    // "Flush" here means the spec's flush SOURCES - branch, trap, MRET, FENCE.I
+    // ([N-11.3]: f1..f4) - which all surface as a redirect or as a flush of
+    // IF/ID, ID/EX or MEM/WB. ex_mem_flush is deliberately not in the list:
+    // pipe_ctrl drives it from wfi_hold itself, to bubble EX/MEM while H5 holds
+    // ID/EX (ERRATUM P-3), so it is high in every quiescent cycle by
+    // construction and wfi_settled has already let that bubble latch. Listing
+    // it made this property fail on every WFI sleep (BUGS.md SVA-1); a trap
+    // squash of EX/MEM is still caught, through trap_redir_v. The raw ex_redir
+    // request is not listed either: a JALR parked in EX behind the WFI asks for
+    // its redirect all through the sleep and is deferred to the wake (P-5);
+    // what must never happen while gated is a redirect being APPLIED.
     // -------------------------------------------------------------------------
     a_no_gate_with_flush: assert property (@(posedge clk) disable iff (!rst_n)
-        quiescent |-> !(if_id_flush || id_ex_flush || ex_mem_flush || mem_wb_flush));
+        quiescent |-> !(if_redirect || trap_redir_v ||
+                        if_id_flush || id_ex_flush || mem_wb_flush));
 
     // -------------------------------------------------------------------------
     // Coverage of the [N-11.2] matrix: 5 hold sources x 4 pipeline registers.

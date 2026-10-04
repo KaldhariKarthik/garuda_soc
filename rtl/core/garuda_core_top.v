@@ -140,6 +140,7 @@ module garuda_core_top #(
     wire tr_redir_v; wire [31:0] tr_redir_t; wire tr_sq_ide, tr_sq_exm, tr_sq_mwb, tr_wfi_hold, tr_ex_squash;
     // pipe_ctrl
     wire pc_if_stall, pc_if_redir; wire [31:0] pc_if_redir_pc;
+    wire ex_parked, ex_commit;
     wire pc_ifid_s, pc_ifid_f, pc_idex_s, pc_idex_f, pc_exmem_s, pc_exmem_f, pc_mwb_f;
 
     // WFI hold is composed inside pipe_ctrl (Sec.14.5) - no top-level override.
@@ -167,7 +168,15 @@ module garuda_core_top #(
             wfi_q2 <= wfi_q1;
         end
     end
-    wire bus_idle = ~i_htrans_o[1] & ~d_htrans_o[1] & ~i_dph_q & ~d_dph_q;
+    // ERRATUM P-8 (2026-10-04, found by t_hold_flush_matrix under +IRQ_EVERY with
+    // D-port waits): "idle" also means MEM and WB are empty. wfi_q2 allows two
+    // cycles for the back end to drain, which is enough only when the last
+    // instruction before the WFI takes no bus wait. A load or store stretched by
+    // wait states finished its data phase, moved into MEM/WB, and the gate
+    // closed on it in that same cycle - so it sat in MEM/WB, unretired and with
+    // a load's register write not yet done, for the whole sleep.
+    wire bus_idle = ~i_htrans_o[1] & ~d_htrans_o[1] & ~i_dph_q & ~d_dph_q &
+                    ~em_valid & ~mw_retire & ~mw_reg_write;
 
     // =========================================================================
     // IF stage
@@ -242,7 +251,7 @@ module garuda_core_top #(
         .rd(xe_rd), .funct3(xe_funct3), .reg_write(xe_reg_write), .mem_read(xe_mem_read),
         .mem_write(xe_mem_write), .mem_to_reg(xe_mem_to_reg), .alu_src(xe_alu_src),
         .pc_op_a(xe_pc_op_a), .alu_op(xe_alu_op), .branch(xe_branch), .jal(xe_jal), .jalr(xe_jalr),
-        .predicted_taken(xe_predicted_taken), .mul_en(xe_mul_en), .dsu_en(xe_dsu_en),
+        .predicted_taken(xe_predicted_taken), .mul_en(xe_mul_en), .dsu_en(xe_dsu_en & ~ex_parked),
         .csr_en(xe_csr_en), .csr_imm(xe_csr_imm), .csr_op(xe_csr_op),
         .fwd_a_sel(fwd_a_sel), .fwd_b_sel(fwd_b_sel),
         .exmem_fwd_data(em_result), .memwb_fwd_data(mw_data),
@@ -297,9 +306,20 @@ module garuda_core_top #(
     // =========================================================================
     // CONTROL / CSR / TRAP / CLIC
     // =========================================================================
+    // ERRATA P-6, P-7 (2026-10-04): an instruction can sit in EX for many cycles
+    // - held behind a load or store (H2) or parked behind a WFI (H5) - and its
+    // side effects must happen once. The CSR write and the DSU operation used to
+    // run on every one of those cycles (a MAC accumulated once per held cycle).
+    // ex_parked withholds the DSU's enable until the instruction can move;
+    // ex_commit is the one cycle a CSR write is allowed, and also excludes the
+    // cycle the instruction is squashed by a trap. dsu_busy is not in either:
+    // it is the DSU's own interlock and the DSU already honours it.
+    assign ex_parked = mem_stall | tr_wfi_hold;
+    assign ex_commit = ~ex_parked & ~tr_ex_squash;
+
     csr_file u_csr (
         .clk_i(gclk), .rst_n_i(rst_n_i),
-        .csr_en_i(ex_csr_en_out), .csr_addr_i(ex_csr_addr_w), .csr_wdata_i(ex_csr_wdata),
+        .csr_en_i(ex_csr_en_out), .commit_i(ex_commit), .csr_addr_i(ex_csr_addr_w), .csr_wdata_i(ex_csr_wdata),
         .csr_op_i(ex_csr_op_out), .csr_rdata_o(csr_rdata), .illegal_csr_o(csr_illegal),
         .instret_i(mw_retire),                        // true architectural retire
         .dsu_overflow_i(ex_dsu_overflow), .csr_clear_overflow_o(csr_clear_ovf),
@@ -327,6 +347,7 @@ module garuda_core_top #(
         .ex_dsu_illegal_i(ex_dsu_illegal), .ex_csr_illegal_i(csr_illegal),
         .ex_load_misalign_i(ex_load_mis), .ex_store_misalign_i(ex_store_mis), .ex_addr_i(ex_result),
         .ex_fetch_misalign_i(ex_fetch_mis), .ex_fetch_target_i(ex_redirect_target),
+        .mem_stall_i(mem_stall),                      // ERRATUM T-9
         .mem_exc_valid_i(mem_exc_v), .mem_exc_cause_i(mem_exc_cause),
         .mem_exc_pc_i(mem_exc_pc), .mem_exc_tval_i(mem_exc_tval),
         .clic_take_cond_i(clic_take_cond), .clic_wake_cond_i(clic_wake_cond),
@@ -339,8 +360,20 @@ module garuda_core_top #(
         .trap_squash_id_ex_o(tr_sq_ide), .trap_squash_ex_mem_o(tr_sq_exm),
         .trap_squash_mem_wb_o(tr_sq_mwb), .wfi_hold_o(tr_wfi_hold), .ex_squash_o(tr_ex_squash)
     );
+    // ERRATUM C-15 (2026-10-04, found by t_hold_flush_matrix bit 6 with +DWAIT):
+    // FENCE.I redirects from ID, so its refetch went out on the I-port while an
+    // older store was still in EX or waiting on the D-port. With a wait state on
+    // the store the fetch won the race and the core executed the word the store
+    // was replacing - the one thing Zifencei exists to prevent. FENCE.I now
+    // waits in ID, exactly as a load-use does (PC and IF/ID held, a bubble into
+    // EX, its redirect withheld by pipe_ctrl), until no older store is in EX or
+    // still on the bus.
+    wire id_is_fencei = id_valid & (id_instr[6:0] == 7'b0001111) & (id_instr[14:12] == 3'b001);
+    wire fencei_wait  = id_is_fencei & ((xe_valid & xe_mem_write) |
+                                        (em_valid & em_mem_write & mem_stall));
+
     pipe_ctrl u_pipe (
-        .mem_stall_i(mem_stall), .dsu_busy_i(ex_dsu_busy), .load_use_stall_i(id_load_use), .wfi_hold_i(tr_wfi_hold),
+        .mem_stall_i(mem_stall), .dsu_busy_i(ex_dsu_busy), .load_use_stall_i(id_load_use | fencei_wait), .wfi_hold_i(tr_wfi_hold),
         .id_redirect_valid_i(id_redir_v), .id_redirect_target_i(id_redir_t),
         .ex_redirect_i(ex_redirect), .ex_redirect_target_i(ex_redirect_target),
         .bus_idle_i(bus_idle), .wfi_settled_i(wfi_q2), .quiescent_o(quiescent),

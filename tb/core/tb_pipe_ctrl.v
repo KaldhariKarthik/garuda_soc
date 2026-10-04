@@ -51,6 +51,15 @@ module tb_pipe_ctrl;
     idv=0; exr=0; trv=0;
     mem_stall=1; exr=1; #1 chk("redir_gated_wait", 9'b1_0_1_0_1_0_1_0_1);
     mem_stall=0;        #1 chk("redir_after_wait", 9'b0_1_0_1_0_1_0_0_0); exr=0;
+    // ERRATUM P-4 / P-5: under H5 the instruction parked in ID/EX has not
+    // advanced, so neither a load-use bubble nor an EX redirect may flush it.
+    // Both must look exactly like a plain WFI hold; a trap redirect still wins.
+    wfi_hold=1; load_use=1; #1 chk("wfi_loaduse_holds", 9'b1_0_1_0_1_0_0_1_0); load_use=0;
+    exr=1;              #1 chk("wfi_exredir_deferred", 9'b1_0_1_0_1_0_0_1_0);
+    wfi_hold=0;         #1 chk("exredir_on_wake",   9'b0_1_0_1_0_1_0_0_0); chkpc("exredir_on_wake",32'h2222); exr=0;
+    wfi_hold=1; trv=1; sq_ide=1; sq_exm=1;
+                        #1 chk("wfi_trap_wins",     9'b0_1_0_1_0_1_0_1_0); chkpc("wfi_trap_wins",32'h3333);
+    wfi_hold=0; trv=0; sq_ide=0; sq_exm=0;
     sq_mwb=1; #1 chk("squash_memwb", 9'b0_0_0_0_0_0_0_0_1); sq_mwb=0;
     sq_exm=1; #1 chk("squash_exmem", 9'b0_0_0_0_0_0_0_1_0); sq_exm=0;
     sq_ide=1; #1 chk("squash_idex",  9'b0_0_0_0_0_1_0_0_0); sq_ide=0;

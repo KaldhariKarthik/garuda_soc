@@ -48,6 +48,7 @@ module trap_ctrl #(
     input  wire [31:0] ex_fetch_target_i,     // mtval for cause 0
 
     // ---- MEM-point (mem_stage) ----
+    input  wire        mem_stall_i,           // H2: a D-port transfer is outstanding (ERRATUM T-9)
     input  wire        mem_exc_valid_i,
     input  wire [3:0]  mem_exc_cause_i,       // 5 or 7
     input  wire [31:0] mem_exc_pc_i,
@@ -110,7 +111,31 @@ module trap_ctrl #(
     // carried on. Ranked below the instruction-access fault and the illegal
     // instruction, neither of which can co-occur with a taken jump.
     wire e0  = ex_fetch_misalign_i;
-    wire ex_exc = e0|e1|e2|e3|e4|e6|e11;
+
+    // -----------------------------------------------------------------------
+    // ERRATUM T-9 (2026-10-04, found by sw/chip/t_chip_integ.c)
+    // -----------------------------------------------------------------------
+    // Nothing here knew about H2. A trap raised while a load or store was
+    // still in MEM (mem_stall high) was ENTERED at once - mepc, mcause and
+    // mstatus written, ID/EX squashed - while pipe_ctrl, correctly, refused to
+    // redirect fetch until the D-port transfer finished ([N-7.24]). pipe_ctrl's
+    // premise is that a deferred redirect is still being asked for when the
+    // wait clears. For an interrupt it is not: the entry just cleared
+    // mstatus.MIE, so the request is gone, the redirect never happens, and the
+    // core runs on down the interrupted code with its CSRs saying it is in the
+    // handler. An EX-point exception lost its redirect the same way (its own
+    // squash removed it from ID/EX), and an MRET held behind a load popped
+    // mstatus once per stalled cycle.
+    //
+    // So no EX-point trap, interrupt or MRET is taken while H2 holds. ID/EX is
+    // held by the same stall, the instruction and its exception are still
+    // there when it clears, and the CLIC and the timer hold their requests -
+    // entry, squash and redirect then happen together, in one cycle. A
+    // MEM-point bus error is reported in the cycle its data phase completes,
+    // where mem_stall is already low, so it is not delayed.
+    // -----------------------------------------------------------------------
+    wire h2 = mem_stall_i;
+    wire ex_exc = (e0|e1|e2|e3|e4|e6|e11) & ~h2;
     wire [3:0]  ex_cause = e1?4'd1 : e2?4'd2 : e0?4'd0 : e3?4'd3 :
                            e4?4'd4 : e6?4'd6 : 4'd11;
     wire [31:0] ex_tval  = e1?idex_pc_i : e2?idex_instr_i : e0?ex_fetch_target_i :
@@ -127,10 +152,20 @@ module trap_ctrl #(
     // timer-only wake the latch stayed set, so the pipeline re-froze the
     // moment the handler cleared MTIP (by advancing mtimecmp) and slept until
     // some unrelated CLIC interrupt arrived. Both now use the same wake term.
+    //
+    // ERRATUM T-11 (2026-10-04, found by t_hold_flush_matrix with +IRQ_EVERY=71
+    // +DWAIT=5): a WFI that is SQUASHED must not arm the sleep. When an interrupt
+    // was taken in the cycle a WFI sat in EX, the trap was entered and the latch
+    // was set as well, so the core went to sleep on the first instruction of the
+    // handler. If the source had dropped its request by then nothing woke it:
+    // the handler ran only when the NEXT interrupt arrived, returned to the WFI,
+    // and the same thing happened again - every interrupt served one interrupt
+    // late, and the program never got past the WFI.
+    wire wfi_squashed;                             // assigned below, once any_int exists
     reg wfi_active;
     always @(posedge clk_i or negedge rst_n_i) begin
         if (!rst_n_i)                              wfi_active <= 1'b0;
-        else if (is_wfi & ~wfi_active)             wfi_active <= 1'b1;
+        else if (is_wfi & ~wfi_active & ~wfi_squashed) wfi_active <= 1'b1;
         else if (wfi_active & wake_cond)           wfi_active <= 1'b0;
     end
     assign wfi_hold_o = wfi_active & ~wake_cond;
@@ -162,10 +197,11 @@ module trap_ctrl #(
     // Exceptions need no such gate: they are raised BY an instruction, so one
     // is present by construction.
     // -----------------------------------------------------------------------
-    wire take_int      = clic_take_cond_i & ~exception & idex_valid_i;
+    wire take_int      = clic_take_cond_i & ~exception & idex_valid_i & ~h2;
     wire take_mti     = mti_pending_i & mstatus_mie_i & ~exception & ~take_int
-                        & idex_valid_i;
+                        & idex_valid_i & ~h2;
     wire any_int      = take_int | take_mti;
+    assign wfi_squashed = exception | any_int;     // T-11
     wire trap_now     = (exception | any_int) & ~is_mret;
 
     // MTI is not a CLIC source: no CLIC level to push, so it enters at mil 0.
@@ -174,7 +210,7 @@ module trap_ctrl #(
     assign clic_level_o    = take_int ? clic_irq_lvl_i : 8'd0;
 
     assign trap_enter_o    = trap_now;
-    assign mret_o          = is_mret;
+    assign mret_o          = is_mret & ~h2;           // T-9: one pop, when the wait clears
 
     // mepc / mcause / mtval selection
     assign trap_pc_o    = mem_exc_valid_i ? mem_exc_pc_i :
@@ -207,13 +243,22 @@ module trap_ctrl #(
     wire [31:0] mtvec_base = {mtvec_i[31:2], 2'b0};
 
     // Redirect: trap -> vector/base ; MRET -> mepc
-    assign trap_redirect_valid_o  = trap_now | is_mret;
+    assign trap_redirect_valid_o  = trap_now | (is_mret & ~h2);
     assign trap_redirect_target_o = is_mret ? mepc_i :
                                     take_int ? clic_vector_target_i : mtvec_base;
 
     // Squash of the offending instr's own downstream reg (+younger via redirect flush)
     assign trap_squash_mem_wb_o = mem_exc_valid_i;                 // kill MEM fault WB
-    assign trap_squash_ex_mem_o = (ex_exc & ~mem_exc_valid_i) | any_int; // kill EX instr
+    // ERRATUM T-10 (2026-10-04, found by sw/chip/t_chip_integ.c)
+    // The instruction in EX is squashed on EVERY trap. For an EX-point exception
+    // or an interrupt it is the instruction the trap is about. For a MEM-point
+    // exception (a load/store bus error) it is the instruction AFTER the faulting
+    // one, and this term used to leave it alone: it moved on into MEM, did its
+    // bus access and wrote its register before the handler ran. `lw a4,204(a4)`
+    // behind a faulting load overwrote its own base register and then trapped as
+    // misaligned when the handler returned to it; a store there would have
+    // written memory after a fault the program had not yet seen.
+    assign trap_squash_ex_mem_o = exception | any_int;
     assign trap_squash_id_ex_o  = trap_now;                        // younger
     assign ex_squash_o          = trap_now;                        // DSU trap-only flush
 endmodule

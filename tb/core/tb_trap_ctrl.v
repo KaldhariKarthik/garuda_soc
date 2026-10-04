@@ -19,6 +19,7 @@ module tb_trap_ctrl;
     // ERRATUM T-4 added an EX-valid gate on interrupt entry. Tied high
     // here so this TB's existing interrupt vectors behave as before.
     .idex_valid_i(1'b1),
+    .mem_stall_i(1'b0),                    // no D-port wait in this smoke (T-9 has its own test)
     .mem_exc_valid_i(memv),.mem_exc_cause_i(memc),.mem_exc_pc_i(mpc),.mem_exc_tval_i(mtval),
     .clic_take_cond_i(tkcond),.clic_wake_cond_i(wkcond),.clic_irq_id_i(irqid),
     .clic_irq_lvl_i(irqlvl),.clic_vector_target_i(vectgt),.clic_take_o(tk_ack),

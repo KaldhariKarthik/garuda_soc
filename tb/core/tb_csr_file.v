@@ -6,7 +6,7 @@ module tb_csr_file;
   reg rst_n, csr_en; reg [11:0] addr; reg [31:0] wdata; reg [1:0] op;
   reg instret, dsu_ovf, trap_enter, mret; reg [31:0] tpc,tcause,ttval; reg mtip;
   wire [31:0] rdata; wire illegal, clr_ovf; wire [31:0] mtvec,mepc; wire mie; wire [7:0] ithr;
-  csr_file dut(.clk_i(clk),.rst_n_i(rst_n),.csr_en_i(csr_en),.csr_addr_i(addr),
+  csr_file dut(.clk_i(clk),.rst_n_i(rst_n),.csr_en_i(csr_en),.commit_i(1'b1),.csr_addr_i(addr),
     .csr_wdata_i(wdata),.csr_op_i(op),.csr_rdata_o(rdata),.illegal_csr_o(illegal),
     .instret_i(instret),.dsu_overflow_i(dsu_ovf),.csr_clear_overflow_o(clr_ovf),
     .trap_enter_i(trap_enter),.mret_i(mret),.is_interrupt_i(1'b0),.clic_level_i(8'd0),.trap_pc_i(tpc),.trap_cause_i(tcause),

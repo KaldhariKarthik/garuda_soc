@@ -99,14 +99,30 @@ module pipe_ctrl (
     wire id_redir_ok = id_redirect_valid_i &
                        ~load_use_stall_i & ~dsu_busy_i & ~wfi_hold_i;
 
+    // ERRATUM P-5 (proposed; found by sw/tests/t_hold_flush_matrix.S bit 13)
+    // ------------------------------------------------------------------
+    // The same premise, one stage later. An EX redirect bubbles ID/EX on the
+    // assumption that the JALR / mispredicted branch in EX is moving into
+    // EX/MEM this cycle. Under H5 it is not: wfi_active is a registered latch,
+    // so the instruction parked in ID/EX during the sleep is the one BEHIND
+    // the WFI, and EX/MEM is being fed bubbles (ERRATUM P-3). A JALR parked
+    // there redirected fetch, was then flushed out of ID/EX by its own
+    // redirect, and never reached EX/MEM: `wfi ; jalr ra, ...` jumped but
+    // wrote no link register and never retired. For `wfi ; ret` only the
+    // retirement is lost, which is why nothing had noticed.
+    //
+    // The redirect is deferred until the wake, exactly as an ID redirect is.
+    // A trap redirect is NOT deferred: [N-7.23] H5 x F2, flush wins.
+    wire ex_redir_ok = ex_redirect_i & ~wfi_hold_i;
+
     // Redirect selection (priority trap > ex > id), gated by ~mem_stall.
-    wire redir_raw   = trap_redirect_valid_i | ex_redirect_i | id_redir_ok;
+    wire redir_raw   = trap_redirect_valid_i | ex_redir_ok | id_redir_ok;
     wire redirect    = redir_raw & ~mem_stall_i;
-    wire redir_2b    = (trap_redirect_valid_i | ex_redirect_i) & ~mem_stall_i; // 2-bubble
+    wire redir_2b    = (trap_redirect_valid_i | ex_redir_ok) & ~mem_stall_i; // 2-bubble
 
     assign if_redirect_o    = redirect;
     assign if_redirect_pc_o = trap_redirect_valid_i ? trap_redirect_target_i :
-                              ex_redirect_i          ? ex_redirect_target_i    :
+                              ex_redir_ok            ? ex_redirect_target_i    :
                                                        id_redirect_target_i;
 
     // Holds (raw). Flushes override holds per-register below.
@@ -150,7 +166,20 @@ module pipe_ctrl (
     //
     // Latent until ERRATUM D-1: with the old one-cycle D-port there was no
     // multi-cycle MEM stall, so load-use and mem_stall could never overlap.
-    assign id_ex_flush_o = redir_2b | (load_use_stall_i & ~mem_stall_i) |
+    //
+    // ERRATUM P-4 (proposed; found by sw/tests/t_hold_flush_matrix.S bit 12)
+    // ------------------------------------------------------------------
+    // P-1 again, with H5 in place of H2. During a WFI sleep the instruction
+    // behind the WFI is parked in ID/EX and EX/MEM is fed bubbles, so a load
+    // parked there has NOT advanced. If the instruction behind it uses the
+    // load's result, load-use fired, flush beat the H5 hold inside id_ex.v, and
+    // the load was destroyed: `wfi ; lw a5,0(a4) ; beqz a5,...` - the ordinary
+    // `while (!flag) wfi;` idle loop - woke up, skipped the load and branched
+    // on the stale register. The load-use bubble is now inserted on the wake
+    // cycle, when the load really does move into EX/MEM.
+    // (H4 needs no term: dsu_busy parks a Custom-0 op, which is never a load.)
+    assign id_ex_flush_o = redir_2b |
+                           (load_use_stall_i & ~mem_stall_i & ~wfi_hold_i) |
                            trap_squash_id_ex_i;
     assign id_ex_stall_o = hold_id_ex & ~id_ex_flush_o;
 

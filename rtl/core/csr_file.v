@@ -28,6 +28,7 @@ module csr_file (
 
     // ---- EX read/modify/write seam ----
     input  wire        csr_en_i,
+    input  wire        commit_i,         // the instruction in EX leaves EX this cycle, unsquashed (ERRATUM P-6)
     input  wire [11:0] csr_addr_i,
     input  wire [31:0] csr_wdata_i,
     input  wire [1:0]  csr_op_i,
@@ -172,7 +173,7 @@ module csr_file (
     assign illegal_csr_o = access && (!implemented || (is_write && is_ro));
 
     // dsu_ovf read clears overflow (Sec. 13.2)
-    assign csr_clear_overflow_o = csr_en_i && (csr_addr_i==DSU_OVF) && (csr_op_i!=2'b00);
+    assign csr_clear_overflow_o = csr_en_i && commit_i && (csr_addr_i==DSU_OVF) && (csr_op_i!=2'b00);
 
     // next value of a written CSR under RW/RS/RC
     function [31:0] nextv; input [31:0] cur; input [31:0] w; input [1:0] op;
@@ -185,7 +186,18 @@ module csr_file (
             endcase
         end
     endfunction
-    wire wr_ok = is_write && !is_ro && implemented;
+    // ERRATUM P-6 (2026-10-04, found by sw/tests/t_hold_flush_matrix.S bits 7, 14)
+    // A CSR instruction wrote its CSR in EVERY cycle it sat in EX, and in the
+    // cycle it was squashed there. Held behind a load or store (H2) or parked
+    // behind a WFI (H5), CSRRW wrote on the first cycle and returned the value
+    // it had just written - rd got the NEW value, not the old one - and the
+    // read-to-clear of dsu_ovf fired early. An interrupt taken on a CSRRW wrote
+    // the CSR, squashed the instruction, and wrote it again on return, so a
+    // `csrrw a0, mscratch, a0` swap lost the old mscratch. The write and the
+    // clear now happen once, in the cycle the instruction leaves EX. Decode of
+    // an illegal access (illegal_csr_o) is not gated: it has to be visible to
+    // trap_ctrl, which applies its own hold.
+    wire wr_ok = is_write && !is_ro && implemented && commit_i;
     wire [31:0] mstatus_next    = nextv(mstatus_val, csr_wdata_i, csr_op_i);
     wire [31:0] mintthresh_next = nextv({24'd0,mintthresh_r}, csr_wdata_i, csr_op_i);
 
