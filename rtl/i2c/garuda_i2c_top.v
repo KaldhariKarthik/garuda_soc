@@ -89,8 +89,17 @@ module garuda_i2c_top #(
     reg        tip_q;
     reg        c_sta, c_sto, c_rd, c_wr, c_nack;
 
+    // I2C-6: a command can only be outstanding while the vendored core is
+    // running. core_held is ~en_q | (|abort_q) - the core in reset - and while
+    // it is true a CMD is not accepted and any command in hand is dropped.
+    // Before this, only an ABORT cleared TIP: a plain CTRL.EN = 0 in the middle
+    // of a transfer left TIP and the command bits latched with the core in
+    // reset, so with TIMEOUT = 0 (its reset value) firmware polling TIP never
+    // returned, and the next CTRL.EN = 1 sent the stale START + byte out on the
+    // bus unasked. A CMD written while disabled was kept the same way.
+    wire       core_held;
     wire       cmd_write = wr_hit & (ip_paddr == A_CMD);
-    wire       cmd_ok    = cmd_write & ~tip_q;      // ignored while busy
+    wire       cmd_ok    = cmd_write & ~tip_q & ~core_held;  // ignored while busy
 
     // vendored core status
     wire       core_ack, core_ackout, core_busy, core_al;
@@ -114,11 +123,25 @@ module garuda_i2c_top #(
     // is disabled or aborting. That also makes CTRL.EN = 0 a clean state rather
     // than a free-running one.
     //
-    // abort_q is a FLOP, so this asynchronous reset is driven from register
-    // output and not from combinational logic - the CRG-2 rule.
+    // The core's asynchronous reset comes straight from ONE flop, core_rst_n_q -
+    // the CRG-2 rule. It used to be `preset_n_i & en_q & ~(|abort_q)`: flops
+    // behind it, but an AND and a 3-input OR in the reset path, and abort_q is a
+    // down-counter whose 4->3 and 2->1 steps move bits in opposite directions,
+    // so the OR could glitch and release the reset mid-abort (HAL GLTASR, BUGS.md
+    // I2C-5). The flop is loaded from the NEXT values of en_q and abort_q, so it
+    // changes in the same cycle the old expression did.
     wire       abort_req = (wr_hit & (ip_paddr == A_CTRL) & pwdata_i[1]) | to_pulse;
     reg  [2:0] abort_q;
-    wire       core_rst_n = preset_n_i & en_q & ~(|abort_q);
+    wire [2:0] abort_d   = abort_req  ? 3'd4            :
+                           (|abort_q) ? abort_q - 3'd1  : 3'd0;
+    wire       en_d      = (wr_hit & (ip_paddr == A_CTRL)) ? pwdata_i[0] : en_q;
+    reg        core_rst_n_q;
+    wire       core_rst_n = core_rst_n_q;
+    assign     core_held  = ~core_rst_n_q;
+
+    always @(posedge pclk_i or negedge preset_n_i)
+        if (!preset_n_i) core_rst_n_q <= 1'b0;
+        else             core_rst_n_q <= en_d & ~(|abort_d);
 
     // =========================================================================
     // Bus timeout ([N-7.5]). Counts pclk while a command is outstanding; a
@@ -135,8 +158,7 @@ module garuda_i2c_top #(
             if (!tip_q)                tocnt_q <= timeout_q;
             else if (tocnt_q != 16'd0) tocnt_q <= tocnt_q - 16'd1;
 
-            if (abort_req)             abort_q <= 3'd4;
-            else if (|abort_q)         abort_q <= abort_q - 3'd1;
+            abort_q <= abort_d;
         end
     end
 
@@ -177,9 +199,10 @@ module garuda_i2c_top #(
                     rxvalid_q <= 1'b1;
                 end
                 if (c_wr) rxnack_q <= core_ackout;   // 1 = the slave did not ACK
-            end else if (core_al | (|abort_q)) begin
-                // arbitration loss and abort both return the core to idle with
-                // no cmd_ack, so TIP has to be cleared here or firmware hangs
+            end else if (core_al | core_held) begin
+                // arbitration loss, abort and disable (I2C-6) all return the
+                // core to idle with no cmd_ack, so TIP has to be cleared here
+                // or firmware hangs
                 c_sta <= 1'b0; c_sto <= 1'b0; c_rd <= 1'b0; c_wr <= 1'b0;
                 tip_q <= 1'b0;
             end

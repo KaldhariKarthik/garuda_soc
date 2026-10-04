@@ -13,6 +13,9 @@
 //                DUT's TIMEOUT to prove the master abandons the transfer
 //                rather than hanging (I2C R-8).
 //   nack_all     refuse to acknowledge, as an absent device would
+//   nack_data    acknowledge the address but refuse every byte after it, as a
+//                device does when its buffer is full or the register is
+//                read-only (I2C R-7: NACK on DATA, not only on the address)
 //
 // It checks the master as well as answering it:
 //   viol_sda     SDA changed while SCL was high outside a START/STOP, which
@@ -40,6 +43,7 @@ module i2c_slave_model #(
 
     real stretch_ns = 0.0;
     bit  nack_all   = 1'b0;
+    bit  nack_data  = 1'b0;
 
     integer st = S_IDLE, nbit = 0, ptr = 0;
     reg [7:0] sh = 8'h0, txb = 8'h0;
@@ -111,16 +115,21 @@ module i2c_slave_model #(
 
             S_WDATA: if (nbit == 8) begin
                 nbit = 0;
-                if (!got_ptr) begin
-                    ptr     = sh;                     // first byte is the pointer
-                    got_ptr = 1'b1;
+                if (nack_data) begin
+                    sda_low = 1'b0;                   // NACK: refused, not stored
+                    st      = S_OFF;
                 end else begin
-                    mem[ptr & 8'hFF] = sh;
-                    ptr  = ptr + 1;
-                    n_rx = n_rx + 1;
+                    if (!got_ptr) begin
+                        ptr     = sh;                 // first byte is the pointer
+                        got_ptr = 1'b1;
+                    end else begin
+                        mem[ptr & 8'hFF] = sh;
+                        ptr  = ptr + 1;
+                        n_rx = n_rx + 1;
+                    end
+                    sda_low = 1'b1;                   // ACK the byte
+                    st      = S_ACK_W;
                 end
-                sda_low = 1'b1;                       // ACK the byte
-                st      = S_ACK_W;
             end
 
             S_ACK_W: begin

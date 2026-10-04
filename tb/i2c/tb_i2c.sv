@@ -60,6 +60,33 @@ module tb_i2c;
     end
     task automatic scl_meas_reset(); scl_min = 1e9; scl_fall = 0; endtask
 
+    // A second device on the bus. The testbench can pull either line low the
+    // way another master does (arbitration) or the way a board does when it
+    // clocks a stuck slave free (OPEN-I1: GARUDA itself cannot).
+    logic tb_sda_low = 1'b0, tb_scl_low = 1'b0;
+    assign sda = tb_sda_low ? 1'b0 : 1'bz;
+    assign scl = tb_scl_low ? 1'b0 : 1'bz;
+
+    // Every change of the DUT's two output enables, counted. "The block went
+    // quiet" is then a number that did not move, not a waveform to look at.
+    int   oe_edges = 0;
+    logic scl_oe_d = 1'b0, sda_oe_d = 1'b0;
+    always @(posedge pclk) begin
+        if (preset_n && (scl_oe !== scl_oe_d || sda_oe !== sda_oe_d)) oe_edges++;
+        scl_oe_d <= scl_oe;
+        sda_oe_d <= sda_oe;
+    end
+
+    // nine clocks and a STOP, which is how a board frees a slave left mid-byte
+    task automatic bus_recover();
+        repeat (9) begin
+            tb_scl_low = 1'b1; #400; tb_scl_low = 1'b0; #400;
+        end
+        tb_scl_low = 1'b1; #200; tb_sda_low = 1'b1; #200;
+        tb_scl_low = 1'b0; #400;
+        tb_sda_low = 1'b0; #400;                   // SDA rises with SCL high: STOP
+    endtask
+
     localparam [11:0] R_PRESCALE = 12'h000, R_CTRL  = 12'h004, R_TXDATA = 12'h008,
                       R_RXDATA   = 12'h00C, R_CMD   = 12'h010, R_STATUS = 12'h014,
                       R_TIMEOUT  = 12'h018,
@@ -107,6 +134,7 @@ module tb_i2c;
     bit e, ok;
     int i, nbad;
     real f;
+    int k, t, e0, stop0, n_held, n_tip, n_noisy, n_lost;
 
     initial begin
         $display("=== tb_i2c: Block 15 I2C master ===");
@@ -115,8 +143,30 @@ module tb_i2c;
         check(!scl_oe && !sda_oe, "[R-10] both lines released while in reset");
         preset_n = 1;
         repeat (4) @(posedge pclk);
-        check(!scl_oe && !sda_oe, "[R-10] both lines released out of reset");
+        check(!scl_oe && !sda_oe, "[R-10] [N-9.4] both lines released out of reset");
         check(scl === 1'b1 && sda === 1'b1, "[R-10] the bus idles high on the pull-ups");
+        // The pad synchronisers reset to the bus idle level. If they reset low
+        // the core would see SDA fall with SCL high - a START - on the way out
+        // of reset and report a busy bus that nobody is using.
+        bfm.wr(R_CTRL, 32'h1);
+        repeat (40) @(posedge pclk);
+        bfm.read(R_STATUS, d, e);
+        check(d[5:0] == 6'd0, $sformatf("[N-6.3] STATUS is 0 on an idle bus: no false START out of reset (%02h)", d[5:0]));
+        // the input path: synchronisers, then the core's spike filter
+        @(posedge pclk); #1 tb_sda_low = 1'b1;
+        @(posedge pclk); #1 tb_sda_low = 1'b0;       // SDA low for one pclk
+        repeat (40) @(posedge pclk);
+        bfm.read(R_STATUS, d, e);
+        check(!d[ST_BUSY], "[N-9.3] a one-pclk spike on SDA is filtered, not taken as a START");
+        tb_sda_low = 1'b1;                           // another master's START
+        repeat (100) @(posedge pclk);
+        bfm.read(R_STATUS, d, e);
+        check(d[ST_BUSY], "[N-9.3] [N-6.3] a real START from another master reaches the core and sets BUSY");
+        tb_sda_low = 1'b0;                           // and its STOP
+        repeat (100) @(posedge pclk);
+        bfm.read(R_STATUS, d, e);
+        check(!d[ST_BUSY], "[N-6.3] and that master's STOP clears BUSY");
+        bfm.wr(R_CTRL, 32'h0);
 
         bfm.read(R_ID, d, e);
         check(d == {16'h6A5D, 8'd15, 8'd1} && !e, "ID register reads block 15");
@@ -169,12 +219,28 @@ module tb_i2c;
         cmd(CMD_STA | CMD_WR, ok);
         bfm.read(R_STATUS, d, e);
         check(ok && !d[ST_NACK], "[R-1] the slave acknowledged its address");
+        check(d[ST_BUSY], "[N-6.3] BUSY is set between the START and the STOP");
+        bfm.read(R_CMD, d, e);
+        check(d == 32'd0 && !e, "[N-6.2] CMD is write-only: it reads 0");
+        // self-clearing: the command ran once. If the bits stayed set the byte
+        // controller would send the address byte again and the bus would move.
+        e0 = oe_edges;
+        repeat (600) @(posedge pclk);
+        check(oe_edges == e0, "[N-6.2] the command dropped when it was acknowledged: the bus is still, nothing repeats");
         wr_byte(8'h10, 0, ok);                       // register pointer
         wr_byte(8'hA5, CMD_STO, ok);                 // data + stop
         check(u_slv.bd_read(8'h10) == 8'hA5,
               $sformatf("[R-1] the slave stored 0xA5 at register 0x10 (got 0x%02h)",
                         u_slv.bd_read(8'h10)));
         check(u_slv.n_start == 1 && u_slv.n_stop == 1, "[R-1] exactly one START and one STOP");
+        check(u_slv.n_rx == 1, $sformatf("[N-7.1] the slave stored exactly one data byte (%0d)", u_slv.n_rx));
+        // BUSY is the core's own view of the bus, through the synchronisers
+        // and the spike filter, so it trails the STOP it has just sent: TIP
+        // clears first. Bounded here at half a bit time.
+        t = 0;
+        do begin bfm.read(R_STATUS, d, e); t = t + 3; end while (d[ST_BUSY] && t < 70);
+        $display("[MEASURED] BUSY cleared within %0d pclk of TIP after a STOP", t);
+        check(!d[ST_BUSY], "[N-6.3] BUSY clears after the STOP, within half a bit time");
 
         // ---- a register read, with a repeated start ([N-7.2]) --------------------------
         u_slv.bd_write(8'h20, 8'h3C);
@@ -191,12 +257,16 @@ module tb_i2c;
               $sformatf("[R-1] two STARTs, one STOP - a repeated start (%0d/%0d)",
                         u_slv.n_start, u_slv.n_stop));
         bfm.read(R_STATUS, d, e);
-        check(!d[ST_RXVALID], "[R-1] reading RXDATA cleared RXVALID");
+        check(!d[ST_RXVALID], "[R-1] [N-6.4] reading RXDATA cleared RXVALID");
+        check(!d[ST_TIP] && u_slv.n_tx == 1,
+              $sformatf("[N-6.4] reading RXDATA did not start another transfer (slave sent %0d byte)", u_slv.n_tx));
+        check(u_slv.mack, "[N-6.2a] CMD.NACK put a NACK on the wire after the byte read");
 
         // ---- an 8-byte burst read ------------------------------------------------------
         for (i = 0; i < 8; i++) u_slv.bd_write(8'h30 + i, 8'hE0 + i[7:0]);
         u_slv.clear();
         nbad = 0;
+        n_lost = 0;
         bfm.wr(R_TXDATA, 32'h90);
         cmd(CMD_STA | CMD_WR, ok);
         wr_byte(8'h30, 0, ok);
@@ -205,10 +275,15 @@ module tb_i2c;
         for (i = 0; i < 8; i++) begin
             if (i == 7) cmd(CMD_RD | CMD_NACK | CMD_STO, ok);   // NACK the last
             else        cmd(CMD_RD, ok);                        // ACK the rest
+            // the acknowledge level the slave actually saw on the wire
+            if (u_slv.mack != (i == 7)) n_lost++;
             bfm.read(R_RXDATA, d, e);
             if (!ok || d[7:0] != 8'hE0 + i[7:0]) nbad++;
         end
         check(nbad == 0, $sformatf("[R-1] 8-byte burst read, all correct (%0d wrong)", nbad));
+        check(n_lost == 0 && u_slv.n_tx == 8,
+              $sformatf("[N-6.2a] ACK after bytes 0..6, NACK after the last; the slave sent exactly 8 (%0d, %0d wrong levels)",
+                        u_slv.n_tx, n_lost));
         check(u_slv.viol() == 0, "[R-1] the slave saw no SDA-while-SCL-high violation");
 
         // ---- NACK from an absent device --------------------------------------------------
@@ -238,22 +313,24 @@ module tb_i2c;
         bfm.wr(R_IRQSTAT, 32'hF);
         bfm.wr(R_TIMEOUT, 32'd2000);                 // 16 us
         u_slv.stretch_ns = 200000.0;                 // 200 us: wedged
+        stop0 = u_slv.n_stop;
         bfm.wr(R_TXDATA, 32'h90);
         cmd(CMD_STA | CMD_WR, ok);                   // address; the stretch starts here
         bfm.wr(R_TXDATA, 32'h50);
         cmd(CMD_WR, ok);                             // this command meets a dead bus
         check(ok, "[R-8] TIP cleared - the transfer was abandoned, not hung");
         bfm.read(R_STATUS, d, e);
-        check(d[ST_TO], "[R-8] STATUS.TIMEOUT is set");
+        check(d[ST_TO], "[R-8] [N-7.5] STATUS.TIMEOUT is set");
         bfm.read(R_IRQSTAT, d, e);
         check(d[2], "[R-8] IRQSTAT[2] captured the timeout");
-        check(!scl_oe, "[R-8] and the block released SCL so the bus can recover");
+        check(!scl_oe && !sda_oe, "[R-8] [N-7.5] and the block released both pins so the bus can recover");
         bfm.wr(R_IRQSTAT, 32'h4);
         bfm.read(R_STATUS, d, e);
         check(!d[ST_TO], "[R-8] clearing IRQSTAT[2] clears STATUS.TIMEOUT");
 
         // let the wedged slave finish, then prove the block still works
         #250000;
+        check(u_slv.n_stop == stop0, "[N-7.5a] the timeout released the pins without sending a STOP");
         u_slv.stretch_ns = 0.0;
         bfm.wr(R_CTRL, 32'h0);                       // disable
         repeat (10) @(posedge pclk);
@@ -309,7 +386,8 @@ module tb_i2c;
         check(dma_req, "[R-6] dma_req asserts once a byte is in RXDATA");
         bfm.read(R_RXDATA, d, e);
         check(d[7:0] == 8'hD1, "[R-6] the DMA's read returns the byte");
-        check(d[31:8] == 24'd0, "[R-6] word-sized beat, byte in [7:0]");
+        check(d[31:8] == 24'd0, "[R-6] [N-7.7] word-sized beat, byte in [7:0]");
+        #1 check(!dma_req, "[N-6.4] the RXDATA read itself drops the DMA request, before the ack");
         @(posedge pclk); #0.1 dma_ack = 1;
         @(posedge pclk); #0.1 dma_ack = 0;
         repeat (4) @(posedge pclk);
@@ -317,8 +395,206 @@ module tb_i2c;
         check(u_dchk.violations() == 0, "[R-6] dma_req_checker clean");
         bfm.wr(R_DMACTL, 32'h0);
 
+        // ---- NACK on a DATA byte, not only on the address ([R-7]) -----------------------------------
+        bfm.wr(R_IRQSTAT, 32'hF);
+        u_slv.clear();
+        u_slv.nack_data = 1'b1;
+        bfm.wr(R_TXDATA, 32'h90);
+        cmd(CMD_STA | CMD_WR, ok);
+        bfm.read(R_STATUS, d, e);
+        check(ok && !d[ST_NACK], "[R-7] the address is acknowledged");
+        bfm.read(R_IRQSTAT, d, e);
+        check(d[0] && !d[3], "[N-7.3] an acknowledged byte raises IRQSTAT[0] and not IRQSTAT[3]");
+        wr_byte(8'h66, 0, ok);
+        bfm.read(R_STATUS, d, e);
+        check(ok && d[ST_NACK], "[R-7] [N-6.3] a refused DATA byte sets STATUS.RXNACK");
+        bfm.read(R_IRQSTAT, d, e);
+        check(d[3], "[R-7] [N-7.3] and IRQSTAT[3]");
+        cmd(CMD_STO, ok);
+        check(ok && u_slv.n_stop == 1, "[R-7] and the STOP still goes out");
+        u_slv.nack_data = 1'b0;
+        bfm.wr(R_TXDATA, 32'h90);
+        cmd(CMD_STA | CMD_WR, ok);
+        bfm.read(R_STATUS, d, e);
+        check(!d[ST_NACK], "[N-6.3] RXNACK describes the LAST byte written: the next acknowledged byte clears it");
+        cmd(CMD_STO, ok);
+
+        // ---- arbitration loss ([N-7.4]) ---------------------------------------------------------------
+        // The DUT sends 0xFF, so it releases SDA for every bit. Another master
+        // (the testbench) holds SDA low: the DUT reads back a 0 where it sent
+        // a 1, with SCL high, which is exactly how I2C arbitration is lost.
+        bfm.wr(R_IRQSTAT, 32'hF);
+        bfm.wr(R_IRQEN, 32'h2);                      // arbitration lost only
+        check(!irq, "[N-7.4] no interrupt before the collision");
+        bfm.wr(R_TXDATA, 32'hFF);
+        fork
+            begin
+                @(negedge scl);                      // SCL falls after the START
+                tb_sda_low = 1'b1;                   // the other master's 0
+            end
+            cmd(CMD_STA | CMD_WR, ok);
+        join
+        check(ok, "[R-7] [N-7.4] arbitration loss clears TIP: firmware is not left polling");
+        bfm.read(R_STATUS, d, e);
+        check(d[ST_AL], "[N-7.4] [N-6.3] STATUS.AL is set");
+        check(!scl_oe && !sda_oe, "[N-7.4] the loser releases both lines to the winner");
+        bfm.read(R_IRQSTAT, d, e);
+        check(d[1], "[N-7.4] [N-7.3] IRQSTAT[1] captured it");
+        check(!d[0], "[N-7.3] and IRQSTAT[0] did not: the command never completed");
+        check(irq, "[R-5] [N-7.3] arbitration-lost interrupt asserted");
+        repeat (300) @(posedge pclk);
+        bfm.read(R_STATUS, d, e);
+        check(d[ST_AL], "[N-6.3] AL is sticky");
+        tb_sda_low = 1'b0;                           // the winner's STOP
+        repeat (100) @(posedge pclk);
+        bfm.wr(R_IRQSTAT, 32'h2);
+        bfm.read(R_STATUS, d, e);
+        check(!d[ST_AL] && !irq, "[N-6.3] writing IRQSTAT[1] clears STATUS.AL and the interrupt");
+        bfm.wr(R_IRQEN, 32'h0);
+        u_slv.clear();
+        bfm.wr(R_TXDATA, 32'h90);
+        cmd(CMD_STA | CMD_WR, ok);
+        wr_byte(8'h68, 0, ok);
+        wr_byte(8'h5C, CMD_STO, ok);
+        check(u_slv.bd_read(8'h68) == 8'h5C, "[N-7.4] retried from the START, the transfer then succeeds");
+
+        // ---- DMACTL[1]: request while a byte can be accepted ([N-7.7]) --------------------------------
+        bfm.wr(R_DMACTL, 32'h2);
+        repeat (2) @(posedge pclk);
+        check(dma_req, "[N-7.7] DMACTL[1] requests while EN and not TIP");
+        bfm.wr(R_TXDATA, 32'h90);
+        bfm.wr(R_CMD, CMD_STA | CMD_WR);
+        repeat (2) @(posedge pclk);
+        check(!dma_req, "[N-7.7] and not while a transfer is in progress");
+        do begin bfm.read(R_STATUS, d, e); end while (d[ST_TIP]);
+        repeat (2) @(posedge pclk);
+        check(dma_req, "[N-7.7] the request returns when TIP clears");
+        cmd(CMD_STO, ok);
+        bfm.wr(R_CTRL, 32'h0);
+        repeat (2) @(posedge pclk);
+        check(!dma_req, "[N-7.7] and there is none while EN is 0");
+        bfm.wr(R_DMACTL, 32'h0);
+        bfm.wr(R_CTRL, 32'h1);
+
+        // ---- CTRL.ABORT in every phase of a transfer ([N-7.5]) -----------------------------------------
+        // Three kinds of transfer, twelve abort points across each: the address
+        // byte from its START, a byte being READ (the slave is driving SDA), and
+        // the STOP. After each one the block must have let go at once, stay
+        // quiet, and work again once the board has freed the slave.
+        bfm.wr(R_TIMEOUT, 32'd0);
+        n_held = 0; n_tip = 0; n_noisy = 0; n_lost = 0;
+        for (k = 0; k < 36; k++) begin
+            case (k % 3)
+                0: begin
+                    bfm.wr(R_TXDATA, 32'h90);
+                    bfm.wr(R_CMD, CMD_STA | CMD_WR);
+                    repeat (10 + (k / 3) * 120) @(posedge pclk);
+                end
+                1: begin
+                    bfm.wr(R_TXDATA, 32'h91);
+                    cmd(CMD_STA | CMD_WR, ok);
+                    bfm.wr(R_CMD, CMD_RD);
+                    repeat (10 + (k / 3) * 120) @(posedge pclk);
+                end
+                default: begin
+                    bfm.wr(R_TXDATA, 32'h90);
+                    cmd(CMD_STA | CMD_WR, ok);
+                    bfm.wr(R_CMD, CMD_STO);
+                    repeat (2 + (k / 3) * 13) @(posedge pclk);
+                end
+            endcase
+            bfm.wr(R_CTRL, 32'h3);                   // EN | ABORT
+            repeat (2) @(posedge pclk);
+            if (scl_oe || sda_oe) begin
+                n_held++;
+                $display("[ABORT] k=%0d: a line is still driven 2 pclk after the abort", k);
+            end
+            bfm.read(R_STATUS, d, e);
+            if (d[ST_TIP]) n_tip++;
+            e0 = oe_edges;
+            repeat (400) @(posedge pclk);            // more than two bit times
+            if (oe_edges != e0) begin
+                n_noisy++;
+                $display("[ABORT] k=%0d: the pins moved %0d times after the abort", k, oe_edges - e0);
+            end
+            bus_recover();
+            bfm.wr(R_TXDATA, 32'h90);
+            cmd(CMD_STA | CMD_WR, ok);
+            wr_byte(8'h70, 0, ok);
+            wr_byte(8'h80 + k[7:0], CMD_STO, ok);
+            if (u_slv.bd_read(8'h70) != 8'h80 + k[7:0]) begin
+                n_lost++;
+                $display("[ABORT] k=%0d: the transfer after the abort did not arrive", k);
+            end
+        end
+        check(n_held == 0, $sformatf("[N-7.5] CTRL.ABORT releases both pins at once, in every phase (%0d of 36 did not)", n_held));
+        check(n_tip == 0, $sformatf("[N-7.5] and clears TIP (%0d of 36 did not)", n_tip));
+        check(n_noisy == 0, $sformatf("[N-7.5] the aborted core is idle, not free-running: the pins never move again (%0d of 36 did)", n_noisy));
+        check(n_lost == 0, $sformatf("[N-7.5] and the block transfers correctly afterwards (%0d of 36 did not)", n_lost));
+        bfm.read(R_CTRL, d, e);
+        check(d == 32'h1, $sformatf("[N-7.5] CTRL.ABORT is self-clearing: CTRL reads back EN only (%08h)", d));
+
+        // ---- CTRL.EN = 0 in the middle of a transfer -------------------------------------------------------
+        // With TIMEOUT at its reset value of 0 nothing else will ever clear TIP,
+        // so this is the case that hangs firmware if the register layer gets it
+        // wrong - and a command left latched would go out on the bus, unasked,
+        // the moment the block is enabled again.
+        bfm.wr(R_TXDATA, 32'h90);
+        bfm.wr(R_CMD, CMD_STA | CMD_WR);
+        repeat (500) @(posedge pclk);                // part-way through the address
+        bfm.wr(R_CTRL, 32'h0);                       // EN = 0, no ABORT
+        repeat (2) @(posedge pclk);
+        check(!scl_oe && !sda_oe, "[R-8] disabling mid-transfer releases both pins");
+        repeat (20) @(posedge pclk);
+        bfm.read(R_STATUS, d, e);
+        check(!d[ST_TIP], "[N-6.3] TIP clears when the block is disabled mid-transfer: no CMD is outstanding any more");
+        bus_recover();
+        u_slv.clear();
+        e0 = oe_edges;
+        bfm.wr(R_CTRL, 32'h1);                       // enable again
+        repeat (2000) @(posedge pclk);
+        check(oe_edges == e0 && u_slv.n_start == 0,
+              $sformatf("[N-6.2] re-enabling does not replay the abandoned command: one CMD is one transfer (%0d pin changes, %0d START)",
+                        oe_edges - e0, u_slv.n_start));
+        bfm.read(R_STATUS, d, e);
+        check(!d[ST_TIP], "[N-6.3] and TIP is still clear");
+        bfm.wr(R_CTRL, 32'h3);                       // leave a known state behind
+        repeat (8) @(posedge pclk);
+        bus_recover();
+
+        // a CMD written while the block is disabled must not be kept for later
+        bfm.wr(R_CTRL, 32'h0);
+        bfm.wr(R_TXDATA, 32'h90);
+        bfm.wr(R_CMD, CMD_STA | CMD_WR);
+        repeat (20) @(posedge pclk);
+        bfm.read(R_STATUS, d, e);
+        check(!d[ST_TIP], "[N-6.3] a CMD written while EN is 0 does not leave TIP set");
+        u_slv.clear();
+        e0 = oe_edges;
+        bfm.wr(R_CTRL, 32'h1);
+        repeat (2000) @(posedge pclk);
+        check(oe_edges == e0 && u_slv.n_start == 0, "[N-6.2] nor does it run when the block is next enabled");
+        bfm.wr(R_CTRL, 32'h3);
+        repeat (8) @(posedge pclk);
+        bus_recover();
+        u_slv.clear();
+        bfm.wr(R_TXDATA, 32'h90);
+        cmd(CMD_STA | CMD_WR, ok);
+        wr_byte(8'h72, 0, ok);
+        wr_byte(8'hC3, CMD_STO, ok);
+        check(u_slv.bd_read(8'h72) == 8'hC3, "[R-8] and the block transfers correctly after a disable");
+
+        // ---- a CMD with nothing to do (not a check: the spec is silent) ------------------------------------
+        bfm.wr(R_CMD, CMD_STA);                      // STA with no WR, RD or STO
+        repeat (4000) @(posedge pclk);
+        bfm.read(R_STATUS, d, e);
+        $display("[OBSERVED] CMD = STA alone, TIMEOUT = 0: STATUS.TIP = %0b after 4000 pclk", d[ST_TIP]);
+        bfm.wr(R_CTRL, 32'h3);
+        repeat (8) @(posedge pclk);
+        bus_recover();
+
         // ---- the invariants -----------------------------------------------------------------------
-        check(drive_high == 0, "[R-9] the block never drove either line high");
+        check(drive_high == 0, "[R-9] [N-9.2] the block never drove either line high");
         check(pready_viol == 0, "[R-4] PREADY high in every cycle of every access");
 
         u_apbchk.report_result;
