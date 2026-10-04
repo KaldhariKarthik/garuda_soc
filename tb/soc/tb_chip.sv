@@ -125,6 +125,25 @@ module tb_chip;
     spi_master_model u_esp (.sclk(spis_sclk), .mosi(spis_mosi),
                             .cs_n(spis_cs_n), .miso(spis_miso));
 
+    // +TRAPLOG prints every trap the core takes: the first thing to look at when
+    // a chip test hangs.
+    always @(posedge hclk)
+        if (dut.u_soc.u_core.u_csr.trap_enter_i && $test$plusargs("TRAPLOG"))
+            $display("[trap] %0t cause=0x%08h pc=0x%08h tval=0x%08h mscratch=%0d", $time,
+                     dut.u_soc.u_core.u_csr.trap_cause_i, dut.u_soc.u_core.u_csr.trap_pc_i,
+                     dut.u_soc.u_core.u_csr.trap_tval_i, dut.u_soc.u_core.u_csr.mscratch_r);
+
+    // The companion sends a two-byte frame when firmware raises gpio1, which is
+    // how a real one is asked for data (a ready line). Only t_chip_integ drives
+    // gpio1; in every other test the pin stays an input on its pull-down.
+    byte unsigned esp_got;
+    always @(posedge gpio1) begin
+        u_esp.open_frame();
+        u_esp.xfer(8'hA5, esp_got);
+        u_esp.xfer(8'h3C, esp_got);
+        u_esp.close_frame();
+    end
+
     // An I2C slave on the real open-drain bus, and pull-downs on the GPIO pins
     // so a released pin reads a defined level. Present in every mode; nothing
     // touches them unless firmware does.
@@ -220,6 +239,10 @@ module tb_chip;
             if ($time > maxus * 1000) begin
                 $display("[FAIL] TIMEOUT after %0d us: tohost never written (%0d retired, pc in EX = 0x%08h)",
                          maxus, n_retire, dut.u_soc.u_core.xe_pc);
+                // a program can leave a breadcrumb with `csrw mscratch, n`
+                $display("        mscratch = %0d, mcause = 0x%08h, mepc = 0x%08h, asleep = %0b",
+                         dut.u_soc.u_core.u_csr.mscratch_r, dut.u_soc.u_core.u_csr.mcause_r,
+                         dut.u_soc.u_core.u_csr.mepc_r, dut.u_soc.core_sleep_o);
                 $display("RESULT: FAILED");
                 $finish;
             end
