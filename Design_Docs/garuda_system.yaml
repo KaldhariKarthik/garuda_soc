@@ -207,6 +207,10 @@ apb:
   timeout_cycles: 16
   timeout_response: two_cycle_AHB_ERROR
   windows:
+    # window 0 is the SPI slave (block 14). It answers only when the chip is built
+    # with WITH_SPI_SLAVE = 1; the bonding decision is OPEN-2. Listed here so the
+    # generated map carries its base and index (BUGS.md INT-1).
+    - {index: 0,  base: 0x40000000, block: 14, name: spi_slave}
     - {index: 1,  base: 0x40001000, block: 13, name: spi_master}
     - {index: 2,  base: 0x40002000, block: 15, name: i2c}
     - {index: 3,  base: 0x40003000, block: 16, name: uart0}
@@ -224,6 +228,7 @@ apb:
 # -----------------------------------------------------------------------------
 peripheral_functions:
   - {block: 13, name: spi_master, function: "IMU + boot flash", cs_lines: 2, dma_ch: 0, clic_id: 15}
+  - {block: 14, name: spi_slave,  function: "ESP32 companion link (ESP-NOW)", dma_ch: 4, clic_id: 14}
   - {block: 15, name: i2c,        function: "barometer, magnetometer, sonar", dma_ch: 1, clic_id: 16}
   - {block: 16, name: uart0,      function: "GPS", dma_ch: 2, clic_id: 17}
   - {block: 17, name: uart1,      function: "ground link (telemetry radio OR LoRa - one part, board choice)", dma_ch: 3, clic_id: 18}
@@ -247,7 +252,7 @@ dma:
     - {ch: 1, peripheral: i2c,        function: baro_mag_sonar, priority: 3}
     - {ch: 2, peripheral: uart0,      function: GPS,          priority: 1}
     - {ch: 3, peripheral: uart1,      function: ground_link,  priority: 2}
-    - {ch: 4, peripheral: reserved,   function: spare,        priority: 4}
+    - {ch: 4, peripheral: spi_slave,  function: companion_link, priority: 4}
     - {ch: 5, peripheral: uart2,      function: console,      priority: 0}
   priority_note: "5 = highest. IMU highest because it is the control loop's
                   hard-real-time input; console lowest because nothing depends on it."
@@ -263,8 +268,12 @@ clic:
   map:
     - {id: 0,          source: reserved_sentinel, note: "never assigned; an ID-0 request is a bug indicator"}
     - {id: "1..6",     source: dma_complete_ch0_5, block: 9}
-    - {id: "7..12",    source: dma_error_ch0_5,    block: 9}
-    - {id: 13,         source: reserved, note: "ADR-0010: mtip does NOT route through CLIC"}
+    # ID 7 is never assigned (BUGS.md INT-2). The core reports a CLIC interrupt as
+    # mcause = 0x8000_0000 | ID and the machine timer as 0x8000_0007, so a source
+    # on ID 7 is indistinguishable from the timer in a handler. The DMA error IDs
+    # were 7..12; they are 8..13, which also uses the ID that mtip vacated (ADR-0010).
+    - {id: 7,          source: reserved_mti_cause, note: "mcause 0x8000_0007 is the machine timer"}
+    - {id: "8..13",    source: dma_error_ch0_5,    block: 9}
     - {id: 14,         source: spi_slave,  block: 14}
     - {id: 15,         source: spi_master, block: 13}
     - {id: 16,         source: i2c,        block: 15}

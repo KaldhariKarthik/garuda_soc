@@ -57,7 +57,7 @@ module garuda_chip_top #(
                                         (16'd1 << `GARUDA_APB_WIN_I2C)        |
                                         (16'd1 << `GARUDA_APB_WIN_GPIO)       |
                                         (16'd1 << `GARUDA_APB_WIN_PWM)        |
-                                        (WITH_SPI_SLAVE ? 16'd1 : 16'd0)
+                                        (WITH_SPI_SLAVE ? (16'd1 << `GARUDA_APB_WIN_SPI_SLAVE) : 16'd0)
 )(
     input  wire refclk,              //  1  500 MHz reference
     input  wire ext_rst_n,           //  2  board supervisor reset
@@ -234,11 +234,11 @@ module garuda_chip_top #(
     generate if (WITH_SPI_SLAVE) begin : g_spis
         garuda_spis_top #(.BLOCK_NUM(8'd14), .FIFO_DEPTH(16)) u_spis (
             .pclk_i(pclk), .preset_n_i(preset_n),
-            .psel_i(ext_psel[0]), .penable_i(ext_penable),
+            .psel_i(ext_psel[`GARUDA_APB_WIN_SPI_SLAVE]), .penable_i(ext_penable),
             .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
             .prdata_o(spis_prdata), .pready_o(spis_pready),
             .pslverr_o(spis_pslverr),
-            .irq_o(spis_irq), .dma_req_o(spis_dma_req), .dma_ack_i(dma_ack[4]),
+            .irq_o(spis_irq), .dma_req_o(spis_dma_req), .dma_ack_i(dma_ack[`GARUDA_DMA_CH_SPI_SLAVE]),
             .spis_sclk_i(spis_sclk), .spis_mosi_i(spis_mosi),
             .spis_cs_n_i(spis_cs_n),
             .spis_miso_o(spis_miso_d), .spis_miso_oe_o(spis_miso_oe));

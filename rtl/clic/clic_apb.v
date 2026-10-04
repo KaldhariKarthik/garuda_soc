@@ -21,7 +21,7 @@
 
 module clic_apb #(
     parameter integer        N       = 32,
-    parameter [31:0]         IE_MASK = 32'h007F_9FFE   // IDs 1-12, 15-22
+    parameter [31:0]         IE_MASK = 32'h007F_FF7E   // IDs 1-6, 8-22 = GARUDA_CLIC_ID_MASK (BUGS.md INT-2, INT-3)
 )(
     input  wire          pclk_i,
     input  wire          preset_n_i,

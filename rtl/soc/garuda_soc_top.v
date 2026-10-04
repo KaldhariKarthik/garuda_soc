@@ -266,17 +266,23 @@ module garuda_soc_top #(
     // =========================================================================
     wire [31:0] irq_src;
     assign irq_src[0]     = 1'b0;                         // sentinel ([N-7.12])
-    assign irq_src[6:1]   = dma_complete;                 // IDs 1-6
-    assign irq_src[12:7]  = dma_error;                    // IDs 7-12
-    // ID 13 stays reserved: mtip goes straight to the core (ADR-0010).
+    assign irq_src[`GARUDA_CLIC_ID_DMA_COMPLETE_CH0_5_FIRST +: 6] = dma_complete; // IDs 1-6
+    // ID 7 is never a CLIC source: mcause 0x8000_0007 is the machine timer, which
+    // reaches the core directly (ADR-0010), and a CLIC interrupt reports
+    // 0x8000_0000 | ID. The DMA error lines sat on 7-12, so a channel-0 error was
+    // indistinguishable from a timer tick (BUGS.md INT-2). They are 8-13.
+    assign irq_src[7]     = 1'b0;
+    assign irq_src[`GARUDA_CLIC_ID_DMA_ERROR_CH0_5_FIRST +: 6] = dma_error;   // IDs 8-13
     // ID 14 is block 14, the SPI slave (ADR-0020 Rev 2).
-    assign irq_src[13]    = 1'b0;
     assign irq_src[14]    = spis_irq_i;
     assign irq_src[21:15] = periph_irq_i;                 // IDs 15-21
     assign irq_src[22]    = wdt_warn;                     // ID 22
     assign irq_src[31:23] = 9'd0;
 
-    clic_top u_clic (
+    // The enable mask comes from the map. The block's own default still excluded
+    // IDs 13 and 14 from when the SPI slave had been removed, so the SPI slave's
+    // interrupt could be wired, pending, and impossible to enable (BUGS.md INT-3).
+    clic_top #(.IE_MASK(`GARUDA_CLIC_ID_MASK)) u_clic (
         .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .pclk_i(pclk_i), .preset_n_i(preset_n_i),
         .psel_i(psel[`GARUDA_APB_WIN_CLIC_CFG]), .penable_i(penable), .pwrite_i(pwrite),
         .paddr_i(paddr), .pwdata_i(pwdata), .prdata_o(prd_clic), .pready_o(rdy_clic),

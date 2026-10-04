@@ -23,7 +23,7 @@
 
 module clic_top #(
     parameter integer N       = 32,
-    parameter [31:0]  IE_MASK = 32'h007F_9FFE
+    parameter [31:0]  IE_MASK = 32'h007F_FF7E
 )(
     input  wire          hclk_i,
     input  wire          hreset_n_i,

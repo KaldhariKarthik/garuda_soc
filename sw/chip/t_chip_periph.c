@@ -29,7 +29,7 @@ int main(void)
      *    ID is {0x6A5D, block, rev}, so a wrong window shows up immediately. */
     {
         static const uint32_t base[8] = {
-            0x40000000u,                       /* block 14, spi_slave, window 0 */
+            GARUDA_APB_BASE_SPI_SLAVE,         /* block 14, spi_slave, window 0 */
             GARUDA_APB_BASE_SPI_MASTER, GARUDA_APB_BASE_I2C,
             GARUDA_APB_BASE_UART0, GARUDA_APB_BASE_UART1,
             GARUDA_APB_BASE_UART2, GARUDA_APB_BASE_GPIO,

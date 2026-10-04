@@ -5,7 +5,7 @@
 // Spec: GARUDA-CLIC-SPEC-001 §11. Directed register checks plus a randomised
 // selection check against a reference model:
 //   CLICINFO, reset state all-disabled/level-0 (R-4, [N-9.2])
-//   CLICIE bits 0/13/14/23-31 hardwired zero ([N-6.2], [N-6.3])
+//   CLICIE bits 0/7/23-31 hardwired zero ([N-6.2], [N-6.3], as amended by INT-2/INT-3)
 //   CLICIP combinational and read-only ([N-6.4])
 //   highest level wins, lowest ID breaks ties ([N-7.5]), valid ignores level
 //   level change while pending keeps pending (R-8)
@@ -86,7 +86,11 @@ module tb_clic;
 
         wr(12'h004, 32'hFFFF_FFFF);
         rd(12'h004, d, e);
-        check(d == 32'h007F_9FFE, "[N-6.2]/[N-6.3]: IE bits 0, 13, 14, 23-31 hardwired 0");
+        // The enable mask follows the ID map in garuda_system.yaml (GARUDA_CLIC_ID_MASK).
+        // It was 0x007F_9FFE - IDs 13 and 14 masked - from when the SPI slave had
+        // been removed; block 14 is back on ID 14 (ADR-0020 Rev 2), the DMA error
+        // lines are on 8..13 and ID 7 is reserved (BUGS.md INT-2, INT-3).
+        check(d == 32'h007F_FF7E, "[N-6.2]/[N-6.3]: IE bits 0, 7, 23-31 hardwired 0");
 
         src = 32'h0000_0402; #1;
         rd(12'h008, d, e);
@@ -124,7 +128,7 @@ module tb_clic;
             int n;
             n = rnd() % 32;
             case (rnd() % 3)
-                0: begin m_ie = rnd() & 32'h007F_9FFE; wr(12'h004, m_ie); end
+                0: begin m_ie = rnd() & 32'h007F_FF7E; wr(12'h004, m_ie); end
                 1: begin m_lvl[n] = rnd(); wr(12'h100 + 4*n, m_lvl[n]); end
                 default: ;
             endcase

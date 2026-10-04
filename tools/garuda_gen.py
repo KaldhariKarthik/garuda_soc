@@ -74,16 +74,22 @@ def collect(sysdef):
         mask |= 1 << idx
     out.append(("APB", "APB_WINDOW_MASK_ALL", mask, "every window the map defines"))
 
+    id_mask = 0
     for e in sysdef["clic"]["map"]:
         src = ident(e["source"])
         ids = id_range(e["id"])
         if src.startswith("RESERVED"):
             continue
+        for i in ids:
+            id_mask |= 1 << i
         if len(ids) == 1:
             out.append(("CLIC IDs", "CLIC_ID_" + src, ids[0], None))
         else:
             out.append(("CLIC IDs", "CLIC_ID_" + src + "_FIRST", ids[0], "%d..%d" % (ids[0], ids[-1])))
     out.append(("CLIC IDs", "CLIC_NUM_IDS", sysdef["clic"]["id_width"], None))
+    # The enable mask the CLIC is built with. Derived, so an ID that gains a source
+    # in the yaml can be enabled without anyone remembering to edit a parameter.
+    out.append(("CLIC IDs", "CLIC_ID_MASK", id_mask, "every ID that has a source"))
 
     dma = sysdef["dma"]
     out.append(("DMA", "DMA_CHANNELS", dma["channels"], None))

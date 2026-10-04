@@ -23,6 +23,8 @@
 /* ---- APB ---- */
 #define GARUDA_APB_WINDOW_BYTES             0x00001000
 #define GARUDA_APB_TIMEOUT_PCLK             16  /* PREADY timeout */
+#define GARUDA_APB_WIN_SPI_SLAVE            0  /* 0x40000000, block 14 */
+#define GARUDA_APB_BASE_SPI_SLAVE           0x40000000
 #define GARUDA_APB_WIN_SPI_MASTER           1  /* 0x40001000, block 13 */
 #define GARUDA_APB_BASE_SPI_MASTER          0x40001000
 #define GARUDA_APB_WIN_I2C                  2  /* 0x40002000, block 15 */
@@ -45,10 +47,10 @@
 #define GARUDA_APB_BASE_CLIC_CFG            0x4000A000
 #define GARUDA_APB_WIN_TIMERS_CFG           11  /* 0x4000B000, block 11 */
 #define GARUDA_APB_BASE_TIMERS_CFG          0x4000B000
-#define GARUDA_APB_WINDOW_MASK_ALL          0x00000FFE  /* every window the map defines */
+#define GARUDA_APB_WINDOW_MASK_ALL          0x00000FFF  /* every window the map defines */
 /* ---- CLIC IDs ---- */
 #define GARUDA_CLIC_ID_DMA_COMPLETE_CH0_5_FIRST 1  /* 1..6 */
-#define GARUDA_CLIC_ID_DMA_ERROR_CH0_5_FIRST 7  /* 7..12 */
+#define GARUDA_CLIC_ID_DMA_ERROR_CH0_5_FIRST 8  /* 8..13 */
 #define GARUDA_CLIC_ID_SPI_SLAVE            14
 #define GARUDA_CLIC_ID_SPI_MASTER           15
 #define GARUDA_CLIC_ID_I2C                  16
@@ -59,18 +61,20 @@
 #define GARUDA_CLIC_ID_PWM_FAULT            21
 #define GARUDA_CLIC_ID_WDT_EARLY_WARNING    22
 #define GARUDA_CLIC_NUM_IDS                 32
+#define GARUDA_CLIC_ID_MASK                 0x007FFF7E  /* every ID that has a source */
 /* ---- DMA ---- */
 #define GARUDA_DMA_CHANNELS                 6
 #define GARUDA_DMA_PRIO_CH0                 5  /* spi_master */
 #define GARUDA_DMA_PRIO_CH1                 3  /* i2c */
 #define GARUDA_DMA_PRIO_CH2                 1  /* uart0 */
 #define GARUDA_DMA_PRIO_CH3                 2  /* uart1 */
-#define GARUDA_DMA_PRIO_CH4                 4  /* reserved */
+#define GARUDA_DMA_PRIO_CH4                 4  /* spi_slave */
 #define GARUDA_DMA_PRIO_CH5                 0  /* uart2 */
 #define GARUDA_DMA_CH_SPI_MASTER            0  /* IMU */
 #define GARUDA_DMA_CH_I2C                   1  /* baro_mag_sonar */
 #define GARUDA_DMA_CH_UART0                 2  /* GPS */
 #define GARUDA_DMA_CH_UART1                 3  /* ground_link */
+#define GARUDA_DMA_CH_SPI_SLAVE             4  /* companion_link */
 #define GARUDA_DMA_CH_UART2                 5  /* console */
 /* ---- Boot ---- */
 #define GARUDA_RESET_VECTOR                 0x10000000

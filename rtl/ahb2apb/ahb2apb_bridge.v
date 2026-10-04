@@ -24,8 +24,9 @@
 // WINDOWS (D-6)
 // -----------------------------------------------------------------------------
 // PSEL bit n = haddr[15:12] = window n at 0x4000_0000 + 0x1000*n. Windows are
-// present when WINDOW_MASK[n] is set. Window 0 (the removed SPI slave) and
-// 0xC-0xF never exist. An access to an absent window, a sub-word access, a
+// present when WINDOW_MASK[n] is set. Window 0 is the SPI slave (block 14) and
+// exists only when the chip sets its mask bit; 0xC-0xF never exist. An access
+// to an absent window, a sub-word access, a
 // PSLVERR and a 16-pclk PREADY timeout all return the same two-cycle AHB ERROR
 // ([N-7.21]) and generate no APB transfer for the first two.
 //
