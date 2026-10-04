@@ -165,11 +165,43 @@ module mac_unit(
     
     wire signed [47:0] rs1_sext = {{16{rs1[31]}}, rs1};
     reg  signed [47:0] acc_next;
+
+    // -----------------------------------------------------------------------
+    // ERRATUM DSU-11 (proposed; found by sw/tests/t_dsu_b2b.S bits 0/1)
+    // -----------------------------------------------------------------------
+    // `load` and `clear` are the cluster-wide decode of the instruction in EX;
+    // only `en` says whether that instruction addresses THIS accumulator. The
+    // acc_next mux below used the bare signals, while acc_we already fires on
+    // `pending` alone. So with a product pending here and a MACCLEAR / MACLOAD
+    // for a DIFFERENT accumulator in EX, this accumulator was written with 0
+    // (or with the other instruction's rs1) instead of acc + product:
+    //     MAC acc0 ; MACCLEAR acc1   ->  acc0 = 0
+    //     MAC acc0 ; MACLOAD  acc1   ->  acc0 = rs1
+    // tb_dsu_top could not see it: it puts an idle cycle after every
+    // instruction, so nothing is ever in EX while a product is being folded.
+    //
+    // ERRATUM DSU-13 (proposed; found by sw/tests/t_hold_flush_matrix.S bits
+    // 9/10) -- flush discarded a COMMITTED accumulate
+    // -----------------------------------------------------------------------
+    // `pending` is stage 2 of the MAC that was in EX on the PREVIOUS cycle.
+    // That instruction has left EX and will retire; it is older than whatever
+    // is being trapped now, and CORE [N-7.13] requires every earlier
+    // instruction to complete. flush (the trap-driven EX squash) cleared
+    // `pending` and gated acc_we, so a MAC followed by an instruction that
+    // traps - or by ANY instruction on which an interrupt is taken - lost its
+    // product silently. DSU [N-7.9] asks only that the instruction the flush
+    // KILLED does not accumulate: that is the one in EX now, and prod_en /
+    // my_load / my_clear / my_sat below all carry ~flush for it.
+    // -----------------------------------------------------------------------
+    wire my_sat   = sat_writeback_en & ~flush;      // sat_writeback_en is per-unit
+    wire my_load  = load  & en & ~flush;
+    wire my_clear = clear & en & ~flush;
+
     always @(*) begin
-        if      (sat_writeback_en) acc_next = sat_writeback;
-        else if (load)             acc_next = rs1_sext;
-        else if (clear)            acc_next = 48'b0;
-        else                       acc_next = adder_result;    
+        if      (my_sat)   acc_next = sat_writeback;
+        else if (my_load)  acc_next = rs1_sext;
+        else if (my_clear) acc_next = 48'b0;
+        else               acc_next = adder_result;
     end
     
     
@@ -192,17 +224,19 @@ module mac_unit(
     // computes still chain correctly - each cycle commits the previous product
     // while latching a new one, which is what a two-stage pipeline should do.
     //
-    // FLAG-B is preserved: flush clears the PENDING product but leaves acc
-    // intact, because a trap must not destroy committed accumulator state.
+    // FLAG-B, restated by ERRATUM DSU-13: a trap must not destroy committed
+    // accumulator state, and the pending product IS committed state - its MAC
+    // has already left EX. flush therefore stops a new product being latched
+    // (prod_en carries ~flush) and nothing else; a product already pending is
+    // folded in on schedule.
     // -----------------------------------------------------------------------
     reg pending;
     always @(posedge clk or negedge rst_n) begin
         if      (!rst_n) pending <= 1'b0;
-        else if (flush)  pending <= 1'b0;
         else             pending <= prod_en;
     end
 
-    wire acc_we = (sat_writeback_en | ((load | clear) & en) | pending) & ~flush;
+    wire acc_we = my_sat | my_load | my_clear | pending;
 
     always @(posedge clk or negedge rst_n) begin
         if      (!rst_n) acc <= 48'b0;
@@ -210,7 +244,9 @@ module mac_unit(
     end
     assign mac_out = acc;
     
-    wire is_accum = ~(load | clear | sat_writeback_en);
+    // DSU-11: only THIS accumulator's own load/clear/saturate replaces the
+    // fold; one aimed at another accumulator must not hide this one's overflow.
+    wire is_accum = ~(my_load | my_clear | my_sat);
 
     // ERRATUM DSU-4 (continued): overflow must be reported on the cycle the
     // accumulate actually COMMITS, which is now `pending`, not on the cycle an
@@ -219,6 +255,7 @@ module mac_unit(
     // overflows can now happen on a cycle with no instruction present, and
     // conversely an arriving instruction no longer implies a fold. Caught by
     // tb_dsu_top as a sticky-overflow mismatch against DSUModel.
-    assign overflow = accum_ovf & pending & ~flush & is_accum;
+    // DSU-13: no ~flush here either - the fold belongs to the older MAC.
+    assign overflow = accum_ovf & pending & is_accum;
     
 endmodule

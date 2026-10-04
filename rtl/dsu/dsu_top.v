@@ -69,9 +69,20 @@ module dsu_top (
     wire sat_writeback_en;
     wire sat_overflow;
     
+    // ERRATUM DSU-12 (proposed; found by sw/tests/t_dsu_b2b.S bit 2)
+    // ------------------------------------------------------------
+    // MACSAT behind a MAC on the same accumulator is held for one cycle by the
+    // interlock (dsu_busy), precisely because the accumulator does not yet
+    // include that MAC's product. But sat_op was not gated by dsu_busy, so the
+    // saturation unit ran in the held cycle anyway: it clamped the STALE
+    // accumulator, its write-back outranked the pending fold in mac_unit, and
+    // the product was thrown away - and the sticky overflow flag was raised
+    // for a value that never architecturally existed. Every other DSU output
+    // already waits for ~dsu_busy (dsu_rd_valid); the saturate now does too.
+    wire dsu_busy_w;
     saturation_unit u_sat (
         .cluster_out (cluster_out),
-        .sat_op (sat_op),
+        .sat_op (sat_op & ~dsu_busy_w),
         .sat_writeback (sat_writeback),
         .sat_writeback_en (sat_writeback_en),
         .sat_overflow (sat_overflow)
@@ -157,8 +168,9 @@ module dsu_top (
         // all is the top level's.
         .is_custom0 (is_custom0_w & dsu_en),
         .acc_sel (acc_sel),
-        .dsu_busy (dsu_busy)
+        .dsu_busy (dsu_busy_w)
     );
+    assign dsu_busy = dsu_busy_w;
     
     assign dsu_rd_valid = writes_regfile & ~dsu_busy;
     assign dsu_rd_addr  = rd_addr_w;
