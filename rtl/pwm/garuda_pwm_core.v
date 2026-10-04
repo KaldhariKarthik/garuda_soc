@@ -61,7 +61,8 @@ module garuda_pwm_core #(
 
     // ---- period counter ---------------------------------------------------------
     reg [15:0] cnt_q;
-    wire       at_end = (cnt_q + 16'd1) >= period_i;
+    // 17-bit compare: cnt_q + 1 must not wrap to 0 and read as "below period"
+    wire       at_end = ({1'b0, cnt_q} + 17'd1) >= {1'b0, period_i};
     wire       wrap   = tick & at_end;
 
     always @(posedge clk_i or negedge rst_n_i)

@@ -1,0 +1,52 @@
+HAL 15.20 on garuda_chip_top - remaining errors and why each is accepted.
+Run: see the header of flow/2_static/hal.f. Date: 2026-10-04.
+
+ERRORS (5)
+  CDEFNC  rtl/third_party/pulp/apb_spi_master/src/spi_master_apb_if.sv:119
+          Case without default inside a clocked block of vendored IP. Unlisted
+          addresses leave the registers unchanged, which is the intended
+          behaviour; no latch is inferred (HAL reports one latch, the ICG).
+  CDEFNC  rtl/third_party/opencores/i2c/src/i2c_master_byte_ctrl.sv:220
+          Same: clocked state machine in vendored IP, full enumeration.
+  TERMST  rtl/third_party/pulp/axi_spi_master/src/spi_master_controller.sv:209
+  UNRCHS  same line
+          State MODE is never entered and never left. Not reachable in normal
+          operation. Tracked as SPIM-2 (OPEN): the fix is a vendor patch.
+  GLTASR  rtl/core/garuda_core_top.v:88   core_rst_n_i & hartreset_n_i
+          CORE [N-7.33] requires the two resets to be combined inside the core.
+          Both are outputs of reset_ctrl synchroniser flops on hclk. A glitch
+          needs them to move in opposite directions in the same cycle, and its
+          only effect would be a runt release while reset is being asserted.
+
+CLOCK DOMAIN (run on debug_top, see BUGS.md CDC-1)
+  CLKDMN  u_dm.sbdata, u_dm.hartreset, u_dm.rdata_o
+          DMI payload, held stable by the request/acknowledge toggle handshake
+          in dmi_cdc (DEBUG [N-7.16]).
+
+CLOCK DOMAIN, ONLY WHEN A BLOCK IS LINTED ON ITS OWN (dma_top, timers_top, ahb2apb_bridge)
+  CLKDMN  dma_top.u_apb.prdata_q, timers_top.u_apb.prdata_q, ahb2apb_bridge.hrdata_o
+          One each. Linted alone, hclk_i and pclk_i are two unrelated input
+          ports, so HAL reports the hclk/pclk boundary as a crossing. In the chip
+          pclk is hclk divided by two in clk_div, edge-aligned, so the two are
+          one synchronous domain and no synchroniser is wanted (AHB2APB R-4,
+          DMA R-3). The chip-level run does not report them. Evidence that the
+          clocks are aligned: tb_crg t_pclk_div2. Not yet held by an assertion:
+          a_pclk_on_hclk and a_capture_stable_at_phase are specified but not
+          written (BUGS.md AUD-11).
+
+WARNING CLASSES REVIEWED AND ACCEPTED
+  LATINF/LATBAS   core_clk_gate: the behavioural ICG latch, replaced by the
+                  library cell in the physical flow.
+  TSBINF/MULWIR   chip top: i2c_scl, i2c_sda, gpio0, gpio1, tdo, spis_miso are
+                  pad tristates.
+  POOBID          dma_apb_slave / dma_engine: the channel index is checked
+                  (ch < 6) before any slice is used; regfile index 0 is guarded.
+  SHFTOF          csa_3to2: the carry shift drops the MSB by design; the adder
+                  tree is modulo 2^WIDTH.
+  NEFLOP/EDGMIX   jtag_tap drives TDO on the falling edge (IEEE 1149.1);
+                  clk_div uses the falling edge for the glitch-free select.
+  RSTDAT          reset_ctrl, ahb2apb_bridge, wdt: a synchronised reset level is
+                  sampled as data on purpose (release sequencing, CRG-1).
+  UNCONN/UNCONO   vendored PSLVERR outputs (the shim generates PSLVERR), unused
+                  status outputs; each reviewed, none is a missing connection.
+  ULCMPE/UELOPR   comparisons against parameters and constants; widths reviewed.
