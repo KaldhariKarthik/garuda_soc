@@ -2,3 +2,5 @@
 rtl/clic/clic_apb.v
 rtl/clic/clic_select.v
 rtl/clic/clic_top.v
+// properties, bound to clic_top (empty under SYNTHESIS)
+rtl/clic/clic_sva.sv

@@ -10,3 +10,5 @@
 
 rtl/reset_ctrl/reset_ctrl_apb.v
 rtl/reset_ctrl/reset_ctrl.v
+// properties, bound to the module (empty under SYNTHESIS)
+rtl/reset_ctrl/reset_ctrl_sva.sv

@@ -1,0 +1,44 @@
+// =============================================================================
+// timers.rdl - register description of block 11, timers and watchdog
+// (APB window 11, 0x4000_B000).
+//
+// Source: GARUDA-TIMERS-SPEC-001 section 6. The UVM register model
+// tb/timers/uvm/timers_reg_pkg.sv is generated from this file:
+//     python3 tools/gen/gen_ral.py Design_Docs/regs/timers.rdl tb/timers/uvm/timers_reg_pkg.sv
+// =============================================================================
+addrmap timers {
+    name = "Timers and watchdog";
+    desc = "Machine timer and watchdog, APB window 11 (0x4000_B000)";
+    default regwidth    = 32;
+    default accesswidth = 32;
+
+    reg { name = "mtime, low word";
+          field { sw = rw; hw = rw; reset = 32'h0; desc = "Counts every hclk. A read latches the high word into the shadow."; } value[31:0];
+    } MTIME_LO @ 0x00;
+    reg { name = "mtime, high word";
+          field { sw = rw; hw = rw; reset = 32'h0; desc = "A read returns the shadow latched by the last MTIME_LO read."; } value[31:0];
+    } MTIME_HI @ 0x04;
+    reg { name = "mtimecmp, low word";
+          field { sw = rw; hw = r; reset = 32'hFFFF_FFFF; } value[31:0];
+    } MTIMECMP_LO @ 0x08;
+    reg { name = "mtimecmp, high word";
+          field { sw = rw; hw = r; reset = 32'hFFFF_FFFF; } value[31:0];
+    } MTIMECMP_HI @ 0x0C;
+    reg { name = "Watchdog control";
+          field { sw = rw; onwrite = woset; hw = r; reset = 1'b0; desc = "Enable. Write 1 to set; cannot be cleared by software."; } en[0:0];
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Enable the early-warning interrupt."; } warnen[1:1];
+          field { sw = r;  hw = na; reset = 30'd0; desc = "Reads 0"; } rsvd[31:2];
+    } WDTCTL @ 0x10;
+    reg { name = "Watchdog reload value";
+          field { sw = rw; hw = r; reset = 32'hFFFF_FFFF; desc = "Takes effect at the next kick."; } value[31:0];
+    } WDTLOAD @ 0x14;
+    reg { name = "Watchdog current count";
+          field { sw = r; hw = w; desc = "Reads WDTLOAD while the watchdog is disabled."; } value[31:0];
+    } WDTVAL @ 0x18;
+    reg { name = "Watchdog kick";
+          field { sw = w; hw = r; desc = "0x5A5A_C3C3 reloads the counter; any other value is ignored."; } value[31:0];
+    } WDTKICK @ 0x1C;
+    reg { name = "Watchdog early-warning threshold";
+          field { sw = rw; hw = r; reset = 32'h0; } value[31:0];
+    } WDTWARN @ 0x20;
+};

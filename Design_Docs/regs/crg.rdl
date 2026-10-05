@@ -1,0 +1,36 @@
+// =============================================================================
+// crg.rdl - register description of block 23, the reset controller (APB window
+// 9, 0x4000_9000), which also holds the clock divider's select and the
+// instruction-memory lock.
+//
+// Source: GARUDA-CLKRST-SPEC-001 section 6. The UVM register model
+// tb/clk_div/uvm/crg_reg_pkg.sv is generated from this file:
+//     python3 tools/gen/gen_ral.py Design_Docs/regs/crg.rdl tb/clk_div/uvm/crg_reg_pkg.sv
+// =============================================================================
+addrmap crg {
+    name = "Clock and reset";
+    desc = "Reset controller and clock select, APB window 9 (0x4000_9000)";
+    default regwidth    = 32;
+    default accesswidth = 32;
+
+    reg { name = "Cause of the last reset";
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b1; desc = "The reset pin"; } ext[0:0];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "The watchdog"; } wdt[1:1];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "The debugger (ndmreset)"; } ndm[2:2];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "Software (RSTCTL.SWRST)"; } swr[3:3];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "Set by the boot code through RSTCTL bit 4"; } bootfail[4:4];
+    } RSTREASON @ 0x00;
+    reg { name = "Reset and clock control";
+          field { sw = w; hw = r; desc = "Write 1: a full reset"; } swrst[0:0];
+          field { sw = w; hw = r; desc = "Write 1: set RSTREASON.BOOTFAIL"; } bootfail_set[4:4];
+          field { sw = rw; hw = r; reset = 2'b00; desc = "Divide ratio: 00 2, 01 4, 10 8, 11 16. Reset by the pin only."; } divsel[9:8];
+    } RSTCTL @ 0x04;
+    reg { name = "Clock status";
+          field { sw = r; hw = w; desc = "The ratio in effect"; } divact[1:0];
+          field { sw = r; hw = w; desc = "A ratio change is pending"; } divbusy[2:2];
+          field { sw = r; hw = w; desc = "The boot select pin"; } bootsel[8:8];
+    } CLKSTAT @ 0x08;
+    reg { name = "Memory control";
+          field { sw = rw; onwrite = woset; hw = r; reset = 1'b0; desc = "Instruction memory lock; sticky until a reset"; } ilock[0:0];
+    } MEMCTL @ 0x20;
+};

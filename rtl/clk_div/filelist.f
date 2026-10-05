@@ -13,3 +13,5 @@
 // =============================================================================
 
 rtl/clk_div/clk_div.v
+// properties, bound to the module (empty under SYNTHESIS)
+rtl/clk_div/clk_div_sva.sv

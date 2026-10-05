@@ -1,0 +1,46 @@
+// =============================================================================
+// pwm.rdl - register description of block 20, the PWM (APB window 8,
+// 0x4000_8000), with the four shim registers every peripheral window has.
+//
+// Source: GARUDA-PWM-SPEC-001 section 6 and DECISIONS.md D-21. The UVM register
+// model tb/pwm/uvm/pwm_reg_pkg.sv is generated from this file:
+//     python3 tools/gen/gen_ral.py Design_Docs/regs/pwm.rdl tb/pwm/uvm/pwm_reg_pkg.sv
+// =============================================================================
+addrmap pwm {
+    name = "PWM";
+    desc = "Four-channel PWM, APB window 8 (0x4000_8000)";
+    default regwidth    = 32;
+    default accesswidth = 32;
+
+    reg { name = "Prescaler";
+          field { sw = rw; hw = r; reset = 16'h0; desc = "One tick is PRESCALE + 1 pclk cycles"; } value[15:0];
+    } PRESCALE @ 0x00;
+    reg { name = "Period";
+          field { sw = rw; hw = r; reset = 16'h0; desc = "Ticks per frame"; } value[15:0];
+    } PERIOD @ 0x04;
+    reg { name = "Control";
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Master enable"; } en[0:0];
+          field { sw = rw; hw = r; reset = 4'h0; desc = "One output enable per channel"; } ch_en[7:4];
+    } CTRL @ 0x08;
+    reg { name = "Status";
+          field { sw = r; hw = w; desc = "The live counter"; } count[15:0];
+          field { sw = r; hw = w; desc = "Duty of channel n was above PERIOD and is clamped"; } clamp[19:16];
+    } STATUS @ 0x0C;
+    reg { name = "Duty of channel n";
+          field { sw = rw; hw = r; reset = 16'h0; desc = "Ticks high; takes effect at the next period boundary"; } value[15:0];
+    } DUTY[4] @ 0x10 += 4;
+
+    reg { name = "Interrupt status";
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "A period boundary was passed"; } boundary[0:0];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "A duty is clamped"; } clamped[1:1];
+    } IRQSTAT @ 0xFE0;
+    reg { name = "Interrupt enable";
+          field { sw = rw; hw = r; reset = 2'b00; } en[1:0];
+    } IRQEN @ 0xFE4;
+    reg { name = "DMA request control";
+          field { sw = rw; hw = r; reset = 2'b00; desc = "Present in every window; the PWM has no DMA channel"; } req[1:0];
+    } DMACTL @ 0xFE8;
+    reg { name = "Block identity";
+          field { sw = r; hw = na; reset = 32'h6A5D_1401; desc = "0x6A5D, block number 20, revision 1"; } value[31:0];
+    } ID @ 0xFEC;
+};

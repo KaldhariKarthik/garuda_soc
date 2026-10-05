@@ -1,0 +1,42 @@
+// =============================================================================
+// clic.rdl - register description of block 10, the CLIC (APB window 10).
+//
+// Source: GARUDA-CLIC-SPEC-001 section 6 and the interrupt map in
+// garuda_system.yaml. The UVM register model tb/clic/uvm/clic_reg_pkg.sv is
+// generated from this file:   python3 tools/gen/gen_ral.py Design_Docs/regs/clic.rdl tb/clic/uvm/clic_reg_pkg.sv
+// =============================================================================
+addrmap clic {
+    name = "CLIC";
+    desc = "Core-local interrupt controller, APB window 10 (0x4000_A000)";
+    default regwidth    = 32;
+    default accesswidth = 32;
+
+    reg {
+        name = "Implementation parameters";
+        field { sw = r; hw = na; reset = 13'd32; desc = "Number of interrupt IDs"; } num_interrupt[12:0];
+        field { sw = r; hw = na; reset = 8'd1;   desc = "Version"; }                 version[20:13];
+        field { sw = r; hw = na; reset = 4'd8;   desc = "Level bits implemented"; }  ctlbits[24:21];
+        field { sw = r; hw = na; reset = 7'd0;   desc = "Reserved, reads 0"; }       rsvd[31:25];
+    } CLICINFO @ 0x000;
+
+    reg {
+        name = "Interrupt enable, one bit per ID";
+        field { sw = r;  hw = na; reset = 1'b0;  desc = "ID 0 is the sentinel: hardwired 0"; }                         id0[0:0];
+        field { sw = rw; hw = r;  reset = 6'd0;  desc = "IDs 1 to 6: DMA channel 0 to 5 complete"; }                   dma_complete[6:1];
+        field { sw = r;  hw = na; reset = 1'b0;  desc = "ID 7 is reserved (its cause is the machine timer's): hardwired 0"; } id7[7:7];
+        field { sw = rw; hw = r;  reset = 6'd0;  desc = "IDs 8 to 13: DMA channel 0 to 5 error"; }                     dma_error[13:8];
+        field { sw = rw; hw = r;  reset = 9'd0;  desc = "IDs 14 to 22: SPI slave, SPI master, I2C, UART0-2, GPIO, PWM, watchdog warning"; } periph[22:14];
+        field { sw = r;  hw = na; reset = 9'd0;  desc = "IDs 23 to 31 have no source: hardwired 0"; }                  unassigned[31:23];
+    } CLICIE @ 0x004;
+
+    reg {
+        name = "Interrupt pending, combinational from the source lines";
+        field { sw = r; hw = w; desc = "Bit n is source line n"; } pending[31:0];
+    } CLICIP @ 0x008;
+
+    reg {
+        name = "Interrupt level for one ID";
+        field { sw = rw; hw = r;  reset = 8'd0;  desc = "Level; 0 is never taken"; } lvl[7:0];
+        field { sw = r;  hw = na; reset = 24'd0; desc = "Reads 0"; }                 rsvd[31:8];
+    } CLICINTCFG[32] @ 0x100 += 0x4;
+};

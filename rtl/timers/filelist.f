@@ -3,3 +3,5 @@ rtl/timers/mtime.v
 rtl/timers/wdt.v
 rtl/timers/timers_apb.v
 rtl/timers/timers_top.v
+// properties, bound to timers_top (empty under SYNTHESIS)
+rtl/timers/timers_sva.sv
