@@ -48,7 +48,9 @@ MI = $(notdir $(MI_SRCS:.S=))
 # Tests that live in rv32ui/rv32um but need the trap handler to run at all.
 PTRAP_UI = ma_data
 PTRAP_UM = div divu rem remu
-PTESTS   = $(MI) $(PTRAP_UI) $(PTRAP_UM)
+# Tests written for GARUDA, in local/. Built like the rv32mi ones.
+LOCAL    = $(notdir $(basename $(wildcard local/*.S)))
+PTESTS   = $(MI) $(PTRAP_UI) $(PTRAP_UM) $(LOCAL)
 
 UI_SRCS = $(filter-out $(addprefix $(RISCV_TESTS)/isa/rv32ui/,$(addsuffix .S,$(EXCLUDE))), \
                        $(wildcard $(RISCV_TESTS)/isa/rv32ui/*.S))
@@ -97,6 +99,10 @@ PCFLAGS = -march=rv32im_zicsr_zifencei -mabi=ilp32 -mno-relax -fno-pic -nostdlib
           -I env/p -I $(RISCV_TESTS)/isa/macros/scalar -I $(RISCV_TESTS)/env
 
 $(BUILD)/p-%.elf: $(RISCV_TESTS)/isa/rv32mi/%.S env/p/riscv_test.h | $(BUILD)
+	@$(CC) $(PCFLAGS) $(LDFLAGS) $< -o $@ 2>$(BUILD)/p-$*.buildlog || \
+	  { echo "BUILD-FAIL p-$*"; rm -f $@; }
+
+$(BUILD)/p-%.elf: local/%.S env/p/riscv_test.h | $(BUILD)
 	@$(CC) $(PCFLAGS) $(LDFLAGS) $< -o $@ 2>$(BUILD)/p-$*.buildlog || \
 	  { echo "BUILD-FAIL p-$*"; rm -f $@; }
 

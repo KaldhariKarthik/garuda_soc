@@ -246,7 +246,15 @@ module csr_file (
                     MTVEC:    mtvec_r    <= nextv(mtvec_r,    csr_wdata_i, csr_op_i);
                     // mie: only MTIE is implemented (CORE §6.1).
                     MIE:      mie_r      <= nextv(mie_r,      csr_wdata_i, csr_op_i) & 32'h0000_0080;
-                    MEPC:     mepc_r     <= nextv(mepc_r,     csr_wdata_i, csr_op_i) & ~32'd1;
+                    // ERRATUM T-15 (2026-10-05, found by riscv-tests local/csr_warl.S in
+                    // lockstep with Spike). Only bit 0 was masked. GARUDA has no
+                    // compressed instructions, so IALIGN is 32 and the privileged
+                    // specification makes mepc[1:0] always zero. With bit 1 writable,
+                    // `csrw mepc` of an address with bit 1 set read back unchanged
+                    // (Spike: bit 1 cleared) and an mret to it put a misaligned
+                    // address on the instruction port, which the bus checker
+                    // reports as HADDR not aligned to HSIZE.
+                    MEPC:     mepc_r     <= nextv(mepc_r,     csr_wdata_i, csr_op_i) & ~32'd3;
                     MCAUSE:   mcause_r   <= nextv(mcause_r,   csr_wdata_i, csr_op_i);
                     MTVAL:    mtval_r    <= nextv(mtval_r,    csr_wdata_i, csr_op_i);
                     MSCRATCH: mscratch_r <= nextv(mscratch_r, csr_wdata_i, csr_op_i);

@@ -50,8 +50,17 @@ module garuda_pwm_core #(
 );
 
     // ---- prescaler ------------------------------------------------------------
+    // ERRATUM PWM-4 (2026-10-05, found by the UVM scoreboard's measured high
+    // time, check sb_no_stuck_high). The compare was `==`. A PRESCALE written
+    // below the running count was then never matched: the prescaler counted on
+    // to 0xFFFF and round, 65,536 pclk without a tick, with the frame counter
+    // frozen and every pin held as it was - a pin that was high stayed high
+    // for up to 0.5 ms. [N-7.1a] tells firmware not to change PRESCALE while
+    // running, but a stretched pulse on a motor output is exactly what this
+    // block exists to make impossible. With `>=` the tick in progress ends in
+    // the next cycle instead, the same hardening the period compare got in PWM-1.
     reg [15:0] pre_q;
-    wire       tick = en_i & (pre_q == prescale_i);
+    wire       tick = en_i & (pre_q >= prescale_i);
 
     always @(posedge clk_i or negedge rst_n_i)
         if (!rst_n_i)      pre_q <= 16'd0;
