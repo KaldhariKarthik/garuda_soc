@@ -1,40 +1,77 @@
 NAME,DEPTH,NODE_KIND,element_id,details,implementation_note,owner,priority
-SPI master verification plan,0,SECTION,SPIM,"Source: GARUDA-SPIM-SPEC-001, section 2 (requirements), section 10 (assertions) and section 11 (verification plan), written with the specification. Moved into vPlanner form on 2026-10-04; section 4 holds what the 2026-10-04 flow run added.",,,
-Requirements,1,SECTION,SPIM.REQ,From section 2 of the specification; planned tests from section 11.,,,
-R-1 Read the boot flash with a single-bit SPI mode-0 transfer command ...,2,SECTION,SPIM.R-1,"Read the boot flash with a single-bit SPI mode-0 transfer: command 0x03, 24-bit address, streamed data.",Source: MEM §8.2,,high
-t_spim_flash_read,3,TC,SPIM.R-1.t_spim_flash_read,Oracle: spi_flash_model returns the programmed bytes,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, checks tagged [R-1] (lines 128-133) - 3 checks, all PASS in the 2026-10-04 regression.",,
-R-2 Hold one chip select asserted across command address and data ...,2,SECTION,SPIM.R-2,"Hold one chip select asserted across command, address and data phases of a transfer.",Source: MEM §8.3,,high
-R-3 Two independent chip selects cs_flash_n cs_imu_n.,2,SECTION,SPIM.R-3,"Two independent chip selects: cs_flash_n, cs_imu_n.","Source: PHYS [N-3.5], ADR-0008",,high
-t_spim_cs,3,TC,SPIM.R-3.t_spim_cs,Oracle: only the selected CS falls; never both,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, checks tagged [R-3] and the CS release checks (lines 136-146) - 4 checks, all PASS in the 2026-10-04 regression.",,
-R-4 SCLK 20 MHz from pclk = 125 MHz.,2,SECTION,SPIM.R-4,SCLK ≤ 20 MHz from pclk = 125 MHz.,Source: MEM §8.2 step 3,,high
-t_spim_sclk_rate,3,TC,SPIM.R-4.t_spim_sclk_rate,Oracle: measured SCLK period ≥ 8 pclk at CLKDIV=3,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, checks [R-4] shortest SCLK half-period 32 ns and the flash-model protocol check (lines 134-135) - 2 checks, all PASS in the 2026-10-04 regression.",,
-R-5 Never stall the APB bus the register interface is polled.,2,SECTION,SPIM.R-5,Never stall the APB bus: the register interface is polled.,Source: AHB2APB [N-7.15],,high
-t_spim_pready,3,TC,SPIM.R-5.t_spim_pready,Oracle: PREADY high in every cycle of every access,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, check [R-5] PREADY high in every cycle (line 199) - 1 checks, all PASS in the 2026-10-04 regression.",,
-R-6 One held level interrupt to CLIC ID 15.,2,SECTION,SPIM.R-6,"One held, level interrupt to CLIC ID 15.","Source: CLIC §7.2, D-17",,high
-t_spim_irq,3,TC,SPIM.R-6.t_spim_irq,Oracle: held after a one-cycle event; cleared by W1C only,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, checks [R-6] and IRQSTAT capture (lines 159-164) - 3 checks, all PASS in the 2026-10-04 regression.",,
-R-7 DMA request acknowledge on channel 0 one beat per assertion.,2,SECTION,SPIM.R-7,"DMA request/acknowledge on channel 0, one beat per assertion.","Source: DMA §7.3, D-21",,high
-t_spim_dma,3,TC,SPIM.R-7.t_spim_dma,Oracle: dma_req_checker sees no stuck request,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, checks tagged [R-7] incl. dma_req_checker (lines 178-196) - 7 checks, all PASS in the 2026-10-04 regression.",,
-R-8 cs_x_n high and sclk low from reset until firmware acts.,2,SECTION,SPIM.R-8,cs_*_n high and sclk low from reset until firmware acts.,Source: Board safety,,high
-t_spim_reset,3,TC,SPIM.R-8.t_spim_reset,Oracle: pins at safe idle out of reset,"Status in the specification: pass. Bench: tb/spi_master/tb_spim.sv, checks tagged [R-8] (lines 114, 117) - 2 checks, all PASS in the 2026-10-04 regression.",,
-Planned tests not tied to one requirement,2,SECTION,SPIM.OTHER,,,,
-test_chip_flash,3,TC,SPIM.OTHER.test_chip_flash,Oracle: the real Boot ROM boots an image out of the flash model,"Status in the specification: pass. Bench: make test_chip_flash (tb/soc/tb_chip.sv, MODE=flash, boot ROM sw/bootrom/spim.c from tb/models/spi_flash_model.sv); sim/chip_flash/run.log shows the image loaded, tohost = 1 and RESULT: PASSED in the 2026-10-04 regression.",,
-Assertions,1,SECTION,SPIM.SVA,From section 10 of the specification.,,,
-a_pready,2,CHK,SPIM.SVA.a_pready,PREADY is never deasserted: the bridge would time out (R-5),"assert property in specification section 10. Checked procedurally in tb/spi_master/tb_spim.sv ([R-5] PREADY high in every cycle of every access, line 199).",,
-a_cs_excl,2,CHK,SPIM.SVA.a_cs_excl,chip selects are mutually exclusive and idle high when the engine is idle,"assert property in specification section 10. Checked procedurally in tb/spi_master/tb_spim.sv ([R-3] the two chip selects are never asserted together, line 136; released after transfer, line 137).",,
-a_cs_idle,2,CHK,SPIM.SVA.a_cs_idle,,"assert property in specification section 10. Checked procedurally in tb/spi_master/tb_spim.sv ([R-8] pins at safe idle, lines 114-117; chip selects released after the transfer, line 137).",,
-a_cs_held,2,CHK,SPIM.SVA.a_cs_held,the selected chip select stays asserted for the whole transfer (R-2),"assert property in specification section 10. Checked procedurally in tb/spi_master/tb_spim.sv (flash model protocol check [R-2/R-4] CS held for the whole transfer, line 134).",,
-a_sclk_rate,2,CHK,SPIM.SVA.a_sclk_rate,SCLK never exceeds 20 MHz: at least 3 pclk between edges (R-4),"assert property in specification section 10. Checked procedurally in tb/spi_master/tb_spim.sv ([R-4] shortest SCLK half-period 32 ns, line 135; flash-model protocol check line 134).",,
-a_dma_drop,2,CHK,SPIM.SVA.a_dma_drop,the DMA one-beat rule (D-21),"assert property in specification section 10. Checked procedurally in tb/spi_master/tb_spim.sv ([R-7] dma_req drops on ack, drops when the FIFO empties, dma_req_checker clean; lines 185-196).",,
-Coverage,1,SECTION,SPIM.COV,Merged code coverage from the vManager session of 2026-10-04 (sim/cov_merged). Not closed; no bar is claimed.,,,
-garuda_spim_top,2,COV,SPIM.COV.garuda_spim_top,Code coverage of module garuda_spim_top: 89.84%,,,
-apb_spi_master,2,COV,SPIM.COV.apb_spi_master,Code coverage of module apb_spi_master: 23.74%,,,
-spi_master_apb_if,2,COV,SPIM.COV.spi_master_apb_if,Code coverage of module spi_master_apb_if: 80.62%,,,
-spi_master_clkgen,2,COV,SPIM.COV.spi_master_clkgen,Code coverage of module spi_master_clkgen: 75.51%,,,
-spi_master_controller,2,COV,SPIM.COV.spi_master_controller,Code coverage of module spi_master_controller: 43.65%,,,
-spi_master_fifo,2,COV,SPIM.COV.spi_master_fifo,Code coverage of module spi_master_fifo: 84.86%,,,
-spi_master_rx,2,COV,SPIM.COV.spi_master_rx,Code coverage of module spi_master_rx: 55.63%,,,
-spi_master_tx,2,COV,SPIM.COV.spi_master_tx,Code coverage of module spi_master_tx: 88.53%,,,
-Added in the 2026-10-04 run,1,SECTION,SPIM.NEW,Checks added and defects found when the flow was run in order on 2026-10-04. See Docs/BUGS.md section 1h.,,,
-SPIM-2 MODE state has no exit,2,CHK,SPIM.NEW.SPIM-2,HAL TERMST/UNRCHS: state MODE in the vendored spi_master_controller is never entered and has no exit; in it chip-select is held low with the clock running.,"OPEN (vendored). No check covers it; the state is unreachable in normal operation, a recovery arc to IDLE is a one-line vendor patch not yet applied.",,
-Bench checks added,2,CHK,SPIM.NEW.checks,Check count before and after: 24 -> 24 (not extended).,The bench was not extended: 24 checks before and after (sim/tb_spim/run.log: checks=24 FAIL=0).,,
-Mirafra UVM environment,2,CHK,SPIM.NEW.mirafra,"Mirafra's pulpino__spi_master__ip_verification (APB VIP + SPI VIP + register model) run against garuda_spim_top on Xcelium: 51 tests, 16 with no UVM errors; result identical test for test to the same environment on Mirafra's own RTL. Its scoreboard checks the write path only.","tb/spi_master/uvm_mirafra/, results in sim/uvm_spim/all_tests.txt",,
+SPI master verification plan,0,SECTION,SPIM,"Block 13: garuda_spim_top, the vendored PULP apb_spi_master behind the APB shim, single-bit mode 0, two chip selects. Source: GARUDA-SPIM-SPEC-001, decisions D-16, D-17, D-21. Feature-level plan written 2026-10-04, before the UVM environment. Sign-off criteria: flow/0_signoff_criteria.md. Vendored code is covered as far as single-bit mode 0 reaches; quad mode and the unused chip selects are waived with the reason. Mirafra's UVM environment (51 tests, write path only) is an additional environment, not the closing one.",,,
+A Registers,1,SECTION,SPIM.A,"APB window 1, 0x4000_1000. Spec section 6.",,,
+F01 STATUS write starts a transfer and selects the chip select,2,SECTION,SPIM.F01,"Offset 0x00. Bit 0 start read, bit 1 start write, bit 4 soft reset, bit 8 selects the flash, bit 9 the IMU, bits 11:10 must be 0. Spec 6.1, [N-6.1].","Method: sim (APB agent, SPI slave agent, scoreboard). Today: tb_spim [R-1], [R-3]",Karthik,P1
+sb_xfer,3,CHK,SPIM.F01.CHK1,The SPI slave agent's decoded transfer equals what the reference model expects for the write.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+cg_spim_start.x_dir_cs,3,COV,SPIM.F01.COV2,Read and write starts on each chip select; both chip select bits set; neither set.,Covergroup in the UVM environment. Planned.,Karthik,
+F02 STATUS read shows engine idle and both FIFO levels,2,SECTION,SPIM.F02,"Bit 0 idle, bits 20:16 receive occupancy, bits 28:24 transmit occupancy. Idle is also true between the start write and the engine acting on it. Spec [N-6.1a].",Method: sim. Today: tb_spim reads occupancy,Karthik,P1
+sb_status,3,CHK,SPIM.F02.CHK1,Every STATUS read compared with the model's FIFO levels.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+cg_spim_status.cp_idle_race,3,COV,SPIM.F02.COV2,"STATUS read 0, 1 and 2 pclk after a start write.",Covergroup in the UVM environment. Planned.,Karthik,
+F03 CLKDIV SPICMD SPIADR SPILEN and SPIDUM,2,SECTION,SPIM.F03,"Offsets 0x04 to 0x14, read-write, reset 0. SPILEN bits 5:0 command bits, 13:8 address bits, 31:16 data bits. SPIDUM bits 15:0 dummy cycles before read, 31:16 before write.",Method: sim (register model). Today: tb_spim read-back of some,Karthik,P1
+ral_access config,3,CHK,SPIM.F03.CHK1,Reset value and read-back of each field; no aliasing between the five.,UVM register model test. Planned.,Karthik,
+F04 TXFIFO and RXFIFO,2,SECTION,SPIM.F04,"Offset 0x18 write-only, 0x20 read-only, 32 bits, ten entries each. A read of RXFIFO removes a word. A read when empty and a write when full are not described; to be read from the RTL and written down.",Method: sim. Today: tb_spim reads words,Karthik,P1
+sb_fifo,3,CHK,SPIM.F04.CHK1,Model compare of every word and of both occupancy counts.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+cg_spim_fifo.x_fifo_level,3,COV,SPIM.F04.COV2,"Each FIFO empty, 1, 9, 10; a read when empty; a write when full.",Covergroup in the UVM environment. Planned.,Karthik,
+F05 INTCFG and INTSTA from the vendored block,2,SECTION,SPIM.F05,Offsets 0x24 and 0x28. FIFO threshold configuration and event status.,Method: sim (register model). Today: no check.,Karthik,P2
+ral_access INTCFG INTSTA,3,CHK,SPIM.F05.CHK1,"Reset value, read-back of INTCFG, INTSTA read-only.",UVM register model test. Planned.,Karthik,
+F06 IRQSTAT IRQEN DMACTL and ID in the shim,2,SECTION,SPIM.F06,"Offsets 0xFE0 to 0xFEC. IRQSTAT bit 0 transfer complete, 1 receive threshold, 2 transmit threshold. DMACTL bit 0 requests on receive data, bit 1 on transmit space. ID reads 0x6A5D, block 13 and the revision.","Method: sim (register model). Today: tb_spim reads ID, uses IRQSTAT bit 0",Karthik,P2
+ral_access shim,3,CHK,SPIM.F06.CHK1,Access policy of the four shim registers.,UVM register model test. Planned.,Karthik,
+F07 Unmapped offsets raise PSLVERR and accesses never wait,2,SECTION,SPIM.F07,"0x1C, 0x2C to 0xFDC, 0xFF0 and above, unaligned offsets. PREADY is high in every cycle, including while the wrapper polls STATUS. Requirement R-5.",Method: sim + formal. Today: tb_spim [R-5],Karthik,P1
+sb_pslverr,3,CHK,SPIM.F07.CHK1,PSLVERR compared with the model's address map.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+a_pready,3,CHK,SPIM.F07.CHK2,pready_o is 1 in every cycle.,"SVA in rtl/spi_master/garuda_spim_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+a_poll_never_blocks,3,CHK,SPIM.F07.CHK3,A bus access is never delayed or answered with the wrapper's poll data.,"SVA in rtl/spi_master/garuda_spim_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+cg_spim_apb.x_unmapped_rw,3,COV,SPIM.F07.COV4,Each unmapped range read and written; an access in each phase of the poll.,Covergroup in the UVM environment. Planned.,Karthik,
+F08 Reset values,2,SECTION,SPIM.F08,"All registers 0, both chip selects high, SCLK low. Requirement R-8.",Method: sim (register model). Today: tb_spim [R-8],Karthik,P1
+ral_reset,3,CHK,SPIM.F08.CHK1,Register model reset test.,UVM register model test. Planned.,Karthik,
+B Transfers,1,SECTION,SPIM.B,"Spec 6.3, 7.1, 7.2. Checked by an SPI slave agent on the pins.",,,
+F09 Command address dummy and data phases,2,SECTION,SPIM.F09,"Each with its programmed length, in that order, most significant bit first from bit 31. Requirement R-1, spec [N-7.2].","Method: sim. Today: tb_spim flash read - command 0x03, 24-bit address, 32-bit data",Karthik,P1
+sb_xfer,3,CHK,SPIM.F09.CHK1,Bit count and value of each phase compared with the model.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+cg_spim_len.x_cmd_addr_dummy_data,3,COV,SPIM.F09.COV2,"Command 0, 8, 32 bits; address 0, 24, 32; dummy 0, 1, 8; data 0, 1, 8, 31, 32, 33, 320 bits; reads and writes.",Covergroup in the UVM environment. Planned.,Karthik,
+F10 The chip select is held for the whole transfer,2,SECTION,SPIM.F10,"Asserted before the first clock and released after the last, with no gap between phases. Requirement R-2, spec [N-6.3].",Method: sim + formal. Today: tb_spim [R-3] CS checks,Karthik,P1
+a_cs_held,3,CHK,SPIM.F10.CHK1,The selected chip select is low from the first SCLK edge to the last of a transfer.,"SVA in rtl/spi_master/garuda_spim_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F11 The two chip selects are independent and exclusive,2,SECTION,SPIM.F11,Only the selected one goes low. Requirement R-3.,Method: sim + formal. Today: tb_spim [R-3],Karthik,P1
+a_cs_excl,3,CHK,SPIM.F11.CHK1,The two chip selects are never low together unless both bits were written.,"SVA in rtl/spi_master/garuda_spim_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F12 Mode 0,2,SECTION,SPIM.F12,"SCLK idles low, MOSI changes on the falling edge, MISO is sampled on the rising edge. Spec [N-7.4].",Method: sim. Today: tb_spim against the flash model,Karthik,P1
+sb_mode0,3,CHK,SPIM.F12.CHK1,The slave agent checks MOSI stable around every rising edge and SCLK low whenever chip select is high.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+a_cs_idle,3,CHK,SPIM.F12.CHK2,SCLK is 0 whenever both chip selects are high.,"SVA in rtl/spi_master/garuda_spim_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F13 SCLK rate,2,SECTION,SPIM.F13,"pclk divided by 2 x (CLKDIV + 1); at most 20 MHz at the boot value CLKDIV 3. Requirement R-4, spec [N-6.2].",Method: sim. Today: tb_spim measures the period at CLKDIV 3,Karthik,P1
+sb_sclk_period,3,CHK,SPIM.F13.CHK1,The slave agent measures every SCLK period.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+cg_spim_rate.cp_clkdiv,3,COV,SPIM.F13.COV2,"CLKDIV 0, 1, 2, 3, 15, 255.",Covergroup in the UVM environment. Planned.,Karthik,
+F14 MISO sampling at small CLKDIV,2,SECTION,SPIM.F14,MISO passes through a two-flop synchroniser. At CLKDIV 0 to 2 the delay may exceed half an SCLK period; the smallest CLKDIV at which reads are correct has to be measured and written down.,Method: sim. Today: no check.,Karthik,P1
+cg_spim_rate.x_clkdiv_read,3,COV,SPIM.F14.COV1,A read transfer at each CLKDIV from 0 to 4 with data checked.,Covergroup in the UVM environment. Planned.,Karthik,
+sb_xfer,3,CHK,SPIM.F14.CHK2,Read data compared with what the slave agent drove.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+F15 Receive word order,2,SECTION,SPIM.F15,"RXFIFO returns the four bytes in arrival order, first byte in bits 31:24. Spec [N-7.3].",Method: sim. Today: tb_spim; the flash boot test,Karthik,P1
+sb_xfer,3,CHK,SPIM.F15.CHK1,Model compare.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+F16 A read longer than the FIFO,2,SECTION,SPIM.F16,More than ten words in one transfer. What the engine does when the receive FIFO is full - stop the clock or lose data - has to be read from the RTL and written down. Spec [N-7.3a].,Method: sim. Today: no check.,Karthik,P1
+cg_spim_fifo.cp_rx_full_in_transfer,3,COV,SPIM.F16.COV1,"Receive FIFO full during a transfer, drained late, drained in time.",Covergroup in the UVM environment. Planned.,Karthik,
+F17 Soft reset,2,SECTION,SPIM.F17,STATUS bit 4 during a transfer returns the engine to idle with chip select high and both FIFOs empty.,Method: sim. Today: no check.,Karthik,P2
+cg_spim_start.cp_soft_reset_phase,3,COV,SPIM.F17.COV1,Soft reset in each phase and while idle.,Covergroup in the UVM environment. Planned.,Karthik,
+a_cs_idle,3,CHK,SPIM.F17.CHK2,Covered by F12.,"SVA in rtl/spi_master/garuda_spim_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F18 Back-to-back transfers and a start while busy,2,SECTION,SPIM.F18,A second start written before the first transfer ends is not described; to be read from the RTL and written down.,Method: sim. Today: no check.,Karthik,P2
+cg_spim_start.cp_start_while_busy,3,COV,SPIM.F18.COV1,Start written while idle bit is 0.,Covergroup in the UVM environment. Planned.,Karthik,
+F19 The unused state of the vendored controller,2,SECTION,SPIM.F19,State MODE is never entered and has no exit; in it chip select is low with the clock running. Open defect SPIM-2.,"Method: formal (unreachability) + static. Today: HAL TERMST and UNRCHS, waived",Karthik,P2
+a_no_mode_state,3,CHK,SPIM.F19.CHK1,The controller state is never MODE.,"SVA in rtl/spi_master/garuda_spim_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+C Pins,1,SECTION,SPIM.C,"Requirement R-8, spec [N-7.5], [N-7.6].",,,
+F20 Chip selects high and SCLK low from reset until firmware acts,2,SECTION,SPIM.F20,Requirement R-8.,Method: sim + formal. Today: tb_spim [R-8],Karthik,P1
+a_safe_idle,3,CHK,SPIM.F20.CHK1,Both chip selects are 1 and SCLK is 0 while preset_n is low and until the first start.,"SVA in rtl/spi_master/garuda_spim_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F21 Single-bit mode only and MISO on the right lane,2,SECTION,SPIM.F21,"The wrapper never enables quad mode, MOSI is the only driven data line, and MISO is connected to the lane the vendored receiver shifts in. Spec [N-7.5], [N-7.6].",Method: sim + static. Today: tb_spim reads correct data; the flash boot test,Karthik,P1
+a_no_quad,3,CHK,SPIM.F21.CHK1,The vendored quad-mode controls are constant 0.,"SVA in rtl/spi_master/garuda_spim_sva.sv, bound to the block. Planned.",Karthik,
+D Interrupt and DMA,1,SECTION,SPIM.D,"Spec 7.3, 7.4. Requirements R-6, R-7.",,,
+F22 Three events are captured and held,2,SECTION,SPIM.F22,"Transfer complete, receive threshold, transmit threshold. irq_o is the OR of IRQSTAT and IRQEN, held until written 1 to clear.",Method: sim + formal. Today: tb_spim [R-6],Karthik,P1
+a_irq_held,3,CHK,SPIM.F22.CHK1,irq_o equals the OR of IRQSTAT and IRQEN in every cycle.,"SVA in rtl/spi_master/garuda_spim_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+a_set_beats_clear,3,CHK,SPIM.F22.CHK2,An event in the cycle of its own clear leaves the bit set.,"SVA in rtl/spi_master/garuda_spim_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+cg_spim_irq.x_src_en,3,COV,SPIM.F22.COV3,Each source with its enable 0 and 1.,Covergroup in the UVM environment. Planned.,Karthik,
+F23 DMA requests on receive data and on transmit space,2,SECTION,SPIM.F23,The request drops for one pclk after each acknowledge. Beats are 32 bits. Spec [N-7.8].,Method: sim (DMA request agent) + formal. Today: tb_spim [R-7],Karthik,P1
+a_dma_drop,3,CHK,SPIM.F23.CHK1,dma_req_o is 0 in the pclk after dma_ack_i.,"SVA in rtl/spi_master/garuda_spim_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+dma_req_checker,3,CHK,SPIM.F23.CHK2,"One beat per assertion, no stuck request.","tb/common/dma_req_checker.sv, bound today.",Karthik,
+cg_spim_dma.cp_kind,3,COV,SPIM.F23.COV3,"Receive request, transmit request, both enabled.",Covergroup in the UVM environment. Planned.,Karthik,
+E With the rest of the chip,1,SECTION,SPIM.E,Checked at chip level and by connectivity checks.,,,
+F24 Boot from flash,2,SECTION,SPIM.F24,"The boot ROM reads the image through this block - command 0x03, CRC checked, jump. Spec [N-7.1], [N-7.3].","Method: sim at chip level. Today: sw/chip flash test, make test_chip_flash",Karthik,P1
+t_chip_flash,3,TC,SPIM.F24.TC1,Boot of a 700-byte image from the flash model.,Passing.,Karthik,
+F25 Interrupt DMA channel and pads,2,SECTION,SPIM.F25,"CLIC ID 15, DMA channel 0, five pads.","Method: sim at chip level + connectivity. Today: sw/chip/t_chip_periph.c, t_chip_integ.c",Karthik,P1
+conn_spim,3,CHK,SPIM.F25.CHK1,"Bound assertions at the chip top for the interrupt, request, acknowledge and the five pads.",Planned.,Karthik,
+F26 Mirafra UVM environment,2,SECTION,SPIM.F26,"Mirafra's APB and SPI agents, register model and scoreboard on garuda_spim_top - 51 tests, 16 clean, the rest flagged by a scoreboard that checks the write path only. VIP-1 in the bug register.","Method: sim (additional environment, Xcelium only). Today: run 2026-10-04",Karthik,P3
+pulpino_spi_master_ip tests,3,TC,SPIM.F26.TC1,51 tests.,"tb/spi_master/uvm_mirafra, sim/uvm_spim/all_tests.txt.",Karthik,
+F Clock and reset,1,SECTION,SPIM.F,Spec section 9.,,,
+F27 Single clock domain with one asynchronous input,2,SECTION,SPIM.F27,MISO is synchronised in the wrapper. Spec [N-9.2].,Method: static (clock-domain check). Today: no check.,Karthik,P1
+hal_cdc,3,CHK,SPIM.F27.CHK1,MISO reported as synchronised.,flow/2_static. To run on this block.,Karthik,

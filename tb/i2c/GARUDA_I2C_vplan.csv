@@ -1,40 +1,91 @@
 NAME,DEPTH,NODE_KIND,element_id,details,implementation_note,owner,priority
-I2C master verification plan,0,SECTION,I2C,"Source: GARUDA-I2C-SPEC-001, section 2 (requirements), section 10 (assertions) and section 11 (verification plan), written with the specification. Moved into vPlanner form on 2026-10-04; section 4 holds what the 2026-10-04 flow run added.",,,
-Requirements,1,SECTION,I2C.REQ,From section 2 of the specification; planned tests from section 11.,,,
-R-1 Master write and read transfers to a 7-bit addressed slave with ...,2,SECTION,I2C.R-1,"Master write and read transfers to a 7-bit addressed slave, with repeated start.",Source: SYS §6.4,,high
-t_i2c_write,3,TC,I2C.R-1.t_i2c_write,"Oracle: the slave model records address, register and data","Status in the specification: new. Bench: tb/i2c/tb_i2c.sv, checks tagged [R-1] (address acknowledged, 0xA5 stored at register 0x10, one START and one STOP, no SDA change while SCL high) and [N-7.1] - 5 checks, all PASS in the 2026-10-04 regression.",,
-t_i2c_read,3,TC,I2C.R-1.t_i2c_read,Oracle: the DUT returns what the model was preloaded with,"Status in the specification: new. Bench: tb/i2c/tb_i2c.sv, checks [R-1] read back 0x3C, [R-1] [N-6.4] RXVALID cleared by the read, [N-6.4] no second transfer - 3 checks, all PASS in the 2026-10-04 regression.",,
-t_i2c_repeated_start,3,TC,I2C.R-1.t_i2c_repeated_start,"Oracle: a register read with repeated start, no STOP between","Status in the specification: new. Bench: tb/i2c/tb_i2c.sv, check [R-1] two STARTs, one STOP - 1 check, all PASS in the 2026-10-04 regression.",,
-t_i2c_burst,3,TC,I2C.R-1.t_i2c_burst,"Oracle: 8-byte read, ACK on all but the last","Status in the specification: new. Bench: tb/i2c/tb_i2c.sv, checks [R-1] 8-byte burst read and [N-6.2a] ACK on bytes 0..6, NACK on the last - 3 checks, all PASS in the 2026-10-04 regression.",,
-R-2 SCL at or below 100 kHz and 400 kHz from pclk = 125 MHz.,2,SECTION,I2C.R-2,SCL at or below 100 kHz and 400 kHz from pclk = 125 MHz.,"Source: SYS §6.4, UM10204 §3.1.9",,high
-t_i2c_scl_rate,3,TC,I2C.R-2.t_i2c_scl_rate,"Oracle: measured SCL at PRESCALE 249 and 61, against the mode limit","Status in the specification: pass. Bench: tb/i2c/tb_i2c.sv, checks tagged [R-2] (94.5 kHz at PRESCALE 249, 373.1 kHz at PRESCALE 61) - 3 checks, all PASS in the 2026-10-04 regression.",,
-R-3 Word-only APB 32-bit registers at word-aligned offsets.,2,SECTION,I2C.R-3,"Word-only APB, 32-bit registers at word-aligned offsets.",Source: AHB2APB [N-7.12],,high
-t_i2c_regs,3,TC,I2C.R-3.t_i2c_regs,Oracle: every register reads back; PSLVERR on unmapped and on CMD while TIP,"Status in the specification: new. Bench: tb/i2c/tb_i2c.sv, checks tagged [R-3], the ID read, [N-6.2] CMD reads 0 and [N-6.2b] PSLVERR on CMD while TIP - 7 checks, all PASS in the 2026-10-04 regression.",,
-R-4 Never stall the APB bus.,2,SECTION,I2C.R-4,Never stall the APB bus.,Source: AHB2APB [N-7.15],,high
-t_i2c_pready,3,TC,I2C.R-4.t_i2c_pready,Oracle: PREADY high in every cycle of every access,"Status in the specification: new. Bench: tb/i2c/tb_i2c.sv, check [R-4] PREADY high in every cycle of every access - 1 check, all PASS in the 2026-10-04 regression.",,
-R-5 One held level interrupt to CLIC ID 16.,2,SECTION,I2C.R-5,"One held, level interrupt to CLIC ID 16.","Source: CLIC §7.2, D-17",,high
-t_i2c_irq,3,TC,I2C.R-5.t_i2c_irq,"Oracle: held ≥50 pclk, drops only on W1C","Status in the specification: new. Bench: tb/i2c/tb_i2c.sv, checks tagged [R-5] (asserted, still asserted 60 pclk later, W1C clears it) - 5 checks, all PASS in the 2026-10-04 regression.",,
-R-6 DMA request acknowledge on channel 1 one beat per assertion.,2,SECTION,I2C.R-6,"DMA request/acknowledge on channel 1, one beat per assertion.","Source: DMA §7.3, D-21",,high
-t_i2c_dma,3,TC,I2C.R-6.t_i2c_dma,Oracle: dma_req_checker; request drops after ack,"Status in the specification: new. Bench: tb/i2c/tb_i2c.sv, checks tagged [R-6] (with dma_req_checker) and [N-7.7] - 11 checks, all PASS in the 2026-10-04 regression.",,
-R-7 Report a NACK and arbitration loss without hanging.,2,SECTION,I2C.R-7,"Report a NACK, and arbitration loss, without hanging.",Source: UM10204 §3.1.6,,high
-t_i2c_nack,3,TC,I2C.R-7.t_i2c_nack,Oracle: an unaddressed slave leaves RXNACK set and IRQSTAT[3],"Status in the specification: new. Bench: tb/i2c/tb_i2c.sv, checks tagged [R-7] (unanswered address and refused data byte set RXNACK and IRQSTAT[3], STOP still sent) - 8 checks, all PASS in the 2026-10-04 regression.",,
-R-8 A wedged slave must not hang the SoC a transfer that stalls is ...,2,SECTION,I2C.R-8,A wedged slave must not hang the SoC: a transfer that stalls is abandoned and the bus released.,Source: Board safety,,high
-t_i2c_stretch,3,TC,I2C.R-8.t_i2c_stretch,"Oracle: a slave that stretches past the timeout is abandoned, pins released, IRQSTAT[2]","Status in the specification: new. Bench: tb/i2c/tb_i2c.sv, checks tagged [R-8] for the timeout (STATUS.TIMEOUT, IRQSTAT[2], pins released, TIP cleared, block recovers) and [N-7.5a] - 7 checks, all PASS in the 2026-10-04 regression.",,
-t_i2c_stretch_ok,3,TC,I2C.R-8.t_i2c_stretch_ok,Oracle: a slave that stretches within the timeout completes normally,"Status in the specification: new. Bench: tb/i2c/tb_i2c.sv, check [R-8] a slave stretching 20 us inside a 480 us budget completes - 1 check, all PASS in the 2026-10-04 regression.",,
-R-9 Open-drain discipline the block never drives either line high.,2,SECTION,I2C.R-9,Open-drain discipline: the block never drives either line high.,Source: UM10204 §3.1.1,,high
-t_i2c_never_drives_high,3,TC,I2C.R-9.t_i2c_never_drives_high,Oracle: _o pins are 0 for the entire run,"Status in the specification: new. Bench: tb/i2c/tb_i2c.sv, check [R-9] [N-9.2] the block never drove either line high (monitored for the whole run) - 1 check, all PASS in the 2026-10-04 regression.",,
-R-10 Pins released (inputs) from reset until firmware acts.,2,SECTION,I2C.R-10,Pins released (inputs) from reset until firmware acts.,Source: Board safety,,high
-t_i2c_reset,3,TC,I2C.R-10.t_i2c_reset,Oracle: both _oe low out of reset,"Status in the specification: new. Bench: tb/i2c/tb_i2c.sv, checks tagged [R-10] (lines released in and out of reset, bus idles high) - 3 checks, all PASS in the 2026-10-04 regression.",,
-Assertions,1,SECTION,I2C.SVA,From section 10 of the specification.,,,
-a_never_high,2,CHK,I2C.SVA.a_never_high,,assert property in specification section 10. NOT IMPLEMENTED as SVA. Checked procedurally in tb/i2c/tb_i2c.sv ([R-9] [N-9.2] the block never drove either line high).,,
-a_pready,2,CHK,I2C.SVA.a_pready,,assert property in specification section 10. NOT IMPLEMENTED as SVA. Checked procedurally in tb/i2c/tb_i2c.sv ([R-4] PREADY high in every cycle of every access).,,
-a_dma_drop,2,CHK,I2C.SVA.a_dma_drop,,assert property in specification section 10. NOT IMPLEMENTED as SVA. Checked procedurally in tb/i2c/tb_i2c.sv ([R-6] dma_req drops after the ack; dma_req_checker clean).,,
-a_tip_bounded,2,CHK,I2C.SVA.a_tip_bounded,,"assert property in specification section 10. NOT IMPLEMENTED as SVA. Checked procedurally in tb/i2c/tb_i2c.sv ([R-8] TIP cleared - the transfer was abandoned, not hung; [N-7.5] abort clears TIP in all 36 phases).",,
-Coverage,1,SECTION,I2C.COV,Merged code coverage from the vManager session of 2026-10-04 (sim/cov_merged). Not closed; no bar is claimed.,,,
-garuda_i2c_top,2,COV,I2C.COV.garuda_i2c_top,Code coverage of module garuda_i2c_top: 92.45%,,,
-i2c_master_bit_ctrl,2,COV,I2C.COV.i2c_master_bit_ctrl,Code coverage of module i2c_master_bit_ctrl: 90.60%,,,
-i2c_master_byte_ctrl,2,COV,I2C.COV.i2c_master_byte_ctrl,Code coverage of module i2c_master_byte_ctrl: 93.06%,,,
-Added in the 2026-10-04 run,1,SECTION,I2C.NEW,Checks added and defects found when the flow was run in order on 2026-10-04 (Docs/BUGS.md section 1h).,,,
-I2C-5 glitch-prone logic in the core reset,2,CHK,I2C.NEW.I2C-5,The vendored controller's asynchronous reset was a combinational function of the abort counter and could glitch and release mid-abort; found by HAL (GLTASR). The reset now comes from one flop.,FIXED in rtl/i2c/garuda_i2c_top.v. Covered by the [N-7.5] abort checks (36 phases); lint is clean on this rule.,,
-I2C-6 disable mid-transfer left TIP set,2,CHK,I2C.NEW.I2C-6,CTRL.EN = 0 in the middle of a transfer left TIP and the command latched; firmware polling TIP hung and the next enable replayed the stale command onto the bus.,FIXED. Covered by [N-6.3] TIP clears when the block is disabled mid-transfer and [N-6.2] re-enabling does not replay the abandoned command; PASS.,,
-Bench checks added,2,CHK,I2C.NEW.checks,"The bench grew from 42 to 88 checks, 90 with the APB checker (sim/tb_i2c/run.log: checks=90 FAIL=0): arbitration loss, abort in every phase, glitch filter, NACK generation, DMA request gating. Two more checks come from the APB protocol checker (tb/common/apb_checker.v) bound on this bench's config port on 2026-10-03.",,,
+I2C master verification plan,0,SECTION,I2C,"Block 15: garuda_i2c_top, the vendored OpenCores I2C byte and bit controllers behind GARUDA's own register file and the APB shim. Source: GARUDA-I2C-SPEC-001, decisions D-16, D-17, D-21. Feature-level plan written 2026-10-04, before the UVM environment. Sign-off criteria: flow/0_signoff_criteria.md. Vendored code is covered as far as master-only use reaches; the rest is waived with the reason.",,,
+A Registers,1,SECTION,I2C.A,"APB window 2, 0x4000_2000. Spec section 6.",,,
+F01 PRESCALE sets the SCL divider,2,SECTION,I2C.F01,"Offset 0x00, read-write, reset 0, bits 15:0. To be changed only with EN clear or the bus idle. Spec [N-6.1].",Method: sim (register model). Today: tb_i2c [R-3],Karthik,P1
+ral_access PRESCALE,3,CHK,I2C.F01.CHK1,"Reset value, read-back, upper bits read 0.",UVM register model test. Planned.,Karthik,
+F02 CTRL holds EN and the self-clearing ABORT,2,SECTION,I2C.F02,Offset 0x04. Bit 0 EN enables the core. Bit 1 ABORT abandons the transfer and reads back 0. Spec [N-7.5].,Method: sim (register model). Today: tb_i2c [N-7.5] CTRL reads back EN only,Karthik,P1
+ral_access CTRL,3,CHK,I2C.F02.CHK1,EN read-back; ABORT always reads 0; other bits read 0.,UVM register model test. Planned.,Karthik,
+F03 TXDATA holds the byte to send,2,SECTION,I2C.F03,"Offset 0x08, read-write, bits 7:0.",Method: sim (register model). Today: tb_i2c [R-3],Karthik,P2
+ral_access TXDATA,3,CHK,I2C.F03.CHK1,Reset value and read-back.,UVM register model test. Planned.,Karthik,
+F04 RXDATA holds the byte received and a read clears RXVALID,2,SECTION,I2C.F04,"Offset 0x0C, read-only. The read drops the DMA request and does not start a transfer. Spec [N-6.4].",Method: sim. Today: tb_i2c [R-1] [N-6.4],Karthik,P1
+sb_rx,3,CHK,I2C.F04.CHK1,Every byte read equals the byte the slave agent sent.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+a_rxdata_read_no_cmd,3,CHK,I2C.F04.CHK2,A read of RXDATA never starts bus activity.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned.",Karthik,
+F05 CMD starts one transfer and clears itself,2,SECTION,I2C.F05,"Offset 0x10, write-only, reads 0. STA bit 0, STO 1, RD 2, WR 3, NACK 4. Spec [N-6.2].",Method: sim. Today: tb_i2c [N-6.2],Karthik,P1
+cg_i2c_cmd.cp_cmd,3,COV,I2C.F05.COV1,"Each of the six listed combinations; RD with WR together and STA with STO together, which the specification does not define.",Covergroup in the UVM environment. Planned.,Karthik,
+sb_bus,3,CHK,I2C.F05.CHK2,The slave agent's decoded bus activity equals what the model expects for the command.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+F06 A CMD written while a transfer is in progress is refused,2,SECTION,I2C.F06,"Ignored, with PSLVERR. Spec [N-6.2b].",Method: sim + formal. Today: tb_i2c [N-6.2b],Karthik,P1
+a_cmd_while_tip,3,CHK,I2C.F06.CHK1,A write to CMD with TIP set raises PSLVERR and changes no command bit.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F07 A CMD written with EN clear does nothing and does not replay later,2,SECTION,I2C.F07,"TIP is not left set, and enabling the block afterwards sends nothing. Defect I2C-6.","Method: sim. Today: tb_i2c [N-6.3], [N-6.2] no replay",Karthik,P1
+a_no_replay,3,CHK,I2C.F07.CHK1,No START on the bus without a CMD write while EN is set.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned.",Karthik,
+F08 STATUS reports the transfer and bus state,2,SECTION,I2C.F08,"Offset 0x14, read-only. TIP bit 0, BUSY 1, AL 2 sticky, RXNACK 3, TIMEOUT 4 sticky, RXVALID 5. Spec [N-6.3].",Method: sim. Today: tb_i2c [N-6.3] several checks,Karthik,P1
+sb_status,3,CHK,I2C.F08.CHK1,Every STATUS read compared with the model.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+cg_i2c_status.cp_bits,3,COV,I2C.F08.COV2,Each bit seen 0 and 1 at a read.,Covergroup in the UVM environment. Planned.,Karthik,
+F09 TIMEOUT sets the abandon time and 0 disables it,2,SECTION,I2C.F09,"Offset 0x18, read-write, reset 0, bits 15:0 in pclk ticks. Spec [N-7.5].",Method: sim (register model). Today: tb_i2c [R-3],Karthik,P1
+ral_access TIMEOUT,3,CHK,I2C.F09.CHK1,Reset value and read-back.,UVM register model test. Planned.,Karthik,
+F10 IRQSTAT IRQEN DMACTL and ID in the shim,2,SECTION,I2C.F10,"Offsets 0xFE0 to 0xFEC. IRQSTAT bit 0 transfer complete, 1 arbitration lost, 2 timeout, 3 NACK, write 1 to clear. DMACTL bit 0 requests on a received byte, bit 1 when ready to send. ID reads 0x6A5D, block 15 and the revision.",Method: sim (register model). Today: tb_i2c reads ID,Karthik,P2
+ral_access shim,3,CHK,I2C.F10.CHK1,Access policy of the four shim registers.,UVM register model test. Planned.,Karthik,
+F11 Unmapped offsets raise PSLVERR and accesses never wait,2,SECTION,I2C.F11,"0x1C to 0xFDC, 0xFF0 and above, unaligned offsets. PREADY is high in every cycle. Requirements R-3, R-4.","Method: sim + formal. Today: tb_i2c [R-3], [R-4]; the APB protocol checker is bound - 0 violations",Karthik,P2
+sb_pslverr,3,CHK,I2C.F11.CHK1,PSLVERR compared with the model's address map.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+a_pready,3,CHK,I2C.F11.CHK2,pready_o is 1 in every cycle.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+cg_i2c_apb.x_unmapped_rw,3,COV,I2C.F11.COV3,Each unmapped range read and written.,Covergroup in the UVM environment. Planned.,Karthik,
+F12 Reset values,2,SECTION,I2C.F12,"All registers 0, both pins released. Requirement R-10.",Method: sim (register model). Today: tb_i2c [R-10],Karthik,P1
+ral_reset,3,CHK,I2C.F12.CHK1,Register model reset test.,UVM register model test. Planned.,Karthik,
+B Transfers,1,SECTION,I2C.B,"Spec 7.1, 7.2. Checked by an I2C slave agent that decodes the bus.",,,
+F13 Write to a slave,2,SECTION,I2C.F13,"START, address with the write bit, acknowledge, data bytes, STOP. Requirement R-1.","Method: sim (I2C slave agent, scoreboard). Today: tb_i2c [R-1], [N-7.1]",Karthik,P1
+sb_bus,3,CHK,I2C.F13.CHK1,"Address, direction, each data byte and the STOP compared with the model.",UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+F14 Read from a slave with ACK and NACK,2,SECTION,I2C.F14,"The master acknowledges every byte except the last, which it NACKs so the slave releases the line. Spec [N-6.2a].","Method: sim. Today: tb_i2c [R-1], [N-6.2a]",Karthik,P1
+sb_bus,3,CHK,I2C.F14.CHK1,The acknowledge bit on each read byte compared with CMD.NACK.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+cg_i2c_xfer.x_dir_len,3,COV,I2C.F14.COV2,"Writes and reads of 1, 2, 8 and more bytes.",Covergroup in the UVM environment. Planned.,Karthik,
+F15 Repeated start,2,SECTION,I2C.F15,"A second START with no STOP between, for a register read. Spec [N-7.2].","Method: sim. Today: tb_i2c [R-1] two STARTs, one STOP",Karthik,P1
+sb_bus,3,CHK,I2C.F15.CHK1,START and STOP counts compared with the model.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+F16 Bus conditions are legal,2,SECTION,I2C.F16,SDA changes only while SCL is low except for START and STOP; START and STOP have their setup and hold times.,Method: sim (protocol checks in the slave agent) + formal. Today: tb_i2c [R-1] no SDA change while SCL high,Karthik,P1
+a_sda_stable_scl_high,3,CHK,I2C.F16.CHK1,During a data bit driven by the master SDA does not change while SCL is high.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F17 SCL is at or below the mode limit,2,SECTION,I2C.F17,"Measured period for the recommended PRESCALE values, at or below 100 kHz and 400 kHz. Requirement R-2, spec [N-6.1].",Method: sim. Today: tb_i2c [R-2] at 249 and 61,Karthik,P1
+sb_scl_period,3,CHK,I2C.F17.CHK1,The slave agent measures every SCL period.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+cg_i2c_rate.cp_prescale,3,COV,I2C.F17.COV2,"PRESCALE 0, 1, 61, 249, 0xFFFF.",Covergroup in the UVM environment. Planned.,Karthik,
+F18 A slave may stretch the clock,2,SECTION,I2C.F18,"While SCL is held low by the slave the master waits; it continues when released, if the timeout has not expired. Spec [N-7.5].",Method: sim. Today: tb_i2c [R-8] 20 us stretch,Karthik,P1
+cg_i2c_stretch.x_where_len,3,COV,I2C.F18.COV1,"Stretch after the address, after a data byte and in the middle of a byte; short, long and just under the timeout.",Covergroup in the UVM environment. Planned.,Karthik,
+sb_bus,3,CHK,I2C.F18.CHK2,Model compare with stretching.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+F19 BUSY follows START and STOP on the bus,2,SECTION,I2C.F19,Including those of another master. Spec [N-6.3].,"Method: sim. Today: tb_i2c [N-6.3], [N-9.3]",Karthik,P2
+sb_status,3,CHK,I2C.F19.CHK1,Covered by F08.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+F20 A spike shorter than the filter is ignored,2,SECTION,I2C.F20,A one-pclk low pulse on SDA or SCL is not a START. Spec [N-9.3].,Method: sim. Today: tb_i2c [N-9.3] on SDA,Karthik,P2
+cg_i2c_glitch.x_line_width,3,COV,I2C.F20.COV1,"Spikes of 1 pclk and of just under the filter length, on each line, idle and mid-transfer.",Covergroup in the UVM environment. Planned.,Karthik,
+C Errors and recovery,1,SECTION,I2C.C,"Spec 7.4, 7.5. Requirements R-7, R-8.",,,
+F21 A NACK is reported and does not hang the block,2,SECTION,I2C.F21,RXNACK and IRQSTAT bit 3 for an unanswered address and for a refused data byte; a STOP can still be sent and the next transfer works. Requirement R-7.,Method: sim. Today: tb_i2c [R-7],Karthik,P1
+sb_status,3,CHK,I2C.F21.CHK1,Model compare.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
+cg_i2c_nack.cp_where,3,COV,I2C.F21.COV2,"NACK on the address, on the first, a middle and the last data byte.",Covergroup in the UVM environment. Planned.,Karthik,
+F22 Arbitration loss,2,SECTION,I2C.F22,"AL sets and stays, IRQSTAT bit 1 rises, both lines are released, TIP clears, and a retry from START succeeds. Spec [N-7.4].",Method: sim (second master in the agent). Today: tb_i2c [N-7.4],Karthik,P1
+a_al_releases,3,CHK,I2C.F22.CHK1,After arbitration loss both output enables are 0 until the next CMD.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned.",Karthik,
+cg_i2c_al.cp_where,3,COV,I2C.F22.COV2,"Arbitration lost in the address, in a data byte and on the acknowledge bit.",Covergroup in the UVM environment. Planned.,Karthik,
+F23 The timeout abandons a stalled transfer,2,SECTION,I2C.F23,"Both pins released without a STOP, STATUS.TIMEOUT and IRQSTAT bit 2 set, TIP cleared, and the block usable again. Requirement R-8, spec [N-7.5], [N-7.5a].","Method: sim + formal. Today: tb_i2c [R-8], [N-7.5], [N-7.5a]",Karthik,P1
+a_tip_bounded,3,CHK,I2C.F23.CHK1,With TIMEOUT non-zero TIP is never set for longer than TIMEOUT plus a fixed margin.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+cg_i2c_timeout.x_value_phase,3,COV,I2C.F23.COV2,"TIMEOUT 1, just under and just over one byte time, 0xFFFF; stall in each phase.",Covergroup in the UVM environment. Planned.,Karthik,
+F24 ABORT does the same on demand in every phase,2,SECTION,I2C.F24,"Both pins released at once, TIP cleared, the core idle afterwards and the next transfer correct. Spec [N-7.5].",Method: sim. Today: tb_i2c [N-7.5] in 36 phases,Karthik,P1
+cg_i2c_abort.cp_phase,3,COV,I2C.F24.COV1,ABORT in each of the 36 bit positions of a transfer.,Covergroup in the UVM environment. Planned.,Karthik,
+a_abort_releases,3,CHK,I2C.F24.CHK2,Both output enables are 0 within a fixed number of pclk of ABORT.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned.",Karthik,
+F25 EN cleared in the middle of a transfer,2,SECTION,I2C.F25,"Both pins released, TIP cleared, and nothing is replayed when EN is set again. Defect I2C-6.","Method: sim. Today: tb_i2c [R-8], [N-6.3], [N-6.2]",Karthik,P1
+a_no_replay,3,CHK,I2C.F25.CHK1,Covered by F07.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned.",Karthik,
+F26 The core reset has no glitch,2,SECTION,I2C.F26,"The vendored controllers are reset from one flop, not from combinational logic on the abort counter. Defect I2C-5.",Method: static (lint). Today: HAL - the GLTASR error is gone,Karthik,P1
+hal_lint,3,CHK,I2C.F26.CHK1,No combinational logic in an asynchronous reset path in this block.,flow/2_static.,Karthik,
+D Pins,1,SECTION,I2C.D,"Spec section 9, requirements R-9, R-10.",,,
+F27 The block never drives a line high,2,SECTION,I2C.F27,"The output values are tied to 0; a line is either pulled low or released. Requirement R-9, spec [N-9.2].",Method: sim + formal. Today: tb_i2c [R-9] whole-run monitor,Karthik,P1
+a_never_high,3,CHK,I2C.F27.CHK1,i2c_scl_o and i2c_sda_o are 0 in every cycle.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F28 Both lines are released in and out of reset,2,SECTION,I2C.F28,Until firmware starts a transfer. Requirement R-10.,Method: sim + formal. Today: tb_i2c [R-10],Karthik,P1
+a_released_in_reset,3,CHK,I2C.F28.CHK1,Both output enables are 0 while preset_n is low and until the first CMD.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+E Interrupts,1,SECTION,I2C.E,"Spec 7.3, requirement R-5.",,,
+F29 Four events are captured and held,2,SECTION,I2C.F29,"Transfer complete, arbitration lost, timeout, NACK. irq_o is the OR of IRQSTAT and IRQEN, held until written 1 to clear. Clearing bit 1 also clears STATUS.AL and clearing bit 2 clears STATUS.TIMEOUT.","Method: sim + formal. Today: tb_i2c [R-5], [N-7.3], [N-6.3]",Karthik,P1
+a_irq_held,3,CHK,I2C.F29.CHK1,irq_o equals the OR of IRQSTAT and IRQEN in every cycle.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+a_set_beats_clear,3,CHK,I2C.F29.CHK2,An event in the cycle of its own clear leaves the bit set.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+cg_i2c_irq.x_src_en,3,COV,I2C.F29.COV3,Each of the four sources with its enable 0 and 1; two sources together.,Covergroup in the UVM environment. Planned.,Karthik,
+F DMA,1,SECTION,I2C.F,"Spec 7.7, requirement R-6.",,,
+F30 Request on a received byte and when ready to send,2,SECTION,I2C.F30,DMACTL bit 0 requests while RXVALID is set; bit 1 while EN is set and TIP is clear. No request with EN clear or during a transfer. Each byte still needs its own CMD from firmware.,"Method: sim (DMA request agent) + formal. Today: tb_i2c [R-6], [N-7.7]",Karthik,P1
+a_dma_drop,3,CHK,I2C.F30.CHK1,dma_req_o is 0 in the pclk after dma_ack_i and after an RXDATA read.,"SVA in rtl/i2c/garuda_i2c_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+dma_req_checker,3,CHK,I2C.F30.CHK2,"One beat per assertion, no stuck request.","tb/common/dma_req_checker.sv, bound today.",Karthik,
+cg_i2c_dma.cp_kind,3,COV,I2C.F30.COV3,"Receive request, transmit request, both enabled.",Covergroup in the UVM environment. Planned.,Karthik,
+G With the rest of the chip,1,SECTION,I2C.G,Checked at chip level and by connectivity checks.,,,
+F31 Interrupt DMA channel and open-drain pads,2,SECTION,I2C.F31,"CLIC ID 16, DMA channel 1, and both pads driven low or released, never high.","Method: sim at chip level + connectivity. Today: sw/chip/t_chip_periph.c, t_chip_integ.c",Karthik,P1
+t_chip_periph,3,TC,I2C.F31.TC1,I2C part - a register write and read against the slave model at the pads.,"sw/chip/t_chip_periph.c, passing.",Karthik,
+conn_i2c,3,CHK,I2C.F31.CHK2,"Bound assertions at the chip top for the interrupt, request, acknowledge and the two pads.",Planned.,Karthik,
+H Clock and reset,1,SECTION,I2C.H,Spec section 9.,,,
+F32 Single clock domain with two asynchronous inputs,2,SECTION,I2C.F32,SCL and SDA are synchronised in the wrapper before the vendored core sees them. Decision D-14.,Method: static (clock-domain check) + sim. Today: no check.,Karthik,P1
+hal_cdc,3,CHK,I2C.F32.CHK1,Both inputs reported as synchronised.,flow/2_static. To run on this block.,Karthik,

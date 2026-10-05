@@ -1,87 +1,121 @@
 NAME,DEPTH,NODE_KIND,element_id,details,implementation_note,owner,priority
-CPU core verification plan,0,SECTION,CORE,"Source: GARUDA-CORE-SPEC-001, section 2 (requirements), section 10 (assertions) and section 11 (verification plan), written with the specification. Moved into vPlanner form on 2026-10-04; section 4 holds what the 2026-10-04 flow run added.",,,
-Requirements,1,SECTION,CORE.REQ,From section 2 of the specification; planned tests from section 11.,,,
-R-1 RV32I base plus M extension. No A F D C.,2,SECTION,CORE.R-1,"RV32I base plus M extension. No A, F, D, C.","Source: System Section 11 plans no test against this requirement. Evidence that exists: 63 riscv-tests (rv32ui, rv32um, rv32mi), 63 of 63 pass; 57 of the 63 are also compared with Spike instruction for instruction; p-div, p-divu, p-rem, p-remu, p-sbreak and p-mcsr are judged by their own pass/fail only, because GARUDA and Spike differ there by design (software divide, CLIC mtvec, mimpid).",,high
-R-2 M-mode only. No U or S mode no PMP.,2,SECTION,CORE.R-2,"M-mode only. No U or S mode, no PMP.",Source: System Section 11 plans no test against this requirement. Evidence that exists: the rv32mi tests in the lockstep regression.,,high
-R-3 Five-stage in-order pipeline single issue.,2,SECTION,CORE.R-3,"Five-stage in-order pipeline, single issue.",Source: System Section 11 plans no test against this requirement. Evidence that exists: unit benches for each stage (20 pass) and the lockstep regression.,,high
-R-4 All synchronous exceptions precise.,2,SECTION,CORE.R-4,All synchronous exceptions precise.,"Source: Priv spec Section 11 plans no test against this requirement. Evidence that exists: rv32mi tests, sw/tests/t_buserr.S, sw/chip/t_chip_integ.c precise bus faults. T-9 and T-10 were violations of this requirement, found on 2026-10-04.",,high
-R-5 CLIC-mode interrupts mtvec.MODE = 3.,2,SECTION,CORE.R-5,"CLIC-mode interrupts, mtvec.MODE = 3.","Source: ADR-0009 Section 11 plans no test against this requirement. Evidence that exists: sw/tests/t_clic.S and t_irq.S, sw/chip/t_chip_irq.c and t_chip_integ.c.",,high
-R-6 The machine timer shall arrive as a single mtip_i wire.,2,SECTION,CORE.R-6,The machine timer shall arrive as a single mtip_i wire.,Source: ADR-0010,,high
-t_core_mtip,3,TC,CORE.R-6.t_core_mtip,Oracle: mtip_i → mip.MTIP → trap,"Status in the specification: new. Bench: sw/tests/t_mtip.S on tb/soc/tb_boot.v (sim/sanity/t_mtip.log: TOHOST=1 PASSED, 281 cycles clock-gated): mtip alone wakes the core. Trap through mip.MTIP at chip level: sw/chip/t_chip_irq.c and t_chip_integ.c, RESULT: PASSED.",,
-planned test,3,TC,CORE.R-6.planned_test,Oracle: 64-bit timer ports absent,"Status in the specification: review gate. Bench: Review, repeated 2026-10-04: rtl/core/garuda_core_top.v has the single input mtip_i (line 72) and no mtime or mtimecmp port.",,
-R-7 A debug-controlled reset shall stop the core without disturbing ...,2,SECTION,CORE.R-7,A debug-controlled reset shall stop the core without disturbing the bus.,Source: ADR-0012,,high
-t_core_hartreset,3,TC,CORE.R-7.t_core_hartreset,Oracle: core resets; bus and peripherals unaffected,Status in the specification: new. Bench: PARTLY IMPLEMENTED - the request path is checked in tb/clk_div/tb_crg.sv (t_hartreset) and tb/debug/tb_debug.sv; no test resets a running core with hartreset and checks that the bus and peripherals are undisturbed (tb_boot ties hartreset_n_i high).,,
-R-8 WFI shall stop the core s clock and wake on a pending enabled ...,2,SECTION,CORE.R-8,WFI shall stop the core's clock and wake on a pending enabled interrupt.,Source: Power,,high
-t_core_wfi_gate,3,TC,CORE.R-8.t_core_wfi_gate,"Oracle: clock stops during WFI, restarts on wake","Status in the specification: new. Bench: sw/tests/t_wfi.S on tb/soc/tb_boot.v (sim/sanity/t_wfi.log: TOHOST=1 PASSED, 377 cycles clock-gated) and t_mtip.S; at chip level sw/chip/t_chip_irq.c (WFI and the clock gate), RESULT: PASSED.",,
-t_core_wfi_mie,3,TC,CORE.R-8.t_core_wfi_mie,Oracle: wake with MIE set (traps) and clear (resumes) Coverage goal: both,Status in the specification: extend. Bench: MIE clear: sw/tests/t_mtip.S (wake resumes after the WFI with no trap). MIE set: sw/tests/t_wfi.S and sw/tests/t_hold_flush_matrix.S bits 12 to 18. All TOHOST=1 PASSED in the 2026-10-04 regression.,,
-t_core_wfi_latency,3,TC,CORE.R-8.t_core_wfi_latency,Oracle: wake within 2 cycles,"Status in the specification: new. Bench: NOT IMPLEMENTED - no bench measures the wake latency, and a_wake_latency is not implemented.",,
-R-9 The DSU shall be an in-pipeline EX extension not a bus peripheral.,2,SECTION,CORE.R-9,"The DSU shall be an in-pipeline EX extension, not a bus peripheral.",Source: System Section 11 plans no test against this requirement. Evidence that exists: sw/tests/t_dsu.S and t_dsu_b2b.S; see the DSU plan.,,high
-R-10 Target 250 MHz with a documented fallback if closure fails.,2,SECTION,CORE.R-10,"Target 250 MHz, with a documented fallback if closure fails.","Source: ADR-0001 A timing requirement, closed in synthesis and timing analysis, outside stages 1 to 6.",,high
-Planned tests not tied to one requirement,2,SECTION,CORE.OTHER,,,,
-t_core_hold_flush_matrix,3,TC,CORE.OTHER.t_core_hold_flush_matrix,Oracle: all 20 combinations of [N-7.23] Coverage goal: 20/20,"Status in the specification: new — the priority test. Bench: sw/tests/t_hold_flush_matrix.S (new 2026-10-04): 19 cells, one result bit each, checked on architectural state; sim/sanity/t_hold_flush_matrix.log TOHOST=1 PASSED, and it passes under the interrupt-period and wait-state sweep (+IRQ_EVERY, +DWAIT, +DRAND) that found T-11 and P-8. Which cells are reached: make pipe_matrix (cover points c_h*_vs_* in rtl/core/pipe_ctrl_sva.sv). The plan says 20 combinations; the program has 19 cells.",,
-t_core_h2_defer,3,TC,CORE.OTHER.t_core_h2_defer,"Oracle: flush deferred by an outstanding transfer, at each wait-state count Coverage goal: 1–4 waits","Status in the specification: extend (T-7 guard). Bench: a_h2_defers_flush and a_h2_defers_flush_loaduse in rtl/core/pipe_ctrl_sva.sv, bound in every core simulation, 0 failures; exercised by make regress_rand (the 63 ISA tests under random bus waits, 57 of them also compared with Spike; 63 pass in the last run, 2026-10-04 07:52) and by t_hold_flush_matrix under +DWAIT.",,
-t_core_gate_safety,3,TC,CORE.OTHER.t_core_gate_safety,Oracle: never gated with a bus transfer or flush pending,"Status in the specification: new. Bench: a_no_gate_with_bus, a_no_gate_mid_work and a_no_gate_with_flush in rtl/core/pipe_ctrl_sva.sv, bound in every core simulation: 0 failures across t_wfi, t_mtip, t_hold_flush_matrix and the chip tests (SVA-1 corrected a_no_gate_with_flush on 2026-10-04).",,
-t_core_div_trap,3,TC,CORE.OTHER.t_core_div_trap,Oracle: all four M-extension divide instructions trap and return correctly Coverage goal: 4 instructions × edge operands,"Status in the specification: extend. Bench: riscv-tests rv32um div, divu, rem, remu (sim/regress/p-div, p-divu, p-rem, p-remu .run.log): each takes the illegal-instruction trap, is emulated in software and passes its own check (TOHOST=1 PASSED) in the 2026-10-04 regression. These four are not compared with Spike: Spike divides in one instruction, GARUDA in about 100, so the streams cannot match.",,
-t_core_debug_csr,3,TC,CORE.OTHER.t_core_debug_csr,Oracle: dcsr/dpc/dscratch raise illegal instruction Coverage goal: 4 CSRs,"Status in the specification: new. Bench: PARTLY IMPLEMENTED - tb/core/tb_csr_file.v line 34 checks dcsr (0x7B0) raises illegal instruction (sim/unit_csr_file/run.log: ALL CHECKS PASSED); dpc and the two dscratch registers are not checked, so 1 of the 4 CSRs.",,
-Assertions,1,SECTION,CORE.SVA,From section 10 of the specification.,,,
-a_mtip_to_mip,2,CHK,CORE.SVA.a_mtip_to_mip,mtip path (R-6),assert property in specification section 10. NOT IMPLEMENTED as SVA. Behaviour checked by sw/tests/t_mtip.S.,,
-a_hartreset_resets,2,CHK,CORE.SVA.a_hartreset_resets,hartreset produces a full core reset (R-7),assert property in specification section 10. NOT IMPLEMENTED - named in the specification only; see t_core_hartreset.,,
-a_gate_enable_is_quiescent,2,CHK,CORE.SVA.a_gate_enable_is_quiescent,"THE Rev 3.0 property: the clock gate uses pipe_ctrl's quiescent, nothing else","assert property in specification section 10. NOT IMPLEMENTED under this name. The nearest property is a_no_gate_mid_work, rtl/core/pipe_ctrl_sva.sv:116.",,
-a_no_gate_with_bus,2,CHK,CORE.SVA.a_no_gate_with_bus,the core is never gated with a bus transfer outstanding,"assert property in specification section 10. Implemented: rtl/core/pipe_ctrl_sva.sv:111, bound in every core simulation.",,
-a_no_gate_with_flush,2,CHK,CORE.SVA.a_no_gate_with_flush,the core is never gated while any flush is pending,"assert property in specification section 10. Implemented: rtl/core/pipe_ctrl_sva.sv:137, bound in every core simulation (corrected 2026-10-04, SVA-1).",,
-a_wfi_wake_mie_clear,2,CHK,CORE.SVA.a_wfi_wake_mie_clear,WFI wakes regardless of MIE (N-7.27),"assert property in specification section 10. NOT IMPLEMENTED as SVA. Behaviour checked by sw/tests/t_mtip.S (MIE = 0, wake without a trap).",,
-a_wake_latency,2,CHK,CORE.SVA.a_wake_latency,wake latency is bounded at 2 cycles (N-7.30),assert property in specification section 10. NOT IMPLEMENTED - named in the specification only.,,
-a_flush_beats_hold,2,CHK,CORE.SVA.a_flush_beats_hold,"flush beats hold, for every combination except H2 (N-7.21, N-7.23)","assert property in specification section 10. Implemented as three properties: a_flush_beats_hold_if_id, _id_ex and _ex_mem, rtl/core/pipe_ctrl_sva.sv:70, 73, 76.",,
-a_h2_defers_flush,2,CHK,CORE.SVA.a_h2_defers_flush,the H2 exception: flush deferred until hready (N-7.24),"assert property in specification section 10. Implemented: rtl/core/pipe_ctrl_sva.sv:90 (and a_h2_defers_flush_loaduse, line 93).",,
-a_mem_completes,2,CHK,CORE.SVA.a_mem_completes,a committed load/store always writes back (N-7.25),assert property in specification section 10. NOT IMPLEMENTED as SVA. A lost load or store would show as a mismatch against Spike in the lockstep regression.,,
-a_trap_beats_branch,2,CHK,CORE.SVA.a_trap_beats_branch,trap beats every other flush (N-7.26),assert property in specification section 10. Implemented: rtl/core/pipe_ctrl_sva.sv:102.,,
-a_debug_csr_illegal,2,CHK,CORE.SVA.a_debug_csr_illegal,debug CSRs raise illegal instruction (N-6.3),assert property in specification section 10. NOT IMPLEMENTED as SVA. Checked procedurally in tb/core/tb_csr_file.v line 34 (dcsr only).,,
-a_mnxti_zero,2,CHK,CORE.SVA.a_mnxti_zero,"mnxti reads zero, never traps (N-13.1)",assert property in specification section 10. NOT IMPLEMENTED as SVA. Checked procedurally in tb/core/tb_csr_file.v line 31 (mnxti reads 0 and is legal).,,
-Coverage,1,SECTION,CORE.COV,Merged code coverage from the vManager session of 2026-10-04 (sim/cov_merged). Not closed; no bar is claimed.,,,
-alu,2,COV,CORE.COV.alu,Code coverage of module alu: 96.15%,,,
-branch_predict,2,COV,CORE.COV.branch_predict,Code coverage of module branch_predict: 80.35%,,,
-branch_unit,2,COV,CORE.COV.branch_unit,Code coverage of module branch_unit: 92.44%,,,
-clic_ctrl,2,COV,CORE.COV.clic_ctrl,Code coverage of module clic_ctrl: 50.00%,,,
-core_clk_gate,2,COV,CORE.COV.core_clk_gate,Code coverage of module core_clk_gate: 90.00%,,,
-csr_file,2,COV,CORE.COV.csr_file,Code coverage of module csr_file: 72.85%,,,
-csr_rw,2,COV,CORE.COV.csr_rw,Code coverage of module csr_rw: 100.00%,,,
-d_port_ahb_master,2,COV,CORE.COV.d_port_ahb_master,Code coverage of module d_port_ahb_master: 97.03%,,,
-decode_control,2,COV,CORE.COV.decode_control,Code coverage of module decode_control: 83.72%,,,
-ex_mem,2,COV,CORE.COV.ex_mem,Code coverage of module ex_mem: 90.99%,,,
-ex_stage,2,COV,CORE.COV.ex_stage,Code coverage of module ex_stage: 93.77%,,,
-forward_unit,2,COV,CORE.COV.forward_unit,Code coverage of module forward_unit: 100.00%,,,
-garuda_core_top,2,COV,CORE.COV.garuda_core_top,Code coverage of module garuda_core_top: 88.79%,,,
-garuda_if_stage_top,2,COV,CORE.COV.garuda_if_stage_top,Code coverage of module garuda_if_stage_top: 60.57%,,,
-garuda_iport_ahb_master,2,COV,CORE.COV.garuda_iport_ahb_master,Code coverage of module garuda_iport_ahb_master: 84.09%,,,
-garuda_pc_gen,2,COV,CORE.COV.garuda_pc_gen,Code coverage of module garuda_pc_gen: 78.20%,,,
-garuda_prefetch_buffer,2,COV,CORE.COV.garuda_prefetch_buffer,Code coverage of module garuda_prefetch_buffer: 85.81%,,,
-hazard_forward_unit,2,COV,CORE.COV.hazard_forward_unit,Code coverage of module hazard_forward_unit: 100.00%,,,
-id_ex,2,COV,CORE.COV.id_ex,Code coverage of module id_ex: 95.55%,,,
-id_stage,2,COV,CORE.COV.id_stage,Code coverage of module id_stage: 91.99%,,,
-if_id,2,COV,CORE.COV.if_id,Code coverage of module if_id: 84.56%,,,
-imm_gen,2,COV,CORE.COV.imm_gen,Code coverage of module imm_gen: 93.34%,,,
-load_formatter,2,COV,CORE.COV.load_formatter,Code coverage of module load_formatter: 100.00%,,,
-load_store_unit,2,COV,CORE.COV.load_store_unit,Code coverage of module load_store_unit: 99.53%,,,
-mem_stage,2,COV,CORE.COV.mem_stage,Code coverage of module mem_stage: 84.77%,,,
-mem_wb_reg,2,COV,CORE.COV.mem_wb_reg,Code coverage of module mem_wb_reg: 100.00%,,,
-mul32,2,COV,CORE.COV.mul32,Code coverage of module mul32: 100.00%,,,
-pipe_ctrl,2,COV,CORE.COV.pipe_ctrl,Code coverage of module pipe_ctrl: 86.08%,,,
-regfile,2,COV,CORE.COV.regfile,Code coverage of module regfile: 100.00%,,,
-trap_ctrl,2,COV,CORE.COV.trap_ctrl,Code coverage of module trap_ctrl: 82.50%,,,
-wb_stage,2,COV,CORE.COV.wb_stage,Code coverage of module wb_stage: 100.00%,,,
-Added in the 2026-10-04 run,1,SECTION,CORE.NEW,"Checks added and defects found when the flow was run in order on 2026-10-04 (Docs/BUGS.md section 1h). Eleven RTL defects in the core, all found by tests written that day.",,,
-C-13 reserved register-register encodings executed,2,CHK,CORE.NEW.C-13,"funct7 = 0100000 was accepted for every funct3; it exists only for SUB and SRA, so 0x402091b3 ran as SLL where Spike raises illegal instruction.",FIXED in rtl/core/decode_control.v. Covered by the reserved_funct7 sequence in tb/core/tb_decode_control.sv; PASS.,,
-C-14 illegal instruction left reg_write set,2,CHK,CORE.NEW.C-14,A reserved shift-immediate reached EX flagged illegal with a register write still enabled; the decoder's own contract (no side effects) was not met.,FIXED in rtl/core/decode_control.v; the decoder forces an inert bundle when illegal. tb_decode_control; PASS.,,
-C-15 FENCE.I raced an older store,2,CHK,CORE.NEW.C-15,"FENCE.I redirects from ID, so the refetch went out while the store before it was still in EX or on the D-port; with one wait state the core executed the word the store was replacing.",FIXED in rtl/core/garuda_core_top.v. t_hold_flush_matrix bit 6; PASS.,,
-T-9 trap during a pending load or store lost its redirect,2,CHK,CORE.NEW.T-9,A trap taken while a load or store was still on the D-port entered the trap at once while pipe_ctrl withheld the redirect; for an interrupt the request was gone when the transfer finished.,"FIXED in rtl/core/trap_ctrl.v (mem_stall_i). t_hold_flush_matrix bits 1, 2, 4, 5 and sw/chip/t_chip_integ.c; PASS.",,
-T-10 bus error did not squash the next instruction,2,CHK,CORE.NEW.T-10,"On a load or store bus error the younger instruction in EX moved into MEM, did its own bus access and wrote its register before the handler ran.",FIXED in rtl/core/trap_ctrl.v. sw/chip/t_chip_integ.c precise bus faults and sw/tests/t_buserr.S; PASS.,,
-T-11 interrupt on a WFI put the core to sleep in the handler,2,CHK,CORE.NEW.T-11,"When an interrupt was taken in the cycle a WFI sat in EX, the WFI was squashed but still armed the sleep latch, so the core slept on the first instruction of the handler.","FIXED in rtl/core/trap_ctrl.v. Found and covered by the t_hold_flush_matrix timing sweep (+IRQ_EVERY, +DWAIT); PASS.",,
-P-4 idle loop lost a load on wake,2,CHK,CORE.NEW.P-4,During a WFI sleep a load parked behind the WFI was destroyed by its own load-use flush: while (!flag) wfi; woke up and skipped the load.,FIXED in rtl/core/pipe_ctrl.v. t_hold_flush_matrix bit 12; PASS.,,
-P-5 JALR behind a WFI wrote no link register,2,CHK,CORE.NEW.P-5,"A JALR or mispredicted branch parked in EX behind a WFI redirected fetch, was flushed by its own redirect and never retired.",FIXED in rtl/core/pipe_ctrl.v. t_hold_flush_matrix bit 13; PASS.,,
-P-6 CSR instruction wrote on every held cycle,2,CHK,CORE.NEW.P-6,"A CSR instruction wrote its CSR on every cycle it sat in EX and in the cycle it was squashed, so csrrw returned the value it had just written.","FIXED in rtl/core/csr_file.v and garuda_core_top.v (commit_i). t_hold_flush_matrix bits 7, 14; PASS.",,
-P-7 DSU operation ran once per held cycle,2,CHK,CORE.NEW.P-7,A MAC behind a store or behind a WFI accumulated its product every cycle it waited.,"FIXED in rtl/core/garuda_core_top.v. t_hold_flush_matrix bits 8, 15; PASS.",,
-P-8 clock gate closed with an instruction in MEM or WB,2,CHK,CORE.NEW.P-8,A load or store stretched by wait states just before a WFI was left unretired for the whole sleep.,FIXED in rtl/core/garuda_core_top.v. Found by the t_hold_flush_matrix timing sweep (+IRQ_EVERY=61 +DWAIT=2 +DRAND=1); PASS.,,
-SVA-1 a_no_gate_with_flush was wrong,2,CHK,CORE.NEW.SVA-1,"The assertion listed ex_mem_flush, which pipe_ctrl drives from the WFI hold itself, so it failed on every WFI sleep by construction.","FIXED (assertion). It now checks applied redirects and the IF/ID, ID/EX and MEM/WB flushes; 0 failures.",,
-AUD-8 the hold versus flush matrix test did not exist,2,CHK,CORE.NEW.AUD-8,Section 11 of the specification names t_core_hold_flush_matrix as its priority test; no such test existed.,CLOSED in simulation by sw/tests/t_hold_flush_matrix.S. Formal on pipe_ctrl is not run: no IFV licence (FV-1).,,
-ELEM-1..6 and TB-27,2,CHK,CORE.NEW.ELEM,"Six element testbenches had never passed or never compiled; the common cause (TB-27) was a variable initialised inside a loop in a static block, which made the random soaks constant.",FIXED (testbenches); RTL correct in all six. 20 unit and element benches now pass with 0 assertion failures.,,
-Tests added,2,CHK,CORE.NEW.tests,"sw/tests/t_hold_flush_matrix.S (19 hold-versus-flush cells, passes under the interrupt-period and wait-state sweep (+IRQ_EVERY, +DWAIT, +DRAND) that found T-11 and P-8), reserved_funct7 sequence in tb_decode_control.",,,
+CPU core verification plan,0,SECTION,CORE,"Block 1: garuda_core_top, RV32IM, machine mode only, five stages, CLIC interrupts, WFI clock gate. Source: GARUDA-CORE-SPEC-001 and the RISC-V unprivileged and privileged specifications. Feature-level plan written 2026-10-04. Sign-off criteria: flow/0_signoff_criteria.md. The reference model is Spike, compared instruction by instruction. Methods the flow asks for and that do not exist yet are named on each feature - riscv-arch-test, random instruction generation (riscv-dv), riscv-formal.",,,
+A Instruction set,1,SECTION,CORE.A,"Requirements R-1, R-2.",,,
+F01 Every RV32I instruction executes as the specification says,2,SECTION,CORE.F01,"All base instructions, every operand corner.","Method: sim (riscv-arch-test, random instruction generation, lockstep) + formal (riscv-formal). Today: 64 ISA tests pass, 58 of them also compared with Spike (PC, register writes, stores, traps and CSR values); unit benches for decode, ALU, branch unit, immediates",Karthik,P1
+riscv-tests rv32ui,3,TC,CORE.F01.TC1,"The 40 base-ISA tests, each compared with Spike.","make regress, passing.",Karthik,
+riscv-arch-test rv32i,3,TC,CORE.F01.TC2,"The architecture compliance suite, signatures against Spike.",Planned.,Karthik,
+riscv-dv random programs,3,TC,CORE.F01.TC3,"Random instruction streams in lockstep with Spike, many seeds.","make riscv_dv (tb/core/riscv_dv). Passing - nine test types x 20 seeds in lockstep with Spike; with the illegal-instruction test 200 programs, 2458733 instructions, 357979 stores, 5614 traps, 210840 CSR instructions identical.",Karthik,
+riscv-formal insn checks,3,CHK,CORE.F01.CHK4,One proof per instruction over the RVFI port.,"Planned - needs an RVFI port and SymbiYosys, which is not on this machine.",Karthik,
+cg_decode.x_op_f3,3,COV,CORE.F01.COV5,Every opcode with every funct3 it defines.,"tb/cov/garuda_cov.sv cg_decode, exists.",Karthik,
+cg_isa.cp_operand_corner,3,COV,CORE.F01.COV6,"Each instruction with operands 0, 1, all ones, most negative, most positive.",Planned.,Karthik,
+F02 Multiply,2,SECTION,CORE.F02,"MUL, MULH, MULHSU, MULHU on one 33 x 33 multiplier in one cycle. Spec [N-7.4].",Method: sim + formal. Today: riscv-tests rv32um mul tests in lockstep; tb mul32 unit bench,Karthik,P1
+cg_mul.x_op_signs,3,COV,CORE.F02.COV1,"Each of the four with both operands positive, negative, zero, and the extreme values.",Planned.,Karthik,
+lockstep,3,CHK,CORE.F02.CHK2,Lockstep against Spike on the commit log.,"tools/lockstep.py, in make regress. Passing on 58 tests - PC, register writes, stores, traps and CSR values.",Karthik,
+F03 Divide and remainder trap to software,2,SECTION,CORE.F03,"DIV, DIVU, REM, REMU raise illegal instruction and a handler emulates them. Corners - divide by zero, the most negative number divided by -1. Spec [N-7.6].","Method: sim. Today: riscv-tests div, divu, rem, remu pass by their own check; not compared with Spike because the instruction counts differ by design",Karthik,P1
+riscv-tests rv32um div rem,3,TC,CORE.F03.TC1,Four tests.,Passing.,Karthik,
+cg_div.x_op_corner,3,COV,CORE.F03.COV2,"Each of the four with divide by zero, overflow, and both signs.",Planned.,Karthik,
+F04 Every undefined encoding raises illegal instruction,2,SECTION,CORE.F04,"Reserved funct7 values, compressed encodings, the A, F and D opcodes, undefined SYSTEM encodings, other custom opcodes. Defect C-13 was one of these executing.",Method: sim (random illegal words against Spike) + formal. Today: tb_decode_control reserved_funct7 sequence; sw/tests/t_cov.S,Karthik,P1
+riscv-dv illegal instruction stream,3,TC,CORE.F04.TC1,"Random words weighted to near-legal encodings, in lockstep.",make riscv_dv DV_TESTS=illegal. Passing - 20 seeds in lockstep. CSR addresses on which GARUDA and Spike differ are kept out of the stream and tested by make csr_map instead.,Karthik,
+cg_illegal.cp_class,3,COV,CORE.F04.COV2,Each class of illegal encoding seen in EX.,Planned.,Karthik,
+F05 An illegal instruction has no side effect,2,SECTION,CORE.F05,"No register write, no memory access, no CSR write, no DSU operation. Defect C-14.",Method: sim + formal. Today: tb_decode_control inert-bundle check,Karthik,P1
+a_illegal_inert,3,CHK,CORE.F05.CHK1,When the decoder flags illegal every enable it drives is 0.,"SVA in rtl/core, bound at garuda_core_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F06 Register file,2,SECTION,CORE.F06,x0 reads 0 and ignores writes; the other 31 hold what was last written; a read in the cycle of a write returns the new value.,Method: sim + formal. Today: tb_reg_file unit bench,Karthik,P1
+riscv-formal reg check,3,CHK,CORE.F06.CHK1,Register consistency over the RVFI port.,Planned.,Karthik,
+F07 ECALL EBREAK MRET WFI FENCE and FENCE.I,2,SECTION,CORE.F07,"Causes 11 and 3; FENCE is a no-operation; FENCE.I makes the next fetch see instructions just stored, including one stored by the instruction before it. Defect C-15.",Method: sim. Today: riscv-tests rv32mi; t_hold_flush_matrix bit 6; sw/tests/t_cov.S,Karthik,P1
+cg_sys.cp_insn,3,COV,CORE.F07.COV1,Each of the six seen retiring.,Planned.,Karthik,
+lockstep,3,CHK,CORE.F07.CHK2,Lockstep against Spike on the commit log.,"tools/lockstep.py, in make regress. Passing on 58 tests - PC, register writes, stores, traps and CSR values.",Karthik,
+B Control and status registers,1,SECTION,CORE.B,Spec section 6.,,,
+F08 Each implemented register - address access and reset value,2,SECTION,CORE.F08,"mstatus with MIE and MPIE only, misa 0x4000_1100, mie with MTIE only, mtvec with mode reading 3, mscratch, mepc, mcause, mtval, mip, mnxti reading 0, mintstatus, mintthresh, mcycle and minstret with their high halves, mhartid 0, and the three identification registers.",Method: sim (CSR sweep against Spike where Spike has the register). Today: tb_csr_file smoke; riscv-tests csr and mcsr; sw/tests/t_cov.S CSR sweep; csr_file code coverage is 73 percent,Karthik,P1
+csr_sweep,3,TC,CORE.F08.TC1,All 4096 addresses read on the RTL and on Spike and the two existence maps compared.,"tools/csr_map.py, make csr_map. Passing - 26 addresses on GARUDA, 21 in common with Spike, every difference with a recorded reason. 89 addresses are an open finding, BUGS.md C-16.",Karthik,
+cg_csr.x_addr_op,3,COV,CORE.F08.COV2,Each implemented address with each of the six CSR instructions.,Planned.,Karthik,
+p-csr_warl,3,TC,CORE.F08.TC2,"mscratch, mcause, mtval, mepc, mstatus and the timer enable in mie written with all ones and with zero and read back; the set, clear and immediate forms on mscratch.","sw/riscv-tests/local/csr_warl.S, in make regress, compared with Spike value by value. Passing.",Karthik,
+F09 Unimplemented registers and writes to read-only registers trap,2,SECTION,CORE.F09,Including the four debug registers. A set or clear with a zero source is a read and does not trap. Spec [N-6.3].,Method: sim. Today: tb_csr_file checks dcsr only,Karthik,P1
+cg_csr.cp_illegal_kind,3,COV,CORE.F09.COV1,"Unimplemented address, write to a read-only register, each of the four debug registers.",Planned.,Karthik,
+lockstep,3,CHK,CORE.F09.CHK2,Lockstep against Spike on the commit log.,"tools/lockstep.py, in make regress. Passing on 58 tests - PC, register writes, stores, traps and CSR values.",Karthik,
+F10 A CSR instruction reads and writes exactly once,2,SECTION,CORE.F10,"Also when it is held in EX behind a load or a WFI, and never when it is squashed. Defect P-6.","Method: sim + formal. Today: t_hold_flush_matrix bits 7, 14",Karthik,P1
+a_csr_write_once,3,CHK,CORE.F10.CHK1,One write strobe per retired CSR instruction and none for a squashed one.,"SVA in rtl/core, bound at garuda_core_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F11 mepc alignment,2,SECTION,CORE.F11,"Both low bits of mepc are always zero, because there are no compressed instructions (privileged specification). Checked against Spike on 2026-10-05 - the RTL masked bit 0 only; fixed as T-15.","Method: sim (lockstep). Today: p-csr_warl in the ISA regression, compared with Spike. Passing.",Karthik,P2
+p-csr_warl,3,TC,CORE.F11.TC1,"All ones, zero and misaligned values written to mepc and read back; an mret through an mepc written with bit 1 set.","sw/riscv-tests/local/csr_warl.S, in make regress, compared with Spike. Passing.",Karthik,
+F12 mcycle and minstret,2,SECTION,CORE.F12,"mcycle counts core clock cycles and so stops while the clock is gated; minstret counts retired instructions exactly; a write replaces the half written and wins over the increment. Spec [N-6.2], [N-9.4].",Method: sim. Today: sw/tests/t_cov.S touches them,Karthik,P2
+sb_minstret,3,CHK,CORE.F12.CHK1,minstret compared with the number of lines in the commit log.,Bench check. Planned.,Karthik,
+cg_csr.cp_counter_write,3,COV,CORE.F12.COV2,Each half written while counting; carry from the low half.,Planned.,Karthik,
+C Exceptions,1,SECTION,CORE.C,Spec 7.4. Requirement R-4.,,,
+F13 Nine causes each with the right mepc mcause and mtval,2,SECTION,CORE.F13,"Instruction misaligned and access fault, illegal instruction, breakpoint, load and store misaligned and access fault, environment call. Spec [N-7.12].","Method: sim + formal. Today: riscv-tests rv32mi in lockstep, with cause, mepc and mtval of all 110 traps compared with Spike; sw/tests/t_buserr.S, t_mem.S; sw/chip/t_chip_integ.c",Karthik,P1
+cg_trap.cp_cause,3,COV,CORE.F13.COV1,Each of the nine causes taken.,"tb/cov/garuda_cov.sv cg_trap, exists.",Karthik,
+lockstep,3,CHK,CORE.F13.CHK2,"Trap cause, mepc and mtval compared with Spike.","tools/lockstep.py compares cause, epc and tval of every trap, every store and the value of every written CSR with Spike (BUGS.md VER-3). Passing on 58 tests.",Karthik,
+F14 Exceptions are precise,2,SECTION,CORE.F14,Everything older has retired and nothing younger has changed any state. Defects T-9 and T-10 were violations.,Method: sim + formal. Today: t_hold_flush_matrix; sw/chip/t_chip_integ.c,Karthik,P1
+riscv-formal causal and pc checks,3,CHK,CORE.F14.CHK1,Planned.,Needs RVFI and SymbiYosys.,Karthik,
+cg_trap.x_cause_younger,3,COV,CORE.F14.COV2,"Each cause with a load, a store, a CSR write, a DSU operation and a branch directly behind it.",Planned.,Karthik,
+F15 Priority when one instruction has more than one cause,2,SECTION,CORE.F15,The order of the privileged specification.,Method: sim. Today: no test,Karthik,P1
+t_exc_priority,3,TC,CORE.F15.TC1,Each pair that can coincide on this core.,sw/tests. Planned.,Karthik,
+F16 A fetch error traps only if that instruction is executed,2,SECTION,CORE.F16,A prefetched word that is flushed must not trap. The error traps at the faulting address.,Method: sim. Today: sw/tests/t_buserr.S; tb_garuda_iport_ahb_master C12,Karthik,P1
+cg_trap.cp_fetch_err_flushed,3,COV,CORE.F16.COV1,"A faulting fetch that is discarded by a branch, by a trap, and one that is executed.",Planned.,Karthik,
+F17 Trap entry and return,2,SECTION,CORE.F17,"mepc, mcause and mtval written, MPIE takes MIE and MIE clears; MRET restores MIE from MPIE and sets MPIE. A trap in the first instruction of a handler.",Method: sim + formal. Today: riscv-tests rv32mi; tb_trap_ctrl; tb_csr_file,Karthik,P1
+cg_trap.cp_back_to_back,3,COV,CORE.F17.COV1,"Two traps with 0, 1 and 2 instructions between them.",Planned.,Karthik,
+lockstep,3,CHK,CORE.F17.CHK2,Lockstep against Spike on the commit log.,"tools/lockstep.py, in make regress. Passing on 58 tests - PC, register writes, stores, traps and CSR values.",Karthik,
+D Interrupts,1,SECTION,CORE.D,"Spec 7.5. Requirements R-5, R-6.",,,
+F18 A CLIC interrupt is taken on a real instruction and returns to it,2,SECTION,CORE.F18,"Take condition with both compares strict. mepc is the instruction that was in EX, and it executes exactly once after the return. Spec [N-7.15], [N-7.18].","Method: sim. Today: sw/tests/t_irq.S, t_clic.S; tb_clic_ctrl unit bench",Karthik,P1
+cg_irq.x_insn_class,3,COV,CORE.F18.COV1,"An interrupt taken on each instruction class in EX - ALU, load, store, branch taken and not, jump, CSR, multiply, DSU, WFI, MRET.",Planned.,Karthik,
+sb_irq_replay,3,CHK,CORE.F18.CHK2,The program result is the same with and without interrupts.,"Self-checking programs, exists for the matrix test.",Karthik,
+F19 An interrupt at every pipeline situation,2,SECTION,CORE.F19,"With each hold active and each flush in progress, at every interrupt period and wait-state count.",Method: sim (sweep). Today: t_hold_flush_matrix under the interrupt-period and wait-state sweep; found T-11 and P-8,Karthik,P1
+riscv-dv with interrupts,3,TC,CORE.F19.TC1,"Random programs with random interrupt arrival, result compared with the same program run without.",Planned.,Karthik,
+F20 The machine timer interrupt,2,SECTION,CORE.F20,"Through mip.MTIP, mie.MTIE and mstatus.MIE, cause 0x8000_0007, not through the CLIC levels. Requirement R-6, spec [N-7.17].",Method: sim. Today: sw/tests/t_mtip.S; sw/chip/t_chip_irq.c,Karthik,P1
+cg_irq.cp_mti_with_clic,3,COV,CORE.F20.COV1,Timer and CLIC requests in the same cycle.,Planned.,Karthik,
+F21 The interrupt level is saved and restored across nested traps,2,SECTION,CORE.F21,"mintstatus.mil is pushed on an interrupt and popped on return. Open defect T-12 - the saved level is one deep and not reachable by software, so a second trap inside a handler leaves the level wrong.",Method: sim + formal. Today: no test; T-12 reproduced on unmodified RTL,Karthik,P1
+t_irq_nest,3,TC,CORE.F21.TC1,Depth 3 with levels read after every return; an exception inside a handler.,sw/tests. Planned.,Karthik,
+F22 mintthresh blocks levels at or below it,2,SECTION,CORE.F22,Spec [N-7.16].,Method: sim. Today: sw/tests/t_clic.S sweep,Karthik,P1
+cg_core_take.x_level_thresh,3,COV,CORE.F22.COV1,Shared with the CLIC plan F26.,Planned.,Karthik,
+F23 An exception and an interrupt in the same cycle,2,SECTION,CORE.F23,"One trap is taken, with a consistent mepc and cause.",Method: sim. Today: no check.,Karthik,P1
+cg_irq.cp_with_exception,3,COV,CORE.F23.COV1,An interrupt arriving on an instruction that raises each of the nine causes.,Planned.,Karthik,
+E Pipeline,1,SECTION,CORE.E,"Spec 7.1, 7.6. Requirement R-3.",,,
+F24 Forwarding,2,SECTION,CORE.F24,"From EX/MEM and MEM/WB to both operands, to store data, to the branch compare, to CSR write data and to DSU operands; never for x0.","Method: sim + formal. Today: tb_hazard_forward_unit, tb_idex_fwd unit benches; cg_hazard in tb/cov",Karthik,P1
+cg_hazard.x_fwd,3,COV,CORE.F24.COV1,Each forwarding source to each consumer.,"tb/cov/garuda_cov.sv cg_hazard, exists for the two operands.",Karthik,
+lockstep,3,CHK,CORE.F24.CHK2,Lockstep against Spike on the commit log.,"tools/lockstep.py, in make regress. Passing on 58 tests - PC, register writes, stores, traps and CSR values.",Karthik,
+F25 Load-use,2,SECTION,CORE.F25,"One bubble when the next instruction needs a load result - into an ALU operand, a branch, a store, a jump register, a DSU operation.",Method: sim. Today: sw/tests/t_loadbranch.S; riscv-tests,Karthik,P1
+cg_hazard.cp_load_use_consumer,3,COV,CORE.F25.COV1,Each consumer class behind a load.,Planned.,Karthik,
+F26 Data port waits,2,SECTION,CORE.F26,"A load or store with 0 to many wait states and back-to-back transfers. Sizes and offsets - byte, halfword and word at every legal offset, with sign and zero extension.","Method: sim. Today: make regress_rand; tb_load_store_unit, tb_load_formatter, tb_d_port_ahb_master; sw/tests/t_mem.S",Karthik,P1
+cg_ldst.x_size_off,3,COV,CORE.F26.COV1,"Every size with every offset, load and store.","tb/cov/garuda_cov.sv cg_ldst, exists.",Karthik,
+ahb_checker,3,CHK,CORE.F26.CHK2,AHB-Lite protocol checker on the data port - 0 violations.,Exists.,Karthik,
+F27 Fetch - prefetch buffer and redirects,2,SECTION,CORE.F27,"Four entries, INCR bursts, fetches in flight discarded on a redirect, underrun, wait states and loss of arbitration on the instruction port. Spec [N-7.3].","Method: sim. Today: element benches pc_gen, prefetch_buffer, iport, if_stage; sw/tests/t_flush.S",Karthik,P1
+cg_fetch.x_inflight_redirect,3,COV,CORE.F27.COV1,"A redirect with 0, 1 and 2 fetches in flight, with instruction-port waits 0 to 3.",Planned.,Karthik,
+ahb_checker,3,CHK,CORE.F27.CHK2,AHB-Lite protocol checker on the instruction port - 0 violations.,Exists.,Karthik,
+F28 Branches and jumps,2,SECTION,CORE.F28,"Taken and not taken, forward and backward, JAL, JALR with bit 0 cleared, the link value. The specification says there is no predictor; the RTL has a static one. One of the two has to change.","Method: sim + review. Today: riscv-tests; tb_branch_unit, tb_branch_predict",Karthik,P1
+cg_branch.x_kind_dir_outcome,3,COV,CORE.F28.COV1,"Each branch type, forward and backward, taken and not, predicted right and wrong.",Planned.,Karthik,
+review,3,CHK,CORE.F28.CHK2,"Spec [N-7.1], [N-7.2] against rtl/core/branch_predict.v.",To be logged in Docs/BUGS.md.,Karthik,
+F29 Hold against flush - all twenty combinations,2,SECTION,CORE.F29,"Flush beats hold except for a transfer already on the data port, which defers the flush; a load or store in MEM always completes; a trap beats a branch. Spec [N-7.19] to [N-7.26].",Method: sim + formal. Today: sw/tests/t_hold_flush_matrix.S - 19 cells; five properties in pipe_ctrl_sva.sv; cover points for the cells,Karthik,P1
+a_flush_beats_hold,3,CHK,CORE.F29.CHK1,"Three properties, one per pipeline register.","rtl/core/pipe_ctrl_sva.sv, bound in every core simulation. Exists.",Karthik,
+a_h2_defers_flush,3,CHK,CORE.F29.CHK2,And the load-use variant.,"rtl/core/pipe_ctrl_sva.sv, bound in every core simulation. Exists.",Karthik,
+a_trap_beats_branch,3,CHK,CORE.F29.CHK3,,"rtl/core/pipe_ctrl_sva.sv, bound in every core simulation. Exists.",Karthik,
+a_mem_completes,3,CHK,CORE.F29.CHK4,A load or store in MEM always writes back.,"SVA in rtl/core, bound at garuda_core_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+c_h_vs_f cover points,3,COV,CORE.F29.COV5,One cover per reachable cell.,"rtl/core/pipe_ctrl_sva.sv, bound in every core simulation. Exists.",Karthik,
+t_hold_flush_matrix,3,TC,CORE.F29.TC6,19 cells on architectural state.,Passing.,Karthik,
+F30 Adjacent instruction pairs,2,SECTION,CORE.F30,Every instruction class directly behind every other.,Method: sim (random instruction generation). Today: no check.,Karthik,P1
+cg_pipe.x_class_pair,3,COV,CORE.F30.COV1,Cross of the class in EX and the class in ID.,Planned.,Karthik,
+F WFI and the clock gate,1,SECTION,CORE.F,Spec 7.7. Requirement R-8.,,,
+F31 WFI stops the core clock and a wake restarts it,2,SECTION,CORE.F31,"Wake on an enabled CLIC source or on the timer, whatever mstatus.MIE is; with MIE clear execution continues after the WFI with no trap. Spec [N-7.27].","Method: sim. Today: sw/tests/t_wfi.S, t_mtip.S; sw/chip/t_chip_irq.c",Karthik,P1
+cg_wfi.x_wake_mie,3,COV,CORE.F31.COV1,Each wake source with MIE 0 and 1.,Planned.,Karthik,
+F32 The gate closes only when the core is quiescent,2,SECTION,CORE.F32,"No bus transfer outstanding, nothing in MEM or WB, no flush pending. Defect P-8. Spec [N-7.28], [N-7.29].","Method: sim + formal. Today: three properties in pipe_ctrl_sva.sv, 0 failures",Karthik,P1
+a_no_gate_with_bus,3,CHK,CORE.F32.CHK1,,"rtl/core/pipe_ctrl_sva.sv, bound in every core simulation. Exists.",Karthik,
+a_no_gate_mid_work,3,CHK,CORE.F32.CHK2,,"rtl/core/pipe_ctrl_sva.sv, bound in every core simulation. Exists.",Karthik,
+a_no_gate_with_flush,3,CHK,CORE.F32.CHK3,,"rtl/core/pipe_ctrl_sva.sv, bound in every core simulation. Exists.",Karthik,
+F33 What is parked behind a WFI runs exactly once,2,SECTION,CORE.F33,"A load, a jump, a CSR instruction, a DSU operation, a store. Defects P-4 to P-7.",Method: sim. Today: t_hold_flush_matrix bits 12 to 18,Karthik,P1
+t_hold_flush_matrix,3,TC,CORE.F33.TC1,WFI cells.,Passing.,Karthik,
+F34 WFI with a wake already pending and an interrupt taken on the WFI,2,SECTION,CORE.F34,The core does not sleep in the first case and does not sleep inside the handler in the second. Defect T-11.,Method: sim. Today: timing sweep on t_hold_flush_matrix,Karthik,P1
+cg_wfi.cp_wake_timing,3,COV,CORE.F34.COV1,"Wake before the WFI reaches EX, in that cycle, one cycle later, and long after.",Planned.,Karthik,
+F35 Wake latency is two cycles,2,SECTION,CORE.F35,"One to open the gate, one to resume. Spec [N-7.30].",Method: sim + formal. Today: no check,Karthik,P2
+a_wake_latency,3,CHK,CORE.F35.CHK1,The first instruction after the WFI is in EX within the stated number of cycles of the wake.,"SVA in rtl/core, bound at garuda_core_top. Planned.",Karthik,
+G Reset and the debugger,1,SECTION,CORE.G,Spec 7.8. Requirement R-7.,,,
+F36 Reset state,2,SECTION,CORE.F36,"The first fetch is at 0x1000_0000, the prefetch buffer is empty and the registers have their reset values. Spec [N-7.34].",Method: sim. Today: every test,Karthik,P1
+a_reset_pc,3,CHK,CORE.F36.CHK1,The first address on the instruction port after reset is the boot ROM base.,"SVA in rtl/core, bound at garuda_core_top. Planned.",Karthik,
+F37 hartreset resets the core and leaves the bus legal,2,SECTION,CORE.F37,"Asserted at any moment, including in the middle of a transfer on either port, it must not leave a transfer half issued in a way that breaks the protocol for the other masters. Spec [N-7.33], [N-7.35].",Method: sim + formal. Today: no test resets a running core this way,Karthik,P1
+t_core_hartreset,3,TC,CORE.F37.TC1,"hartreset at every phase of a load, a store and a fetch burst, with the protocol checkers watching.",tb/soc/tb_boot.v. Planned.,Karthik,
+H Whole programs,1,SECTION,CORE.H,Stage 5 scenarios that exercise the core.,,,
+F38 C programs with interrupts on the chip,2,SECTION,CORE.F38,The eight chip programs.,Method: sim at chip level. Today: 8 of 8 pass,Karthik,P1
+chip tests,3,TC,CORE.F38.TC1,make test_chip.,Passing.,Karthik,
+F39 The control loop against a golden output,2,SECTION,CORE.F39,"The actual estimator and controller code on the core with the DSU, compared with the Python model.",Method: sim at chip level (scenario). Today: no check.,Karthik,P1
+t_chip_control_loop,3,TC,CORE.F39.TC1,Stage 5 scenario.,Planned.,Karthik,
+I Clock and timing,1,SECTION,CORE.I,"Spec 7.9, section 9.",,,
+F40 One clock domain and one clock gate,2,SECTION,CORE.F40,"The gate cell is a behavioural latch replaced by a library cell later. Spec [N-9.1], [N-9.3].",Method: static. Today: HAL - the latch is reported and waived,Karthik,P2
+hal_lint,3,CHK,CORE.F40.CHK1,flow/2_static.,Done.,Karthik,
+F41 250 MHz,2,SECTION,CORE.F41,"A timing requirement, closed in synthesis and timing analysis. Requirement R-10.",Method: outside stages 0 to 5. Today: no check.,Karthik,P3
+sta,3,CHK,CORE.F41.CHK1,Waits for the netlist.,Stage 7.,Karthik,

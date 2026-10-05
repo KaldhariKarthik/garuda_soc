@@ -1,61 +1,80 @@
 NAME,DEPTH,NODE_KIND,element_id,details,implementation_note,owner,priority
-DSU verification plan,0,SECTION,DSU,"Source: GARUDA-DSU-SPEC-001, section 2 (requirements), section 10 (assertions) and section 11 (verification plan), written with the specification. Moved into vPlanner form on 2026-10-04; section 4 holds what the 2026-10-04 flow run added.",,,
-Requirements,1,SECTION,DSU.REQ,From section 2 of the specification; planned tests from section 11.,,,
-R-1 Three independent 16 16 multiply-accumulate units with 48-bit ...,2,SECTION,DSU.R-1,Three independent 16×16 multiply-accumulate units with 48-bit accumulators.,Source: System,,high
-t_dsu_mac,3,TC,DSU.R-1.t_dsu_mac,Oracle: each accumulator accumulates correctly Coverage goal: all 3,"Status in the specification: passing. Bench: tb/dsu/tb_dsu_top.sv: directed and random vectors from tools/gen/DSU_gen.py on all three accumulators - 445 vectors compared with the model (tools/golden/DSU_Golden.py), 0 mismatches, in the 2026-10-04 regression.",,
-R-2 Decoded in EX from Custom-0 not a bus peripheral.,2,SECTION,DSU.R-2,Decoded in EX from Custom-0; not a bus peripheral.,"Source: ADR, latency",,high
-t_dsu_decode,3,TC,DSU.R-2.t_dsu_decode,Oracle: all 9 instructions decode and execute Coverage goal: 9/9,"Status in the specification: passing. Bench: tb/dsu/tb_dsu_top.sv: the directed set runs every instruction once (tools/gen/DSU_gen.py, directed_tests) - 445 vectors compared with the model (tools/golden/DSU_Golden.py), 0 mismatches, in the 2026-10-04 regression. Through the pipeline: sw/tests/t_dsu.S, TOHOST=1 PASSED.",,
-R-3 A stated normative fixed-point format.,2,SECTION,DSU.R-3,"A stated, normative fixed-point format.",Source: ADR-0017,,high
-t_dsu_qformat,3,TC,DSU.R-3.t_dsu_qformat,Oracle: Q1.15 × Q1.15 → Q2.30 → Q18.30 against a Python golden model Coverage goal: ≥10⁴ random operand pairs,"Status in the specification: new. Bench: PARTLY IMPLEMENTED - tb/dsu/tb_dsu_top.sv compares random operand pairs with the Python model, but the regression stimulus is 445 vectors in total, not the 10 000 pairs the plan states (the generator takes --count).",,
-t_dsu_qformat_edge,3,TC,DSU.R-3.t_dsu_qformat_edge,"Oracle: ±1.0−ε, ±smallest, zero, and all sign combinations Coverage goal: all 9 combinations","Status in the specification: new. Bench: tb/dsu/tb_dsu_top.sv: the directed set holds the extreme products (0x7FFF, 0x8000, min x min, sign-extended loads) - 445 vectors compared with the model (tools/golden/DSU_Golden.py), 0 mismatches, in the 2026-10-04 regression. The nine sign combinations are not counted separately.",,
-R-4 Saturating accumulation with a sticky overflow flag per ...,2,SECTION,DSU.R-4,Saturating accumulation with a sticky overflow flag per accumulator.,Source: Numerical safety,,high
-t_dsu_saturate,3,TC,DSU.R-4.t_dsu_saturate,Oracle: positive and negative saturation; no wrap Coverage goal: both directions,"Status in the specification: extend. Bench: tb/dsu/tb_dsu_top.sv: directed vectors push the accumulator over the 49th bit and clamp, and check that the boundary value does not clamp - 445 vectors compared with the model (tools/golden/DSU_Golden.py), 0 mismatches, in the 2026-10-04 regression. The generator also has a clamp-walk mode; it is not part of the regression stimulus.",,
-t_dsu_ovf_sticky,3,TC,DSU.R-4.t_dsu_ovf_sticky,Oracle: sticky; set beats a same-cycle clear,"Status in the specification: extend. Bench: tb/dsu/tb_dsu_top.sv: directed vectors for the sticky flag clear and for an overflow landing on its own clear (erratum DSU-8) - 445 vectors compared with the model (tools/golden/DSU_Golden.py), 0 mismatches, in the 2026-10-04 regression.",,
-R-5 Same-accumulator RAW hazards interlocked in hardware.,2,SECTION,DSU.R-5,Same-accumulator RAW hazards interlocked in hardware.,Source: Correctness,,high
-t_dsu_interlock,3,TC,DSU.R-5.t_dsu_interlock,"Oracle: fires on same-acc, not on cross-acc Coverage goal: 9 acc pairs","Status in the specification: passing. Bench: PARTLY IMPLEMENTED - sw/tests/t_dsu.S (back-to-back readbacks on one accumulator) and sw/tests/t_dsu_b2b.S (new: same-accumulator and cross-accumulator pairs back to back), both TOHOST=1 PASSED. The nine accumulator pairs are not all run.",,
-t_dsu_flush,3,TC,DSU.R-5.t_dsu_flush,Oracle: a flushed DSU op does not accumulate Coverage goal: flush at each pipeline position,"Status in the specification: new. Bench: PARTLY IMPLEMENTED - sw/tests/t_hold_flush_matrix.S bits 8, 9, 10, 11 and 15 (a MAC behind a store, an illegal Custom-0 behind a MAC, a trap straight behind a MAC, a jump while a readback is held, a MAC behind a WFI), TOHOST=1 PASSED. A flush at each pipeline position is not swept; the unit bench never asserts flush.",,
-R-6 Accumulators readable by the debugger without stopping the core.,2,SECTION,DSU.R-6,Accumulators readable by the debugger without stopping the core.,Source: Bring-up,,high
-t_dsu_taps,3,TC,DSU.R-6.t_dsu_taps,Oracle: taps readable while accumulating,"Status in the specification: new. Bench: tb/debug/tb_debug.sv, checks [N-6.7] the taps are read live while the accumulator runs, [N-6.8] coherent 48-bit snapshot on all three accumulators, dsuovf - 6 checks, all PASS in the 2026-10-04 regression.",,
-R-7 acc_sel = 2 b11 shall be illegal everywhere.,2,SECTION,DSU.R-7,acc_sel = 2'b11 shall be illegal everywhere.,Source: ADR,,high
-t_dsu_accsel3,3,TC,DSU.R-7.t_dsu_accsel3,"Oracle: illegal exception, no accumulator change Coverage goal: all instructions carrying the field","Status in the specification: extend. Bench: tb/dsu/tb_dsu_top.sv: the directed set ends with the illegal encodings, which must be rejected with the state untouched - 445 vectors compared with the model (tools/golden/DSU_Golden.py), 0 mismatches, in the 2026-10-04 regression. Not every instruction carrying the field is listed.",,
-Planned tests not tied to one requirement,2,SECTION,DSU.OTHER,,,,
-t_dsu_apf,3,TC,DSU.OTHER.t_dsu_apf,"Oracle: full 10-neighbour APF loop vs. a float reference, error bound stated",Status in the specification: new. Bench: NOT IMPLEMENTED - no APF loop and no float reference in sw/ or tools/.,,
-t_dsu_ekf_scope,3,TC,DSU.OTHER.t_dsu_ekf_scope,Oracle: the prediction and residual paths match a float reference within the stated bound; covariance is not attempted,Status in the specification: new. Bench: NOT IMPLEMENTED - no EKF path test and no float reference in sw/ or tools/.,,
-t_dsu_gate,3,TC,DSU.OTHER.t_dsu_gate,Oracle: accumulators retain values across gated cycles,"Status in the specification: new. Bench: PARTLY IMPLEMENTED - only sw/tests/t_hold_flush_matrix.S bit 15 (a MAC parked behind a WFI accumulates exactly once across the sleep), TOHOST=1 PASSED; there is no test that reads all accumulators before and after gated cycles.",,
-Assertions,1,SECTION,DSU.SVA,From section 10 of the specification.,,,
-a_no_realign,2,CHK,DSU.SVA.a_no_realign,"product/accumulator alignment: accumulate is a plain add, no shift (N-6.3)",assert property in specification section 10. NOT IMPLEMENTED as SVA. Behaviour compared with the model on every vector in tb/dsu/tb_dsu_top.sv.,,
-a_saturate_pos,2,CHK,DSU.SVA.a_saturate_pos,"saturation, not wrap (N-6.8)",assert property in specification section 10. NOT IMPLEMENTED as SVA. Behaviour compared with the model in tb/dsu/tb_dsu_top.sv (directed saturation vectors).,,
-a_saturate_neg,2,CHK,DSU.SVA.a_saturate_neg,,assert property in specification section 10. NOT IMPLEMENTED as SVA. Behaviour compared with the model in tb/dsu/tb_dsu_top.sv (directed saturation vectors).,,
-a_never_wraps,2,CHK,DSU.SVA.a_never_wraps,,assert property in specification section 10. NOT IMPLEMENTED as SVA. Behaviour compared with the model in tb/dsu/tb_dsu_top.sv.,,
-a_ovf_sticky,2,CHK,DSU.SVA.a_ovf_sticky,overflow is sticky and set-beats-clear (N-6.9),assert property in specification section 10. NOT IMPLEMENTED as SVA. Behaviour compared with the model in tb/dsu/tb_dsu_top.sv (sticky flag clear vectors).,,
-a_ovf_set_beats_clear,2,CHK,DSU.SVA.a_ovf_set_beats_clear,,assert property in specification section 10. NOT IMPLEMENTED as SVA. Behaviour compared with the model in tb/dsu/tb_dsu_top.sv (erratum DSU-8 vector).,,
-a_ovf_from_49,2,CHK,DSU.SVA.a_ovf_from_49,overflow detection uses the full 49-bit intermediate (OPEN-9),assert property in specification section 10. NOT IMPLEMENTED as SVA. Behaviour compared with the model in tb/dsu/tb_dsu_top.sv (vectors pushing toward the 49th bit).,,
-a_accsel3_illegal,2,CHK,DSU.SVA.a_accsel3_illegal,"acc_sel = 11 is always illegal (R-7, N-7.4)",assert property in specification section 10. NOT IMPLEMENTED as SVA. Behaviour compared with the model in tb/dsu/tb_dsu_top.sv (illegal encodings).,,
-a_accsel3_no_effect,2,CHK,DSU.SVA.a_accsel3_no_effect,,"assert property in specification section 10. NOT IMPLEMENTED as SVA. Behaviour compared with the model in tb/dsu/tb_dsu_top.sv (illegal encodings, state untouched).",,
-a_interlock_per_acc,2,CHK,DSU.SVA.a_interlock_per_acc,interlock is per accumulator (N-7.8),assert property in specification section 10. NOT IMPLEMENTED as SVA. Checked by sw/tests/t_dsu_b2b.S (cross-accumulator pairs; found DSU-11).,,
-a_interlock_fires,2,CHK,DSU.SVA.a_interlock_fires,,assert property in specification section 10. NOT IMPLEMENTED as SVA. Checked by sw/tests/t_dsu.S and t_dsu_b2b.S (found DSU-12).,,
-a_flush_no_accumulate,2,CHK,DSU.SVA.a_flush_no_accumulate,a flushed DSU instruction must not accumulate (N-7.9),assert property in specification section 10. NOT IMPLEMENTED as SVA. Checked by sw/tests/t_hold_flush_matrix.S bits 9 and 10.,,
-a_macsat,2,CHK,DSU.SVA.a_macsat,MACSAT saturates correctly to Q1.15,assert property in specification section 10. NOT IMPLEMENTED as SVA. Behaviour compared with the model in tb/dsu/tb_dsu_top.sv; MACSAT behind a MAC in sw/tests/t_dsu_b2b.S.,,
-a_taps_live,2,CHK,DSU.SVA.a_taps_live,"taps are always live, never gated (R-6)",assert property in specification section 10. NOT IMPLEMENTED as SVA. Checked procedurally in tb/debug/tb_debug.sv ([N-6.7]).,,
-a_gate_retains,2,CHK,DSU.SVA.a_gate_retains,accumulators retain value while clock-gated (N-7.22),assert property in specification section 10. NOT IMPLEMENTED - named in the specification only; see t_dsu_gate.,,
-a_single_cycle,2,CHK,DSU.SVA.a_single_cycle,single-cycle throughput except on interlock (N-7.1),assert property in specification section 10. NOT IMPLEMENTED - named in the specification only.,,
-Coverage,1,SECTION,DSU.COV,Merged code coverage from the vManager session of 2026-10-04 (sim/cov_merged). Not closed; no bar is claimed.,,,
-barrel_shifter,2,COV,DSU.COV.barrel_shifter,Code coverage of module barrel_shifter: 100.00%,,,
-csa_3to2,2,COV,DSU.COV.csa_3to2,Code coverage of module csa_3to2: 99.18%,,,
-dsu_decoder,2,COV,DSU.COV.dsu_decoder,Code coverage of module dsu_decoder: 100.00%,,,
-dsu_stall,2,COV,DSU.COV.dsu_stall,Code coverage of module dsu_stall: 100.00%,,,
-dsu_top,2,COV,DSU.COV.dsu_top,Code coverage of module dsu_top: 99.74%,,,
-kogge_stone_49,2,COV,DSU.COV.kogge_stone_49,Code coverage of module kogge_stone_49: 98.65%,,,
-mac_cluster,2,COV,DSU.COV.mac_cluster,Code coverage of module mac_cluster: 99.71%,,,
-mac_unit,2,COV,DSU.COV.mac_unit,Code coverage of module mac_unit: 97.57%,,,
-mult_16x16,2,COV,DSU.COV.mult_16x16,Code coverage of module mult_16x16: 100.00%,,,
-operand_router,2,COV,DSU.COV.operand_router,Code coverage of module operand_router: 99.39%,,,
-overflow_flag,2,COV,DSU.COV.overflow_flag,Code coverage of module overflow_flag: 83.33%,,,
-readback_mux,2,COV,DSU.COV.readback_mux,Code coverage of module readback_mux: 100.00%,,,
-result_selector,2,COV,DSU.COV.result_selector,Code coverage of module result_selector: 100.00%,,,
-saturation_unit,2,COV,DSU.COV.saturation_unit,Code coverage of module saturation_unit: 81.68%,,,
-Added in the 2026-10-04 run,1,SECTION,DSU.NEW,"Checks added and defects found when the flow was run in order on 2026-10-04 (Docs/BUGS.md section 1h). All three were invisible to the unit bench, which drives one instruction at a time and never flushes.",,,
-DSU-13 trap flush discarded a committed accumulate,2,CHK,DSU.NEW.DSU-13,"The pending product belongs to a MAC that has already left EX, but flush cleared it: a MAC followed by an instruction that trapped lost its product silently.","FIXED in rtl/dsu/mac_unit.v. t_hold_flush_matrix bits 9, 10; PASS.",,
-DSU-11 one accumulator corrupted by an instruction for another,2,CHK,DSU.NEW.DSU-11,load and clear are cluster-wide decodes and the accumulator mux used them without checking the instruction addressed this unit: MAC acc0; MACCLEAR acc1 set acc0 to 0.,FIXED in rtl/dsu/mac_unit.v. sw/tests/t_dsu_b2b.S; PASS.,,
-DSU-12 MACSAT ran in the held cycle,2,CHK,DSU.NEW.DSU-12,MACSAT behind a MAC on the same accumulator is held one cycle by the interlock but saturated the stale value anyway; the product was lost and the overflow flag raised for a value that never existed.,FIXED in rtl/dsu/dsu_top.v. sw/tests/t_dsu_b2b.S bit 2; PASS.,,
-Tests added,2,CHK,DSU.NEW.tests,sw/tests/t_dsu_b2b.S (back-to-back DSU instructions through the pipeline).,,,
+DSU verification plan,0,SECTION,DSU,"Block 2: dsu_top with three mac_unit, the decoder and the interlock. Custom-0 instructions in the core's EX stage. Source: GARUDA-DSU-SPEC-001 and its numeric contract. Feature-level plan written 2026-10-04. Sign-off criteria: flow/0_signoff_criteria.md. The reference model already exists and is independent of the RTL: tools/golden/DSU_Golden.py. The unit bench drives one instruction at a time and never flushes, so everything that depends on the pipeline is checked with programs on the core.",,,
+A Instructions,1,SECTION,DSU.A,Spec 7.1. Requirement R-2.,,,
+F01 MAC and MACSUB,2,SECTION,DSU.F01,"The selected accumulator plus or minus the product of the low 16 bits of the two operands, as signed Q1.15. The upper 16 bits of the operands are ignored. Spec [N-6.2], 7.1.","Method: sim (model compare, constrained random) + formal. Today: tb_dsu_top - 445 vectors, 0 mismatches",Karthik,P1
+model compare,3,CHK,DSU.F01.CHK1,Compared with the Python model tools/golden/DSU_Golden.py on every vector in tb/dsu/tb_dsu_top.sv.,Exists.,Karthik,
+cg_dsu_mac.x_op_signs_acc,3,COV,DSU.F01.COV2,"MAC and MACSUB with each sign combination of the operands, on each accumulator; operands 0, 1, 0x7FFF, 0x8000; upper halves non-zero.",Covergroup in the bench. Planned.,Karthik,
+F02 MACDOT - two products into two accumulators in one instruction,2,SECTION,DSU.F02,Spec [N-7.2].,Method: sim + formal. Today: tb_dsu_top directed and random,Karthik,P1
+model compare,3,CHK,DSU.F02.CHK1,Compared with the Python model tools/golden/DSU_Golden.py on every vector in tb/dsu/tb_dsu_top.sv.,Exists.,Karthik,
+cg_dsu_dot.cp_pair,3,COV,DSU.F02.COV2,Each legal pair of target accumulators; one of the two saturating; both saturating.,Planned.,Karthik,
+F03 MACCLEAR and MACLOAD,2,SECTION,DSU.F03,Clear sets the selected accumulator to 0 and leaves its overflow flag. Load writes the sign-extended operand in the accumulator format. Neither touches another accumulator. Defect DSU-11.,Method: sim + formal. Today: tb_dsu_top; sw/tests/t_dsu_b2b.S,Karthik,P1
+a_other_acc_unchanged,3,CHK,DSU.F03.CHK1,An instruction addressed to one accumulator never changes another.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+model compare,3,CHK,DSU.F03.CHK2,Compared with the Python model tools/golden/DSU_Golden.py on every vector in tb/dsu/tb_dsu_top.sv.,Exists.,Karthik,
+F04 MACREAD_LO and MACREAD_HI,2,SECTION,DSU.F04,"The low 32 bits, and the high 16 bits sign-extended.",Method: sim + formal. Today: tb_dsu_top; sw/tests/t_dsu.S,Karthik,P1
+model compare,3,CHK,DSU.F04.CHK1,Compared with the Python model tools/golden/DSU_Golden.py on every vector in tb/dsu/tb_dsu_top.sv.,Exists.,Karthik,
+F05 MACSHIFT,2,SECTION,DSU.F05,"Arithmetic shift of the selected accumulator. Amount 0, the largest legal amount, and out-of-range amounts, which are illegal (erratum DSU-6).",Method: sim + formal. Today: tb_dsu_top shift vectors,Karthik,P1
+cg_dsu_shift.x_amount_sign,3,COV,DSU.F05.COV1,Every legal amount with a positive and a negative accumulator.,Planned.,Karthik,
+model compare,3,CHK,DSU.F05.CHK2,Compared with the Python model tools/golden/DSU_Golden.py on every vector in tb/dsu/tb_dsu_top.sv.,Exists.,Karthik,
+F06 MACSAT,2,SECTION,DSU.F06,The accumulator saturated to Q1.15 in the low 16 bits of the result.,Method: sim + formal. Today: tb_dsu_top; sw/tests/t_dsu_b2b.S bit 2,Karthik,P1
+a_macsat,3,CHK,DSU.F06.CHK1,"The result is the accumulator if it fits, else the nearer Q1.15 limit.","SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+cg_dsu_sat.cp_range,3,COV,DSU.F06.COV2,"Accumulator inside the range, at each limit, one step outside each limit, far outside.",Planned.,Karthik,
+F07 MACABS,2,SECTION,DSU.F07,"Absolute value of the selected accumulator, including the most negative value, which has no positive counterpart.",Method: sim + formal. Today: tb_dsu_top - MACABS of 0x8000 clamps,Karthik,P1
+cg_dsu_abs.cp_value,3,COV,DSU.F07.COV1,"Positive, zero, negative, most negative.",Planned.,Karthik,
+model compare,3,CHK,DSU.F07.CHK2,Compared with the Python model tools/golden/DSU_Golden.py on every vector in tb/dsu/tb_dsu_top.sv.,Exists.,Karthik,
+F08 MAC_SEL,2,SECTION,DSU.F08,Selects the target accumulator for the instructions that do not carry the field.,Method: sim. Today: tb_dsu_top,Karthik,P2
+model compare,3,CHK,DSU.F08.CHK1,Compared with the Python model tools/golden/DSU_Golden.py on every vector in tb/dsu/tb_dsu_top.sv.,Exists.,Karthik,
+B Numeric contract,1,SECTION,DSU.B,"Spec section 6. Requirements R-3, R-4.",,,
+F09 Product and accumulate alignment,2,SECTION,DSU.F09,A Q1.15 by Q1.15 product is Q2.30 and adds into the Q18.30 accumulator with no shift. -1 times -1 is +1. Spec [N-6.3].,Method: sim + formal. Today: tb_dsu_top extreme products,Karthik,P1
+a_no_realign,3,CHK,DSU.F09.CHK1,The value added is the 32-bit signed product sign-extended to 48 bits.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+dsu random,3,TC,DSU.F09.TC2,At least 10000 random operand pairs against the model. Today's regression set is 445 vectors.,tools/gen/DSU_gen.py --count. Planned at the larger count.,Karthik,
+F10 Saturation in both directions,2,SECTION,DSU.F10,"When the 49-bit sum leaves the 48-bit signed range the accumulator holds the nearer limit and never wraps. Requirement R-4, spec [N-6.7], [N-6.8].",Method: sim + formal. Today: tb_dsu_top saturation vectors,Karthik,P1
+a_saturate_pos,3,CHK,DSU.F10.CHK1,A positive overflow leaves 0x7FFF_FFFF_FFFF.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+a_saturate_neg,3,CHK,DSU.F10.CHK2,A negative overflow leaves 0x8000_0000_0000.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+a_never_wraps,3,CHK,DSU.F10.CHK3,The accumulator never changes sign through an add of the same sign.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+a_ovf_from_49,3,CHK,DSU.F10.CHK4,Overflow is decided on the 49-bit sum.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+cg_dsu_ovf.x_acc_dir_op,3,COV,DSU.F10.COV5,"Positive and negative overflow on each accumulator, from MAC, MACSUB and MACDOT; the last value before overflow.",Planned.,Karthik,
+F11 The overflow flag is sticky and set beats clear,2,SECTION,DSU.F11,"One flag per accumulator. An overflow in the cycle of its own clear leaves the flag set. Spec [N-6.9], erratum DSU-8.",Method: sim + formal. Today: tb_dsu_top DSU-8 vector,Karthik,P1
+a_ovf_sticky,3,CHK,DSU.F11.CHK1,A set flag stays set until it is cleared.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+a_ovf_set_beats_clear,3,CHK,DSU.F11.CHK2,A flag set and cleared in the same cycle is 1.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+C Encoding,1,SECTION,DSU.C,Spec 7.2. Requirement R-7.,,,
+F12 Accumulator select 11 is illegal everywhere,2,SECTION,DSU.F12,In every instruction that carries the field it raises illegal instruction and changes nothing. Spec [N-7.4].,Method: sim + formal. Today: tb_dsu_top illegal vectors,Karthik,P1
+a_accsel3_illegal,3,CHK,DSU.F12.CHK1,dsu_illegal_o is 1 for any instruction with the select at 11.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+a_accsel3_no_effect,3,CHK,DSU.F12.CHK2,"No accumulator, flag or result changes on such an instruction.","SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+cg_dsu_ill.cp_insn_with_sel3,3,COV,DSU.F12.COV3,"Each instruction that carries the field, with the select at 11.",Planned.,Karthik,
+F13 Every other undefined Custom-0 encoding is illegal,2,SECTION,DSU.F13,Undefined funct3 and funct7 values and non-zero reserved bits (erratum DSU-7).,"Method: sim + formal. Today: tb_dsu_top DSU-6, DSU-7 vectors",Karthik,P1
+cg_dsu_ill.cp_class,3,COV,DSU.F13.COV1,Each class of undefined encoding.,Planned.,Karthik,
+model compare,3,CHK,DSU.F13.CHK2,Compared with the Python model tools/golden/DSU_Golden.py on every vector in tb/dsu/tb_dsu_top.sv.,Exists.,Karthik,
+F14 With no DSU instruction in EX the unit is inert,2,SECTION,DSU.F14,"No state change, no result, no illegal, no busy. Erratum DSU-9.",Method: sim + formal. Today: tb_dsu_top DSU-9 vector,Karthik,P1
+a_inert_when_disabled,3,CHK,DSU.F14.CHK1,With the enable low no output and no state changes.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+D In the pipeline,1,SECTION,DSU.D,Spec 7.3. Requirement R-5. Checked with programs on the core.,,,
+F15 Every instruction is one cycle except for the interlock,2,SECTION,DSU.F15,Spec [N-7.1].,Method: sim + formal. Today: no check,Karthik,P2
+a_single_cycle,3,CHK,DSU.F15.CHK1,dsu_busy_o is high only when the interlock condition holds.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F16 Same-accumulator interlock,2,SECTION,DSU.F16,"An instruction that reads an accumulator directly behind one that writes it stalls one cycle and sees the new value. Spec [N-7.6], [N-7.7].","Method: sim + formal. Today: sw/tests/t_dsu.S, t_dsu_b2b.S",Karthik,P1
+a_interlock_fires,3,CHK,DSU.F16.CHK1,Busy is raised for a read of an accumulator with a write pending.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+cg_dsu_pair.x_first_second_same,3,COV,DSU.F16.COV2,"Every ordered pair of the eleven instructions back to back, on the same and on different accumulators.",Planned.,Karthik,
+F17 The interlock is per accumulator,2,SECTION,DSU.F17,A write to one accumulator followed by a read of another does not stall. Spec [N-7.8].,Method: sim + formal. Today: sw/tests/t_dsu_b2b.S,Karthik,P1
+a_interlock_per_acc,3,CHK,DSU.F17.CHK1,Busy is never raised when the two instructions address different accumulators.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F18 An instruction held by the interlock does not act early,2,SECTION,DSU.F18,"MACSAT held behind a MAC must use the updated accumulator, not the stale one. Defect DSU-12.",Method: sim. Today: sw/tests/t_dsu_b2b.S bit 2,Karthik,P1
+t_dsu_b2b,3,TC,DSU.F18.TC1,Back-to-back cases through the pipeline.,Passing.,Karthik,
+F19 A flushed DSU instruction does not change anything,2,SECTION,DSU.F19,A branch or trap in the same cycle discards the operation in EX. Spec [N-7.9].,"Method: sim + formal. Today: t_hold_flush_matrix bits 9, 11",Karthik,P1
+a_flush_no_accumulate,3,CHK,DSU.F19.CHK1,No accumulator changes for an instruction that is flushed.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F20 A committed accumulate is not lost to a later flush,2,SECTION,DSU.F20,The product of a MAC that has already left EX is folded in even if the next instruction traps. Defect DSU-13.,"Method: sim. Today: t_hold_flush_matrix bits 9, 10",Karthik,P1
+t_hold_flush_matrix,3,TC,DSU.F20.TC1,DSU cells.,Passing.,Karthik,
+F21 A DSU instruction held in EX runs exactly once,2,SECTION,DSU.F21,Behind a store waiting on the bus and behind a WFI. Defect P-7.,"Method: sim. Today: t_hold_flush_matrix bits 8, 15",Karthik,P1
+t_hold_flush_matrix,3,TC,DSU.F21.TC1,Cells 8 and 15.,Passing.,Karthik,
+F22 An interrupt taken on or next to a DSU instruction,2,SECTION,DSU.F22,The accumulators hold the same values as the uninterrupted run.,Method: sim. Today: timing sweep on t_hold_flush_matrix,Karthik,P1
+riscv-dv with DSU instructions and interrupts,3,TC,DSU.F22.TC1,"Random DSU instruction streams, with and without interrupts, accumulators compared at the end.",Planned.,Karthik,
+E Observation and clocking,1,SECTION,DSU.E,"Spec 7.6, section 9. Requirement R-6.",,,
+F23 The accumulators and flags are visible to the debugger at all times,2,SECTION,DSU.F23,"Planned in the debug plan, F29 to F31.","Method: sim. Today: tb_debug [N-6.7], [N-6.8]",Karthik,P1
+a_taps_live,3,CHK,DSU.F23.CHK1,The tap outputs equal the accumulators in every cycle.,"SVA in rtl/dsu/dsu_sva.sv, bound to dsu_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
+F24 The accumulators keep their values while the clock is gated,2,SECTION,DSU.F24,Across a WFI sleep.,Method: sim. Today: only t_hold_flush_matrix bit 15,Karthik,P1
+t_dsu_gate,3,TC,DSU.F24.TC1,All three accumulators and flags read before and after a sleep.,sw/tests. Planned.,Karthik,
+F25 The second clock gate,2,SECTION,DSU.F25,The specification says the unit is also gated by its own idle signal. There is no gate in rtl/dsu. One of the two has to change.,Method: review. Today: no check.,Karthik,P2
+review,3,CHK,DSU.F25.CHK1,Spec section 5 against rtl/dsu.,To be logged in Docs/BUGS.md.,Karthik,
+F The workloads it exists for,1,SECTION,DSU.F,"Spec 7.4, 7.5. Stage 5 scenarios.",,,
+F26 The potential-field loop,2,SECTION,DSU.F26,"Ten neighbours, result against a floating-point reference within a stated error bound. Spec [N-7.10] to [N-7.12].",Method: sim at chip level (scenario). Today: no test,Karthik,P1
+t_dsu_apf,3,TC,DSU.F26.TC1,"The loop on the core, compared with a reference computed in Python.",sw/tests + tools. Planned.,Karthik,
+F27 The estimators prediction and residual paths,2,SECTION,DSU.F27,"Against a floating-point reference within a stated bound; the covariance path is not attempted. Spec [N-7.13], [N-7.14].",Method: sim at chip level (scenario). Today: no test,Karthik,P2
+t_dsu_ekf_scope,3,TC,DSU.F27.TC1,Planned.,sw/tests + tools.,Karthik,
+F28 Overflow is caught by firmware,2,SECTION,DSU.F28,"A computation that saturates leaves the flag set for the check that follows it, and the clear path works.",Method: sim. Today: sw/tests/dsu_flag2.S,Karthik,P1
+dsu_flag2,3,TC,DSU.F28.TC1,"Flag set, read and cleared from a program.",Passing.,Karthik,
