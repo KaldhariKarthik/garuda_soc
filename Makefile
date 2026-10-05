@@ -285,6 +285,202 @@ docs:                                         ## regenerate the .docx exports (n
 elab_chip:                                       ## whole-chip elaboration
 	$(call run_blk,rtl/soc/filelist_chip.f,garuda_chip_top,elab_chip,-elaborate)
 
+# =============================================================================
+# Static checks (stage 1): rerun on every change to rtl/.
+#   static_lint   HAL lint on the whole chip; fails on any error that is not in
+#                 flow/2_static/hal_waivers.txt (matched by rule and file:line)
+#   static_cdc    HAL clock-domain check on debug_top, the one async boundary
+#   static_xprop  all eight chip programs with X-propagation (xrun -xprop F)
+# HAL is the Incisive 15.2 one: the Xcelium 22.09 HAL does not run here.
+# =============================================================================
+IRUN152 ?= /home/install/INCISIVE152/tools/bin/irun
+.PHONY: static static_lint static_cdc static_xprop
+static: static_lint static_cdc static_xprop      ## lint + clock-domain check + X-propagation
+
+static_lint:
+	@mkdir -p $(SIM_DIR)/static
+	@$(IRUN152) -hal -64bit -f rtl/soc/filelist_chip.f -top garuda_chip_top -define SYNTHESIS \
+	    -nclibdirname $(SIM_DIR)/static/INCA_libs -l $(SIM_DIR)/static/hal.log -f flow/2_static/hal.f > /dev/null 2>&1; \
+	 rm -f hal.design_facts; \
+	 n=0; new=0; \
+	 for e in $$(grep -E 'hal[a-z]*: \*E,' $(SIM_DIR)/static/hal.log | sed -E 's/^hal[a-z]*: \*E,([A-Z0-9]+) \(\.\/([^,]*),([0-9]+).*/\1@\2:\3/'); do \
+	   n=$$((n+1)); r=$${e%%@*}; fl=$${e#*@}; \
+	   if grep -A1 -E "^  $$r " flow/2_static/hal_waivers.txt | grep -qF "$$fl" || \
+	      { [ "$$r" = UNRCHS ] && grep -qE '^  UNRCHS +same line' flow/2_static/hal_waivers.txt; }; then :; \
+	   else new=$$((new+1)); echo "  NOT WAIVED: $$r $$fl"; fi; \
+	 done; \
+	 echo "static_lint   HAL errors=$$n  not waived=$$new  (log: $(SIM_DIR)/static/hal.log)"; \
+	 [ $$new -eq 0 ] && grep -q 'Analysis complete' $(SIM_DIR)/static/hal.log
+
+static_cdc:
+	@mkdir -p $(SIM_DIR)/static_cdc_debug
+	@$(IRUN152) -hal -64bit -f rtl/third_party/timescale.f rtl/debug/jtag_tap.v rtl/debug/dtm.v \
+	    rtl/debug/dmi_cdc.v rtl/debug/sba_master.v rtl/debug/debug_module.v rtl/debug/debug_top.v \
+	    -incdir rtl/include -top debug_top -define SYNTHESIS \
+	    -nclibdirname $(SIM_DIR)/static_cdc_debug/INCA_libs -l $(SIM_DIR)/static_cdc_debug/hal_cdc.log \
+	    -halargs "-check CLOCKDOMAIN" > /dev/null 2>&1; \
+	 rm -f hal.design_facts; \
+	 c=$$(grep -cE '\*E,CLKDMN' $(SIM_DIR)/static_cdc_debug/hal_cdc.log); \
+	 y=$$(grep -cE 'INSYNC' $(SIM_DIR)/static_cdc_debug/hal_cdc.log); \
+	 echo "static_cdc    unsynchronised crossings=$$c (5 waived: the DMI payload)  synchronisers found=$$y"; \
+	 [ $$c -le 5 ]
+
+static_xprop: sw
+	@mkdir -p $(SIM_DIR)/xprop; fail=0; \
+	 for t in "basic:+MODE=basic +TEST=sw/build/t_chip_basic.hex" "irq:+MODE=irq +TEST=sw/build/t_chip_irq.hex" \
+	          "wdt:+MODE=wdt +TEST=sw/build/t_chip_wdt.hex" "jtag:+MODE=jtag +TEST=sw/build/t_chip_jtag.hex +MAXUS=1500" \
+	          "flash:+MODE=flash +TEST=sw/build/flash.hex +MAXUS=3000" "uart:+MODE=basic +TEST=sw/build/t_chip_uart.hex" \
+	          "periph:+MODE=basic +TEST=sw/build/t_chip_periph.hex +MAXUS=1200" "integ:+MODE=basic +TEST=sw/build/t_chip_integ.hex +MAXUS=4000"; do \
+	   n=$${t%%:*}; a=$${t#*:}; \
+	   $(XRUN) -64bit -f tb/soc/filelist_chip.f -top tb_chip -xprop F $$a \
+	       -xmlibdirname $(SIM_DIR)/xprop/xcelium.d -l $(SIM_DIR)/xprop/chip_$$n.log > /dev/null 2>&1; \
+	   if grep -q 'RESULT: PASSED' $(SIM_DIR)/xprop/chip_$$n.log && ! grep -qE '\*[EF],' $(SIM_DIR)/xprop/chip_$$n.log; \
+	   then echo "static_xprop  chip_$$n PASS"; else echo "static_xprop  chip_$$n FAIL"; fail=1; fi; \
+	 done; [ $$fail -eq 0 ]
+
+# =============================================================================
+# UVM block environments (stage 2). Run under irun 15.2 so the coverage opens in
+# IMC. irun prints one tool error on every UVM run, "ncsim: *E,IMPDLL" (it cannot
+# build its own DPI export stub on this machine); the simulation is unaffected
+# and that one line is ignored here. Any other error fails the run.
+# The Incisive tools must be first on PATH for these runs: with Xcelium first,
+# irun 15.2 writes a coverage model that IMC 15.2 cannot load.
+#   make uvm_clic            register test, directed test, random test x SEEDS
+#   make uvm_clic SEEDS=50
+#   make uvm_timers          the same for the timers and the watchdog
+#   make uvm_pwm             the same for the PWM
+#   make uvm_gpio            the same for the GPIO
+#   make uvm_crg             the same for the clock divider and the reset controller
+# =============================================================================
+SEEDS ?= 20
+UVM_IRUN = $(IRUN152) -64bit -uvm -uvmhome CDNS-1.2 -coverage all -covoverwrite
+.PHONY: uvm_clic
+uvm_clic:                                        ## CLIC UVM environment, with coverage
+	@export PATH=$(dir $(IRUN152)):$$PATH; \
+	 D=$(SIM_DIR)/uvm_clic; mkdir -p $$D; rm -rf $$D/cov_work $$D/INCA_libs; fail=0; \
+	 C="$(UVM_IRUN) -covworkdir $$D/cov_work -covdut clic_top -nclibdirname $$D/INCA_libs"; \
+	 run() { $$C $$1 +UVM_TESTNAME=$$2 -svseed $$3 -covtest $$4 -l $$D/$$4.log > /dev/null 2>&1; \
+	   if grep -q 'RESULT: PASSED' $$D/$$4.log && [ "$$(grep -E '\*[EF],' $$D/$$4.log | grep -vc IMPDLL)" = 0 ] && ! grep -q 'SVA-FAIL' $$D/$$4.log; \
+	   then echo "uvm_clic  $$4 PASS"; else echo "uvm_clic  $$4 FAIL"; fail=1; fi; }; \
+	 run "-f tb/clic/uvm/filelist_clic_uvm.f -top tb_clic_uvm" clic_reg_test 1 reg_s1; \
+	 run -R clic_directed_test 1 directed_s1; \
+	 s=1; while [ $$s -le $(SEEDS) ]; do run -R clic_random_test $$s random_s$$s; s=$$((s+1)); done; \
+	 [ $$fail -eq 0 ]
+
+.PHONY: uvm_timers
+uvm_timers:                                      ## timers and watchdog UVM environment, with coverage
+	@export PATH=$(dir $(IRUN152)):$$PATH; \
+	 D=$(SIM_DIR)/uvm_timers; mkdir -p $$D; rm -rf $$D/cov_work $$D/INCA_libs; fail=0; \
+	 C="$(UVM_IRUN) -covworkdir $$D/cov_work -covdut timers_top -nclibdirname $$D/INCA_libs"; \
+	 run() { $$C $$1 +UVM_TESTNAME=$$2 -svseed $$3 -covtest $$4 -l $$D/$$4.log > /dev/null 2>&1; \
+	   if grep -q 'RESULT: PASSED' $$D/$$4.log && [ "$$(grep -E '\*[EF],' $$D/$$4.log | grep -vc IMPDLL)" = 0 ] && ! grep -q 'SVA-FAIL' $$D/$$4.log; \
+	   then echo "uvm_timers  $$4 PASS"; else echo "uvm_timers  $$4 FAIL"; fail=1; fi; }; \
+	 run "-f tb/timers/uvm/filelist_timers_uvm.f -top tb_timers_uvm" tmr_reg_test 1 reg_s1; \
+	 run -R tmr_directed_test 1 directed_s1; \
+	 s=1; while [ $$s -le $(SEEDS) ]; do run -R tmr_random_test $$s random_s$$s; s=$$((s+1)); done; \
+	 [ $$fail -eq 0 ]
+
+.PHONY: uvm_pwm
+uvm_pwm:                                      ## PWM UVM environment, with coverage
+	@export PATH=$(dir $(IRUN152)):$$PATH; \
+	 D=$(SIM_DIR)/uvm_pwm; mkdir -p $$D; rm -rf $$D/cov_work $$D/INCA_libs; fail=0; \
+	 C="$(UVM_IRUN) -covworkdir $$D/cov_work -covdut garuda_pwm_top -nclibdirname $$D/INCA_libs"; \
+	 run() { $$C $$1 +UVM_TESTNAME=$$2 -svseed $$3 -covtest $$4 -l $$D/$$4.log > /dev/null 2>&1; \
+	   if grep -q 'RESULT: PASSED' $$D/$$4.log && [ "$$(grep -E '\*[EF],' $$D/$$4.log | grep -vc IMPDLL)" = 0 ] && ! grep -q 'SVA-FAIL' $$D/$$4.log; \
+	   then echo "uvm_pwm  $$4 PASS"; else echo "uvm_pwm  $$4 FAIL"; fail=1; fi; }; \
+	 run "-f tb/pwm/uvm/filelist_pwm_uvm.f -top tb_pwm_uvm" pwm_reg_test 1 reg_s1; \
+	 run -R pwm_directed_test 1 directed_s1; \
+	 s=1; while [ $$s -le $(SEEDS) ]; do run -R pwm_random_test $$s random_s$$s; s=$$((s+1)); done; \
+	 [ $$fail -eq 0 ]
+
+.PHONY: uvm_gpio
+uvm_gpio:                                      ## GPIO UVM environment, with coverage
+	@export PATH=$(dir $(IRUN152)):$$PATH; \
+	 D=$(SIM_DIR)/uvm_gpio; mkdir -p $$D; rm -rf $$D/cov_work $$D/INCA_libs; fail=0; \
+	 C="$(UVM_IRUN) -covworkdir $$D/cov_work -covdut garuda_gpio_top -nclibdirname $$D/INCA_libs"; \
+	 run() { $$C $$1 +UVM_TESTNAME=$$2 -svseed $$3 -covtest $$4 -l $$D/$$4.log > /dev/null 2>&1; \
+	   if grep -q 'RESULT: PASSED' $$D/$$4.log && [ "$$(grep -E '\*[EF],' $$D/$$4.log | grep -vc IMPDLL)" = 0 ] && ! grep -q 'SVA-FAIL' $$D/$$4.log; \
+	   then echo "uvm_gpio  $$4 PASS"; else echo "uvm_gpio  $$4 FAIL"; fail=1; fi; }; \
+	 run "-f tb/gpio/uvm/filelist_gpio_uvm.f -top tb_gpio_uvm" gpio_reg_test 1 reg_s1; \
+	 run -R gpio_directed_test 1 directed_s1; \
+	 s=1; while [ $$s -le $(SEEDS) ]; do run -R gpio_random_test $$s random_s$$s; s=$$((s+1)); done; \
+	 [ $$fail -eq 0 ]
+
+.PHONY: uvm_crg
+uvm_crg:                                      ## clock and reset UVM environment, with coverage
+	@export PATH=$(dir $(IRUN152)):$$PATH; \
+	 D=$(SIM_DIR)/uvm_crg; mkdir -p $$D; rm -rf $$D/cov_work $$D/INCA_libs; fail=0; \
+	 C="$(UVM_IRUN) -covworkdir $$D/cov_work -covdut clk_div -covdut reset_ctrl -nclibdirname $$D/INCA_libs"; \
+	 run() { $$C $$1 +UVM_TESTNAME=$$2 -svseed $$3 -covtest $$4 -l $$D/$$4.log > /dev/null 2>&1; \
+	   if grep -q 'RESULT: PASSED' $$D/$$4.log && [ "$$(grep -E '\*[EF],' $$D/$$4.log | grep -vc IMPDLL)" = 0 ] && ! grep -q 'SVA-FAIL' $$D/$$4.log; \
+	   then echo "uvm_crg  $$4 PASS"; else echo "uvm_crg  $$4 FAIL"; fail=1; fi; }; \
+	 run "-f tb/clk_div/uvm/filelist_crg_uvm.f -top tb_crg_uvm" crg_reg_test 1 reg_s1; \
+	 run -R crg_directed_test 1 directed_s1; \
+	 s=1; while [ $$s -le $(SEEDS) ]; do run -R crg_random_test $$s random_s$$s; s=$$((s+1)); done; \
+	 [ $$fail -eq 0 ]
+
+# =============================================================================
+# riscv-dv: random instruction programs on the core, each compared with Spike
+# (stage 3). The generator is at ~/external/riscv-dv; the GARUDA target and the
+# list of tests are in tb/core/riscv_dv/. By hand: flow/COMMANDS.md.
+#   make riscv_dv                    every test in the list x DV_SEEDS seeds
+#   make riscv_dv DV_SEEDS=20
+#   make riscv_dv DV_TESTS="illegal ebreak" DV_SEEDS=3
+# =============================================================================
+RISCV_DV_ROOT ?= $(HOME)/external/riscv-dv
+RISCV_GNU     ?= /home/vivado/2025.2/Vitis/gnu/riscv/linux_toolchain/lin64/bin/riscv64-amd-linux-gnu
+SPIKE         ?= $(HOME)/external/spike-inst/bin/spike
+DV_SEEDS ?= 5
+DV_TESTS ?=
+DV_MAXCYC ?= 600000
+.PHONY: riscv_dv
+riscv_dv:                                        ## random programs in lockstep with Spike
+	@export RISCV_DV_ROOT=$(RISCV_DV_ROOT); D=$(SIM_DIR)/riscv_dv; mkdir -p $$D/asm; rm -f $$D/.fail; \
+	 $(XRUN) -64bit -access +rwc -f $(RISCV_DV_ROOT)/files.f +incdir+tb/core/riscv_dv/target +incdir+$(RISCV_DV_ROOT)/user_extension \
+	    -q -sv -uvm -uvmhome CDNS-1.2 -vlog_ext +.vh -elaborate -xmlibdirpath $$D -l $$D/compile.log > /dev/null 2>&1; \
+	 if grep -qE '\*[EF],' $$D/compile.log; then echo "riscv_dv: generator did not compile, see $$D/compile.log"; exit 1; fi; \
+	 $(XRUN) -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname $$D/rtl.d -snapshot garuda_boot -elaborate -l $$D/elab.log > /dev/null 2>&1; \
+	 if grep -qE '^(xrun|xmelab|xmvlog): \*[EF]' $$D/elab.log; then echo "riscv_dv: RTL did not elaborate, see $$D/elab.log"; exit 1; fi; \
+	 printf "%-22s %-9s %-9s %s\n" PROGRAM RTL LOCKSTEP NOTE; \
+	 grep -vE '^ *(#|$$)' tb/core/riscv_dv/testlist | while read name gen opts; do \
+	   if [ -n "$(DV_TESTS)" ] && ! echo " $(DV_TESTS) " | grep -q " $$name "; then continue; fi; \
+	   s=1; while [ $$s -le $(DV_SEEDS) ]; do t=$${name}_s$$s; s=$$((s+1)); \
+	     rm -f $$D/asm/$${t}_0.S $$D/asm/$$t.elf $$D/$$t.commit.log $$D/$$t.lockstep.txt; \
+	     $(XRUN) -64bit -R -xmlibdirpath $$D +UVM_TESTNAME=$$gen +num_of_tests=1 +start_idx=0 +asm_file_name=$$D/asm/$$t $$opts \
+	        -svseed $$((s-1)) -l $$D/$$t.gen.log > /dev/null 2>&1; \
+	     if [ ! -s $$D/asm/$${t}_0.S ]; then printf "%-22s %-9s %-9s %s\n" $$t - - "no program generated, see $$D/$$t.gen.log"; echo F >> $$D/.fail; continue; fi; \
+	     $(RISCV_GNU)-gcc -march=rv32im_zicsr_zifencei -mabi=ilp32 -mno-relax -fno-pic -static -nostdlib -nostartfiles -Wa,--no-warn \
+	        -I$(RISCV_DV_ROOT)/user_extension -T tb/core/riscv_dv/link.ld -no-pie -Wl,--no-warn-rwx-segments -Wl,--build-id=none \
+	        $$D/asm/$${t}_0.S -o $$D/asm/$$t.elf > $$D/$$t.build.log 2>&1; \
+	     if [ ! -s $$D/asm/$$t.elf ]; then printf "%-22s %-9s %-9s %s\n" $$t - - "did not link, see $$D/$$t.build.log"; echo F >> $$D/.fail; continue; fi; \
+	     $(RISCV_GNU)-objcopy -O binary $$D/asm/$$t.elf $$D/asm/$$t.bin; python3 tools/elf2hex.py $$D/asm/$$t.bin $$D/asm/$$t.hex > /dev/null; \
+	     th=$$($(RISCV_GNU)-nm $$D/asm/$$t.elf | awk '$$3=="tohost"{print $$1}'); \
+	     $(XRUN) -R -xmlibdirname $$D/rtl.d -snapshot garuda_boot -l $$D/$$t.run.log +HEX=$$D/asm/$$t.hex +COMMIT=$$D/$$t.commit.log \
+	        +TOHOST=$$th +MAXCYC=$(DV_MAXCYC) +QUIET > /dev/null 2>&1; \
+	     if grep -q 'TOHOST=1 -> PASSED' $$D/$$t.run.log && grep -q 'AHB-PROTOCOL: iport=0 dport=0' $$D/$$t.run.log; then r=PASS; else r=FAIL; fi; \
+	     ls=$$(python3 tools/lockstep.py --rtl $$D/$$t.commit.log --elf $$D/asm/$$t.elf --spike-log $$D/$$t.spike.log --spike $(SPIKE) --tohost $$th --max 3 2>&1); \
+	     rm -f $$D/$$t.spike.log; \
+	     if echo "$$ls" | grep -q '^MATCH'; then l=MATCH; note=$$(echo "$$ls" | grep '^MATCH' | sed 's/^MATCH: //'); \
+	     else l=DIVERGE; echo "$$ls" > $$D/$$t.lockstep.txt; note="see $$D/$$t.lockstep.txt"; fi; \
+	     printf "%-22s %-9s %-9s %s\n" $$t $$r $$l "$$note"; \
+	     if [ $$r != PASS ] || [ $$l != MATCH ]; then echo F >> $$D/.fail; fi; \
+	   done; done; \
+	 if [ -s $$D/.fail ]; then n=$$(wc -l < $$D/.fail); rm -f $$D/.fail; echo "riscv_dv: $$n program(s) FAILED"; exit 1; else echo "riscv_dv: all programs PASSED and MATCH Spike"; fi
+
+# Which CSR addresses exist on the core and which on Spike: all 4096 read on both.
+.PHONY: csr_map
+csr_map:                                         ## CSR existence, RTL against Spike
+	@D=$(SIM_DIR)/csr_map; mkdir -p $$D; python3 tools/csr_map.py gen $$D/csr_sweep.S; \
+	 $(RISCV_GNU)-gcc -march=rv32im_zicsr -mabi=ilp32 -mno-relax -fno-pic -static -nostdlib -nostartfiles -Wa,--no-warn \
+	    -T sw/common/link.ld -no-pie -Wl,--no-warn-rwx-segments $$D/csr_sweep.S -o $$D/csr_sweep.elf 2> $$D/build.log; \
+	 $(RISCV_GNU)-objcopy -O binary $$D/csr_sweep.elf $$D/csr_sweep.bin; python3 tools/elf2hex.py $$D/csr_sweep.bin $$D/csr_sweep.hex > /dev/null; \
+	 $(XRUN) -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname $$D/rtl.d -snapshot garuda_boot -l $$D/run.log \
+	    +HEX=$$D/csr_sweep.hex +COMMIT=$$D/commit.log +MAXCYC=400000 +QUIET > /dev/null 2>&1; \
+	 grep -q 'TOHOST=1 -> PASSED' $$D/run.log || { echo "csr_map: the sweep did not finish on the RTL, see $$D/run.log"; exit 1; }; \
+	 $(SPIKE) --isa=rv32im_zicsr_zifencei_zicntr --pmpregions=0 --triggers=0 -m0x10000000:0x40000 --disable-dtb --priv=m \
+	    --pc=0x10000000 --log-commits -l $$D/csr_sweep.elf > /dev/null 2> $$D/spike.log; \
+	 python3 tools/csr_map.py diff $$D/csr_sweep.elf $$D/commit.log $$D/spike.log $(RISCV_GNU)-nm
+
 # Everything that is expected to be green, in one command.
 regress_all: test_core test_elements test_blocks test_sanity test_dsu regress test_chip
 

@@ -28,12 +28,13 @@ vplanner -standalone &        # File > Open, pick a plan, then File > Save As <s
 | Top level, the six stages | `flow/1_vplan/garuda_soc.csv` |
 | A block | `tb/<block>/GARUDA_<BLOCK>_vplan.csv`, e.g. `tb/pwm/GARUDA_PWM_vplan.csv`, `tb/uart/GARUDA_UART_vplan.csv`, `tb/core/GARUDA_CORE_vplan.csv` |
 
-Each block plan is that block's specification, sections 2 (requirements), 10
-(assertions) and 11 (verification plan), in vPlanner form: every requirement, the
-tests planned for it, where each test lives in the bench and its result, the
-assertions, the merged coverage per module, and a last section with what the
-2026-10-04 flow run added. A planned test with no check in the bench is marked
-`NOT IMPLEMENTED`.
+Each block plan is written feature by feature from the block's specification:
+every register and field, mode, error path, corner case and cross-block
+interaction. A feature row carries its check method (sim, formal, static, chip
+level), an owner and a priority; under it are the named checks, coverage items
+and tests, and what checks it today. The criteria a block has to meet are in
+`flow/0_signoff_criteria.md`. Where a specification is silent or disagrees with
+the RTL the row says so (`Docs/BUGS.md` AUD-12).
 
 A note-by-note traceability list (every `[N-x.y]` in every spec against the check
 that cites it) is in `flow/1_vplan/traceability/spec_notes.csv`:
@@ -122,6 +123,227 @@ Lint errors to expect on a block linted alone, all listed in
 (the JTAG crossing), DMA, timers and bridge 1 each (hclk/pclk seen as unrelated
 ports). Every other block: 0 errors.
 
+## UVM environment for a block (stage 2), by hand: the CLIC
+
+```bash
+D=sim/uvm_clic; mkdir -p $D
+U="-64bit -uvm -uvmhome CDNS-1.2 -coverage all -covoverwrite -covworkdir $D/cov_work -covdut clic_top -nclibdirname $D/INCA_libs"
+
+# compile once and run the register-model test (reset values, bit bash, aliasing)
+irun $U -f tb/clic/uvm/filelist_clic_uvm.f -top tb_clic_uvm \
+     +UVM_TESTNAME=clic_reg_test -svseed 1 -covtest reg_s1 -l $D/reg_s1.log
+# the directed corners, then the random test with a seed (-R reuses the compile)
+irun $U -R +UVM_TESTNAME=clic_directed_test -svseed 1 -covtest directed_s1 -l $D/directed_s1.log
+irun $U -R +UVM_TESTNAME=clic_random_test   -svseed 7 -covtest random_s7   -l $D/random_s7.log
+
+grep -E 'RESULT|UVM_ERROR :|clic_scoreboard|APB protocol' $D/random_s7.log
+```
+
+Look for `RESULT: PASSED`, `UVM_ERROR : 0`, the scoreboard line with 0
+mismatches and `APB protocol checker: 0 violations`. irun prints one tool
+error on every UVM run, `ncsim: *E,IMPDLL`; it does not affect the simulation
+(`Docs/BUGS.md` TOOL-16). The whole regression, 22 runs: `make uvm_clic`
+(`SEEDS=50` for more seeds).
+
+Coverage, with the waivers and their reasons:
+
+```bash
+imc -execcmd "merge $D/cov_work/scope/reg_s1 $D/cov_work/scope/directed_s1 $D/cov_work/scope/random_s* -out $D/cov_work/scope/all -overwrite -initial_model union_all"
+imc -load $D/cov_work/scope/all &          # GUI
+imc -exec flow/cov/clic_report.tcl         # text: applies the waivers, writes sim/uvm_clic/code_cov.txt and func_cov.txt
+```
+
+What the pieces are: `tb/uvm/apb/` the APB agent every block reuses;
+`Design_Docs/regs/clic.rdl` the register description and
+`tools/gen/gen_ral.py` the generator of the register model; `tb/clic/uvm/` the
+source agent, the reference model (written from the spec, never from the RTL),
+the scoreboard, the covergroups named in the plan, the sequences and tests;
+`rtl/clic/clic_sva.sv` the properties, bound to the RTL in every simulation.
+
+### The same for the PWM
+
+```bash
+python3 tools/gen/gen_ral.py Design_Docs/regs/pwm.rdl tb/pwm/uvm/pwm_reg_pkg.sv     # only after editing the .rdl
+
+D=sim/uvm_pwm; mkdir -p $D
+U="-64bit -uvm -uvmhome CDNS-1.2 -coverage all -covoverwrite -covworkdir $D/cov_work -covdut garuda_pwm_top -nclibdirname $D/INCA_libs"
+
+irun $U -f tb/pwm/uvm/filelist_pwm_uvm.f -top tb_pwm_uvm \
+     +UVM_TESTNAME=pwm_reg_test -svseed 1 -covtest reg_s1 -l $D/reg_s1.log
+irun $U -R +UVM_TESTNAME=pwm_directed_test -svseed 1 -covtest directed_s1 -l $D/directed_s1.log
+irun $U -R +UVM_TESTNAME=pwm_random_test   -svseed 7 -covtest random_s7   -l $D/random_s7.log
+
+grep -E 'RESULT|UVM_ERROR :|pwm_scoreboard|APB protocol' $D/random_s7.log
+
+imc -execcmd "merge $D/cov_work/scope/reg_s1 $D/cov_work/scope/directed_s1 $D/cov_work/scope/random_s* -out $D/cov_work/scope/all -overwrite -initial_model union_all"
+imc -exec flow/cov/pwm_report.tcl          # writes sim/uvm_pwm/code_cov.txt, func_cov.txt, holes.txt
+```
+
+The scoreboard line also counts "frames and pulses measured". Those are the
+high time and the length of every undisturbed frame, counted on the four pins
+and compared with DUTY x (PRESCALE + 1) and PERIOD x (PRESCALE + 1) straight
+from the registers. That check does not use the model's counter, and it is the
+one that found the stalled prescaler (`Docs/BUGS.md` PWM-4). The directed test
+is long (1.7 million cycles) because it runs whole frames at PERIOD 0xFFFF and
+at PRESCALE 0xFFFF. All 22 runs: `make uvm_pwm`.
+
+The interrupt and register-port properties of this block are not in
+`rtl/pwm/pwm_sva.sv` but in `rtl/common/garuda_apb_shim_sva.sv`: they are bound
+to the shim, so the same properties check every peripheral window.
+
+### The same for the GPIO
+
+```bash
+python3 tools/gen/gen_ral.py Design_Docs/regs/gpio.rdl tb/gpio/uvm/gpio_reg_pkg.sv   # only after editing the .rdl
+
+D=sim/uvm_gpio; mkdir -p $D
+U="-64bit -uvm -uvmhome CDNS-1.2 -coverage all -covoverwrite -covworkdir $D/cov_work -covdut garuda_gpio_top -nclibdirname $D/INCA_libs"
+
+irun $U -f tb/gpio/uvm/filelist_gpio_uvm.f -top tb_gpio_uvm \
+     +UVM_TESTNAME=gpio_reg_test -svseed 1 -covtest reg_s1 -l $D/reg_s1.log
+irun $U -R +UVM_TESTNAME=gpio_directed_test -svseed 1 -covtest directed_s1 -l $D/directed_s1.log
+irun $U -R +UVM_TESTNAME=gpio_random_test   -svseed 7 -covtest random_s7   -l $D/random_s7.log
+
+grep -E 'RESULT|UVM_ERROR :|gpio_scoreboard|APB protocol' $D/random_s7.log
+
+imc -execcmd "merge $D/cov_work/scope/reg_s1 $D/cov_work/scope/directed_s1 $D/cov_work/scope/random_s* -out $D/cov_work/scope/all -overwrite -initial_model union_all"
+imc -exec flow/cov/gpio_report.tcl         # writes sim/uvm_gpio/code_cov.txt, func_cov.txt, holes.txt
+```
+
+This block has a second agent: the pad driver, which plays the outside world on
+the two pins while the APB agent plays the firmware. The bench top stands in
+for the pad cells (they are at the chip top). The scoreboard line ends with
+what was checked "from the pads alone": settled pad levels against PADIN reads,
+and pad edges against the interrupt line, with no model of the synchroniser in
+between. The vendored block and the specification disagree in five places
+(`Docs/BUGS.md` GPIO-2); the model follows the block and each place is marked
+in `tb/gpio/uvm/gpio_env_pkg.sv`. All 22 runs: `make uvm_gpio`.
+
+### The same for the clock divider and the reset controller
+
+The two modules are verified together, connected as in the chip. There are two
+design units to cover, so `-covdut` is given twice.
+
+```bash
+python3 tools/gen/gen_ral.py Design_Docs/regs/crg.rdl tb/clk_div/uvm/crg_reg_pkg.sv   # only after editing the .rdl
+
+D=sim/uvm_crg; mkdir -p $D
+U="-64bit -uvm -uvmhome CDNS-1.2 -coverage all -covoverwrite -covworkdir $D/cov_work -covdut clk_div -covdut reset_ctrl -nclibdirname $D/INCA_libs"
+
+irun $U -f tb/clk_div/uvm/filelist_crg_uvm.f -top tb_crg_uvm \
+     +UVM_TESTNAME=crg_reg_test -svseed 1 -covtest reg_s1 -l $D/reg_s1.log
+irun $U -R +UVM_TESTNAME=crg_directed_test -svseed 1 -covtest directed_s1 -l $D/directed_s1.log
+irun $U -R +UVM_TESTNAME=crg_random_test   -svseed 7 -covtest random_s7   -l $D/random_s7.log
+
+grep -E 'RESULT|UVM_ERROR :|crg_scoreboard|APB protocol' $D/random_s7.log
+
+imc -execcmd "merge $D/cov_work/scope/reg_s1 $D/cov_work/scope/directed_s1 $D/cov_work/scope/random_s* -out $D/cov_work/scope/all -overwrite -initial_model union_all"
+imc -exec flow/cov/crg_report.tcl          # writes sim/uvm_crg/code_cov.txt, func_cov.txt, holes.txt
+```
+
+This environment is different in kind from the register blocks. Most of what it
+checks is not a value but a time: the width of every clock pulse, two edges
+falling at the same instant, the length of a reset. Those checks are properties
+bound to the two modules (`rtl/clk_div/clk_div_sva.sv`,
+`rtl/reset_ctrl/reset_ctrl_sva.sv`) and written with `$realtime`; they also run
+in every chip simulation. The scoreboard line counts the resets it measured on
+the pins. The APB agent here runs on the pclk and preset_n that come out of the
+block under test, and a test can assert the reset pin at any instant, also with
+the reference clock stopped. All 22 runs: `make uvm_crg`.
+
+### The same for the timers and the watchdog
+
+Only the names change. The register model is generated first; the generated
+file is in the tree, so this step is needed only after editing the `.rdl`.
+
+```bash
+python3 tools/gen/gen_ral.py Design_Docs/regs/timers.rdl tb/timers/uvm/timers_reg_pkg.sv
+
+D=sim/uvm_timers; mkdir -p $D
+U="-64bit -uvm -uvmhome CDNS-1.2 -coverage all -covoverwrite -covworkdir $D/cov_work -covdut timers_top -nclibdirname $D/INCA_libs"
+
+irun $U -f tb/timers/uvm/filelist_timers_uvm.f -top tb_timers_uvm \
+     +UVM_TESTNAME=tmr_reg_test -svseed 1 -covtest reg_s1 -l $D/reg_s1.log
+irun $U -R +UVM_TESTNAME=tmr_directed_test -svseed 1 -covtest directed_s1 -l $D/directed_s1.log
+irun $U -R +UVM_TESTNAME=tmr_random_test   -svseed 7 -covtest random_s7   -l $D/random_s7.log
+
+grep -E 'RESULT|UVM_ERROR :|tmr_scoreboard|APB protocol' $D/random_s7.log
+
+imc -execcmd "merge $D/cov_work/scope/reg_s1 $D/cov_work/scope/directed_s1 $D/cov_work/scope/random_s* -out $D/cov_work/scope/all -overwrite -initial_model union_all"
+imc -exec flow/cov/timers_report.tcl       # writes sim/uvm_timers/code_cov.txt, func_cov.txt, assert.txt
+```
+
+The scoreboard line counts hclk cycles, because this model is stepped once per
+hclk cycle and compares `mtip`, the warning and the reset request in every one
+of them, as well as every read. "watchdog resets seen" above 0 is expected: the
+tests let the watchdog expire on purpose. All 22 runs: `make uvm_timers`.
+
+Two things in this bench are worth reading. `tb_timers_uvm.sv` makes hclk and
+pclk in one `initial` block with blocking assignments; a divider written
+`pclk <= ~pclk` gives a different `WDTVAL` read by one count (`Docs/BUGS.md`
+SIM-1). And the reset controller is replaced by a ten-line stand-in, because a
+watchdog expiry resets the block under test in the middle of a run.
+
+## Random instruction programs on the core (stage 3), by hand: riscv-dv
+
+riscv-dv is the open-source random instruction generator (a UVM program that
+writes assembly). It is cloned at `~/external/riscv-dv`. What it may generate
+for GARUDA is `tb/core/riscv_dv/target/riscv_core_setting.sv`; the tests and
+their options are `tb/core/riscv_dv/testlist`. One program, start to finish:
+
+```bash
+export RISCV_DV_ROOT=~/external/riscv-dv
+G=/home/vivado/2025.2/Vitis/gnu/riscv/linux_toolchain/lin64/bin/riscv64-amd-linux-gnu
+D=sim/riscv_dv; mkdir -p $D/asm
+
+# 1. compile the generator (once)
+xrun -64bit -access +rwc -f $RISCV_DV_ROOT/files.f +incdir+tb/core/riscv_dv/target \
+     +incdir+$RISCV_DV_ROOT/user_extension -q -sv -uvm -uvmhome CDNS-1.2 -vlog_ext +.vh \
+     -elaborate -xmlibdirpath $D -l $D/compile.log
+
+# 2. generate one program: the "loop" test, seed 7  ->  $D/asm/loop_s7_0.S
+xrun -64bit -R -xmlibdirpath $D +UVM_TESTNAME=riscv_instr_base_test +num_of_tests=1 +start_idx=0 \
+     +asm_file_name=$D/asm/loop_s7 +instr_cnt=5000 +num_of_sub_program=5 +directed_instr_1=riscv_loop_instr,20 \
+     -svseed 7 -l $D/loop_s7.gen.log
+
+# 3. assemble and link it for the GARUDA memory map; find where tohost landed
+$G-gcc -march=rv32im_zicsr_zifencei -mabi=ilp32 -mno-relax -fno-pic -static -nostdlib -nostartfiles \
+     -Wa,--no-warn -I$RISCV_DV_ROOT/user_extension -T tb/core/riscv_dv/link.ld -no-pie \
+     -Wl,--no-warn-rwx-segments -Wl,--build-id=none $D/asm/loop_s7_0.S -o $D/asm/loop_s7.elf
+$G-objcopy -O binary $D/asm/loop_s7.elf $D/asm/loop_s7.bin
+python3 tools/elf2hex.py $D/asm/loop_s7.bin $D/asm/loop_s7.hex
+TH=$($G-nm $D/asm/loop_s7.elf | awk '$3=="tohost"{print $1}'); echo $TH
+
+# 4. run it on the core (the same bench as the ISA tests)
+xrun -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname $D/rtl.d -snapshot garuda_boot -elaborate -l $D/elab.log
+xrun -R -xmlibdirname $D/rtl.d -snapshot garuda_boot -l $D/loop_s7.run.log \
+     +HEX=$D/asm/loop_s7.hex +COMMIT=$D/loop_s7.commit.log +TOHOST=$TH +MAXCYC=600000 +QUIET
+
+# 5. run it on Spike and compare
+python3 tools/lockstep.py --rtl $D/loop_s7.commit.log --elf $D/asm/loop_s7.elf \
+     --spike-log $D/loop_s7.spike.log --spike $SPIKE --tohost $TH
+```
+
+Step 4 ends with `TOHOST=1 -> PASSED` and `AHB-PROTOCOL: iport=0 dport=0
+violations`; step 5 with `MATCH: n instructions identical; s stores, t traps,
+c CSR instructions (v with a value) identical`. A `DIVERGE` prints the first
+instruction, store, trap or CSR value where the RTL and Spike differ, with the
+three instructions before it. All ten tests over several seeds:
+`make riscv_dv` (`DV_SEEDS=20`, `DV_TESTS="illegal ebreak"`).
+
+Which CSR addresses exist on the core and which on Spike is a separate,
+exhaustive test, because a random program meets such an address by chance:
+
+```bash
+make csr_map        # reads all 4096 addresses on both; prints the two maps and every difference with its reason
+```
+
+What is compared and what is not: every retired PC and register write, every
+store (address, size, data), every trap (cause, epc, tval) and the value of
+every CSR an instruction writes. Not compared: anything with an interrupt
+(Spike is not told when one is taken), and DIV/REM, which GARUDA runs in a
+software handler; riscv-dv is told not to generate those four.
+
 ## Stages 4, 5 and 6 by hand: one test of each kind
 
 Same `irun` as for a block; what changes is the filelist, the top and the
@@ -176,7 +398,7 @@ imc -load sim/manual/cov_work/scope/all &
 ```
 
 What to look for: unit bench `ALL CHECKS PASSED`; ISA and directed programs
-`TOHOST=1 -> PASSED`, and `MATCH: n instructions identical` from the lockstep;
+`TOHOST=1 -> PASSED`, and `MATCH: n instructions identical; s stores, t traps, c CSR instructions identical` from the lockstep;
 DSU `mismatches : 0`; chip tests `RESULT: PASSED`.
 
 The other chip programs, same command with these arguments:
@@ -222,7 +444,7 @@ cat sim/vm_sessions/*/chain_0/run_*/local_log.log | grep    'GARUDA_RESULT: FAIL
 ```
 
 Groups in `flow/regress/garuda.vsif`: `block` (stage 3), `core` (stage 4: unit
-benches, DSU, 63 ISA tests, sanity), `integ` (stage 5), `soc` (stage 6).
+benches, DSU, 64 ISA tests, sanity), `integ` (stage 5), `soc` (stage 6).
 A run fails on any simulator error (assertion failures included), any `[FAIL]`
 line, or a missing pass marker.
 
@@ -267,9 +489,13 @@ The same suites on Xcelium, quickly:
 | Stage | Command | What it runs |
 |---|---|---|
 | 3 Block/IP | `make test_blocks` | 15 block benches |
+| 3 Block/IP | `make uvm_clic uvm_timers uvm_pwm uvm_gpio uvm_crg` | the UVM environment of each block done so far: register test, directed test, 20 random seeds, with coverage (irun 15.2) |
+| 1 Static | `make static` | lint, clock-domain check and X-propagation on the whole chip |
 | 4 CPU core | `make test_core test_elements` | unit and element benches |
-| 4 CPU core | `make regress` | 63 ISA tests; 57 are also compared with Spike instruction by instruction |
+| 4 CPU core | `make regress` | 64 ISA tests; 58 are also compared with Spike: PC, register writes, stores, traps and CSR values |
 | 4 CPU core | `make regress_rand SEED=3` | the same under random bus waits |
+| 4 CPU core | `make riscv_dv DV_SEEDS=20` | 200 random programs from riscv-dv, each compared with Spike |
+| 4 CPU core | `make csr_map` | which of the 4096 CSR addresses exist on the core and on Spike |
 | 4 CPU core | `make test_sanity` | 12 directed programs, incl. the hold × flush matrix |
 | 4 CPU core | `make pipe_matrix` | which hold × flush cells the programs reach |
 | 4 CPU core | `make test_dsu` | DSU against its model |

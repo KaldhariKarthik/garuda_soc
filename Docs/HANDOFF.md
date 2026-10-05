@@ -16,7 +16,7 @@ integration, SoC top): commands in `flow/COMMANDS.md`, findings in
 | 1 vPlan | vPlanner CSV plan generated from the spec notes (`flow/1_vplan/`) | 885 elements; 396 notes still have no check that cites them |
 | 2 Static | HAL lint on the chip, HAL clock-domain checks on `debug_top` | 696 errors down to 5, all dispositioned (`flow/2_static/hal_waivers.txt`); formal not run, no IFV licence |
 | 3 Block/IP | 15 block benches | all pass; DMA 63, debug 93, UART 116, I²C 88, PWM 56, SPI slave 71 checks |
-| 4 CPU core | 20 unit/element benches, 63 ISA tests, 57 of them also in Spike lockstep and 6 judged by their own result by design (plain and random waits), 12 sanity programs incl. the hold × flush matrix, DSU vs model | all pass, 0 assertion failures |
+| 4 CPU core | 20 unit/element benches, 64 ISA tests, 58 of them also in Spike lockstep (PC, register writes, stores, traps, CSR values) and 6 judged by their own result by design (plain and random waits), 12 sanity programs incl. the hold × flush matrix, DSU vs model | all pass, 0 assertion failures |
 | 5 Integration | interconnect, bridge, shim, `t_chip_integ` | all pass |
 | 6 SoC top | 8 chip programs from the pins, 2 of them also with X-propagation | all pass |
 
