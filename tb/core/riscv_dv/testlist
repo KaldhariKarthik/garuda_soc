@@ -1,0 +1,21 @@
+# riscv-dv tests run on the GARUDA core: name, generator test, generator options.
+# Options are those of riscv-dv's yaml/base_testlist.yaml, with the instruction
+# count sized for the 256 KB verification memory. One line per test.
+#
+# Not run, with the reason:
+#   riscv_full_interrupt_test       Spike is not told when the RTL takes an interrupt
+#   riscv_ebreak_debug_mode_test    needs a debug request driven into the core
+#
+# "unaligned" is short on purpose: GARUDA traps a misaligned access, riscv-dv's
+# handler treats that as the end of the test, so each seed checks one such trap.
+# The misaligned cases themselves are in riscv-tests (p-ma_data and four others).
+arith        riscv_instr_base_test  +instr_cnt=5000 +num_of_sub_program=0 +directed_instr_0=riscv_int_numeric_corner_stream,4 +no_fence=1 +no_data_page=1 +no_branch_jump=1 +boot_mode=m +no_csr_instr=1
+rand_instr   riscv_instr_base_test  +instr_cnt=5000 +num_of_sub_program=5 +directed_instr_0=riscv_load_store_rand_instr_stream,4 +directed_instr_1=riscv_loop_instr,4 +directed_instr_2=riscv_hazard_instr_stream,4 +directed_instr_3=riscv_load_store_hazard_instr_stream,4 +directed_instr_4=riscv_multi_page_load_store_instr_stream,4 +directed_instr_5=riscv_mem_region_stress_test,4 +directed_instr_6=riscv_jal_instr,4
+jump_stress  riscv_instr_base_test  +instr_cnt=3000 +num_of_sub_program=5 +directed_instr_1=riscv_jal_instr,20
+loop         riscv_instr_base_test  +instr_cnt=5000 +num_of_sub_program=5 +directed_instr_1=riscv_loop_instr,20
+rand_jump    riscv_instr_base_test  +instr_cnt=5000 +num_of_sub_program=10 +directed_instr_0=riscv_load_store_rand_instr_stream,8
+mmu_stress   riscv_instr_base_test  +instr_cnt=5000 +num_of_sub_program=5 +directed_instr_0=riscv_load_store_rand_instr_stream,40 +directed_instr_1=riscv_load_store_hazard_instr_stream,40 +directed_instr_2=riscv_multi_page_load_store_instr_stream,10 +directed_instr_3=riscv_mem_region_stress_test,10
+no_fence     riscv_rand_instr_test  +instr_cnt=5000 +no_fence=1
+illegal      riscv_rand_instr_test  +instr_cnt=5000 +illegal_instr_ratio=5
+ebreak       riscv_rand_instr_test  +instr_cnt=5000 +no_ebreak=0
+unaligned    riscv_instr_base_test  +instr_cnt=5000 +num_of_sub_program=5 +directed_instr_0=riscv_load_store_rand_instr_stream,20 +directed_instr_1=riscv_load_store_hazard_instr_stream,20 +directed_instr_2=riscv_multi_page_load_store_instr_stream,5 +directed_instr_3=riscv_mem_region_stress_test,5 +enable_unaligned_load_store=1

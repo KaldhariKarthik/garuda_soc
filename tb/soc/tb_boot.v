@@ -33,6 +33,20 @@
 // never hold), so a single register clocked with the identical flush term
 // tracks em_pc through MEM/WB exactly. If mem_wb_reg ever gains a hold, this
 // shadow silently desynchronises - the assertion below catches that.
+//
+// STORE, CSR AND TRAP RECORDS (commit log version 2)
+// -------------------------------------------------
+// Besides one line per retired instruction, the log carries three kinds of
+// record, each written when the event happens:
+//   MEM  <addr> <bytes> <data>   a data-port write that completed with OKAY
+//   CSR  <addr> <value>          a CSR instruction left EX; value is what the
+//                                CSR holds afterwards ("--------" if this
+//                                bench has no view of that CSR)
+//   TRAP <cause> <epc> <tval>    a trap was taken
+// A store completes one cycle before its instruction retires and a CSR
+// instruction acts two cycles before, so these records come BEFORE their
+// instruction's own line. tools/lockstep.py compares each kind as an ordered
+// stream against what Spike logs for the same program.
 // =============================================================================
 
 module tb_boot;
@@ -275,6 +289,61 @@ module tb_boot;
     end
 
     // =========================================================================
+    // Store, CSR and trap records (see the header)
+    // =========================================================================
+    // data-port address phase, held for its data phase
+    reg        dp_v, dp_w;
+    reg [31:0] dp_a;
+    reg [2:0]  dp_s;
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) dp_v <= 1'b0;
+        else if (d_hready) begin
+            dp_v <= d_htrans[1]; dp_w <= d_hwrite; dp_a <= d_haddr; dp_s <= d_hsize;
+        end
+    // the bytes the store wrote, taken from their byte lanes
+    wire [31:0] dp_lane = d_hwdata >> {dp_a[1:0], 3'b000};
+    wire [31:0] dp_data = (dp_s == 3'd0) ? {24'd0, dp_lane[7:0]} :
+                          (dp_s == 3'd1) ? {16'd0, dp_lane[15:0]} : dp_lane;
+    always @(posedge clk)
+        if (rst_n && dp_v && dp_w && d_hready && !d_hresp)
+            $fwrite(fh_commit, "MEM %08x %0d %08x\n", dp_a, 1 << dp_s, dp_data);
+
+    always @(posedge clk)
+        if (rst_n && dut.tr_enter)
+            $fwrite(fh_commit, "TRAP %08x %08x %08x\n", dut.tr_cause, dut.tr_pc, dut.tr_tval);
+
+    // A CSR instruction acts in the cycle it leaves EX. Its CSR is read half a
+    // cycle later, straight from the registers, so the record holds the value
+    // after the instruction whether or not it wrote.
+    reg        csr_pend;
+    reg [11:0] csr_pa;
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) csr_pend <= 1'b0;
+        else begin
+            csr_pend <= dut.ex_csr_en_out && dut.ex_commit && (dut.ex_csr_op_out != 2'b00) && !dut.csr_illegal;
+            csr_pa   <= dut.ex_csr_addr_w;
+        end
+    reg [31:0] csr_v; reg csr_known;
+    always @(negedge clk)
+        if (rst_n && csr_pend) begin
+            csr_known = 1'b1;
+            case (csr_pa)
+                12'h300: csr_v = dut.u_csr.mstatus_val;
+                12'h301: csr_v = dut.u_csr.misa_val;
+                12'h304: csr_v = dut.u_csr.mie_r;
+                12'h305: csr_v = {dut.u_csr.mtvec_r[31:2], 2'b11};
+                12'h340: csr_v = dut.u_csr.mscratch_r;
+                12'h341: csr_v = dut.u_csr.mepc_r;
+                12'h342: csr_v = dut.u_csr.mcause_r;
+                12'h343: csr_v = dut.u_csr.mtval_r;
+                12'h347: csr_v = {24'd0, dut.u_csr.mintthresh_r};
+                default: begin csr_v = 32'd0; csr_known = 1'b0; end
+            endcase
+            if (csr_known) $fwrite(fh_commit, "CSR %03x %08x\n", csr_pa, csr_v);
+            else           $fwrite(fh_commit, "CSR %03x --------\n", csr_pa);
+        end
+
+    // =========================================================================
     // tohost monitor - watches the D-port write as it completes on the bus
     // =========================================================================
     reg [31:0] tohost_val;
@@ -371,6 +440,7 @@ module tb_boot;
         if (fh_commit == 0) begin
             $display("FATAL: cannot open commit log"); $finish;
         end
+        $fwrite(fh_commit, "# garuda-commit-log 2\n");
 
         if (!$value$plusargs("HEX=%s", hexfile)) begin
             $display("FATAL: tb_boot requires +HEX=<image>"); $finish;
