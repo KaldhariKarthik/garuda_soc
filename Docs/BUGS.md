@@ -4,6 +4,15 @@
 Not per-block: a bug that crosses a boundary belongs in one list, and the
 cross-block ones are the expensive ones.
 
+> **New entries go in the two track registers** (rule of the pre-PDK plan of 2026-10-10):
+> `Docs/bugs/track_a.md` (core, DSU, AHB, bridge, DMA, debug, memories, physical design) and
+> `Docs/bugs/track_b.md` (peripherals, clocks and resets, chip top, software, FPGA, flow).
+> Each track register lists, under "Carried over", the entries of this file that were open
+> when it was split, with their ruling and what was done. This file keeps the history up to
+> section 1m and the open-items table below; a block prefix belongs to the block's track and
+> a prefix that is not a block carries the track letter (TOOL-A1, TOOL-B1), so the two tracks
+> cannot take the same ID.
+
 Last updated: 2026-10-14 (§1l physical design; DOC-1 documentation sync). Covers every
 block of `Design_Docs/garuda_system.yaml`, the testbenches, the tools and physical design.
 
