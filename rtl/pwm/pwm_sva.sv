@@ -10,6 +10,9 @@
 // (rtl/common/garuda_apb_shim_sva.sv). Not compiled for synthesis or lint.
 // =============================================================================
 `ifndef SYNTHESIS
+`ifndef __ICARUS__
+// Icarus Verilog does not parse concurrent assertions; under it this file is
+// empty and the block is simulated without its properties (TOOL-B2).
 module pwm_sva (
     input wire        pclk_i,
     input wire        preset_n_i,
@@ -24,7 +27,9 @@ module pwm_sva (
     input wire        wrap,
     input wire        dma_req
 );
-    wire [15:0] duty_s [0:3];
+    // packed, not an unpacked array: Verilator 5 cannot take $stable() of an
+    // unpacked-array element (TOOL-B2)
+    wire [3:0][15:0] duty_s;
     assign duty_s[0] = duty_s0; assign duty_s[1] = duty_s1;
     assign duty_s[2] = duty_s2; assign duty_s[3] = duty_s3;
 
@@ -91,4 +96,5 @@ bind garuda_pwm_top pwm_sva u_pwm_sva (
     .duty_s0(u_core.duty_s[0]), .duty_s1(u_core.duty_s[1]),
     .duty_s2(u_core.duty_s[2]), .duty_s3(u_core.duty_s[3]),
     .wrap(wrap), .dma_req(u_shim.dma_req_o));
+`endif
 `endif

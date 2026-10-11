@@ -15,6 +15,9 @@
 // hclk edge: any register stage would break it one cycle after a change.
 // =============================================================================
 `ifndef SYNTHESIS
+`ifndef __ICARUS__
+// Icarus Verilog does not parse concurrent assertions; under it this file is
+// empty and the block is simulated without its properties (TOOL-B2).
 module clic_sva #(
     parameter integer N       = 32,
     parameter [31:0]  IE_MASK = 32'h007F_FF7E
@@ -71,10 +74,13 @@ module clic_sva #(
             (clic_irq_valid_o && cand[n]) |-> (lvl_n <= clic_irq_level_o))
             else $error("[SVA-FAIL] a_winner_max_level: id %0d (level %0d) beats winner %0d (level %0d)",
                         n, lvl_n, clic_irq_id_o, clic_irq_level_o);
+        // for the highest ID the compare is true by range, which Verilator reports
+        /* verilator lint_off CMPCONST */
         a_tiebreak_lowest_id: assert property (@(posedge hclk_i) disable iff (!preset_n_i)
             (clic_irq_valid_o && cand[n] && (lvl_n == clic_irq_level_o)) |-> (n >= clic_irq_id_o))
             else $error("[SVA-FAIL] a_tiebreak_lowest_id: id %0d ties with winner %0d and is lower",
                         n, clic_irq_id_o);
+        /* verilator lint_on CMPCONST */
     end endgenerate
 
     // ---- F16: nothing pending -> the sentinel -----------------------------------
@@ -125,4 +131,5 @@ bind clic_top clic_sva #(.N(N), .IE_MASK(IE_MASK)) u_clic_sva (
     .irq_src_i(irq_src_i), .ie(ie), .level(level),
     .clic_irq_valid_o(clic_irq_valid_o), .clic_irq_id_o(clic_irq_id_o),
     .clic_irq_level_o(clic_irq_level_o));
+`endif
 `endif

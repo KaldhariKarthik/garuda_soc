@@ -10,6 +10,9 @@
 // (rtl/common/garuda_apb_shim_sva.sv). Not compiled for synthesis or lint.
 // =============================================================================
 `ifndef SYNTHESIS
+`ifndef __ICARUS__
+// Icarus Verilog does not parse concurrent assertions; under it this file is
+// empty and the block is simulated without its properties (TOOL-B2).
 module gpio_sva (
     input wire        pclk_i,
     input wire        preset_n_i,
@@ -73,4 +76,5 @@ bind garuda_gpio_top gpio_sva u_gpio_sva (
     .padin(u_gpio.r_gpio_in), .en(u_gpio.r_gpio_en),
     .ip_rd_status(u_gpio.PSEL && u_gpio.PENABLE && !u_gpio.PWRITE && (u_gpio.PADDR[6:2] == 5'd9)),
     .dma_req(u_shim.dma_req_o));
+`endif
 `endif

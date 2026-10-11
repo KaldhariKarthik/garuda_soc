@@ -11,6 +11,9 @@
 // or lint.
 // =============================================================================
 `ifndef SYNTHESIS
+`ifndef __ICARUS__
+// Icarus Verilog does not parse concurrent assertions; under it this file is
+// empty and the block is simulated without its properties (TOOL-B2).
 // The file is named in the filelist of every block that has a shim, and the chip
 // compiles all of those: the guard makes the second and later copies empty, so
 // the properties are bound once.
@@ -107,5 +110,6 @@ bind garuda_apb_shim garuda_apb_shim_sva #(.N_EVT(N_EVT)) u_shim_sva (
     .evt_i(evt_i), .irq_o(irq_o),
     .rx_avail_i(rx_avail_i), .tx_space_i(tx_space_i), .dma_ack_i(dma_ack_i), .dma_req_o(dma_req_o),
     .irqstat_q(irqstat_q), .irqen_q(irqen_q), .dmactl_q(dmactl_q));
+`endif
 `endif
 `endif

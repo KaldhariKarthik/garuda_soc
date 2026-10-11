@@ -9,6 +9,9 @@
 // environment and in every chip simulation. Not compiled for synthesis or lint.
 // =============================================================================
 `ifndef SYNTHESIS
+`ifndef __ICARUS__
+// Icarus Verilog does not parse concurrent assertions; under it this file is
+// empty and the block is simulated without its properties (TOOL-B2).
 module timers_sva (
     input wire        hclk_i,
     input wire        hreset_n_i,
@@ -157,4 +160,5 @@ bind timers_top timers_sva u_timers_sva (
     .mtime_q(u_mtime.mtime_q), .cmp_q(u_mtime.cmp_q), .shadow_q(u_mtime.shadow_q),
     .en_q(u_wdt.en_q), .warnen_q(u_wdt.warnen_q), .ctr_q(u_wdt.ctr_q),
     .load_q(u_wdt.load_q), .warn_q(u_wdt.warn_q));
+`endif
 `endif

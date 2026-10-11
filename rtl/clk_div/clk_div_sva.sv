@@ -11,6 +11,9 @@
 // $realtime. Not compiled for synthesis or lint.
 // =============================================================================
 `ifndef SYNTHESIS
+`ifndef __ICARUS__
+// Icarus Verilog does not parse concurrent assertions; under it this file is
+// empty and the block is simulated without its properties (TOOL-B2).
 module clk_div_sva (
     input wire       refclk_i,
     input wire       raw_rst_n_i,
@@ -91,4 +94,5 @@ module clk_div_sva (
 endmodule
 
 bind clk_div clk_div_sva u_clk_div_sva (.*);
+`endif
 `endif

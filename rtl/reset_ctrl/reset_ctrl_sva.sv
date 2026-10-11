@@ -9,6 +9,9 @@
 // and in every chip simulation. Not compiled for synthesis or lint.
 // =============================================================================
 `ifndef SYNTHESIS
+`ifndef __ICARUS__
+// Icarus Verilog does not parse concurrent assertions; under it this file is
+// empty and the block is simulated without its properties (TOOL-B2).
 module reset_ctrl_sva #(
     parameter integer STRETCH = 1024
 )(
@@ -129,4 +132,5 @@ bind reset_ctrl reset_ctrl_sva #(.STRETCH(STRETCH)) u_reset_ctrl_sva (
     .hreset_n_o(hreset_n_o), .preset_n_o(preset_n_o), .core_rst_n_o(core_rst_n_o),
     .dm_rst_n_o(dm_rst_n_o), .ext_hrst_n_o(ext_hrst_n_o),
     .swrst_stb(swrst_stb), .reason_q(reason_q), .reason_w1c(reason_w1c), .ext_held(ext_held));
+`endif
 `endif
