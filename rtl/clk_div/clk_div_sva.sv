@@ -49,7 +49,10 @@ module clk_div_sva (
 
     // ---- F11: pclk never changes except with an hclk rising edge -----------
     realtime t_pclk = 0;
-    always @(pclk_o) if (raw_rst_n_i === 1'b1) begin
+    // TB-34: not at time 0. A two-state simulator (Verilator) gives pclk_q its
+    // initial value as a change at time 0, which is initialisation, not an
+    // edge; Xcelium's X-to-value transition there happens not to fire this.
+    always @(pclk_o) if (raw_rst_n_i === 1'b1 && $realtime != 0) begin
         a_pclk_subset_hclk: assert ($realtime == t_hclk_rise && hclk_o === 1'b1)
             else $error("[SVA-FAIL] a_pclk_subset_hclk: pclk changed at %0t, the last hclk rise was at %0t", $realtime, t_hclk_rise);
         if (t_pclk != 0 && t_ref != 0)
