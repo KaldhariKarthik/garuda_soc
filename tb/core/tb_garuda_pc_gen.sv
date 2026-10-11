@@ -97,7 +97,11 @@ endinterface
 
 module tb_top;
     bit clk = 0;
-    bit rst_n;
+    // TB-32 (the TB-22 class): starts at 1 so the `rst_n = 0` at time 0 below is
+    // a real falling edge. As a bare `bit` it was already 0, that assignment was
+    // no event, and the reset-vector checks at 3 ns passed only on a simulator
+    // that invents an edge on the DUT's 4-state rst_n_i at time 0.
+    bit rst_n = 1;
     always #5 clk = ~clk;
 
     localparam bit [31:0] RESET_VECTOR = 32'h1000_0000;
