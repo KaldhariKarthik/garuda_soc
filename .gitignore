@@ -75,3 +75,6 @@ fpga/kv260/.Xil/
 fpga/kv260/garuda.dtbo
 *.jou
 *.log.bak
+
+# SymbiYosys run directories
+flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl_*/

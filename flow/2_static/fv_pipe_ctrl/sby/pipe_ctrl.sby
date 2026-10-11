@@ -1,0 +1,53 @@
+# SymbiYosys: pipe_ctrl with its inputs free, and the two guarantees its one
+# assumption rests on. See pipe_ctrl_fv.sv and env_guarantees_fv.sv for what
+# this does and does not show. Run from the repo root:
+#     sby -f flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl.sby
+# (results land in flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl_<task>/, ignored)
+#
+# prove     every pipe_ctrl assertion holds for all inputs allowed by A1
+#           (pipe_ctrl has no state, so depth 2 is a complete proof)
+# cover     every cover, including the v_ vacuity covers, is reachable
+# g1_prove  G1 on d_port_ahb_master, k-induction
+# g1_cover  ... and an error and a stall are each reachable
+# g2_prove  G2 on trap_ctrl, k-induction
+# g2_cover  ... and a squash under H2 is reachable
+
+[tasks]
+prove
+cover
+g1_prove g1
+g1_cover g1
+g2_prove g2
+g2_cover g2
+
+[options]
+prove: mode prove
+prove: depth 2
+cover: mode cover
+cover: depth 2
+g1_prove: mode prove
+g2_prove: mode prove
+g1_cover: mode cover
+g2_cover: mode cover
+g1: depth 8
+g2: depth 8
+
+[engines]
+smtbmc z3
+
+[script]
+prove: read -formal pipe_ctrl.v pipe_ctrl_fv.sv
+prove: prep -top pipe_ctrl_fv
+cover: read -formal pipe_ctrl.v pipe_ctrl_fv.sv
+cover: prep -top pipe_ctrl_fv
+g1: read -formal d_port_ahb_master.v trap_ctrl.v env_guarantees_fv.sv
+g1: prep -top g1_dport
+g2: read -formal d_port_ahb_master.v trap_ctrl.v env_guarantees_fv.sv
+g2: prep -top g2_trap
+
+[files]
+rtl/core/pipe_ctrl.v
+rtl/core/d_port_ahb_master.v
+rtl/core/trap_ctrl.v
+flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl_fv.sv
+flow/2_static/fv_pipe_ctrl/sby/env_guarantees_fv.sv
