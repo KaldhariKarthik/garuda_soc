@@ -121,6 +121,44 @@ module tb_dsu_top;
         end
     endtask
 
+    // TB-35: the record count comes from the files themselves. It used to be
+    // the first X word after $readmemh, which a two-state simulator cannot
+    // produce: under Verilator a MISSING stimulus file read as 40960 all-zero
+    // records, compared against an all-zero expectation, and the bench printed
+    // RESULT: PASSED. Counts every line whose first non-blank character is a
+    // hex digit, which is what $readmemh reads from DSU_gen.py's files;
+    // -1 if the file cannot be opened.
+    function integer count_words(input [4095:0] fname);
+        integer fd, len, k, n;
+        reg [8*1024-1:0] line;
+        reg [7:0] ch;
+        reg seen;
+        begin
+            fd = $fopen(fname, "r");
+            if (fd == 0) count_words = -1;
+            else begin
+                n = 0;
+                len = $fgets(line, fd);
+                while (len > 0) begin
+                    seen = 1'b0;
+                    for (k = 0; k < len && !seen; k = k + 1) begin
+                        ch = line[8*(len-k)-1 -: 8];
+                        if (ch != " " && ch != "\t") begin
+                            seen = 1'b1;
+                            if ((ch >= "0" && ch <= "9") || (ch >= "a" && ch <= "f") ||
+                                (ch >= "A" && ch <= "F")) n = n + 1;
+                        end
+                    end
+                    len = $fgets(line, fd);
+                end
+                $fclose(fd);
+                count_words = n;
+            end
+        end
+    endfunction
+
+    integer nstim, nexp;
+
     initial begin
         errors = 0; checked = 0;
         if (!$value$plusargs("MAXREPORT=%d", max_report)) max_report = 10;
@@ -131,17 +169,20 @@ module tb_dsu_top;
         $readmemh(stimfile, stim);
         $readmemh(expfile,  exp);
 
-        // The stimulus file carries one record per test; the first X word marks
-        // the end. Counting this way means the testbench never has to be told
-        // how many tests the generator produced.
-        ntests = 0;
-        while (ntests < MAX_TESTS && stim[ntests*STIM_W] !== 32'hxxxx_xxxx)
-            ntests = ntests + 1;
-        $display("tb_dsu_top: %0d tests from %0s", ntests, stimfile);
-        if (ntests == 0) begin
-            $display("FATAL: no stimulus - run tools/gen/DSU_gen.py first");
+        // One record per test, counted in the files (TB-35), so the testbench
+        // never has to be told how many tests the generator produced - and a
+        // missing, empty or mismatched pair of files is a failure, not a pass.
+        nstim = count_words(stimfile);
+        nexp  = count_words(expfile);
+        if (nstim <= 0 || nexp <= 0 || nstim % STIM_W != 0 ||
+            nexp != (nstim / STIM_W) * EXP_W || nstim / STIM_W > MAX_TESTS) begin
+            $display("[FAIL] no usable stimulus - run tools/gen/DSU_gen.py first: %0s (%0d words), %0s (%0d words)",
+                     stimfile, nstim, expfile, nexp);
+            $display("  RESULT         : FAILED");
             $finish;
         end
+        ntests = nstim / STIM_W;
+        $display("tb_dsu_top: %0d tests from %0s", ntests, stimfile);
 
         // ---- reset ----
         rst_n = 1'b0; flush = 1'b0; dsu_en = 1'b0;
