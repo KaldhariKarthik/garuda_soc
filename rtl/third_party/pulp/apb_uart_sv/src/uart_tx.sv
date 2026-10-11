@@ -191,7 +191,11 @@ module uart_tx (
         begin
             if(baudgen_en)
             begin
-                if(baud_cnt == cfg_div_i)
+                // GARUDA patch 0001 (UART-3): >=, not ==. A divisor lowered
+                // below the running count (DLL/DLM written mid-frame) made
+                // an == compare miss and count on to the 16-bit wrap, the
+                // line stalled for up to 65 536 clocks with TEMT low.
+                if(baud_cnt >= cfg_div_i)
                 begin
                     baud_cnt <= 'h0;
                     bit_done <= 1'b1;

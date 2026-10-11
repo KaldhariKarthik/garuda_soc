@@ -232,12 +232,14 @@ module uart_rx (
         begin
             if(baudgen_en)
             begin
-                if(!start_bit && (baud_cnt == cfg_div_i))
+                // GARUDA patch 0001 (UART-3): >=, as in uart_tx - a divisor
+                // lowered mid-frame must not leave the counter to wrap.
+                if(!start_bit && (baud_cnt >= cfg_div_i))
                 begin
                     baud_cnt <= 'h0;
                     bit_done <= 1'b1;
                 end
-                else if(start_bit && (baud_cnt == {1'b0,cfg_div_i[15:1]}))
+                else if(start_bit && (baud_cnt >= {1'b0,cfg_div_i[15:1]}))
                 begin
                     baud_cnt <= 'h0;
                     bit_done <= 1'b1;

@@ -330,6 +330,9 @@ module apb_uart_sv
         if(~RSTN)
         begin
 
+            // GARUDA patch 0001 (UART-4): entry 0 had no reset value, so the
+            // flop needed RSTN as a data enable (reset in the data path).
+            regs_q[RBR]       <= 8'h0;
             regs_q[IER]       <= 8'h0;
             regs_q[IIR]       <= 8'h1;
             regs_q[LCR]       <= 8'h0;
