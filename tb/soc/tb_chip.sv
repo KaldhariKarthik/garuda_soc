@@ -18,7 +18,13 @@
 // slave bus throughout and fail the run on any violation.
 // =============================================================================
 module tb_chip;
-    reg refclk = 0, ext_rst_n = 0, boot_sel = 1;
+    reg refclk = 0, ext_rst_n = 1, boot_sel = 1;
+    // TB-30 (the TB-22 class): the reset pin must FALL. Declared `= 0` it is
+    // low from time 0 with no edge, RSTREASON.EXT is set only by the async
+    // branch of reset_ctrl and aon_clk is stopped while the pin is low, so
+    // EXT read 1 only on a simulator that invents an edge at time 0 (Xcelium
+    // does, Verilator and Icarus do not). Start high, fall at 0.5 ns.
+    initial #0.5 ext_rst_n = 1'b0;
     reg tck = 0, tms = 1, tdi = 0;
     always #1 refclk = ~refclk;
 
