@@ -62,14 +62,14 @@ module garuda_pwm_top #(
         assign duty_flat[16*g +: 16] = duty_q[g];
     end endgenerate
 
-    integer k;
+    integer kw;                                 // write-side loop index only (PWM-3)
     always @(posedge pclk_i or negedge preset_n_i) begin
         if (!preset_n_i) begin
             prescale_q <= 16'd0;
             period_q   <= 16'd0;
             en_q       <= 1'b0;                 // motors off out of reset
             ch_en_q    <= {NCH{1'b0}};
-            for (k = 0; k < NCH; k = k + 1) duty_q[k] <= 16'd0;
+            for (kw = 0; kw < NCH; kw = kw + 1) duty_q[kw] <= 16'd0;
         end else if (wr_hit) begin
             case (ip_paddr)
                 A_PRESCALE: prescale_q <= pwdata_i[15:0];
@@ -79,9 +79,9 @@ module garuda_pwm_top #(
                     ch_en_q <= pwdata_i[NCH+3:4];
                 end
                 default: begin
-                    for (k = 0; k < NCH; k = k + 1)
-                        if (ip_paddr == (A_DUTY0 + 4*k))
-                            duty_q[k] <= pwdata_i[15:0];
+                    for (kw = 0; kw < NCH; kw = kw + 1)
+                        if (ip_paddr == (A_DUTY0 + 4*kw))
+                            duty_q[kw] <= pwdata_i[15:0];
                 end
             endcase
         end
@@ -110,6 +110,19 @@ module garuda_pwm_top #(
     // =========================================================================
     // Read mux
     // =========================================================================
+    // PWM-3: the DUTY read select runs its loop on every evaluation, outside
+    // the case. With the loop inside `default:` the index was assigned on one
+    // branch only and synthesis inferred a latch for it; it also shared `k`
+    // with the write block above, so two processes drove one variable.
+    reg [15:0] duty_rd;
+    integer    kr;
+    always @(*) begin
+        duty_rd = 16'd0;
+        for (kr = 0; kr < NCH; kr = kr + 1)
+            if (ip_paddr == (A_DUTY0 + 4*kr))
+                duty_rd = duty_q[kr];
+    end
+
     reg [31:0] reg_rdata;
     always @(*) begin
         reg_rdata = 32'd0;
@@ -118,11 +131,7 @@ module garuda_pwm_top #(
             A_PERIOD:   reg_rdata = {16'd0, period_q};
             A_CTRL:     reg_rdata = {{(28-NCH){1'b0}}, ch_en_q, 3'd0, en_q};
             A_STATUS:   reg_rdata = {{(12-NCH){1'b0}}, clamp, count};
-            default: begin
-                for (k = 0; k < NCH; k = k + 1)
-                    if (ip_paddr == (A_DUTY0 + 4*k))
-                        reg_rdata = {16'd0, duty_q[k]};
-            end
+            default:    reg_rdata = {16'd0, duty_rd};
         endcase
     end
 
