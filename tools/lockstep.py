@@ -289,7 +289,10 @@ def main():
                         nrtl += 1
             cmd.insert(1, f"--instructions={nrtl + 5000 * (ntrap + 2)}")
         with open(spike_log, "w") as f:
-            subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=f, timeout=600)
+            spike_rc = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=f,
+                                      timeout=600).returncode
+    else:
+        spike_rc = 0                          # a given log: no exit status to read
 
     if not spike_log:
         sys.exit("lockstep: need --elf or --spike-log")
@@ -313,6 +316,15 @@ def main():
 
     if not args.quiet:
         print(f"lockstep: spike={len(gold)} rtl={len(rtl)} compared={n}")
+
+    # TOOL-12: Spike's exit status was never read, so a Spike that died part way
+    # left a short golden log that compared clean on its prefix. A non-zero exit
+    # is tolerated only when its log still covers every instruction the RTL
+    # retired; otherwise the uncompared tail is the point.
+    if spike_rc != 0 and len(gold) < len(rtl):
+        print(f"MISMATCH: Spike exited {spike_rc} after {len(gold)} instructions; "
+              f"{len(rtl) - len(gold)} RTL instructions not compared")
+        return 1
 
     if not diverge and len(rtl) > len(gold) + 3:
         # The other way round is not a match either: instructions the RTL retired
