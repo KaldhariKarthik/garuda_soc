@@ -511,6 +511,24 @@ timeout.
 
 ---
 
+## Without a licence: Verilator and SymbiYosys
+
+From a shell with the YosysHQ oss-cad-suite on `PATH` (`lib/` before `bin/`) and
+`VERILATOR_ROOT` set:
+
+```bash
+SIM=verilator ./scripts/run_sim.sh all          # every block bench, Verilator instead of Icarus
+SIM=verilator ./scripts/run_sim.sh tb_trap_ctrl # one bench
+sby -f flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl.sby   # pipe_ctrl formal: prove, covers, G1/G2
+make local_lint                                  # whole-chip Verilator lint
+./scripts/run_synth.sh garuda_chip_top           # whole-chip Yosys synthesis + latch gate
+```
+
+A bench that ends NO-VERDICT has not run (on Windows, check whether Smart App
+Control refused the binary). Results of 2026-10-11: `Docs/VERIFICATION_LOG_2026-10-11.md`.
+
+---
+
 ## Where the results are written down
 
 - `Docs/BUGS.md` section 1h: every defect found on 2026-10-04, the tool or test
