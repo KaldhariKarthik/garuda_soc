@@ -1,10 +1,11 @@
 `timescale 1ns/1ps
 module tb_trap_ctrl;
-  integer errors=0;
+  integer errors=0, checks=0;
   reg clk=0; always #5 clk=~clk;
   reg rst_n;
   reg [31:0] idpc,idinstr,exaddr,mtvec,mepc,mpc,mtval;
   reg idflt,idill,idsys,dsuill,csrill,ldm,stm,memv; reg [3:0] memc;
+  reg mstall;                              // D-port wait (H2), T-9/T-13/T-14
   reg tkcond,wkcond,mtip_pend,mstat_mie; reg [11:0] irqid; reg [7:0] irqlvl; reg [31:0] vectgt;
   wire tk_ack, trap_en, is_int, mret, tr_rv, sq_ide, sq_exm, sq_mwb, wfih, exsq;
   wire [7:0] clvl; wire [31:0] tpc,tcause,ttval,trtgt;
@@ -19,7 +20,7 @@ module tb_trap_ctrl;
     // ERRATUM T-4 added an EX-valid gate on interrupt entry. Tied high
     // here so this TB's existing interrupt vectors behave as before.
     .idex_valid_i(1'b1),
-    .mem_stall_i(1'b0),                    // no D-port wait in this smoke (T-9 has its own test)
+    .mem_stall_i(mstall),
     .mem_exc_valid_i(memv),.mem_exc_cause_i(memc),.mem_exc_pc_i(mpc),.mem_exc_tval_i(mtval),
     .clic_take_cond_i(tkcond),.clic_wake_cond_i(wkcond),.clic_irq_id_i(irqid),
     .clic_irq_lvl_i(irqlvl),.clic_vector_target_i(vectgt),.clic_take_o(tk_ack),
@@ -31,12 +32,12 @@ module tb_trap_ctrl;
     .trap_squash_id_ex_o(sq_ide),.trap_squash_ex_mem_o(sq_exm),.trap_squash_mem_wb_o(sq_mwb),
     .wfi_hold_o(wfih),.ex_squash_o(exsq));
   task c(input [255:0] n,input g,input e);
-    begin if(g!==e)begin $display("FAIL %0s got %b exp %b",n,g,e);errors=errors+1;end end endtask
+    begin checks=checks+1; if(g!==e)begin $display("[FAIL] %0s got %b exp %b",n,g,e);errors=errors+1;end end endtask
   task c32(input [255:0] n,input [31:0] g,input [31:0] e);
-    begin if(g!==e)begin $display("FAIL %0s got %h exp %h",n,g,e);errors=errors+1;end end endtask
+    begin checks=checks+1; if(g!==e)begin $display("[FAIL] %0s got %h exp %h",n,g,e);errors=errors+1;end end endtask
   task clr; begin
     idpc=32'h1000;idinstr=32'h13;exaddr=0;mtvec=32'h8000_0000;mepc=32'h4444;mpc=0;mtval=0;
-    idflt=0;idill=0;idsys=0;dsuill=0;csrill=0;ldm=0;stm=0;memv=0;memc=0;
+    idflt=0;idill=0;idsys=0;dsuill=0;csrill=0;ldm=0;stm=0;memv=0;memc=0;mstall=0;
     tkcond=0;wkcond=0;irqid=0;irqlvl=0;vectgt=32'h0;
     mtip_pend=0;mstat_mie=0;
   end endtask
@@ -84,9 +85,45 @@ module tb_trap_ctrl;
     clr; idsys=1; idinstr=32'h10500073; @(posedge clk); #1;
       c("wfi_holds",wfih,1);
       mtip_pend=1; mstat_mie=0; #1; c("wfi_wakes_on_mti",wfih,0);
+    // ---- ERRATUM T-14: a WFI behind a D-port wait whose access then faults ----
+    // The WFI must not arm while H2 holds; when the access ends in ERROR the
+    // trap squashes the WFI and the handler must run, not sleep.
+    rst_n=0; clr; #1 rst_n=1;
+    @(negedge clk); mstall=1; idsys=1; idinstr=32'h10500073;
+    @(posedge clk); #1; c("t14_no_arm_under_h2",wfih,0);
+    @(negedge clk); mstall=0; memv=1; memc=4'd5; mpc=32'h5000; mtval=32'h5004; #1;
+      c("t14_fault_taken",trap_en,1); c("t14_wfi_squashed",sq_ide,1);
+    @(negedge clk); clr; #1; c("t14_handler_not_held",wfih,0);
+    @(posedge clk); #1;      c("t14_handler_still_runs",wfih,0);
+    // A WFI behind a wait that completes cleanly still sleeps once H2 clears.
+    rst_n=0; clr; #1 rst_n=1;
+    @(negedge clk); mstall=1; idsys=1; idinstr=32'h10500073;
+    @(posedge clk); #1; c("t14_wfi_waits_for_h2",wfih,0);
+    @(negedge clk); mstall=0;
+    @(posedge clk); #1; c("t14_wfi_sleeps_after_h2",wfih,1);
+    // ---- ERRATUM T-13: a load/store bus error directly ahead of an MRET ----
+    // The older MEM-point fault wins: trap entered, MRET neither pops nor
+    // redirects, and is squashed with the younger instructions.
+    rst_n=0; clr; #1 rst_n=1;
+    clr; idsys=1; idinstr=32'h30200073; mepc=32'h4444;
+         memv=1; memc=4'd5; mpc=32'h5000; mtval=32'h5004; #1;
+      c("t13_fault_taken",trap_en,1); c("t13_no_mret_pop",mret,0);
+      c32("t13_cause",tcause,32'd5); c32("t13_mepc",tpc,32'h5000); c32("t13_mtval",ttval,32'h5004);
+      c("t13_redirect",tr_rv,1); c32("t13_target_mtvec",trtgt,32'h8000_0000);
+      c("t13_squash_mret",sq_ide,1); c("t13_squash_wb",sq_mwb,1);
+    clr; idsys=1; idinstr=32'h30200073; memv=1; memc=4'd7; mpc=32'h6000; mtval=32'h6008; #1;
+      c("t13_store_fault_taken",trap_en,1); c("t13_store_no_pop",mret,0);
+      c32("t13_store_cause",tcause,32'd7);
+    // Unchanged by T-13: an interrupt still yields to an MRET in EX ...
+    clr; idsys=1; idinstr=32'h30200073; tkcond=1; vectgt=32'h9000_0000; #1;
+      c("mret_over_int_no_enter",trap_en,0); c("mret_over_int_pop",mret,1);
+      c32("mret_over_int_target",trtgt,32'h4444);
+    // ... and (T-9) an MRET does not pop while a D-port transfer is outstanding.
+    clr; idsys=1; idinstr=32'h30200073; mstall=1; #1;
+      c("mret_held_by_h2",mret,0); c("mret_held_no_redirect",tr_rv,0);
     clr; #1;
-    if(errors==0)$display("TRAP_CTRL SMOKE: ALL CHECKS PASSED");
-    else $display("TRAP_CTRL SMOKE: %0d FAILURE(S)",errors);
+    if(errors==0)$display("TRAP_CTRL SMOKE: checks=%0d ALL CHECKS PASSED",checks);
+    else $display("TRAP_CTRL SMOKE: checks=%0d %0d FAILURE(S) - FAILED",checks,errors);
     $finish;
   end
 endmodule

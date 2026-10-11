@@ -161,11 +161,21 @@ module trap_ctrl #(
     // the handler ran only when the NEXT interrupt arrived, returned to the WFI,
     // and the same thing happened again - every interrupt served one interrupt
     // late, and the program never got past the WFI.
+    //
+    // ERRATUM T-14 (2026-10-11, found by a whole-core formal cover on trap_ctrl)
+    // T-11 covered the squash that happens in the same cycle. A WFI behind a
+    // load or store that is still waiting on the D-port (H2) armed the latch
+    // at once: EX-point traps are held off by ~h2, so wfi_squashed was 0. When
+    // that access then ended in a bus error, the trap squashed the WFI but
+    // nothing cleared the latch, and the core slept in the fault handler until
+    // some interrupt became pending - with none, for ever. The WFI is still in
+    // EX when H2 clears (ID/EX is held by the same stall), so arming it then
+    // loses nothing.
     wire wfi_squashed;                             // assigned below, once any_int exists
     reg wfi_active;
     always @(posedge clk_i or negedge rst_n_i) begin
         if (!rst_n_i)                              wfi_active <= 1'b0;
-        else if (is_wfi & ~wfi_active & ~wfi_squashed) wfi_active <= 1'b1;
+        else if (is_wfi & ~wfi_active & ~wfi_squashed & ~h2) wfi_active <= 1'b1;
         else if (wfi_active & wake_cond)           wfi_active <= 1'b0;
     end
     assign wfi_hold_o = wfi_active & ~wake_cond;
@@ -202,7 +212,25 @@ module trap_ctrl #(
                         & idex_valid_i & ~h2;
     wire any_int      = take_int | take_mti;
     assign wfi_squashed = exception | any_int;     // T-11
-    wire trap_now     = (exception | any_int) & ~is_mret;
+
+    // -----------------------------------------------------------------------
+    // ERRATUM T-13 (2026-10-11, found by a whole-core formal cover on trap_ctrl)
+    // -----------------------------------------------------------------------
+    // trap_now was (exception | any_int) & ~is_mret, so an MRET in EX blocked
+    // EVERY trap - including the MEM-point bus error of the load or store just
+    // ahead of it, which is older and must win. The fault was dropped: no
+    // trap, mepc and mcause unwritten, the load's write-back squashed, and the
+    // MRET popped and jumped to mepc as if nothing had happened. Trap-handler
+    // epilogues restore registers with loads directly before mret, so this is
+    // the ordinary shape of the code, not a corner.
+    //
+    // A MEM-point exception is now taken whatever sits in EX, and the MRET
+    // (pop, redirect, target) is gated off by it; the MRET is squashed with
+    // the rest of the younger instructions and re-runs after the handler.
+    // EX-point traps and interrupts still yield to an MRET, as before.
+    // -----------------------------------------------------------------------
+    wire trap_now     = mem_exc_valid_i | ((ex_exc | any_int) & ~is_mret);
+    wire mret_take    = is_mret & ~h2 & ~mem_exc_valid_i;
 
     // MTI is not a CLIC source: no CLIC level to push, so it enters at mil 0.
     assign clic_take_o     = take_int;
@@ -210,7 +238,7 @@ module trap_ctrl #(
     assign clic_level_o    = take_int ? clic_irq_lvl_i : 8'd0;
 
     assign trap_enter_o    = trap_now;
-    assign mret_o          = is_mret & ~h2;           // T-9: one pop, when the wait clears
+    assign mret_o          = mret_take;               // T-9: one pop, when the wait clears
 
     // mepc / mcause / mtval selection
     assign trap_pc_o    = mem_exc_valid_i ? mem_exc_pc_i :
@@ -243,8 +271,8 @@ module trap_ctrl #(
     wire [31:0] mtvec_base = {mtvec_i[31:2], 2'b0};
 
     // Redirect: trap -> vector/base ; MRET -> mepc
-    assign trap_redirect_valid_o  = trap_now | (is_mret & ~h2);
-    assign trap_redirect_target_o = is_mret ? mepc_i :
+    assign trap_redirect_valid_o  = trap_now | mret_take;
+    assign trap_redirect_target_o = mret_take ? mepc_i :
                                     take_int ? clic_vector_target_i : mtvec_base;
 
     // Squash of the offending instr's own downstream reg (+younger via redirect flush)
