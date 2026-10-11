@@ -28,13 +28,14 @@ mkdir -p "$OUT"
 
 SRCS=$(python3 scripts/expand_filelist.py "$FL")
 INCS=$(python3 scripts/expand_filelist.py "$FL" --incdirs | sed 's/-I//g')
+DEFS=$(python3 scripts/expand_filelist.py "$FL" --defines | sed 's/-D/-define /g')   # TOOL-15
 
 cat > "$OUT/run.tcl" <<TCL
 set_db information_level 1
 set_db hdl_error_on_latch false
 set_db init_hdl_search_path {$INCS rtl/include}
 read_libs $LIB
-read_hdl -define SYNTHESIS -define GARUDA_SRAM_BLACKBOX -sv {$SRCS}
+read_hdl -define SYNTHESIS -define GARUDA_SRAM_BLACKBOX $DEFS -sv {$SRCS}
 elaborate $TOP
 check_design -all > $OUT/check_design.rpt
 syn_generic

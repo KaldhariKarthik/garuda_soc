@@ -31,6 +31,12 @@
 # Exit status is 0 only if every testbench compiled, ran, and reported a
 # verdict with zero failures. A compile failure, a missing binary or a missing
 # verdict line is a failure -- see the note on stale binaries below.
+#
+# SIM=verilator selects Verilator (--binary --timing --assert) instead of
+# Icarus, for machines where Icarus cannot run (Windows Smart App Control
+# blocks vvp.exe and ivl.exe) and for the benches Icarus cannot build (the
+# TB_SKIP list applies to Icarus only). Same filelists, same verdict rules.
+SIM=${SIM:-icarus}
 # =============================================================================
 set -u
 
@@ -65,6 +71,7 @@ tb_gpio|tb/gpio/filelist_gpio.f|tb_gpio
 tb_pwm|tb/pwm/filelist_pwm.f|tb_pwm
 tb_spis|tb/spi_slave/filelist_spis.f|tb_spis
 tb_dsu_top|tb/dsu/filelist_dsu_top.f|tb_dsu
+tb_trap_ctrl|tb/core/filelist_trap_ctrl.f|tb_trap_ctrl
 "
 
 # -----------------------------------------------------------------------------
@@ -90,6 +97,7 @@ tb_spim|third-party pulp/axi_spi_master: compiles, but 12x 'sorry: constant sele
 "
 
 skip_reason() {   # $1 = top -> echoes the reason, or nothing
+    [ "$SIM" = icarus ] || return 0          # Icarus front-end limits only
     echo "$TB_SKIP" | while IFS='|' read -r t r; do
         [ -z "${t:-}" ] && continue
         [ "$t" = "$1" ] && { echo "$r"; return; }
@@ -114,58 +122,95 @@ for c in python3 python py; do
 done
 [ -z "$PY" ] && { echo "ERROR: no working python interpreter found"; exit 1; }
 
-command -v iverilog > /dev/null 2>&1 || {
-    echo "ERROR: iverilog is not on PATH."
-    echo "  Portable toolchain: unpack YosysHQ oss-cad-suite and put BOTH"
-    echo "  lib/ and bin/ on PATH, lib FIRST (see Docs/BUGS.md TOOL-3)."
-    exit 127
-}
+if [ "$SIM" = verilator ]; then
+    command -v verilator > /dev/null 2>&1 || {
+        echo "ERROR: verilator is not on PATH (and VERILATOR_ROOT must be set)."
+        exit 127
+    }
+else
+    command -v iverilog > /dev/null 2>&1 || {
+        echo "ERROR: iverilog is not on PATH."
+        echo "  Portable toolchain: unpack YosysHQ oss-cad-suite and put BOTH"
+        echo "  lib/ and bin/ on PATH, lib FIRST (see Docs/BUGS.md TOOL-3)."
+        exit 127
+    }
+fi
 
 # -----------------------------------------------------------------------------
 # run_one <top> <filelist> <workdir> [plusargs...]
 #
-# ON STALE BINARIES. The .vvp is deleted before every build and vvp runs only
-# if the compile returned 0 AND produced the file. Without that, a failed
-# compile leaves the previous binary in place and the run "passes" against
-# whatever was built last time -- which happened in this project on
+# ON STALE BINARIES. The simulation binary is deleted before every build and
+# runs only if the compile returned 0 AND produced the file. Without that, a
+# failed compile leaves the previous binary in place and the run "passes"
+# against whatever was built last time -- which happened in this project on
 # 2026-09-16 and reported a result from RTL that no longer existed.
+#
+# The simulator's exit status is kept in <workdir>/exit_status (TOOL-13):
+# verdict_of fails a run that exits non-zero whatever its log says, because a
+# fatal error or a failed assertion can stop a run after it printed PASSED.
 # -----------------------------------------------------------------------------
 run_one() {
     local top="$1" flist="$2" work="$3"; shift 3
     local plusargs="$*"
     local out="sim/$work"
     mkdir -p "$out"
-    rm -f "$out/$top.vvp"
+    rm -f "$out/$top.vvp" "$out/exit_status"
+    rm -rf "$out/obj"
 
-    local srcs incs
+    local srcs incs defs bin rc
     srcs=$($PY scripts/expand_filelist.py "$flist") || { echo "FILELIST FAIL"; return 1; }
     incs=$($PY scripts/expand_filelist.py "$flist" --incdirs) || return 1
+    defs=$($PY scripts/expand_filelist.py "$flist" --defines) || return 1   # TOOL-15
 
-    iverilog -g2012 -Wall -o "$out/$top.vvp" -s "$top" $incs $srcs 2> "$out/compile.log"
-    local rc=$?
-    if [ $rc -ne 0 ] || [ ! -f "$out/$top.vvp" ]; then
+    if [ "$SIM" = verilator ]; then
+        # -Wno-fatal: lint warnings are local_lint's job, not a reason to skip
+        # a simulation. --assert: the bound SVA must be live, as under xrun.
+        verilator --binary --timing --assert -j 0 -Wno-fatal -Wno-lint -Wno-style \
+            --top-module "$top" -Mdir "$out/obj" $incs $defs $srcs > "$out/compile.log" 2>&1
+        rc=$?
+        bin="$out/obj/V$top"
+        [ -f "$bin.exe" ] && bin="$bin.exe"
+    else
+        iverilog -g2012 -Wall -o "$out/$top.vvp" -s "$top" $incs $defs $srcs 2> "$out/compile.log"
+        rc=$?
+        bin="$out/$top.vvp"
+    fi
+    if [ $rc -ne 0 ] || [ ! -f "$bin" ]; then
         echo "COMPILE FAILED (rc=$rc)"
         grep -iE "error" "$out/compile.log" | head -12
         return 1
     fi
+    local run="$bin"
+    [ "$SIM" = verilator ] || run="vvp $bin"
 
     # Wall-clock cap. A testbench whose end condition never arrives runs until
     # the machine is rebooted, and an unattended regression must not be
     # hangable by one bad TB. SIM_TIMEOUT seconds, then SIGKILL; the missing
     # RESULT: line makes verdict_of report NO-VERDICT, which counts as failure.
     if command -v timeout > /dev/null 2>&1; then
-        timeout -k 5 "${SIM_TIMEOUT:-180}" vvp "$out/$top.vvp" $plusargs             > "$out/run.log" 2>&1
-        if [ $? -eq 124 ]; then
+        # Windows Smart App Control can refuse a binary that was linked a
+        # moment ago ("can't execute ... Invalid argument", 127) and allow
+        # it seconds later, once it has been scanned. Retry that case only.
+        local try
+        for try in 1 2 3; do
+            timeout -k 5 "${SIM_TIMEOUT:-180}" $run $plusargs > "$out/run.log" 2>&1
+            rc=$?
+            [ $rc -eq 127 ] && grep -q "can't execute" "$out/run.log" || break
+            sleep 5
+        done
+        if [ $rc -eq 124 ]; then
             echo "WALL-CLOCK TIMEOUT after ${SIM_TIMEOUT:-180}s" >> "$out/run.log"
             # On Windows, `timeout` reports 124 but the native vvp child can
             # survive its signals. An orphan spinning in a zero-delay loop
             # takes a core for the rest of the session and slows every
             # testbench after it, so make sure this one is really gone.
-            pkill -9 -f "$out/$top.vvp" 2> /dev/null || true
+            pkill -9 -f "$bin" 2> /dev/null || true
         fi
     else
-        vvp "$out/$top.vvp" $plusargs > "$out/run.log" 2>&1
+        $run $plusargs > "$out/run.log" 2>&1
+        rc=$?
     fi
+    echo "$rc" > "$out/exit_status"
     return 0
 }
 
@@ -182,6 +227,10 @@ verdict_of() {
     if grep -q "WALL-CLOCK TIMEOUT" "$log"; then echo "${c:-0} ${f:-0} WALL-TIMEOUT"; return; fi
     v=$(grep -oE "PASSED|FAILED|TIMEOUT" "$log" | tail -1)
     [ -z "$v" ] && v="NO-VERDICT"
+    # TOOL-13: a non-zero exit is a failure even after a PASSED line.
+    local x
+    x=$(cat "sim/$1/exit_status" 2> /dev/null)
+    [ -n "$x" ] && [ "$x" != 0 ] && [ "$v" = PASSED ] && v="EXIT-$x"
     echo "${c:-0} ${f:-0} $v"
 }
 
@@ -190,7 +239,7 @@ shift || true
 
 case "$TARGET" in
   list)
-      echo "Block testbenches runnable locally (Icarus):"
+      echo "Block testbenches runnable locally ($SIM):"
       echo "$TB_TABLE" | while IFS='|' read -r t f w; do
           [ -z "${t:-}" ] && continue
           printf "  %-22s %s\n" "$t" "$f"
@@ -202,8 +251,13 @@ case "$TARGET" in
 
   all)
       echo "=============================================================="
-      echo "GARUDA local block regression -- Icarus Verilog"
-      echo "  $(iverilog -V 2>&1 | head -1)"
+      if [ "$SIM" = verilator ]; then
+          echo "GARUDA local block regression -- Verilator"
+          echo "  $(verilator --version 2>&1 | head -1)"
+      else
+          echo "GARUDA local block regression -- Icarus Verilog"
+          echo "  $(iverilog -V 2>&1 | head -1)"
+      fi
       echo "  $(date '+%Y-%m-%d %H:%M')"
       echo "=============================================================="
       # Stale-results guard: the per-TB results are accumulated through a file

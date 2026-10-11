@@ -21,15 +21,21 @@ INCDIRS   = -i $(CURDIR)/rtl/common -i $(CURDIR)/rtl/core -i $(CURDIR)/rtl/dsu
 # The workdir arg keeps two runs of the same testbench (e.g. tb_ex_smoke against
 # the stub and against the real DSU) from overwriting each other's logs.
 WORKDIR = $(if $(3),$(3),$(2))
+# TOOL-13: every simulation macro ends in scripts/sim_verdict.sh, so a target
+# fails when the simulator fails, the log reports a failure, or the pass marker
+# is missing. elab_* targets only elaborate and print no pass marker. A failing
+# target now stops make: use `make -k` to run a whole group regardless.
+RUN_TEST_PASS = $(if $(filter elab_%,$(WORKDIR)),,PASSED)
 ifeq ($(SIM),xsim)
 define run_test
 	@mkdir -p $(SIM_DIR)/$(WORKDIR) && cd $(SIM_DIR)/$(WORKDIR) && \
 	  $(XSIM_BIN)/xvlog -sv $(INCDIRS) \
 	    $$(grep -v '^-\|^//\|^[[:space:]]*$$' $(CURDIR)/$(1) | sed 's|^|$(CURDIR)/|') > analyze.log 2>&1 && \
-	  $(XSIM_BIN)/xelab $(2) -s $(2) -R > run.log 2>&1; \
+	  $(XSIM_BIN)/xelab $(2) -s $(2) -R > run.log 2>&1; rc=$$?; \
 	  grep -ihE "^ERROR" analyze.log; \
 	  grep -ihE "FAIL|PASSED|ERROR|Built simulation snapshot" run.log \
-	    || echo "$(WORKDIR): no result line"
+	    || echo "$(WORKDIR): no result line"; \
+	  $(CURDIR)/scripts/sim_verdict.sh run.log $$rc $(RUN_TEST_PASS)
 endef
 else
 # NOTE: xrun runs from the REPO ROOT, not from sim/<workdir>. The .f files list
@@ -43,9 +49,10 @@ define run_test
 	@mkdir -p $(SIM_DIR)/$(WORKDIR) && \
 	  $(XRUN) -f $(1) -top $(2) \
 	    -xmlibdirname $(SIM_DIR)/$(WORKDIR)/xcelium.d \
-	    -l $(SIM_DIR)/$(WORKDIR)/run.log; \
+	    -l $(SIM_DIR)/$(WORKDIR)/run.log; rc=$$?; \
 	  grep -ihE "FAIL|PASSED|ERROR|Built simulation snapshot" $(SIM_DIR)/$(WORKDIR)/run.log \
-	    || echo "$(WORKDIR): no result line"
+	    || echo "$(WORKDIR): no result line"; \
+	  scripts/sim_verdict.sh $(SIM_DIR)/$(WORKDIR)/run.log $$rc $(RUN_TEST_PASS)
 endef
 endif
 
@@ -120,11 +127,12 @@ define run_tb_top
 	@mkdir -p $(SIM_DIR)/unit_$(1) && \
 	  $(XRUN) -64bit -f tb/core/filelist_$(1).f -top tb_top \
 	    -xmlibdirname $(SIM_DIR)/unit_$(1)/xcelium.d \
-	    -l $(SIM_DIR)/unit_$(1)/run.log > /dev/null 2>&1; \
+	    -l $(SIM_DIR)/unit_$(1)/run.log > /dev/null 2>&1; rc=$$?; \
 	  printf "%-22s PASS=%-5s FAIL=%-4s SVA_FAIL=%s\n" "$(1)" \
 	    "$$(grep -c '\[PASS\]' $(SIM_DIR)/unit_$(1)/run.log)" \
 	    "$$(grep -c '\[FAIL\]' $(SIM_DIR)/unit_$(1)/run.log)" \
-	    "$$(grep -c '\*E,ASRTST' $(SIM_DIR)/unit_$(1)/run.log)"
+	    "$$(grep -c '\*E,ASRTST' $(SIM_DIR)/unit_$(1)/run.log)"; \
+	  scripts/sim_verdict.sh $(SIM_DIR)/unit_$(1)/run.log $$rc '\[PASS\]'
 endef
 
 test_units: test_decode_control test_imm_gen test_reg_file test_branch_predict \
@@ -174,13 +182,14 @@ define run_tb_elem
 	@mkdir -p $(SIM_DIR)/elem_$(1) && \
 	  $(XRUN) -64bit -f tb/core/filelist_$(1).f -top tb_top \
 	    -xmlibdirname $(SIM_DIR)/elem_$(1)/xcelium.d \
-	    -l $(SIM_DIR)/elem_$(1)/run.log > /dev/null 2>&1; \
+	    -l $(SIM_DIR)/elem_$(1)/run.log > /dev/null 2>&1; rc=$$?; \
 	  printf "%-26s PASS=%-6s FAIL=%-4s SVA_FAIL=%-4s %s\n" "$(1)" \
 	    "$$(grep -c '\[PASS\]' $(SIM_DIR)/elem_$(1)/run.log)" \
 	    "$$(grep -c '\[FAIL\]' $(SIM_DIR)/elem_$(1)/run.log)" \
 	    "$$(grep -c '\*E,ASRTST' $(SIM_DIR)/elem_$(1)/run.log)" \
 	    "$$(grep -hE '^ RESULT:' $(SIM_DIR)/elem_$(1)/run.log | head -1)"; \
-	  grep -hE '\[FAIL\]|\[SVA-FAIL\]|^\*E|^xmelab: \*E' $(SIM_DIR)/elem_$(1)/run.log | head -20
+	  grep -hE '\[FAIL\]|\[SVA-FAIL\]|^\*E|^xmelab: \*E' $(SIM_DIR)/elem_$(1)/run.log | head -20; \
+	  scripts/sim_verdict.sh $(SIM_DIR)/elem_$(1)/run.log $$rc 'RESULT: ALL CHECKS PASSED'
 endef
 
 test_alu:            ; $(call run_tb_elem,alu)
@@ -215,11 +224,12 @@ test_core: test_ex test_ex_dsu test_idex test_exmem test_pipe test_csr test_trap
 define run_blk
 	@mkdir -p $(SIM_DIR)/$(3) && \
 	  $(XRUN) -64bit -f $(1) -top $(2) -xmlibdirname $(SIM_DIR)/$(3)/xcelium.d \
-	    -l $(SIM_DIR)/$(3)/run.log $(4) > /dev/null 2>&1; \
+	    -l $(SIM_DIR)/$(3)/run.log $(4) > /dev/null 2>&1; rc=$$?; \
 	  printf "%-14s " "$(3)"; grep -hE "^RESULT:|checks=|TB: .* checks" $(SIM_DIR)/$(3)/run.log | tr '\n' ' '; \
 	  n=$$(grep -c '\*E,ASRTST' $(SIM_DIR)/$(3)/run.log); \
 	  [ "$$n" = 0 ] && echo || echo " ** $$n ASSERTION FAILURE(S), not counted in RESULT"; \
-	  grep -hE "\[FAIL\]|^xmelab: \*E|^xmvlog: \*E|\*E,ASRTST" $(SIM_DIR)/$(3)/run.log | head -10
+	  grep -hE "\[FAIL\]|^xmelab: \*E|^xmvlog: \*E|\*E,ASRTST" $(SIM_DIR)/$(3)/run.log | head -10; \
+	  scripts/sim_verdict.sh $(SIM_DIR)/$(3)/run.log $$rc PASSED
 endef
 
 test_crg:     ; $(call run_blk,tb/clk_div/filelist_crg.f,tb_crg,tb_crg)                 ## 21/22 clock + reset
@@ -596,8 +606,9 @@ local_lint:                                      ## whole-chip Verilator lint
 	@set -e; \
 	 inc=$$(python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --incdirs \
 	        | sed 's/-I/+incdir+/g'); \
+	 def=$$(python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --defines); \
 	 src=$$(python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f | tr '\n' ' '); \
 	 echo "=== Verilator lint: garuda_chip_top ($$(echo $$src | wc -w) sources) ==="; \
-	 verilator --lint-only -sv --timing --top-module garuda_chip_top $$inc $$src
+	 verilator --lint-only -sv --timing --top-module garuda_chip_top $$inc $$def $$src
 
 local: local_sim local_lint local_synth

@@ -19,7 +19,8 @@ sed 's@// Verilator@// (Verilator)@g' rtl/dsu/mac_unit.v > $FIX/mac_unit.v
 SRCS=$(python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f | tr ' ' '\n' \
        | grep -v "_sva.sv\|rtl/clk_div/clk_div.v\|rtl/core/core_clk_gate.v" \
        | sed "s@rtl/dsu/mac_unit.v@$FIX/mac_unit.v@")
-INCS=$(python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --incdirs)
+INCS="$(python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --incdirs) \
+      $(python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --defines)"
 TOP=$([ "$MODE" = host ] && echo tb_host || echo tb_fpga_core)
 verilator --binary --timing -j 8 -Wno-fatal -Wno-lint -Wno-style -Wno-MULTIDRIVEN \
     --top-module $TOP -Mdir $OBJ $INCS fpga/sim/xil_prims_sim.v $SRCS \

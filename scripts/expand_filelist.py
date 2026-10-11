@@ -18,6 +18,7 @@ flat form a given tool needs.
 USAGE
     python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f            # sources
     python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --incdirs  # -I flags
+    python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --defines  # -D flags
     python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --yosys    # yosys cmds
 
 Order is preserved: the filelists are written bottom-up on purpose, so leaves
@@ -27,7 +28,7 @@ import sys
 import os
 
 
-def expand(path, seen, srcs, incs):
+def expand(path, seen, srcs, incs, defs):
     """Recursively expand one .f file."""
     path = os.path.normpath(path)
     if path in seen:
@@ -49,12 +50,25 @@ def expand(path, seen, srcs, incs):
                 nxt = line[3:].strip()
                 if not os.path.exists(nxt):
                     nxt = os.path.join(base, nxt)
-                expand(nxt, seen, srcs, incs)
+                expand(nxt, seen, srcs, incs, defs)
 
             elif line.startswith('-incdir'):
                 d = line.split(None, 1)[1].strip()
                 if d not in incs:
                     incs.append(d)
+
+            # TOOL-15: a define changes WHAT is built - six unit benches use
+            # GARUDA_REAL_RTL to drop their inlined DUT snapshot for the real
+            # rtl/core module - so it was wrong to discard it with the other
+            # switches. Both spellings are accepted.
+            elif line.startswith('-define'):
+                d = line.split(None, 1)[1].strip()
+                if d not in defs:
+                    defs.append(d)
+            elif line.startswith('+define+'):
+                for d in line[len('+define+'):].split('+'):
+                    if d and d not in defs:
+                        defs.append(d)
 
             elif line.startswith('-'):
                 # Any other simulator switch (-sv, -64bit, ...) is not a source
@@ -86,8 +100,8 @@ def main():
     top = sys.argv[1]
     mode = sys.argv[2] if len(sys.argv) > 2 else '--sources'
 
-    srcs, incs = [], []
-    expand(top, set(), srcs, incs)
+    srcs, incs, defs = [], [], []
+    expand(top, set(), srcs, incs, defs)
 
     missing = [s for s in srcs if not os.path.exists(s)]
     if missing:
@@ -98,9 +112,11 @@ def main():
 
     if mode == '--incdirs':
         print(' '.join('-I' + d for d in incs))
+    elif mode == '--defines':
+        print(' '.join('-D' + d for d in defs))
     elif mode == '--yosys':
-        # yosys wants the include path on each read_verilog invocation
-        flags = ' '.join('-I' + d for d in incs)
+        # yosys wants the include path and defines on each read_verilog
+        flags = ' '.join(['-I' + d for d in incs] + ['-D' + d for d in defs])
         for s in srcs:
             if s.endswith('.vh'):
                 continue            # headers are pulled in via `include
