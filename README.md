@@ -6,7 +6,7 @@
 
 250MHz core domain, 125MHz peripheral domain (from a 500MHz reference), 1.45mm die, 40 pins, 28nm. A custom Harvard-architecture pipeline with dual AHB-Lite master ports feeding instruction and data paths independently. A CLIC interrupt controller. A 6-channel DMA engine. An AHB-to-APB bridge gating a standard peripheral set — SPI, I2C, UART, PWM, GPIO — sourced from the VLSI Society so the team's silicon-original effort goes where it matters: the core and the accelerator, not a UART state machine that's been solved a thousand times.
 
-384KB of TCM sits close to the core, sized for control-loop firmware that cannot afford to wait on a cache miss.
+128 KiB of zero-wait-state SRAM (64 KiB instruction, 64 KiB data in four 16 KiB banks) plus a 4 KiB boot ROM sits close to the core, sized for control-loop firmware that cannot afford to wait on a cache miss.
 
 This is not a general-purpose application processor pretending to be embedded. It is an embedded processor that knows exactly what it is for.
 
