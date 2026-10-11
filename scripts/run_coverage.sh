@@ -28,6 +28,11 @@
 # IMC's `report -summary` does NOT roll covergroups into its Functional column;
 # use `report -detail -metrics covergroup`, which this script does.
 #
+# A run that fails is reported, NOT merged, and makes the script exit 1, as
+# does an IMC error (Docs/BUGS.md TOOL-14): coverage from a failing run is
+# coverage of behaviour nobody checked. "Failing" is scripts/sim_verdict.sh's
+# rule - exit status, *E/*F messages, failure lines and the pass marker.
+#
 # Usage: scripts/run_coverage.sh [test ...]
 # =============================================================================
 set -u
@@ -69,6 +74,10 @@ else
 fi
 
 ran=""
+nfail=0
+ok() {   # ok <log> <exit status> <pass regex>  -> 0 if the run passed
+    scripts/sim_verdict.sh "$1" "$2" "$3" > /dev/null
+}
 printf "\n%-18s %s\n" TEST RESULT
 printf -- "----------------------------------------\n"
 for t in $TESTS; do
@@ -89,12 +98,17 @@ for t in $TESTS; do
          -covworkdir "$COVDIR/cov_work" -covtest "$t" -covoverwrite \
          -l "$COVDIR/$t.log" +HEX="$hex" +COMMIT="$COVDIR/$t.commit.log" \
          +MAXCYC="$MAXCYC" +QUIET +COVTAG="$COVDIR/reports/$t" $extra > /dev/null 2>&1
+    rc=$?
 
-    if grep -q "TOHOST=1 -> PASSED" "$COVDIR/$t.log"; then r=PASS
+    if ok "$COVDIR/$t.log" $rc "TOHOST=1 -> PASSED"; then r=PASS
     elif grep -q "TIMEOUT" "$COVDIR/$t.log"; then r=TIMEOUT
     else r=FAIL; fi
     printf "%-18s %s\n" "$t" "$r"
-    [ -d "$COVDIR/cov_work/scope/$t" ] && ran="$ran $COVDIR/cov_work/scope/$t"
+    if [ "$r" = PASS ]; then
+        [ -d "$COVDIR/cov_work/scope/$t" ] && ran="$ran $COVDIR/cov_work/scope/$t"
+    else
+        nfail=$((nfail + 1))
+    fi
 done
 
 # ---------------------------------------------------------------------------
@@ -118,11 +132,12 @@ if [ $# -eq 0 ]; then
          -covworkdir "$COVDIR/cov_work" -covtest dsu_unit \
          -nclibdirname "$COVDIR/unit_libs" -l "$COVDIR/dsu_unit.log" \
          +STIM="$COVDIR/dsu/dsu_stim.mem" +EXP="$COVDIR/dsu/dsu_expected.mem" > /dev/null 2>&1
-    if grep -q "RESULT         : PASSED" "$COVDIR/dsu_unit.log"; then
+    if ok "$COVDIR/dsu_unit.log" $? "RESULT         : PASSED"; then
         printf "%-18s %s\n" "dsu_unit" "PASS"
         ran="$ran $COVDIR/cov_work/scope/dsu_unit"
     else
         printf "%-18s %s\n" "dsu_unit" "FAIL"
+        nfail=$((nfail + 1))
     fi
 
     # the six constrained-random block TBs (top module is tb_top)
@@ -131,9 +146,13 @@ if [ $# -eq 0 ]; then
              -coverage all -cov_cgsample -covoverwrite \
              -covworkdir "$COVDIR/cov_work" -covtest "unit_$u" \
              -nclibdirname "$COVDIR/unit_libs" -l "$COVDIR/unit_$u.log" > /dev/null 2>&1
-        f=$(grep -c "\[FAIL\]" "$COVDIR/unit_$u.log" 2>/dev/null)
-        printf "%-18s %s\n" "unit_$u" "$([ "$f" = 0 ] && echo PASS || echo "FAIL($f)")"
-        [ -d "$COVDIR/cov_work/scope/unit_$u" ] && ran="$ran $COVDIR/cov_work/scope/unit_$u"
+        if ok "$COVDIR/unit_$u.log" $? '\[PASS\]'; then
+            printf "%-18s %s\n" "unit_$u" "PASS"
+            [ -d "$COVDIR/cov_work/scope/unit_$u" ] && ran="$ran $COVDIR/cov_work/scope/unit_$u"
+        else
+            printf "%-18s %s\n" "unit_$u" "FAIL ($(grep -c '\[FAIL\]' "$COVDIR/unit_$u.log" 2>/dev/null) [FAIL])"
+            nfail=$((nfail + 1))
+        fi
     done
 fi
 
@@ -156,7 +175,10 @@ echo; echo "merging $(echo $ran | wc -w) runs..."
   echo "exit"
 } > "$COVDIR/merge.tcl"
 
-"$IMC" -exec "$COVDIR/merge.tcl" 2>&1 | grep -E "\*E,|\*F,|MERGE" | head -5
+"$IMC" -exec "$COVDIR/merge.tcl" > "$COVDIR/imc.log" 2>&1
+imc_rc=$?
+grep -E "\*E,|\*F,|MERGE" "$COVDIR/imc.log" | head -5
+imc_err=$(grep -cE "\*E,|\*F," "$COVDIR/imc.log")
 
 echo
 echo "================= MERGED COVERAGE ================="
@@ -166,3 +188,10 @@ echo "----------------- functional (covergroups) -----------------"
 grep -E "^u_cg_" "$COVDIR/functional.txt" 2>/dev/null | awk '{printf "  %-16s %s %s\n",$1,$2,$3}'
 echo
 echo "reports: $COVDIR/summary.txt  $COVDIR/functional.txt  $COVDIR/detail.txt"
+echo
+if [ "$nfail" != 0 ] || [ "$imc_rc" != 0 ] || [ "$imc_err" != 0 ]; then
+    echo "COVERAGE RUN: FAILED - $nfail run(s) failed and were not merged;" \
+         "IMC exit $imc_rc with $imc_err *E/*F message(s)"
+    exit 1
+fi
+echo "COVERAGE RUN: PASSED - every run passed and was merged"
