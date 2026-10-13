@@ -161,10 +161,13 @@ endef
 #   make uvm_clic            register test, directed test, random test x SEEDS
 #   make uvm_clic SEEDS=50
 SEEDS ?= 20
+# UVM_TAG is added to the run directory. The gates set it, so that a gate run of a
+# few seeds does not replace the 20-seed coverage databases the chart is made from.
+UVM_TAG ?=
 UVM_IRUN = $(IRUN152) -64bit -uvm -uvmhome CDNS-1.2 -coverage all -covoverwrite
 define run_uvm
 	@export PATH=$(dir $(IRUN152)):$$PATH; \
-	 D=$(SIM_DIR)/uvm_$(1); mkdir -p $$D; rm -rf $$D/cov_work $$D/INCA_libs; fail=0; \
+	 D=$(SIM_DIR)/uvm_$(1)$(UVM_TAG); mkdir -p $$D; rm -rf $$D/cov_work $$D/INCA_libs; fail=0; \
 	 C="$(UVM_IRUN) -covworkdir $$D/cov_work $(2) -nclibdirname $$D/INCA_libs"; \
 	 run() { $$C $$1 +UVM_TESTNAME=$$2 -svseed $$3 -covtest $$4 -l $$D/$$4.log > /dev/null 2>&1; \
 	   if grep -q 'RESULT: PASSED' $$D/$$4.log && [ "$$(grep -E '\*[EF],' $$D/$$4.log | grep -vc IMPDLL)" = 0 ] && ! grep -q 'SVA-FAIL' $$D/$$4.log; \

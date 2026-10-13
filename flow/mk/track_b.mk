@@ -259,5 +259,5 @@ REGRESS_B = test_blocks_b test_chip
 GATE_SEEDS ?= 3
 GATE_B = check_tree static_lint test_blocks_b test_chip uvm_b
 gate_b:
-	@if $(MAKE) --no-print-directory -k $(GATE_B) SEEDS=$(GATE_SEEDS); \
+	@if $(MAKE) --no-print-directory -k $(GATE_B) SEEDS=$(GATE_SEEDS) UVM_TAG=_gate; \
 	 then echo "gate_b: PASS"; else echo "gate_b: FAIL"; exit 1; fi

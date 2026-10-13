@@ -1,6 +1,6 @@
 # GARUDA SoC: coverage by block
 
-Written by `tools/gen/cov_chart.py` on 2026-10-13 from IMC 15.2 reports, tree `e9909f7` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
+Written by `tools/gen/cov_chart.py` on 2026-10-14 from IMC 15.2 reports, tree `d7e328d` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
 
 ![coverage by block](coverage_by_block.svg)
 
@@ -23,9 +23,9 @@ Written by `tools/gen/cov_chart.py` on 2026-10-13 from IMC 15.2 reports, tree `e
 | Debug | A | all directed tests, merged | 96.5% (166/172) | 88.6% (31/35) | 77.1% (1224/1587) | 91.7% (44/48) | none | none | none written |
 | CLIC | B | the block's UVM environment | 100.0% (20/20) | none | 96.1% (1119/1165), after waivers 100.0% (1119/1119) | none | 100.0% (417/417) | 73.2% (60/82), after waivers 100.0% (60/60) | 68, in `flow/cov/clic_exclusions.tcl` |
 | Timers and watchdog | B | the block's UVM environment | 100.0% (68/68) | 100.0% (3/3) | 93.8% (1383/1475), after waivers 100.0% (1383/1383) | none | 100.0% (145/145) | 100.0% (36/36) | 93, in `flow/cov/timers_exclusions.tcl` |
-| Clock divider and reset | B | the block's UVM environment | 100.0% (85/85) | 100.0% (10/10) | 82.1% (238/290), after waivers 100.0% (238/238) | none | 99.1% (105/106) | 100.0% (38/38) | 55, in `flow/cov/crg_exclusions.tcl` |
-| PWM | B | the block's UVM environment | 98.8% (84/85), after waivers 100.0% (84/84) | 96.0% (24/25), after waivers 100.0% (21/21) | 92.8% (620/668), after waivers 100.0% (620/620) | none | 100.0% (272/272) | 97.0% (65/67), after waivers 100.0% (65/65) | 58, in `flow/cov/pwm_exclusions.tcl` |
-| GPIO | B | the block's UVM environment | 92.4% (244/264), after waivers 100.0% (244/244) | 96.8% (30/31), after waivers 100.0% (27/27) | 84.9% (1040/1225), after waivers 100.0% (1040/1040) | none | 100.0% (211/211) | 94.1% (32/34), after waivers 100.0% (32/32) | 214, in `flow/cov/gpio_exclusions.tcl` |
+| Clock divider and reset | B | the block's UVM environment | 100.0% (85/85) | 100.0% (10/10) | 82.1% (238/290), after waivers 100.0% (238/238) | none | 100.0% (106/106) | 100.0% (38/38) | 55, in `flow/cov/crg_exclusions.tcl` |
+| PWM | B | the block's UVM environment | 98.0% (98/100), after waivers 100.0% (98/98) | 96.0% (24/25), after waivers 100.0% (21/21) | 92.9% (624/672), after waivers 100.0% (624/624) | none | 100.0% (275/275) | 96.2% (76/79), after waivers 100.0% (76/76) | 60, in `flow/cov/pwm_exclusions.tcl` |
+| GPIO | B | the block's UVM environment | 58.4% (156/267), after waivers 100.0% (156/156) | 93.5% (29/31), after waivers 100.0% (22/22) | 55.5% (680/1225), after waivers 100.0% (296/296) | none | 100.0% (214/214) | 94.7% (36/38), after waivers 100.0% (36/36) | 666, in `flow/cov/gpio_exclusions.tcl` |
 | UART | B | all directed tests, merged | 92.9% (210/226) | 97.0% (32/33) | 82.5% (513/622) | 100.0% (28/28) | none | none | none written |
 | I2C | B | all directed tests, merged | 98.4% (184/187) | 75.0% (3/4) | 81.6% (391/479) | 98.2% (55/56) | none | none | none written |
 | SPI master | B | all directed tests, merged | 67.3% (165/245) | 50.7% (35/69) | 53.0% (1013/1910) | 38.9% (21/54) | none | none | none written |
@@ -33,7 +33,7 @@ Written by `tools/gen/cov_chart.py` on 2026-10-13 from IMC 15.2 reports, tree `e
 | APB shim (shared by six peripherals) | B | all directed tests, merged | 96.4% (27/28) | 92.3% (12/13) | 98.1% (202/206) | none | none | 100.0% (17/17) | none written |
 | Chip and SoC top (wiring) | B | all directed tests, merged | none | none | 55.7% (1513/2715) | none | none | none | none written |
 
-Over the sixteen blocks, counting items (waived items removed for the five blocks that have waivers): statement 93.8% (1911/2038), expression 86.9% (319/367), toggle 82.0% (24509/29885), FSM 82.8% (197/238); all four together 82.8% (26936/32528).
+Over the sixteen blocks, counting items (waived items removed for the five blocks that have waivers): statement 93.5% (1837/1964), expression 86.7% (314/362), toggle 81.6% (23769/29145), FSM 82.8% (197/238); all four together 82.4% (26117/31709).
 
 ## Block by block
 
@@ -255,7 +255,7 @@ Assertions: no property is bound to this block yet.
 
 Plan: `tb/clic/GARUDA_CLIC_vplan.csv` (35 features, 67 checks and coverage items). Track B.
 
-Measured on the UVM environment (5 runs: register test, directed test, random seeds), DUT instance only.
+Measured on the UVM environment (22 runs: register test, directed test, random seeds), DUT instance only.
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
@@ -316,7 +316,7 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 
 Plan: `tb/clk_div/GARUDA_CLKRST_vplan.csv` (34 features, 47 checks and coverage items). Track B.
 
-Measured on the UVM environment (5 runs: register test, directed test, random seeds), DUT instance only.
+Measured on the UVM environment (22 runs: register test, directed test, random seeds), DUT instance only.
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
@@ -324,7 +324,7 @@ Measured on the UVM environment (5 runs: register test, directed test, random se
 | Expression | 100.0% (10/10) | 100.0% (10/10) | 0 |
 | Toggle | 82.1% (238/290) | 100.0% (238/238) | 52 |
 | Assertion | 100.0% (38/38) | 100.0% (38/38) | 0 |
-| Functional (covergroup bins) | 99.1% (105/106) | 99.1% (105/106) | 0 |
+| Functional (covergroup bins) | 100.0% (106/106) | 100.0% (106/106) | 0 |
 
 **Exclusions and their justifications** (`flow/cov/crg_exclusions.tcl`, 55 lines):
 
@@ -341,19 +341,19 @@ Measured on the UVM environment (5 runs: register test, directed test, random se
 
 ### PWM
 
-Plan: `tb/pwm/GARUDA_PWM_vplan.csv` (27 features, 44 checks and coverage items). Track B.
+Plan: `tb/pwm/GARUDA_PWM_vplan.csv` (27 features, 45 checks and coverage items). Track B.
 
-Measured on the UVM environment (5 runs: register test, directed test, random seeds), DUT instance only.
+Measured on the UVM environment (22 runs: register test, directed test, random seeds), DUT instance only.
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
-| Block | 98.8% (84/85) | 100.0% (84/84) | 1 |
+| Block | 98.0% (98/100) | 100.0% (98/98) | 2 |
 | Expression | 96.0% (24/25) | 100.0% (21/21) | 4 |
-| Toggle | 92.8% (620/668) | 100.0% (620/620) | 48 |
-| Assertion | 97.0% (65/67) | 100.0% (65/65) | 2 |
-| Functional (covergroup bins) | 100.0% (272/272) | 100.0% (272/272) | 0 |
+| Toggle | 92.9% (624/672) | 100.0% (624/624) | 48 |
+| Assertion | 96.2% (76/79) | 100.0% (76/76) | 3 |
+| Functional (covergroup bins) | 100.0% (275/275) | 100.0% (275/275) | 0 |
 
-**Exclusions and their justifications** (`flow/cov/pwm_exclusions.tcl`, 58 lines):
+**Exclusions and their justifications** (`flow/cov/pwm_exclusions.tcl`, 60 lines):
 
 | Metric | Where | Items | Justification |
 |---|---|---|---|
@@ -367,25 +367,27 @@ Measured on the UVM environment (5 runs: register test, directed test, random se
 | toggle | `garuda_pwm_top.u_shim.u_shim_sva` | 4: `dma_ack_i`, `dma_req_o`, `rx_avail_i`, `tx_space_i` | tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser |
 | toggle | `garuda_pwm_top.u_pwm_sva` | 1: `dma_req` | tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser |
 | assertion | `garuda_pwm_top.u_shim.u_shim_sva` | 2: `a_shim_dma_gate`, `a_shim_dma_holdoff` | tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser |
-| block | `garuda_pwm_top.u_shim` | 1: `27` | the shim's report that an IP held PREADY low: the PWM registers answer in the same cycle (ip_pready_i tied high), so the report can never print here |
+| block | `garuda_pwm_top.u_shim` | 1: `30` | the shim's report that an IP held PREADY low: the PWM registers answer in the same cycle (ip_pready_i tied high), so the report can never print here |
 | expression | `garuda_pwm_top.u_shim` | 1: `4.1` | condition of the same report: ip_pready_i is tied high in garuda_pwm_top |
+| assertion | `garuda_pwm_top.u_shim.u_shim_sva` | 1: `c_shim_hole` | the register map of the PWM has no hole below its limit (all eight words 0x00 to 0x1C are registers), so this cover cannot happen here; it is seen in the GPIO, the I2C and the SPI master |
+| block | `garuda_pwm_top.u_shim` | 1: `27` | the shim stops the simulation if its parameter IP_LIMIT is above 0x100, which the 64-bit register map cannot describe; the parameter is a constant below that here, so the branch is never taken |
 
 
 ### GPIO
 
 Plan: `tb/gpio/GARUDA_GPIO_vplan.csv` (27 features, 41 checks and coverage items). Track B.
 
-Measured on the UVM environment (5 runs: register test, directed test, random seeds), DUT instance only.
+Measured on the UVM environment (22 runs: register test, directed test, random seeds), DUT instance only.
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
-| Block | 92.4% (244/264) | 100.0% (244/244) | 20 |
-| Expression | 96.8% (30/31) | 100.0% (27/27) | 4 |
-| Toggle | 84.9% (1040/1225) | 100.0% (1040/1040) | 185 |
-| Assertion | 94.1% (32/34) | 100.0% (32/32) | 2 |
-| Functional (covergroup bins) | 100.0% (211/211) | 100.0% (211/211) | 0 |
+| Block | 58.4% (156/267) | 100.0% (156/156) | 111 |
+| Expression | 93.5% (29/31) | 100.0% (22/22) | 9 |
+| Toggle | 55.5% (680/1225) | 100.0% (296/296) | 81 |
+| Assertion | 94.7% (36/38) | 100.0% (36/36) | 2 |
+| Functional (covergroup bins) | 100.0% (214/214) | 100.0% (214/214) | 0 |
 
-**Exclusions and their justifications** (`flow/cov/gpio_exclusions.tcl`, 214 lines):
+**Exclusions and their justifications** (`flow/cov/gpio_exclusions.tcl`, 666 lines):
 
 | Metric | Where | Items | Justification |
 |---|---|---|---|
@@ -404,8 +406,12 @@ Measured on the UVM environment (5 runs: register test, directed test, random se
 | toggle | `garuda_gpio_top.u_gpio` | 77: `s_cg_en`, `s_clk_en` | logic of a pin that does not exist: the vendored block is written for 64 pins and built with PAD_NUM = 2 |
 | block | `garuda_gpio_top.u_gpio` | 19: `123`, `133`, `143`, `153`, `163`, `168` and 13 more | logic of a pin that does not exist: the vendored block is written for 64 pins and built with PAD_NUM = 2 |
 | toggle | `garuda_gpio_top.u_gpio` | 1: `dft_cg_enable_i` | tied low until scan insertion: GPIO spec N-9.3, open item OPEN-G1 |
-| block | `garuda_gpio_top.u_shim` | 1: `27` | the shim's report that an IP held PREADY low: the vendored GPIO ties PREADY high, so the report can never print here |
+| block | `garuda_gpio_top.u_shim` | 1: `30` | the shim's report that an IP held PREADY low: the vendored GPIO ties PREADY high, so the report can never print here |
 | expression | `garuda_gpio_top.u_shim` | 1: `4.1` | condition of the same report: ip_pready_i is tied high by the vendored GPIO |
+| block | `garuda_gpio_top.u_shim` | 1: `27` | the shim stops the simulation if its parameter IP_LIMIT is above 0x100, which the 64-bit register map cannot describe; the parameter is a constant below that here, so the branch is never taken |
+| block | `garuda_gpio_top.u_gpio` | 90: `100`, `102`, `104`, `105`, `106`, `107` and 84 more | reached only through an offset that is not a GARUDA register (0x20, 0x2C to 0x7C: the vendored file's bank for pads 32 to 63 and PADCFG1 to 7; GARUDA has two pads). Since the shim's register map of 2026-10-13 the IP is not selected there (GPIO-2 item 3, AUD-13), so the bus cannot reach it; until then it was covered only by writes to those non-registers. Unreachability to be confirmed in JasperGold (plan task 4.4) |
+| expression | `garuda_gpio_top.u_gpio` | 1: `2.1` | reached only through an offset that is not a GARUDA register (0x20, 0x2C to 0x7C: the vendored file's bank for pads 32 to 63 and PADCFG1 to 7; GARUDA has two pads). Since the shim's register map of 2026-10-13 the IP is not selected there (GPIO-2 item 3, AUD-13), so the bus cannot reach it; until then it was covered only by writes to those non-registers. Unreachability to be confirmed in JasperGold (plan task 4.4) |
+| toggle | `garuda_gpio_top.u_gpio` | 360: `s_gpio_dir`, `s_gpio_en`, `s_gpio_inten`, `s_gpio_out`, `s_write_cfg`, `s_write_dir` and 4 more | reached only through an offset that is not a GARUDA register (0x20, 0x2C to 0x7C: the vendored file's bank for pads 32 to 63 and PADCFG1 to 7; GARUDA has two pads). Since the shim's register map of 2026-10-13 the IP is not selected there (GPIO-2 item 3, AUD-13), so the bus cannot reach it; until then it was covered only by writes to those non-registers. Unreachability to be confirmed in JasperGold (plan task 4.4) |
 
 
 ### UART
