@@ -267,8 +267,19 @@ toggle flop gives exactly 50%.
 
 **[N-7.3]** `pclk` is a second toggle flop clocked by `hclk`, giving 125 MHz at 50% duty.
 
+**[N-7.3a]** In the RTL that toggle flop is written with a **blocking** assignment, the only
+flop in the design that is. `pclk` is a clock, and with a non-blocking assignment its edge
+reached the simulator one step after every `hclk` flop had taken its new value: a `pclk`
+flop capturing from an `hclk` flop then saw the value launched on that same edge, where
+silicon, with the two clock trees balanced, sees the value from before it. Simulation and
+the chip disagreed by one `hclk` cycle on every such capture; a `WDTVAL` read returned one
+count less than the chip will (finding SIM-1, fixed 2026-10-14). Synthesis builds the same
+flop either way. A bench that makes its own `hclk` and `pclk` must do the same: both in one
+process with blocking assignments, never `always @(posedge hclk) pclk <= ~pclk`.
+
 **[N-7.4]** `pclk_phase_o` is asserted for the one `hclk` cycle preceding each `pclk` rising
-edge. The bridge uses it to know which `hclk` edge is safe for transfer between the two
+edge. It is data in the `hclk` domain and comes from a flop of its own, not from the `pclk`
+toggle flop: no logic reads the clock net as data (SIM-1). The bridge uses it to know which `hclk` edge is safe for transfer between the two
 clocks. This single bit is why no clock-domain-crossing logic is needed anywhere in the
 chip between `hclk` and `pclk`:
 

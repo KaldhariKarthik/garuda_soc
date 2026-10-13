@@ -42,12 +42,12 @@ TIMERS,after_waivers,Toggle,1383,1383,92,100.00
 TIMERS,measured,Assertion,36,36,0,100.00
 TIMERS,after_waivers,Assertion,36,36,0,100.00
 TIMERS,measured,Functional,145,145,0,100.00
-CLKRST,measured,Block,81,81,0,100.00
-CLKRST,after_waivers,Block,81,81,0,100.00
+CLKRST,measured,Block,84,84,0,100.00
+CLKRST,after_waivers,Block,84,84,0,100.00
 CLKRST,measured,Expression,13,13,0,100.00
 CLKRST,after_waivers,Expression,13,13,0,100.00
-CLKRST,measured,Toggle,239,291,0,82.13
-CLKRST,after_waivers,Toggle,239,239,52,100.00
+CLKRST,measured,Toggle,240,292,0,82.19
+CLKRST,after_waivers,Toggle,240,240,52,100.00
 CLKRST,measured,Assertion,42,42,0,100.00
 CLKRST,after_waivers,Assertion,42,42,0,100.00
 CLKRST,measured,Functional,106,106,0,100.00

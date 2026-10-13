@@ -74,12 +74,15 @@ module tb_crg;
         #0.001;
         if (t_hrise != t_prise) subset_viol++;
     end
-    // pclk_phase sampled at an hclk edge => pclk rises on that edge
-    reg ph_prev = 0;
+    // pclk_phase sampled at an hclk edge => pclk rises on that edge. Both are
+    // looked at a little after the edge, when neither can still move: the phase
+    // seen now is the one of the cycle that just began, so its complement is
+    // the phase the closing edge had, and pclk must be high exactly then.
+    // (The first version compared a non-blocking copy with pclk 0.01 ns later
+    // and depended on pclk arriving one simulation step after hclk: SIM-1.)
     always @(posedge hclk) begin
-        ph_prev <= pclk_phase;
         #0.01;
-        if (hreset_n && ph_prev === 1'b1 && pclk !== 1'b1) phase_viol++;
+        if (hreset_n && (pclk !== ~pclk_phase)) phase_viol++;
     end
     // shortest hclk high/low phase seen (glitch detector)
     realtime t_hedge = 0, min_phase = 1e9;

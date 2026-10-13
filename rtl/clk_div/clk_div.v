@@ -12,8 +12,8 @@
 //                           └─▶ [÷2]─ t2 ─▶ [÷2]─ t3 ─▶ [÷2]─ t4   (ripple)
 //
 //   hclk_o = one of t1/t2/t3/t4 (DIV 2/4/8/16), switched glitch-free
-//   pclk_o = hclk ÷ 2 toggle flop, 50% duty
-//   pclk_phase_o = 1 on the hclk cycle whose closing edge raises pclk
+//   pclk_o = hclk ÷ 2 toggle flop, 50% duty (blocking assignment: SIM-1, below)
+//   pclk_phase_o = 1 on the hclk cycle whose closing edge raises pclk (own flop)
 //
 // -----------------------------------------------------------------------------
 // WHY A RIPPLE CHAIN (and not a counter)
@@ -112,16 +112,36 @@ module clk_div (
     end
 
     // ---- pclk = hclk / 2 toggle ([N-7.3]) ------------------------------------
+    // ERRATUM SIM-1 (2026-10-14). pclk is a CLOCK made by a flop on hclk. Written
+    // with a non-blocking assignment, the pclk edge reached the simulator one
+    // step AFTER every hclk flop had taken its new value, so a pclk flop that
+    // captures from an hclk flop saw the value launched on that same edge. On
+    // silicon the two clock trees are balanced and it sees the value from
+    // before the edge. RTL simulation and the chip disagreed by one hclk cycle
+    // on every such capture: a WDTVAL read returned one count less than the chip
+    // will. The assignment below is BLOCKING for that reason and no other: the
+    // pclk edge is then in the same simulation step as the hclk edge, before
+    // any non-blocking update, as two balanced clocks are. Synthesis builds the
+    // same toggle flop. (HAL reports the blocking assignment in a clocked
+    // block; it is waived in flow/2_static/hal_waivers.txt with this reason.)
     reg pclk_q;
     always @(posedge hclk_mux or negedge raw_rst_n_i)
-        if (!raw_rst_n_i) pclk_q <= 1'b1;
-        else              pclk_q <= ~pclk_q;
+        if (!raw_rst_n_i) pclk_q = 1'b1;
+        else              pclk_q = ~pclk_q;
+
+    // pclk_phase is DATA in the hclk domain: 1 in the hclk cycle whose closing
+    // edge raises pclk. It has a flop of its own, non-blocking like every other
+    // hclk flop, so that hclk logic sampling it has no race against the
+    // blocking toggle above; it is ~pclk_q at every instant between edges.
+    reg phase_q;
+    always @(posedge hclk_mux or negedge raw_rst_n_i)
+        if (!raw_rst_n_i) phase_q <= 1'b0;
+        else              phase_q <= ~phase_q;
 
     assign aon_clk_o    = t1_q;
     assign hclk_o       = hclk_mux;
     assign pclk_o       = pclk_q;
-    // pclk rises on the hclk edge that closes a cycle in which pclk_q is low.
-    assign pclk_phase_o = ~pclk_q;
+    assign pclk_phase_o = phase_q;
     assign div_act_o    = sel_act_q;
     assign div_busy_o   = (sel_act_q != sel_req_q) || (sel_req_q != div_sel_i);
 

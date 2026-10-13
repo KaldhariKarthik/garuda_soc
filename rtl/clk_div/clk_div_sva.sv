@@ -55,13 +55,21 @@ module clk_div_sva (
     // TB-34: not at time 0. A two-state simulator (Verilator) gives pclk_q its
     // initial value as a change at time 0, which is initialisation, not an
     // edge; Xcelium's X-to-value transition there happens not to fire this.
+    // SIM-1: pclk now changes in the same simulation step as hclk rises, and the
+    // process that records the hclk rise may run after this one. The two times
+    // are therefore compared one picosecond later, when both are recorded.
+    realtime t_pchg = 0;
     always @(pclk_o) if (raw_rst_n_i === 1'b1 && $realtime != 0) begin
-        a_pclk_subset_hclk: assert ($realtime == t_hclk_rise && hclk_o === 1'b1)
-            else $error("[SVA-FAIL] a_pclk_subset_hclk: pclk changed at %0t, the last hclk rise was at %0t", $realtime, t_hclk_rise);
+        t_pchg = $realtime;
         if (t_pclk != 0 && t_ref != 0)
-            a_pclk_no_glitch: assert ($realtime - t_pclk >= 2 * t_ref * 0.999)
-                else $error("[SVA-FAIL] a_pclk_no_glitch: a pclk %s time of %0t", pclk_o ? "low" : "high", $realtime - t_pclk);
-        t_pclk = $realtime;
+            a_pclk_no_glitch: assert (t_pchg - t_pclk >= 2 * t_ref * 0.999)
+                else $error("[SVA-FAIL] a_pclk_no_glitch: a pclk %s time of %0t", pclk_o ? "low" : "high", t_pchg - t_pclk);
+        t_pclk = t_pchg;
+        #0.001;
+        // (not when the reset pin fell in that picosecond: the dividers are then cleared)
+        if (raw_rst_n_i === 1'b1)
+        a_pclk_subset_hclk: assert (t_pchg == t_hclk_rise && hclk_o === 1'b1)
+            else $error("[SVA-FAIL] a_pclk_subset_hclk: pclk changed at %0t, the last hclk rise was at %0t", t_pchg, t_hclk_rise);
     end
     always @(negedge raw_rst_n_i) t_pclk = 0;
 

@@ -281,7 +281,8 @@ tests let the watchdog expire on purpose. All 22 runs: `make uvm_timers`.
 Two things in this bench are worth reading. `tb_timers_uvm.sv` makes hclk and
 pclk in one `initial` block with blocking assignments; a divider written
 `pclk <= ~pclk` gives a different `WDTVAL` read by one count (`Docs/BUGS.md`
-SIM-1). And the reset controller is replaced by a ten-line stand-in, because a
+SIM-1; the chip's own divider is written that way since 2026-10-14, CLKRST
+[N-7.3a]). And the reset controller is replaced by a ten-line stand-in, because a
 watchdog expiry resets the block under test in the middle of a run.
 
 ## Random instruction programs on the core (stage 3), by hand: riscv-dv

@@ -126,6 +126,16 @@ module tb_timers;
         wdt_req_d <= wdt_req; hreset_d <= hreset_n; warn_d <= warn_irq; ctr_d <= dut.u_wdt.ctr_q;
     end
 
+    // SIM-1: what a WDTVAL read must return. PRDATA is registered at the pclk edge
+    // that ends the setup phase, and on silicon that flop takes the count as it
+    // was BEFORE the hclk edge the pclk edge coincides with (the two clock trees
+    // are balanced). Taken here on hclk, where there is no race: pclk_phase is 1
+    // in the hclk cycle whose closing edge raises pclk.
+    reg [31:0] wdt_exp = 0;
+    always @(posedge hclk)
+        if (pclk_phase === 1'b1 && sel[1] && !penable && !pwrite && paddr == 12'h018)
+            wdt_exp <= dut.u_wdt.ctr_q;
+
     integer checks = 0, fails = 0;
     task automatic check(input bit c, input string what);
         checks++;
@@ -232,6 +242,8 @@ module tb_timers;
         apb(T, 1, 12'h010, 32'h3, r, e);                              // EN | WARNEN
         apb(T, 1, 12'h010, 32'h2, r, e);                              // try to clear EN
         apb(T, 0, 12'h010, 0, r, e); check(r[0], "[N-6.2] WDTCTL.EN is sticky: writing 0 does not clear it");
+        apb(T, 0, 12'h018, 0, r, e);
+        check(r === wdt_exp, $sformatf("[SIM-1] a WDTVAL read of the running counter returns the count before the clock edge: read %0d, counter was %0d", r, wdt_exp));
         repeat (200) @(posedge hclk);
         apb(T, 1, 12'h01C, 32'h1234_5678, r, e);                      // wrong kick
         apb(T, 0, 12'h018, 0, lo, e);

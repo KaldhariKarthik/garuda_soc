@@ -50,3 +50,15 @@ WARNING CLASSES REVIEWED AND ACCEPTED
   UNCONN/UNCONO   vendored PSLVERR outputs (the shim generates PSLVERR), unused
                   status outputs; each reviewed, none is a missing connection.
   ULCMPE/UELOPR   comparisons against parameters and constants; widths reviewed.
+
+WARNINGS ACCEPTED BY NAME (added 2026-10-14)
+  BLKSQB  rtl/clk_div/clk_div.v  pclk_q, two lines
+  RDBFAS  rtl/clk_div/clk_div.v  pclk_q
+          The pclk toggle flop is assigned with a blocking assignment on purpose
+          (BUGS SIM-1, header of the block in clk_div.v). pclk is a clock made
+          from hclk; with a non-blocking assignment its edge reached the
+          simulator one step after every hclk flop had changed, and a pclk flop
+          capturing from an hclk flop saw the new value, where silicon with
+          balanced clock trees sees the old one. No other flop in the design is
+          written this way, and no logic reads pclk_q as data: pclk_phase has a
+          flop of its own. Synthesis builds the same toggle flop.
