@@ -1,0 +1,9 @@
+Block timers, top timers_top, clocks hclk_i:1 pclk_i:2, resets hreset_n_i preset_n_i ext_rst_n_i. JasperGold 2022.09p002, 2026-10-14, tree fad0dbf.
+Waivers of flow/cov/timers_exclusions.tcl against JasperGold
+JasperGold: 1569 cover items; 1441 covered, 92 dead code, 36 reachable only in reset
+
+kind         total  CONFIRMED  REACHABLE  RESET ONLY  NOT CHECKED
+toggle          93         92          0           0            1
+
+Not confirmed, one by one:
+  NOT CHECKED toggle     timers_top.u_timers_sva pready_o (inside a property module)

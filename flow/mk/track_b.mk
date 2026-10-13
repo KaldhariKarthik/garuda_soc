@@ -268,3 +268,13 @@ gate_b:
 .PHONY: nightly_b
 nightly_b:
 	@./scripts/nightly.sh b
+
+# Coverage waivers of the five closed blocks against JasperGold (plan task 4.4).
+# Each block's UVM runs must exist (make uvm_b). Fails if a waived item is reachable.
+.PHONY: unr_waivers
+unr_waivers:
+	@rc=0; for b in clic timers crg pwm gpio; do \
+	   ./flow/formal/unr_block.sh $$b > $(SIM_DIR)/unr_$$b.out 2>&1 || rc=1; \
+	   echo "$$b: $$(awk '/^(toggle|block|expression|assertion)/ {t+=$$2; c+=$$3; r+=$$4} END {printf "%d waivers, %d confirmed, %d reachable", t, c, r}' $(SIM_DIR)/unr_$$b.out)"; \
+	 done; exit $$rc
+

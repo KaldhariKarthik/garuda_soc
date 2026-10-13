@@ -1,0 +1,12 @@
+Block crg, top reset_ctrl, clocks aon_clk_i:1 hclk_i:2 pclk_i:4, resets ext_rst_n_i. JasperGold 2022.09p002, 2026-10-14, tree fad0dbf.
+Waivers of flow/cov/crg_exclusions.tcl against JasperGold
+JasperGold: 373 cover items; 293 covered, 52 dead code, 28 reachable only in reset
+
+kind         total  CONFIRMED  REACHABLE  RESET ONLY  NOT CHECKED
+toggle          53         52          0           0            1
+expression       2          0          0           0            2
+
+Not confirmed, one by one:
+  NOT CHECKED toggle     reset_ctrl.u_reset_ctrl_sva pready_o (inside a property module)
+  NOT CHECKED expression clk_div.u_clk_div_sva 1.1 (inside a property module)
+  NOT CHECKED expression clk_div.u_clk_div_sva 4.1 (inside a property module)

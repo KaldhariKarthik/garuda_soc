@@ -1,0 +1,7 @@
+Block clic, top clic_top, clocks hclk_i:1 pclk_i:2, resets hreset_n_i preset_n_i. JasperGold 2022.09p002, 2026-10-14, tree fad0dbf.
+Waivers of flow/cov/clic_exclusions.tcl against JasperGold
+JasperGold: 1314 cover items; 1240 covered, 67 dead code, 7 reachable only in reset
+
+kind         total  CONFIRMED  REACHABLE  RESET ONLY  NOT CHECKED
+toggle          46         46          0           0            0
+assertion       22         22          0           0            0

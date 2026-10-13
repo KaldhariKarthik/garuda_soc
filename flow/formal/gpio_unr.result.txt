@@ -1,14 +1,20 @@
-Waivers of flow/cov/gpio_exclusions.tcl against JasperGold (sim/jg_unr/gpio/run.log)
-JasperGold cover items: covered 893, deadcode 780, unreachable 26
-  of them toggle bits: 1225, not reachable: 548
-Toggle waivers: 551
-  CONFIRMED not reachable : 545
-  REACHABLE (waiver wrong): 0
-  not in JasperGold's list: 6 (inside a property module, which the run leaves out)
-    not in list: u_shim.u_shim_sva.pready_o
-    not in list: u_shim.u_shim_sva.rx_avail_i
-    not in list: u_shim.u_shim_sva.tx_space_i
-    not in list: u_shim.u_shim_sva.dma_ack_i
-    not in list: u_shim.u_shim_sva.dma_req_o
-    not in list: u_gpio_sva.dma_req
-Block, expression and assertion waivers, not matched one by one: 115
+Block gpio, top garuda_gpio_top, clocks pclk_i:1, resets preset_n_i. JasperGold 2022.09p002, 2026-10-14, tree fad0dbf.
+Waivers of flow/cov/gpio_exclusions.tcl against JasperGold
+JasperGold: 1696 cover items; 892 covered, 779 dead code, 25 reachable only in reset
+
+kind         total  CONFIRMED  REACHABLE  RESET ONLY  NOT CHECKED
+toggle         551        545          0           0            6
+block          111        109          0           0            2
+expression       2          1          0           0            1
+assertion        2          2          0           0            0
+
+Not confirmed, one by one:
+  NOT CHECKED toggle     garuda_gpio_top.u_shim.u_shim_sva pready_o (inside a property module)
+  NOT CHECKED toggle     garuda_gpio_top.u_shim.u_shim_sva rx_avail_i (inside a property module)
+  NOT CHECKED toggle     garuda_gpio_top.u_shim.u_shim_sva tx_space_i (inside a property module)
+  NOT CHECKED toggle     garuda_gpio_top.u_shim.u_shim_sva dma_ack_i (inside a property module)
+  NOT CHECKED toggle     garuda_gpio_top.u_shim.u_shim_sva dma_req_o (inside a property module)
+  NOT CHECKED toggle     garuda_gpio_top.u_gpio_sva dma_req (inside a property module)
+  NOT CHECKED block      garuda_gpio_top.u_shim block 30, line 212, true part of (no item of JasperGold there: code under `ifndef SYNTHESIS, which the run leaves out)
+  NOT CHECKED expression garuda_gpio_top.u_shim expression 4.1, line 211 (no item of JasperGold there: code under `ifndef SYNTHESIS)
+  NOT CHECKED block      garuda_gpio_top.u_shim block 27, line 203, true part of (no item of JasperGold there: code under `ifndef SYNTHESIS, which the run leaves out)

@@ -591,6 +591,17 @@ GARUDA_FV_ENV=ahb GARUDA_FV_DSU=1 /home/install/JASPER/bin/jg -allow_unsupported
 # leave -batch out to get the window and look at a trace
 ```
 
+Are the coverage waivers of a closed block true? (plan task 4.4)
+
+```
+source scripts/setup_env.sh
+./flow/formal/unr_block.sh gpio          # or pwm, timers, clic, crg; the block's UVM runs must exist
+```
+
+It prints and writes `flow/formal/gpio_unr.result.txt`: each waiver CONFIRMED, REACHABLE
+(the waiver is wrong), RESET ONLY or NOT CHECKED, and exits with 1 if one is REACHABLE.
+`make unr_waivers` runs the five.
+
 ## Where the results are written down
 
 - `Docs/BUGS.md` section 1h: every defect found on 2026-10-04, the tool or test

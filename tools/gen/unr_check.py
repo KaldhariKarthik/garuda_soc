@@ -2,79 +2,190 @@
 """
 unr_check.py - are the coverage waivers of a block confirmed by JasperGold?
 
-    python3 tools/gen/unr_check.py <exclusions.tcl> <top instance> <jg run.log> [<result file>]
+    python3 tools/gen/unr_check.py <exclusions.tcl> <jg run.log> <imc detail report> [<jg vacuity log>]
 
-Reads the toggle waivers of flow/cov/<blk>_exclusions.tcl and the item lists that
+Reads the waivers of flow/cov/<blk>_exclusions.tcl, the item list that
 flow/formal/unr_block.tcl printed (JasperGold coverage app, stimuli coverage, all
-inputs free). A waived bit is CONFIRMED when JasperGold says no input sequence
-toggles it (status deadcode or unreachable), and REACHABLE when JasperGold found
-a way: then the waiver is wrong and the bit needs a test. Exit status 1 if any
-waiver is REACHABLE.
+inputs free), and IMC's detailed block and expression report of the same block
+(flow/formal/unr_block.sh makes both). For each waiver:
 
-Block and expression waivers are given by IMC's own index numbers, which
-JasperGold does not use; they are counted and not matched one by one.
+    CONFIRMED   JasperGold says no input sequence reaches the item (dead code)
+    REACHABLE   JasperGold found a way: the waiver is wrong, the item needs a test
+    RESET ONLY  the item is in a reset branch; JasperGold holds reset off, so this
+                is not a verdict and the waiver is not confirmed
+    NOT CHECKED the item is not in JasperGold's list (a property module, or code
+                under `ifndef SYNTHESIS: the run leaves both out), or the two tools
+                describe it too differently to match
+
+How the items are matched:
+    toggle      by instance and signal bit
+    block       IMC's block number -> its source line (IMC's report) -> JasperGold's
+                statement and branch items that start on that line; if there is
+                none, the smallest branch that contains the line
+    expression  only the row in which every term is true (the row that takes the
+                branch), by source line; other rows are counted differently by
+                the two tools and are NOT CHECKED
+    assertion   by name, in the log of flow/formal/vacuity_block.tcl (property app):
+                the precondition of an assertion, or a cover itself, proven
+                unreachable
+
+Exit status 1 if any waiver is REACHABLE.
 """
 import re
 import sys
 
 
+def read_jg(log):
+    """-> list of (status, type, instance, first line, last line, cause, description)"""
+    items = []
+    for l in open(log, errors="replace"):
+        if not l.startswith("ITEM|"):
+            continue
+        _, st, typ, inst, _file, loc, cause, desc = l.rstrip("\n").split("|", 7)
+        m = re.match(r"\((\d+),\d+\)-\((\d+),\d+\)", loc)
+        items.append((st, typ, inst, int(m.group(1)) if m else 0, int(m.group(2)) if m else 0, cause, desc))
+    return items
+
+
+def read_imc(report):
+    """-> blocks[(instance, number)] = (line, kind, count);
+          exprs[(instance, 'i.j')] = (line, [(row, hit, rval, terms)])"""
+    blocks, exprs, inst, cur = {}, {}, None, None
+    for l in open(report, errors="replace"):
+        m = re.match(r"^Instance name: (\S+)", l)
+        if m:
+            inst, cur = m.group(1), None
+            continue
+        m = re.match(r"^(\d+)\s+(\d+)\s+(\d+)\s+(code block|true part of|false part of|implicit else|a case item of|\S.*?)\s+\d+\s", l)
+        if m and inst:
+            blocks[(inst, int(m.group(2)))] = (int(m.group(3)), m.group(4), int(m.group(1)))
+            continue
+        m = re.match(r"^index: (\d+\.\d+) grade: \S+ \(\d+/\d+\) line: (\d+)", l)
+        if m and inst:
+            cur = (inst, m.group(1))
+            exprs[cur] = (int(m.group(2)), [])
+            continue
+        m = re.match(r"^(\d+\.\d+)\.(\d+)\s+\|\s+(\d+)\s+\|(?:\s+(\d)\s+\|)?\s+(.*)$", l)
+        if m and cur and m.group(1) == cur[1]:
+            exprs[cur][1].append((int(m.group(2)), int(m.group(3)), m.group(4), m.group(5).split()))
+    return blocks, exprs
+
+
+def verdict(found):
+    if not found:
+        return "NOT CHECKED"
+    if any(i[0] == "covered" for i in found):
+        return "REACHABLE"
+    if all(i[0] == "deadcode" for i in found):
+        return "CONFIRMED"
+    return "RESET ONLY"
+
+
 def main():
     if len(sys.argv) < 4:
         sys.exit(__doc__)
-    wfile, top, log = sys.argv[1:4]
-    status, cur, counts = {}, None, {}
-    for l in open(log, errors="replace"):
-        m = re.match(r"^==== ITEMS (\w+) ====", l)
+    wfile, log, imc = sys.argv[1:4]
+    vac = {}
+    if len(sys.argv) > 4:
+        for l in open(sys.argv[4], errors="replace"):
+            if l.startswith("VAC|"):
+                p = l.rstrip("\n").split("|")
+                vac[(p[1], p[2])] = p[3]
+    items = read_jg(log)
+    if not items:
+        sys.exit("no ITEM line in %s: was it made by flow/formal/unr_block.tcl?" % log)
+    blocks, exprs = read_imc(imc)
+    tops = sorted(set(k[0].split(".")[0] for k in blocks) | set(k[0].split(".")[0] for k in exprs))
+
+    def rel(inst):                      # IMC's "top.u_x" -> JasperGold's "u_x"
+        for t in tops:
+            if inst == t:
+                return ""
+            if inst.startswith(t + "."):
+                return inst[len(t) + 1:]
+        return inst.split(".", 1)[1] if "." in inst else ""
+
+    tog = {}
+    for it in items:
+        m = re.match(r'toggle for signal bit "([^"]+)"', it[6])
         if m:
-            # only these three are verdicts on reachability
-            cur = m.group(1) if m.group(1) in ("covered", "unreachable", "deadcode") else None
-            continue
-        if l.startswith("==== END"):
-            cur = None
-        if cur and re.match(r"^\|[A-Z]", l):
-            counts[cur] = counts.get(cur, 0) + 1
-            m = re.search(r'toggle for signal bit "([^"]+)"', l)
-            if m:
-                status[m.group(1)] = cur
-    if not status:
-        sys.exit("no item list in %s: was it made by flow/formal/unr_block.tcl?" % log)
-    tog, other = [], 0
+            tog.setdefault(m.group(1), []).append(it)      # the name carries its path below the top
+    count = {}
+    lines = []
+
+    def note(kind, v, text):
+        count.setdefault(kind, {}).setdefault(v, 0)
+        count[kind][v] += 1
+        if v != "CONFIRMED":
+            lines.append("  %-11s %-10s %s" % (v, kind, text))
+
     for l in open(wfile):
         m = re.match(r'^exclude -inst (\S+) -(\w+) (\S+)', l)
         if not m:
             continue
-        if m.group(2) != "toggle":
-            other += 1
-            continue
-        path = m.group(1)[len(top):].lstrip(".") if m.group(1).startswith(top) else m.group(1)
-        tog.append((path + "." if path else "") + m.group(3).replace("\\", ""))
-    conf, reach, skipped = [], [], []
-    for name in tog:
-        keys = [name] if name in status else [k for k in status if k.startswith(name + "[")]
-        if not keys:
-            skipped.append(name)
-        elif all(status[k] != "covered" for k in keys):
-            conf.append(name)
+        inst, kind, what = m.group(1).replace("\\", ""), m.group(2), m.group(3).replace("\\", "")
+        r = rel(inst)
+        if kind == "assertion":
+            st = vac.get((inst, what))
+            v = {"unreachable": "CONFIRMED", "covered": "REACHABLE"}.get(st, "NOT CHECKED")
+            note(kind, v, "%s %s (%s)" % (inst, what, "JasperGold: %s" % st if st else "no property-app run given"))
+        elif "_sva" in inst.split(".")[-1]:
+            note(kind, "NOT CHECKED", "%s %s (inside a property module)" % (inst, what))
+        elif kind == "toggle":
+            name = (r + "." if r else "") + what
+            found = tog.get(name) or [i for n, v in tog.items() if n.startswith(name + "[") for i in v]
+            note(kind, verdict(found), "%s %s" % (inst, what))
+        elif kind == "block":
+            b = blocks.get((inst, int(what)))
+            if not b:
+                note(kind, "NOT CHECKED", "%s block %s (not in IMC's report)" % (inst, what))
+                continue
+            line, bkind, cnt = b
+            code = [i for i in items if i[2] == r and i[1] in ("statement", "branch")]
+            found = [i for i in code if i[3] == line and (i[6] == "implicit else") == (bkind == "implicit else")]
+            if not found:
+                around = sorted((i for i in code if i[1] == "branch" and i[3] <= line <= i[4] and i[4] > i[3]), key=lambda i: i[4] - i[3])
+                found = around[:1]
+            v = verdict(found)
+            note(kind, v, "%s block %s, line %d, %s%s" % (inst, what, line, bkind,
+                 "" if found else " (no item of JasperGold there: code under `ifndef SYNTHESIS, which the run leaves out)"))
+        elif kind == "expression":
+            e = exprs.get((inst, what))
+            if not e:
+                note(kind, "NOT CHECKED", "%s expression %s (not in IMC's report)" % (inst, what))
+                continue
+            line, rows = e
+            unhit = [x for x in rows if x[1] == 0]
+            jg = [i for i in items if i[2] == r and i[1] == "expression" and i[3] == line]
+            alltrue = [i for i in jg if "~" not in i[6].split("truthtable")[-1]]
+            takes = len(unhit) == 1 and unhit[0][2] == "1" and "-" not in unhit[0][3]
+            if not jg:
+                note(kind, "NOT CHECKED", "%s expression %s, line %d (no item of JasperGold there: code under `ifndef SYNTHESIS)" % (inst, what, line))
+            elif takes and alltrue:
+                note(kind, verdict(alltrue), "%s expression %s, line %d, the row that takes the branch" % (inst, what, line))
+            else:
+                note(kind, "NOT CHECKED", "%s expression %s, line %d: %d row(s) not hit in simulation, JasperGold has %d of %d rows dead there; rows not matched one to one"
+                     % (inst, what, line, len(unhit), sum(1 for i in jg if i[0] != "covered"), len(jg)))
         else:
-            reach.append(name)
-    out = []
-    out.append("Waivers of %s against JasperGold (%s)" % (wfile, log))
-    out.append("JasperGold cover items: " + ", ".join("%s %d" % (k, counts[k]) for k in sorted(counts)))
-    out.append("  of them toggle bits: %d, not reachable: %d" % (len(status), sum(1 for v in status.values() if v != "covered")))
-    out.append("Toggle waivers: %d" % len(tog))
-    out.append("  CONFIRMED not reachable : %d" % len(conf))
-    out.append("  REACHABLE (waiver wrong): %d" % len(reach))
-    out.append("  not in JasperGold's list: %d (inside a property module, which the run leaves out)" % len(skipped))
-    for n in reach:
-        out.append("    REACHABLE: " + n)
-    for n in skipped:
-        out.append("    not in list: " + n)
-    out.append("Block, expression and assertion waivers, not matched one by one: %d" % other)
-    text = "\n".join(out) + "\n"
-    sys.stdout.write(text)
-    if len(sys.argv) > 4:
-        open(sys.argv[4], "w").write(text)
-    return 1 if reach else 0
+            note(kind, "NOT CHECKED", "%s %s (a kind of waiver this script does not know)" % (inst, what))
+
+    out = ["Waivers of %s against JasperGold" % wfile,
+           "JasperGold: %d cover items; %d covered, %d dead code, %d reachable only in reset"
+           % (len(items), sum(1 for i in items if i[0] == "covered"), sum(1 for i in items if i[0] == "deadcode"),
+              sum(1 for i in items if i[0] == "unreachable")),
+           "",
+           "%-11s %6s %10s %10s %11s %12s" % ("kind", "total", "CONFIRMED", "REACHABLE", "RESET ONLY", "NOT CHECKED")]
+    bad = 0
+    for kind in ("toggle", "block", "expression", "assertion"):
+        c = count.get(kind, {})
+        if c:
+            out.append("%-11s %6d %10d %10d %11d %12d" % (kind, sum(c.values()), c.get("CONFIRMED", 0), c.get("REACHABLE", 0),
+                                                         c.get("RESET ONLY", 0), c.get("NOT CHECKED", 0)))
+            bad += c.get("REACHABLE", 0)
+    if lines:
+        out += ["", "Not confirmed, one by one:"] + lines
+    sys.stdout.write("\n".join(out) + "\n")
+    return 1 if bad else 0
 
 
 if __name__ == "__main__":

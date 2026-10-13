@@ -52,18 +52,52 @@ libraries on `LD_LIBRARY_PATH`; call `exec env -u LD_LIBRARY_PATH python3 ...`.
 | Block | Script | Result | Date |
 |---|---|---|---|
 | Core, `pipe_ctrl` properties on the whole core | `core/pipe_ctrl_core.tcl` | 9 of 9 assertions proven in every environment; with the real DSU and AHB-legal slaves all 13 hold-by-register and hold-against-flush cells are reachable | 2026-10-14 |
-| GPIO, coverage waivers | `unr_block.tcl`, `tools/gen/unr_check.py` | 545 of 551 toggle waivers confirmed not reachable, 0 reachable; the other 6 are inside a property module (`gpio_unr.result.txt`) | 2026-10-14 |
-| PWM, coverage waivers | the same | 48 of 54 toggle waivers confirmed not reachable, 0 reachable; the other 6 are inside a property module (`pwm_unr.result.txt`) | 2026-10-14 |
+| Coverage waivers of the five closed blocks (task 4.4) | `./flow/formal/unr_block.sh <gpio\|pwm\|timers\|clic\|crg>` | 920 of 942 waivers confirmed, 0 reachable, 22 not checked (below); `<blk>_unr.result.txt` | 2026-10-14 |
 
-The waiver check uses the coverage app (`-cov`, stimuli coverage) and not the unreachability
-app (`-unr`): the latter wants the simulator's coverage database, read ours (irun 15.2) and
-then found no item to work on. The coverage app needs no database. Its "unprocessed" list
-is every item when the checker side is off, so it is not a verdict; the first version of
-`unr_check.py` read it as one and confirmed everything, which a planted waiver on a bus
-address bit showed at once. That planted case is how to test the checker:
-a waiver on `paddr_i[2]` must come out REACHABLE.
+### Waivers against JasperGold (task 4.4)
 
-Still to do for task 4.4: the block and expression waivers (IMC's index numbers do not
-exist in JasperGold; they need matching by source line), and the CLIC, the timers and the
-clock and reset block, which have more than one clock.
+`unr_block.sh` runs three things for a block and compares them in `tools/gen/unr_check.py`:
+IMC's detailed report of the block's merged UVM runs (it gives each of IMC's block numbers
+its source line), the coverage app with every input free (`unr_block.tcl`), and the
+property app for the waivers that say a property can never trigger (`vacuity_block.tcl`).
 
+| Block | Waivers | Confirmed | Reachable | Not checked |
+|---|---|---|---|---|
+| GPIO | 666 | 657 | 0 | 9 |
+| PWM | 60 | 51 | 0 | 9 |
+| Timers | 93 | 92 | 0 | 1 |
+| CLIC | 68 | 68 | 0 | 0 |
+| Clock and reset | 55 | 52 | 0 | 3 |
+
+The 22 not checked, and why:
+
+- 16 are inside a property module (ports of `*_sva` tied to a constant, and two guard
+  expressions of the divider's checker). The run asks about the design and leaves the
+  property modules out.
+- 6 are the shim's two simulation-only checks under `` `ifndef SYNTHESIS `` (the stop on a
+  parameter out of range, the report of an IP that held PREADY low), in the GPIO and in the
+  PWM. JasperGold builds with SYNTHESIS defined, as the chip is built, so the code is not there.
+
+These 22 stand on their written reason alone.
+
+Things that went wrong on the way, kept here so they are not repeated:
+
+- The unreachability app (`-unr`) wants the simulator's coverage database, read ours
+  (irun 15.2) and then found no item to work on. The coverage app needs no database.
+- With the checker side off, the coverage app's "unprocessed" list is every item. The first
+  version of `unr_check.py` read it as a verdict and confirmed everything.
+- JasperGold holds the resets off after the reset state, so every statement in a reset
+  branch comes out "unreachable, caused by reset". That is not a verdict; the checker
+  reports it as RESET ONLY and does not confirm the waiver.
+- Property names carry the top module (`clic_top.u_clic_sva.g_n[7].a_winner_max_level`);
+  coverage items do not (`u_gpio.s_gpio_out[45]`).
+
+The checker is tested by planting a wrong waiver, and each of these must come out
+REACHABLE with exit status 1: a toggle waiver on `paddr_i[2]` of the GPIO, a block waiver
+on block 12 of `garuda_gpio_top.u_gpio`, an assertion waiver on
+`clic_top.u_clic_sva.g_n[8] a_winner_max_level` (`WAIVERS=<file> RESULT=<file> ./flow/formal/unr_block.sh clic`).
+
+The clocks are given at one ratio per block (pclk at half of hclk; for the reset
+controller hclk at half of the always-on clock). The waived items are read-data bits that
+are zero in every register, tied-off ports and logic of pins that do not exist; none
+depends on the ratio.
