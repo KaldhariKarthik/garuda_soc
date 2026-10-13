@@ -44,7 +44,7 @@ to look, and a missing section is visible as a gap rather than hidden in prose.
 | 3 | Block diagram | Boundary, sub-blocks, every port on the boundary |
 | 4 | Sub-block inventory | Table: name, seq/comb, RTL file, one-line role |
 | 5 | Interfaces | Every port: name, direction, width, domain, reset value, description |
-| 6 | Register map | Offset, name, width, access, reset value, field-by-field. Machine-readable source in `spec/regs/<block>.yaml` |
+| 6 | Register map | Offset, name, width, access, reset value, field-by-field. Machine-readable source in `Design_Docs/regs/<block>.rdl` (SystemRDL) |
 | 7 | Functional description | `[N-n]` normative statements. State machines as explicit state tables |
 | 8 | Timing | Waveforms for every protocol phase, wait state, back-to-back and error case |
 | 9 | Clock, reset and power | Domains, CDC (or a statement that there is none and why), reset domain, reset values |
@@ -60,7 +60,7 @@ to look, and a missing section is visible as a gap rather than hidden in prose.
 Each spec ships three machine-readable companions, and the prose is generated from or
 checked against them:
 
-- `spec/regs/<block>.yaml` — the register map. Generates the §6 table, the RTL register
+- `Design_Docs/regs/<block>.rdl` — the register map, in SystemRDL. Generates the §6 table, the RTL register
   bank's field decode, `sw/common/<block>_regs.h`, and a UVM-style register model for the
   testbench. A register that exists in RTL but not here fails CI.
 - `spec/ports/<block>.yaml` — the port list. Generates the §5 table and an instantiation

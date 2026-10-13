@@ -148,7 +148,7 @@ instances at run time.
 
 ## 6 Register map — one 4 KiB window per instance
 
-No machine-readable register description exists for this block yet; this table is the register map. Offsets `0x00`–`0x1C` are the
+Machine-readable source: not written yet; it will be `Design_Docs/regs/uart.rdl` (plan task 2.1). Until then this table is the source. Offsets `0x00`–`0x1C` are the
 vendored 16550 register file **at word offsets**; `0xFE0`–`0xFEC` are the GARUDA
 tail common to every peripheral (D-21).
 

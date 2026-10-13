@@ -276,9 +276,11 @@ stated here because Rev 1.1's configurable trigger type left it ambiguous.
 **[N-7.5]** `level_select` finds the enabled pending ID with the highest `level`. Ties are
 broken by the **lowest ID**.
 
-**[N-7.6]** Implemented as a balanced binary tree of 2-input comparators (`clic_select.v`),
-five levels deep at 32 inputs. Each comparison carries `{level, ~id}` so that a single
-magnitude comparison resolves both the level and the tie-break.
+**[N-7.6]** Implemented as a balanced binary tree of two-input comparators, 32 inputs to one
+in five levels (`clic_select.v`). Each comparison carries `{present, level, ~id}` so that a
+single magnitude comparison resolves the level and the tie-break, and an ID that is not a
+candidate never wins. *(Corrected 2026-10-13, AUD-12 item 8: this note described eight
+4-input comparators and one 8-input comparator; the depth, five levels, is the same.)*
 
 **[N-7.7]** The lowest-ID tie-break puts the DMA channels (IDs 1–6 and 8–13) ahead of the
 peripherals at equal level, which matches the priority reasoning in
@@ -444,7 +446,7 @@ a_id0_never_wins: assert property (
   @(posedge hclk_i) disable iff (!hreset_n_i)
   clic_irq_valid_o |-> (clic_irq_id_o != 5'd0));
 
-// --- reserved IDs can never be enabled (N-6.3)
+// --- reserved IDs can never be enabled (N-6.3): ID 7 and IDs 23 to 31
 a_reserved_ids: assert property (
   @(posedge hclk_i) disable iff (!hreset_n_i)
   (clic_ie[7] == 1'b0) && (clic_ie[31:23] == 9'd0));
@@ -489,7 +491,8 @@ a_level_change_safe: assert property (
 a_reset_disabled: assert property (
   @(posedge hclk_i) !hreset_n_i |=> (clic_ie == 32'd0 && clic_irq_valid_o == 1'b0));
 
-// --- no CLIC ID is ever asserted for the machine timer (R-6, N-7.14)
+// --- no CLIC ID is ever asserted for the machine timer (R-6, N-7.14): ID 7,
+//     whose cause value is the timer's, has no source and cannot be enabled
 a_no_mtip_id: assert property (
   @(posedge hclk_i) disable iff (!hreset_n_i) !irq_src_i[7]);
 

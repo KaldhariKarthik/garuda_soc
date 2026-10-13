@@ -172,7 +172,7 @@ states its requirement: the bridge must hold `hreadyout` low until both are deas
 `0x4000_0000 + 0x1000 x n` (`haddr[15:12]`), so the base address quoted here was
 always right and only the index was wrong.)*
 
-The register description `Design_Docs/regs/crg.rdl` is written from this table and generates the UVM register model `tb/clk_div/uvm/crg_reg_pkg.sv` (`tools/gen/gen_ral.py`).
+Machine-readable source: `Design_Docs/regs/crg.rdl` (SystemRDL; the UVM register model is generated from it by `tools/gen/gen_ral.py`).
 
 | Offset | Name | Access | Reset | Description |
 |---|---|---|---|---|

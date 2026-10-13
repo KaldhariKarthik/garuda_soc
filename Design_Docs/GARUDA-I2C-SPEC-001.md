@@ -126,7 +126,7 @@ so it is the clean one, with no DLAB and no byte addressing.
 
 ## 6 Register map — APB window 2 (`0x4000_2000`)
 
-No machine-readable register description exists for this block yet; this table is the register map.
+Machine-readable source: not written yet; it will be `Design_Docs/regs/i2c.rdl` (plan task 2.1). Until then this table is the source.
 
 | Offset | Name | Access | Reset | Description |
 |---|---|---|---|---|

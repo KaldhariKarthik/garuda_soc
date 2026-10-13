@@ -108,7 +108,7 @@ tied high, `PSLVERR` tied low, and it carries its own input synchronisers.
 
 ## 6 Register map — APB window 7 (`0x4000_7000`)
 
-The register description `Design_Docs/regs/gpio.rdl` is written from this table and generates the UVM register model `tb/gpio/uvm/gpio_reg_pkg.sv` (`tools/gen/gen_ral.py`). The vendored register file is
+Machine-readable source: `Design_Docs/regs/gpio.rdl` (SystemRDL; the UVM register model is generated from it by `tools/gen/gen_ral.py`). The vendored register file is
 32 pins wide; GARUDA has two, so **only bits `[1:0]` of each register are
 meaningful** and the rest read 0 ([N-6.2]).
 

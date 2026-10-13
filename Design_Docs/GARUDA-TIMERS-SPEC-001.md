@@ -213,8 +213,9 @@ improbable.
 
 ### 6.4 `WDTWARN` (0x20)
 
-**[N-6.6]** When `WDTVAL` equals `WDTWARN` and `WARNEN` is set, `wdt_warn_irq_o` asserts
-(CLIC ID 22).
+**[N-6.6]** While the watchdog is enabled, `WARNEN` is set and `WDTVAL` is **at or below**
+`WDTWARN`, `wdt_warn_irq_o` is asserted (CLIC ID 22). *(Corrected 2026-10-13, AUD-12 item 4:
+this note said "equals"; the RTL holds the line, by decision D-17.)*
 
 **[N-6.7]** Purpose: the warning fires while the core is still running, so the handler can
 record diagnostic state — the current task, a stack pointer, a loop counter — into DSRAM
@@ -222,9 +223,11 @@ before the reset arrives. After the reset, `RSTREASON.WDT` says the watchdog fir
 DSRAM record says what the firmware was doing. Without the warning, a watchdog reset tells
 you only that something hung.
 
-**[N-6.8]** The warning is level-triggered like every CLIC source, and asserts while
-`WDTVAL == WDTWARN`, which is one `hclk` cycle unless the counter is stopped. Firmware's
-handler must be short. Setting `WDTWARN` to roughly 10% of `WDTLOAD` gives the handler
+**[N-6.8]** The warning is a held level like every CLIC source (D-17): it stays asserted
+from the cycle the count reaches `WDTWARN` until a kick reloads the counter above the
+threshold, `WARNEN` is cleared, or the watchdog reset arrives. A handler that returns without
+kicking is entered again at once, so it must kick, clear `WARNEN`, or record and wait for the
+reset. Firmware's handler must be short. Setting `WDTWARN` to roughly 10% of `WDTLOAD` gives the handler
 90% of the timeout budget to run in.
 
 ---
