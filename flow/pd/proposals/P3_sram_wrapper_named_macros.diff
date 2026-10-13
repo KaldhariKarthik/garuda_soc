@@ -1,0 +1,37 @@
+--- a/rtl/mem/sram_wrapper.v
++++ b/rtl/mem/sram_wrapper.v
+@@ -46,12 +46,28 @@
+     always @(posedge clk) rdata <= 32'd0;
+     wire _unused = |{ce, addr, wdata, we, be};
+ `elsif GARUDA_SRAM_MACRO
+-    // Foundry macro goes here (OPEN-7 / ADR-0021). Deliberately a hard error
+-    // until it exists, so a macro build cannot silently fall back to flops.
+-    initial begin
+-        $display("sram_wrapper: GARUDA_SRAM_MACRO set but no macro is instantiated");
+-        $finish;
+-    end
++    // One NAMED macro per shape (OPEN-7 / ADR-0021), so a physical flow can
++    // substitute an abstract for it: an ASAP7 mock now, the foundry compiler
++    // output at 28 nm. Same ports as this wrapper; be[3:0] byte writes and the
++    // ROM's ignored writes are the macro's job. An unlisted shape fails
++    // elaboration rather than falling back to flops.
++    wire [31:0] rdata_m;
++    always @* rdata = rdata_m;
++    generate
++        if (WORDS == 16384 && ROM == 0) begin : g_isram
++            garuda_sram_16384x32 u_macro (.clk(clk), .ce(ce), .we(we), .be(be),
++                .addr(addr), .wdata(wdata), .rdata(rdata_m));
++        end else if (WORDS == 4096 && ROM == 0) begin : g_dsram
++            garuda_sram_4096x32 u_macro (.clk(clk), .ce(ce), .we(we), .be(be),
++                .addr(addr), .wdata(wdata), .rdata(rdata_m));
++        end else if (WORDS == 1024 && ROM == 1) begin : g_brom
++            garuda_rom_1024x32 u_macro (.clk(clk), .ce(ce), .addr(addr),
++                .rdata(rdata_m));
++            wire _unused_rom = |{we, be, wdata};
++        end else begin : g_unsupported
++            garuda_sram_wrapper_unsupported_shape u_missing ();
++        end
++    endgenerate
+ `else
+     reg [31:0] mem [0:WORDS-1];
+ 
