@@ -258,3 +258,9 @@ GATE_A = check_tree test_core test_elements test_blocks_a test_sanity test_dsu r
 gate_a:
 	@if $(MAKE) --no-print-directory -k $(GATE_A); \
 	 then echo "gate_a: PASS"; else echo "gate_a: FAIL"; exit 1; fi
+
+# The nightly run of this track: scripts/nightly.sh (plan task 1.4). It writes its page
+# under flow/nightly/ and never commits.
+.PHONY: nightly_a
+nightly_a:
+	@./scripts/nightly.sh a

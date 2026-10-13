@@ -161,6 +161,9 @@ endef
 #   make uvm_clic            register test, directed test, random test x SEEDS
 #   make uvm_clic SEEDS=50
 SEEDS ?= 20
+# SEED0 is added to the seed of every random run: the nightly sets it from the date,
+# so that each night runs seeds no night before it ran.
+SEED0 ?= 0
 # UVM_TAG is added to the run directory. The gates set it, so that a gate run of a
 # few seeds does not replace the 20-seed coverage databases the chart is made from.
 UVM_TAG ?=
@@ -174,7 +177,7 @@ define run_uvm
 	   then echo "uvm_$(1)  $$4 PASS"; else echo "uvm_$(1)  $$4 FAIL"; fail=1; fi; }; \
 	 run "-f $(3) -top $(4)" $(5)_reg_test 1 reg_s1; \
 	 run -R $(5)_directed_test 1 directed_s1; \
-	 s=1; while [ $$s -le $(SEEDS) ]; do run -R $(5)_random_test $$s random_s$$s; s=$$((s+1)); done; \
+	 s=1; while [ $$s -le $(SEEDS) ]; do n=$$((s+$(SEED0))); run -R $(5)_random_test $$n random_s$$n; s=$$((s+1)); done; \
 	 [ $$fail -eq 0 ]
 endef
 

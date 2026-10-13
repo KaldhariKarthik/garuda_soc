@@ -261,3 +261,9 @@ GATE_B = check_tree static_lint test_blocks_b test_chip uvm_b
 gate_b:
 	@if $(MAKE) --no-print-directory -k $(GATE_B) SEEDS=$(GATE_SEEDS) UVM_TAG=_gate; \
 	 then echo "gate_b: PASS"; else echo "gate_b: FAIL"; exit 1; fi
+
+# The nightly run of this track: scripts/nightly.sh (plan task 1.4). It writes its page
+# under flow/nightly/ and never commits.
+.PHONY: nightly_b
+nightly_b:
+	@./scripts/nightly.sh b
