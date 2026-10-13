@@ -1,0 +1,37 @@
+# Formal check of the PD-only mock memories (run from a copy of this directory):
+#   sby -f mock_props.sby
+# RAM properties are checked by BOUNDED model checking to 12 cycles: the shadow
+# comparison is not inductive without an invariant on the mock's internal array
+# (k-induction on 2026-10-14: base case passed, induction step failed). For a
+# 4-row, 4-lane array, 12 cycles cover every write/byte-mask/read ordering on
+# the probed row; this is a bounded result, not an unbounded proof.
+# The ROM property is proven unbounded by k-induction.
+[tasks]
+isram_bmc    ram16 bmc
+isram_cover  ram16 cover
+dsram_bmc    ram4  bmc
+dsram_cover  ram4  cover
+rom_prove    rom   prove
+
+[options]
+bmc: mode bmc
+bmc: depth 12
+cover: mode cover
+cover: depth 6
+prove: mode prove
+prove: depth 6
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal garuda_mock_srams.v mock_props.sv
+ram16: chparam -set AW 14 props_ram
+ram16: prep -top props_ram
+ram4:  chparam -set AW 12 props_ram
+ram4:  prep -top props_ram
+rom:   prep -top props_rom
+
+[files]
+garuda_mock_srams.v
+mock_props.sv
