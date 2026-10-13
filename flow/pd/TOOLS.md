@@ -56,7 +56,7 @@ These are in `~/tools/OpenROAD-flow-scripts/dependencies`:
 | Boost, Eigen, CUDD, LEMON, spdlog, gtest, PCRE, CUSP | 1.89, 3.4, 3.0.0, 1.3.1, 1.15.0, 1.17.0, 10.42, (unversioned) — from the installer summary | installed (build only) |
 | or-tools | 9.14.6206 (Abseil 20250512 inside it) — from the installer summary | installed (build only) |
 | Yosys (YosysHQ release, for formal) | `Yosys 0.68 (git sha1 38e001a6f, Release, GNU /usr/bin/c++ 11.4.0)` | installed |
-| SymbiYosys | tag `v0.68`, commit `b1a1e98cba941ec8433f8dc27f416cd7bb7f14be`; reports `SBY v0.69` because that commit carries both tags | installed |
+| SymbiYosys | tag `v0.68`, commit `b1a1e98cba941ec8433f8dc27f416cd7bb7f14be`; reports `SBY v0.69` because that commit carries both tags | **validated** with z3: `pipe_ctrl.sby` 6/6 PASS |
 | eqy | `EQY v0.68` | installed |
 | Python packages | pip `25.2` and ORFS's hashed `etc/requirements-common_lock.txt`, in `~/.local` | installed |
 
@@ -69,6 +69,7 @@ These are in `~/tools/OpenROAD-flow-scripts/dependencies`:
 | clang | `Ubuntu clang version 14.0.0-1ubuntu1.1` | installed |
 | python3 | `Python 3.10.12` | installed (Ubuntu) |
 | libc6 | `2.35-0ubuntu3.15` | upgraded by the install, from 3.13 |
+| z3 | `Z3 version 4.8.12 - 64 bit` (dpkg `4.8.12-1`), installed 2026-10-12 with `apt-get install -y --no-install-recommends z3` (1 new package, 0 upgraded, 0 removed) | **validated**: `pipe_ctrl.sby` 6/6 PASS (`Docs/VERIFICATION_LOG_2026-10-12.md`) |
 
 ### 2d. Proposed, not installed
 
@@ -79,7 +80,6 @@ These are in `~/tools/OpenROAD-flow-scripts/dependencies`:
 | Spike | `17e8a69fb75546dea445cfc0fb78769d2510f339` (master, 2026-10-11; no release since v1.1.0) | `~/external/spike-inst`, the Makefile's `SPIKE` default |
 | riscv-tests | `7b68f7b91f827f8d94cc1c57ff123752c5c8f704` (master, 2026-10-11) | `~/external/riscv-tests`; for ISA builds only |
 | RISC-V GCC | **not** apt's `gcc-riscv64-unknown-elf` 10.2.0 / binutils 2.35.1 (binutils older than the 2.39 `-Wl,--no-warn-rwx-segments` needs). Candidate: xPack `riscv-none-elf-gcc` `v15.2.0-1`, `xpack-riscv-none-elf-gcc-15.2.0-1-linux-x64.tar.gz`, sha256 `aaaa8060c914851a3e5ee1ba82cc3d6f80972f90638a05c6e823a37557a33758` | Being checked against `sw/Makefile`. Prefix `riscv-none-elf-`. `sw/riscv-tests/Makefile` hard-codes `riscv64-amd-linux-gnu-`, so override `CC=`/`OBJCOPY=` on the command line |
-| z3 (apt) | `4.8.12-1` (jammy) | Only `smtbmc z3` is used by `flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl.sby` |
 
 ## 3. Install commands, in the order run
 
