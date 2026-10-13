@@ -69,6 +69,18 @@ grep -E 'CLKDMN|INSYNC' sim/static_cdc_debug/hal_cdc.log
 - Formal (IFV) is set up in `flow/2_static/fv_pipe_ctrl/` but there is no
   `Incisive_Formal_Verifier` licence on the server, so it does not run.
 
+### Lint on three tools (plan task 3.1)
+
+| Tool | Command | What is accepted | Where |
+|---|---|---|---|
+| HAL | `make static_lint` | each waived message with its reason | `flow/2_static/hal_waivers.txt` |
+| Verilator | `source scripts/setup_open_tools.sh; make local_lint` | each `lint_off` line with its reason | `flow/2_static/verilator_waivers.vlt` |
+| Yosys | `source scripts/setup_open_tools.sh; make local_synth` | each warning pattern with its reason | `flow/2_static/yosys_waivers.txt` |
+
+Each of the three fails on a message that is not in its file. The nightly runs all three.
+A new warning is fixed in the RTL by its owner; it goes into a waiver file only when it is
+in vendored code or is the intended construct, and the line says which.
+
 ## One block by hand: plan, lint, simulate, coverage
 
 The same four commands for any block; only the names in the table change.

@@ -138,4 +138,18 @@ if [ "$LATCH_BAD" -gt 0 ]; then
     exit 1
 fi
 
+# ---- the warning gate (plan task 3.1) -----------------------------------------
+# Every warning line of the log must match a pattern of
+# flow/2_static/yosys_waivers.txt, where each pattern has its reason. A warning
+# nobody has looked at fails the run.
+WAIVERS=${YOSYS_WAIVERS:-flow/2_static/yosys_waivers.txt}
+PATS=$(grep -vE '^#|^[[:space:]]*$' "$WAIVERS" | cut -f1 | paste -sd'|')
+NEWW=$(grep -E "Warning: " "$OUT/yosys.log" | grep -vE "$PATS" | sort -u)
+echo "Warnings: $(grep -cE 'Warning: ' "$OUT/yosys.log") lines, $(printf '%s' "$NEWW" | grep -c .) not accepted in $WAIVERS"
+if [ -n "$NEWW" ]; then
+    echo "*** WARNINGS NOT ACCEPTED ***"
+    printf '%s\n' "$NEWW" | head -20
+    exit 1
+fi
+
 echo "Full log: $OUT/yosys.log"

@@ -1,0 +1,7 @@
+# Yosys on garuda_chip_top: the warnings that are accepted, one pattern per line
+# (an extended regular expression, then a tab, then the reason). scripts/run_synth.sh
+# fails on any warning line that matches none of them (plan task 3.1). 2026-10-14.
+Replacing memory .* with list of registers	Small register arrays written as arrays (prefetch buffer, CLIC levels, PWM duties, FIFOs of 16 entries or fewer): flops are what is meant; the real memories are the SRAM wrappers, which are not built here
+Latch inferred for signal .\\core_clk_gate\.	The enable latch of the core's clock gate, the one latch of the chip (CORE [N-7.27]); the latch gate below allows it by name and fails on any other
+Encountered .(full|parallel)_case. comment	Synthesis pragmas in the vendored OpenCores I2C controller, never edited here (decision D-22); the case statements are complete, HAL and Verilator see no latch
+Yosys has only limited support for tri-state logic	The pad drivers of the chip top (SPI slave MISO, I2C, GPIO): tri-states at the pins, replaced by pad cells at synthesis (rtl/tech, plan task 3.8)

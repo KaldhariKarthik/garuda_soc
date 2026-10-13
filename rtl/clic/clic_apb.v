@@ -43,7 +43,7 @@ module clic_apb #(
     localparam [31:0] CLICINFO = {7'd0, 4'd8, 8'd1, 13'd32};
 
     wire wr     = psel_i & penable_i & pwrite_i;
-    wire is_cfg = (paddr_i[11:8] == 4'h1) && (paddr_i[1:0] == 2'b00) && (paddr_i[7:2] < N);
+    wire is_cfg = (paddr_i[11:8] == 4'h1) && (paddr_i[1:0] == 2'b00) && ({26'd0, paddr_i[7:2]} < N);
     wire hit    = (paddr_i == 12'h000) | (paddr_i == 12'h004) | (paddr_i == 12'h008) | is_cfg;
     wire [4:0] cfg_n = paddr_i[6:2];
 

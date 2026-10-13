@@ -202,7 +202,8 @@ local_lint:                                      ## whole-chip Verilator lint
 	 def=$$(python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --defines); \
 	 src=$$(python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f | tr '\n' ' '); \
 	 echo "=== Verilator lint: garuda_chip_top ($$(echo $$src | wc -w) sources) ==="; \
-	 verilator --lint-only -sv --timing --top-module garuda_chip_top $$inc $$def $$src
+	 verilator --lint-only -sv --timing --top-module garuda_chip_top flow/2_static/verilator_waivers.vlt $$inc $$def $$src; \
+	 echo "local_lint: no warning that is not accepted in flow/2_static/verilator_waivers.vlt"
 
 local: local_sim local_lint local_synth
 

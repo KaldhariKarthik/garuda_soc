@@ -1,0 +1,34 @@
+// =============================================================================
+// Lint of garuda_chip_top with Verilator: what is accepted, and why (plan task 3.1).
+// (No comment here may begin with the word Verilator: the tool reads it as a pragma.)
+// Read by `make local_lint`. Every line has its reason; a warning that is not
+// listed here fails the target. Written 2026-10-14 against Verilator 5.053.
+// =============================================================================
+`verilator_config
+
+// ---- vendored IP: never edited here (decision D-22); a change is a recorded patch
+// Width mismatches in comparisons and zero-extensions of the PULP SPI master and
+// the OpenCores I2C bit controller. Each is a narrower value compared with or
+// assigned to a wider one: the result is the zero-extended value in every tool.
+lint_off -rule WIDTHEXPAND    -file "*rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv"
+lint_off -rule WIDTHEXPAND    -file "*rtl/third_party/pulp/axi_spi_master/src/spi_master_controller.sv"
+lint_off -rule WIDTHTRUNC     -file "*rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv" -lines 248
+// Case statements without a default inside clocked blocks: an unlisted value
+// leaves the registers as they are, which is the intended behaviour, and no latch
+// is inferred (the same five places HAL reports as CDEFNC, flow/2_static/hal_waivers.txt).
+lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv"
+lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/apb_spi_master/src/spi_master_apb_if.sv"
+lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/axi_spi_master/src/spi_master_controller.sv"
+lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv"
+
+// ---- the one latch of the chip: the enable latch of the core's clock gate
+// (CORE [N-7.27]); a library clock-gate cell replaces it at synthesis (rtl/tech).
+lint_off -rule LATCH          -file "*rtl/core/core_clk_gate.v" -lines 36
+
+// ---- track A, OPEN: to be fixed in the RTL by its owner, then removed from here
+// (asked in the status sheet on 2026-10-14). Each is a width mismatch that gives
+// the right value today.
+lint_off -rule WIDTHEXPAND    -file "*rtl/debug/debug_module.v"       -lines 83
+lint_off -rule WIDTHEXPAND    -file "*rtl/ahb2apb/ahb2apb_apb_fsm.v"  -lines 97
+lint_off -rule WIDTHTRUNC     -file "*rtl/dma/dma_engine.v"           -lines 78
+lint_off -rule WIDTHTRUNC     -file "*rtl/dma/dma_engine.v"           -lines 163

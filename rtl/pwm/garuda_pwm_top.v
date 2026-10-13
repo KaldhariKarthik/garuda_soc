@@ -81,7 +81,7 @@ module garuda_pwm_top #(
                 end
                 default: begin
                     for (kw = 0; kw < NCH; kw = kw + 1)
-                        if (ip_paddr == (A_DUTY0 + 4*kw))
+                        if (ip_paddr == (A_DUTY0 + 12'd4 * kw[11:0]))
                             duty_q[kw] <= pwdata_i[15:0];
                 end
             endcase
@@ -120,7 +120,7 @@ module garuda_pwm_top #(
     always @(*) begin
         duty_rd = 16'd0;
         for (kr = 0; kr < NCH; kr = kr + 1)
-            if (ip_paddr == (A_DUTY0 + 4*kr))
+            if (ip_paddr == (A_DUTY0 + 12'd4 * kr[11:0]))
                 duty_rd = duty_q[kr];
     end
 
@@ -131,7 +131,7 @@ module garuda_pwm_top #(
             A_PRESCALE: reg_rdata = {16'd0, prescale_q};
             A_PERIOD:   reg_rdata = {16'd0, period_q};
             A_CTRL:     reg_rdata = {{(28-NCH){1'b0}}, ch_en_q, 3'd0, en_q};
-            A_STATUS:   reg_rdata = {{(12-NCH){1'b0}}, clamp, count};
+            A_STATUS:   reg_rdata = {{(16-NCH){1'b0}}, clamp, count};
             default:    reg_rdata = {16'd0, duty_rd};
         endcase
     end

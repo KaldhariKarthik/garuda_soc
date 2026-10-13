@@ -89,6 +89,17 @@ if [ "$TRACK" = b ] && [ -d "$HOME/external/oss-cad-suite" ]; then
     done
 fi
 
+# lint on the two free tools; with HAL above that is the three of plan task 3.1
+if [ "$TRACK" = b ] && [ -d "$HOME/external/oss-cad-suite" ]; then
+    for t in local_lint local_synth; do
+        log="$OUT/$t.log"; s=$(date +%s)
+        ( source scripts/setup_open_tools.sh > /dev/null; make $t ) > "$log" 2>&1; rc=$?
+        [ $rc -eq 0 ] && r=pass || { r="**FAIL** (exit $rc)"; echo F >> "$OUT/.fail"; }
+        [ $t = local_lint ] && n="lint (Verilator), no warning outside the waiver file" || n="lint (Yosys): $(grep -E '^Warnings: ' "$log")"
+        echo "| $n | $r | $(( $(date +%s) - s )) s | \`$log\` |" >> "$PAGE"
+    done
+fi
+
 # what failed, by line, so the page can be read without opening a log
 if [ -s "$OUT/.fail" ]; then
     fail=1
