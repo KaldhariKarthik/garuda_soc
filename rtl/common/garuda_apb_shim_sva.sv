@@ -20,7 +20,9 @@
 `ifndef GARUDA_APB_SHIM_SVA_SV
 `define GARUDA_APB_SHIM_SVA_SV
 module garuda_apb_shim_sva #(
-    parameter integer N_EVT = 4
+    parameter integer N_EVT    = 4,
+    parameter [11:0]  IP_LIMIT = 12'h100,
+    parameter [63:0]  IP_MAP   = {64{1'b1}}
 )(
     input wire             pclk_i,
     input wire             preset_n_i,
@@ -77,6 +79,20 @@ module garuda_apb_shim_sva #(
         (preset_n_i && $fell(irq_o)) |-> $past(wr && (paddr_i == 12'hFE0 || paddr_i == 12'hFE4)))
         else $error("[SVA-FAIL] a_shim_irq_held: the interrupt dropped with no write to IRQSTAT or IRQEN");
 
+    // AUD-13, the one rule of the chip: PSLVERR exactly for an access to an offset
+    // that is not a register, and only a register of the IP is ever selected.
+    // The map is recomputed here from the parameters, not taken from the shim.
+    wire is_ip_reg  = (paddr_i < IP_LIMIT) && (paddr_i[1:0] == 2'b00) && IP_MAP[paddr_i[7:2]];
+    wire is_tail    = (paddr_i == 12'hFE0) || (paddr_i == 12'hFE4) || (paddr_i == 12'hFE8) || (paddr_i == 12'hFEC);
+    a_shim_pslverr_map: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+        pslverr_o == (psel_i && penable_i && !(is_ip_reg || is_tail)))
+        else $error("[SVA-FAIL] a_shim_pslverr_map: paddr=%h pslverr=%b", paddr_i, pslverr_o);
+    a_shim_select_only_registers: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+        ip_psel_o == (psel_i && is_ip_reg))
+        else $error("[SVA-FAIL] a_shim_select_only_registers: paddr=%h ip_psel=%b", paddr_i, ip_psel_o);
+    c_shim_hole:      cover property (@(posedge pclk_i) preset_n_i && psel_i && penable_i && (paddr_i < IP_LIMIT) && (paddr_i[1:0] == 2'b00) && !IP_MAP[paddr_i[7:2]]);
+    c_shim_unaligned: cover property (@(posedge pclk_i) preset_n_i && psel_i && penable_i && (paddr_i < IP_LIMIT) && (paddr_i[1:0] != 2'b00));
+
     // an access that answers with an error reaches neither the IP nor a shim register
     a_shim_err_no_select: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
         pslverr_o |-> !ip_psel_o)
@@ -103,7 +119,7 @@ module garuda_apb_shim_sva #(
     c_shim_irq:     cover property (@(posedge pclk_i) preset_n_i && $rose(irq_o));
 endmodule
 
-bind garuda_apb_shim garuda_apb_shim_sva #(.N_EVT(N_EVT)) u_shim_sva (
+bind garuda_apb_shim garuda_apb_shim_sva #(.N_EVT(N_EVT), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP)) u_shim_sva (
     .pclk_i(pclk_i), .preset_n_i(preset_n_i),
     .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i), .paddr_i(paddr_i), .pwdata_i(pwdata_i),
     .pready_o(pready_o), .pslverr_o(pslverr_o), .ip_psel_o(ip_psel_o),

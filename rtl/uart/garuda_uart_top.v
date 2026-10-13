@@ -67,6 +67,10 @@ module garuda_uart_top #(
 );
 
     localparam [11:0] IP_LIMIT = 12'h020;   // our word offsets 0x00..0x1C
+    // all eight words are 16550 register positions. MCR, MSR and SCR (0x10, 0x18,
+    // 0x1C) are not implemented upstream and read 0; they stay registers, so a
+    // 16550 driver that writes MCR gets no bus error (UART [N-13.1], [N-13.2]).
+    localparam [63:0] IP_MAP   = 64'h0000_0000_0000_00FF;
     localparam [11:0] A_LCR    = 12'h00C;   // word offset of LCR (byte index 3)
     localparam [11:0] B_LSR    = 12'h005;   // BYTE index of LSR, for the poll
 
@@ -126,7 +130,7 @@ module garuda_uart_top #(
     assign evt[2] = lsr_err;                // line error: parity or framing
 
     garuda_apb_shim #(
-        .N_EVT(3), .SYNC_W(1), .SYNC_RESET(8'h01), .IP_LIMIT(IP_LIMIT),
+        .N_EVT(3), .SYNC_W(1), .SYNC_RESET(8'h01), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
         .ADDR_SHIFT(2), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk_i(pclk_i), .preset_n_i(preset_n_i),

@@ -66,6 +66,7 @@ module garuda_i2c_top #(
                       A_CMD      = 12'h010, A_STATUS = 12'h014,
                       A_TIMEOUT  = 12'h018;
     localparam [11:0] IP_LIMIT = 12'h020;
+    localparam [63:0] IP_MAP   = 64'h0000_0000_0000_007F;   // 0x00 to 0x18; 0x1C is not a register
 
     wire        ip_psel, ip_penable, ip_pwrite;
     wire [11:0] ip_paddr;
@@ -268,7 +269,7 @@ module garuda_i2c_top #(
     wire cmd_busy_err = cmd_write & tip_q;
 
     garuda_apb_shim #(
-        .N_EVT(4), .SYNC_W(2), .SYNC_RESET(8'h03), .IP_LIMIT(IP_LIMIT),
+        .N_EVT(4), .SYNC_W(2), .SYNC_RESET(8'h03), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
         .ADDR_SHIFT(0), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk_i(pclk_i), .preset_n_i(preset_n_i),

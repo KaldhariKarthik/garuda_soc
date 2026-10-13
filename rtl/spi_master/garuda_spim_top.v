@@ -91,7 +91,9 @@ module garuda_spim_top #(
     wire [4:0] tx_words = status_q[28:24];
 
     garuda_apb_shim #(
-        .N_EVT(3), .SYNC_W(1), .IP_LIMIT(12'h100), .ADDR_SHIFT(0),
+        // SPIM section 6: 0x00 to 0x18, RXFIFO 0x20, INTCFG 0x24, INTSTA 0x28.
+        // 0x1C and 0x2C to 0xFC are not registers and answer PSLVERR.
+        .N_EVT(3), .SYNC_W(1), .IP_LIMIT(12'h100), .IP_MAP(64'h0000_0000_0000_077F), .ADDR_SHIFT(0),
         .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk_i(pclk_i), .preset_n_i(preset_n_i),

@@ -32,7 +32,7 @@ D-22, D-23.
 
 **Two** general-purpose bidirectional pins, `gpio0` and `gpio1`, on APB window 7
 (`0x4000_7000`), CLIC ID 20. Direction, output value, input read, and a
-per-pin edge/level interrupt.
+per-pin edge interrupt (rising, falling or either; there is no level type, [N-6.4]).
 
 ### 1.2 Out of scope
 
@@ -59,7 +59,7 @@ tied high, `PSLVERR` tied low, and it carries its own input synchronisers.
 | R-3 | Per-pin direction control, independently. | SYS §6.4 | met |
 | R-4 | Word-only APB, 32-bit registers at word-aligned offsets. | AHB2APB [N-7.12] | met |
 | R-5 | Never stall the APB bus. | AHB2APB [N-7.15] | met |
-| R-6 | One **held** level interrupt to CLIC ID 20, from a per-pin edge or level condition. | CLIC §7.2, D-17 | met ([N-7.3]) |
+| R-6 | One **held** level interrupt to CLIC ID 20, from a per-pin edge condition (the line to the CLIC is a level; the pin condition is an edge, [N-6.4]). | CLIC §7.2, D-17 | met ([N-7.3]) |
 | R-7 | Pad inputs synchronised before use. | D-14 | met |
 | R-8 | **Both pins released (inputs) from reset** until firmware acts. | Board safety | met |
 
@@ -115,13 +115,13 @@ meaningful** and the rest read 0 ([N-6.2]).
 | Offset | Name | Access | Reset | Description |
 |---|---|---|---|---|
 | 0x00 | `PADDIR` | RW | 0 | `[n]` 1 = output, 0 = input |
-| 0x04 | `GPIOEN` | RW | 0 | `[n]` 1 = enable the pin's input path and interrupt ([N-6.1]) |
+| 0x04 | `GPIOEN` | RW | 0 | input path enable; either bit set enables **both** pins ([N-6.1]) |
 | 0x08 | `PADIN` | RO | — | `[n]` the level on the pin |
 | 0x0C | `PADOUT` | RW | 0 | `[n]` the value driven when `PADDIR[n]` is 1 |
 | 0x10 | `PADOUTSET` | W | — | `[n]` 1 sets `PADOUT[n]` ([N-6.3]) |
 | 0x14 | `PADOUTCLR` | W | — | `[n]` 1 clears `PADOUT[n]` ([N-6.3]) |
 | 0x18 | `INTEN` | RW | 0 | `[n]` 1 = this pin may raise an interrupt |
-| 0x1C | `INTTYPE` | RW | 0 | 2 bits per pin: 00 falling, 01 rising, 10 either, 11 level |
+| 0x1C | `INTTYPE` | RW | 0 | 2 bits per pin, pin n in bits `[2n+1:2n]`: 00 falling, 01 rising, 10 either edge, 11 **reserved** ([N-6.4]) |
 | 0x24 | `INTSTATUS` | **R, clears** | 0 | `[n]` 1 = this pin caused the interrupt ([N-7.3]) |
 | 0x28 | `PADCFG0` | RW | 0 | pad drive/pull — **no effect** ([N-13.1]) |
 | 0xFE0 | `IRQSTAT` | W1C | 0 | `[0]` a GPIO interrupt occurred |
@@ -129,13 +129,46 @@ meaningful** and the rest read 0 ([N-6.2]).
 | 0xFE8 | `DMACTL` | RW | 0 | present for uniformity; **no DMA channel** ([N-13.2]) |
 | 0xFEC | `ID` | RO | — | `{16'h6A5D, 8'd19, rev}` |
 
-**[N-6.1]** `GPIOEN[n]` gates the input path. A pin used only as an output does
+**[N-6.1]** `GPIOEN` gates the input path. A pin used only as an output does
 not need it; a pin read or used as an interrupt source **does**, and forgetting
-it is the usual reason a GPIO interrupt never arrives.
+it is the usual reason a GPIO interrupt never arrives. The gate is **not per
+pin**: the vendored block clocks its input flops in groups of four pins, and
+both GARUDA pins are in one group, so with either bit set both `PADIN` bits are
+live. Three consequences, each exercised by the block environment:
+(a) with only `GPIOEN[0]` set, `PADIN[1]` follows its pin too;
+(b) with both bits clear `PADIN` **holds its last value**, it does not read 0;
+(c) a pad that moved while the path was stopped is delivered as an edge, with
+its interrupt if enabled, when the path is started again. Firmware that stops
+the path must clear `INTSTATUS` and `IRQSTAT` after starting it again.
+*(Corrected 2026-10-13, finding GPIO-2 items 1 and 2: this note used to say bit
+n enables pin n.)*
 
-**[N-6.2]** Bits `[31:2]` of every register exist in the vendored RTL and are
-writable, but no pin is attached. Firmware must ignore them. `t_gpio_width`
-asserts that reads return 0 there.
+**[N-6.2]** `PADDIR`, `GPIOEN`, `PADIN`, `PADOUT`, `PADOUTSET`, `PADOUTCLR`,
+`INTEN` and `INTSTATUS` use bits `[1:0]`, one per pin; `INTTYPE` uses bits
+`[3:0]`, two per pin; `PADCFG0` uses bits `[7:0]`, four per pin. The remaining
+bits exist in the vendored RTL and are writable, but no pin is attached.
+Firmware must ignore them. `t_gpio_width` asserts that reads return 0 there.
+*(Corrected 2026-10-13, GPIO-2 item 4: this note used to say bits `[1:0]` for
+every register.)*
+
+**[N-6.2a]** Only the ten offsets of the table and the four tail registers are
+registers. Every other offset of the window answers `PSLVERR` and changes
+nothing: the shared shim selects the vendored register file only at those ten
+(its register map, `IP_MAP`). The vendored file itself decodes more, a bank for
+pads 32 to 63 and `PADCFG1` to `PADCFG7`, at 0x20 and 0x2C to 0x7C; until
+2026-10-13 those offsets read 0 and took writes without an error (GPIO-2
+item 3, AUD-13). An offset that is not word aligned answers `PSLVERR` as well.
+
+**[N-6.4]** `INTTYPE` value `11` is **reserved**. The vendored block decodes
+`00`, `01` and `10` and raises nothing for `11`: not on a rising edge, not on a
+falling edge, not on a steady level. GARUDA has no level-sensitive pin
+interrupt. Firmware must not write `11`; a pin configured so never interrupts.
+*(Corrected 2026-10-13, GPIO-2 item 1: the table used to call `11` "level".)*
+
+**[N-6.5]** `INTSTATUS` is cleared by a read, except in the one cycle in which a
+new event arrives: then the bits already set stay set and the new one is added.
+Nothing is lost, but a handler can see once more a pin it has already served,
+and must tolerate that. *(Added 2026-10-13, GPIO-2 item 5.)*
 
 **[N-6.3]** `PADOUTSET` and `PADOUTCLR` exist so two contexts can own one pin
 each without a read-modify-write race on `PADOUT`. On a chip with an interrupt

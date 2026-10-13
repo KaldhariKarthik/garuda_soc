@@ -101,6 +101,8 @@ class pwm_directed_test extends pwm_base_test;
         rd(12'hFF0, d); wr(12'hFF0, 32'hFFFF_FFFF); rd(12'hFFC, d); wr(12'hFFC, 32'h0);
         rd(12'h800, d); wr(12'h800, 32'h1); rd(12'hFE1, d); wr(12'hFE6, 32'h3);
         wr(12'h00C, 32'hFFFF_FFFF); wr(12'hFEC, 32'h0); rd(12'h00C, d); rd(12'hFEC, d);
+        // offsets inside the register range that are not word aligned: PSLVERR, nothing changes (AUD-13)
+        rd(12'h001, d); wr(12'h002, 32'h0000_FFFF); rd(12'h013, d); wr(12'h01E, 32'h0000_FFFF);
         // ---- aliasing: every register written and read at each alias of its offset (one upper
         //      address bit changed). Each must answer PSLVERR and change nothing.
         for (int r = 0; r < 8; r++) for (int b = 5; b <= 11; b++) begin

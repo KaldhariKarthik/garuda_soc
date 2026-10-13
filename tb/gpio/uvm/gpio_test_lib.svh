@@ -106,7 +106,9 @@ class gpio_directed_test extends gpio_base_test;
             wr((12'hFE0 + 4 * r) & ~(12'd1 << b), 32'h0000_0003); rd((12'hFE0 + 4 * r) & ~(12'd1 << b), d);
         end
         wr(12'h008, 32'hFFFF_FFFF); wr(12'h024, 32'hFFFF_FFFF); wr(12'hFEC, 32'h0);
-        // offsets inside the vendored register file that are not GARUDA registers: no error, read 0
+        // offsets inside the vendored register file that are not GARUDA registers: PSLVERR since
+        // the shim's register map (GPIO-2 item 3, AUD-13); and offsets that are not word aligned
+        rd(12'h001, d); wr(12'h002, 32'hFFFF_FFFF); rd(12'h01B, d); wr(12'h027, 32'h3); rd(12'h000, d); rd(12'h00C, d);
         rd(12'h020, d); wr(12'h020, 32'hFFFF_FFFF); rd(12'h020, d);
         for (int a = 12'h02C; a < 12'h080; a += 4) begin wr(a, 32'hFFFF_FFFF); rd(a, d); end
         for (int a = 0; a <= 10; a++) rd(4 * a, d);

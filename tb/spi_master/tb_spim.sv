@@ -208,6 +208,13 @@ module tb_spim;
         check(u_dchk.violations() == 0, "[R-7] dma_req_checker clean");
         bfm.wr(R_DMACTL, 32'h0);
 
+        // ---- AUD-13: PSLVERR exactly where the window has no register, all 4096 offsets ----
+        begin : map_sweep
+            integer nb;
+            bfm.sweep_map(64'h77F, nb);
+            check(nb == 0, $sformatf("[AUD-13] PSLVERR at every offset that is not a register, and at no register (0x00 to 0x18, 0x20, 0x24, 0x28 and the tail): %0d wrong", nb));
+        end
+
         check(pready_viol == 0, "[R-5] PREADY high in every cycle of every access");
 
         $display("tb_spim: checks=%0d  FAIL=%0d", checks, fails);

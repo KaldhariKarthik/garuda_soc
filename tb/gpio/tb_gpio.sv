@@ -189,6 +189,13 @@ module tb_gpio;
         bfm.read(R_INTSTAT, d, e);
         bfm.wr(R_IRQSTAT, 32'h1);
 
+        // ---- AUD-13: PSLVERR exactly where the window has no register, all 4096 offsets ----
+        begin : map_sweep
+            integer nb;
+            bfm.sweep_map(64'h6FF, nb);
+            check(nb == 0, $sformatf("[AUD-13] PSLVERR at every offset that is not a register, and at no register (0x00 to 0x1C, 0x24, 0x28 and the tail): %0d wrong", nb));
+        end
+
         check(pready_viol == 0, "[R-5] PREADY high in every cycle of every access");
 
         $display("tb_gpio: checks=%0d  FAIL=%0d", checks, fails);

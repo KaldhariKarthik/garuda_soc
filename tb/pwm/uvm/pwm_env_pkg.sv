@@ -165,7 +165,7 @@ package pwm_env_pkg;
                                       bins IRQSTAT = {8}; bins IRQEN = {9}; bins DMACTL = {10}; bins ID = {11}; }
             cp_rw: coverpoint wr { bins read = {0}; bins write = {1}; }
             x_reg_rw: cross cp_reg, cp_rw;
-            cp_unmapped: coverpoint kind { bins between_ip_and_tail = {20}; bins first_past_ip = {21}; bins last_before_tail = {22};
+            cp_unmapped: coverpoint kind { bins between_ip_and_tail = {20}; bins unaligned_in_ip = {27}; bins first_past_ip = {21}; bins last_before_tail = {22};
                                            bins above_tail = {23}; bins unaligned_tail = {24};
                                            bins alias_of_ip_register = {25}; bins alias_of_shim_register = {26}; }
             x_unmapped_rw: cross cp_unmapped, cp_rw;
@@ -317,7 +317,7 @@ package pwm_env_pkg;
         function void apb_access(apb_item it, bit mapped);
             int kind;
             if (mapped) kind = (it.addr < 12'h020) ? it.addr[4:2] : 8 + it.addr[3:2];
-            else if (it.addr[1:0] != 2'b00) kind = (it.addr >= 12'hFE0) ? 24 : -1;
+            else if (it.addr[1:0] != 2'b00) kind = (it.addr >= 12'hFE0) ? 24 : ((it.addr < 12'h020) ? 27 : -1);
             else if (it.addr == 12'h020) kind = 21;
             else if (it.addr[11:5] != 0 && $countones(it.addr[11:5]) == 1) kind = 25;          // 0x00-0x1C with one upper bit set
             else if ($countones(~it.addr[11:5]) == 1 && it.addr[4] == 1'b0) kind = 26;         // 0xFE0-0xFEC with one upper bit clear

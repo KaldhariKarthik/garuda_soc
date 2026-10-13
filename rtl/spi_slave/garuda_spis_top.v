@@ -55,6 +55,7 @@ module garuda_spis_top #(
     // block, which has eight), so 0x10..0x1C answered a read with 0 and swallowed
     // a write instead of raising PSLVERR (AHB2APB [N-7.20]).
     localparam [11:0] IP_LIMIT = 12'h010;
+    localparam [63:0] IP_MAP   = 64'h0000_0000_0000_000F;   // 0x00 to 0x0C
 
     wire        ip_psel, ip_penable, ip_pwrite;
     wire [11:0] ip_paddr;
@@ -179,7 +180,7 @@ module garuda_spis_top #(
 
     garuda_apb_shim #(
         .N_EVT(3), .SYNC_W(3), .SYNC_RESET(8'h04), // cs_n idles HIGH
-        .IP_LIMIT(IP_LIMIT), .ADDR_SHIFT(0),
+        .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP), .ADDR_SHIFT(0),
         .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk_i(pclk_i), .preset_n_i(preset_n_i),

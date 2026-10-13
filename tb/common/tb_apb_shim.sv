@@ -223,6 +223,13 @@ module tb_apb_shim;
         @(posedge pclk); #0.5 check(!pad_sync, "pad sync: not visible after 1 cycle");
         @(posedge pclk); #0.5 check(pad_sync, "pad sync: visible after 2 cycles, no X");
 
+        // ---- AUD-13: PSLVERR exactly where there is no register, all 4096 offsets ------
+        begin : map_sweep
+            integer nb;
+            bfm.sweep_map({64{1'b1}}, nb);
+            check(nb == 0, $sformatf("[AUD-13] PSLVERR at every offset that is not a register, and at no register: %0d wrong", nb));
+        end
+
         check(pready_viol == 0, "PREADY never deasserted in the whole run");
 
         u_chk_in.report_result;
@@ -236,5 +243,5 @@ module tb_apb_shim;
         $finish;
     end
 
-    initial begin #200_000; $display("TIMEOUT"); $display("RESULT: FAILED"); $finish; end
+    initial begin #600_000; $display("TIMEOUT"); $display("RESULT: FAILED"); $finish; end
 endmodule

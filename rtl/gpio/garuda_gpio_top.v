@@ -50,6 +50,10 @@ module garuda_gpio_top #(
 );
 
     localparam [11:0] IP_LIMIT = 12'h080;   // the vendored register file
+    // GPIO section 6: 0x00 to 0x1C, INTSTATUS 0x24, PADCFG0 0x28. The vendored
+    // file answers 0x20 and 0x2C to 0x7C too (reads 0); they are not registers
+    // and now answer PSLVERR (GPIO-2 item 3).
+    localparam [63:0] IP_MAP   = 64'h0000_0000_0000_06FF;
 
     wire        ip_psel, ip_penable, ip_pwrite;
     wire [11:0] ip_paddr;
@@ -64,7 +68,7 @@ module garuda_gpio_top #(
     assign evt[0] = gpio_int;
 
     garuda_apb_shim #(
-        .N_EVT(1), .SYNC_W(PAD_NUM), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT),
+        .N_EVT(1), .SYNC_W(PAD_NUM), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
         .ADDR_SHIFT(0), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk_i(pclk_i), .preset_n_i(preset_n_i),

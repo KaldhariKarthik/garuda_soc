@@ -830,6 +830,13 @@ module tb_uart;
         bfm.wr(R_IRQEN, 32'h0);
         bfm.wr(R_DMACTL, 32'h0);
 
+        // ---- AUD-13: PSLVERR exactly where the window has no register, all 4096 offsets ----
+        begin : map_sweep
+            integer nb;
+            bfm.sweep_map(64'h0FF, nb);
+            check(nb == 0, $sformatf("[AUD-13] PSLVERR at every offset that is not a register, and at no register (0x00 to 0x1C and the tail): %0d wrong", nb));
+        end
+
         check(pready_viol == 0, "[R-4] PREADY high in every cycle of every access");
 
         $display("tb_uart: checks=%0d  FAIL=%0d", checks, fails);

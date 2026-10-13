@@ -16,10 +16,17 @@
 // -----------------------------------------------------------------------------
 // WHAT IT DOES
 // -----------------------------------------------------------------------------
-//  1. Decode. Offsets below IP_LIMIT go to the IP; 0xFE0..0xFEC are the GARUDA
-//     tail below; anything else answers PSLVERR. The upstream IPs all tie
-//     PSLVERR low, so without this an access to an unmapped offset inside a
-//     window would read garbage instead of faulting.
+//  1. Decode. A word-aligned offset below IP_LIMIT whose bit is set in IP_MAP
+//     goes to the IP; 0xFE0..0xFEC are the GARUDA tail below; anything else
+//     answers PSLVERR. The upstream IPs all tie PSLVERR low, so without this an
+//     access to an unmapped offset inside a window would read garbage instead
+//     of faulting.
+//     IP_MAP is the register map of the IP, one bit per word: bit n set means
+//     offset 4n is a register. Before 2026-10-13 everything below IP_LIMIT was
+//     passed on, so a hole in the vendored register file (GPIO 0x20, 0x2C to
+//     0x7C; SPI master 0x1C, 0x2C to 0xFC; I2C 0x1C) and every offset that is
+//     not word aligned answered without an error (Docs/BUGS.md AUD-13, GPIO-2).
+//     The rule of the chip is one: PSLVERR exactly where there is no register.
 //  2. PREADY is driven high, always. The bridge abandons a transfer after 16
 //     pclk ([N-7.15]), so a peripheral must never stall; ip_pready_i is
 //     ignored for the response and watched by an assertion instead.
@@ -55,7 +62,8 @@ module garuda_apb_shim #(
     parameter integer N_EVT     = 4,        // interrupt sources from the IP
     parameter integer SYNC_W    = 1,        // asynchronous pad inputs to sync
     parameter [7:0]   SYNC_RESET = 8'h00,   // idle level of each synced pad
-    parameter [11:0]  IP_LIMIT  = 12'h100,  // offsets < IP_LIMIT belong to the IP
+    parameter [11:0]  IP_LIMIT  = 12'h100,  // offsets < IP_LIMIT belong to the IP (at most 0x100)
+    parameter [63:0]  IP_MAP    = {64{1'b1}}, // bit n: offset 4n is a register of the IP
     parameter integer ADDR_SHIFT = 0,       // 2 = re-map word offsets onto a
                                             //     byte-addressed IP (16550)
     parameter [7:0]   BLOCK_NUM = 8'd0,
@@ -105,7 +113,8 @@ module garuda_apb_shim #(
     wire access = psel_i & penable_i;
     wire wr     = access & pwrite_i;
 
-    wire in_ip   = (paddr_i < IP_LIMIT);
+    // a register of the IP: below the limit, word aligned, and in the map
+    wire in_ip   = (paddr_i < IP_LIMIT) & (paddr_i[1:0] == 2'b00) & IP_MAP[paddr_i[7:2]];
     wire in_tail = (paddr_i == A_IRQSTAT) | (paddr_i == A_IRQEN) |
                    (paddr_i == A_DMACTL)  | (paddr_i == A_ID);
     wire hit     = in_ip | in_tail;
@@ -190,6 +199,11 @@ module garuda_apb_shim #(
     assign pslverr_o = access & ~hit;
 
 `ifndef SYNTHESIS
+    // the map has 64 bits, one per word of the first 0x100 offsets
+    initial if (IP_LIMIT > 12'h100) begin
+        $display("[SHIM-ASSERT] block %0d: IP_LIMIT 0x%03h is above 0x100, which IP_MAP cannot describe", BLOCK_NUM, IP_LIMIT);
+        $finish;
+    end
     // The one upstream behaviour that would break the SoC rather than a test:
     // an IP that deasserts PREADY while it finishes a wire transaction. All
     // four vendored IPs tie it high; this fires if a re-vendor changes that.

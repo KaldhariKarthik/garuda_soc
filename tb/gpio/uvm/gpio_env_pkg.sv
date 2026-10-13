@@ -123,10 +123,13 @@ package gpio_env_pkg;
             shim0 = o.shim0; shim1 = o.shim1; s0 = o.s0; s1 = o.s1; pin_in = o.pin_in;
         endfunction
 
-        // The specification lists ten registers at 0x00 to 0x28 and the four shim
-        // registers. The block answers every offset below 0x80 (the vendored
-        // register file; 0x20 and 0x2C to 0x7C read 0 and ignore writes): GPIO-2.
-        function bit in_ip(bit [11:0] a);   return a < 12'h080; endfunction
+        // The specification lists ten registers, 0x00 to 0x1C, 0x24 and 0x28, and the
+        // four shim registers. Every other offset answers PSLVERR: the shim selects
+        // the vendored register file only at those ten (GPIO-2 item 3 and AUD-13,
+        // ruled 2026-10-10; before that the file answered everything below 0x80).
+        function bit in_ip(bit [11:0] a);
+            return (a < 12'h02C) && (a[1:0] == 2'b00) && (a[6:2] != 5'd8);
+        endfunction
         function bit in_tail(bit [11:0] a); return a inside {12'hFE0, 12'hFE4, 12'hFE8, 12'hFEC}; endfunction
         function bit mapped(bit [11:0] a);  return in_ip(a) || in_tail(a); endfunction
 
@@ -207,7 +210,7 @@ package gpio_env_pkg;
                                       bins IRQSTAT = {32}; bins IRQEN = {33}; bins DMACTL = {34}; bins ID = {35}; }
             cp_rw: coverpoint wr { bins read = {0}; bins write = {1}; }
             x_reg_rw: cross cp_reg, cp_rw;
-            cp_unmapped: coverpoint kind { bins between_ip_and_tail = {40}; bins first_past_ip = {41}; bins last_before_tail = {42};
+            cp_unmapped: coverpoint kind { bins between_ip_and_tail = {40}; bins unaligned_in_ip = {48}; bins first_past_ip = {41}; bins last_before_tail = {42};
                                            bins above_tail = {43}; bins unaligned_tail = {44}; bins alias_of_shim_register = {45}; }
             x_unmapped_rw: cross cp_unmapped, cp_rw;
             // inside the vendored register file but not a GARUDA register: answered, no error (GPIO-2)
@@ -328,7 +331,7 @@ package gpio_env_pkg;
             int kind;
             if (it.addr < 12'h080) begin
                 kind = it.addr[6:2];
-                if (it.addr[1:0] != 0) kind = -1;
+                if (it.addr[1:0] != 0) kind = (it.addr < 12'h02C) ? 48 : -1;
                 else if (kind == 8) kind = 46;
                 else if (kind > 10) kind = 47;
             end

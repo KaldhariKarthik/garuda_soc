@@ -40,6 +40,7 @@ module garuda_pwm_top #(
                       A_CTRL     = 12'h008, A_STATUS = 12'h00C,
                       A_DUTY0    = 12'h010;
     localparam [11:0] IP_LIMIT = 12'h020;   // 0x00..0x1C
+    localparam [63:0] IP_MAP   = 64'h0000_0000_0000_00FF;   // all eight words are registers
 
     wire        ip_psel, ip_penable, ip_pwrite;
     wire [11:0] ip_paddr;
@@ -136,7 +137,7 @@ module garuda_pwm_top #(
     end
 
     garuda_apb_shim #(
-        .N_EVT(2), .SYNC_W(1), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT),
+        .N_EVT(2), .SYNC_W(1), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
         .ADDR_SHIFT(0), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk_i(pclk_i), .preset_n_i(preset_n_i),

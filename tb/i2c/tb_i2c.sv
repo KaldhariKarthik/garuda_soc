@@ -604,6 +604,13 @@ module tb_i2c;
         check(drive_high == 0, "[R-9] [N-9.2] the block never drove either line high");
         check(pready_viol == 0, "[R-4] PREADY high in every cycle of every access");
 
+        // ---- AUD-13: PSLVERR exactly where the window has no register, all 4096 offsets ----
+        begin : map_sweep
+            integer nb;
+            bfm.sweep_map(64'h07F, nb);
+            check(nb == 0, $sformatf("[AUD-13] PSLVERR at every offset that is not a register, and at no register (0x00 to 0x18 and the tail): %0d wrong", nb));
+        end
+
         u_apbchk.report_result;
         check(apbviol == 0, "APB protocol checker clean on the config port");
         check(u_apbchk.n_access > 0, "APB protocol checker observed traffic");
