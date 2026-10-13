@@ -72,6 +72,7 @@ package pwm_env_pkg;
         // time base and double buffer (PWM section 7)
         bit [15:0] pre, cnt, duty_s[4];
         bit [3:0]  clamp;
+        bit [3:0]  pin_q;                                            // the pins are flops (PWM-2)
         // what the last step did, for the scoreboard and the coverage
         bit        ev_wr, ev_wrap, ev_load; bit [11:0] ev_addr; bit [31:0] ev_wdata;
         bit [1:0]  ev_evt, ev_clr;
@@ -80,7 +81,7 @@ package pwm_env_pkg;
 
         function void reset();
             prescale = 0; period = 0; en = 0; ch_en = 0; irqstat = 0; irqen = 0; dmactl = 0;
-            pre = 0; cnt = 0; clamp = 0;
+            pre = 0; cnt = 0; clamp = 0; pin_q = 0;
             foreach (duty[i]) begin duty[i] = 0; duty_s[i] = 0; end
             ev_wr = 0; ev_wrap = 0; ev_load = 0; ev_evt = 0; ev_clr = 0;
         endfunction
@@ -88,7 +89,14 @@ package pwm_env_pkg;
         function void copy_state(pwm_ref_model o);
             prescale = o.prescale; period = o.period; en = o.en; ch_en = o.ch_en;
             irqstat = o.irqstat; irqen = o.irqen; dmactl = o.dmactl; pre = o.pre; cnt = o.cnt; clamp = o.clamp;
+            pin_q = o.pin_q;
             foreach (duty[i]) begin duty[i] = o.duty[i]; duty_s[i] = o.duty_s[i]; end
+        endfunction
+        // the state and what the last step did
+        function void copy_all(pwm_ref_model o);
+            copy_state(o);
+            ev_wr = o.ev_wr; ev_wrap = o.ev_wrap; ev_load = o.ev_load; ev_addr = o.ev_addr; ev_wdata = o.ev_wdata;
+            ev_evt = o.ev_evt; ev_clr = o.ev_clr;
         endfunction
 
         // the register map: eight word registers at 0x00 to 0x1C and the four shim registers
@@ -96,11 +104,13 @@ package pwm_env_pkg;
             return (a[1:0] == 2'b00) && ((a < 12'h020) || (a >= 12'hFE0 && a <= 12'hFEC));
         endfunction
 
-        function bit [3:0] pins();
+        // what the compare and the enables say now; the pins show it one clock later
+        function bit [3:0] comb();
             bit [3:0] p;
             for (int c = 0; c < 4; c++) p[c] = en && ch_en[c] && (cnt < duty_s[c]);   // low beats everything
             return p;
         endfunction
+        function bit [3:0] pins(); return pin_q; endfunction
         function bit irq(); return |(irqstat & irqen); endfunction
 
         function bit [31:0] rd(bit [11:0] a);
@@ -122,6 +132,7 @@ package pwm_env_pkg;
         function void step(pwm_cycle_item it);
             bit tick, at_end, wrap, wr;
             if (!it.preset_n) begin reset(); return; end
+            pin_q  = comb();                                         // registered from the state before this edge
             wr     = it.psel && it.penable && it.pwrite && mapped(it.paddr);
             tick   = en && (pre >= prescale);                      // one tick is PRESCALE + 1 cycles; never longer if PRESCALE is lowered
             at_end = ({1'b0, cnt} + 17'd1) >= {1'b0, period};        // the frame is PERIOD ticks
@@ -337,6 +348,7 @@ package pwm_env_pkg;
         uvm_analysis_imp_apb #(apb_item, pwm_scoreboard)       apb_imp;
         uvm_analysis_imp_cyc #(pwm_cycle_item, pwm_scoreboard) cyc_imp;
         pwm_ref_model model, pre;
+        pwm_ref_model pre_d, mod_d;                                  // the same two, one cycle earlier
         pwm_coverage  cov;
         int unsigned n_cyc, n_rd, n_wr, n_err, n_frames, n_pulses;
         // measured on the pins: the frame in progress
@@ -350,6 +362,7 @@ package pwm_env_pkg;
             super.new(name, parent);
             apb_imp = new("apb_imp", this); cyc_imp = new("cyc_imp", this);
             pre = pwm_ref_model::type_id::create("pre");
+            pre_d = pwm_ref_model::type_id::create("pre_d"); mod_d = pwm_ref_model::type_id::create("mod_d");
         endfunction
 
         function void err(string id, string msg);
@@ -383,7 +396,10 @@ package pwm_env_pkg;
             pre.copy_state(model);
             model.step(it);
             cov.sample_cycle(it, pre, model);
-            measure(it);
+            // the pins are flops (PWM-2): the pins of this cycle belong to the model
+            // state of the cycle before, so the measurement gets that state
+            measure(it, pre_d, mod_d);
+            pre_d.copy_all(pre); mod_d.copy_all(model);
         endfunction
 
         // The waveform as the specification states it, measured on the pins. In a
@@ -391,7 +407,7 @@ package pwm_env_pkg;
         // DUTY x (PRESCALE + 1) cycles (DUTY clamped to PERIOD) of a frame of
         // PERIOD x (PRESCALE + 1) cycles, and a pulse that starts with a frame is
         // exactly that long. Frames are delimited by the model's period boundary.
-        function void measure(pwm_cycle_item it);
+        function void measure(pwm_cycle_item it, pwm_ref_model pre, pwm_ref_model model);
             bit disturb;
             if (!it.preset_n) begin
                 f_valid = 0; pin_prev = 0; start_prev = 0;

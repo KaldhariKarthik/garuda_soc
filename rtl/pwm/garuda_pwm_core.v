@@ -25,10 +25,21 @@
 //      1.1 ms pulse is out produces a clean 1.1 ms pulse and then a clean
 //      1.9 ms one - never a runt.
 //
-//   3. LOW BEATS EVERYTHING. Reset, !en, or a disabled channel forces the
-//      output low combinationally. An ESC reads a low line as "no signal" and
+//   3. LOW BEATS EVERYTHING. Reset forces the outputs low at once (asynchronous
+//      clear of the output flops); !en or a disabled channel forces them low
+//      at the next clock edge. An ESC reads a low line as "no signal" and
 //      holds the motor stopped, which is the state we want on every fault
 //      path including a half-configured block.
+//
+//   4. EVERY PIN IS A FLOP OUTPUT (erratum PWM-2, 2026-10-13). The pins were
+//      the AND of two register bits and a magnitude compare. A CTRL write that
+//      turned EN on and a channel off on the same edge gave a zero-width pulse
+//      in an event-driven simulation, and in silicon the two flops have
+//      different clock-to-Q and the comparator can glitch while the counter
+//      changes. A glitch on a motor output is what this block exists to make
+//      impossible, so the same expression is now registered: the waveform is
+//      the one it was, one clock later, and "low" takes one clock (8 ns at
+//      125 MHz) instead of none.
 // =============================================================================
 
 module garuda_pwm_core #(
@@ -90,6 +101,7 @@ module garuda_pwm_core #(
     genvar c;
     reg  [15:0] duty_s [0:NCH-1];
     reg  [NCH-1:0] clamp_q;
+    reg  [NCH-1:0] pwm_q;
 
     generate for (c = 0; c < NCH; c = c + 1) begin : g_ch
         wire [15:0] duty_in = duty_i[16*c +: 16];
@@ -104,11 +116,15 @@ module garuda_pwm_core #(
                 clamp_q[c] <= over;
             end
 
-        // Low beats everything: no enable, no output. Combinational so that
-        // clearing CTRL.EN stops the motors in the same cycle rather than at
-        // the end of the frame.
-        assign pwm_o[c] = en_i & ch_en_i[c] & (cnt_q < duty_s[c]);
+        // Low beats everything: no enable, no output, at the next edge and
+        // not at the end of the frame. Registered, so the pin cannot glitch
+        // (PWM-2); reset clears it asynchronously.
+        always @(posedge clk_i or negedge rst_n_i)
+            if (!rst_n_i) pwm_q[c] <= 1'b0;
+            else          pwm_q[c] <= en_i & ch_en_i[c] & (cnt_q < duty_s[c]);
     end endgenerate
+
+    assign pwm_o = pwm_q;
 
     assign clamp_o = clamp_q;
 

@@ -207,13 +207,22 @@ duty is legal again.
 
 ### 7.5 Stopping
 
-**[N-7.5]** Clearing `CTRL.EN` drives all four outputs low **combinationally**,
-in the same cycle — not at the end of the frame. A fault handler that has
-decided to stop the motors should not have to wait 20 ms for a frame boundary.
-`t_pwm_stop` clears `EN` mid-pulse and checks all four are low two cycles later.
+**[N-7.5]** Clearing `CTRL.EN` drives all four outputs low **at the next clock
+edge**, one `pclk` (8 ns at 125 MHz) after the write lands — not at the end of
+the frame. A fault handler that has decided to stop the motors should not have
+to wait 20 ms for a frame boundary. `t_pwm_stop` clears `EN` mid-pulse and
+checks all four are low two cycles later.
 
-The same logic covers reset and a cleared per-channel enable: **low beats
-everything**.
+The same holds for a cleared per-channel enable; reset clears the outputs at
+once, asynchronously: **low beats everything**.
+
+**[N-7.5a]** Every output is the output of a flop. Until 2026-10-13 each pin was
+the AND of `CTRL.EN`, the channel enable and the counter compare, taken straight
+to the pad: a write that set `EN` and cleared a channel on the same edge gave a
+zero-width pulse in simulation, and in silicon the terms arrive at different
+times and the comparator can glitch while the counter changes (finding PWM-2).
+The same expression is now registered. The waveform is unchanged and one clock
+later; that one clock is the price of [N-7.5] no longer being "the same cycle".
 
 ---
 
@@ -288,7 +297,7 @@ register value.
 | 1 | In-house counter-compare | PULP `apb_adv_timer` — the verification cost, [N-1.1] |
 | 2 | Duties double-buffered; period and prescale not | buffering everything — more flops for a case firmware can avoid by disabling first |
 | 3 | Clamp an over-wide duty and flag it | ignore the write, or let the output stay high across the wrap |
-| 4 | `EN` stops combinationally | stopping at the frame boundary — up to 20 ms of motor after a fault |
+| 4 | `EN` stops at the next clock edge, through the output flop ([N-7.5a]) | stopping at the frame boundary — up to 20 ms of motor after a fault; or combinationally, which can glitch the pin (PWM-2) |
 | 5 | 16-bit period and duty | 32-bit — 65535 ticks covers every frame we need with a prescaler |
 
 ---

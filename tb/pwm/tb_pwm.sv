@@ -59,7 +59,6 @@ module tb_pwm;
             if (nrise[c] > 0) per[c] = $realtime - rise_t[c];
             nrise[c] = nrise[c] + 1;
             rise_t[c] = $realtime;
-            if (!(preset_n && dut.en_q && dut.ch_en_q[c])) off_viol[c] = off_viol[c] + 1;
         end
         always @(negedge pwm[c]) if (rise_t[c] > 0) begin
             width[c]  = $realtime - rise_t[c];
@@ -71,8 +70,14 @@ module tb_pwm;
                          c, width[c], allow_a, allow_b, $time);
             end
         end
-        always @(posedge pclk)
-            if (pwm[c] && !(preset_n && dut.en_q && dut.ch_en_q[c])) off_viol[c] = off_viol[c] + 1;
+        // PWM-2: the pin is a flop, so it shows the enables of the cycle before.
+        // A pin high now with CTRL.EN or its own enable off in the previous
+        // cycle is a violation; so is a pin high in reset.
+        reg en_prev = 0;
+        always @(posedge pclk) begin
+            if (pwm[c] && !(preset_n && en_prev)) off_viol[c] = off_viol[c] + 1;
+            en_prev <= preset_n && dut.en_q && dut.ch_en_q[c];
+        end
     end endgenerate
 
     // [N-7.2] with all four channels enabled and non-zero, any rising edge
@@ -394,12 +399,15 @@ module tb_pwm;
         repeat (50) @(posedge pclk);                 // 50 ticks into a 400-tick pulse
         bfm.wr(R_CTRL, 32'h0E1);                     // channel 0 off; bfm.wr returns on the edge that lands it
         #1 snap = pwm;
+        check(snap == 4'b1111,
+              $sformatf("[PWM-2] the pins are flops: none moves in the cycle the write lands (pwm=%04b)", snap));
+        @(posedge pclk); #1 snap = pwm;
         check(snap == 4'b1110,
-              $sformatf("[N-7.5] clearing one channel enable mid-pulse drops that channel in the same cycle and no other (pwm=%04b)", snap));
+              $sformatf("[N-7.5] clearing one channel enable mid-pulse drops that channel one clock later and no other (pwm=%04b)", snap));
         bfm.wr(R_CTRL, 32'h0E0);                     // EN off
-        #1 snap = pwm;
+        @(posedge pclk); #1 snap = pwm;
         check(snap == 4'b0000,
-              $sformatf("[N-7.5] clearing CTRL.EN mid-pulse: all four low in the cycle the write lands, not at the end of the frame (pwm=%04b)", snap));
+              $sformatf("[N-7.5] clearing CTRL.EN mid-pulse: all four low one clock after the write lands, not at the end of the frame (pwm=%04b)", snap));
 
         // ---- [R-9] the period-boundary interrupt: held, masked, cleared ---------------------------
         bfm.wr(R_IRQSTAT, 32'h3);
