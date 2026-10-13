@@ -32,7 +32,7 @@
 // =============================================================================
 `include "garuda_map.vh"
 
-module garuda_chip_top #(
+module garuda_chip_core #(
     parameter         BROM_INIT_FILE = "",
     parameter         CORE_CLK_GATE  = 1,
     // Block 14, the ESP-NOW companion link. ADR-0020 Rev 2 makes it REQUIRED;
@@ -64,14 +64,19 @@ module garuda_chip_top #(
     input  wire tck,                 //  3
     input  wire tms,                 //  4
     input  wire tdi,                 //  5
-    output wire tdo,                 //  6  tri-state
+    output wire tdo_o,               //  6  tdo data      (pad: tri-state)
+    output wire tdo_oe_o,            //  6  tdo enable
     output wire spim_sclk,           //  7
     output wire spim_mosi,           //  8
     input  wire spim_miso,           //  9
     output wire spim_cs_flash_n,     // 10
     output wire spim_cs_imu_n,       // 11
-    inout  wire i2c_scl,             // 12  open-drain
-    inout  wire i2c_sda,             // 13  open-drain
+    input  wire i2c_scl_i,           // 12  open-drain pad: in
+    output wire i2c_scl_o,           // 12                  out
+    output wire i2c_scl_oe_o,        // 12                  enable
+    input  wire i2c_sda_i,           // 13  open-drain pad: in
+    output wire i2c_sda_o,           // 13                  out
+    output wire i2c_sda_oe_o,        // 13                  enable
     input  wire uart0_rx,            // 14
     output wire uart0_tx,            // 15
     input  wire uart1_rx,            // 16
@@ -82,14 +87,16 @@ module garuda_chip_top #(
     output wire pwm1,                // 21
     output wire pwm2,                // 22
     output wire pwm3,                // 23
-    inout  wire gpio0,               // 24
-    inout  wire gpio1,               // 25
+    input  wire [1:0] gpio_i,        // 24/25 pad in
+    output wire [1:0] gpio_o,        // 24/25 pad out
+    output wire [1:0] gpio_oe_o,     // 24/25 pad enable
     input  wire boot_sel,            // 26  pull-down at the pad
     // ---- pins 29-32, block 14 (PHYS §3.2). Bonded only in the 36-pin
     //      variant; harmless and driven to safe idle when WITH_SPI_SLAVE = 0.
     input  wire spis_sclk,           // 29
     input  wire spis_mosi,           // 30
-    output wire spis_miso,           // 31  tri-state
+    output wire spis_miso_o,         // 31  data   (pad: tri-state)
+    output wire spis_miso_oe_o,      // 31  enable
     input  wire spis_cs_n            // 32
 );
 
@@ -156,8 +163,8 @@ module garuda_chip_top #(
         .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
         .prdata_o(i2c_prdata), .pready_o(i2c_pready), .pslverr_o(i2c_pslverr),
         .irq_o(i2c_irq), .dma_req_o(i2c_dma_req), .dma_ack_i(dma_ack[1]),
-        .i2c_scl_i(i2c_scl), .i2c_scl_o(i2c_scl_out), .i2c_scl_oe(i2c_scl_oe),
-        .i2c_sda_i(i2c_sda), .i2c_sda_o(i2c_sda_out), .i2c_sda_oe(i2c_sda_oe));
+        .i2c_scl_i(i2c_scl_i), .i2c_scl_o(i2c_scl_out), .i2c_scl_oe(i2c_scl_oe),
+        .i2c_sda_i(i2c_sda_i), .i2c_sda_o(i2c_sda_out), .i2c_sda_oe(i2c_sda_oe));
 
     // =========================================================================
     // Blocks 16/17/18: UART x3 (windows 3, 4, 6) - one design, three instances
@@ -200,7 +207,7 @@ module garuda_chip_top #(
     wire        gpio_pready, gpio_pslverr, gpio_irq;
     wire [1:0]  gpio_out, gpio_oe, gpio_in;
 
-    assign gpio_in = {gpio1, gpio0};
+    assign gpio_in = gpio_i;
 
     garuda_gpio_top #(.BLOCK_NUM(8'd19), .PAD_NUM(2)) u_gpio (
         .pclk_i(pclk), .preset_n_i(preset_n),
@@ -253,7 +260,8 @@ module garuda_chip_top #(
         assign spis_miso_oe = 1'b0;
     end endgenerate
 
-    assign spis_miso = spis_miso_oe ? spis_miso_d : 1'bz;
+    assign spis_miso_o    = spis_miso_d;
+    assign spis_miso_oe_o = spis_miso_oe;
 
     // =========================================================================
     // APB expansion return path: window 0 = spi_slave, 1 = spi_master,
@@ -348,14 +356,15 @@ module garuda_chip_top #(
     // =========================================================================
     // Pins
     // =========================================================================
-    assign tdo = tdo_oe ? tdo_q : 1'bz;
+    assign tdo_o    = tdo_q;
+    assign tdo_oe_o = tdo_oe;
 
     // spim_* are driven by u_spim above; the rest are deferred peripherals
     // still at safe idle.
     // I2C is open drain: the block only ever pulls a line low or releases it,
     // so these become pad OE controls with the output tied low at PD.
-    assign i2c_scl = i2c_scl_oe ? i2c_scl_out : 1'bz;
-    assign i2c_sda = i2c_sda_oe ? i2c_sda_out : 1'bz;
+    assign i2c_scl_o = i2c_scl_out;  assign i2c_scl_oe_o = i2c_scl_oe;
+    assign i2c_sda_o = i2c_sda_out;  assign i2c_sda_oe_o = i2c_sda_oe;
     assign pwm0 = pwm_pins[0];
     assign pwm1 = pwm_pins[1];
     assign pwm2 = pwm_pins[2];
@@ -363,10 +372,80 @@ module garuda_chip_top #(
 
     // GPIO is bidirectional: driven when its direction bit says output,
     // released otherwise. Becomes a pad OE control at PD.
-    assign gpio0 = gpio_oe[0] ? gpio_out[0] : 1'bz;
-    assign gpio1 = gpio_oe[1] ? gpio_out[1] : 1'bz;
+    assign gpio_o    = gpio_out;
+    assign gpio_oe_o = gpio_oe;
 
 
+endmodule
+
+// =============================================================================
+// garuda_chip_top: the pin-level model. It keeps the exact ports and behaviour
+// of the previous garuda_chip_top, so every testbench still instantiates it
+// unchanged. It adds only the tri-state / open-drain pin behaviour. For
+// physical design these lines become pad cells, and the core-only flow
+// synthesises garuda_chip_core.
+// =============================================================================
+module garuda_chip_top #(
+    parameter         BROM_INIT_FILE = "",
+    parameter         CORE_CLK_GATE  = 1,
+    parameter         WITH_SPI_SLAVE = 1,
+    parameter [23:0]  APB_DIV        = 24'h0,
+    parameter [15:0]  APB_WINDOW_MASK = (16'd1 << `GARUDA_APB_WIN_DMA_CFG)    |
+                                        (16'd1 << `GARUDA_APB_WIN_RESET_CTRL) |
+                                        (16'd1 << `GARUDA_APB_WIN_CLIC_CFG)   |
+                                        (16'd1 << `GARUDA_APB_WIN_TIMERS_CFG) |
+                                        (16'd1 << `GARUDA_APB_WIN_SPI_MASTER) |
+                                        (16'd1 << `GARUDA_APB_WIN_UART0)      |
+                                        (16'd1 << `GARUDA_APB_WIN_UART1)      |
+                                        (16'd1 << `GARUDA_APB_WIN_UART2)      |
+                                        (16'd1 << `GARUDA_APB_WIN_I2C)        |
+                                        (16'd1 << `GARUDA_APB_WIN_GPIO)       |
+                                        (16'd1 << `GARUDA_APB_WIN_PWM)        |
+                                        (WITH_SPI_SLAVE ? (16'd1 << `GARUDA_APB_WIN_SPI_SLAVE) : 16'd0)
+)(
+    input  wire refclk, input wire ext_rst_n,
+    input  wire tck, input wire tms, input wire tdi, output wire tdo,
+    output wire spim_sclk, output wire spim_mosi, input wire spim_miso,
+    output wire spim_cs_flash_n, output wire spim_cs_imu_n,
+    inout  wire i2c_scl, inout wire i2c_sda,
+    input  wire uart0_rx, output wire uart0_tx,
+    input  wire uart1_rx, output wire uart1_tx,
+    input  wire uart2_rx, output wire uart2_tx,
+    output wire pwm0, output wire pwm1, output wire pwm2, output wire pwm3,
+    inout  wire gpio0, inout wire gpio1,
+    input  wire boot_sel,
+    input  wire spis_sclk, input wire spis_mosi, output wire spis_miso,
+    input  wire spis_cs_n
+);
+    wire       tdo_o, tdo_oe, scl_o, scl_oe, sda_o, sda_oe, miso_o, miso_oe;
+    wire [1:0] gpio_o, gpio_oe;
+
+    garuda_chip_core #(
+        .BROM_INIT_FILE(BROM_INIT_FILE), .CORE_CLK_GATE(CORE_CLK_GATE),
+        .WITH_SPI_SLAVE(WITH_SPI_SLAVE), .APB_DIV(APB_DIV),
+        .APB_WINDOW_MASK(APB_WINDOW_MASK)
+    ) u_core (
+        .refclk(refclk), .ext_rst_n(ext_rst_n),
+        .tck(tck), .tms(tms), .tdi(tdi), .tdo_o(tdo_o), .tdo_oe_o(tdo_oe),
+        .spim_sclk(spim_sclk), .spim_mosi(spim_mosi), .spim_miso(spim_miso),
+        .spim_cs_flash_n(spim_cs_flash_n), .spim_cs_imu_n(spim_cs_imu_n),
+        .i2c_scl_i(i2c_scl), .i2c_scl_o(scl_o), .i2c_scl_oe_o(scl_oe),
+        .i2c_sda_i(i2c_sda), .i2c_sda_o(sda_o), .i2c_sda_oe_o(sda_oe),
+        .uart0_rx(uart0_rx), .uart0_tx(uart0_tx),
+        .uart1_rx(uart1_rx), .uart1_tx(uart1_tx),
+        .uart2_rx(uart2_rx), .uart2_tx(uart2_tx),
+        .pwm0(pwm0), .pwm1(pwm1), .pwm2(pwm2), .pwm3(pwm3),
+        .gpio_i({gpio1, gpio0}), .gpio_o(gpio_o), .gpio_oe_o(gpio_oe),
+        .boot_sel(boot_sel),
+        .spis_sclk(spis_sclk), .spis_mosi(spis_mosi),
+        .spis_miso_o(miso_o), .spis_miso_oe_o(miso_oe), .spis_cs_n(spis_cs_n));
+
+    assign tdo       = tdo_oe     ? tdo_o     : 1'bz;
+    assign i2c_scl   = scl_oe     ? scl_o     : 1'bz;
+    assign i2c_sda   = sda_oe     ? sda_o     : 1'bz;
+    assign gpio0     = gpio_oe[0] ? gpio_o[0] : 1'bz;
+    assign gpio1     = gpio_oe[1] ? gpio_o[1] : 1'bz;
+    assign spis_miso = miso_oe    ? miso_o    : 1'bz;
 endmodule
 
 `default_nettype wire
