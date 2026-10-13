@@ -35,7 +35,8 @@ unless a build fails or shows memory pressure, and then only the smallest change
 | B1.4b–h other tools | not started |
 | B1.5 `flow/pd/TOOLS.md` | written 2026-10-12 (uncommitted) |
 | B1.6 ASAP7 gcd gate | **passed as a toolchain gate, 2026-10-12.** Batch run: exit 0, all stages, GDS/ODB, LEC identical, 0 router DRC violations. **Setup timing NOT met**: WNS −41.07 ps, TNS −117.98 ps, 5 violations at the design's 310 ps clock (period_min 329.16 ps); hold met. GUI: OpenROAD `gui_final` showed the routed layout and KLayout showed `6_final.gds` (both confirmed by the user, both exit 0). Details and caveats in `flow/pd/TOOLS.md` §5 |
-| B1.7, B2, B3 | **not started**: each needs the user's explicit approval |
+| B1.7 reruns | **partial, 2026-10-12** (approved; no installs): Yosys whole-chip synthesis PASS (1 expected latch), `vendor_sync --check` PASS, `garuda_gen --check` PASS. Stage 1: z3 4.8.12-1 installed (apt, approved), and the `pipe_ctrl.sby` proof then passed **6/6 tasks** (8 assertions proved, 17/17 covers, G1/G2 by k-induction). Every simulation, lint and firmware item BLOCKED on deferred tools. See `Docs/VERIFICATION_LOG_2026-10-12.md` |
+| B2, B3 | **not started**: each needs the user's explicit approval |
 
 **B1 caveats to carry forward.**
 - The gcd run proves the toolchain, not GARUDA.
@@ -170,3 +171,123 @@ ORFS tree clean; submodules unchanged.
 - Every `sudo` command is explained and run by the user.
 - Tools live under `~/tools/<tool>` and `~/external/<tool>`; removal is one directory each.
 - The ASAP7 gcd run proves the toolchain, not GARUDA.
+
+## 6. Phase B2: clocks and SDC (started 2026-10-12, approved)
+
+**Deliverable so far:** `flow/constraints/garuda.sdc`, a DRAFT for review. No tool has read it,
+and it has not been checked against a netlist. No RTL was changed and nothing else was installed.
+B2 stops here for the owner's review; the GARUDA PD flow has not been run.
+
+**Clocking as implemented in RTL** (it differs from the PHYS §5.2 sketch, as that sketch's own
+[N-5.3] says):
+- `refclk` pin, 500 MHz → `u_clk_div.t1_q` (÷2), the only refclk load.
+- `t1_q` = `aon_clk` (250 MHz, always on, D-14): reset_ctrl stretch/requests/RSTREASON, plus the
+  ripple chain `t2_q → t3_q → t4_q`.
+- `hclk` = a mux of t1..t4 selected by `sel_act_q` (negedge t1), so DIVSEL ÷2/4/8/16.
+- `pclk` = toggle flop `pclk_q` on hclk.
+- `core_clk_gate`: behavioural latch ICG → `gclk` (core).
+- `tck`: JTAG, async, crossing only in `dmi_cdc.v`.
+- Async resets in `reset_ctrl` are flop-driven (`sys/core/dm_req_q` posedge-set on the hclk/pclk
+  release synchronisers). `clk_div` uses the raw `ext_rst_n`.
+- No other signal is used as a clock edge in `rtl/soc/filelist_chip.f`.
+
+**Decisions needed (D1–D7)**:
+| # | Question | Draft position |
+|---|---|---|
+| D1 | Time only DIV2, or also DIV4 (PHYS §7 fallback) as a second mode? | DIV2 only, via `set_case_analysis 0` on `sel_act_q` |
+| D2 | Clock uncertainty for aon_clk/hclk/pclk (no document gives one) | none set; refclk 0.15 ns setup from PHYS |
+| D3 | `ext_rst_n`: false path (async assert, internal synchronisers, the documented clk_div exception)? | `set_false_path -from ext_rst_n` |
+| D4 | I/O budgets: SPI-master flash/IMU timing, JTAG probe timing, and treatment of the async pins (uart/gpio/i2c/spis/pwm/boot_sel) | left **unconstrained**; no invented numbers |
+| D5 | DMI payload: keep fully waived by `-asynchronous`, or bound it with `set_max_delay -datapath_only`? | async group only |
+| D6 | Library ICG cell for `core_clk_gate` (`GARUDA_ICG_CELL`) | behavioural latch; tool infers the gating check |
+| D7 | Netlist pin names for t1_q/sel_act_q/hclk_mux/pclk_q, or name them in RTL per PHYS [N-5.3] (RTL change) | placeholder patterns, confirm after synthesis |
+
+**Blockers before any GARUDA ORFS run**:
+1. **No 28 nm library.** ORFS 3451ca1 ships open platforms only (asap7, sky130, gf180, nangate45,
+   ihp-sg13g2). Which platform stands in, and what 250 MHz means on it, is the owner's call.
+2. **Memories.** 132 KiB of SRAM/ROM behind `sram_wrapper.v` has no macro. Synthesised as is, it
+   becomes flops, which is not runnable. It needs black-box/fake-RAM macros
+   (`GARUDA_SRAM_BLACKBOX` / `GARUDA_SRAM_MACRO` hooks exist); platform-dependent.
+3. **Tri-states at the top** (`tdo`, `spis_miso`, `i2c_*`, `gpio*`): Yosys has limited tri-state
+   support (warning at `garuda_chip_top.v:256`). ORFS's core-only flow needs these split into
+   o/oe/i ports or pads. An RTL/wrapper change, so it needs approval.
+4. **No pad ring.** PHYS [N-5.2]'s "t1_q abuts the refclk pad" cannot be applied in a core-only
+   run.
+5. D7 pin names need a synthesised netlist.
+
+**Document inconsistencies found (not fixed):** `garuda_system.yaml` `reset.stretch.clock: refclk`
+(D-14 moved it to aon_clk); yaml `clocks.pclk.div_options: [2,4,8]` versus RTL/CLKRST (pclk is
+always hclk/2); the PHYS §5.2 sketch (stale, flagged by [N-5.3]).
+
+### B2 update, 2026-10-13: ASAP7 exploration (details: `Docs/PD_LOG_2026-10-13.md`)
+
+Platform decision (user): **ASAP7 = exploratory, TSMC 28 nm = target.** DFT scope pending: not
+designed for. Affected: the ICG `test_en_i` (tied 0), clk_div raw reset, and reset_ctrl's
+flop-driven async sets.
+
+New files (uncommitted): `flow/pd/asap7/config.mk`, `flow/constraints/asap7/{garuda_synth_bringup.sdc,
+gen_modes.py, garuda_div2/4/8/16.sdc}`, `flow/constraints/garuda.sdc` rev 2 (28 nm, ns, 4 modes,
+named exceptions), `flow/pd/proposals/P1_core_clk_gate_icg.diff`,
+`P2_chip_top_tristate_split.diff`, `P2_garuda_chip_top.v.proposed`. Run outputs:
+`~/tools/garuda_pd/`.
+
+Resolved D-items: D1 → four scenarios, DIV2 primary. D3 → exception limited to ext_rst_n's 183
+async reset/set pins, verified. D4 → provisional 30 % budgets with assumptions stated. D5 →
+bounded `set_max_delay` + hold false path, no async group. D7 → ASAP7 names confirmed from
+synth_r1. Still open: D2 (derived-clock uncertainty), D6 (ICG cell → P1), and the 28 nm names.
+
+**Blockers by stage**:
+| Stage | Blocking item | Status / proposal |
+|---|---|---|
+| Synthesis | none: Yosys completes with true SRAM black boxes | done (synth_r1) |
+| Synthesis (correctness) | tri-states collapsed: I²C and GPIO input paths lost | **P2** (top split; needs approval) |
+| Synthesis (correctness) | ICG is a behavioural latch, not a library ICG | **P1** (needs approval) + `OPENROAD_CLKGATE` define |
+| ODB / floorplan | no LEF/LIB for the SRAM black boxes (`ORD-2013`) | needs macros: see SRAM options |
+| Floorplan | SRAM macro sizes and placement; refclk-pad abutment impossible without pads | after macros |
+| Placement | unbuffered high-fanout resets (preset_n 3311 loads) | normal repair_design; recheck |
+| CTS | gclk gating; derived clocks from flop QN / mux | after placement |
+| Routing | nothing specific known yet | not reached |
+
+**Later on 2026-10-13** (PD_LOG §6). P1 revised with a missing-define guard; its mapping is proven
+on a temp copy (1 × `ICGx1_ASAP7_75t_R`). P2 is proven equivalent at the pins (411/411, Z→0 and
+Z→1). Option (c) is verified on ORFS's own mock block (LEF + timing `.lib` usable; area not
+meaningful) and needs **P3** (named macros in `sram_wrapper`'s `GARUDA_SRAM_MACRO` branch) plus
+GARUDA-specific mock models (not yet written). Derived-clock setup uncertainty is 150 ps, an
+ASSUMPTION (D2 closed as provisional). Awaiting approval of P1/P2/P3. Logs were renamed by the
+user: PD logs are `Docs/PD_LOG_<date>.md`.
+
+**Late 2026-10-13 (PD_LOG §7–8): P1, P2 and P3 are APPLIED (approved), uncommitted.** The flow
+now synthesises `garuda_chip_core` with `-D GARUDA_ICG_CELL -D OPENROAD_CLKGATE -D GARUDA_SRAM_MACRO`
+and `flow/pd/asap7/garuda_sram_stubs.v`. synth_r2: 1 ICGx1, 0 latches, 0 tristates, 6 named
+macros, 0 inferred memories. Fixed an SDC phase defect (QN-pin clocks were half a period off,
+making hclk↔aon hold optimistic by 2 ns): all derived clocks now use `-edges` from refclk,
+validated. DIV2 −3696 ps / −816 ps recovery are **real reset-release paths** (preset_n, 3311
+loads, unbuffered) and must be shown fixed after buffering, not waived. P2 chip-level simulation
+is **pending** (lab xrun `make test_chip`). Mock memory dimensions and die (320 × 300 µm) are
+proposed and **awaiting approval**; the real ROM needs the boot image at the foundry stage.
+
+SRAM options (decision needed; option (c) chosen, 2026-10-13): (a) FakeRAM2.0 generator (needs a tool install) for GARUDA-shaped
+16384x32 / 4096x32 / 1024x32 with byte write. Write-mask support is unverified. (b) Compose from
+ASAP7 fakeram (no write mask), meaning per-byte-lane macros, e.g. 2048x39 x 4 lanes → 68 macros.
+Changes `sram_wrapper`'s `GARUDA_SRAM_MACRO` branch (RTL). (c) ORFS mock-SRAM pattern
+(`designs/asap7/riscv32i-mock-sram`): pins realistic, area/timing not.
+
+### B3 update, 2026-10-14: first exploratory ASAP7 run to GDS (details: `Docs/PD_LOG_2026-10-14.md`)
+Mock memories approved and built (D-29). Runs pnr_r1–r7 under `~/tools/garuda_pd/`. **Reference result:
+pnr_r7** (`results/asap7/garuda/pnr_r7/6_final.gds`). Die 320 × 300 µm; route DRC 0; antenna 0; LEC
+`4_rsz` and `6_final` identical. Post-route, all four DIVSEL modes meet setup and hold (FF corner,
+extracted SPEF). Both reset-release paths are met. Fixes along the way:
+- PD-7: `CTS_ARGS … -no_insertion_delay`, in config.mk.
+- PD-8: macro origins on the track grid (`macro_place.tcl`).
+- TOOL-21: WSL resized to 12 GB + 8 GB (D-30).
+- PD-9: multi-mode hold repair after CTS (`~/tools/logs/b3_mm_hold.tcl`, **outside the repo, not an
+  ORFS make step**).
+
+Open: PD-10 (ext_rst_n exception target after input buffering), PD-1, PD-5, TOOL-18/19/20, and P2
+chip-level sim (lab xrun). No timing-closure or 28 nm claim. pnr_r6/r7 reuse pnr_r5's synth → global
+route (r6) / synth → CTS (r7) outputs, copied with timestamps.
+
+**Still outstanding from B1.7 (deferred, not installed):** Icarus `v12_0`, Verilator `v5.052`, RISC-V
+GCC (xPack 15.2.0-1 under review), Spike, riscv-tests. Until they are installed, the block
+regressions, `make local_lint`, `make sw` and the T-13/T-14 core tests, ISA/Spike lockstep, and
+TB-33/ELEM-8 stay unrun on Linux.
