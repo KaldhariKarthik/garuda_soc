@@ -81,6 +81,23 @@ Each of the three fails on a message that is not in its file. The nightly runs a
 A new warning is fixed in the RTL by its owner; it goes into a waiver file only when it is
 in vendored code or is the intended construct, and the line says which.
 
+### Timing constraints (plan task 3.2)
+
+`flow/constraints/garuda_rtl.sdc` is the constraints file of the chip; every exception in it has
+its reason in `flow/constraints/exceptions.md`. To see that it loads in Genus and that every
+flop gets a clock from it:
+
+```
+source scripts/setup_env.sh
+./scripts/run_sdc_check.sh           # hclk = refclk / 2, the mode timing is closed in
+./scripts/run_sdc_check.sh 8         # one of the other ratios: 4, 8, 16
+make sdc_check                       # all four
+```
+
+Reports are in `sim/sdc_check/div<N>/`: `read_sdc.log`, `check_timing_intent.rpt`,
+`clocks.rpt`, `clocks_generated.rpt`. The library is the 45 nm one on this machine
+(`LIB=` to change it); nothing of it is in the tree.
+
 ## One block by hand: plan, lint, simulate, coverage
 
 The same four commands for any block; only the names in the table change.

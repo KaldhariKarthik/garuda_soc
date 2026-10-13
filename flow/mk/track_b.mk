@@ -278,3 +278,9 @@ unr_waivers:
 	   echo "$$b: $$(awk '/^(toggle|block|expression|assertion)/ {t+=$$2; c+=$$3; r+=$$4} END {printf "%d waivers, %d confirmed, %d reachable", t, c, r}' $(SIM_DIR)/unr_$$b.out)"; \
 	 done; exit $$rc
 
+# The timing constraints load in Genus and clock every flop, in each of the four
+# clock ratios (plan task 3.2). flow/constraints/exceptions.md has every exception.
+.PHONY: sdc_check
+sdc_check:
+	@rc=0; for d in 2 4 8 16; do ./scripts/run_sdc_check.sh $$d | tail -1 || rc=1; done; exit $$rc
+
