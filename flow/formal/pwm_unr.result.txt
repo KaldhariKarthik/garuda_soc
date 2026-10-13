@@ -1,0 +1,14 @@
+Waivers of flow/cov/pwm_exclusions.tcl against JasperGold (sim/jg_unr/pwm/run.log)
+JasperGold cover items: covered 744, deadcode 50, unreachable 43
+  of them toggle bits: 672, not reachable: 51
+Toggle waivers: 54
+  CONFIRMED not reachable : 48
+  REACHABLE (waiver wrong): 0
+  not in JasperGold's list: 6 (inside a property module, which the run leaves out)
+    not in list: u_shim.u_shim_sva.pready_o
+    not in list: u_shim.u_shim_sva.rx_avail_i
+    not in list: u_shim.u_shim_sva.tx_space_i
+    not in list: u_shim.u_shim_sva.dma_ack_i
+    not in list: u_shim.u_shim_sva.dma_req_o
+    not in list: u_pwm_sva.dma_req
+Block, expression and assertion waivers, not matched one by one: 6

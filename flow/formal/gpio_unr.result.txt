@@ -1,0 +1,14 @@
+Waivers of flow/cov/gpio_exclusions.tcl against JasperGold (sim/jg_unr/gpio/run.log)
+JasperGold cover items: covered 893, deadcode 780, unreachable 26
+  of them toggle bits: 1225, not reachable: 548
+Toggle waivers: 551
+  CONFIRMED not reachable : 545
+  REACHABLE (waiver wrong): 0
+  not in JasperGold's list: 6 (inside a property module, which the run leaves out)
+    not in list: u_shim.u_shim_sva.pready_o
+    not in list: u_shim.u_shim_sva.rx_avail_i
+    not in list: u_shim.u_shim_sva.tx_space_i
+    not in list: u_shim.u_shim_sva.dma_ack_i
+    not in list: u_shim.u_shim_sva.dma_req_o
+    not in list: u_gpio_sva.dma_req
+Block, expression and assertion waivers, not matched one by one: 115

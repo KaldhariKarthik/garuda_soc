@@ -566,6 +566,19 @@ means a run was left out of the merged figures (`Docs/bugs/track_b.md` TOOL-B5);
 `cov_chart.py collect` stops when it sees one. `-initial_model union_all` is
 required: the runs have different top modules.
 
+## Formal (JasperGold)
+
+Which apps the licence grants, the launcher and two traps: `flow/formal/README.md`.
+
+```bash
+source scripts/setup_env.sh
+# the pipe_ctrl properties on the whole core; real DSU, AHB-legal slaves (about 2 minutes)
+GARUDA_FV_ENV=ahb GARUDA_FV_DSU=1 /home/install/JASPER/bin/jg -allow_unsupported_OS -fpv -batch -no_jges \
+    -proj sim/jg_core/jgproject flow/formal/core/pipe_ctrl_core.tcl
+#   -> 9 assertions proven, 25 covers covered; the list is printed between ==== RESULT and ==== END
+# leave -batch out to get the window and look at a trace
+```
+
 ## Where the results are written down
 
 - `Docs/BUGS.md` section 1h: every defect found on 2026-10-04, the tool or test
