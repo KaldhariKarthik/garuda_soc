@@ -225,7 +225,8 @@ module tb_timers;
         // ---- watchdog registers ----------------------------------------------------------
         apb(T, 1, 12'h014, 32'd3000, r, e);
         apb(T, 0, 12'h018, 0, r, e); check(r == 3000, "[N-7.17] WDTVAL reads WDTLOAD while disabled");
-        apb(T, 1, 12'h018, 0, r, e); check(e, "PSLVERR on a write to read-only WDTVAL");
+        apb(T, 1, 12'h018, 32'h0000_0001, r, e); check(!e, "[AUD-13] a write to read-only WDTVAL raises no PSLVERR");
+        apb(T, 0, 12'h018, 0, r, e); check(r == 3000 && !e, "[AUD-13] and changes nothing: WDTVAL still reads WDTLOAD");
         apb(T, 0, 12'h030, 0, r, e); check(e, "PSLVERR on unmapped offset");
         apb(T, 1, 12'h020, 32'd1000, r, e);                           // WDTWARN
         apb(T, 1, 12'h010, 32'h3, r, e);                              // EN | WARNEN

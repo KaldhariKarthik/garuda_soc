@@ -170,6 +170,13 @@ always right and only the index was wrong.)*
 | 0x1C | `WDTKICK` | W | — | Magic-value write to reload. |
 | 0x20 | `WDTWARN` | RW | 0 | Early-warning threshold. |
 
+**[N-6.0a]** Bus errors follow the one rule of the chip (GARUDA-AHB2APB-SPEC-001 section 7.7;
+ruling of 2026-10-10 on finding AUD-13): `PSLVERR` is raised only for an access to an offset
+that is not a register of this table, that is any offset above 0x20, any offset that is not
+word aligned, and any offset with one of address bits 11:8 set. A write to the read-only
+`WDTVAL` is ignored and raises no error. Until 2026-10-13 this block raised `PSLVERR` on
+that write; the DMA did the same for its status registers and the other blocks did not.
+
 ### 6.1 `MTIMECMP` reset value
 
 **[N-6.1]** `mtimecmp` resets to all ones, not zero. A zero reset value would satisfy

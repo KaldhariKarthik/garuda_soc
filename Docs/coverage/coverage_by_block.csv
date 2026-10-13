@@ -37,10 +37,10 @@ TIMERS,measured,Block,68,68,0,100.00
 TIMERS,after_waivers,Block,68,68,0,100.00
 TIMERS,measured,Expression,3,3,0,100.00
 TIMERS,after_waivers,Expression,3,3,0,100.00
-TIMERS,measured,Toggle,1384,1476,0,93.77
-TIMERS,after_waivers,Toggle,1384,1384,92,100.00
-TIMERS,measured,Assertion,33,33,0,100.00
-TIMERS,after_waivers,Assertion,33,33,0,100.00
+TIMERS,measured,Toggle,1383,1475,0,93.76
+TIMERS,after_waivers,Toggle,1383,1383,92,100.00
+TIMERS,measured,Assertion,36,36,0,100.00
+TIMERS,after_waivers,Assertion,36,36,0,100.00
 TIMERS,measured,Functional,145,145,0,100.00
 CLKRST,measured,Block,85,85,0,100.00
 CLKRST,after_waivers,Block,85,85,0,100.00
@@ -50,7 +50,7 @@ CLKRST,measured,Toggle,238,290,0,82.07
 CLKRST,after_waivers,Toggle,238,238,52,100.00
 CLKRST,measured,Assertion,38,38,0,100.00
 CLKRST,after_waivers,Assertion,38,38,0,100.00
-CLKRST,measured,Functional,106,106,0,100.00
+CLKRST,measured,Functional,105,106,0,99.06
 PWM,measured,Block,84,85,0,98.82
 PWM,after_waivers,Block,84,84,1,100.00
 PWM,measured,Expression,24,25,0,96.00

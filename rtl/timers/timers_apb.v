@@ -51,6 +51,7 @@
 //   0x00 MTIME_LO   0x04 MTIME_HI (shadow)  0x08 MTIMECMP_LO  0x0C MTIMECMP_HI
 //   0x10 WDTCTL     0x14 WDTLOAD            0x18 WDTVAL (RO)  0x1C WDTKICK (W)
 //   0x20 WDTWARN    other: PSLVERR
+//   A write to WDTVAL is ignored without an error (AUD-13, ruled 2026-10-10).
 // =============================================================================
 
 module timers_apb (
@@ -81,7 +82,6 @@ module timers_apb (
 
     wire [5:0] w = paddr_i[7:2];
     wire hit = (paddr_i[11:8] == 4'h0) && (paddr_i[1:0] == 2'b00) && (w <= 6'd8);
-    wire ro  = (w == 6'd6);                       // WDTVAL
 
     // =========================================================================
     // pclk side. An APB phase is one pclk cycle and setup never repeats
@@ -148,7 +148,10 @@ module timers_apb (
 
     assign prdata_o  = prdata_q;
     assign pready_o  = 1'b1;
-    assign pslverr_o = psel_i & penable_i & (~hit | (pwrite_i & ro));
+    // PSLVERR only for an offset that is not a register (the rule for the whole
+    // chip, Docs/BUGS.md AUD-13). A write to the read-only WDTVAL (word 6) has
+    // no write strobe above, so it is ignored, and it raises no error.
+    assign pslverr_o = psel_i & penable_i & ~hit;
 
 endmodule
 

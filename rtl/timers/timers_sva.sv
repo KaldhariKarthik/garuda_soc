@@ -138,6 +138,16 @@ module timers_sva (
         (psel_i && penable_i && pwrite_i && pslverr_o) |-> !any_wr)
         else $error("[SVA-FAIL] a_err_no_change");
 
+    // ---- F06, F09 (AUD-13): PSLVERR exactly for an access to an offset that is not a
+    //      register; a write to the read-only WDTVAL is ignored and raises none
+    a_pslverr_only_unmapped: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+        pslverr_o == (psel_i && penable_i && !mapped))
+        else $error("[SVA-FAIL] a_pslverr_only_unmapped: paddr=%h pwrite=%b pslverr=%b", paddr_i, pwrite_i, pslverr_o);
+    a_ro_write_ignored: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        (psel_i && pwrite_i && mapped && paddr_i[7:2] == 6'd6) |-> !any_wr)
+        else $error("[SVA-FAIL] a_ro_write_ignored: a write to WDTVAL produced a write strobe");
+    c_ro_write: cover property (@(posedge pclk_i) preset_n_i && psel_i && penable_i && pwrite_i && mapped && paddr_i[7:2] == 6'd6);
+
     // ---- F09: an offset that does not exist, or an alias of one that does, has no effect
     a_unmapped_no_strobe: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
         (psel_i && !mapped) |-> !(any_wr || rd_lo))

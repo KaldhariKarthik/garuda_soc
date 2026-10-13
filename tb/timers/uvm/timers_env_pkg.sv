@@ -343,7 +343,9 @@ package timers_env_pkg;
         // every completed access: read data and PSLVERR
         function void write_apb(apb_item it);
             bit m = model.mapped(it.addr);
-            bit exp_err = !m || (it.write && model.read_only(it.addr));
+            // AUD-13, the rule for the whole chip: PSLVERR only for an offset that is
+            // not a register. A write to the read-only WDTVAL is ignored, no error.
+            bit exp_err = !m;
             cov.apb_access(it, m);
             if (it.write) n_wr++;
             else begin

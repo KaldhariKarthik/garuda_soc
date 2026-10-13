@@ -1,6 +1,6 @@
 # GARUDA SoC: coverage by block
 
-Written by `tools/gen/cov_chart.py` on 2026-10-12 from IMC 15.2 reports, tree `a8f99dc` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
+Written by `tools/gen/cov_chart.py` on 2026-10-13 from IMC 15.2 reports, tree `e9909f7` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
 
 ![coverage by block](coverage_by_block.svg)
 
@@ -22,8 +22,8 @@ Written by `tools/gen/cov_chart.py` on 2026-10-12 from IMC 15.2 reports, tree `a
 | DMA | A | all directed tests, merged | 99.1% (106/107) | 97.8% (45/46) | 60.3% (2151/3566) | 100.0% (13/13) | none | none | none written |
 | Debug | A | all directed tests, merged | 96.5% (166/172) | 88.6% (31/35) | 77.1% (1224/1587) | 91.7% (44/48) | none | none | none written |
 | CLIC | B | the block's UVM environment | 100.0% (20/20) | none | 96.1% (1119/1165), after waivers 100.0% (1119/1119) | none | 100.0% (417/417) | 73.2% (60/82), after waivers 100.0% (60/60) | 68, in `flow/cov/clic_exclusions.tcl` |
-| Timers and watchdog | B | the block's UVM environment | 100.0% (68/68) | 100.0% (3/3) | 93.8% (1384/1476), after waivers 100.0% (1384/1384) | none | 100.0% (145/145) | 100.0% (33/33) | 93, in `flow/cov/timers_exclusions.tcl` |
-| Clock divider and reset | B | the block's UVM environment | 100.0% (85/85) | 100.0% (10/10) | 82.1% (238/290), after waivers 100.0% (238/238) | none | 100.0% (106/106) | 100.0% (38/38) | 55, in `flow/cov/crg_exclusions.tcl` |
+| Timers and watchdog | B | the block's UVM environment | 100.0% (68/68) | 100.0% (3/3) | 93.8% (1383/1475), after waivers 100.0% (1383/1383) | none | 100.0% (145/145) | 100.0% (36/36) | 93, in `flow/cov/timers_exclusions.tcl` |
+| Clock divider and reset | B | the block's UVM environment | 100.0% (85/85) | 100.0% (10/10) | 82.1% (238/290), after waivers 100.0% (238/238) | none | 99.1% (105/106) | 100.0% (38/38) | 55, in `flow/cov/crg_exclusions.tcl` |
 | PWM | B | the block's UVM environment | 98.8% (84/85), after waivers 100.0% (84/84) | 96.0% (24/25), after waivers 100.0% (21/21) | 92.8% (620/668), after waivers 100.0% (620/620) | none | 100.0% (272/272) | 97.0% (65/67), after waivers 100.0% (65/65) | 58, in `flow/cov/pwm_exclusions.tcl` |
 | GPIO | B | the block's UVM environment | 92.4% (244/264), after waivers 100.0% (244/244) | 96.8% (30/31), after waivers 100.0% (27/27) | 84.9% (1040/1225), after waivers 100.0% (1040/1040) | none | 100.0% (211/211) | 94.1% (32/34), after waivers 100.0% (32/32) | 214, in `flow/cov/gpio_exclusions.tcl` |
 | UART | B | all directed tests, merged | 92.9% (210/226) | 97.0% (32/33) | 82.5% (513/622) | 100.0% (28/28) | none | none | none written |
@@ -33,7 +33,7 @@ Written by `tools/gen/cov_chart.py` on 2026-10-12 from IMC 15.2 reports, tree `a
 | APB shim (shared by six peripherals) | B | all directed tests, merged | 96.4% (27/28) | 92.3% (12/13) | 98.1% (202/206) | none | none | 100.0% (17/17) | none written |
 | Chip and SoC top (wiring) | B | all directed tests, merged | none | none | 55.7% (1513/2715) | none | none | none | none written |
 
-Over the sixteen blocks, counting items (waived items removed for the five blocks that have waivers): statement 93.8% (1911/2038), expression 86.9% (319/367), toggle 82.0% (24510/29886), FSM 82.8% (197/238); all four together 82.8% (26937/32529).
+Over the sixteen blocks, counting items (waived items removed for the five blocks that have waivers): statement 93.8% (1911/2038), expression 86.9% (319/367), toggle 82.0% (24509/29885), FSM 82.8% (197/238); all four together 82.8% (26936/32528).
 
 ## Block by block
 
@@ -255,7 +255,7 @@ Assertions: no property is bound to this block yet.
 
 Plan: `tb/clic/GARUDA_CLIC_vplan.csv` (35 features, 67 checks and coverage items). Track B.
 
-Measured on the UVM environment (22 runs: register test, directed test, random seeds), DUT instance only.
+Measured on the UVM environment (5 runs: register test, directed test, random seeds), DUT instance only.
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
@@ -288,7 +288,7 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 
 ### Timers and watchdog
 
-Plan: `tb/timers/GARUDA_TIMERS_vplan.csv` (43 features, 74 checks and coverage items). Track B.
+Plan: `tb/timers/GARUDA_TIMERS_vplan.csv` (43 features, 75 checks and coverage items). Track B.
 
 Measured on the UVM environment (22 runs: register test, directed test, random seeds), DUT instance only.
 
@@ -296,8 +296,8 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 |---|---|---|---|
 | Block | 100.0% (68/68) | 100.0% (68/68) | 0 |
 | Expression | 100.0% (3/3) | 100.0% (3/3) | 0 |
-| Toggle | 93.8% (1384/1476) | 100.0% (1384/1384) | 92 |
-| Assertion | 100.0% (33/33) | 100.0% (33/33) | 0 |
+| Toggle | 93.8% (1383/1475) | 100.0% (1383/1383) | 92 |
+| Assertion | 100.0% (36/36) | 100.0% (36/36) | 0 |
 | Functional (covergroup bins) | 100.0% (145/145) | 100.0% (145/145) | 0 |
 
 **Exclusions and their justifications** (`flow/cov/timers_exclusions.tcl`, 93 lines):
@@ -316,7 +316,7 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 
 Plan: `tb/clk_div/GARUDA_CLKRST_vplan.csv` (34 features, 47 checks and coverage items). Track B.
 
-Measured on the UVM environment (22 runs: register test, directed test, random seeds), DUT instance only.
+Measured on the UVM environment (5 runs: register test, directed test, random seeds), DUT instance only.
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
@@ -324,7 +324,7 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 | Expression | 100.0% (10/10) | 100.0% (10/10) | 0 |
 | Toggle | 82.1% (238/290) | 100.0% (238/238) | 52 |
 | Assertion | 100.0% (38/38) | 100.0% (38/38) | 0 |
-| Functional (covergroup bins) | 100.0% (106/106) | 100.0% (106/106) | 0 |
+| Functional (covergroup bins) | 99.1% (105/106) | 99.1% (105/106) | 0 |
 
 **Exclusions and their justifications** (`flow/cov/crg_exclusions.tcl`, 55 lines):
 
@@ -343,7 +343,7 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 
 Plan: `tb/pwm/GARUDA_PWM_vplan.csv` (27 features, 44 checks and coverage items). Track B.
 
-Measured on the UVM environment (22 runs: register test, directed test, random seeds), DUT instance only.
+Measured on the UVM environment (5 runs: register test, directed test, random seeds), DUT instance only.
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
@@ -375,7 +375,7 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 
 Plan: `tb/gpio/GARUDA_GPIO_vplan.csv` (27 features, 41 checks and coverage items). Track B.
 
-Measured on the UVM environment (22 runs: register test, directed test, random seeds), DUT instance only.
+Measured on the UVM environment (5 runs: register test, directed test, random seeds), DUT instance only.
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
