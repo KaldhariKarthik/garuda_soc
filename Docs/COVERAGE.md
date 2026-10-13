@@ -1,8 +1,15 @@
 # GARUDA coverage — status
 
-**Status at 2026-10-14.** The last measurement is from 2026-10-04. It is the first
-measurement on the whole SoC and on the Rev 4.0 RTL. **Coverage is not closed, and no bar is
-claimed.** The sign-off targets are in `flow/0_signoff_criteria.md` (rows 2 and 3).
+> **The current figures, block by block, are in `Docs/coverage/COVERAGE_BY_BLOCK.md`**
+> (statement, expression, toggle, FSM, functional, assertions triggered, and every
+> exclusion with its justification), made by `make cov_chart` from IMC's reports, first on
+> 2026-10-12. Every block can also be run and merged by hand: `flow/cov/all_blocks_report.tcl`.
+> The merged core figures measured on 2026-10-04 were too low: the merge had left out
+> nineteen of the twenty unit and element benches (entry TOOL-B5 in `Docs/bugs/track_b.md`).
+
+**Status at 2026-10-14.** The whole-SoC measurement in this file is from 2026-10-04, the first
+on the whole SoC and on the Rev 4.0 RTL. **Coverage is not closed, and no bar is claimed.**
+The sign-off targets are in `flow/0_signoff_criteria.md` (rows 2 and 3).
 
 The core-only measurement of 2026-08-04 is in git history. Its figures do not apply to the
 current RTL.

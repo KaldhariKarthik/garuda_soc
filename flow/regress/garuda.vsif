@@ -69,6 +69,7 @@ group garuda {
             test san_t_wfi {}; test san_t_dsu {}; test san_t_mem {}; test san_t_clic {};
             test san_t_cov {}; test san_t_mtip {};
             test san_t_hold_flush_matrix {}; test san_t_dsu_b2b {};
+            test san_t_lead1_mret_buserr {}; test san_t_lead2_wfi_buserr {};
         };
     };
 

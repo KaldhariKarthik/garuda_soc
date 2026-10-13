@@ -49,7 +49,15 @@ case "$T" in
   tb_bridge)   FL=tb/ahb2apb/filelist_ahb2apb.f;   TOP=tb_ahb2apb ;;
   tb_apb_shim) FL=tb/common/filelist_shim.f;       TOP=tb_apb_shim ;;
   # ---- stage 4: core --------------------------------------------------------
-  unit_*)      FL=tb/core/filelist_${T#unit_}.f;   TOP=tb_top; MARK="\[PASS\]|ALL CHECKS PASSED|RESULT: +PASSED" ;;
+  # Every unit and element bench is a module called tb_top with its DUT at
+  # tb_top.dut. IMC merges by instance path, so of twenty such runs it kept the
+  # first and dropped the DUT and the interface of the other nineteen ("not
+  # merged - mismatch in type names"): the merged core coverage was too low and
+  # their assertions read as never triggered (Docs/bugs/track_b.md TOOL-B5).
+  # Each bench is therefore elaborated under a one-line top of its own name.
+  unit_*)      FL=tb/core/filelist_${T#unit_}.f;   TOP=cov_${T#unit_}; MARK="\[PASS\]|ALL CHECKS PASSED|RESULT: +PASSED"
+               printf 'module %s;\n    tb_top u_tb ();\nendmodule\n' "$TOP" > "$OUT/cov_top.sv"
+               ARGS="$OUT/cov_top.sv" ;;
   dsu)         FL=tb/dsu/filelist_dsu_top.f;       TOP=tb_dsu_top
                python3 tools/gen/DSU_gen.py --count "${DSU_TESTS:-400}" --seed "${DSU_SEED:-1}" --outdir "$OUT" | tail -1
                ARGS="+STIM=$OUT/dsu_stim.mem +EXP=$OUT/dsu_expected.mem"; MARK="RESULT +: PASSED" ;;
@@ -66,6 +74,8 @@ case "$T" in
                case "$n" in
                  t_flush)  x="+IWAIT=3 +IRAND=1 +SEED=${SEED:-7}" ;;
                  t_buserr) x="+ERR_EN=1 +ERR_BASE=10020000 +ERR_SIZE=1000" ;;
+                 t_lead1_mret_buserr) x="+ERR_EN=1 +ERR_BASE=10020000 +ERR_SIZE=1000" ;;
+                 t_lead2_wfi_buserr)  x="+ERR_EN=1 +ERR_BASE=10020000 +ERR_SIZE=1000 +DWAIT=2" ;;
                  t_irq)    x="+IRQ_AT=300" ;;
                  t_wfi)    x="+IRQ_AT=400" ;;
                  t_clic)   x="+IRQ_EVERY=40 +IRQ_SWEEP=1" ;;

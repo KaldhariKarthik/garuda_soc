@@ -26,6 +26,7 @@ help_b:
 	@echo "                          uvm_timers uvm_pwm uvm_gpio uvm_crg, and uvm_b for all five"
 	@echo "  make synth           -- Genus structural synthesis check (latches, drivers)"
 	@echo "  make local           -- licence-free flow: Icarus, Verilator lint, Yosys"
+	@echo "  make cov_chart       -- coverage of every block from IMC, into Docs/coverage/"
 	@echo "  make check_docs      -- are any .docx stale against their .md?"
 	@echo "  make gate_b          -- the subset to pass before a push of track B"
 
@@ -67,7 +68,7 @@ test_chip_integ: ; $(call run_blk,$(CHIP_FL),tb_chip,chip_integ,+MODE=basic +TES
 test_chip: sw test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_uart test_chip_periph test_chip_integ test_chip_jtag
 
 elab_chip:                                       ## whole-chip elaboration
-	$(call run_blk,rtl/soc/filelist_chip.f,garuda_chip_top,elab_chip,-elaborate)
+	$(call run_blk,rtl/soc/filelist_chip.f,garuda_chip_top,elab_chip,-elaborate,-)
 
 # =============================================================================
 # Design documents. The .md is normative; the .docx is an export (see
@@ -204,6 +205,31 @@ local_lint:                                      ## whole-chip Verilator lint
 	 verilator --lint-only -sv --timing --top-module garuda_chip_top $$inc $$def $$src
 
 local: local_sim local_lint local_synth
+
+# =============================================================================
+# Coverage of every block, and the chart (Docs/coverage/COVERAGE_BY_BLOCK.md).
+#   make cov_runs    every test of flow/regress/garuda.vsif under irun 15.2 with
+#                    coverage, COV_JOBS at a time (the same runs vManager makes)
+#   make cov_chart   those runs, the five UVM environments, then IMC merges and
+#                    reports, then the chart. Every number in it is IMC's.
+#   make cov_report  only the last two steps, on the databases already there
+# By hand: flow/COMMANDS.md, "Coverage of every block".
+# =============================================================================
+COV_JOBS ?= 6
+.PHONY: cov_runs cov_chart cov_report
+cov_runs: sw isa_tests
+	@rm -rf $(SIM_DIR)/run_test; mkdir -p $(SIM_DIR)/run_test; \
+	 grep -oE 'test [a-zA-Z0-9_]+ *\{\}' flow/regress/garuda.vsif | awk '{print $$2}' > $(SIM_DIR)/run_test/tests.txt; \
+	 xargs -P $(COV_JOBS) -I{} sh -c 'flow/regress/run_test.sh {} > $(SIM_DIR)/run_test/{}.out 2>&1' < $(SIM_DIR)/run_test/tests.txt; \
+	 n=$$(wc -l < $(SIM_DIR)/run_test/tests.txt); p=$$(grep -l 'GARUDA_RESULT: PASS' $(SIM_DIR)/run_test/*.out | wc -l); \
+	 echo "cov_runs: $$p of $$n runs passed"; \
+	 for f in $(SIM_DIR)/run_test/*.out; do grep -q 'GARUDA_RESULT: PASS' $$f || echo "  NOT PASSED: $$f"; done; \
+	 [ $$p -eq $$n ]
+
+cov_report:
+	@python3 tools/gen/cov_chart.py collect && python3 tools/gen/cov_chart.py report
+
+cov_chart: cov_runs uvm_b cov_report
 
 # Everything of track B that regress_all runs.
 REGRESS_B = test_blocks_b test_chip

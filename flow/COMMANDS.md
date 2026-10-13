@@ -529,6 +529,42 @@ Control refused the binary). Results of 2026-10-11: `Docs/VERIFICATION_LOG_2026-
 
 ---
 
+## Coverage of every block: the chart (IMC)
+
+The chart is `Docs/coverage/COVERAGE_BY_BLOCK.md` with its picture and its CSV.
+`make cov_chart` does all of the following; by hand it is three steps.
+
+```bash
+export PATH=/home/install/INCISIVE152/tools/bin:/home/install/INCISIVE152/bin:$PATH   # irun and IMC 15.2 first
+
+# 1. every test of the session file, one irun each, coverage on (121 runs, about 4 minutes at 6 at a time)
+flow/regress/run_test.sh tb_uart            # one of them, to see what a run is
+make cov_runs                               # all of them; fails if one does not pass
+make uvm_b                                  # the five UVM environments, 22 runs each
+
+# 2. merge and report in IMC
+imc
+imc> merge -runfile sim/cov_all/runs.txt -out sim/cov_all/merged -overwrite -initial_model union_all -message 1
+imc> load -run sim/cov_all/merged
+imc> report -summary -type -metrics block:expression:toggle:fsm:assertion:covergroup -out sim/cov_all/type_summary.txt
+imc> report -detail -type * -metrics assertion -out sim/cov_all/assert_never.txt        # properties that never triggered
+#    a block with a UVM environment, here the timers: as measured, then after the waivers
+imc> load -run sim/uvm_timers/cov_work/scope/all
+imc> report -summary -inst timers_top... -metrics block:expression:toggle:fsm:assertion -out sim/uvm_timers/code_raw.txt
+imc> source flow/cov/timers_exclusions.tcl
+imc> report -summary -inst timers_top... -metrics block:expression:toggle:fsm:assertion -out sim/uvm_timers/code_cov.txt
+imc> report -summary -inst uvm_pkg... -metrics covergroup -out sim/uvm_timers/func_sum.txt
+
+# 3. the chart, from those reports
+python3 tools/gen/cov_chart.py collect      # writes and runs the IMC commands above for every block
+python3 tools/gen/cov_chart.py report       # reads IMC's reports, writes Docs/coverage/
+```
+
+In the merge log, a line `Instance ... not merged ... Mismatch in type names`
+means a run was left out of the merged figures (`Docs/bugs/track_b.md` TOOL-B5);
+`cov_chart.py collect` stops when it sees one. `-initial_model union_all` is
+required: the runs have different top modules.
+
 ## Where the results are written down
 
 - `Docs/BUGS.md` section 1h: every defect found on 2026-10-04, the tool or test
