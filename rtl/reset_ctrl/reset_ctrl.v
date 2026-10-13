@@ -133,18 +133,32 @@ module reset_ctrl #(
     // =========================================================================
     // RSTREASON (aon domain, cleared only by the pin - D-8, [N-6.1])
     // Exactly one of [3:0] per reset event ([N-6.2]); BOOTFAIL is orthogonal.
+    //
+    // ERRATUM CRG-3 (2026-10-14). A reset event lasts from its first request
+    // until the stretch counter has run out: that is sys_req_q. The cause is
+    // taken from the request that STARTS the event and is then held. It used
+    // to be rewritten in every cycle a request was up, so of two requests that
+    // overlapped the one that ended last was recorded: a watchdog expiry (a
+    // request two or three cycles long) followed within those cycles by the
+    // debugger's ndmreset (a level) read NDM, and the firmware's watchdog
+    // recovery path was not taken although the watchdog had caused the reset.
+    // A request that arrives while an event is in progress still extends the
+    // reset ([N-7.8]); it no longer changes the cause. Two requests in the
+    // event's first cycle: watchdog, then software, then debugger.
     // =========================================================================
     reg [3:0] reason_q;       // {SW, NDM, WDT, EXT}
     reg       bootfail_q;
+    wire      cause_req = wdt_rst_req_i | swrst_stb | ndm_rst_req_i;
     always @(posedge aon_clk_i or negedge ext_rst_n_i) begin
         if (!ext_rst_n_i) begin
             reason_q   <= 4'b0001;
             bootfail_q <= 1'b0;
         end else begin
-            if      (wdt_rst_req_i) reason_q <= 4'b0010;
-            else if (swrst_stb)     reason_q <= 4'b1000;
-            else if (ndm_rst_req_i) reason_q <= 4'b0100;
-            else                    reason_q <= reason_q & ~reason_w1c[3:0];
+            if (cause_req && !sys_req_q)
+                reason_q <= wdt_rst_req_i ? 4'b0010 :
+                            swrst_stb     ? 4'b1000 : 4'b0100;
+            else
+                reason_q <= reason_q & ~reason_w1c[3:0];
 
             if      (bootfail_set)  bootfail_q <= 1'b1;
             else if (reason_w1c[4]) bootfail_q <= 1'b0;

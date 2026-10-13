@@ -27,7 +27,8 @@ module reset_ctrl_sva #(
     input wire       swrst_stb,
     input wire [3:0] reason_q,
     input wire [4:0] reason_w1c,
-    input wire       ext_held
+    input wire       ext_held,
+    input wire       sys_req_q
 );
     wire sys_req = ext_held | wdt_rst_req_i | swrst_stb | ndm_rst_req_i;
     wire dm_req  = ext_held | wdt_rst_req_i | swrst_stb;
@@ -99,6 +100,20 @@ module reset_ctrl_sva #(
     a_reason_onehot: assert property (@(posedge aon_clk_i) disable iff (!ext_rst_n_i)
         (ext_rst_n_i && (wdt_rst_req_i || swrst_stb || ndm_rst_req_i)) |=> $onehot(reason_q))
         else $error("[SVA-FAIL] a_reason_onehot: %04b", reason_q);
+    // CRG-3: the cause of a reset event is its first request. While an event is in
+    // progress (sys_req_q, from the first request until the stretch has run out) the
+    // cause does not move; a request that starts an event sets it, watchdog first,
+    // then software, then the debugger.
+    a_reason_first_cause: assert property (@(posedge aon_clk_i) disable iff (!ext_rst_n_i)
+        (ext_rst_n_i && sys_req_q && reason_w1c[3:0] == 4'b0) |=> $stable(reason_q))
+        else $error("[SVA-FAIL] a_reason_first_cause: the cause changed during a reset event, now %04b", reason_q);
+    a_reason_capture: assert property (@(posedge aon_clk_i) disable iff (!ext_rst_n_i)
+        (ext_rst_n_i && !sys_req_q && (wdt_rst_req_i || swrst_stb || ndm_rst_req_i))
+        |=> (reason_q == $past(wdt_rst_req_i ? 4'b0010 : swrst_stb ? 4'b1000 : 4'b0100)))
+        else $error("[SVA-FAIL] a_reason_capture: %04b", reason_q);
+    c_reason_kept_wdt: cover property (@(posedge aon_clk_i) ext_rst_n_i && sys_req_q && ndm_rst_req_i && reason_q == 4'b0010);
+    c_reason_kept_ndm: cover property (@(posedge aon_clk_i) ext_rst_n_i && sys_req_q && wdt_rst_req_i && reason_q == 4'b0100);
+
     a_reason_survives: assert property (@(posedge aon_clk_i) disable iff (!ext_rst_n_i)
         (ext_rst_n_i && !wdt_rst_req_i && !swrst_stb && !ndm_rst_req_i && reason_w1c[3:0] == 4'b0) |=> $stable(reason_q))
         else $error("[SVA-FAIL] a_reason_survives: the cause changed with no request and no clear");
@@ -131,6 +146,6 @@ bind reset_ctrl reset_ctrl_sva #(.STRETCH(STRETCH)) u_reset_ctrl_sva (
     .div_sel_o(div_sel_o), .ilock_o(ilock_o),
     .hreset_n_o(hreset_n_o), .preset_n_o(preset_n_o), .core_rst_n_o(core_rst_n_o),
     .dm_rst_n_o(dm_rst_n_o), .ext_hrst_n_o(ext_hrst_n_o),
-    .swrst_stb(swrst_stb), .reason_q(reason_q), .reason_w1c(reason_w1c), .ext_held(ext_held));
+    .swrst_stb(swrst_stb), .reason_q(reason_q), .reason_w1c(reason_w1c), .ext_held(ext_held), .sys_req_q(sys_req_q));
 `endif
 `endif

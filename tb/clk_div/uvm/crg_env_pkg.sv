@@ -82,6 +82,12 @@ package crg_env_pkg;
         bit       bootfail;
         bit [1:0] divsel;
         bit       ilock;
+        // a reset event in progress: from its first request until the stretch has run out
+        // ([N-7.7]: 1024 cycles of the always-on clock after the last request). The cause
+        // of an event is its first request and is held to the end of the event (CRG-3).
+        bit [1:0]    ext_sync;
+        int unsigned stretch;
+        bit          in_event;
         // what the last step saw, for coverage
         bit       ev_wdt, ev_sw, ev_ndm, ev_bf; bit [4:0] ev_w1c;
 
@@ -90,6 +96,7 @@ package crg_env_pkg;
         // the reset pin: the only thing that touches the cause register and DIVSEL from outside ([N-6.1], [N-6.5])
         function void ext();
             reason = 4'b0001; bootfail = 0; divsel = 0; ilock = 0;
+            ext_sync = 2'b00; stretch = 1024; in_event = 1;
         endfunction
 
         function bit mapped(bit [11:0] a); return a inside {12'h000, 12'h004, 12'h008, 12'h020}; endfunction
@@ -112,13 +119,20 @@ package crg_env_pkg;
             ev_bf  = wr && it.paddr == 12'h004 && it.pwdata[4];
             ev_w1c = (wr && it.paddr == 12'h000) ? it.pwdata[4:0] : 5'd0;
             ev_wdt = it.wdt_req; ev_ndm = it.ndm_req;
-            // A new cause replaces the old ones. Two in the same cycle: the specification does not
-            // say; the RTL takes the watchdog, then software, then the debugger - in every cycle a
-            // request is up, so of two that overlap the one that ends last is recorded (CRG-3).
-            if      (ev_wdt) reason = 4'b0010;
-            else if (ev_sw)  reason = 4'b1000;
-            else if (ev_ndm) reason = 4'b0100;
-            else             reason = reason & ~ev_w1c[3:0];
+            // The cause of a reset event is its first request, and replaces the old cause
+            // (CLKRST [N-6.2], [N-6.2a], ruling of 2026-10-10 on CRG-3): a request that
+            // arrives while an event is in progress extends the reset and leaves the cause.
+            // Two in the same first cycle: the watchdog, then software, then the debugger.
+            begin
+                bit cause = ev_wdt || ev_sw || ev_ndm;
+                bit held  = !ext_sync[1];                                    // the pin's two-flop synchroniser
+                if (cause && !in_event) reason = ev_wdt ? 4'b0010 : ev_sw ? 4'b1000 : 4'b0100;
+                else                    reason = reason & ~ev_w1c[3:0];
+                if (cause || held)      stretch = 1024;
+                else if (stretch != 0)  stretch = stretch - 1;
+                in_event = (stretch != 0);
+                ext_sync = {ext_sync[0], 1'b1};
+            end
             if      (ev_bf)     bootfail = 1'b1;
             else if (ev_w1c[4]) bootfail = 1'b0;
             if (!it.preset_n) ilock = 1'b0;                                  // sticky until a reset

@@ -237,9 +237,9 @@ class crg_directed_test extends crg_base_test;
         // ---- F19: a request while the counter runs, from the same source and from another
         wdt_pulse(1); repeat (700) @(posedge vif.refclk); wdt_pulse(1); wait_ready();
         wdt_pulse(1); repeat (700) @(posedge vif.refclk); ndm_level(4); wait_ready();
-        expect_rd(12'h000, 32'h4, "the later cause is recorded");
+        expect_rd(12'h000, 32'h2, "the first cause of the event is kept: watchdog, then the debugger during the stretch");
         ndm_level(4); repeat (700) @(posedge vif.refclk); wdt_pulse(1); wait_ready();
-        expect_rd(12'h000, 32'h2, "the later cause is recorded");
+        expect_rd(12'h000, 32'h4, "the first cause of the event is kept: debugger, then the watchdog during the stretch");
         wr(12'h000, 32'h6);
 
         // ---- F26: two and three requests in the same cycle. Not in the specification; the RTL takes
@@ -249,10 +249,11 @@ class crg_directed_test extends crg_base_test;
         sw_with(0, 1); expect_rd(12'h000, 32'h8, "software and debugger together");
         sw_with(1, 0); expect_rd(12'h000, 32'h2, "watchdog and software together");
         sw_with(1, 1); expect_rd(12'h000, 32'h2, "all three together");
-        // The cause is rewritten in every cycle a request is up, so of two that overlap the one
-        // that ends last is the one recorded, whatever the order above (BUGS.md CRG-3)
+        // The watchdog expires and the debugger's ndmreset, a level, outlasts its request: the
+        // cause is the watchdog, which came first, so the firmware's recovery path is taken
+        // (CRG-3: until 2026-10-14 the cause was rewritten while a request was up and read NDM)
         fork wdt_pulse(1); ndm_level(6); join wait_reset();
-        expect_rd(12'h000, 32'h4, "a watchdog request outlasted by the debugger's");
+        expect_rd(12'h000, 32'h2, "a watchdog request outlasted by the debugger's reads WDT");
         wr(12'h000, 32'h4);
         wr(12'h000, 32'h2);
 

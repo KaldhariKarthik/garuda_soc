@@ -197,6 +197,15 @@ software resets, because a reason register cleared by the reset it records is us
 **[N-6.2]** Exactly one of bits 0–3 is set by any given reset. Bit 4 is set by software and
 is orthogonal.
 
+**[N-6.2a]** A reset event lasts from its first request until the stretch counter has run
+out ([N-7.7]). The cause recorded is the request that **starts** the event, and it replaces
+the cause of an earlier event. A request that arrives while an event is in progress extends
+the reset ([N-7.8]) and does not change the cause. Two requests in the first cycle of an
+event are taken in the order watchdog, software, debugger. So a watchdog expiry followed,
+before the reset is over, by the debugger's `ndmreset` reads `WDT`, and the firmware's
+watchdog recovery path is taken. *(Added 2026-10-14, finding CRG-3 item 1: until then the
+cause was rewritten in every cycle a request was up, and that case read `NDM`.)*
+
 **[N-6.3]** Writing 1 to a bit clears it. Writing 0 has no effect.
 
 ### 6.2 `RSTCTL` (0x04)
@@ -205,7 +214,8 @@ is orthogonal.
 |---|---|---|---|---|
 | 0 | `SWRST` | W | 0 | Writing 1 requests a full reset. Self-clearing. |
 | 9:8 | `DIVSEL` | RW | `2'b00` | Divider select, passed to `clk_div`. |
-| 31:10, 7:1 | reserved | — | 0 | Writes ignored. |
+| 4 | `BOOTFAIL` set | W | 0 | Writing 1 sets `RSTREASON.BOOTFAIL` ([N-6.5b]). Reads 0. |
+| 31:10, 7:5, 3:1 | reserved | — | 0 | Writes ignored. |
 
 **[N-6.4]** A `DIVSEL` write takes effect only at the next `pclk_phase` boundary, and the
 divider transitions glitch-free (§7.5). Changing `DIVSEL` changes `hclk` and therefore all
@@ -213,6 +223,16 @@ peripheral baud rates and both timer rates. Firmware is responsible for reconfig
 
 **[N-6.5]** `DIVSEL` is not reset by `SWRST`, so a software reset does not silently restore
 250 MHz after firmware has stepped down to a lower frequency.
+
+**[N-6.5a]** A `RSTCTL` write that sets `SWRST` does not complete on the bus: the reset it
+causes reaches the bridge before the end of the access. Of that write, `SWRST` is taken and
+`BOOTFAIL` (bit 4, [N-6.5b]) is taken; its `DIVSEL` bits are **not**. So
+`RSTCTL = (ratio << 8) | 1` does not change the ratio. To change the ratio and then reset,
+write `DIVSEL` first, wait for `CLKSTAT.DIVBUSY` to clear, then write `SWRST`.
+*(Added 2026-10-14, finding CRG-3 item 2.)*
+
+**[N-6.5b]** `RSTCTL` bit 4, written 1, sets `RSTREASON.BOOTFAIL`. A write to `CLKSTAT`,
+which is read-only, is ignored without an error (the one rule of the chip, AUD-13).
 
 ### 6.3 `CLKSTAT` (0x08)
 
@@ -327,10 +347,14 @@ state.
 **[N-7.16]** `clk_div`'s divider flops use `raw_rst_n` — `ext_rst_n` directly, unstretched
 and unsynchronised. They cannot use the stretched output because that output depends on
 the divider itself, which must be in a known state before `hclk` exists at all. This
-is the one deliberate exception to [N-7.15]. The divider is seven flops on four clocks, not
-one. The exception is safe because each of those flops, and each flop of `reset_ctrl` that
-the same pin releases, either is a free-running divider (every state is legal) or has its
-reset value at its input for the first two cycles after release (`Docs/BUGS.md` CRG-3).
+is the one deliberate exception to [N-7.15]. It is safe for this reason, which holds for
+all seven flops released by the pin (four toggle flops, the two select registers and the
+`pclk` toggle) and for the flops of the reset controller released by it: each either is a
+free-running divider, for which every state is a legal state, or has its reset value at its
+input for the first two cycles after the release, so a flop that leaves reset one edge late
+still holds what it would have loaded. *(Rewritten 2026-10-14, finding CRG-3 item 3: the
+argument used to be "the divider is a single toggle flop", which it no longer is.)* The
+stretch is 1024 cycles of the always-on clock, which is 2048 reference cycles.
 
 **[N-7.17]** Release order is `aon_clk` domain, then `hclk`, then `pclk`. `pclk` is last
 because it is the slowest, so a peripheral can never see its bus interface active before its

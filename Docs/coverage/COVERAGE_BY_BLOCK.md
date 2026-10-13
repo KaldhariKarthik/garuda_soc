@@ -1,6 +1,6 @@
 # GARUDA SoC: coverage by block
 
-Written by `tools/gen/cov_chart.py` on 2026-10-14 from IMC 15.2 reports, tree `d7e328d` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
+Written by `tools/gen/cov_chart.py` on 2026-10-14 from IMC 15.2 reports, tree `96a2279` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
 
 ![coverage by block](coverage_by_block.svg)
 
@@ -23,7 +23,7 @@ Written by `tools/gen/cov_chart.py` on 2026-10-14 from IMC 15.2 reports, tree `d
 | Debug | A | all directed tests, merged | 96.5% (166/172) | 88.6% (31/35) | 77.1% (1224/1587) | 91.7% (44/48) | none | none | none written |
 | CLIC | B | the block's UVM environment | 100.0% (20/20) | none | 96.1% (1119/1165), after waivers 100.0% (1119/1119) | none | 100.0% (417/417) | 73.2% (60/82), after waivers 100.0% (60/60) | 68, in `flow/cov/clic_exclusions.tcl` |
 | Timers and watchdog | B | the block's UVM environment | 100.0% (68/68) | 100.0% (3/3) | 93.8% (1383/1475), after waivers 100.0% (1383/1383) | none | 100.0% (145/145) | 100.0% (36/36) | 93, in `flow/cov/timers_exclusions.tcl` |
-| Clock divider and reset | B | the block's UVM environment | 100.0% (85/85) | 100.0% (10/10) | 82.1% (238/290), after waivers 100.0% (238/238) | none | 100.0% (106/106) | 100.0% (38/38) | 55, in `flow/cov/crg_exclusions.tcl` |
+| Clock divider and reset | B | the block's UVM environment | 100.0% (81/81) | 100.0% (13/13) | 82.1% (239/291), after waivers 100.0% (239/239) | none | 100.0% (106/106) | 100.0% (42/42) | 55, in `flow/cov/crg_exclusions.tcl` |
 | PWM | B | the block's UVM environment | 98.0% (98/100), after waivers 100.0% (98/98) | 96.0% (24/25), after waivers 100.0% (21/21) | 92.9% (624/672), after waivers 100.0% (624/624) | none | 100.0% (275/275) | 96.2% (76/79), after waivers 100.0% (76/76) | 60, in `flow/cov/pwm_exclusions.tcl` |
 | GPIO | B | the block's UVM environment | 58.4% (156/267), after waivers 100.0% (156/156) | 93.5% (29/31), after waivers 100.0% (22/22) | 55.5% (680/1225), after waivers 100.0% (296/296) | none | 100.0% (214/214) | 94.7% (36/38), after waivers 100.0% (36/36) | 666, in `flow/cov/gpio_exclusions.tcl` |
 | UART | B | all directed tests, merged | 92.9% (210/226) | 97.0% (32/33) | 82.5% (513/622) | 100.0% (28/28) | none | none | none written |
@@ -33,7 +33,7 @@ Written by `tools/gen/cov_chart.py` on 2026-10-14 from IMC 15.2 reports, tree `d
 | APB shim (shared by six peripherals) | B | all directed tests, merged | 96.4% (27/28) | 92.3% (12/13) | 98.1% (202/206) | none | none | 100.0% (17/17) | none written |
 | Chip and SoC top (wiring) | B | all directed tests, merged | none | none | 55.7% (1513/2715) | none | none | none | none written |
 
-Over the sixteen blocks, counting items (waived items removed for the five blocks that have waivers): statement 93.5% (1837/1964), expression 86.7% (314/362), toggle 81.6% (23769/29145), FSM 82.8% (197/238); all four together 82.4% (26117/31709).
+Over the sixteen blocks, counting items (waived items removed for the five blocks that have waivers): statement 93.5% (1833/1960), expression 86.8% (317/365), toggle 81.6% (23770/29146), FSM 82.8% (197/238); all four together 82.4% (26117/31709).
 
 ## Block by block
 
@@ -320,10 +320,10 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
-| Block | 100.0% (85/85) | 100.0% (85/85) | 0 |
-| Expression | 100.0% (10/10) | 100.0% (10/10) | 0 |
-| Toggle | 82.1% (238/290) | 100.0% (238/238) | 52 |
-| Assertion | 100.0% (38/38) | 100.0% (38/38) | 0 |
+| Block | 100.0% (81/81) | 100.0% (81/81) | 0 |
+| Expression | 100.0% (13/13) | 100.0% (13/13) | 0 |
+| Toggle | 82.1% (239/291) | 100.0% (239/239) | 52 |
+| Assertion | 100.0% (42/42) | 100.0% (42/42) | 0 |
 | Functional (covergroup bins) | 100.0% (106/106) | 100.0% (106/106) | 0 |
 
 **Exclusions and their justifications** (`flow/cov/crg_exclusions.tcl`, 55 lines):
