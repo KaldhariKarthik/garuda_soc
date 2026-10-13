@@ -520,6 +520,60 @@ or unattractive — that is how a schedule disappears.
 
 ---
 
+## D-26 — Physical design: ASAP7 is exploratory, TSMC 28 nm is the target
+
+**Decided 2026-10-13 (owner) · Raised by** B2, no 28 nm library available
+
+The open-source flow (OpenROAD-flow-scripts `3451ca1`) is exercised on ASAP7, a predictive 7 nm
+teaching PDK, to prove constraints, clocking, macro handling and RTL hooks end to end. **No
+timing, area or power figure from ASAP7 is carried to 28 nm**, and no ASAP7 result is a
+timing-closure claim. DFT/scan scope is pending the mentors and is not designed for; it affects
+the ICG `test_en_i` (tied 0), clk_div's raw reset and reset_ctrl's flop-driven async sets.
+
+## D-27 — Timing scenarios and provisional constraints
+
+**Decided 2026-10-13 (owner) · Raised by** B2 SDC review
+
+Four scenarios, one per DIVSEL (÷2 primary, ÷4/÷8/÷16), from one generator
+(`flow/constraints/asap7/gen_modes.py`; target draft `flow/constraints/garuda.sdc`).
+aon_clk/hclk/pclk are one synchronous family: no clock groups among them. Exceptions name
+specific paths only: ext_rst_n → its async reset/set pins; each async input → its first
+synchroniser; tck↔core bounded at one hclk period (not grouped). **Provisional, labelled:**
+derived-clock setup uncertainty 150 ps (refclk's PHYS 5.2 value reused); I/O budgets 30 % of the
+relevant clock period (SPI flash/IMU parts unknown).
+
+## D-28 — RTL hooks for physical design (P1, P2, P3)
+
+**Decided 2026-10-13 (owner) · Raised by** BUGS PD-2, PD-3, PD-4
+
+Applied exactly as reviewed (diffs in `flow/pd/proposals/`): P1 `core_clk_gate` library-ICG
+branch, P2 `garuda_chip_core` + pin-level `garuda_chip_top` wrapper, P3 named memory macros in
+`sram_wrapper`. Each is behind a define or keeps the existing top interface, so **simulation
+behaviour is unchanged**. Chip-level simulation of P2 at the lab (`make test_chip`) is still
+required.
+
+## D-29 — Exploratory memory models and die
+
+**Decided 2026-10-13 (owner) · Raised by** BUGS PD-4, ASAP7 has no matching fake RAM
+
+Memories are ORFS mock blocks (`flow/pd/asap7/mock/`): 4 rows, address XOR-folded, byte writes,
+read-registered; forced to 133.488 × 166.6 (ISRAM), 33.372 × 166.6 (DSRAM ×4), 16.686 × 83.3 µm
+(BROM), from 0.0424 µm²/bit (ASAP7 `fakeram7_2048x39`). Die 320 × 300 µm, enlargeable to
+380 × 340 µm with a recorded reason. **Exploratory assumptions, not SRAM estimates.** The ROM mock
+has no contents: the real boot ROM must be generated with the boot image at the foundry stage.
+
+---
+
+## D-30 — WSL resized for detailed routing; pnr_r6 resumes from pnr_r5
+
+**Decided 2026-10-14 (owner) · Raised by** BUGS TOOL-21 (pnr_r5 detailed route OOM-killed)
+
+The owner resized WSL to 12 GB RAM + 8 GB swap; `nproc` is now 8 (verified: `free -g` total 11 / swap 8).
+pnr_r6 resumes from pnr_r5's global-route database with the detailed router at `NUM_CORES=8`,
+falling back to 6 if memory gets tight. It goes through finish and GDS.
+
+---
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. Neither blocks RTL.
@@ -532,6 +586,8 @@ These are recorded so they are not mistaken for settled. Neither blocks RTL.
   ratio and therefore the bank count, and whether byte-write-enable is native or
   must be built around a word-write macro. Until then, RTL uses behavioural array
   models behind the specified interfaces so only the array instantiation changes.
+  *2026-10-13:* none of ASAP7's 17 fake RAMs has a write mask either (BUGS 1l, D-29),
+  so the byte-write question is live for any macro source, not only the foundry's.
 - **CLIC §11.1 — genuinely asynchronous interrupt sources.** The
   no-synchroniser configuration path is sound for sources in either on-chip
   domain, because pclk is a ÷2 of hclk from one source. It does not cover a
