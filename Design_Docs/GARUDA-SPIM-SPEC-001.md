@@ -122,7 +122,7 @@ flash read, which is why the boot path fits the 4 KiB ROM budget.
 
 ## 6 Register map — APB window 1 (`0x4000_1000`)
 
-Machine-readable source: not written yet; it will be `Design_Docs/regs/spim.rdl` (plan task 2.1). Until then this table is the source. Offsets `0x00`–`0x2C` are the
+Machine-readable source: `Design_Docs/regs/spim.rdl` (SystemRDL; the UVM register model is generated from it by `tools/gen/gen_ral.py`). Offsets `0x00`–`0x2C` are the
 vendored register file; `0xFE0`–`0xFEC` are the GARUDA tail common to every
 peripheral (D-21).
 

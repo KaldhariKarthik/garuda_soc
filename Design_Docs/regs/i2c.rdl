@@ -1,0 +1,64 @@
+// =============================================================================
+// i2c.rdl - register description of block 15, the I2C master (APB window 2,
+// 0x4000_2000), with the four shim registers every peripheral window has.
+//
+// Source: GARUDA-I2C-SPEC-001 section 6, DECISIONS.md D-21, rtl/i2c/garuda_i2c_top.v.
+// The UVM register model tb/i2c/uvm/i2c_reg_pkg.sv is generated from this file:
+//     python3 tools/gen/gen_ral.py Design_Docs/regs/i2c.rdl tb/i2c/uvm/i2c_reg_pkg.sv
+// =============================================================================
+addrmap i2c {
+    name = "I2C";
+    desc = "I2C master, APB window 2 (0x4000_2000)";
+    default regwidth    = 32;
+    default accesswidth = 32;
+
+    reg { name = "SCL prescaler";
+          field { sw = rw; hw = r; reset = 16'h0; desc = "Nominally five prescaler ticks per SCL bit ([N-6.1])"; } value[15:0];
+    } PRESCALE @ 0x00;
+    reg { name = "Control";
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Core enable"; } en[0:0];
+          field { sw = w; hw = r; singlepulse; reset = 1'b0; desc = "Abandon the transfer in progress; reads 0 ([N-7.5])"; } abort[1:1];
+    } CTRL @ 0x04;
+    reg { name = "Transmit data";
+          field { sw = rw; hw = r; reset = 8'h0; desc = "Byte to transmit; in an address byte bit 0 is read (1) or write (0)"; } value[7:0];
+    } TXDATA @ 0x08;
+    reg { name = "Receive data";
+          field { sw = r; hw = w; reset = 8'h0; desc = "Byte received; the read clears STATUS.rxvalid ([N-6.4])"; } value[7:0];
+    } RXDATA @ 0x0C;
+    reg { name = "Command";
+          desc = "Write only, self-clearing, reads 0. A write while STATUS.tip is 1 is ignored ([N-6.2b])";
+          field { sw = w; hw = r; desc = "Generate a START"; } sta[0:0];
+          field { sw = w; hw = r; desc = "Generate a STOP"; } sto[1:1];
+          field { sw = w; hw = r; desc = "Read a byte"; } rd_byte[2:2];
+          field { sw = w; hw = r; desc = "Write TXDATA"; } wr_byte[3:3];
+          field { sw = w; hw = r; desc = "Level driven on the acknowledge bit of a read: 1 = NACK"; } nack[4:4];
+    } CMD @ 0x10;
+    reg { name = "Status";
+          field { sw = r; hw = w; reset = 1'b0; desc = "Transfer in progress"; } tip[0:0];
+          field { sw = r; hw = w; reset = 1'b0; desc = "The bus has seen a START and not yet a STOP"; } busy[1:1];
+          field { sw = r; hw = w; reset = 1'b0; desc = "Arbitration lost; sticky, cleared by IRQSTAT bit 1"; } al[2:2];
+          field { sw = r; hw = w; reset = 1'b0; desc = "The last byte written was not acknowledged"; } rxnack[3:3];
+          field { sw = r; hw = w; reset = 1'b0; desc = "A transfer was abandoned on timeout; sticky, cleared by IRQSTAT bit 2"; } timeout[4:4];
+          field { sw = r; hw = w; reset = 1'b0; desc = "RXDATA holds a byte that has not been read"; } rxvalid[5:5];
+    } STATUS @ 0x14;
+    reg { name = "Transfer timeout";
+          field { sw = rw; hw = r; reset = 16'h0; desc = "pclk cycles before a stalled transfer is abandoned; 0 disables ([N-7.5])"; } value[15:0];
+    } TIMEOUT @ 0x18;
+
+    reg { name = "Interrupt status";
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "Transfer complete"; } done[0:0];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "Arbitration lost"; } al[1:1];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "Bus timeout"; } timeout[2:2];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "The slave did not acknowledge"; } nack[3:3];
+    } IRQSTAT @ 0xFE0;
+    reg { name = "Interrupt enable";
+          field { sw = rw; hw = r; reset = 4'h0; } en[3:0];
+    } IRQEN @ 0xFE4;
+    reg { name = "DMA request control";
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Request while a received byte is waiting"; } rx[0:0];
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Request while the master is ready for a byte"; } tx[1:1];
+    } DMACTL @ 0xFE8;
+    reg { name = "Block identity";
+          field { sw = r; hw = na; reset = 32'h6A5D_0F01; desc = "0x6A5D, block number 15, revision 1"; } value[31:0];
+    } ID @ 0xFEC;
+};

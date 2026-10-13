@@ -122,6 +122,8 @@ slave would import someone else's answer to it.
 
 ## 6 Register map — APB window 0 (`0x4000_0000`)
 
+Machine-readable source: `Design_Docs/regs/spis.rdl` (SystemRDL; the UVM register model is generated from it by `tools/gen/gen_ral.py`).
+
 **[N-6.0]** Window 0 was deliberately left unmapped by ADR-0020 rather than
 compacting the window map when this block was cut, precisely so it could come
 back without moving anything. This is the block it was held for.

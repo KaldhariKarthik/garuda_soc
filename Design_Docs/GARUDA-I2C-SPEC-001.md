@@ -126,7 +126,7 @@ so it is the clean one, with no DLAB and no byte addressing.
 
 ## 6 Register map — APB window 2 (`0x4000_2000`)
 
-Machine-readable source: not written yet; it will be `Design_Docs/regs/i2c.rdl` (plan task 2.1). Until then this table is the source.
+Machine-readable source: `Design_Docs/regs/i2c.rdl` (SystemRDL; the UVM register model is generated from it by `tools/gen/gen_ral.py`).
 
 | Offset | Name | Access | Reset | Description |
 |---|---|---|---|---|

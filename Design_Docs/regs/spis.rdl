@@ -1,0 +1,48 @@
+// =============================================================================
+// spis.rdl - register description of block 14, the SPI slave (APB window 0,
+// 0x4000_0000), with the four shim registers every peripheral window has.
+//
+// Source: GARUDA-SPIS-SPEC-001 section 6, DECISIONS.md D-21, rtl/spi_slave/garuda_spis_top.v.
+// The UVM register model tb/spi_slave/uvm/spis_reg_pkg.sv is generated from this file:
+//     python3 tools/gen/gen_ral.py Design_Docs/regs/spis.rdl tb/spi_slave/uvm/spis_reg_pkg.sv
+// =============================================================================
+addrmap spis {
+    name = "SPI slave";
+    desc = "SPI slave, mode 0, 8-bit, 16-byte receive FIFO; APB window 0 (0x4000_0000)";
+    default regwidth    = 32;
+    default accesswidth = 32;
+
+    reg { name = "Receive data";
+          field { sw = r; hw = w; desc = "Byte at the head of the receive FIFO; the read takes it out. 0 if the FIFO is empty ([N-6.1])"; } value[7:0];
+    } RXDATA @ 0x00;
+    reg { name = "Transmit data";
+          field { sw = rw; hw = r; reset = 8'h0; desc = "Byte shifted out on the next transfer ([N-6.2])"; } value[7:0];
+    } TXDATA @ 0x04;
+    reg { name = "Control";
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Enable"; } en[0:0];
+          field { sw = w; hw = r; singlepulse; reset = 1'b0; desc = "Empty the receive FIFO; reads 0"; } rxflush[1:1];
+    } CTRL @ 0x08;
+    reg { name = "Status";
+          field { sw = r; hw = w; reset = 1'b0; desc = "The receive FIFO is not empty"; } rxvalid[0:0];
+          field { sw = r; hw = w; desc = "The chip select is active"; } cs[1:1];
+          field { sw = r; hw = w; reset = 1'b0; desc = "A byte arrived with the FIFO full; sticky, cleared by IRQSTAT bit 2"; } overrun[2:2];
+          field { sw = r; hw = w; reset = 1'b0; desc = "The chip select rose; sticky, cleared by IRQSTAT bit 1"; } done[3:3];
+          field { sw = r; hw = w; reset = 5'h0; desc = "Bytes in the receive FIFO"; } count[8:4];
+    } STATUS @ 0x0C;
+
+    reg { name = "Interrupt status";
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "A byte was received"; } rx[0:0];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "Packet complete: the chip select rose"; } done[1:1];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "Overrun"; } overrun[2:2];
+    } IRQSTAT @ 0xFE0;
+    reg { name = "Interrupt enable";
+          field { sw = rw; hw = r; reset = 3'b000; } en[2:0];
+    } IRQEN @ 0xFE4;
+    reg { name = "DMA request control";
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Request while a received byte is waiting"; } rx[0:0];
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Present in every window; the SPI slave has no transmit request"; } tx[1:1];
+    } DMACTL @ 0xFE8;
+    reg { name = "Block identity";
+          field { sw = r; hw = na; reset = 32'h6A5D_0E01; desc = "0x6A5D, block number 14, revision 1"; } value[31:0];
+    } ID @ 0xFEC;
+};

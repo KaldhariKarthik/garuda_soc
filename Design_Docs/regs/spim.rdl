@@ -1,0 +1,85 @@
+// =============================================================================
+// spim.rdl - register description of block 13, the SPI master (APB window 1,
+// 0x4000_1000), with the four shim registers every peripheral window has.
+//
+// Source: GARUDA-SPIM-SPEC-001 section 6, DECISIONS.md D-21, and the vendored
+// register file rtl/third_party/pulp/apb_spi_master/src/spi_master_apb_if.sv.
+// The UVM register model tb/spi_master/uvm/spim_reg_pkg.sv is generated from this file:
+//     python3 tools/gen/gen_ral.py Design_Docs/regs/spim.rdl tb/spi_master/uvm/spim_reg_pkg.sv
+//
+// Offset 0x00 is two registers: a write starts a transfer (CMD here; the
+// specification calls both STATUS), a read returns the state of the engine.
+// Offset 0x1C is not a register (PSLVERR).
+// =============================================================================
+addrmap spim {
+    name = "SPI master";
+    desc = "SPI master with 10-word FIFOs, two chip selects; APB window 1 (0x4000_1000)";
+    default regwidth    = 32;
+    default accesswidth = 32;
+
+    reg { name = "Status";
+          field { sw = r; hw = w; desc = "State of the engine, one bit per phase; bit 0 = idle ([N-6.1a])"; } state[6:0];
+          field { sw = r; hw = w; desc = "Words in the receive FIFO"; } rx_level[20:16];
+          field { sw = r; hw = w; desc = "Words in the transmit FIFO"; } tx_level[28:24];
+    } STATUS @ 0x00;
+    reg { name = "Start a transfer";
+          field { sw = w; hw = r; singlepulse; reset = 1'b0; desc = "Start a read"; } read[0:0];
+          field { sw = w; hw = r; singlepulse; reset = 1'b0; desc = "Start a write"; } write[1:1];
+          field { sw = w; hw = r; singlepulse; reset = 1'b0; desc = "Start a quad read (not pinned out)"; } qrd[2:2];
+          field { sw = w; hw = r; singlepulse; reset = 1'b0; desc = "Start a quad write (not pinned out)"; } qwr[3:3];
+          field { sw = w; hw = r; singlepulse; reset = 1'b0; desc = "Reset the engine and empty the FIFOs"; } swrst[4:4];
+          field { sw = w; hw = r; desc = "Chip selects: bit 8 the flash, bit 9 the IMU; bits 10 and 11 are not pinned out ([N-6.1])"; } cs[11:8];
+    } CMD @ 0x00;
+    reg { name = "Clock divider";
+          field { sw = rw; hw = r; reset = 8'h0; desc = "SCLK = pclk / (2 * (CLKDIV + 1))"; } value[7:0];
+    } CLKDIV @ 0x04;
+    reg { name = "Command word";
+          field { sw = rw; hw = r; reset = 32'h0; desc = "Sent first, most significant bit first"; } value[31:0];
+    } SPICMD @ 0x08;
+    reg { name = "Address word";
+          field { sw = rw; hw = r; reset = 32'h0; desc = "Sent after the command, most significant bit first"; } value[31:0];
+    } SPIADR @ 0x0C;
+    reg { name = "Lengths";
+          field { sw = rw; hw = r; reset = 6'h0; desc = "Bits of the command word to send"; } cmd[5:0];
+          field { sw = rw; hw = r; reset = 6'h0; desc = "Bits of the address word to send"; } addr[13:8];
+          field { sw = rw; hw = r; reset = 16'h0; desc = "Data bits"; } data[31:16];
+    } SPILEN @ 0x10;
+    reg { name = "Dummy cycles";
+          field { sw = rw; hw = r; reset = 16'h0; desc = "Before the data of a read"; } before_rd[15:0];
+          field { sw = rw; hw = r; reset = 16'h0; desc = "Before the data of a write"; } before_wr[31:16];
+    } SPIDUM @ 0x14;
+    reg { name = "Transmit FIFO";
+          field { sw = w; hw = r; desc = "One word into the transmit FIFO"; } data[31:0];
+    } TXFIFO @ 0x18;
+    reg { name = "Receive FIFO";
+          field { sw = r; hw = w; desc = "One word out of the receive FIFO"; } data[31:0];
+    } RXFIFO @ 0x20;
+    reg { name = "FIFO thresholds of the vendored block";
+          field { sw = rw; hw = r; reset = 5'h0; desc = "Transmit threshold"; } th_tx[4:0];
+          field { sw = rw; hw = r; reset = 5'h0; desc = "Receive threshold"; } th_rx[12:8];
+          field { sw = rw; hw = r; reset = 5'h0; desc = "Transmit count"; } cnt_tx[20:16];
+          field { sw = rw; hw = r; reset = 5'h0; desc = "Receive count"; } cnt_rx[28:24];
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Count mode"; } cnt_en[30:30];
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Events of the vendored block enabled"; } en[31:31];
+    } INTCFG @ 0x24;
+    reg { name = "Event status of the vendored block";
+          desc = "Reads 0 in this build: the vendored read multiplexer has no entry for it. The read still clears the vendored block's events";
+          field { sw = r; hw = na; reset = 32'h0; } zero[31:0];
+    } INTSTA @ 0x28;
+
+    reg { name = "Interrupt status";
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "Transfer complete"; } done[0:0];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "Receive threshold"; } rx[1:1];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "Transmit threshold"; } tx[2:2];
+    } IRQSTAT @ 0xFE0;
+    reg { name = "Interrupt enable";
+          field { sw = rw; hw = r; reset = 3'b000; } en[2:0];
+    } IRQEN @ 0xFE4;
+    reg { name = "DMA request control";
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Request while the receive FIFO has data"; } rx[0:0];
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Request while the transmit FIFO has space"; } tx[1:1];
+    } DMACTL @ 0xFE8;
+    reg { name = "Block identity";
+          field { sw = r; hw = na; reset = 32'h6A5D_0D01; desc = "0x6A5D, block number 13, revision 1"; } value[31:0];
+    } ID @ 0xFEC;
+};

@@ -1,0 +1,94 @@
+// =============================================================================
+// uart.rdl - register description of blocks 16, 17 and 18, the three UARTs (APB
+// windows 3, 4 and 6: 0x4000_3000, 0x4000_4000, 0x4000_6000), with the four shim
+// registers every peripheral window has.
+//
+// Source: GARUDA-UART-SPEC-001 section 6, DECISIONS.md D-21, and the vendored
+// register file rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv. The UVM register
+// model tb/uart/uvm/uart_reg_pkg.sv is generated from this file:
+//     python3 tools/gen/gen_ral.py Design_Docs/regs/uart.rdl tb/uart/uvm/uart_reg_pkg.sv
+//
+// The 16550 puts two registers at one offset in three places. Two of them are a
+// read-only and a write-only register (RBR and THR, IIR and FCR) and are described
+// as such. The third is the divisor latch, which replaces offsets 0x00 and 0x04
+// while LCR.dlab is 1: SystemRDL has no register that depends on a bit of another,
+// so the divisor is the second address map of this file, uart_dlab, and the main
+// map describes the window with LCR.dlab = 0 ([N-6.2a]).
+// =============================================================================
+addrmap uart_dlab {
+    name = "UART, offsets 0x00 and 0x04 while LCR.dlab = 1";
+    desc = "The baud divisor: one bit lasts (DLM * 256 + DLL) + 1 pclk cycles";
+    default regwidth    = 32;
+    default accesswidth = 32;
+    reg { name = "Divisor, low byte";
+          field { sw = rw; hw = r; reset = 8'h0; } value[7:0];
+    } DLL @ 0x00;
+    reg { name = "Divisor, high byte";
+          field { sw = rw; hw = r; reset = 8'h0; } value[7:0];
+    } DLM @ 0x04;
+};
+
+addrmap uart {
+    name = "UART";
+    desc = "16550-style UART with 16-byte FIFOs; three instances, APB windows 3, 4 and 6";
+    default regwidth    = 32;
+    default accesswidth = 32;
+
+    reg { name = "Receive buffer";
+          field { sw = r; hw = w; desc = "Byte at the head of the receive FIFO; the read takes it out. 0 if the FIFO is empty"; } data[7:0];
+    } RBR @ 0x00;
+    reg { name = "Transmit holding";
+          field { sw = w; hw = r; desc = "Byte put into the transmit FIFO; dropped if the FIFO is full"; } data[7:0];
+    } THR @ 0x00;
+    reg { name = "Interrupt enable of the 16550";
+          field { sw = rw; hw = r; reset = 8'h0; desc = "The 16550's own interrupt enables. Leave 0: GARUDA takes its interrupts from IRQSTAT ([N-7.5])"; } value[7:0];
+    } IER @ 0x04;
+    reg { name = "Interrupt identification of the 16550";
+          field { sw = r; hw = w; desc = "Interrupt identification; 1 = none pending"; } id[3:0];
+          field { sw = r; hw = na; reset = 2'b11; desc = "FIFOs present: always 3"; } fifo[7:6];
+    } IIR @ 0x08;
+    reg { name = "FIFO control";
+          field { sw = w; hw = r; singlepulse; reset = 1'b0; desc = "Empties the receive FIFO"; } rx_clr[1:1];
+          field { sw = w; hw = r; singlepulse; reset = 1'b0; desc = "Empties the transmit FIFO"; } tx_clr[2:2];
+          field { sw = w; hw = r; desc = "Receive trigger level of the 16550 interrupt: 1, 4, 8 or 14 bytes"; } trigger[7:6];
+    } FCR @ 0x08;
+    reg { name = "Line control";
+          field { sw = rw; hw = r; reset = 2'b00; desc = "Word length: 5, 6, 7 or 8 bits"; } bits[1:0];
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Two stop bits"; } stop2[2:2];
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Parity enabled"; } parity[3:3];
+          field { sw = rw; hw = r; reset = 3'b000; desc = "Stored, no function"; } unused[6:4];
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Divisor latch access: offsets 0x00 and 0x04 are DLL and DLM while 1. DMA requests are held off while 1 ([N-7.6])"; } dlab[7:7];
+    } LCR @ 0x0C;
+    reg { name = "Modem control: not implemented";
+          field { sw = r; hw = na; reset = 8'h0; desc = "Reads 0, a write is ignored ([N-13.1])"; } zero[7:0];
+    } MCR @ 0x10;
+    reg { name = "Line status";
+          field { sw = r; hw = w; reset = 1'b0; desc = "DR: the receive FIFO is not empty"; } dr[0:0];
+          field { sw = r; hw = w; reset = 1'b0; desc = "PE: parity error on the byte at the head of the receive FIFO"; } pe[2:2];
+          field { sw = r; hw = w; reset = 1'b0; desc = "FE: framing error on that byte (vendor patch 0001)"; } fe[3:3];
+          field { sw = r; hw = w; reset = 1'b1; desc = "THRE: the transmit FIFO is empty"; } thre[5:5];
+          field { sw = r; hw = w; reset = 1'b1; desc = "TEMT: the transmit FIFO and the shift register are empty"; } temt[6:6];
+    } LSR @ 0x14;
+    reg { name = "Modem status: not implemented";
+          field { sw = r; hw = na; reset = 8'h0; desc = "Reads 0, a write is ignored ([N-13.1])"; } zero[7:0];
+    } MSR @ 0x18;
+    reg { name = "Scratch: not implemented";
+          field { sw = r; hw = na; reset = 8'h0; desc = "Reads 0, a write is ignored ([N-13.2])"; } zero[7:0];
+    } SCR @ 0x1C;
+
+    reg { name = "Interrupt status";
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "Receive data became available"; } rx[0:0];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "The transmit FIFO became empty"; } tx[1:1];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "A byte with a parity or framing error reached the head of the FIFO"; } err[2:2];
+    } IRQSTAT @ 0xFE0;
+    reg { name = "Interrupt enable";
+          field { sw = rw; hw = r; reset = 3'b000; } en[2:0];
+    } IRQEN @ 0xFE4;
+    reg { name = "DMA request control";
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Request while receive data is available"; } rx[0:0];
+          field { sw = rw; hw = r; reset = 1'b0; desc = "Request while the transmit FIFO has space"; } tx[1:1];
+    } DMACTL @ 0xFE8;
+    reg { name = "Block identity";
+          field { sw = r; hw = na; reset = 32'h6A5D_1001; desc = "0x6A5D, block number (16, 17 or 18; the reset value here is UART0's), revision 1"; } value[31:0];
+    } ID @ 0xFEC;
+};
