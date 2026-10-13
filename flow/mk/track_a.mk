@@ -254,7 +254,7 @@ REGRESS_A = test_core test_elements test_blocks_a test_sanity test_dsu regress
 # minutes; the nightly runs everything. -k: every part runs, so one failure
 # does not hide another.
 # =============================================================================
-GATE_A = test_core test_elements test_blocks_a test_sanity test_dsu regress csr_map
+GATE_A = check_tree test_core test_elements test_blocks_a test_sanity test_dsu regress csr_map
 gate_a:
 	@if $(MAKE) --no-print-directory -k $(GATE_A); \
 	 then echo "gate_a: PASS"; else echo "gate_a: FAIL"; exit 1; fi

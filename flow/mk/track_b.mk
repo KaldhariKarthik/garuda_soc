@@ -231,6 +231,22 @@ cov_report:
 
 cov_chart: cov_runs uvm_b cov_report
 
+# =============================================================================
+# make check_tree: nothing that must stay out of a public repository is tracked
+# (libraries, PDK files, layouts, licence files, the licence server address),
+# and no bug ID is defined twice. tools/check_tree.py; part of both gates.
+# make check_tree_selfcheck plants a .lib and checks that the check fails.
+# =============================================================================
+.PHONY: check_tree check_tree_selfcheck
+check_tree:
+	@python3 tools/check_tree.py
+
+check_tree_selfcheck:
+	@f=flow/planted_for_check_tree.lib; echo "library (planted) { }" > $$f; git add -N $$f; \
+	 if python3 tools/check_tree.py > /dev/null; then r=1; echo "check_tree_selfcheck: WRONG, a tracked .lib was not reported"; \
+	 else r=0; echo "check_tree_selfcheck: ok, a planted .lib fails the check"; fi; \
+	 git reset -q -- $$f; rm -f $$f; exit $$r
+
 # Everything of track B that regress_all runs.
 REGRESS_B = test_blocks_b test_chip
 
@@ -241,7 +257,7 @@ REGRESS_B = test_blocks_b test_chip
 # failure does not hide another.
 # =============================================================================
 GATE_SEEDS ?= 3
-GATE_B = static_lint test_blocks_b test_chip uvm_b
+GATE_B = check_tree static_lint test_blocks_b test_chip uvm_b
 gate_b:
 	@if $(MAKE) --no-print-directory -k $(GATE_B) SEEDS=$(GATE_SEEDS); \
 	 then echo "gate_b: PASS"; else echo "gate_b: FAIL"; exit 1; fi

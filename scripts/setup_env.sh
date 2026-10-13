@@ -18,7 +18,14 @@ export PATH="$XCELIUM_HOME/tools/bin:$PATH"
 # --- Cadence license --------------------------------------------------------
 # Without this, xrun COMPILES AND ELABORATES FINE and then dies at simulation
 # with "xmsim: *F,NOLICN". The failure is late and looks unrelated to licensing.
-export LM_LICENSE_FILE=${LM_LICENSE_FILE:-5280@192.168.6.16}
+# The address of the licence server is not in the repository, which is public:
+# it is read from scripts/local_env.sh, a file of your own that git does not
+# track (copy scripts/local_env.sh.example and fill it in), or from the
+# environment if LM_LICENSE_FILE is already set there.
+_garuda_local="$(dirname "${BASH_SOURCE[0]}")/local_env.sh"
+[ -f "$_garuda_local" ] && . "$_garuda_local"
+unset _garuda_local
+export LM_LICENSE_FILE=${LM_LICENSE_FILE:-}
 export CDS_LIC_FILE=${CDS_LIC_FILE:-$LM_LICENSE_FILE}
 
 # --- Coverage reporting -----------------------------------------------------
@@ -47,5 +54,6 @@ _chk "riscv gcc"           "$RISCV_BIN/${RISCV_PREFIX}gcc"
 _chk "spike (golden ISS)"  "$SPIKE"
 [ -d "$RISCV_TESTS/isa" ] && echo "  OK      riscv-tests" \
                           || echo "  MISSING riscv-tests ($RISCV_TESTS)"
-echo "  license: $LM_LICENSE_FILE"
+if [ -n "$LM_LICENSE_FILE" ]; then echo "  license: set (from scripts/local_env.sh or the environment)"
+else echo "  MISSING license: LM_LICENSE_FILE is empty - copy scripts/local_env.sh.example to scripts/local_env.sh"; fi
 unset -f _chk

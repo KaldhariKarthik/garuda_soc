@@ -75,3 +75,6 @@ flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl_*/
 .nclaunch.dd
 nclaunch.key
 hal.design_facts
+
+# settings of one machine (licence server address)
+scripts/local_env.sh

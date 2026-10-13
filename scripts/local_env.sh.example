@@ -1,0 +1,5 @@
+# Settings of this machine only. Copy to scripts/local_env.sh, which git does
+# not track, and fill in. Sourced by scripts/setup_env.sh.
+#
+# The Cadence licence server, as port@host:
+export LM_LICENSE_FILE=port@host
