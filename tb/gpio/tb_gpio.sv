@@ -22,8 +22,15 @@ module tb_gpio;
 
     assign pin[0] = gpio_oe[0] ? gpio_o[0] : (drv_en[0] ? drv_val[0] : 1'bz);
     assign pin[1] = gpio_oe[1] ? gpio_o[1] : (drv_en[1] ? drv_val[1] : 1'bz);
+    // A pull primitive takes no strength under Verilator; the default (pull)
+    // strength is used there. Nothing in the bench drives at pull strength.
+`ifdef VERILATOR
+    pulldown pd0 (pin[0]);
+    pulldown pd1 (pin[1]);
+`else
     pulldown (weak0) pd0 (pin[0]);
     pulldown (weak0) pd1 (pin[1]);
+`endif
 
     garuda_gpio_top #(.BLOCK_NUM(8'd19), .PAD_NUM(2)) dut (
         .pclk_i(pclk), .preset_n_i(preset_n),

@@ -64,8 +64,14 @@ module timers_sva (
     a_mtip_level: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
         $fell(mtip_o) |-> ($past(wr_lo | wr_hi | wr_clo | wr_chi, 2) || ($past(mtime_q, 2) == {64{1'b1}})))
         else $error("[SVA-FAIL] a_mtip_level: mtip fell with no write to mtime or mtimecmp");
+    // TB-B1 (the TB-34 class): the check starts one clock after the reset is
+    // first seen low. A two-state simulator (Verilator) starts hreset_n at 0
+    // with no falling edge, so the asynchronous reset branch first runs at the
+    // first hclk edge, and the values sampled at that edge are still the
+    // simulator's zeros, not the reset values. On silicon and in a four-state
+    // simulation the reset is in force from the moment the net is low.
     a_mtimecmp_reset: assert property (@(posedge hclk_i)
-        !hreset_n_i |-> (cmp_q == {64{1'b1}} && !mtip_o))
+        (!hreset_n_i && $past(!hreset_n_i)) |-> (cmp_q == {64{1'b1}} && !mtip_o))
         else $error("[SVA-FAIL] a_mtimecmp_reset");
 
     // ---- F01, F02: the shadow changes only on an MTIME_LO read ----------------

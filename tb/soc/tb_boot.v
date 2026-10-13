@@ -511,12 +511,18 @@ module tb_boot;
         end
     end
 
+    // $shm_open and $shm_probe are Cadence system tasks; other simulators do
+    // not have them, so +WAVES is an Xcelium and irun option only.
+`ifndef VERILATOR
+`ifndef __ICARUS__
     initial begin
         if ($test$plusargs("WAVES")) begin
             $shm_open("waves.shm");
             $shm_probe(tb_boot, "AS");
         end
     end
+`endif
+`endif
 
 endmodule
 

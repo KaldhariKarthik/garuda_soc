@@ -29,6 +29,7 @@ mkdir -p "$OUT"
 SRCS=$(python3 scripts/expand_filelist.py "$FL")
 INCS=$(python3 scripts/expand_filelist.py "$FL" --incdirs | sed 's/-I//g')
 DEFS=$(python3 scripts/expand_filelist.py "$FL" --defines | sed 's/-D/-define /g')   # TOOL-15
+[ -n "$SRCS" ] || { echo "run_genus: no sources from $FL"; exit 1; }
 
 cat > "$OUT/run.tcl" <<TCL
 set_db information_level 1
@@ -50,6 +51,43 @@ puts "GENUS_FLOPS [llength [get_db insts -if {.is_flop == true}]]"
 quit
 TCL
 
+rm -f "$OUT/stdout.log" "$OUT/check_design.rpt" "$OUT/latches.rpt"
 "$GENUS" -no_gui -batch -files "$OUT/run.tcl" -log "$OUT/genus" > "$OUT/stdout.log" 2>&1
-grep -E "GENUS_(LATCHES|CELLS|FLOPS)" "$OUT/stdout.log"
-grep -E "^Error|Unresolved|multiple driver|Combinational loop" "$OUT/stdout.log" "$OUT/check_design.rpt" 2>/dev/null | head -20
+rc=$?
+grep -E "^GENUS_(LATCHES|CELLS|FLOPS)" "$OUT/stdout.log"
+
+# -----------------------------------------------------------------------------
+# Verdict (Docs/BUGS.md TOOL-13). The last command here used to be a grep whose
+# pattern also matches the heading "Unresolved References" of the report, so
+# the script returned 0 whatever Genus had found. Now each thing is counted:
+#   Genus ended normally and printed no Error
+#   no unresolved reference, empty module or undriven pin
+#   multiply driven pins: only the four bidirectional pads (I2C SCL and SDA,
+#     the two GPIO), which a pad cell will replace
+#   latches: only the enable latch of the core's clock gate
+# -----------------------------------------------------------------------------
+bad=0
+note() { echo "  ** $*"; bad=1; }
+{ [ $rc -eq 0 ] && grep -q "^Normal exit" "$OUT/stdout.log"; } || note "Genus did not end normally (exit status $rc), see $OUT/stdout.log"
+n=$(grep -cE "^Error" "$OUT/stdout.log")
+[ "$n" = 0 ] || { note "$n Error message(s):"; grep -E "^Error" "$OUT/stdout.log" | sort | uniq -c | head; }
+if [ -s "$OUT/check_design.rpt" ]; then
+    val() { awk -v k="$1" 'index($0, k) == 1 { print $NF }' "$OUT/check_design.rpt" | tail -1; }
+    for k in "Unresolved References" "Empty Modules" "Undriven Port(s)" "Undriven Leaf Pin(s)" \
+             "Undriven hierarchical pin(s)" "Multidriven Port(s)" "Multidriven unloaded net(s)"; do
+        v=$(val "$k"); [ "$v" = 0 ] || note "$k: ${v:-not reported}"
+    done
+    md=$(sed -n '/Multidriven Port(s)\/Pin(s)/,/Constant Pin(s)/p' "$OUT/check_design.rpt" | grep -E "^h?pin:" \
+         | grep -vE "/u_i2c/(i2c_s(cl|da)_i|u_shim/sync0_q_reg\[[01]\]/d)$|/u_gpio/(gpio_i\[[01]\]|u_shim/sync0_q_reg\[[01]\]/d)$")
+    [ -z "$md" ] || { note "multiply driven pins other than the bidirectional pads:"; echo "$md" | head; }
+else
+    note "no check_design report"
+fi
+if [ -f "$OUT/latches.rpt" ]; then
+    ul=$(grep -v "u_core_u_cg_en_l_reg" "$OUT/latches.rpt")
+    [ -z "$ul" ] || { note "latches other than the clock gate's enable latch:"; echo "$ul" | head; }
+else
+    note "no latch report"
+fi
+if [ $bad -eq 0 ]; then echo "run_genus: $TOP structurally clean"; else echo "run_genus: $TOP NOT clean"; fi
+exit $bad

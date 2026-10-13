@@ -28,6 +28,14 @@ import sys
 import os
 
 
+# Simulator switches that do not change which sources or macros are compiled.
+# -makelib/-endlib and -timescale matter to a simulator, not to the flat list.
+# A switch that is not listed here and not handled below is an error: before
+# 2026-10-11 every unknown line was dropped without a word (TOOL-15).
+IGNORED = ('-sv', '-64bit', '-nocheck', '-timescale', '-makelib', '-endlib',
+           '-halargs', '-uvm', '-uvmhome')
+
+
 def expand(path, seen, srcs, incs, defs):
     """Recursively expand one .f file."""
     path = os.path.normpath(path)
@@ -52,8 +60,12 @@ def expand(path, seen, srcs, incs, defs):
                     nxt = os.path.join(base, nxt)
                 expand(nxt, seen, srcs, incs, defs)
 
-            elif line.startswith('-incdir'):
-                d = line.split(None, 1)[1].strip()
+            elif line.startswith('-incdir') or line.startswith('+incdir+'):
+                # +incdir+<dir> used to fall through and be taken for a source
+                if line.startswith('+incdir+'):
+                    d = line[len('+incdir+'):].strip()
+                else:
+                    d = line.split(None, 1)[1].strip()
                 if d not in incs:
                     incs.append(d)
 
@@ -70,10 +82,13 @@ def expand(path, seen, srcs, incs, defs):
                     if d and d not in defs:
                         defs.append(d)
 
-            elif line.startswith('-'):
-                # Any other simulator switch (-sv, -64bit, ...) is not a source
-                # and is not this script's business.
-                continue
+            elif line.startswith('-') or line.startswith('+'):
+                if line.split()[0] in IGNORED:
+                    continue
+                sys.stderr.write("ERROR: %s: switch not understood: %s\n"
+                                 "       (add it to IGNORED in this script only if it does not\n"
+                                 "        change what is compiled)\n" % (path, line))
+                sys.exit(1)
 
             else:
                 if line not in srcs:
@@ -129,9 +144,12 @@ def main():
             # Verilog-2005 sources keep being parsed as Verilog-2005.
             sv = ' -sv' if s.endswith('.sv') else ''
             print('read_verilog%s %s %s' % (sv, flags, s))
-    else:
+    elif mode == '--sources':
         for s in srcs:
             print(s)
+    else:
+        sys.stderr.write("ERROR: unknown mode %s\n" % mode)
+        sys.exit(1)
 
 
 if __name__ == '__main__':

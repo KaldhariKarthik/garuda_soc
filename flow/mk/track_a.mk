@@ -45,10 +45,10 @@ help_a:
 
 # ---- elaboration ----
 elab_core:
-	$(call run_test,rtl/core/filelist_core.f,garuda_core_top,elab_core)
+	$(call run_test,rtl/core/filelist_core.f,garuda_core_top,elab_core,-)
 
 elab_core_dsu:
-	$(call run_test,rtl/core/filelist_core_dsu.f,garuda_core_top,elab_core_dsu)
+	$(call run_test,rtl/core/filelist_core_dsu.f,garuda_core_top,elab_core_dsu,-)
 
 # ---- the six constrained-random unit TBs (top module is tb_top) ----
 test_units: test_decode_control test_imm_gen test_reg_file test_branch_predict \
@@ -187,26 +187,27 @@ isa_tests:
 
 BOOT_ARGS = -f tb/soc/filelist_boot.f -top tb_boot
 
+# boot_run <log name> <hex> <commit log name> <plusargs> <lines to show>
+# One program on tb_boot. Passes only on the bench's own "TOHOST=1 -> PASSED"
+# with a clean exit and no error line (Docs/BUGS.md TOOL-13): the grep that shows
+# the result used to be the recipe's exit status, and it matches FAILED as well.
+define boot_run
+	@mkdir -p $(SIM_DIR)/tb_boot && rm -f $(SIM_DIR)/tb_boot/$(1).log; \
+	 $(XRUN) $(BOOT_ARGS) -xmlibdirname $(SIM_DIR)/tb_boot/xcelium.d \
+	   -l $(SIM_DIR)/tb_boot/$(1).log \
+	   +HEX=$(2) +COMMIT=$(SIM_DIR)/tb_boot/$(3) $(4) > /dev/null 2>&1; rc=$$?; \
+	 grep -E "$(5)" $(SIM_DIR)/tb_boot/$(1).log 2> /dev/null | head -40; \
+	 $(call judge,$(SIM_DIR)/tb_boot/$(1).log,TOHOST=1 -> PASSED)
+endef
+
 test_boot: sw
-	@mkdir -p $(SIM_DIR)/tb_boot
-	@$(XRUN) $(BOOT_ARGS) -xmlibdirname $(SIM_DIR)/tb_boot/xcelium.d \
-	   -l $(SIM_DIR)/tb_boot/run.log \
-	   +HEX=sw/build/boot6.hex +COMMIT=$(SIM_DIR)/tb_boot/commit.log +MAXCYC=2000 \
-	   | grep -E "TOHOST|PASSED|FAILED|TIMEOUT"
+	$(call boot_run,run,sw/build/boot6.hex,commit.log,+MAXCYC=2000,TOHOST|PASSED|FAILED|TIMEOUT)
 
 test_c: sw
-	@mkdir -p $(SIM_DIR)/tb_boot
-	@$(XRUN) $(BOOT_ARGS) -xmlibdirname $(SIM_DIR)/tb_boot/xcelium.d \
-	   -l $(SIM_DIR)/tb_boot/ctest1.log \
-	   +HEX=sw/build/ctest1.hex +COMMIT=$(SIM_DIR)/tb_boot/ctest1.commit.log \
-	   +MAXCYC=20000 +QUIET | grep -E "TOHOST|PASSED|FAILED|TIMEOUT"
+	$(call boot_run,ctest1,sw/build/ctest1.hex,ctest1.commit.log,+MAXCYC=20000 +QUIET,TOHOST|PASSED|FAILED|TIMEOUT)
 
 test_flag2: sw
-	@mkdir -p $(SIM_DIR)/tb_boot
-	@$(XRUN) $(BOOT_ARGS) -xmlibdirname $(SIM_DIR)/tb_boot/xcelium.d \
-	   -l $(SIM_DIR)/tb_boot/flag2.log \
-	   +HEX=sw/build/dsu_flag2.hex +COMMIT=$(SIM_DIR)/tb_boot/flag2.commit.log \
-	   +MAXCYC=2000 +DBGACC | grep -E "ACC:|TOHOST|PASSED|FAILED|TIMEOUT" | head -40
+	$(call boot_run,flag2,sw/build/dsu_flag2.hex,flag2.commit.log,+MAXCYC=2000 +DBGACC,ACC:|TOHOST|PASSED|FAILED|TIMEOUT)
 
 test_sanity: sw
 	@./scripts/run_sanity.sh
@@ -219,11 +220,13 @@ test_dsu:
 	@mkdir -p $(SIM_DIR)/dsu
 	@python3 tools/gen/DSU_gen.py --count $(DSU_TESTS) --seed $(DSU_SEED) \
 	   --outdir $(SIM_DIR)/dsu | tail -1
-	@$(XRUN) -64bit -f tb/dsu/filelist_dsu_top.f -top tb_dsu_top \
+	@rm -f $(SIM_DIR)/dsu/run.log; \
+	 $(XRUN) -64bit -f tb/dsu/filelist_dsu_top.f -top tb_dsu_top \
 	   -xmlibdirname $(SIM_DIR)/dsu/xcelium.d -l $(SIM_DIR)/dsu/run.log \
 	   +STIM=$(SIM_DIR)/dsu/dsu_stim.mem +EXP=$(SIM_DIR)/dsu/dsu_expected.mem \
-	   > /dev/null 2>&1; \
-	 grep -E "tests compared|mismatches|RESULT" $(SIM_DIR)/dsu/run.log
+	   > /dev/null 2>&1; rc=$$?; \
+	 grep -E "tests compared|mismatches|RESULT" $(SIM_DIR)/dsu/run.log 2> /dev/null; \
+	 $(call judge,$(SIM_DIR)/dsu/run.log,RESULT +: PASSED)
 
 coverage: sw isa_tests
 	@./scripts/run_coverage.sh

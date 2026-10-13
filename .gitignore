@@ -70,3 +70,8 @@ fpga/kv260/garuda.dtbo
 # SymbiYosys run directories (TOOL-20: SBY 0.68 also writes pipe_ctrl/status.sqlite)
 flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl/
 flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl_*/
+
+# nclaunch session files
+.nclaunch.dd
+nclaunch.key
+hal.design_facts

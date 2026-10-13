@@ -23,8 +23,15 @@ module tb_i2c;
 
     // the bus: open drain with board pull-ups
     wire scl, sda;
+    // A pull primitive takes no strength under Verilator; the default (pull)
+    // strength is used there. Nothing in the bench drives at pull strength.
+`ifdef VERILATOR
+    pullup p_scl (scl);
+    pullup p_sda (sda);
+`else
     pullup (weak1) p_scl (scl);
     pullup (weak1) p_sda (sda);
+`endif
     assign scl = scl_oe ? scl_o : 1'bz;
     assign sda = sda_oe ? sda_o : 1'bz;
 

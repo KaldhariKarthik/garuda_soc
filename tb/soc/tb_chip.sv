@@ -153,11 +153,23 @@ module tb_chip;
     // An I2C slave on the real open-drain bus, and pull-downs on the GPIO pins
     // so a released pin reads a defined level. Present in every mode; nothing
     // touches them unless firmware does.
+    // A pull primitive takes no strength under Verilator; the default (pull)
+    // strength is used there. Nothing in the bench drives at pull strength.
+`ifdef VERILATOR
+    pullup p_scl (i2c_scl);
+    pullup p_sda (i2c_sda);
+`else
     pullup (weak1) p_scl (i2c_scl);
     pullup (weak1) p_sda (i2c_sda);
+`endif
     i2c_slave_model #(.ADDR(7'h48)) u_i2c_slv (.scl(i2c_scl), .sda(i2c_sda));
+`ifdef VERILATOR
+    pulldown p_g0 (gpio0);
+    pulldown p_g1 (gpio1);
+`else
     pulldown (weak0) p_g0 (gpio0);
     pulldown (weak0) p_g1 (gpio1);
+`endif
 
     // The boot flash. Present in every mode - in the others nothing ever
     // selects it - so the pin path is always the real one.

@@ -76,7 +76,7 @@ printf -- "---------------------------------------------------------------------
 for t in $TESTS; do
     hex="$HEXDIR/$t.hex"
     elf="$HEXDIR/$t.elf"
-    [ -f "$hex" ] || { printf "%-12s %-10s %-10s %s\n" "$t" "-" "-" "no hex"; continue; }
+    [ -f "$hex" ] || { printf "%-12s %-10s %-10s %s\n" "$t" "-" "-" "no hex"; fail=$((fail+1)); FAILED="$FAILED $t"; continue; }
 
     clog="$RUNDIR/$t.commit.log"
     rlog="$RUNDIR/$t.run.log"
@@ -89,16 +89,21 @@ for t in $TESTS; do
     #     add     NORESULT   MATCH
     # -- a green oracle column for a test that did not run. Observed, not
     # hypothetical. An oracle reading stale evidence is worse than no oracle.
-    rm -f "$clog" "$RUNDIR/$t.lockstep.txt"
+    rm -f "$clog" "$rlog" "$RUNDIR/$t.lockstep.txt"
 
     xrun -R -xmlibdirname "$RUNDIR/xcelium.d" -snapshot garuda_boot \
          -l "$rlog" +HEX="$hex" +COMMIT="$clog" +MAXCYC="$MAXCYC" +QUIET ${EXTRA_ARGS:-} \
          > /dev/null 2>&1
+    rc=$?
 
-    if   grep -q "NOLICN" "$rlog"; then th="NOLICENSE"
-    elif grep -q "PASSED" "$rlog"; then th=PASS
-    elif grep -q "FAILED" "$rlog"; then th="FAIL$(grep -oP 'test \K[0-9]+' "$rlog" | head -1)"
-    else th="NORESULT"; fi
+    # PASS needs the bench's pass line, a clean exit status and no tool error or
+    # failed assertion in the log (Docs/BUGS.md TOOL-13).
+    if   grep -q "NOLICN" "$rlog" 2>/dev/null; then th="NOLICENSE"
+    elif [ ! -s "$rlog" ];                     then th="NORESULT"
+    elif grep -q "FAILED" "$rlog";             then th="FAIL$(grep -oP 'test \K[0-9]+' "$rlog" | head -1)"
+    elif ! grep -q "TOHOST=1 -> PASSED" "$rlog"; then th="NORESULT"
+    elif [ $rc -ne 0 ] || grep -qE '\*[EF],' "$rlog"; then th="TOOL-ERR"
+    else th=PASS; fi
 
     # AHB-Lite protocol verdict, reported per test alongside the functional
     # one. tb_boot always runs the checkers; this surfaces them here so a
@@ -124,6 +129,9 @@ for t in $TESTS; do
     fi
 
     note=""
+    # an AHB protocol violation on either port fails the test: it used to be
+    # printed in its column and not counted
+    if [ "$th" = "PASS" ] && [ "$ahb_v" != "0/0" ]; then th="AHB-VIOL"; fi
     if [ "$th" = "PASS" ] && { [ "$ls_v" = "MATCH" ] || [ "$ls_v" = "n/a" ]; }; then
         pass=$((pass+1))
     else

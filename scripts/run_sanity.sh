@@ -35,6 +35,8 @@ SANITY_TESTS=(
   "t_mtip|T-8: timer-only WFI wake, then clear, core keeps running|+MTIP_AT=300"
   "t_hold_flush_matrix|[N-11.2] hold x flush matrix: 19 cells, interrupts and D-port waits|+IRQ_EVERY=61 +DWAIT=2 +DRAND=1 +SEED=3"
   "t_dsu_b2b|DSU instructions back to back through the pipeline (DSU-11..13)|"
+  "t_lead1_mret_buserr|T-13: bus error on the instruction before MRET is taken|+ERR_EN=1 +ERR_BASE=10020000 +ERR_SIZE=1000"
+  "t_lead2_wfi_buserr|T-14: bus error on the instruction before WFI, core does not stay asleep|+ERR_EN=1 +ERR_BASE=10020000 +ERR_SIZE=1000 +DWAIT=2"
 )
 
 echo "elaborating..."
@@ -54,15 +56,25 @@ for entry in "${SANITY_TESTS[@]}"; do
     [ $# -gt 0 ] && ! printf '%s\n' "$@" | grep -qx "$t" && continue
 
     hex="sw/build/$t.hex"
-    [ -f "$hex" ] || { printf "%-14s %-10s %s\n" "$t" "NO-HEX" "$row"; continue; }
+    [ -f "$hex" ] || { printf "%-14s %-10s %s\n" "$t" "NO-HEX" "$row"; fail=$((fail+1)); FAILED="$FAILED $t"; continue; }
 
+    rm -f "$RUNDIR/$t.log"
     xrun -R -xmlibdirname "$RUNDIR/xcelium.d" -snapshot gsan \
          -l "$RUNDIR/$t.log" +HEX="$hex" +COMMIT="$RUNDIR/$t.commit.log" \
          +MAXCYC="$MAXCYC" +QUIET $args > /dev/null 2>&1
+    rc=$?
 
-    if   grep -q "TOHOST=1 -> PASSED" "$RUNDIR/$t.log"; then r=PASS; pass=$((pass+1))
-    elif grep -q "TIMEOUT"            "$RUNDIR/$t.log"; then r=TIMEOUT; fail=$((fail+1)); FAILED="$FAILED $t"
-    else r="FAIL$(grep -oP 'test \K[0-9]+' "$RUNDIR/$t.log" | head -1)"; fail=$((fail+1)); FAILED="$FAILED $t"; fi
+    # PASS needs the bench's own pass line, a clean exit status, no tool error
+    # or failed assertion in the log, and no AHB protocol violation on either
+    # port (Docs/BUGS.md TOOL-13). The log is removed first so that a run that
+    # never started is not judged on the previous one.
+    if   [ ! -s "$RUNDIR/$t.log" ];                      then r=NO-RUN
+    elif grep -q "TIMEOUT"            "$RUNDIR/$t.log"; then r=TIMEOUT
+    elif ! grep -q "TOHOST=1 -> PASSED" "$RUNDIR/$t.log"; then r="FAIL$(grep -oP 'test \K[0-9]+' "$RUNDIR/$t.log" | head -1)"
+    elif [ $rc -ne 0 ] || grep -qE '\*[EF],' "$RUNDIR/$t.log"; then r=TOOL-ERR
+    elif ! grep -q 'AHB-PROTOCOL: iport=0 dport=0' "$RUNDIR/$t.log"; then r=AHB-VIOL
+    else r=PASS; fi
+    if [ "$r" = PASS ]; then pass=$((pass+1)); else fail=$((fail+1)); FAILED="$FAILED $t"; fi
     printf "%-14s %-10s %s\n" "$t" "$r" "$row"
 done
 

@@ -74,6 +74,22 @@ tb_dsu_top|tb/dsu/filelist_dsu_top.f|tb_dsu
 tb_trap_ctrl|tb/core/filelist_trap_ctrl.f|tb_trap_ctrl
 "
 
+# Benches that are run by name only and are not part of `all`:
+#   tb_top   the planted bench of `make selfcheck_runners` (tb/selfcheck/tb_sc.sv),
+#            with +SC=<mode>
+#   tb_boot  the core with a program: needs a hex image, so the RISC-V toolchain
+#            (`make sw`, `make isa_tests`). Verilator only: Icarus does not parse
+#            the properties in rtl/core/pipe_ctrl_sva.sv. For example
+#              SIM=verilator ./scripts/run_sim.sh tb_boot +HEX=sw/build/t_buserr.hex \
+#                  +ERR_EN=1 +ERR_BASE=10020000 +ERR_SIZE=1000 +QUIET
+#   tb_chip  the whole chip from its pins with a program, the same way:
+#              SIM=verilator ./scripts/run_sim.sh tb_chip +MODE=basic +TEST=sw/build/t_chip_basic.hex
+TB_BY_NAME="
+tb_top|tb/selfcheck/filelist_sc.f|sc_local
+tb_boot|tb/soc/filelist_boot.f|tb_boot_local
+tb_chip|tb/soc/filelist_chip.f|tb_chip_local
+"
+
 # -----------------------------------------------------------------------------
 # Known Icarus front-end limitations.
 #
@@ -105,7 +121,7 @@ skip_reason() {   # $1 = top -> echoes the reason, or nothing
 }
 
 lookup() {   # $1 = top -> echoes "filelist workdir", or nothing
-    echo "$TB_TABLE" | while IFS='|' read -r t f w; do
+    echo "$TB_TABLE$TB_BY_NAME" | while IFS='|' read -r t f w; do
         [ -z "${t:-}" ] && continue
         [ "$t" = "$1" ] && { echo "$f $w"; return; }
     done
@@ -223,7 +239,11 @@ verdict_of() {
     [ -z "$c" ] && c=$(grep -oE "[0-9]+ checks" "$log" | head -1 | grep -oE "[0-9]+")
     # tb_dsu_top counts compared vectors rather than named checks
     [ -z "$c" ] && c=$(grep -oE "tests compared *: *[0-9]+" "$log" | head -1 | grep -oE "[0-9]+")
-    f=$(grep -c "\[FAIL\]" "$log")
+    # failures: the bench's own [FAIL] lines, and what the simulator prints for
+    # a failed $error, $fatal or assertion: Icarus "ERROR: file:line:" and
+    # "FATAL: file:line:", Verilator "%Error:". Neither changes Icarus's exit
+    # status for $error, so the lines are counted.
+    f=$(grep -cE "\[FAIL\]|^(ERROR|FATAL): |%Error" "$log")
     if grep -q "WALL-CLOCK TIMEOUT" "$log"; then echo "${c:-0} ${f:-0} WALL-TIMEOUT"; return; fi
     v=$(grep -oE "PASSED|FAILED|TIMEOUT" "$log" | tail -1)
     [ -z "$v" ] && v="NO-VERDICT"
@@ -327,10 +347,13 @@ case "$TARGET" in
   *)
       INFO=$(lookup "$TARGET")
       [ -z "$INFO" ] && { echo "unknown top '$TARGET' (try: $0 list)"; exit 1; }
+      # the plusargs are what is left in "$@"; `set --` below would replace them
+      # with the file list and the directory, which is what reached the bench
+      PLUS="$*"
       set -- $INFO
       FL=$1; WD=$2
       echo "=== $TARGET ($FL) ==="
-      if run_one "$TARGET" "$FL" "$WD" "$@"; then
+      if run_one "$TARGET" "$FL" "$WD" $PLUS; then
           cat "sim/$WD/run.log"
           echo
           read -r c f v <<EOF3
