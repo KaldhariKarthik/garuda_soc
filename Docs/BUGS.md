@@ -1194,3 +1194,32 @@ machine. In particular:
   both require it.
 - **A green regression is evidence, not signoff** — TOOL-4 and TB-11 are in this
   document specifically to make that concrete.
+
+## 1m. Track A: core and DSU findings — 2026-10-11/12
+
+Found by Sreyesh (Track A) while closing coverage, running Spike co-simulation, riscv-arch-test and the planted-defect (mutant) runs on the core and DSU. Full per-bug detail, evidence and status live on branch `a/core-dsu` in `Docs/bugs/core.md` and `Docs/bugs/dsu.md` (the per-block register format, `tools/bugs/bugs.py`). Status here is as of commit 72bb6f6. **IN-PROGRESS** means the fix is in the RTL on `a/core-dsu` but not yet signed off. **RULING-NEEDED** means the spec and the RTL disagree and the owner must say which is right.
+
+Progress on entries already listed above: T-12, RDC-1 and C-16 (section 1) have RTL fixes with properties on `a/core-dsu`; they are IN-PROGRESS there, not yet merged to main. T-13 and T-14 are FIXED (69c79ec).
+
+| ID | Where | Status | Summary |
+|---|---|---|---|
+| **T-16** | `rtl/core` (WFI, EX exception) | **RULING-NEEDED** (P3) | An EX exception on the instruction parked behind a WFI is taken during the sleep. Found by audit formal (TC-2 refuted), 2026-10-05. |
+| **T-17** | `rtl/core` (trap_ctrl, fetch fault) | **IN-PROGRESS** (P1) | **An instruction access fault traps forever:** the fetch-fault bit of a bubble raises cause 1 again after every redirect. Found by t_cov_fault, the first test ever to take a fetch fault. |
+| **T-18** | `rtl/core` (misaligned JAL) | **IN-PROGRESS** (P2) | A misaligned JAL reports mtval = pc+4 instead of the target when its immediate / rd bit fields read as a not-taken branch compare. Found by riscv-arch-test privilege-misalign-jal-01 against Spike. |
+| **BUS-E** | `rtl/core/garuda_iport_ahb_master.v` | **IN-PROGRESS** (P2) | The I-port issues word fetches at misaligned addresses (HADDR not aligned to HSIZE) after a misaligned-target redirect. Found by the PC bit-1 toggle hole, formal cover c_ihaddr_bit1 and t_cov_misfetch. |
+| **C-17** | `rtl/core` (CSR minstret/instret) | **RULING-NEEDED** (P3) | A CSR read of minstret/instret lags the retired-instruction count by the instructions still in MEM and WB. Found by the p-csr_readzero lockstep with Spike. |
+| **CORE-4** | `rtl/core` | **IN-PROGRESS** (P3) | No runtime way to disable a core feature found broken in silicon (pre-M0 item C). |
+| **DSU-14** | `rtl/dsu` | **RULING-NEEDED** (P2) | A `csrr dsu_ovf` directly after the instruction that overflows reads the old flag (0): the overflow folds one cycle later and the CSR read is not interlocked. Found by the planted-defect run. |
+| **DSU-15** | `rtl/dsu` (MACSAT) | **RULING-NEEDED** (P2) | MACSAT writes no rd and clamps the accumulator to int32 (+-2.0), where the spec defines rd = the accumulator saturated to Q1.15 (+-1.0) in rd[15:0]. a_macsat had no implementation. |
+| **DSU-16** | `rtl/dsu` (MACDOT) | **RULING-NEEDED** (P3) | The spec says MACDOT puts its two products into two accumulators; the RTL (and both models) add both products into the one selected accumulator. |
+| **DSU-17** | `rtl/dsu` (MACSHIFT) | **RULING-NEEDED** (P2) | MACSHIFT is not the specified instruction: the spec has `acc >>>= rs1[4:0]` (in place, arithmetic, amount from a register, no rd); the RTL shifts by an immediate 0..47, left or right, into rd, and leaves the accumulator unchanged. |
+| **DSU-18** | `rtl/dsu` (sticky overflow) | **RULING-NEEDED** (P3) | An accumulate that overflows, followed at once by MACCLEAR or MACLOAD of the same accumulator, never sets the sticky overflow flag. |
+| **TB-39** | `tb/core` (tb_garuda_pc_gen) | **IN-PROGRESS** (P3) | a_fetch_step relies on an asynchronous disable iff (sub-cycle mid-stream re-reset); unmasked by the TB-32 fix. |
+| **TB-40** | `tb/core` (garuda_cov) | **IN-PROGRESS** (P3) | cg_ldst samples MEM-stage size and address under an EX-stage condition, so the misaligned bins are unhittable. |
+| **TB-41** | `tb/core` (garuda_cov) | **IN-PROGRESS** (P3) | cg_dsu decodes MACSHIFT with the R-type layout, so its bins can never be hit. |
+| **TB-42** | `tb/dsu` (tb_dsu_top) | **OPEN** (P3) | tb_dsu_top cannot see DSU timing or flag-history defects: one instruction per vector with idle cycles. Mutants no_interlock, ovf_not_sticky and ovf_clear_drops_set survive the block bench. |
+| **TB-43** | `tb/dsu` (13 sub-block benches) | **RULING-NEEDED** (P3) | 6 of the 13 dsu-verification sub-block benches disagree with the current DSU RTL once their pasted DUT copies are removed (none is an RTL correctness defect; 3 need D0 rulings, 3 are stale or wrong benches). |
+| **TB-45** | DSU reference models | **OPEN** (P2) | The DSU reference models defer to the RTL by their own rule ("where this file and the RTL disagree, the RTL wins"), so model compare cannot find a deviation from the specification. DSU-15 slipped past both oracles. |
+| **TB-48** | `tb/core` (tb_mem_wb_reg) | **IN-PROGRESS** (P3) | a_capture relies on an asynchronous disable iff (Verilator 5.052 baseline). |
+
+---
