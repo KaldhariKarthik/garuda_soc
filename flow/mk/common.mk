@@ -173,7 +173,7 @@ define run_uvm
 	 D=$(SIM_DIR)/uvm_$(1)$(UVM_TAG); mkdir -p $$D; rm -rf $$D/cov_work $$D/INCA_libs; fail=0; \
 	 C="$(UVM_IRUN) -covworkdir $$D/cov_work $(2) -nclibdirname $$D/INCA_libs"; \
 	 run() { $$C $$1 +UVM_TESTNAME=$$2 -svseed $$3 -covtest $$4 -l $$D/$$4.log > /dev/null 2>&1; \
-	   if grep -q 'RESULT: PASSED' $$D/$$4.log && [ "$$(grep -E '\*[EF],' $$D/$$4.log | grep -vc IMPDLL)" = 0 ] && ! grep -q 'SVA-FAIL' $$D/$$4.log; \
+	   if grep -q 'RESULT: PASSED' $$D/$$4.log && [ "$$(grep -E '\*[EF],' $$D/$$4.log | grep -vc IMPDLL)" = 0 ] && ! grep -qE 'SVA-FAIL|^\[FAIL\]' $$D/$$4.log; \
 	   then echo "uvm_$(1)  $$4 PASS"; else echo "uvm_$(1)  $$4 FAIL"; fail=1; fi; }; \
 	 run "-f $(3) -top $(4)" $(5)_reg_test 1 reg_s1; \
 	 run -R $(5)_directed_test 1 directed_s1; \

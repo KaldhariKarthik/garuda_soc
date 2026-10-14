@@ -1,0 +1,17 @@
+Block spis, top garuda_spis_top, clocks pclk_i:1, resets preset_n_i. JasperGold 2022.09p002, 2026-10-14, tree 8f7cd8d.
+Waivers of flow/cov/spis_exclusions.tcl against JasperGold
+JasperGold: 639 cover items; 530 covered, 73 dead code, 36 reachable only in reset
+
+kind         total  CONFIRMED  REACHABLE  RESET ONLY  NOT CHECKED
+toggle          75         72          0           0            3
+block            2          0          0           0            2
+expression       1          0          0           0            1
+assertion        1          1          0           0            0
+
+Not confirmed, one by one:
+  NOT CHECKED toggle     garuda_spis_top.u_shim.u_shim_sva pready_o (inside a property module)
+  NOT CHECKED toggle     garuda_spis_top.u_shim.u_shim_sva tx_space_i (inside a property module)
+  NOT CHECKED toggle     garuda_spis_top.u_spis_sva pready_o (inside a property module)
+  NOT CHECKED block      garuda_spis_top.u_shim block 27, line 203, true part of (no item of JasperGold there: code under `ifndef SYNTHESIS, which the run leaves out)
+  NOT CHECKED block      garuda_spis_top.u_shim block 30, line 212, true part of (no item of JasperGold there: code under `ifndef SYNTHESIS, which the run leaves out)
+  NOT CHECKED expression garuda_spis_top.u_shim expression 4.1, line 211 (no item of JasperGold there: code under `ifndef SYNTHESIS)

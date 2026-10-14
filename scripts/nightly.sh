@@ -109,10 +109,11 @@ if [ -s "$OUT/.fail" ]; then
 fi
 
 # seeds run tonight per UVM environment, and the running total
+UVM_ENVS=$(make -s -p -n uvm_b 2> /dev/null | sed -n 's/^UVM_B *:\{0,1\}= *//p' | head -1 | sed 's/uvm_//g')
 if [ "$TRACK" = b ]; then
     SC=flow/nightly/seeds_b.csv
     [ -f "$SC" ] || echo "date,environment,first_seed,seeds_run,seeds_failed,tree" > "$SC"
-    for e in clic timers pwm gpio crg; do
+    for e in $UVM_ENVS; do
         d=sim/uvm_${e}_nightly
         n=$(ls $d/random_s*.log 2> /dev/null | wc -l)
         p=$(grep -l 'RESULT: PASSED' $d/random_s*.log 2> /dev/null | wc -l)
@@ -121,7 +122,7 @@ if [ "$TRACK" = b ]; then
     { echo; echo "## Random seeds accumulated (block bar: 500 per environment, none failing in the last two weeks)"; echo
       echo "| Environment | Seeds run in all nights | Failed in all nights | Failed in the last 14 nights |"; echo "|---|---|---|---|"
       since=$(date -d "$DATE -14 days" +%Y-%m-%d)
-      for e in clic timers pwm gpio crg; do
+      for e in $UVM_ENVS; do
           awk -F, -v e=$e -v since="$since" '$2==e {n+=$4; f+=$5; if ($1 > since) r+=$5} END {printf "| %s | %d | %d | %d |\n", e, n, f, r}' "$SC"
       done; } >> "$PAGE"
 fi

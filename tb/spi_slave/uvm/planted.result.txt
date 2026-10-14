@@ -1,0 +1,20 @@
+Planted defects, block spis: 2026-10-14, tree 8f7cd8d.
+Each defect is planted in a copy of the RTL; the register test, the directed test and two
+random seeds are run on it (scripts/planted_defects.sh spis).
+
+unchanged RTL: all four runs pass
+
+1. caught by the directed test, check sb_miso: the second and later bytes of a packet are a shifted copy of the first, not TXDATA (SPIS-4)
+2. caught by the directed test, check sb_miso: EN set in mid-packet starts receiving in mid-byte (SPIS-5)
+3. caught by the directed test, check sb_fifo: a byte arriving at a full FIFO is written over the oldest instead of dropped
+4. caught by the directed test, property a_shim_capture: an event in the cycle of its own clear is lost (SPIS-6)
+5. caught by the directed test, check sb_rx: the last bit of a byte is put in bit 7
+6. caught by the directed test, property a_dma_drop: the DMA request does not drop in the pclk after an acknowledge
+7. caught by the directed test, check sb_pslverr: offset 0x10 answers without PSLVERR (SPIS-7)
+8. caught by the directed test, property a_miso_released: MISO is driven while EN is clear
+9. caught by the directed test, check sb_fifo: a read of any register takes a byte out of the FIFO
+10. caught by the directed test, check sb_status: packet complete is reported for a packet that was never opened
+11. caught by the directed test, property a_status_irqstat_agree: STATUS packet-done loses to its own clear while IRQSTAT keeps it
+12. caught by the directed test, property a_packet_start_aligned: the bit counter is not reset between packets: a part byte is completed by the next packet
+
+12 defects planted, 12 caught.

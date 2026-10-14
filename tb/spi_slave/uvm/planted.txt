@@ -1,0 +1,13 @@
+# <RTL file> @@ <sed -E expression> @@ <what the defect is>
+rtl/spi_slave/garuda_spis_core.v @@ s/if \(bitcnt == 3'd0\) tx_sh <= txdata_i;/if (1'b0) tx_sh <= txdata_i;/ @@ the second and later bytes of a packet are a shifted copy of the first, not TXDATA (SPIS-4)
+rtl/spi_slave/garuda_spis_core.v @@ s/assign cs_active_o = ~cs_n_s_i \& en_i \& \(open_q \| cs_fall_now\);/assign cs_active_o = ~cs_n_s_i \& en_i;/ @@ EN set in mid-packet starts receiving in mid-byte (SPIS-5)
+rtl/spi_slave/garuda_spis_top.v @@ s/wire push = rx_push \& ~full;/wire push = rx_push;/ @@ a byte arriving at a full FIFO is written over the oldest instead of dropped
+rtl/common/garuda_apb_shim.v @@ s/irqstat_q <= \(irqstat_q \& ~w1c\) \| evt_i;/irqstat_q <= (irqstat_q | evt_i) \& ~w1c;/ @@ an event in the cycle of its own clear is lost (SPIS-6)
+rtl/spi_slave/garuda_spis_core.v @@ s/rx_byte_o <= \{rx_sh\[6:0\], mosi_s_i\};/rx_byte_o <= {mosi_s_i, rx_sh[6:0]};/ @@ the last bit of a byte is put in bit 7
+rtl/common/garuda_apb_shim.v @@ s/~holdoff_q \& ~dma_ack_i;/~dma_ack_i;/ @@ the DMA request does not drop in the pclk after an acknowledge
+rtl/spi_slave/garuda_spis_top.v @@ s/IP_LIMIT = 12'h010;/IP_LIMIT = 12'h020;/; s/IP_MAP   = 64'h0000_0000_0000_000F;/IP_MAP   = 64'h0000_0000_0000_001F;/ @@ offset 0x10 answers without PSLVERR (SPIS-7)
+rtl/spi_slave/garuda_spis_core.v @@ s/assign miso_oe_o = cs_active_o;/assign miso_oe_o = ~cs_n_s_i;/ @@ MISO is driven while EN is clear
+rtl/spi_slave/garuda_spis_top.v @@ s/wire pop  = rd_hit \& \(ip_paddr == A_RXDATA\) \& ~empty;/wire pop  = rd_hit \& ~empty;/ @@ a read of any register takes a byte out of the FIFO
+rtl/spi_slave/garuda_spis_core.v @@ s/cs_rise_o <= ~cs_n_q \&  cs_n_s_i \& en_i \& open_q;/cs_rise_o <= ~cs_n_q \&  cs_n_s_i \& en_i;/ @@ packet complete is reported for a packet that was never opened
+rtl/spi_slave/garuda_spis_top.v @@ s/if \(cs_rise\)        done_q <= 1'b1;/if (cs_rise \& ~irqstat_clr[1]) done_q <= 1'b1;/ @@ STATUS packet-done loses to its own clear while IRQSTAT keeps it
+rtl/spi_slave/garuda_spis_core.v @@ s/\.SYNC_RESET\(8'h04\)/.SYNC_RESET(8'h04)/; s/if \(!cs_active_o\) begin/if (1'b0) begin/ @@ the bit counter is not reset between packets: a part byte is completed by the next packet

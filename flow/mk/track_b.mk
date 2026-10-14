@@ -13,7 +13,7 @@
         test_chip test_chip_basic test_chip_irq test_chip_wdt test_chip_flash \
         test_chip_uart test_chip_periph test_chip_integ test_chip_jtag elab_chip \
         docs check_docs static static_lint static_cdc static_xprop \
-        uvm_clic uvm_timers uvm_pwm uvm_gpio uvm_crg uvm_b \
+        uvm_clic uvm_timers uvm_pwm uvm_gpio uvm_crg uvm_spis uvm_b \
         synth local local_sim local_lint local_synth gate_b
 
 help_b:
@@ -154,13 +154,16 @@ uvm_timers:                                      ## timers and watchdog UVM envi
 uvm_pwm:                                         ## PWM UVM environment, with coverage
 	$(call run_uvm,pwm,-covdut garuda_pwm_top,tb/pwm/uvm/filelist_pwm_uvm.f,tb_pwm_uvm,pwm)
 
+uvm_spis:                                        ## SPI slave UVM environment, with coverage
+	$(call run_uvm,spis,-covdut garuda_spis_top,tb/spi_slave/uvm/filelist_spis_uvm.f,tb_spis_uvm,spis)
+
 uvm_gpio:                                        ## GPIO UVM environment, with coverage
 	$(call run_uvm,gpio,-covdut garuda_gpio_top,tb/gpio/uvm/filelist_gpio_uvm.f,tb_gpio_uvm,gpio)
 
 uvm_crg:                                         ## clock and reset UVM environment, with coverage
 	$(call run_uvm,crg,-covdut clk_div -covdut reset_ctrl,tb/clk_div/uvm/filelist_crg_uvm.f,tb_crg_uvm,crg)
 
-UVM_B = uvm_clic uvm_timers uvm_pwm uvm_gpio uvm_crg
+UVM_B = uvm_clic uvm_timers uvm_pwm uvm_gpio uvm_crg uvm_spis
 uvm_b: $(UVM_B)                                  ## the five UVM environments of track B
 
 # =============================================================================

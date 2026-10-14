@@ -201,6 +201,18 @@ truncated ESP-NOW frame must not appear to firmware as a short but valid one;
 the packet-complete interrupt plus the FIFO level is how firmware sees the
 truncation.
 
+**[N-7.3b]** A pulse on `cs_n` shorter than one `pclk` (decided 2026-10-14; the
+block has no filter and needs none). A pulse that falls between two clock edges
+is not sampled and has no effect. A low pulse that one edge samples is a packet
+of no bytes: `IRQSTAT[1]` and `STATUS[3]` are set, nothing is received. A high
+pulse sampled in the middle of a packet ends that packet and starts another,
+byte-aligned: the part byte is discarded ([N-7.3a]). Both are what [N-7.3]
+says of an edge; a glitch is an edge the block was able to see.
+
+**[N-7.3c]** `RXFLUSH` written in the `pclk` cycle in which a byte completes
+wins: the FIFO is empty afterwards and that byte is dropped with the others.
+`IRQSTAT[0]` is still set for it, because the byte did arrive.
+
 ### 7.4 Interrupts
 
 **[N-7.4]** Three sources into the standard sticky tail (D-21): `[0]` a byte

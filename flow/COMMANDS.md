@@ -314,6 +314,25 @@ SIM-1; the chip's own divider is written that way since 2026-10-14, CLKRST
 [N-7.3a]). And the reset controller is replaced by a ten-line stand-in, because a
 watchdog expiry resets the block under test in the middle of a run.
 
+### The same for the SPI slave, and proving the checks can fail
+
+The SPI slave has a second agent, the external SPI master, which drives SCLK, MOSI and chip
+select with no relation to pclk. The reference model is stepped once per pclk from the
+pins as the first synchroniser flop takes them.
+
+```bash
+python3 tools/gen/gen_ral.py Design_Docs/regs/spis.rdl tb/spi_slave/uvm/spis_reg_pkg.sv   # only after editing the .rdl
+make uvm_spis                      # register test, directed test, 20 random seeds
+make uvm_spis SEEDS=50
+./flow/formal/unr_block.sh spis    # the waivers of flow/cov/spis_exclusions.tcl against JasperGold
+./scripts/planted_defects.sh spis  # twelve defects planted in a copy of the RTL: each must fail a test
+```
+
+`tb/spi_slave/uvm/planted.txt` lists the defects (file, sed expression, what it is);
+`planted.result.txt` is the last result. A defect that is not caught is a hole in the tests:
+the first run found one (a packet-complete event for a packet that was never opened passed the
+directed test, because the flag was already set), and the test was made to clear and check it.
+
 ## Random instruction programs on the core (stage 3), by hand: riscv-dv
 
 riscv-dv is the open-source random instruction generator (a UVM program that

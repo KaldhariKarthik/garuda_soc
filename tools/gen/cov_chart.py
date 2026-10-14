@@ -88,7 +88,8 @@ BLOCKS = [
          modules="garuda_spim_top apb_spi_master spi_master_apb_if spi_master_clkgen spi_master_controller "
                  "spi_master_fifo spi_master_rx spi_master_tx"),
     dict(key="SPIS", name="SPI slave", plan="tb/spi_slave/GARUDA_SPIS_vplan.csv", track="B",
-         modules="garuda_spis_core garuda_spis_top"),
+         modules="garuda_spis_core garuda_spis_top", sva="garuda_spis_sva",
+         uvm=("uvm_spis", ["garuda_spis_top"], "flow/cov/spis_exclusions.tcl")),
 ]
 # not one of the sixteen, shown below them
 EXTRA = [

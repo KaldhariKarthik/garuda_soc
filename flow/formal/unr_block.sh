@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# unr_block.sh <gpio|pwm|timers|clic|crg> - are the coverage waivers of a closed
+# unr_block.sh <gpio|pwm|timers|clic|crg|spis> - are the coverage waivers of a closed
 # block confirmed by JasperGold? (plan task 4.4)
 #
 #   source scripts/setup_env.sh
@@ -18,7 +18,7 @@
 # Exit status 1 if a waived item is reachable. The UVM runs must exist (make uvm_<blk>).
 # =============================================================================
 set -u
-BLK=${1:?usage: unr_block.sh <gpio|pwm|timers|clic|crg>}
+BLK=${1:?usage: unr_block.sh <gpio|pwm|timers|clic|crg|spis>}
 cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 1
 # block | file list | top | clocks (name:factor) | active-low resets
 case $BLK in
@@ -28,6 +28,7 @@ case $BLK in
     clic)   FL=rtl/clic/filelist.f;       TOP=clic_top;        CLK="hclk_i:1 pclk_i:2";   RST="hreset_n_i preset_n_i" ;;
     # the divider has no waiver in its design code; the reset controller with hclk at
     # half the always-on clock (DIV4) and pclk at half of hclk
+    spis)   FL=rtl/spi_slave/filelist.f;  TOP=garuda_spis_top; CLK="pclk_i:1";            RST="preset_n_i" ;;
     crg)    FL=rtl/reset_ctrl/filelist.f; TOP=reset_ctrl;      CLK="aon_clk_i:1 hclk_i:2 pclk_i:4"; RST="ext_rst_n_i" ;;
     *) echo "unknown block $BLK"; exit 2 ;;
 esac
