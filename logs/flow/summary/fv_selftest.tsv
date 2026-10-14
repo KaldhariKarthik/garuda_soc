@@ -1,0 +1,3 @@
+# garuda-fv 1 suite=fv_selftest block=flow date=2026-10-14T01:02:16+05:30 design=e43672fbc7c55a12b889efe114a952ac5fe753cb rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+props_missing	bmc	ERROR	XFAIL:PLANTED	0	[30 asserts, 24 covers in model] model has 30 assert(s), manifest wants >= 1000	logs/flow/raw/fv_selftest/fv_props_missing.log

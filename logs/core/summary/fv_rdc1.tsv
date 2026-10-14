@@ -1,0 +1,6 @@
+# garuda-fv 1 suite=fv_rdc1 block=core date=2026-10-13T08:06:18+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+rdc1_bmc	bmc	BOUNDED(30)	OK	94	[43 asserts, 38 covers in model] 	logs/core/raw/fv_rdc1/fv_rdc1_bmc.log
+rdc1_prove	prove	PROVEN	OK	8	[34 asserts, 38 covers in model] 	logs/core/raw/fv_rdc1/fv_rdc1_prove.log
+rdc1_cover	cover	COVERED	OK	22	[43 asserts, 37 covers in model] 	logs/core/raw/fv_rdc1/fv_rdc1_cover.log
+rdc1_prove_rawgrant	bmc	FAIL	XFAIL:PLANTED	1	[43 asserts, 38 covers in model] props: a_grant_only_safe, a_i_addr_stable	logs/core/raw/fv_rdc1/fv_rdc1_prove_rawgrant.log

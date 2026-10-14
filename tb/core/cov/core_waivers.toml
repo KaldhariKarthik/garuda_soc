@@ -1,0 +1,703 @@
+# Core coverage waivers (H5). Read by tools/cov/cov_report.py.
+#
+# Each [[waiver]] removes matching points from the target, with:
+#   id, metric (line|branch|expr|toggle|fsm|covergroup), file (glob),
+#   match (regex on the point label: "line:<n> <expr>" / "<signal>[bit]:0->1" /
+#   "<covergroup>.<coverpoint>.<bin>"), category, reason, evidence, reviewer.
+# Categories (H5): constant, unreachable, not-connected, ignore.
+# The report FAILS on a stale waiver (matches nothing) and on a waiver that
+# matches a COVERED point (except `ignore`, which mirrors a source ignore_bins).
+# A reachable hole is never waived: it gets a test.
+# Formal evidence: tb/core/formal/cov_unreach.toml (make -f flow/mk/track_a.mk
+# fv_cov_unreach), properties in tb/core/formal/cov_const_sva.sv, all PROVEN
+# unbounded on the whole core on 2026-10-11.
+# Generated sections are kept by hand from here on; edit with care.
+
+
+# =============================================================================
+# CODE: line / expression
+# =============================================================================
+[[waiver]]
+id       = "CW-001"
+metric   = "expr"
+file     = "rtl/core/core_clk_gate.v"
+match    = "^line:37 \\(test_en_i==1\\) => 1"
+category = "not-connected"
+reason   = "test_en_i is the scan-mode clock enable; garuda_core_top ties it to 1'b0 until plan W8 (core test_en for the DFT clock-gate bypass, wired by Karthik). The term cannot be 1 before then."
+evidence = "rtl/core/garuda_core_top.v:167 .test_en_i(1'b0); plan W8 / 3.10. Remove this waiver when W8 lands."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CW-002"
+metric   = "toggle"
+file     = "rtl/core/core_clk_gate.v"
+match    = "^test_en_i:"
+category = "not-connected"
+reason   = "Same tie-off as CW-001: test_en_i is constant 0 until W8."
+evidence = "rtl/core/garuda_core_top.v:167; plan W8."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CW-003"
+metric   = "line"
+file     = "rtl/core/d_port_ahb_master.v"
+match    = "^line:140 "
+category = "unreachable"
+reason   = "Defensive `default:` of the D-port FSM case. state is a 2-bit register with two states (S_ADDR=0, S_DATA=1); every assignment writes 0 or 1, so the default arm cannot be entered."
+evidence = "PROVEN: tb/core/formal/cov_const_sva.sv a_dport_state_legal (state[1] == 0), fv_cov cov_prove."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CW-004"
+metric   = "expr"
+file     = "rtl/core/d_port_ahb_master.v"
+match    = "^line:156 \\(\\(state == S_ADDR\\)==0 && \\(state == S_DATA\\)==0\\) => 0"
+category = "unreachable"
+reason   = "The term needs state outside {S_ADDR, S_DATA}; see CW-003."
+evidence = "PROVEN: a_dport_state_legal (fv_cov cov_prove)."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CW-005"
+metric   = "toggle"
+file     = "rtl/core/d_port_ahb_master.v"
+match    = "^state\\[1\\]:"
+category = "constant"
+reason   = "state[1] is always 0 (two-state FSM in a 2-bit register)."
+evidence = "PROVEN: a_dport_state_legal (fv_cov cov_prove)."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CW-006"
+metric   = "line"
+file     = "rtl/core/decode_control.v"
+match    = "^line:(216|243) "
+category = "unreachable"
+reason   = "`default: illegal_instr_o = 1` of two case(funct3) statements that list all eight 3-bit values (OP-IMM, OP). It can only be reached by an X/Z funct3, which no instruction word carries."
+evidence = "Structural: rtl/core/decode_control.v case (funct3) at 196-217 and 234-244 enumerate 3'b000..3'b111."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CW-007"
+metric   = "expr"
+file     = "rtl/core/csr_file.v"
+match    = "^line:115 \\(\\(csr_addr_i == MSTATUSH\\)==0 && \\(csr_addr_i == MCONFIGPTR\\)==0 && \\((csr_addr_i <= 12'hb1f\\)==0 && \\(csr_addr_i <= 12'hb9f\\)==0 && \\(csr_addr_i >= 12'h323\\)==0|csr_addr_i <= 12'hb1f\\)==0 && \\(csr_addr_i >= 12'hb83\\)==0 && \\(csr_addr_i >= 12'h323\\)==0|csr_addr_i >= 12'hb03\\)==0 && \\(csr_addr_i <= 12'hb9f\\)==0 && \\(csr_addr_i <= 12'h33f\\)==0|csr_addr_i >= 12'hb03\\)==0 && \\(csr_addr_i <= 12'hb9f\\)==0 && \\(csr_addr_i >= 12'h323\\)==0)\\) => 0$"
+category = "unreachable"
+reason   = "Four expression-coverage rows of the C-16 read-zero range decode that need contradictory address bounds: (a) addr > 0xB9F and addr < 0x323; (b) addr > 0xB1F and addr < 0x323; (c) addr < 0xB03 and addr > 0xB9F; (d) addr < 0xB03 and addr > 0xB9F. Each pair of bounds has an empty intersection, so no 12-bit address satisfies the row."
+evidence = "Interval proof (above) on rtl/core/csr_file.v:112-116. The decode itself is fully exercised: core_csr_map sweeps all 4096 addresses and t_cov_csr reads every group."
+reviewer = "pending: Sreyesh"
+
+
+# =============================================================================
+# FUNCTIONAL: proven unreachable
+# =============================================================================
+[[waiver]]
+id       = "CF-001"
+metric   = "covergroup"
+file     = "tb/cov/garuda_cov_ext.sv"
+match    = "cg_pipe\\.cp_(ifid|idex)\\.hold_flush$"
+category = "unreachable"
+reason   = "IF/ID and ID/EX are never held and flushed in the same cycle in the integrated core; pipe_ctrl's 'flush beats hold' rule for these registers is defensive."
+evidence = "PROVEN: tb/core/formal/cov_const_sva.sv a_no_ifid_hold_flush, a_no_idex_hold_flush (fv_cov cov_prove); no cover reached them at depth 30."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CF-002"
+metric   = "covergroup"
+file     = "tb/cov/garuda_cov.sv"
+match    = "cg_hazard\\.x_fwd_under_stall\\.exmem_x_auto_1$"
+category = "unreachable"
+reason   = "An EX/MEM forward is never selected while a D-port transfer waits (the instruction held in EX/MEM is the waiting load or store; a load result is not forwarded from EX/MEM)."
+evidence = "PROVEN: a_no_fwd_exmem_stall (fv_cov cov_prove)."
+reviewer = "pending: Sreyesh"
+
+
+# =============================================================================
+# FUNCTIONAL: source ignore_bins that Verilator 5.052 drops (COVERIGN: 'binsof' / 'intersect'
+# in a cross select is unsupported). The source keeps them (IMC honours them); these
+# entries apply the same exclusion here.
+# =============================================================================
+[[waiver]]
+id       = "CF-101"
+metric   = "covergroup"
+file     = "tb/cov/garuda_cov.sv"
+match    = "cg_decode\\.x_op_f3\\.(lui|auipc|jal)_x_"
+category = "ignore"
+reason   = "LUI, AUIPC and JAL have no funct3 field (bits 14:12 are immediate bits)."
+evidence = "tb/cov/garuda_cov.sv:78 ignore_bins non_f3; Verilator COVERIGN (build log)."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CF-102"
+metric   = "covergroup"
+file     = "tb/core/tb_decode_control.sv"
+match    = "cross_op_illegal\\.op_(lui|auipc|jal|jalr|branch|load|store|imm|system|custom|reserved)_x_(bad_reg_funct7|div_family)$"
+category = "ignore"
+reason   = "bad_reg_funct7 and div_family are OP (register-register) classifications only."
+evidence = "tb/core/tb_decode_control.sv:567 ignore_bins non_reg_causes; Verilator COVERIGN (build log)."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CF-103"
+metric   = "covergroup"
+file     = "tb/core/tb_decode_control.sv"
+match    = "cross_op_illegal\\.op_(lui|auipc|jal|jalr|branch|load|store|imm|reg|system|custom)_x_reserved_opcode$"
+category = "ignore"
+reason   = "reserved_opcode is classified only for a reserved major opcode."
+evidence = "tb/core/tb_decode_control.sv:575 ignore_bins reserved_cause_needs_reserved_opcode; Verilator COVERIGN (build log)."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CF-104"
+metric   = "covergroup"
+file     = "tb/core/tb_decode_control.sv"
+match    = "cross_op_illegal\\.op_reserved_x_legal$"
+category = "ignore"
+reason   = "A reserved major opcode is never legal."
+evidence = "tb/core/tb_decode_control.sv:580 ignore_bins reserved_opcode_is_never_legal; Verilator COVERIGN (build log)."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CF-105"
+metric   = "covergroup"
+file     = "tb/core/tb_branch_unit.sv"
+match    = "cg_branch\\.__cross\\d+\\.none__x_auto_1$"
+category = "ignore"
+reason   = "A non-transfer (no branch/jump) cannot have a misaligned target (SVA A5)."
+evidence = "tb/core/tb_branch_unit.sv:333 ignore_bins no_transfer_cannot_misalign; Verilator COVERIGN (build log)."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CF-106"
+metric   = "covergroup"
+file     = "tb/core/tb_load_formatter.sv"
+match    = "cg_fmt\\.__cross\\d+\\.(lbu|lhu)_x_auto_1$"
+category = "ignore"
+reason   = "LBU/LHU zero-extend: the result's bit 31 is never 1."
+evidence = "tb/core/tb_load_formatter.sv:281 ignore_bins unsigned_forms_never_negative; Verilator COVERIGN (build log)."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CF-107"
+metric   = "covergroup"
+file     = "tb/core/tb_hazard_forward_unit.sv"
+match    = "cg_hazard\\.__cross\\d+\\.auto_1_x_auto_0$"
+category = "ignore"
+reason   = "load_use_stall_o is defined as ex_mem_read_i && ...: a stall without mem_read is impossible."
+evidence = "tb/core/tb_hazard_forward_unit.sv:335 ignore_bins stall_without_mem_read_unreachable; Verilator COVERIGN (build log)."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CF-108"
+metric   = "covergroup"
+file     = "tb/core/tb_imm_gen.sv"
+match    = "cg_imm_gen\\.__cross\\d+\\.(csr_type|none_type|unassigned_encoding)_x_auto_[01]$"
+category = "ignore"
+reason   = "cp_sign is not sampled for the CSR, NONE and unassigned immediate selects (no sign extension)."
+evidence = "tb/core/tb_imm_gen.sv:406 ignore_bins sign_meaningless_for_non_sign_extending_types; Verilator COVERIGN (build log)."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CF-109"
+metric   = "covergroup"
+file     = "tb/core/tb_garuda_iport_ahb_master.sv"
+match    = "cg_iport\\.__cross\\d+\\.auto_1_x_auto_1$"
+category = "ignore"
+reason   = "Nothing is delivered in a redirect cycle (SVA A4)."
+evidence = "tb/core/tb_garuda_iport_ahb_master.sv:276 ignore_bins no_delivery_during_redirect; Verilator COVERIGN (build log)."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CF-110"
+metric   = "covergroup"
+file     = "tb/core/tb_load_store_unit.sv"
+match    = "cg_lsu\\.__cross\\d+\\.byte__x_auto_1$"
+category = "ignore"
+reason   = "A byte access is never misaligned (SVA A2)."
+evidence = "tb/core/tb_load_store_unit.sv:294 ignore_bins byte_cannot_misalign; Verilator COVERIGN (build log)."
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CF-111"
+metric   = "covergroup"
+file     = "tb/core/tb_garuda_prefetch_buffer.sv"
+match    = "cg_pfb\\.__cross\\d+\\.(empty__x_read_only|empty__x_simultaneous|full__x_write_only|full__x_simultaneous)$"
+category = "ignore"
+reason   = "Read at empty, write at full and write+read at full never occur in the core (outside the buffer's operating envelope)."
+evidence = "tb/core/tb_garuda_prefetch_buffer.sv ignore_bins out_of_envelope, backed by PROVEN a_pfb_no_underflow / a_pfb_no_overflow / a_pfb_no_full_rw (fv_cov cov_prove); Verilator COVERIGN (build log)."
+reviewer = "pending: Sreyesh"
+
+# =============================================================================
+# CODE: toggle (generated from a rule table by tools/cov/gen_toggle_waivers.py;
+# every hole below is explained by its rule's evidence)
+# =============================================================================
+[[waiver]]
+id       = "CT-CAUSE-csr_file"
+metric   = "toggle"
+file     = "rtl/core/csr_file.v"
+match    = "^(trap_cause_i\\[10\\]:0\\->1|trap_cause_i\\[10\\]:1\\->0|trap_cause_i\\[11\\]:0\\->1|trap_cause_i\\[11\\]:1\\->0|trap_cause_i\\[12\\]:0\\->1|trap_cause_i\\[12\\]:1\\->0|trap_cause_i\\[13\\]:0\\->1|trap_cause_i\\[13\\]:1\\->0|trap_cause_i\\[14\\]:0\\->1|trap_cause_i\\[14\\]:1\\->0|trap_cause_i\\[15\\]:0\\->1|trap_cause_i\\[15\\]:1\\->0|trap_cause_i\\[16\\]:0\\->1|trap_cause_i\\[16\\]:1\\->0|trap_cause_i\\[17\\]:0\\->1|trap_cause_i\\[17\\]:1\\->0|trap_cause_i\\[18\\]:0\\->1|trap_cause_i\\[18\\]:1\\->0|trap_cause_i\\[19\\]:0\\->1|trap_cause_i\\[19\\]:1\\->0|trap_cause_i\\[20\\]:0\\->1|trap_cause_i\\[20\\]:1\\->0|trap_cause_i\\[21\\]:0\\->1|trap_cause_i\\[21\\]:1\\->0|trap_cause_i\\[22\\]:0\\->1|trap_cause_i\\[22\\]:1\\->0|trap_cause_i\\[23\\]:0\\->1|trap_cause_i\\[23\\]:1\\->0|trap_cause_i\\[24\\]:0\\->1|trap_cause_i\\[24\\]:1\\->0|trap_cause_i\\[25\\]:0\\->1|trap_cause_i\\[25\\]:1\\->0|trap_cause_i\\[26\\]:0\\->1|trap_cause_i\\[26\\]:1\\->0|trap_cause_i\\[27\\]:0\\->1|trap_cause_i\\[27\\]:1\\->0|trap_cause_i\\[28\\]:0\\->1|trap_cause_i\\[28\\]:1\\->0|trap_cause_i\\[29\\]:0\\->1|trap_cause_i\\[29\\]:1\\->0|trap_cause_i\\[30\\]:0\\->1|trap_cause_i\\[30\\]:1\\->0|trap_cause_i\\[5\\]:0\\->1|trap_cause_i\\[5\\]:1\\->0|trap_cause_i\\[6\\]:0\\->1|trap_cause_i\\[6\\]:1\\->0|trap_cause_i\\[7\\]:0\\->1|trap_cause_i\\[7\\]:1\\->0|trap_cause_i\\[8\\]:0\\->1|trap_cause_i\\[8\\]:1\\->0|trap_cause_i\\[9\\]:0\\->1|trap_cause_i\\[9\\]:1\\->0)$"
+category = "constant"
+reason   = "Exception and interrupt codes are < 32 (5-bit CLIC id, cause <= 11); bits 30:5 are 0, bit 31 is the interrupt flag (T-12 puts mpil in mcause[23:16] in csr_file, not on this bus)."
+evidence = "PROVEN a_cause_field (fv_cov)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-CAUSE-garuda_core_top"
+metric   = "toggle"
+file     = "rtl/core/garuda_core_top.v"
+match    = "^(tr_cause\\[10\\]:0\\->1|tr_cause\\[10\\]:1\\->0|tr_cause\\[11\\]:0\\->1|tr_cause\\[11\\]:1\\->0|tr_cause\\[12\\]:0\\->1|tr_cause\\[12\\]:1\\->0|tr_cause\\[13\\]:0\\->1|tr_cause\\[13\\]:1\\->0|tr_cause\\[14\\]:0\\->1|tr_cause\\[14\\]:1\\->0|tr_cause\\[15\\]:0\\->1|tr_cause\\[15\\]:1\\->0|tr_cause\\[16\\]:0\\->1|tr_cause\\[16\\]:1\\->0|tr_cause\\[17\\]:0\\->1|tr_cause\\[17\\]:1\\->0|tr_cause\\[18\\]:0\\->1|tr_cause\\[18\\]:1\\->0|tr_cause\\[19\\]:0\\->1|tr_cause\\[19\\]:1\\->0|tr_cause\\[20\\]:0\\->1|tr_cause\\[20\\]:1\\->0|tr_cause\\[21\\]:0\\->1|tr_cause\\[21\\]:1\\->0|tr_cause\\[22\\]:0\\->1|tr_cause\\[22\\]:1\\->0|tr_cause\\[23\\]:0\\->1|tr_cause\\[23\\]:1\\->0|tr_cause\\[24\\]:0\\->1|tr_cause\\[24\\]:1\\->0|tr_cause\\[25\\]:0\\->1|tr_cause\\[25\\]:1\\->0|tr_cause\\[26\\]:0\\->1|tr_cause\\[26\\]:1\\->0|tr_cause\\[27\\]:0\\->1|tr_cause\\[27\\]:1\\->0|tr_cause\\[28\\]:0\\->1|tr_cause\\[28\\]:1\\->0|tr_cause\\[29\\]:0\\->1|tr_cause\\[29\\]:1\\->0|tr_cause\\[30\\]:0\\->1|tr_cause\\[30\\]:1\\->0|tr_cause\\[5\\]:0\\->1|tr_cause\\[5\\]:1\\->0|tr_cause\\[6\\]:0\\->1|tr_cause\\[6\\]:1\\->0|tr_cause\\[7\\]:0\\->1|tr_cause\\[7\\]:1\\->0|tr_cause\\[8\\]:0\\->1|tr_cause\\[8\\]:1\\->0|tr_cause\\[9\\]:0\\->1|tr_cause\\[9\\]:1\\->0)$"
+category = "constant"
+reason   = "Exception and interrupt codes are < 32 (5-bit CLIC id, cause <= 11); bits 30:5 are 0, bit 31 is the interrupt flag (T-12 puts mpil in mcause[23:16] in csr_file, not on this bus)."
+evidence = "PROVEN a_cause_field (fv_cov)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-CAUSE-trap_ctrl"
+metric   = "toggle"
+file     = "rtl/core/trap_ctrl.v"
+match    = "^(trap_cause_o\\[10\\]:0\\->1|trap_cause_o\\[10\\]:1\\->0|trap_cause_o\\[11\\]:0\\->1|trap_cause_o\\[11\\]:1\\->0|trap_cause_o\\[12\\]:0\\->1|trap_cause_o\\[12\\]:1\\->0|trap_cause_o\\[13\\]:0\\->1|trap_cause_o\\[13\\]:1\\->0|trap_cause_o\\[14\\]:0\\->1|trap_cause_o\\[14\\]:1\\->0|trap_cause_o\\[15\\]:0\\->1|trap_cause_o\\[15\\]:1\\->0|trap_cause_o\\[16\\]:0\\->1|trap_cause_o\\[16\\]:1\\->0|trap_cause_o\\[17\\]:0\\->1|trap_cause_o\\[17\\]:1\\->0|trap_cause_o\\[18\\]:0\\->1|trap_cause_o\\[18\\]:1\\->0|trap_cause_o\\[19\\]:0\\->1|trap_cause_o\\[19\\]:1\\->0|trap_cause_o\\[20\\]:0\\->1|trap_cause_o\\[20\\]:1\\->0|trap_cause_o\\[21\\]:0\\->1|trap_cause_o\\[21\\]:1\\->0|trap_cause_o\\[22\\]:0\\->1|trap_cause_o\\[22\\]:1\\->0|trap_cause_o\\[23\\]:0\\->1|trap_cause_o\\[23\\]:1\\->0|trap_cause_o\\[24\\]:0\\->1|trap_cause_o\\[24\\]:1\\->0|trap_cause_o\\[25\\]:0\\->1|trap_cause_o\\[25\\]:1\\->0|trap_cause_o\\[26\\]:0\\->1|trap_cause_o\\[26\\]:1\\->0|trap_cause_o\\[27\\]:0\\->1|trap_cause_o\\[27\\]:1\\->0|trap_cause_o\\[28\\]:0\\->1|trap_cause_o\\[28\\]:1\\->0|trap_cause_o\\[29\\]:0\\->1|trap_cause_o\\[29\\]:1\\->0|trap_cause_o\\[30\\]:0\\->1|trap_cause_o\\[30\\]:1\\->0|trap_cause_o\\[5\\]:0\\->1|trap_cause_o\\[5\\]:1\\->0|trap_cause_o\\[6\\]:0\\->1|trap_cause_o\\[6\\]:1\\->0|trap_cause_o\\[7\\]:0\\->1|trap_cause_o\\[7\\]:1\\->0|trap_cause_o\\[8\\]:0\\->1|trap_cause_o\\[8\\]:1\\->0|trap_cause_o\\[9\\]:0\\->1|trap_cause_o\\[9\\]:1\\->0)$"
+category = "constant"
+reason   = "Exception and interrupt codes are < 32 (5-bit CLIC id, cause <= 11); bits 30:5 are 0, bit 31 is the interrupt flag (T-12 puts mpil in mcause[23:16] in csr_file, not on this bus)."
+evidence = "PROVEN a_cause_field (fv_cov)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-CSRLAYOUT-csr_file"
+metric   = "toggle"
+file     = "rtl/core/csr_file.v"
+match    = "^(mintstatus_std_val\\[0\\]:0\\->1|mintstatus_std_val\\[0\\]:1\\->0|mintstatus_std_val\\[10\\]:0\\->1|mintstatus_std_val\\[10\\]:1\\->0|mintstatus_std_val\\[11\\]:0\\->1|mintstatus_std_val\\[11\\]:1\\->0|mintstatus_std_val\\[12\\]:0\\->1|mintstatus_std_val\\[12\\]:1\\->0|mintstatus_std_val\\[13\\]:0\\->1|mintstatus_std_val\\[13\\]:1\\->0|mintstatus_std_val\\[14\\]:0\\->1|mintstatus_std_val\\[14\\]:1\\->0|mintstatus_std_val\\[15\\]:0\\->1|mintstatus_std_val\\[15\\]:1\\->0|mintstatus_std_val\\[16\\]:0\\->1|mintstatus_std_val\\[16\\]:1\\->0|mintstatus_std_val\\[17\\]:0\\->1|mintstatus_std_val\\[17\\]:1\\->0|mintstatus_std_val\\[18\\]:0\\->1|mintstatus_std_val\\[18\\]:1\\->0|mintstatus_std_val\\[19\\]:0\\->1|mintstatus_std_val\\[19\\]:1\\->0|mintstatus_std_val\\[1\\]:0\\->1|mintstatus_std_val\\[1\\]:1\\->0|mintstatus_std_val\\[20\\]:0\\->1|mintstatus_std_val\\[20\\]:1\\->0|mintstatus_std_val\\[21\\]:0\\->1|mintstatus_std_val\\[21\\]:1\\->0|mintstatus_std_val\\[22\\]:0\\->1|mintstatus_std_val\\[22\\]:1\\->0|mintstatus_std_val\\[23\\]:0\\->1|mintstatus_std_val\\[23\\]:1\\->0|mintstatus_std_val\\[2\\]:0\\->1|mintstatus_std_val\\[2\\]:1\\->0|mintstatus_std_val\\[3\\]:0\\->1|mintstatus_std_val\\[3\\]:1\\->0|mintstatus_std_val\\[4\\]:0\\->1|mintstatus_std_val\\[4\\]:1\\->0|mintstatus_std_val\\[5\\]:0\\->1|mintstatus_std_val\\[5\\]:1\\->0|mintstatus_std_val\\[6\\]:0\\->1|mintstatus_std_val\\[6\\]:1\\->0|mintstatus_std_val\\[7\\]:0\\->1|mintstatus_std_val\\[7\\]:1\\->0|mintstatus_std_val\\[8\\]:0\\->1|mintstatus_std_val\\[8\\]:1\\->0|mintstatus_std_val\\[9\\]:0\\->1|mintstatus_std_val\\[9\\]:1\\->0|mintstatus_val\\[10\\]:0\\->1|mintstatus_val\\[10\\]:1\\->0|mintstatus_val\\[11\\]:0\\->1|mintstatus_val\\[11\\]:1\\->0|mintstatus_val\\[12\\]:0\\->1|mintstatus_val\\[12\\]:1\\->0|mintstatus_val\\[13\\]:0\\->1|mintstatus_val\\[13\\]:1\\->0|mintstatus_val\\[14\\]:0\\->1|mintstatus_val\\[14\\]:1\\->0|mintstatus_val\\[15\\]:0\\->1|mintstatus_val\\[15\\]:1\\->0|mintstatus_val\\[16\\]:0\\->1|mintstatus_val\\[16\\]:1\\->0|mintstatus_val\\[17\\]:0\\->1|mintstatus_val\\[17\\]:1\\->0|mintstatus_val\\[18\\]:0\\->1|mintstatus_val\\[18\\]:1\\->0|mintstatus_val\\[19\\]:0\\->1|mintstatus_val\\[19\\]:1\\->0|mintstatus_val\\[20\\]:0\\->1|mintstatus_val\\[20\\]:1\\->0|mintstatus_val\\[21\\]:0\\->1|mintstatus_val\\[21\\]:1\\->0|mintstatus_val\\[22\\]:0\\->1|mintstatus_val\\[22\\]:1\\->0|mintstatus_val\\[23\\]:0\\->1|mintstatus_val\\[23\\]:1\\->0|mintstatus_val\\[24\\]:0\\->1|mintstatus_val\\[24\\]:1\\->0|mintstatus_val\\[25\\]:0\\->1|mintstatus_val\\[25\\]:1\\->0|mintstatus_val\\[26\\]:0\\->1|mintstatus_val\\[26\\]:1\\->0|mintstatus_val\\[27\\]:0\\->1|mintstatus_val\\[27\\]:1\\->0|mintstatus_val\\[28\\]:0\\->1|mintstatus_val\\[28\\]:1\\->0|mintstatus_val\\[29\\]:0\\->1|mintstatus_val\\[29\\]:1\\->0|mintstatus_val\\[30\\]:0\\->1|mintstatus_val\\[30\\]:1\\->0|mintstatus_val\\[31\\]:0\\->1|mintstatus_val\\[31\\]:1\\->0|mintstatus_val\\[8\\]:0\\->1|mintstatus_val\\[8\\]:1\\->0|mintstatus_val\\[9\\]:0\\->1|mintstatus_val\\[9\\]:1\\->0|mip_val\\[0\\]:0\\->1|mip_val\\[0\\]:1\\->0|mip_val\\[10\\]:0\\->1|mip_val\\[10\\]:1\\->0|mip_val\\[11\\]:0\\->1|mip_val\\[11\\]:1\\->0|mip_val\\[12\\]:0\\->1|mip_val\\[12\\]:1\\->0|mip_val\\[13\\]:0\\->1|mip_val\\[13\\]:1\\->0|mip_val\\[14\\]:0\\->1|mip_val\\[14\\]:1\\->0|mip_val\\[15\\]:0\\->1|mip_val\\[15\\]:1\\->0|mip_val\\[16\\]:0\\->1|mip_val\\[16\\]:1\\->0|mip_val\\[17\\]:0\\->1|mip_val\\[17\\]:1\\->0|mip_val\\[18\\]:0\\->1|mip_val\\[18\\]:1\\->0|mip_val\\[19\\]:0\\->1|mip_val\\[19\\]:1\\->0|mip_val\\[1\\]:0\\->1|mip_val\\[1\\]:1\\->0|mip_val\\[20\\]:0\\->1|mip_val\\[20\\]:1\\->0|mip_val\\[21\\]:0\\->1|mip_val\\[21\\]:1\\->0|mip_val\\[22\\]:0\\->1|mip_val\\[22\\]:1\\->0|mip_val\\[23\\]:0\\->1|mip_val\\[23\\]:1\\->0|mip_val\\[24\\]:0\\->1|mip_val\\[24\\]:1\\->0|mip_val\\[25\\]:0\\->1|mip_val\\[25\\]:1\\->0|mip_val\\[26\\]:0\\->1|mip_val\\[26\\]:1\\->0|mip_val\\[27\\]:0\\->1|mip_val\\[27\\]:1\\->0|mip_val\\[28\\]:0\\->1|mip_val\\[28\\]:1\\->0|mip_val\\[29\\]:0\\->1|mip_val\\[29\\]:1\\->0|mip_val\\[2\\]:0\\->1|mip_val\\[2\\]:1\\->0|mip_val\\[30\\]:0\\->1|mip_val\\[30\\]:1\\->0|mip_val\\[31\\]:0\\->1|mip_val\\[31\\]:1\\->0|mip_val\\[3\\]:0\\->1|mip_val\\[3\\]:1\\->0|mip_val\\[4\\]:0\\->1|mip_val\\[4\\]:1\\->0|mip_val\\[5\\]:0\\->1|mip_val\\[5\\]:1\\->0|mip_val\\[6\\]:0\\->1|mip_val\\[6\\]:1\\->0|mip_val\\[8\\]:0\\->1|mip_val\\[8\\]:1\\->0|mip_val\\[9\\]:0\\->1|mip_val\\[9\\]:1\\->0|misa_val\\[0\\]:0\\->1|misa_val\\[0\\]:1\\->0|misa_val\\[10\\]:0\\->1|misa_val\\[10\\]:1\\->0|misa_val\\[11\\]:0\\->1|misa_val\\[11\\]:1\\->0|misa_val\\[12\\]:1\\->0|misa_val\\[13\\]:0\\->1|misa_val\\[13\\]:1\\->0|misa_val\\[14\\]:0\\->1|misa_val\\[14\\]:1\\->0|misa_val\\[15\\]:0\\->1|misa_val\\[15\\]:1\\->0|misa_val\\[16\\]:0\\->1|misa_val\\[16\\]:1\\->0|misa_val\\[17\\]:0\\->1|misa_val\\[17\\]:1\\->0|misa_val\\[18\\]:0\\->1|misa_val\\[18\\]:1\\->0|misa_val\\[19\\]:0\\->1|misa_val\\[19\\]:1\\->0|misa_val\\[1\\]:0\\->1|misa_val\\[1\\]:1\\->0|misa_val\\[20\\]:0\\->1|misa_val\\[20\\]:1\\->0|misa_val\\[21\\]:0\\->1|misa_val\\[21\\]:1\\->0|misa_val\\[22\\]:0\\->1|misa_val\\[22\\]:1\\->0|misa_val\\[23\\]:0\\->1|misa_val\\[23\\]:1\\->0|misa_val\\[24\\]:0\\->1|misa_val\\[24\\]:1\\->0|misa_val\\[25\\]:0\\->1|misa_val\\[25\\]:1\\->0|misa_val\\[26\\]:0\\->1|misa_val\\[26\\]:1\\->0|misa_val\\[27\\]:0\\->1|misa_val\\[27\\]:1\\->0|misa_val\\[28\\]:0\\->1|misa_val\\[28\\]:1\\->0|misa_val\\[29\\]:0\\->1|misa_val\\[29\\]:1\\->0|misa_val\\[2\\]:0\\->1|misa_val\\[2\\]:1\\->0|misa_val\\[30\\]:1\\->0|misa_val\\[31\\]:0\\->1|misa_val\\[31\\]:1\\->0|misa_val\\[3\\]:0\\->1|misa_val\\[3\\]:1\\->0|misa_val\\[4\\]:0\\->1|misa_val\\[4\\]:1\\->0|misa_val\\[5\\]:0\\->1|misa_val\\[5\\]:1\\->0|misa_val\\[6\\]:0\\->1|misa_val\\[6\\]:1\\->0|misa_val\\[7\\]:0\\->1|misa_val\\[7\\]:1\\->0|misa_val\\[8\\]:1\\->0|misa_val\\[9\\]:0\\->1|misa_val\\[9\\]:1\\->0|mstatus_val\\[0\\]:0\\->1|mstatus_val\\[0\\]:1\\->0|mstatus_val\\[10\\]:0\\->1|mstatus_val\\[10\\]:1\\->0|mstatus_val\\[11\\]:1\\->0|mstatus_val\\[12\\]:1\\->0|mstatus_val\\[13\\]:0\\->1|mstatus_val\\[13\\]:1\\->0|mstatus_val\\[14\\]:0\\->1|mstatus_val\\[14\\]:1\\->0|mstatus_val\\[15\\]:0\\->1|mstatus_val\\[15\\]:1\\->0|mstatus_val\\[16\\]:0\\->1|mstatus_val\\[16\\]:1\\->0|mstatus_val\\[17\\]:0\\->1|mstatus_val\\[17\\]:1\\->0|mstatus_val\\[18\\]:0\\->1|mstatus_val\\[18\\]:1\\->0|mstatus_val\\[19\\]:0\\->1|mstatus_val\\[19\\]:1\\->0|mstatus_val\\[1\\]:0\\->1|mstatus_val\\[1\\]:1\\->0|mstatus_val\\[20\\]:0\\->1|mstatus_val\\[20\\]:1\\->0|mstatus_val\\[21\\]:0\\->1|mstatus_val\\[21\\]:1\\->0|mstatus_val\\[22\\]:0\\->1|mstatus_val\\[22\\]:1\\->0|mstatus_val\\[23\\]:0\\->1|mstatus_val\\[23\\]:1\\->0|mstatus_val\\[24\\]:0\\->1|mstatus_val\\[24\\]:1\\->0|mstatus_val\\[25\\]:0\\->1|mstatus_val\\[25\\]:1\\->0|mstatus_val\\[26\\]:0\\->1|mstatus_val\\[26\\]:1\\->0|mstatus_val\\[27\\]:0\\->1|mstatus_val\\[27\\]:1\\->0|mstatus_val\\[28\\]:0\\->1|mstatus_val\\[28\\]:1\\->0|mstatus_val\\[29\\]:0\\->1|mstatus_val\\[29\\]:1\\->0|mstatus_val\\[2\\]:0\\->1|mstatus_val\\[2\\]:1\\->0|mstatus_val\\[30\\]:0\\->1|mstatus_val\\[30\\]:1\\->0|mstatus_val\\[31\\]:0\\->1|mstatus_val\\[31\\]:1\\->0|mstatus_val\\[4\\]:0\\->1|mstatus_val\\[4\\]:1\\->0|mstatus_val\\[5\\]:0\\->1|mstatus_val\\[5\\]:1\\->0|mstatus_val\\[6\\]:0\\->1|mstatus_val\\[6\\]:1\\->0|mstatus_val\\[8\\]:0\\->1|mstatus_val\\[8\\]:1\\->0|mstatus_val\\[9\\]:0\\->1|mstatus_val\\[9\\]:1\\->0)$"
+category = "constant"
+reason   = "Read-value layouts with fixed fields: mstatus (only MIE, MPIE stored; MPP = 11), misa constant, mintstatus {24'b0, mil}, mintstatus_std {mil, 24'b0}, mip {24'b0, MTIP, 7'b0}."
+evidence = "literal rtl/core/csr_file.v:144-156"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-DBUS-d_port_ahb_master"
+metric   = "toggle"
+file     = "rtl/core/d_port_ahb_master.v"
+match    = "^(d_hsize_o\\[2\\]:0\\->1|d_hsize_o\\[2\\]:1\\->0|d_htrans_o\\[0\\]:0\\->1|d_htrans_o\\[0\\]:1\\->0|hsize_i\\[2\\]:0\\->1|hsize_i\\[2\\]:1\\->0)$"
+category = "constant"
+reason   = "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize[2] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
+evidence = "literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; d_port_ahb_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-DBUS-garuda_core_top"
+metric   = "toggle"
+file     = "rtl/core/garuda_core_top.v"
+match    = "^(d_hburst_o\\[0\\]:0\\->1|d_hburst_o\\[0\\]:1\\->0|d_hburst_o\\[1\\]:0\\->1|d_hburst_o\\[1\\]:1\\->0|d_hburst_o\\[2\\]:0\\->1|d_hburst_o\\[2\\]:1\\->0|d_hprot_o\\[0\\]:1\\->0|d_hprot_o\\[1\\]:1\\->0|d_hprot_o\\[2\\]:0\\->1|d_hprot_o\\[2\\]:1\\->0|d_hprot_o\\[3\\]:0\\->1|d_hprot_o\\[3\\]:1\\->0|d_hsize_o\\[2\\]:0\\->1|d_hsize_o\\[2\\]:1\\->0|d_htrans_o\\[0\\]:0\\->1|d_htrans_o\\[0\\]:1\\->0)$"
+category = "constant"
+reason   = "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize[2] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
+evidence = "literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; d_port_ahb_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-DBUS-load_store_unit"
+metric   = "toggle"
+file     = "rtl/core/load_store_unit.v"
+match    = "^(hsize_o\\[2\\]:0\\->1|hsize_o\\[2\\]:1\\->0)$"
+category = "constant"
+reason   = "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize[2] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
+evidence = "literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; d_port_ahb_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-DBUS-mem_stage"
+metric   = "toggle"
+file     = "rtl/core/mem_stage.v"
+match    = "^(d_hburst_o\\[0\\]:0\\->1|d_hburst_o\\[0\\]:1\\->0|d_hburst_o\\[1\\]:0\\->1|d_hburst_o\\[1\\]:1\\->0|d_hburst_o\\[2\\]:0\\->1|d_hburst_o\\[2\\]:1\\->0|d_hprot_o\\[0\\]:1\\->0|d_hprot_o\\[1\\]:1\\->0|d_hprot_o\\[2\\]:0\\->1|d_hprot_o\\[2\\]:1\\->0|d_hprot_o\\[3\\]:0\\->1|d_hprot_o\\[3\\]:1\\->0|d_hsize_o\\[2\\]:0\\->1|d_hsize_o\\[2\\]:1\\->0|d_htrans_o\\[0\\]:0\\->1|d_htrans_o\\[0\\]:1\\->0|hsize_w\\[2\\]:0\\->1|hsize_w\\[2\\]:1\\->0)$"
+category = "constant"
+reason   = "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize[2] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
+evidence = "literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; d_port_ahb_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-FENCEI-branch_predict"
+metric   = "toggle"
+file     = "rtl/core/branch_predict.v"
+match    = "^(fencei_target\\[0\\]:0\\->1|fencei_target\\[0\\]:1\\->0|fencei_target\\[1\\]:0\\->1|fencei_target\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "fencei_target = pc + 4 of a word-aligned PC."
+evidence = "rtl/core/branch_predict.v:54 + PROVEN a_pc_aligned"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-IBUS-garuda_core_top"
+metric   = "toggle"
+file     = "rtl/core/garuda_core_top.v"
+match    = "^(i_hburst_o\\[0\\]:1\\->0|i_hburst_o\\[1\\]:0\\->1|i_hburst_o\\[1\\]:1\\->0|i_hburst_o\\[2\\]:0\\->1|i_hburst_o\\[2\\]:1\\->0|i_hprot_o\\[0\\]:0\\->1|i_hprot_o\\[0\\]:1\\->0|i_hprot_o\\[1\\]:1\\->0|i_hprot_o\\[2\\]:0\\->1|i_hprot_o\\[2\\]:1\\->0|i_hprot_o\\[3\\]:0\\->1|i_hprot_o\\[3\\]:1\\->0|i_hsize_o\\[0\\]:0\\->1|i_hsize_o\\[0\\]:1\\->0|i_hsize_o\\[1\\]:1\\->0|i_hsize_o\\[2\\]:0\\->1|i_hsize_o\\[2\\]:1\\->0|i_hwdata_o\\[0\\]:0\\->1|i_hwdata_o\\[0\\]:1\\->0|i_hwdata_o\\[10\\]:0\\->1|i_hwdata_o\\[10\\]:1\\->0|i_hwdata_o\\[11\\]:0\\->1|i_hwdata_o\\[11\\]:1\\->0|i_hwdata_o\\[12\\]:0\\->1|i_hwdata_o\\[12\\]:1\\->0|i_hwdata_o\\[13\\]:0\\->1|i_hwdata_o\\[13\\]:1\\->0|i_hwdata_o\\[14\\]:0\\->1|i_hwdata_o\\[14\\]:1\\->0|i_hwdata_o\\[15\\]:0\\->1|i_hwdata_o\\[15\\]:1\\->0|i_hwdata_o\\[16\\]:0\\->1|i_hwdata_o\\[16\\]:1\\->0|i_hwdata_o\\[17\\]:0\\->1|i_hwdata_o\\[17\\]:1\\->0|i_hwdata_o\\[18\\]:0\\->1|i_hwdata_o\\[18\\]:1\\->0|i_hwdata_o\\[19\\]:0\\->1|i_hwdata_o\\[19\\]:1\\->0|i_hwdata_o\\[1\\]:0\\->1|i_hwdata_o\\[1\\]:1\\->0|i_hwdata_o\\[20\\]:0\\->1|i_hwdata_o\\[20\\]:1\\->0|i_hwdata_o\\[21\\]:0\\->1|i_hwdata_o\\[21\\]:1\\->0|i_hwdata_o\\[22\\]:0\\->1|i_hwdata_o\\[22\\]:1\\->0|i_hwdata_o\\[23\\]:0\\->1|i_hwdata_o\\[23\\]:1\\->0|i_hwdata_o\\[24\\]:0\\->1|i_hwdata_o\\[24\\]:1\\->0|i_hwdata_o\\[25\\]:0\\->1|i_hwdata_o\\[25\\]:1\\->0|i_hwdata_o\\[26\\]:0\\->1|i_hwdata_o\\[26\\]:1\\->0|i_hwdata_o\\[27\\]:0\\->1|i_hwdata_o\\[27\\]:1\\->0|i_hwdata_o\\[28\\]:0\\->1|i_hwdata_o\\[28\\]:1\\->0|i_hwdata_o\\[29\\]:0\\->1|i_hwdata_o\\[29\\]:1\\->0|i_hwdata_o\\[2\\]:0\\->1|i_hwdata_o\\[2\\]:1\\->0|i_hwdata_o\\[30\\]:0\\->1|i_hwdata_o\\[30\\]:1\\->0|i_hwdata_o\\[31\\]:0\\->1|i_hwdata_o\\[31\\]:1\\->0|i_hwdata_o\\[3\\]:0\\->1|i_hwdata_o\\[3\\]:1\\->0|i_hwdata_o\\[4\\]:0\\->1|i_hwdata_o\\[4\\]:1\\->0|i_hwdata_o\\[5\\]:0\\->1|i_hwdata_o\\[5\\]:1\\->0|i_hwdata_o\\[6\\]:0\\->1|i_hwdata_o\\[6\\]:1\\->0|i_hwdata_o\\[7\\]:0\\->1|i_hwdata_o\\[7\\]:1\\->0|i_hwdata_o\\[8\\]:0\\->1|i_hwdata_o\\[8\\]:1\\->0|i_hwdata_o\\[9\\]:0\\->1|i_hwdata_o\\[9\\]:1\\->0|i_hwrite_o:0\\->1|i_hwrite_o:1\\->0)$"
+category = "constant"
+reason   = "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
+evidence = "literal rtl/core/garuda_iport_ahb_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-IBUS-garuda_if_stage_top"
+metric   = "toggle"
+file     = "rtl/core/garuda_if_stage_top.v"
+match    = "^(i_hburst_o\\[0\\]:1\\->0|i_hburst_o\\[1\\]:0\\->1|i_hburst_o\\[1\\]:1\\->0|i_hburst_o\\[2\\]:0\\->1|i_hburst_o\\[2\\]:1\\->0|i_hprot_o\\[0\\]:0\\->1|i_hprot_o\\[0\\]:1\\->0|i_hprot_o\\[1\\]:1\\->0|i_hprot_o\\[2\\]:0\\->1|i_hprot_o\\[2\\]:1\\->0|i_hprot_o\\[3\\]:0\\->1|i_hprot_o\\[3\\]:1\\->0|i_hsize_o\\[0\\]:0\\->1|i_hsize_o\\[0\\]:1\\->0|i_hsize_o\\[1\\]:1\\->0|i_hsize_o\\[2\\]:0\\->1|i_hsize_o\\[2\\]:1\\->0|i_hwdata_o\\[0\\]:0\\->1|i_hwdata_o\\[0\\]:1\\->0|i_hwdata_o\\[10\\]:0\\->1|i_hwdata_o\\[10\\]:1\\->0|i_hwdata_o\\[11\\]:0\\->1|i_hwdata_o\\[11\\]:1\\->0|i_hwdata_o\\[12\\]:0\\->1|i_hwdata_o\\[12\\]:1\\->0|i_hwdata_o\\[13\\]:0\\->1|i_hwdata_o\\[13\\]:1\\->0|i_hwdata_o\\[14\\]:0\\->1|i_hwdata_o\\[14\\]:1\\->0|i_hwdata_o\\[15\\]:0\\->1|i_hwdata_o\\[15\\]:1\\->0|i_hwdata_o\\[16\\]:0\\->1|i_hwdata_o\\[16\\]:1\\->0|i_hwdata_o\\[17\\]:0\\->1|i_hwdata_o\\[17\\]:1\\->0|i_hwdata_o\\[18\\]:0\\->1|i_hwdata_o\\[18\\]:1\\->0|i_hwdata_o\\[19\\]:0\\->1|i_hwdata_o\\[19\\]:1\\->0|i_hwdata_o\\[1\\]:0\\->1|i_hwdata_o\\[1\\]:1\\->0|i_hwdata_o\\[20\\]:0\\->1|i_hwdata_o\\[20\\]:1\\->0|i_hwdata_o\\[21\\]:0\\->1|i_hwdata_o\\[21\\]:1\\->0|i_hwdata_o\\[22\\]:0\\->1|i_hwdata_o\\[22\\]:1\\->0|i_hwdata_o\\[23\\]:0\\->1|i_hwdata_o\\[23\\]:1\\->0|i_hwdata_o\\[24\\]:0\\->1|i_hwdata_o\\[24\\]:1\\->0|i_hwdata_o\\[25\\]:0\\->1|i_hwdata_o\\[25\\]:1\\->0|i_hwdata_o\\[26\\]:0\\->1|i_hwdata_o\\[26\\]:1\\->0|i_hwdata_o\\[27\\]:0\\->1|i_hwdata_o\\[27\\]:1\\->0|i_hwdata_o\\[28\\]:0\\->1|i_hwdata_o\\[28\\]:1\\->0|i_hwdata_o\\[29\\]:0\\->1|i_hwdata_o\\[29\\]:1\\->0|i_hwdata_o\\[2\\]:0\\->1|i_hwdata_o\\[2\\]:1\\->0|i_hwdata_o\\[30\\]:0\\->1|i_hwdata_o\\[30\\]:1\\->0|i_hwdata_o\\[31\\]:0\\->1|i_hwdata_o\\[31\\]:1\\->0|i_hwdata_o\\[3\\]:0\\->1|i_hwdata_o\\[3\\]:1\\->0|i_hwdata_o\\[4\\]:0\\->1|i_hwdata_o\\[4\\]:1\\->0|i_hwdata_o\\[5\\]:0\\->1|i_hwdata_o\\[5\\]:1\\->0|i_hwdata_o\\[6\\]:0\\->1|i_hwdata_o\\[6\\]:1\\->0|i_hwdata_o\\[7\\]:0\\->1|i_hwdata_o\\[7\\]:1\\->0|i_hwdata_o\\[8\\]:0\\->1|i_hwdata_o\\[8\\]:1\\->0|i_hwdata_o\\[9\\]:0\\->1|i_hwdata_o\\[9\\]:1\\->0|i_hwrite_o:0\\->1|i_hwrite_o:1\\->0)$"
+category = "constant"
+reason   = "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
+evidence = "literal rtl/core/garuda_iport_ahb_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-IBUS-garuda_iport_ahb_master"
+metric   = "toggle"
+file     = "rtl/core/garuda_iport_ahb_master.v"
+match    = "^(i_hburst_o\\[0\\]:1\\->0|i_hburst_o\\[1\\]:0\\->1|i_hburst_o\\[1\\]:1\\->0|i_hburst_o\\[2\\]:0\\->1|i_hburst_o\\[2\\]:1\\->0|i_hprot_o\\[0\\]:0\\->1|i_hprot_o\\[0\\]:1\\->0|i_hprot_o\\[1\\]:1\\->0|i_hprot_o\\[2\\]:0\\->1|i_hprot_o\\[2\\]:1\\->0|i_hprot_o\\[3\\]:0\\->1|i_hprot_o\\[3\\]:1\\->0|i_hsize_o\\[0\\]:0\\->1|i_hsize_o\\[0\\]:1\\->0|i_hsize_o\\[1\\]:1\\->0|i_hsize_o\\[2\\]:0\\->1|i_hsize_o\\[2\\]:1\\->0|i_hwdata_o\\[0\\]:0\\->1|i_hwdata_o\\[0\\]:1\\->0|i_hwdata_o\\[10\\]:0\\->1|i_hwdata_o\\[10\\]:1\\->0|i_hwdata_o\\[11\\]:0\\->1|i_hwdata_o\\[11\\]:1\\->0|i_hwdata_o\\[12\\]:0\\->1|i_hwdata_o\\[12\\]:1\\->0|i_hwdata_o\\[13\\]:0\\->1|i_hwdata_o\\[13\\]:1\\->0|i_hwdata_o\\[14\\]:0\\->1|i_hwdata_o\\[14\\]:1\\->0|i_hwdata_o\\[15\\]:0\\->1|i_hwdata_o\\[15\\]:1\\->0|i_hwdata_o\\[16\\]:0\\->1|i_hwdata_o\\[16\\]:1\\->0|i_hwdata_o\\[17\\]:0\\->1|i_hwdata_o\\[17\\]:1\\->0|i_hwdata_o\\[18\\]:0\\->1|i_hwdata_o\\[18\\]:1\\->0|i_hwdata_o\\[19\\]:0\\->1|i_hwdata_o\\[19\\]:1\\->0|i_hwdata_o\\[1\\]:0\\->1|i_hwdata_o\\[1\\]:1\\->0|i_hwdata_o\\[20\\]:0\\->1|i_hwdata_o\\[20\\]:1\\->0|i_hwdata_o\\[21\\]:0\\->1|i_hwdata_o\\[21\\]:1\\->0|i_hwdata_o\\[22\\]:0\\->1|i_hwdata_o\\[22\\]:1\\->0|i_hwdata_o\\[23\\]:0\\->1|i_hwdata_o\\[23\\]:1\\->0|i_hwdata_o\\[24\\]:0\\->1|i_hwdata_o\\[24\\]:1\\->0|i_hwdata_o\\[25\\]:0\\->1|i_hwdata_o\\[25\\]:1\\->0|i_hwdata_o\\[26\\]:0\\->1|i_hwdata_o\\[26\\]:1\\->0|i_hwdata_o\\[27\\]:0\\->1|i_hwdata_o\\[27\\]:1\\->0|i_hwdata_o\\[28\\]:0\\->1|i_hwdata_o\\[28\\]:1\\->0|i_hwdata_o\\[29\\]:0\\->1|i_hwdata_o\\[29\\]:1\\->0|i_hwdata_o\\[2\\]:0\\->1|i_hwdata_o\\[2\\]:1\\->0|i_hwdata_o\\[30\\]:0\\->1|i_hwdata_o\\[30\\]:1\\->0|i_hwdata_o\\[31\\]:0\\->1|i_hwdata_o\\[31\\]:1\\->0|i_hwdata_o\\[3\\]:0\\->1|i_hwdata_o\\[3\\]:1\\->0|i_hwdata_o\\[4\\]:0\\->1|i_hwdata_o\\[4\\]:1\\->0|i_hwdata_o\\[5\\]:0\\->1|i_hwdata_o\\[5\\]:1\\->0|i_hwdata_o\\[6\\]:0\\->1|i_hwdata_o\\[6\\]:1\\->0|i_hwdata_o\\[7\\]:0\\->1|i_hwdata_o\\[7\\]:1\\->0|i_hwdata_o\\[8\\]:0\\->1|i_hwdata_o\\[8\\]:1\\->0|i_hwdata_o\\[9\\]:0\\->1|i_hwdata_o\\[9\\]:1\\->0|i_hwrite_o:0\\->1|i_hwrite_o:1\\->0)$"
+category = "constant"
+reason   = "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
+evidence = "literal rtl/core/garuda_iport_ahb_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-IMMENC-imm_gen"
+metric   = "toggle"
+file     = "rtl/core/imm_gen.v"
+match    = "^(imm_csr_f\\[10\\]:0\\->1|imm_csr_f\\[10\\]:1\\->0|imm_csr_f\\[11\\]:0\\->1|imm_csr_f\\[11\\]:1\\->0|imm_csr_f\\[12\\]:0\\->1|imm_csr_f\\[12\\]:1\\->0|imm_csr_f\\[13\\]:0\\->1|imm_csr_f\\[13\\]:1\\->0|imm_csr_f\\[14\\]:0\\->1|imm_csr_f\\[14\\]:1\\->0|imm_csr_f\\[15\\]:0\\->1|imm_csr_f\\[15\\]:1\\->0|imm_csr_f\\[16\\]:0\\->1|imm_csr_f\\[16\\]:1\\->0|imm_csr_f\\[17\\]:0\\->1|imm_csr_f\\[17\\]:1\\->0|imm_csr_f\\[18\\]:0\\->1|imm_csr_f\\[18\\]:1\\->0|imm_csr_f\\[19\\]:0\\->1|imm_csr_f\\[19\\]:1\\->0|imm_csr_f\\[20\\]:0\\->1|imm_csr_f\\[20\\]:1\\->0|imm_csr_f\\[21\\]:0\\->1|imm_csr_f\\[21\\]:1\\->0|imm_csr_f\\[22\\]:0\\->1|imm_csr_f\\[22\\]:1\\->0|imm_csr_f\\[23\\]:0\\->1|imm_csr_f\\[23\\]:1\\->0|imm_csr_f\\[24\\]:0\\->1|imm_csr_f\\[24\\]:1\\->0|imm_csr_f\\[25\\]:0\\->1|imm_csr_f\\[25\\]:1\\->0|imm_csr_f\\[26\\]:0\\->1|imm_csr_f\\[26\\]:1\\->0|imm_csr_f\\[27\\]:0\\->1|imm_csr_f\\[27\\]:1\\->0|imm_csr_f\\[28\\]:0\\->1|imm_csr_f\\[28\\]:1\\->0|imm_csr_f\\[29\\]:0\\->1|imm_csr_f\\[29\\]:1\\->0|imm_csr_f\\[30\\]:0\\->1|imm_csr_f\\[30\\]:1\\->0|imm_csr_f\\[31\\]:0\\->1|imm_csr_f\\[31\\]:1\\->0|imm_csr_f\\[5\\]:0\\->1|imm_csr_f\\[5\\]:1\\->0|imm_csr_f\\[6\\]:0\\->1|imm_csr_f\\[6\\]:1\\->0|imm_csr_f\\[7\\]:0\\->1|imm_csr_f\\[7\\]:1\\->0|imm_csr_f\\[8\\]:0\\->1|imm_csr_f\\[8\\]:1\\->0|imm_csr_f\\[9\\]:0\\->1|imm_csr_f\\[9\\]:1\\->0|imm_u_f\\[0\\]:0\\->1|imm_u_f\\[0\\]:1\\->0|imm_u_f\\[10\\]:0\\->1|imm_u_f\\[10\\]:1\\->0|imm_u_f\\[11\\]:0\\->1|imm_u_f\\[11\\]:1\\->0|imm_u_f\\[1\\]:0\\->1|imm_u_f\\[1\\]:1\\->0|imm_u_f\\[2\\]:0\\->1|imm_u_f\\[2\\]:1\\->0|imm_u_f\\[3\\]:0\\->1|imm_u_f\\[3\\]:1\\->0|imm_u_f\\[4\\]:0\\->1|imm_u_f\\[4\\]:1\\->0|imm_u_f\\[5\\]:0\\->1|imm_u_f\\[5\\]:1\\->0|imm_u_f\\[6\\]:0\\->1|imm_u_f\\[6\\]:1\\->0|imm_u_f\\[7\\]:0\\->1|imm_u_f\\[7\\]:1\\->0|imm_u_f\\[8\\]:0\\->1|imm_u_f\\[8\\]:1\\->0|imm_u_f\\[9\\]:0\\->1|imm_u_f\\[9\\]:1\\->0)$"
+category = "constant"
+reason   = "U-immediate bits 11:0 and the zero-extended CSR immediate bits 31:5 are literal 0."
+evidence = "literal rtl/core/imm_gen.v:35 {.., 12'b0}, :38 {27'b0, ..}"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-IPCOUNT-garuda_iport_ahb_master"
+metric   = "toggle"
+file     = "rtl/core/garuda_iport_ahb_master.v"
+match    = "^(inflight\\[2\\]:0\\->1|inflight\\[2\\]:1\\->0|inflight\\[3\\]:0\\->1|inflight\\[3\\]:1\\->0|occ_after_pop\\[3\\]:0\\->1|occ_after_pop\\[3\\]:1\\->0|occ_plus_landing\\[3\\]:0\\->1|occ_plus_landing\\[3\\]:1\\->0|projected_occ\\[3\\]:0\\->1|projected_occ\\[3\\]:1\\->0)$"
+category = "constant"
+reason   = "At most 2 transfers are in flight and occupancy + in flight <= 6: the top bits of these 4-bit sums never set."
+evidence = "PROVEN a_inflight_le2, a_occ_pop_lt8, a_occ_land_lt8, a_proj_occ_lt8 (fv_cov)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-MEMCAUSE-garuda_core_top"
+metric   = "toggle"
+file     = "rtl/core/garuda_core_top.v"
+match    = "^(mem_exc_cause\\[3\\]:0\\->1|mem_exc_cause\\[3\\]:1\\->0)$"
+category = "constant"
+reason   = "MEM-stage causes are 5 and 7 only (4-bit field, bit 3 = 0)."
+evidence = "literal rtl/core/mem_stage.v:184 (4'd5 / 4'd7 / 0); PROVEN a_mexc_cause_bit3"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-MEMCAUSE-mem_stage"
+metric   = "toggle"
+file     = "rtl/core/mem_stage.v"
+match    = "^(mem_exception_cause_o\\[3\\]:0\\->1|mem_exception_cause_o\\[3\\]:1\\->0)$"
+category = "constant"
+reason   = "MEM-stage causes are 5 and 7 only (4-bit field, bit 3 = 0)."
+evidence = "literal rtl/core/mem_stage.v:184 (4'd5 / 4'd7 / 0); PROVEN a_mexc_cause_bit3"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-MEMCAUSE-trap_ctrl"
+metric   = "toggle"
+file     = "rtl/core/trap_ctrl.v"
+match    = "^(mem_exc_cause_i\\[3\\]:0\\->1|mem_exc_cause_i\\[3\\]:1\\->0)$"
+category = "constant"
+reason   = "MEM-stage causes are 5 and 7 only (4-bit field, bit 3 = 0)."
+evidence = "literal rtl/core/mem_stage.v:184 (4'd5 / 4'd7 / 0); PROVEN a_mexc_cause_bit3"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-MIEWARL-csr_file"
+metric   = "toggle"
+file     = "rtl/core/csr_file.v"
+match    = "^(mie_r\\[0\\]:0\\->1|mie_r\\[0\\]:1\\->0|mie_r\\[10\\]:0\\->1|mie_r\\[10\\]:1\\->0|mie_r\\[11\\]:0\\->1|mie_r\\[11\\]:1\\->0|mie_r\\[12\\]:0\\->1|mie_r\\[12\\]:1\\->0|mie_r\\[13\\]:0\\->1|mie_r\\[13\\]:1\\->0|mie_r\\[14\\]:0\\->1|mie_r\\[14\\]:1\\->0|mie_r\\[15\\]:0\\->1|mie_r\\[15\\]:1\\->0|mie_r\\[16\\]:0\\->1|mie_r\\[16\\]:1\\->0|mie_r\\[17\\]:0\\->1|mie_r\\[17\\]:1\\->0|mie_r\\[18\\]:0\\->1|mie_r\\[18\\]:1\\->0|mie_r\\[19\\]:0\\->1|mie_r\\[19\\]:1\\->0|mie_r\\[1\\]:0\\->1|mie_r\\[1\\]:1\\->0|mie_r\\[20\\]:0\\->1|mie_r\\[20\\]:1\\->0|mie_r\\[21\\]:0\\->1|mie_r\\[21\\]:1\\->0|mie_r\\[22\\]:0\\->1|mie_r\\[22\\]:1\\->0|mie_r\\[23\\]:0\\->1|mie_r\\[23\\]:1\\->0|mie_r\\[24\\]:0\\->1|mie_r\\[24\\]:1\\->0|mie_r\\[25\\]:0\\->1|mie_r\\[25\\]:1\\->0|mie_r\\[26\\]:0\\->1|mie_r\\[26\\]:1\\->0|mie_r\\[27\\]:0\\->1|mie_r\\[27\\]:1\\->0|mie_r\\[28\\]:0\\->1|mie_r\\[28\\]:1\\->0|mie_r\\[29\\]:0\\->1|mie_r\\[29\\]:1\\->0|mie_r\\[2\\]:0\\->1|mie_r\\[2\\]:1\\->0|mie_r\\[30\\]:0\\->1|mie_r\\[30\\]:1\\->0|mie_r\\[31\\]:0\\->1|mie_r\\[31\\]:1\\->0|mie_r\\[3\\]:0\\->1|mie_r\\[3\\]:1\\->0|mie_r\\[4\\]:0\\->1|mie_r\\[4\\]:1\\->0|mie_r\\[5\\]:0\\->1|mie_r\\[5\\]:1\\->0|mie_r\\[6\\]:0\\->1|mie_r\\[6\\]:1\\->0|mie_r\\[8\\]:0\\->1|mie_r\\[8\\]:1\\->0|mie_r\\[9\\]:0\\->1|mie_r\\[9\\]:1\\->0)$"
+category = "constant"
+reason   = "mie is WARL: only MTIE (bit 7) is stored."
+evidence = "PROVEN a_mie_only_mtie (fv_cov); csr_file.v:303 & 32'h0000_0080"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-MTVECBASE-clic_ctrl"
+metric   = "toggle"
+file     = "rtl/core/clic_ctrl.v"
+match    = "^(mtvec_i\\[0\\]:0\\->1|mtvec_i\\[0\\]:1\\->0|mtvec_i\\[1\\]:0\\->1|mtvec_i\\[1\\]:1\\->0|vector_target_o\\[0\\]:0\\->1|vector_target_o\\[0\\]:1\\->0|vector_target_o\\[1\\]:0\\->1|vector_target_o\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "The trap vector is mtvec BASE = {mtvec[31:2], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
+evidence = "literal rtl/core/csr_file.v mtvec_o = {mtvec_r[31:2], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-MTVECBASE-csr_file"
+metric   = "toggle"
+file     = "rtl/core/csr_file.v"
+match    = "^(mtvec_o\\[0\\]:0\\->1|mtvec_o\\[0\\]:1\\->0|mtvec_o\\[1\\]:0\\->1|mtvec_o\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "The trap vector is mtvec BASE = {mtvec[31:2], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
+evidence = "literal rtl/core/csr_file.v mtvec_o = {mtvec_r[31:2], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-MTVECBASE-garuda_core_top"
+metric   = "toggle"
+file     = "rtl/core/garuda_core_top.v"
+match    = "^(clic_vec_target\\[0\\]:0\\->1|clic_vec_target\\[0\\]:1\\->0|clic_vec_target\\[1\\]:0\\->1|clic_vec_target\\[1\\]:1\\->0|csr_mtvec\\[0\\]:0\\->1|csr_mtvec\\[0\\]:1\\->0|csr_mtvec\\[1\\]:0\\->1|csr_mtvec\\[1\\]:1\\->0|tr_redir_t\\[0\\]:0\\->1|tr_redir_t\\[0\\]:1\\->0|tr_redir_t\\[1\\]:0\\->1|tr_redir_t\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "The trap vector is mtvec BASE = {mtvec[31:2], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
+evidence = "literal rtl/core/csr_file.v mtvec_o = {mtvec_r[31:2], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-MTVECBASE-pipe_ctrl"
+metric   = "toggle"
+file     = "rtl/core/pipe_ctrl.v"
+match    = "^(trap_redirect_target_i\\[0\\]:1\\->0|trap_redirect_target_i\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "The trap vector is mtvec BASE = {mtvec[31:2], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
+evidence = "literal rtl/core/csr_file.v mtvec_o = {mtvec_r[31:2], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-MTVECBASE-trap_ctrl"
+metric   = "toggle"
+file     = "rtl/core/trap_ctrl.v"
+match    = "^(clic_vector_target_i\\[0\\]:0\\->1|clic_vector_target_i\\[0\\]:1\\->0|clic_vector_target_i\\[1\\]:0\\->1|clic_vector_target_i\\[1\\]:1\\->0|mtvec_base\\[0\\]:0\\->1|mtvec_base\\[0\\]:1\\->0|mtvec_base\\[1\\]:0\\->1|mtvec_base\\[1\\]:1\\->0|mtvec_i\\[0\\]:0\\->1|mtvec_i\\[0\\]:1\\->0|mtvec_i\\[1\\]:0\\->1|mtvec_i\\[1\\]:1\\->0|trap_redirect_target_o\\[0\\]:0\\->1|trap_redirect_target_o\\[0\\]:1\\->0|trap_redirect_target_o\\[1\\]:0\\->1|trap_redirect_target_o\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "The trap vector is mtvec BASE = {mtvec[31:2], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
+evidence = "literal rtl/core/csr_file.v mtvec_o = {mtvec_r[31:2], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-branch_predict"
+metric   = "toggle"
+file     = "rtl/core/branch_predict.v"
+match    = "^(pc_i\\[0\\]:0\\->1|pc_i\\[0\\]:1\\->0|pc_i\\[1\\]:0\\->1|pc_i\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-branch_unit"
+metric   = "toggle"
+file     = "rtl/core/branch_unit.v"
+match    = "^(fallthrough\\[0\\]:0\\->1|fallthrough\\[0\\]:1\\->0|fallthrough\\[1\\]:0\\->1|fallthrough\\[1\\]:1\\->0|pc\\[0\\]:0\\->1|pc\\[0\\]:1\\->0|pc\\[1\\]:0\\->1|pc\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-csr_file"
+metric   = "toggle"
+file     = "rtl/core/csr_file.v"
+match    = "^(mepc_o\\[0\\]:0\\->1|mepc_o\\[0\\]:1\\->0|mepc_o\\[1\\]:0\\->1|mepc_o\\[1\\]:1\\->0|mepc_r\\[0\\]:0\\->1|mepc_r\\[0\\]:1\\->0|mepc_r\\[1\\]:0\\->1|mepc_r\\[1\\]:1\\->0|trap_pc_i\\[0\\]:0\\->1|trap_pc_i\\[0\\]:1\\->0|trap_pc_i\\[1\\]:0\\->1|trap_pc_i\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-ex_mem"
+metric   = "toggle"
+file     = "rtl/core/ex_mem.v"
+match    = "^(pc_i\\[0\\]:0\\->1|pc_i\\[0\\]:1\\->0|pc_i\\[1\\]:0\\->1|pc_i\\[1\\]:1\\->0|pc_o\\[0\\]:0\\->1|pc_o\\[0\\]:1\\->0|pc_o\\[1\\]:0\\->1|pc_o\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-ex_stage"
+metric   = "toggle"
+file     = "rtl/core/ex_stage.v"
+match    = "^(link\\[0\\]:0\\->1|link\\[0\\]:1\\->0|link\\[1\\]:0\\->1|link\\[1\\]:1\\->0|pc\\[0\\]:0\\->1|pc\\[0\\]:1\\->0|pc\\[1\\]:0\\->1|pc\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-garuda_core_top"
+metric   = "toggle"
+file     = "rtl/core/garuda_core_top.v"
+match    = "^(csr_mepc\\[0\\]:0\\->1|csr_mepc\\[0\\]:1\\->0|csr_mepc\\[1\\]:0\\->1|csr_mepc\\[1\\]:1\\->0|em_pc\\[0\\]:0\\->1|em_pc\\[0\\]:1\\->0|em_pc\\[1\\]:0\\->1|em_pc\\[1\\]:1\\->0|fd_pc\\[0\\]:0\\->1|fd_pc\\[0\\]:1\\->0|fd_pc\\[1\\]:0\\->1|fd_pc\\[1\\]:1\\->0|i_haddr_o\\[0\\]:0\\->1|i_haddr_o\\[0\\]:1\\->0|i_haddr_o\\[1\\]:0\\->1|i_haddr_o\\[1\\]:1\\->0|id_pc\\[0\\]:0\\->1|id_pc\\[0\\]:1\\->0|id_pc\\[1\\]:0\\->1|id_pc\\[1\\]:1\\->0|if_pc\\[0\\]:0\\->1|if_pc\\[0\\]:1\\->0|if_pc\\[1\\]:0\\->1|if_pc\\[1\\]:1\\->0|mem_exc_pc\\[0\\]:0\\->1|mem_exc_pc\\[0\\]:1\\->0|mem_exc_pc\\[1\\]:0\\->1|mem_exc_pc\\[1\\]:1\\->0|tr_pc\\[0\\]:0\\->1|tr_pc\\[0\\]:1\\->0|tr_pc\\[1\\]:0\\->1|tr_pc\\[1\\]:1\\->0|xe_pc\\[0\\]:0\\->1|xe_pc\\[0\\]:1\\->0|xe_pc\\[1\\]:0\\->1|xe_pc\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-garuda_if_stage_top"
+metric   = "toggle"
+file     = "rtl/core/garuda_if_stage_top.v"
+match    = "^(data_pc\\[0\\]:0\\->1|data_pc\\[0\\]:1\\->0|data_pc\\[1\\]:0\\->1|data_pc\\[1\\]:1\\->0|i_haddr_o\\[0\\]:0\\->1|i_haddr_o\\[0\\]:1\\->0|i_haddr_o\\[1\\]:0\\->1|i_haddr_o\\[1\\]:1\\->0|instr_pc_o\\[0\\]:0\\->1|instr_pc_o\\[0\\]:1\\->0|instr_pc_o\\[1\\]:0\\->1|instr_pc_o\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-garuda_iport_ahb_master"
+metric   = "toggle"
+file     = "rtl/core/garuda_iport_ahb_master.v"
+match    = "^(addr_pc\\[0\\]:0\\->1|addr_pc\\[0\\]:1\\->0|addr_pc\\[1\\]:0\\->1|addr_pc\\[1\\]:1\\->0|data_pc_o\\[0\\]:0\\->1|data_pc_o\\[0\\]:1\\->0|data_pc_o\\[1\\]:0\\->1|data_pc_o\\[1\\]:1\\->0|i_haddr_o\\[0\\]:0\\->1|i_haddr_o\\[0\\]:1\\->0|i_haddr_o\\[1\\]:0\\->1|i_haddr_o\\[1\\]:1\\->0|outstanding_pc\\[0\\]:0\\->1|outstanding_pc\\[0\\]:1\\->0|outstanding_pc\\[1\\]:0\\->1|outstanding_pc\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-garuda_pc_gen"
+metric   = "toggle"
+file     = "rtl/core/garuda_pc_gen.v"
+match    = "^(commit_pc_i\\[0\\]:0\\->1|commit_pc_i\\[0\\]:1\\->0|commit_pc_i\\[1\\]:0\\->1|commit_pc_i\\[1\\]:1\\->0|pc_o\\[0\\]:0\\->1|pc_o\\[0\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-garuda_prefetch_buffer"
+metric   = "toggle"
+file     = "rtl/core/garuda_prefetch_buffer.v"
+match    = "^(fifo_pc\\[0\\]\\[0\\]:0\\->1|fifo_pc\\[0\\]\\[0\\]:1\\->0|fifo_pc\\[0\\]\\[1\\]:0\\->1|fifo_pc\\[0\\]\\[1\\]:1\\->0|fifo_pc\\[1\\]\\[0\\]:0\\->1|fifo_pc\\[1\\]\\[0\\]:1\\->0|fifo_pc\\[1\\]\\[1\\]:0\\->1|fifo_pc\\[1\\]\\[1\\]:1\\->0|fifo_pc\\[2\\]\\[0\\]:0\\->1|fifo_pc\\[2\\]\\[0\\]:1\\->0|fifo_pc\\[2\\]\\[1\\]:0\\->1|fifo_pc\\[2\\]\\[1\\]:1\\->0|fifo_pc\\[3\\]\\[0\\]:0\\->1|fifo_pc\\[3\\]\\[0\\]:1\\->0|fifo_pc\\[3\\]\\[1\\]:0\\->1|fifo_pc\\[3\\]\\[1\\]:1\\->0|instr_pc_o\\[0\\]:0\\->1|instr_pc_o\\[0\\]:1\\->0|instr_pc_o\\[1\\]:0\\->1|instr_pc_o\\[1\\]:1\\->0|wr_pc_i\\[0\\]:0\\->1|wr_pc_i\\[0\\]:1\\->0|wr_pc_i\\[1\\]:0\\->1|wr_pc_i\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-id_ex"
+metric   = "toggle"
+file     = "rtl/core/id_ex.v"
+match    = "^(pc_i\\[0\\]:0\\->1|pc_i\\[0\\]:1\\->0|pc_i\\[1\\]:1\\->0|pc_o\\[0\\]:0\\->1|pc_o\\[0\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-id_stage"
+metric   = "toggle"
+file     = "rtl/core/id_stage.v"
+match    = "^(if_id_pc_i\\[0\\]:0\\->1|if_id_pc_i\\[0\\]:1\\->0|if_id_pc_i\\[1\\]:0\\->1|if_id_pc_i\\[1\\]:1\\->0|pc_o\\[0\\]:0\\->1|pc_o\\[0\\]:1\\->0|pc_o\\[1\\]:0\\->1|pc_o\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-if_id"
+metric   = "toggle"
+file     = "rtl/core/if_id.v"
+match    = "^(pc_i\\[0\\]:0\\->1|pc_i\\[0\\]:1\\->0|pc_i\\[1\\]:0\\->1|pc_i\\[1\\]:1\\->0|pc_o\\[0\\]:0\\->1|pc_o\\[0\\]:1\\->0|pc_o\\[1\\]:0\\->1|pc_o\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-mem_stage"
+metric   = "toggle"
+file     = "rtl/core/mem_stage.v"
+match    = "^(mem_exception_pc_o\\[0\\]:0\\->1|mem_exception_pc_o\\[0\\]:1\\->0|mem_exception_pc_o\\[1\\]:0\\->1|mem_exception_pc_o\\[1\\]:1\\->0|pc_i\\[0\\]:0\\->1|pc_i\\[0\\]:1\\->0|pc_i\\[1\\]:0\\->1|pc_i\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCALIGN-trap_ctrl"
+metric   = "toggle"
+file     = "rtl/core/trap_ctrl.v"
+match    = "^(idex_pc_i\\[0\\]:0\\->1|idex_pc_i\\[0\\]:1\\->0|idex_pc_i\\[1\\]:0\\->1|idex_pc_i\\[1\\]:1\\->0|mem_exc_pc_i\\[0\\]:0\\->1|mem_exc_pc_i\\[0\\]:1\\->0|mem_exc_pc_i\\[1\\]:0\\->1|mem_exc_pc_i\\[1\\]:1\\->0|mepc_i\\[0\\]:0\\->1|mepc_i\\[0\\]:1\\->0|mepc_i\\[1\\]:0\\->1|mepc_i\\[1\\]:1\\->0|trap_pc_o\\[0\\]:0\\->1|trap_pc_o\\[0\\]:1\\->0|trap_pc_o\\[1\\]:0\\->1|trap_pc_o\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
+evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCBIT0-branch_predict"
+metric   = "toggle"
+file     = "rtl/core/branch_predict.v"
+match    = "^(branch_target\\[0\\]:0\\->1|branch_target\\[0\\]:1\\->0|id_redirect_target_o\\[0\\]:0\\->1|id_redirect_target_o\\[0\\]:1\\->0|imm_b_i\\[0\\]:0\\->1|imm_b_i\\[0\\]:1\\->0|imm_j_i\\[0\\]:0\\->1|imm_j_i\\[0\\]:1\\->0|jal_target\\[0\\]:0\\->1|jal_target\\[0\\]:1\\->0)$"
+category = "constant"
+reason   = "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
+evidence = "PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCBIT0-branch_unit"
+metric   = "toggle"
+file     = "rtl/core/branch_unit.v"
+match    = "^(jalr_target\\[0\\]:0\\->1|jalr_target\\[0\\]:1\\->0)$"
+category = "constant"
+reason   = "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
+evidence = "PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCBIT0-garuda_core_top"
+metric   = "toggle"
+file     = "rtl/core/garuda_core_top.v"
+match    = "^(id_redir_t\\[0\\]:0\\->1|id_redir_t\\[0\\]:1\\->0|pc_if_redir_pc\\[0\\]:0\\->1|pc_if_redir_pc\\[0\\]:1\\->0)$"
+category = "constant"
+reason   = "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
+evidence = "PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCBIT0-garuda_if_stage_top"
+metric   = "toggle"
+file     = "rtl/core/garuda_if_stage_top.v"
+match    = "^(fetch_pc\\[0\\]:0\\->1|fetch_pc\\[0\\]:1\\->0|redirect_pc_i\\[0\\]:0\\->1|redirect_pc_i\\[0\\]:1\\->0)$"
+category = "constant"
+reason   = "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
+evidence = "PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCBIT0-garuda_iport_ahb_master"
+metric   = "toggle"
+file     = "rtl/core/garuda_iport_ahb_master.v"
+match    = "^(fetch_pc_i\\[0\\]:0\\->1|fetch_pc_i\\[0\\]:1\\->0)$"
+category = "constant"
+reason   = "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
+evidence = "PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCBIT0-garuda_pc_gen"
+metric   = "toggle"
+file     = "rtl/core/garuda_pc_gen.v"
+match    = "^(fetch_pc_o\\[0\\]:0\\->1|fetch_pc_o\\[0\\]:1\\->0|redirect_pc_i\\[0\\]:0\\->1|redirect_pc_i\\[0\\]:1\\->0)$"
+category = "constant"
+reason   = "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
+evidence = "PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCBIT0-id_stage"
+metric   = "toggle"
+file     = "rtl/core/id_stage.v"
+match    = "^(id_redirect_target_o\\[0\\]:0\\->1|id_redirect_target_o\\[0\\]:1\\->0|imm_b_w\\[0\\]:0\\->1|imm_b_w\\[0\\]:1\\->0|imm_j_w\\[0\\]:0\\->1|imm_j_w\\[0\\]:1\\->0)$"
+category = "constant"
+reason   = "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
+evidence = "PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCBIT0-imm_gen"
+metric   = "toggle"
+file     = "rtl/core/imm_gen.v"
+match    = "^(imm_b_f\\[0\\]:0\\->1|imm_b_f\\[0\\]:1\\->0|imm_b_o\\[0\\]:0\\->1|imm_b_o\\[0\\]:1\\->0|imm_j_f\\[0\\]:0\\->1|imm_j_f\\[0\\]:1\\->0|imm_j_o\\[0\\]:0\\->1|imm_j_o\\[0\\]:1\\->0)$"
+category = "constant"
+reason   = "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
+evidence = "PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-PCBIT0-pipe_ctrl"
+metric   = "toggle"
+file     = "rtl/core/pipe_ctrl.v"
+match    = "^(id_redirect_target_i\\[0\\]:1\\->0)$"
+category = "constant"
+reason   = "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
+evidence = "PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37"
+reviewer = "pending: Sreyesh"
+

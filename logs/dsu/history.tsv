@@ -1,0 +1,388 @@
+date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
+2026-10-11T02:43:53+05:30	b90b481d8f91	False	model	tb_dsu_top	1	FAIL	UNEXPECTED	pass marker missing; 10 [FAIL] line(s); missing: /tests compared *: *445\b/; missing: /mismatches *: *0\b/ | first: [FAIL] test 445  acc_FX: got 00009708808e expected 000000000000  (instr=00000000 rs1
+2026-10-11T02:44:51+05:30	b90b481d8f91	False	model	tb_dsu_top	1	FAIL	UNEXPECTED	pass marker missing; 10 [FAIL] line(s); missing: /tests compared *: *445\b/; missing: /mismatches *: *0\b/ | first: [FAIL] test 445  acc_FX: got 00009708808e expected 000000000000  (instr=00000000 rs1
+2026-10-11T02:44:51+05:30	b90b481d8f91	False	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T02:46:12+05:30	b90b481d8f91	False	model	tb_dsu_top	1	FAIL	XFAIL:TB-35	pass marker missing; 10 [FAIL] line(s); missing: /tests compared *: *445\b/; missing: /mismatches *: *0\b/ | first: [FAIL] test 445  acc_FX: got 00009708808e expected 000000000000  (instr=00000000 rs1
+2026-10-11T02:46:12+05:30	b90b481d8f91	False	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T03:02:10+05:30	b90b481d8f91	False	model	tb_dsu_top	1	FAIL	XFAIL:TB-35	pass marker missing; 10 [FAIL] line(s); missing: /tests compared *: *445\b/; missing: /mismatches *: *0\b/ | first: [FAIL] test 445  acc_FX: got 00009708808e expected 000000000000  (instr=00000000 rs1
+2026-10-11T03:02:10+05:30	b90b481d8f91	False	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T09:11:09+05:30	b90b481d8f91	True	model	tb_dsu_top	1	FAIL	XFAIL:TB-35	pass marker missing; 10 [FAIL] line(s); missing: /tests compared *: *445\b/; missing: /mismatches *: *0\b/ | first: [FAIL] test 445  acc_FX: got 00009708808e expected 000000000000  (instr=00000000 rs1
+2026-10-11T09:11:09+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T09:27:29+05:30	b90b481d8f91	True	model	tb_dsu_top	1	FAIL	XFAIL:TB-35	pass marker missing; 10 [FAIL] line(s); missing: /tests compared *: *445\b/; missing: /mismatches *: *0\b/ | first: [FAIL] test 445  acc_FX: got 00009708808e expected 000000000000  (instr=00000000 rs1
+2026-10-11T09:27:29+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T09:32:42+05:30	b90b481d8f91	True	model	tb_dsu_top	1	FAIL	XFAIL:TB-35	pass marker missing; 10 [FAIL] line(s); missing: /tests compared *: *445\b/; missing: /mismatches *: *0\b/ | first: [FAIL] test 445  acc_FX: got 00009708808e expected 000000000000  (instr=00000000 rs1
+2026-10-11T09:32:42+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T09:53:55+05:30	b90b481d8f91	True	model	tb_dsu_top	1	FAIL	XFAIL:TB-35	pass marker missing; 10 [FAIL] line(s); missing: /tests compared *: *445\b/; missing: /mismatches *: *0\b/ | first: [FAIL] test 445  acc_FX: got 00009708808e expected 000000000000  (instr=00000000 rs1
+2026-10-11T09:53:55+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T13:53:13+05:30	b90b481d8f91	True	model	tb_dsu_top	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/dsu/tb_dsu_top.sv:127:5: Unknown verilator comment: '/*verilator , which then read 40960 records past the 445 real ones.*/'
+2026-10-11T13:53:13+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T13:53:23+05:30	b90b481d8f91	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-11T13:53:23+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T13:56:31+05:30	b90b481d8f91	True	model.cov	tb_dsu_top	1	PASS	OK	
+2026-10-11T14:04:42+05:30	b90b481d8f91	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-11T14:04:42+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T14:04:42+05:30	b90b481d8f91	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-11T14:17:15+05:30	b90b481d8f91	True	model.cov	tb_dsu_top	1	PASS	OK	
+2026-10-11T14:17:15+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-11T14:29:36+05:30	b90b481d8f91	True	model.cov	tb_dsu_top	1	PASS	OK	
+2026-10-11T14:29:36+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-11T14:44:04+05:30	b90b481d8f91	True	model.cov	tb_dsu_top	1	PASS	OK	
+2026-10-11T14:44:04+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-11T14:50:42+05:30	b90b481d8f91	True	model.cov	tb_dsu_top	1	PASS	OK	
+2026-10-11T14:50:42+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-11T14:55:59+05:30	b90b481d8f91	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-11T14:55:59+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T14:55:59+05:30	b90b481d8f91	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-11T19:07:57+05:30	b90b481d8f91	True	model	tb_dsu_top	1	FAIL	UNEXPECTED	7 [FAIL] line(s); 7 assertion failure(s) | first: [825000] %Error: dsu_sva.sv:113: Assertion failed in tb_dsu_top.dut.u_dsu_sva.a_inert_when_disabled: [SVA-FAIL] DSU F14: the DSU acted with 
+2026-10-11T19:07:57+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	BLOCKED	UNEXPECTED	rc=19, binary missing
+2026-10-11T19:07:57+05:30	b90b481d8f91	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-11T19:08:18+05:30	b90b481d8f91	True	model	tb_dsu_top	1	FAIL	UNEXPECTED	7 [FAIL] line(s); 7 assertion failure(s) | first: [825000] %Error: dsu_sva.sv:114: Assertion failed in tb_dsu_top.dut.u_dsu_sva.a_inert_when_disabled: [SVA-FAIL] DSU F14: the DSU acted with 
+2026-10-11T19:08:41+05:30	b90b481d8f91	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-11T19:08:41+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T19:08:41+05:30	b90b481d8f91	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-11T19:09:59+05:30	b90b481d8f91	True	fv_dsu	dsu_bmc	-	BOUNDED(16)	OK	[18 asserts, 9 covers in model] 
+2026-10-11T19:09:59+05:30	b90b481d8f91	True	fv_dsu	dsu_prove	-	PROVEN	OK	[18 asserts, 9 covers in model] 
+2026-10-11T19:09:59+05:30	b90b481d8f91	True	fv_dsu	dsu_cover	-	UNREACHED(3)	UNEXPECTED	[18 asserts, 9 covers in model] u_cluster.u_mac0.u_mac_sva.c_overflow u_cluster.u_mac1.u_mac_sva.c_overflow u_cluster.u_mac2.u_mac_sva.c_overflow
+2026-10-11T19:09:59+05:30	b90b481d8f91	True	fv_dsu	dsu_no_dsu9	-	FAIL	XFAIL:PLANTED	[18 asserts, 9 covers in model] props: u_dsu_sva.a_interlock_per_acc
+2026-10-11T19:10:45+05:30	b90b481d8f91	True	fv_dsu	dsu_bmc	-	BOUNDED(16)	OK	[18 asserts, 6 covers in model] 
+2026-10-11T19:10:45+05:30	b90b481d8f91	True	fv_dsu	dsu_prove	-	PROVEN	OK	[18 asserts, 6 covers in model] 
+2026-10-11T19:10:45+05:30	b90b481d8f91	True	fv_dsu	dsu_cover	-	COVERED	OK	[18 asserts, 6 covers in model] 
+2026-10-11T19:10:45+05:30	b90b481d8f91	True	fv_dsu	dsu_no_dsu9	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_sva.a_interlock_per_acc
+2026-10-11T19:57:19+05:30	b90b481d8f91	True	dsu_mut	mut_shift_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] test 25  rd_data: got 000000000001 expected 0000ffffffff  (instr=06f0178b rs1=00000000 rs2=00000000)
+2026-10-11T19:57:19+05:30	b90b481d8f91	True	dsu_mut	mut_rdhi_zext	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 87  rd_data: got 00000000ffff expected 0000ffffffff  (instr=4400078b rs1=ffff8001 rs2=00ff0000)
+2026-10-11T19:57:19+05:30	b90b481d8f91	True	dsu_mut	mut_dot_hi_is_lo	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 3  acc_MAG: got 00000000001b expected 000000000017  (instr=1c00000b rs1=00020003 rs2=00040005)
+2026-10-11T19:57:19+05:30	b90b481d8f91	True	dsu_mut	mut_no_interlock	1	PASS	XPASS:PLANTED	
+2026-10-11T19:57:19+05:30	b90b481d8f91	True	dsu_mut	mut_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 0  acc_FX: got 000000000000 expected 00000000000c  (instr=0000000b rs1=00000003 rs2=00000004)
+2026-10-11T19:57:19+05:30	b90b481d8f91	True	dsu_mut	mut_sat_no_ovf	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 20  overflow: got 000000000000 expected 000000000001  (instr=3800008b rs1=00000000 rs2=00000000)
+2026-10-11T19:57:19+05:30	b90b481d8f91	True	dsu_mut	mut_ovf_not_sticky	1	PASS	XPASS:PLANTED	
+2026-10-11T19:57:19+05:30	b90b481d8f91	True	dsu_mut	mut_ovf_clear_drops_set	1	PASS	XPASS:PLANTED	
+2026-10-11T19:58:07+05:30	b90b481d8f91	True	dsu_mut	mut_no_interlock	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [213000] %Error: dsu_sva.sv:130: Assertion failed in tb_boot.dut.u_ex.u_dsu.u_dsu_sva.a_interlock_fires
+2026-10-11T19:58:07+05:30	b90b481d8f91	True	dsu_mut	mut_ovf_not_sticky	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [723000] %Error: dsu_sva.sv:137: Assertion failed in tb_boot.dut.u_ex.u_dsu.u_dsu_sva.a_ovf_sticky: [SV
+2026-10-11T19:58:07+05:30	b90b481d8f91	True	dsu_mut	mut_ovf_clear_drops_set	1	PASS	XPASS:PLANTED	
+2026-10-11T20:02:20+05:30	b90b481d8f91	True	fv_dsu	dsu_bmc	-	BOUNDED(16)	OK	[18 asserts, 6 covers in model] 
+2026-10-11T20:02:20+05:30	b90b481d8f91	True	fv_dsu	dsu_prove	-	PROVEN	OK	[18 asserts, 6 covers in model] 
+2026-10-11T20:02:20+05:30	b90b481d8f91	True	fv_dsu	dsu_cover	-	COVERED	OK	[18 asserts, 6 covers in model] 
+2026-10-11T20:02:20+05:30	b90b481d8f91	True	fv_dsu	dsu_no_dsu9	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_sva.a_interlock_per_acc
+2026-10-11T20:02:20+05:30	b90b481d8f91	True	fv_dsu	dsu_mut_no_interlock	-	FAIL	XFAIL:PLANTED	[16 asserts, 6 covers in model] props: u_dsu_sva.a_interlock_fires
+2026-10-11T20:02:20+05:30	b90b481d8f91	True	fv_dsu	dsu_mut_ovf_not_sticky	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_sva.a_ovf_sticky
+2026-10-11T20:02:20+05:30	b90b481d8f91	True	fv_dsu	dsu_mut_ovf_clear_drops_set	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_sva.a_ovf_set_beats_clear
+2026-10-11T20:02:33+05:30	b90b481d8f91	True	dsu_mut	mut_shift_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] test 25  rd_data: got 000000000001 expected 0000ffffffff  (instr=06f0178b rs1=00000000 rs2=00000000)
+2026-10-11T20:02:33+05:30	b90b481d8f91	True	dsu_mut	mut_rdhi_zext	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 87  rd_data: got 00000000ffff expected 0000ffffffff  (instr=4400078b rs1=ffff8001 rs2=00ff0000)
+2026-10-11T20:02:33+05:30	b90b481d8f91	True	dsu_mut	mut_dot_hi_is_lo	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 3  acc_MAG: got 00000000001b expected 000000000017  (instr=1c00000b rs1=00020003 rs2=00040005)
+2026-10-11T20:02:33+05:30	b90b481d8f91	True	dsu_mut	mut_no_interlock	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [213000] %Error: dsu_sva.sv:130: Assertion failed in tb_boot.dut.u_ex.u_dsu.u_dsu_sva.a_interlock_fires
+2026-10-11T20:02:33+05:30	b90b481d8f91	True	dsu_mut	mut_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 0  acc_FX: got 000000000000 expected 00000000000c  (instr=0000000b rs1=00000003 rs2=00000004)
+2026-10-11T20:02:33+05:30	b90b481d8f91	True	dsu_mut	mut_sat_no_ovf	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 20  overflow: got 000000000000 expected 000000000001  (instr=3800008b rs1=00000000 rs2=00000000)
+2026-10-11T20:02:33+05:30	b90b481d8f91	True	dsu_mut	mut_ovf_not_sticky	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [723000] %Error: dsu_sva.sv:137: Assertion failed in tb_boot.dut.u_ex.u_dsu.u_dsu_sva.a_ovf_sticky: [SV
+2026-10-11T20:17:51+05:30	b90b481d8f91	True	units	tb_dsu_barrel_shifter	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:17:51+05:30	b90b481d8f91	True	units	tb_dsu_csa_3to2	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:17:51+05:30	b90b481d8f91	True	units	tb_dsu_decoder	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:17:51+05:30	b90b481d8f91	True	units	tb_dsu_kogge_stone_49	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:17:51+05:30	b90b481d8f91	True	units	tb_dsu_mac_cluster	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:17:51+05:30	b90b481d8f91	True	units	tb_dsu_mac_unit	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:17:51+05:30	b90b481d8f91	True	units	tb_dsu_mult_16x16	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:17:51+05:30	b90b481d8f91	True	units	tb_dsu_operand_router	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:17:51+05:30	b90b481d8f91	True	units	tb_dsu_overflow_flag	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:17:51+05:30	b90b481d8f91	True	units	tb_dsu_readback_mux	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:17:51+05:30	b90b481d8f91	True	units	tb_dsu_result_selector	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:17:51+05:30	b90b481d8f91	True	units	tb_dsu_saturation_unit	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:17:51+05:30	b90b481d8f91	True	units	tb_dsu_stall	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:18:08+05:30	b90b481d8f91	True	units	tb_dsu_barrel_shifter	1	BLOCKED	UNEXPECTED	rc=2, binary missing
+2026-10-11T20:18:08+05:30	b90b481d8f91	True	units	tb_dsu_csa_3to2	1	BLOCKED	UNEXPECTED	rc=2, binary missing
+2026-10-11T20:18:08+05:30	b90b481d8f91	True	units	tb_dsu_decoder	1	BLOCKED	UNEXPECTED	rc=2, binary missing
+2026-10-11T20:18:08+05:30	b90b481d8f91	True	units	tb_dsu_kogge_stone_49	1	BLOCKED	UNEXPECTED	rc=2, binary missing
+2026-10-11T20:18:08+05:30	b90b481d8f91	True	units	tb_dsu_mac_cluster	1	BLOCKED	UNEXPECTED	rc=2, binary missing
+2026-10-11T20:18:08+05:30	b90b481d8f91	True	units	tb_dsu_mac_unit	1	BLOCKED	UNEXPECTED	rc=2, binary missing
+2026-10-11T20:18:08+05:30	b90b481d8f91	True	units	tb_dsu_mult_16x16	1	BLOCKED	UNEXPECTED	rc=2, binary missing
+2026-10-11T20:18:08+05:30	b90b481d8f91	True	units	tb_dsu_operand_router	1	BLOCKED	UNEXPECTED	rc=2, binary missing
+2026-10-11T20:18:08+05:30	b90b481d8f91	True	units	tb_dsu_overflow_flag	1	BLOCKED	UNEXPECTED	rc=2, binary missing
+2026-10-11T20:18:08+05:30	b90b481d8f91	True	units	tb_dsu_readback_mux	1	BLOCKED	UNEXPECTED	rc=2, binary missing
+2026-10-11T20:18:08+05:30	b90b481d8f91	True	units	tb_dsu_result_selector	1	BLOCKED	UNEXPECTED	rc=2, binary missing
+2026-10-11T20:18:08+05:30	b90b481d8f91	True	units	tb_dsu_saturation_unit	1	BLOCKED	UNEXPECTED	rc=2, binary missing
+2026-10-11T20:18:08+05:30	b90b481d8f91	True	units	tb_dsu_stall	1	BLOCKED	UNEXPECTED	rc=2, binary missing
+2026-10-11T20:18:23+05:30	b90b481d8f91	True	units	tb_dsu_barrel_shifter	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:18:23+05:30	b90b481d8f91	True	units	tb_dsu_csa_3to2	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:18:23+05:30	b90b481d8f91	True	units	tb_dsu_decoder	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:18:23+05:30	b90b481d8f91	True	units	tb_dsu_kogge_stone_49	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:18:23+05:30	b90b481d8f91	True	units	tb_dsu_mac_cluster	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:18:23+05:30	b90b481d8f91	True	units	tb_dsu_mac_unit	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:18:23+05:30	b90b481d8f91	True	units	tb_dsu_mult_16x16	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:18:23+05:30	b90b481d8f91	True	units	tb_dsu_operand_router	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:18:23+05:30	b90b481d8f91	True	units	tb_dsu_overflow_flag	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:18:23+05:30	b90b481d8f91	True	units	tb_dsu_readback_mux	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:18:23+05:30	b90b481d8f91	True	units	tb_dsu_result_selector	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:18:23+05:30	b90b481d8f91	True	units	tb_dsu_saturation_unit	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:18:23+05:30	b90b481d8f91	True	units	tb_dsu_stall	1	BLOCKED	UNEXPECTED	%Error: Verilator internal fault, sorry. Suggest trying --debug --gdbbt
+2026-10-11T20:20:59+05:30	b90b481d8f91	True	units	tb_dsu_barrel_shifter	1	FAIL	UNEXPECTED	pass marker missing; 315 [FAIL] line(s) | first: [FAIL] dir_arith_right_past48_neg cluster_out=ffffffffffff shift_amt=48 shift_dir=0 -> got=ffffffff exp=0
+2026-10-11T20:20:59+05:30	b90b481d8f91	True	units	tb_dsu_csa_3to2	1	PASS	OK	
+2026-10-11T20:20:59+05:30	b90b481d8f91	True	units	tb_dsu_decoder	1	FAIL	UNEXPECTED	pass marker missing; 355 [FAIL] line(s) | first: [FAIL] EXH_f54_f31_ic01_acc0          instr=2000100b dsu_en=1 flush=0 -> got(ctrl=0       acc=0  sat=0 shift=0 amt=0 dir=0 sacc=0  lo=0 hi=0
+2026-10-11T20:20:59+05:30	b90b481d8f91	True	units	tb_dsu_kogge_stone_49	1	PASS	OK	
+2026-10-11T20:20:59+05:30	b90b481d8f91	True	units	tb_dsu_mac_cluster	1	FAIL	UNEXPECTED	pass marker missing; 1501 [FAIL] line(s) | first: [FAIL] dir_idle2            rs1=00000000 rs2=00000000 control=0000000 acc_sel=00 sat_en=0 rst_n=1 -> got(co=1e           ovf=0   d0=1e      
+2026-10-11T20:20:59+05:30	b90b481d8f91	True	units	tb_dsu_mac_unit	1	FAIL	UNEXPECTED	pass marker missing; 1158 [FAIL] line(s) | first: [FAIL] #3 dir_settle2              rs1=00000000 rs2=00000000 en=0 add_sub=0 clear=0 load=0 abs=0 dot=0 flush=0 sat_en=0 rst_n=1 -> got(out=2
+2026-10-11T20:20:59+05:30	b90b481d8f91	True	units	tb_dsu_mult_16x16	1	PASS	OK	
+2026-10-11T20:20:59+05:30	b90b481d8f91	True	units	tb_dsu_operand_router	1	PASS	OK	
+2026-10-11T20:20:59+05:30	b90b481d8f91	True	units	tb_dsu_overflow_flag	1	FAIL	UNEXPECTED	pass marker missing; 355 [FAIL] line(s); 118 assertion failure(s) | first: [FAIL] dir_settle_after_priority    mac_ovf=000 sat_ovf=0 clr=0 rst_n=1 -> got=1 exp=0
+2026-10-11T20:20:59+05:30	b90b481d8f91	True	units	tb_dsu_readback_mux	1	PASS	OK	
+2026-10-11T20:20:59+05:30	b90b481d8f91	True	units	tb_dsu_result_selector	1	PASS	OK	
+2026-10-11T20:20:59+05:30	b90b481d8f91	True	units	tb_dsu_saturation_unit	1	PASS	OK	
+2026-10-11T20:20:59+05:30	b90b481d8f91	True	units	tb_dsu_stall	1	FAIL	UNEXPECTED	pass marker missing; 105 [FAIL] line(s) | first: [FAIL] seq=FINDING1_compute_0_then_read_same_acc  cyc=1 op=OP_RD_LO       acc_sel=1 flush=0 rst_n=1 -> got=1 exp=0
+2026-10-11T20:23:06+05:30	b90b481d8f91	True	units	tb_dsu_barrel_shifter	1	FAIL	XFAIL:TB-43	pass marker missing; 315 [FAIL] line(s) | first: [FAIL] dir_arith_right_past48_neg cluster_out=ffffffffffff shift_amt=48 shift_dir=0 -> got=ffffffff exp=0
+2026-10-11T20:23:06+05:30	b90b481d8f91	True	units	tb_dsu_csa_3to2	1	PASS	OK	
+2026-10-11T20:23:06+05:30	b90b481d8f91	True	units	tb_dsu_decoder	1	FAIL	XFAIL:TB-43	pass marker missing; 355 [FAIL] line(s) | first: [FAIL] EXH_f54_f31_ic01_acc0          instr=2000100b dsu_en=1 flush=0 -> got(ctrl=0       acc=0  sat=0 shift=0 amt=0 dir=0 sacc=0  lo=0 hi=0
+2026-10-11T20:23:06+05:30	b90b481d8f91	True	units	tb_dsu_kogge_stone_49	1	PASS	OK	
+2026-10-11T20:23:06+05:30	b90b481d8f91	True	units	tb_dsu_mac_cluster	1	FAIL	XFAIL:TB-43	pass marker missing; 1501 [FAIL] line(s) | first: [FAIL] dir_idle2            rs1=00000000 rs2=00000000 control=0000000 acc_sel=00 sat_en=0 rst_n=1 -> got(co=1e           ovf=0   d0=1e      
+2026-10-11T20:23:06+05:30	b90b481d8f91	True	units	tb_dsu_mac_unit	1	FAIL	XFAIL:TB-43	pass marker missing; 1158 [FAIL] line(s) | first: [FAIL] #3 dir_settle2              rs1=00000000 rs2=00000000 en=0 add_sub=0 clear=0 load=0 abs=0 dot=0 flush=0 sat_en=0 rst_n=1 -> got(out=2
+2026-10-11T20:23:06+05:30	b90b481d8f91	True	units	tb_dsu_mult_16x16	1	PASS	OK	
+2026-10-11T20:23:06+05:30	b90b481d8f91	True	units	tb_dsu_operand_router	1	PASS	OK	
+2026-10-11T20:23:06+05:30	b90b481d8f91	True	units	tb_dsu_overflow_flag	1	FAIL	XFAIL:TB-43	pass marker missing; 355 [FAIL] line(s); 118 assertion failure(s) | first: [FAIL] dir_settle_after_priority    mac_ovf=000 sat_ovf=0 clr=0 rst_n=1 -> got=1 exp=0
+2026-10-11T20:23:06+05:30	b90b481d8f91	True	units	tb_dsu_readback_mux	1	PASS	OK	
+2026-10-11T20:23:06+05:30	b90b481d8f91	True	units	tb_dsu_result_selector	1	PASS	OK	
+2026-10-11T20:23:06+05:30	b90b481d8f91	True	units	tb_dsu_saturation_unit	1	PASS	OK	
+2026-10-11T20:23:06+05:30	b90b481d8f91	True	units	tb_dsu_stall	1	FAIL	XFAIL:TB-43	pass marker missing; 105 [FAIL] line(s) | first: [FAIL] seq=FINDING1_compute_0_then_read_same_acc  cyc=1 op=OP_RD_LO       acc_sel=1 flush=0 rst_n=1 -> got=1 exp=0
+2026-10-11T21:01:22+05:30	b90b481d8f91	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-11T21:01:22+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T21:01:22+05:30	b90b481d8f91	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-11T21:13:34+05:30	b90b481d8f91	True	dsu_mut	mut_shift_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] test 25  rd_data: got 000000000001 expected 0000ffffffff  (instr=06f0178b rs1=00000000 rs2=00000000)
+2026-10-11T21:13:34+05:30	b90b481d8f91	True	dsu_mut	mut_rdhi_zext	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 87  rd_data: got 00000000ffff expected 0000ffffffff  (instr=4400078b rs1=ffff8001 rs2=00ff0000)
+2026-10-11T21:13:34+05:30	b90b481d8f91	True	dsu_mut	mut_dot_hi_is_lo	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 3  acc_MAG: got 00000000001b expected 000000000017  (instr=1c00000b rs1=00020003 rs2=00040005)
+2026-10-11T21:13:34+05:30	b90b481d8f91	True	dsu_mut	mut_no_interlock	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [213000] %Error: dsu_sva.sv:130: Assertion failed in tb_boot.dut.u_ex.u_dsu.u_dsu_sva.a_interlock_fires
+2026-10-11T21:13:34+05:30	b90b481d8f91	True	dsu_mut	mut_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 0  acc_FX: got 000000000000 expected 00000000000c  (instr=0000000b rs1=00000003 rs2=00000004)
+2026-10-11T21:13:34+05:30	b90b481d8f91	True	dsu_mut	mut_sat_no_ovf	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 20  overflow: got 000000000000 expected 000000000001  (instr=3800008b rs1=00000000 rs2=00000000)
+2026-10-11T21:13:34+05:30	b90b481d8f91	True	dsu_mut	mut_ovf_not_sticky	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [723000] %Error: dsu_sva.sv:137: Assertion failed in tb_boot.dut.u_ex.u_dsu.u_dsu_sva.a_ovf_sticky: [SV
+2026-10-11T21:14:10+05:30	b90b481d8f91	True	units	tb_dsu_barrel_shifter	1	FAIL	XFAIL:TB-43	pass marker missing; 315 [FAIL] line(s) | first: [FAIL] dir_arith_right_past48_neg cluster_out=ffffffffffff shift_amt=48 shift_dir=0 -> got=ffffffff exp=0
+2026-10-11T21:14:10+05:30	b90b481d8f91	True	units	tb_dsu_csa_3to2	1	PASS	OK	
+2026-10-11T21:14:10+05:30	b90b481d8f91	True	units	tb_dsu_decoder	1	FAIL	XFAIL:TB-43	pass marker missing; 355 [FAIL] line(s) | first: [FAIL] EXH_f54_f31_ic01_acc0          instr=2000100b dsu_en=1 flush=0 -> got(ctrl=0       acc=0  sat=0 shift=0 amt=0 dir=0 sacc=0  lo=0 hi=0
+2026-10-11T21:14:10+05:30	b90b481d8f91	True	units	tb_dsu_kogge_stone_49	1	PASS	OK	
+2026-10-11T21:14:10+05:30	b90b481d8f91	True	units	tb_dsu_mac_cluster	1	FAIL	XFAIL:TB-43	pass marker missing; 1501 [FAIL] line(s) | first: [FAIL] dir_idle2            rs1=00000000 rs2=00000000 control=0000000 acc_sel=00 sat_en=0 rst_n=1 -> got(co=1e           ovf=0   d0=1e      
+2026-10-11T21:14:10+05:30	b90b481d8f91	True	units	tb_dsu_mac_unit	1	FAIL	XFAIL:TB-43	pass marker missing; 1158 [FAIL] line(s) | first: [FAIL] #3 dir_settle2              rs1=00000000 rs2=00000000 en=0 add_sub=0 clear=0 load=0 abs=0 dot=0 flush=0 sat_en=0 rst_n=1 -> got(out=2
+2026-10-11T21:14:10+05:30	b90b481d8f91	True	units	tb_dsu_mult_16x16	1	PASS	OK	
+2026-10-11T21:14:10+05:30	b90b481d8f91	True	units	tb_dsu_operand_router	1	PASS	OK	
+2026-10-11T21:14:10+05:30	b90b481d8f91	True	units	tb_dsu_overflow_flag	1	FAIL	XFAIL:TB-43	pass marker missing; 355 [FAIL] line(s); 118 assertion failure(s) | first: [FAIL] dir_settle_after_priority    mac_ovf=000 sat_ovf=0 clr=0 rst_n=1 -> got=1 exp=0
+2026-10-11T21:14:10+05:30	b90b481d8f91	True	units	tb_dsu_readback_mux	1	PASS	OK	
+2026-10-11T21:14:10+05:30	b90b481d8f91	True	units	tb_dsu_result_selector	1	PASS	OK	
+2026-10-11T21:14:10+05:30	b90b481d8f91	True	units	tb_dsu_saturation_unit	1	PASS	OK	
+2026-10-11T21:14:10+05:30	b90b481d8f91	True	units	tb_dsu_stall	1	FAIL	XFAIL:TB-43	pass marker missing; 105 [FAIL] line(s) | first: [FAIL] seq=FINDING1_compute_0_then_read_same_acc  cyc=1 op=OP_RD_LO       acc_sel=1 flush=0 rst_n=1 -> got=1 exp=0
+2026-10-11T21:14:49+05:30	b90b481d8f91	True	fv_dsu	dsu_bmc	-	BOUNDED(16)	OK	[18 asserts, 6 covers in model] 
+2026-10-11T21:14:49+05:30	b90b481d8f91	True	fv_dsu	dsu_prove	-	PROVEN	OK	[18 asserts, 6 covers in model] 
+2026-10-11T21:14:49+05:30	b90b481d8f91	True	fv_dsu	dsu_cover	-	COVERED	OK	[18 asserts, 6 covers in model] 
+2026-10-11T21:14:49+05:30	b90b481d8f91	True	fv_dsu	dsu_no_dsu9	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_sva.a_interlock_per_acc
+2026-10-11T21:14:49+05:30	b90b481d8f91	True	fv_dsu	dsu_mut_no_interlock	-	FAIL	XFAIL:PLANTED	[16 asserts, 6 covers in model] props: u_dsu_sva.a_interlock_fires
+2026-10-11T21:14:49+05:30	b90b481d8f91	True	fv_dsu	dsu_mut_ovf_not_sticky	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_sva.a_ovf_sticky
+2026-10-11T21:14:49+05:30	b90b481d8f91	True	fv_dsu	dsu_mut_ovf_clear_drops_set	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_sva.a_ovf_set_beats_clear
+2026-10-11T21:19:21+05:30	b90b481d8f91	True	model.cov	tb_dsu_top	1	PASS	OK	
+2026-10-11T21:19:21+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-11T21:55:55+05:30	b90b481d8f91	True	units	tb_dsu_barrel_shifter	1	FAIL	XFAIL:TB-43	pass marker missing; 315 [FAIL] line(s) | first: [FAIL] dir_arith_right_past48_neg cluster_out=ffffffffffff shift_amt=48 shift_dir=0 -> got=ffffffff exp=0
+2026-10-11T21:55:55+05:30	b90b481d8f91	True	units	tb_dsu_csa_3to2	1	PASS	OK	
+2026-10-11T21:55:55+05:30	b90b481d8f91	True	units	tb_dsu_decoder	1	FAIL	XFAIL:TB-43	pass marker missing; 355 [FAIL] line(s) | first: [FAIL] EXH_f54_f31_ic01_acc0          instr=2000100b dsu_en=1 flush=0 -> got(ctrl=0       acc=0  sat=0 shift=0 amt=0 dir=0 sacc=0  lo=0 hi=0
+2026-10-11T21:55:55+05:30	b90b481d8f91	True	units	tb_dsu_kogge_stone_49	1	PASS	OK	
+2026-10-11T21:55:55+05:30	b90b481d8f91	True	units	tb_dsu_mac_cluster	1	FAIL	XFAIL:TB-43	pass marker missing; 1501 [FAIL] line(s) | first: [FAIL] dir_idle2            rs1=00000000 rs2=00000000 control=0000000 acc_sel=00 sat_en=0 rst_n=1 -> got(co=1e           ovf=0   d0=1e      
+2026-10-11T21:55:55+05:30	b90b481d8f91	True	units	tb_dsu_mac_unit	1	FAIL	XFAIL:TB-43	pass marker missing; 1158 [FAIL] line(s) | first: [FAIL] #3 dir_settle2              rs1=00000000 rs2=00000000 en=0 add_sub=0 clear=0 load=0 abs=0 dot=0 flush=0 sat_en=0 rst_n=1 -> got(out=2
+2026-10-11T21:55:55+05:30	b90b481d8f91	True	units	tb_dsu_mult_16x16	1	PASS	OK	
+2026-10-11T21:55:55+05:30	b90b481d8f91	True	units	tb_dsu_operand_router	1	PASS	OK	
+2026-10-11T21:55:55+05:30	b90b481d8f91	True	units	tb_dsu_overflow_flag	1	FAIL	XFAIL:TB-43	pass marker missing; 355 [FAIL] line(s); 118 assertion failure(s) | first: [FAIL] dir_settle_after_priority    mac_ovf=000 sat_ovf=0 clr=0 rst_n=1 -> got=1 exp=0
+2026-10-11T21:55:55+05:30	b90b481d8f91	True	units	tb_dsu_readback_mux	1	PASS	OK	
+2026-10-11T21:55:55+05:30	b90b481d8f91	True	units	tb_dsu_result_selector	1	PASS	OK	
+2026-10-11T21:55:55+05:30	b90b481d8f91	True	units	tb_dsu_saturation_unit	1	PASS	OK	
+2026-10-11T21:55:55+05:30	b90b481d8f91	True	units	tb_dsu_stall	1	FAIL	XFAIL:TB-43	pass marker missing; 105 [FAIL] line(s) | first: [FAIL] seq=FINDING1_compute_0_then_read_same_acc  cyc=1 op=OP_RD_LO       acc_sel=1 flush=0 rst_n=1 -> got=1 exp=0
+2026-10-11T22:10:38+05:30	b90b481d8f91	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-11T22:10:38+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-11T22:10:38+05:30	b90b481d8f91	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-12T00:52:33+05:30	b90b481d8f91	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-12T00:52:33+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-12T00:52:33+05:30	b90b481d8f91	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-12T01:06:18+05:30	b90b481d8f91	True	fv_dsu	dsu_bmc	-	BOUNDED(16)	OK	[18 asserts, 6 covers in model] 
+2026-10-12T08:18:11+05:30	b90b481d8f91	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-12T08:18:11+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-12T08:18:11+05:30	b90b481d8f91	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-12T18:19:45+05:30	b90b481d8f91	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-12T18:19:45+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-12T18:19:45+05:30	b90b481d8f91	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-12T18:23:36+05:30	b90b481d8f91	True	model.cov	tb_dsu_top	1	BLOCKED	UNEXPECTED	%Error: tb/dsu/dsu_cov_vplan.sv:63:80: syntax error, unexpected inside
+2026-10-12T18:23:36+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_clamp	1	BLOCKED	UNEXPECTED	%Error: tb/dsu/dsu_cov_vplan.sv:63:80: syntax error, unexpected inside
+2026-10-12T18:23:54+05:30	b90b481d8f91	True	model.cov	tb_dsu_top	1	PASS	OK	
+2026-10-12T18:23:54+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-12T18:46:12+05:30	b90b481d8f91	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-12T18:46:12+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	BLOCKED	UNEXPECTED	rc=164, binary missing
+2026-10-12T18:46:12+05:30	b90b481d8f91	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-12T18:46:12+05:30	b90b481d8f91	True	model	tb_dsu_top_10k	1	PASS	OK	
+2026-10-12T18:46:30+05:30	b90b481d8f91	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-12T18:46:30+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-12T18:46:30+05:30	b90b481d8f91	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-12T18:46:30+05:30	b90b481d8f91	True	model	tb_dsu_top_10k	1	PASS	OK	
+2026-10-12T18:55:20+05:30	b90b481d8f91	True	model.cov	tb_dsu_top	1	PASS	OK	
+2026-10-12T18:55:20+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-12T18:55:20+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_10k	1	PASS	OK	
+2026-10-12T19:11:50+05:30	b90b481d8f91	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-12T19:11:50+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-12T19:11:50+05:30	b90b481d8f91	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-12T19:11:50+05:30	b90b481d8f91	True	model	tb_dsu_top_10k	1	PASS	OK	
+2026-10-12T19:11:50+05:30	b90b481d8f91	True	model	tb_dsu_top_ovf_fx	1	PASS	OK	
+2026-10-12T19:11:50+05:30	b90b481d8f91	True	model	tb_dsu_top_ovf_fy	1	PASS	OK	
+2026-10-12T19:11:50+05:30	b90b481d8f91	True	model	tb_dsu_top_ovf_mag	1	PASS	OK	
+2026-10-12T19:18:08+05:30	b90b481d8f91	True	model.cov	tb_dsu_top	1	PASS	OK	
+2026-10-12T19:18:08+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-12T19:18:08+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_10k	1	PASS	OK	
+2026-10-12T19:18:08+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_ovf_fx	1	PASS	OK	
+2026-10-12T19:18:08+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_ovf_fy	1	PASS	OK	
+2026-10-12T19:18:08+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_ovf_mag	1	PASS	OK	
+2026-10-12T19:52:33+05:30	b90b481d8f91	True	units_spec	tb_dsu_overflow_flag_spec	1	PASS	OK	
+2026-10-12T19:52:33+05:30	b90b481d8f91	True	units_spec	tb_dsu_barrel_shifter_spec	1	PASS	OK	
+2026-10-12T19:52:33+05:30	b90b481d8f91	True	units_spec	tb_dsu_decoder_spec	1	PASS	OK	
+2026-10-12T19:53:42+05:30	b90b481d8f91	True	units_spec	tb_dsu_stall_spec	1	FAIL	UNEXPECTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] f3=0 f5=6 acc1 after f3=0 f5=0 acc0: held 1, expected 0
+2026-10-12T19:53:42+05:30	b90b481d8f91	True	units_spec	tb_dsu_mac_unit_spec	1	PASS	OK	
+2026-10-12T19:53:42+05:30	b90b481d8f91	True	units_spec	tb_dsu_mac_cluster_spec	1	PASS	OK	
+2026-10-12T19:54:18+05:30	b90b481d8f91	True	units_spec	tb_dsu_stall_spec	1	FAIL	UNEXPECTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] f3=1 f5=0 acc0 after f3=0 f5=6 acc0: held 1, expected 0
+2026-10-12T19:54:45+05:30	b90b481d8f91	True	units_spec	tb_dsu_stall_spec	1	FAIL	UNEXPECTED	pass marker missing | first: RESULT: FAILED
+2026-10-12T19:55:44+05:30	b90b481d8f91	True	units_spec	tb_dsu_overflow_flag_spec	1	PASS	OK	
+2026-10-12T19:55:44+05:30	b90b481d8f91	True	units_spec	tb_dsu_barrel_shifter_spec	1	PASS	OK	
+2026-10-12T19:55:44+05:30	b90b481d8f91	True	units_spec	tb_dsu_decoder_spec	1	PASS	OK	
+2026-10-12T19:55:44+05:30	b90b481d8f91	True	units_spec	tb_dsu_stall_spec	1	PASS	OK	
+2026-10-12T19:55:44+05:30	b90b481d8f91	True	units_spec	tb_dsu_mac_unit_spec	1	FAIL	UNEXPECTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 56: mac_out=eeb51de2c7f1 expected eeb51de2c7f1, overflow seen 0 expected 1
+2026-10-12T19:55:44+05:30	b90b481d8f91	True	units_spec	tb_dsu_mac_cluster_spec	1	FAIL	UNEXPECTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 182: acc 6c1c003560e0 84072241cacf fffff6b82851 (expected 6c1c003560e0 84072241cacf fffff6b82851), cluster_out[1] 84072241cacf,
+2026-10-12T19:57:17+05:30	b90b481d8f91	True	units_spec	tb_dsu_top_ovf_b2b	1	FAIL	XFAIL:DSU-18	pass marker missing; 4 [FAIL] line(s) | first: [FAIL] case 0 (            MAC overflow, idle): overflow flag 0, ACC_FX 7ffffffe0002
+2026-10-12T19:57:35+05:30	b90b481d8f91	True	units_spec	tb_dsu_top_ovf_b2b	1	FAIL	XFAIL:DSU-18	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+2026-10-12T19:58:06+05:30	b90b481d8f91	True	units_spec	tb_dsu_overflow_flag_spec	1	PASS	OK	
+2026-10-12T19:58:06+05:30	b90b481d8f91	True	units_spec	tb_dsu_barrel_shifter_spec	1	PASS	OK	
+2026-10-12T19:58:06+05:30	b90b481d8f91	True	units_spec	tb_dsu_decoder_spec	1	PASS	OK	
+2026-10-12T19:58:06+05:30	b90b481d8f91	True	units_spec	tb_dsu_stall_spec	1	PASS	OK	
+2026-10-12T19:58:06+05:30	b90b481d8f91	True	units_spec	tb_dsu_mac_unit_spec	1	PASS	OK	
+2026-10-12T19:58:06+05:30	b90b481d8f91	True	units_spec	tb_dsu_mac_cluster_spec	1	PASS	OK	
+2026-10-12T19:58:06+05:30	b90b481d8f91	True	units_spec	tb_dsu_top_ovf_b2b	1	FAIL	XFAIL:DSU-18	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+2026-10-12T19:58:43+05:30	b90b481d8f91	True	units_spec	tb_dsu_overflow_flag_spec	1	PASS	OK	
+2026-10-12T19:58:43+05:30	b90b481d8f91	True	units_spec	tb_dsu_barrel_shifter_spec	1	PASS	OK	
+2026-10-12T19:58:43+05:30	b90b481d8f91	True	units_spec	tb_dsu_decoder_spec	1	PASS	OK	
+2026-10-12T19:58:43+05:30	b90b481d8f91	True	units_spec	tb_dsu_stall_spec	1	PASS	OK	
+2026-10-12T19:58:43+05:30	b90b481d8f91	True	units_spec	tb_dsu_mac_unit_spec	1	PASS	OK	
+2026-10-12T19:58:43+05:30	b90b481d8f91	True	units_spec	tb_dsu_mac_cluster_spec	1	PASS	OK	
+2026-10-12T19:58:43+05:30	b90b481d8f91	True	units_spec	tb_dsu_top_ovf_b2b	1	FAIL	XFAIL:DSU-18	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+2026-10-12T19:58:43+05:30	b90b481d8f91	True	units_spec	negctl_overflow_flag_clear_wins	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] set+clear same cycle mac=001 sat=0 clr=1 -> flag=0 expected 1
+2026-10-12T19:58:43+05:30	b90b481d8f91	True	units_spec	negctl_barrel_shifter_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] acc=ffffffffffff amt=17 dir=0 -> 7fffffff expected ffffffff
+2026-10-12T19:58:43+05:30	b90b481d8f91	True	units_spec	negctl_decoder_sel3_legal	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] instr=0631038b en=1: illegal mac_en
+2026-10-12T19:58:43+05:30	b90b481d8f91	True	units_spec	negctl_stall_no_interlock	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
+2026-10-12T19:58:43+05:30	b90b481d8f91	True	units_spec	negctl_mac_unit_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
+2026-10-12T19:58:43+05:30	b90b481d8f91	True	units_spec	negctl_mac_cluster_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035b9d88), cluster_out[0] 770c065d2ece, o
+2026-10-13T07:34:08+05:30	b90b481d8f91	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-13T07:34:08+05:30	b90b481d8f91	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-13T07:34:08+05:30	b90b481d8f91	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-13T07:34:08+05:30	b90b481d8f91	True	model	tb_dsu_top_10k	1	PASS	OK	
+2026-10-13T07:34:08+05:30	b90b481d8f91	True	model	tb_dsu_top_ovf_fx	1	PASS	OK	
+2026-10-13T07:34:08+05:30	b90b481d8f91	True	model	tb_dsu_top_ovf_fy	1	PASS	OK	
+2026-10-13T07:34:08+05:30	b90b481d8f91	True	model	tb_dsu_top_ovf_mag	1	PASS	OK	
+2026-10-13T07:45:54+05:30	b90b481d8f91	True	units_spec	tb_dsu_overflow_flag_spec	1	PASS	OK	
+2026-10-13T07:45:54+05:30	b90b481d8f91	True	units_spec	tb_dsu_barrel_shifter_spec	1	PASS	OK	
+2026-10-13T07:45:54+05:30	b90b481d8f91	True	units_spec	tb_dsu_decoder_spec	1	PASS	OK	
+2026-10-13T07:45:54+05:30	b90b481d8f91	True	units_spec	tb_dsu_stall_spec	1	PASS	OK	
+2026-10-13T07:45:54+05:30	b90b481d8f91	True	units_spec	tb_dsu_mac_unit_spec	1	PASS	OK	
+2026-10-13T07:45:54+05:30	b90b481d8f91	True	units_spec	tb_dsu_mac_cluster_spec	1	PASS	OK	
+2026-10-13T07:45:54+05:30	b90b481d8f91	True	units_spec	tb_dsu_top_ovf_b2b	1	FAIL	XFAIL:DSU-18	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+2026-10-13T07:45:54+05:30	b90b481d8f91	True	units_spec	negctl_overflow_flag_clear_wins	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] set+clear same cycle mac=001 sat=0 clr=1 -> flag=0 expected 1
+2026-10-13T07:45:54+05:30	b90b481d8f91	True	units_spec	negctl_barrel_shifter_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] acc=ffffffffffff amt=17 dir=0 -> 7fffffff expected ffffffff
+2026-10-13T07:45:54+05:30	b90b481d8f91	True	units_spec	negctl_decoder_sel3_legal	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] instr=0631038b en=1: illegal mac_en
+2026-10-13T07:45:54+05:30	b90b481d8f91	True	units_spec	negctl_stall_no_interlock	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
+2026-10-13T07:45:54+05:30	b90b481d8f91	True	units_spec	negctl_mac_unit_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
+2026-10-13T07:45:54+05:30	b90b481d8f91	True	units_spec	negctl_mac_cluster_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035b9d88), cluster_out[0] 770c065d2ece, o
+2026-10-13T07:52:36+05:30	b90b481d8f91	True	model.cov	tb_dsu_top	1	PASS	OK	
+2026-10-13T07:52:36+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-13T07:52:36+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_10k	1	PASS	OK	
+2026-10-13T07:52:36+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_ovf_fx	1	PASS	OK	
+2026-10-13T07:52:36+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_ovf_fy	1	PASS	OK	
+2026-10-13T07:52:36+05:30	b90b481d8f91	True	model.cov	tb_dsu_top_ovf_mag	1	PASS	OK	
+2026-10-13T08:14:43+05:30	b90b481d8f91	True	dsu_mut	mut_shift_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] test 25  rd_data: got 000000000001 expected 0000ffffffff  (instr=06f0178b rs1=00000000 rs2=00000000)
+2026-10-13T08:14:43+05:30	b90b481d8f91	True	dsu_mut	mut_rdhi_zext	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 87  rd_data: got 00000000ffff expected 0000ffffffff  (instr=4400078b rs1=ffff8001 rs2=00ff0000)
+2026-10-13T08:14:43+05:30	b90b481d8f91	True	dsu_mut	mut_dot_hi_is_lo	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 3  acc_MAG: got 00000000001b expected 000000000017  (instr=1c00000b rs1=00020003 rs2=00040005)
+2026-10-13T08:14:43+05:30	b90b481d8f91	True	dsu_mut	mut_no_interlock	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [213000] %Error: dsu_sva.sv:130: Assertion failed in tb_boot.dut.u_ex.u_dsu.u_dsu_sva.a_interlock_fires
+2026-10-13T08:14:43+05:30	b90b481d8f91	True	dsu_mut	mut_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 0  acc_FX: got 000000000000 expected 00000000000c  (instr=0000000b rs1=00000003 rs2=00000004)
+2026-10-13T08:14:43+05:30	b90b481d8f91	True	dsu_mut	mut_sat_no_ovf	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 20  overflow: got 000000000000 expected 000000000001  (instr=3800008b rs1=00000000 rs2=00000000)
+2026-10-13T08:14:43+05:30	b90b481d8f91	True	dsu_mut	mut_ovf_not_sticky	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [723000] %Error: dsu_sva.sv:137: Assertion failed in tb_boot.dut.u_ex.u_dsu.u_dsu_sva.a_ovf_sticky: [SV
+2026-10-13T08:15:18+05:30	b90b481d8f91	True	units	tb_dsu_barrel_shifter	1	FAIL	XFAIL:TB-43	pass marker missing; 315 [FAIL] line(s) | first: [FAIL] dir_arith_right_past48_neg cluster_out=ffffffffffff shift_amt=48 shift_dir=0 -> got=ffffffff exp=0
+2026-10-13T08:15:18+05:30	b90b481d8f91	True	units	tb_dsu_csa_3to2	1	PASS	OK	
+2026-10-13T08:15:18+05:30	b90b481d8f91	True	units	tb_dsu_decoder	1	FAIL	XFAIL:TB-43	pass marker missing; 355 [FAIL] line(s) | first: [FAIL] EXH_f54_f31_ic01_acc0          instr=2000100b dsu_en=1 flush=0 -> got(ctrl=0       acc=0  sat=0 shift=0 amt=0 dir=0 sacc=0  lo=0 hi=0
+2026-10-13T08:15:18+05:30	b90b481d8f91	True	units	tb_dsu_kogge_stone_49	1	PASS	OK	
+2026-10-13T08:15:18+05:30	b90b481d8f91	True	units	tb_dsu_mac_cluster	1	FAIL	XFAIL:TB-43	pass marker missing; 1501 [FAIL] line(s) | first: [FAIL] dir_idle2            rs1=00000000 rs2=00000000 control=0000000 acc_sel=00 sat_en=0 rst_n=1 -> got(co=1e           ovf=0   d0=1e      
+2026-10-13T08:15:18+05:30	b90b481d8f91	True	units	tb_dsu_mac_unit	1	FAIL	XFAIL:TB-43	pass marker missing; 1158 [FAIL] line(s) | first: [FAIL] #3 dir_settle2              rs1=00000000 rs2=00000000 en=0 add_sub=0 clear=0 load=0 abs=0 dot=0 flush=0 sat_en=0 rst_n=1 -> got(out=2
+2026-10-13T08:15:18+05:30	b90b481d8f91	True	units	tb_dsu_mult_16x16	1	PASS	OK	
+2026-10-13T08:15:18+05:30	b90b481d8f91	True	units	tb_dsu_operand_router	1	PASS	OK	
+2026-10-13T08:15:18+05:30	b90b481d8f91	True	units	tb_dsu_overflow_flag	1	FAIL	XFAIL:TB-43	pass marker missing; 355 [FAIL] line(s); 118 assertion failure(s) | first: [FAIL] dir_settle_after_priority    mac_ovf=000 sat_ovf=0 clr=0 rst_n=1 -> got=1 exp=0
+2026-10-13T08:15:18+05:30	b90b481d8f91	True	units	tb_dsu_readback_mux	1	PASS	OK	
+2026-10-13T08:15:18+05:30	b90b481d8f91	True	units	tb_dsu_result_selector	1	PASS	OK	
+2026-10-13T08:15:18+05:30	b90b481d8f91	True	units	tb_dsu_saturation_unit	1	PASS	OK	
+2026-10-13T08:15:18+05:30	b90b481d8f91	True	units	tb_dsu_stall	1	FAIL	XFAIL:TB-43	pass marker missing; 105 [FAIL] line(s) | first: [FAIL] seq=FINDING1_compute_0_then_read_same_acc  cyc=1 op=OP_RD_LO       acc_sel=1 flush=0 rst_n=1 -> got=1 exp=0
+2026-10-13T08:15:28+05:30	b90b481d8f91	True	units_spec	tb_dsu_overflow_flag_spec	1	PASS	OK	
+2026-10-13T08:15:28+05:30	b90b481d8f91	True	units_spec	tb_dsu_barrel_shifter_spec	1	PASS	OK	
+2026-10-13T08:15:28+05:30	b90b481d8f91	True	units_spec	tb_dsu_decoder_spec	1	PASS	OK	
+2026-10-13T08:15:28+05:30	b90b481d8f91	True	units_spec	tb_dsu_stall_spec	1	PASS	OK	
+2026-10-13T08:15:28+05:30	b90b481d8f91	True	units_spec	tb_dsu_mac_unit_spec	1	PASS	OK	
+2026-10-13T08:15:28+05:30	b90b481d8f91	True	units_spec	tb_dsu_mac_cluster_spec	1	PASS	OK	
+2026-10-13T08:15:28+05:30	b90b481d8f91	True	units_spec	tb_dsu_top_ovf_b2b	1	FAIL	XFAIL:DSU-18	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+2026-10-13T08:15:28+05:30	b90b481d8f91	True	units_spec	negctl_overflow_flag_clear_wins	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] set+clear same cycle mac=001 sat=0 clr=1 -> flag=0 expected 1
+2026-10-13T08:15:28+05:30	b90b481d8f91	True	units_spec	negctl_barrel_shifter_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] acc=ffffffffffff amt=17 dir=0 -> 7fffffff expected ffffffff
+2026-10-13T08:15:28+05:30	b90b481d8f91	True	units_spec	negctl_decoder_sel3_legal	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] instr=0631038b en=1: illegal mac_en
+2026-10-13T08:15:28+05:30	b90b481d8f91	True	units_spec	negctl_stall_no_interlock	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
+2026-10-13T08:15:28+05:30	b90b481d8f91	True	units_spec	negctl_mac_unit_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
+2026-10-13T08:15:28+05:30	b90b481d8f91	True	units_spec	negctl_mac_cluster_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035b9d88), cluster_out[0] 770c065d2ece, o
+2026-10-13T08:16:08+05:30	b90b481d8f91	True	fv_dsu	dsu_bmc	-	BOUNDED(16)	OK	[18 asserts, 6 covers in model] 
+2026-10-13T08:16:08+05:30	b90b481d8f91	True	fv_dsu	dsu_prove	-	PROVEN	OK	[18 asserts, 6 covers in model] 
+2026-10-13T08:16:08+05:30	b90b481d8f91	True	fv_dsu	dsu_cover	-	COVERED	OK	[18 asserts, 6 covers in model] 
+2026-10-13T08:16:08+05:30	b90b481d8f91	True	fv_dsu	dsu_no_dsu9	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_sva.a_interlock_per_acc
+2026-10-13T08:16:08+05:30	b90b481d8f91	True	fv_dsu	dsu_mut_no_interlock	-	FAIL	XFAIL:PLANTED	[16 asserts, 6 covers in model] props: u_dsu_sva.a_interlock_fires
+2026-10-13T08:16:08+05:30	b90b481d8f91	True	fv_dsu	dsu_mut_ovf_not_sticky	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_sva.a_ovf_sticky
+2026-10-13T08:16:08+05:30	b90b481d8f91	True	fv_dsu	dsu_mut_ovf_clear_drops_set	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_sva.a_ovf_set_beats_clear
+2026-10-14T00:38:49+05:30	e43672fbc7c5	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-14T00:38:49+05:30	e43672fbc7c5	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-14T00:38:49+05:30	e43672fbc7c5	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-14T00:38:49+05:30	e43672fbc7c5	True	model	tb_dsu_top_10k	1	PASS	OK	
+2026-10-14T00:38:49+05:30	e43672fbc7c5	True	model	tb_dsu_top_ovf_fx	1	PASS	OK	
+2026-10-14T00:38:49+05:30	e43672fbc7c5	True	model	tb_dsu_top_ovf_fy	1	PASS	OK	
+2026-10-14T00:38:49+05:30	e43672fbc7c5	True	model	tb_dsu_top_ovf_mag	1	PASS	OK	
+2026-10-14T00:38:59+05:30	e43672fbc7c5	True	units_spec	tb_dsu_overflow_flag_spec	1	PASS	OK	
+2026-10-14T00:38:59+05:30	e43672fbc7c5	True	units_spec	tb_dsu_barrel_shifter_spec	1	PASS	OK	
+2026-10-14T00:38:59+05:30	e43672fbc7c5	True	units_spec	tb_dsu_decoder_spec	1	PASS	OK	
+2026-10-14T00:38:59+05:30	e43672fbc7c5	True	units_spec	tb_dsu_stall_spec	1	PASS	OK	
+2026-10-14T00:38:59+05:30	e43672fbc7c5	True	units_spec	tb_dsu_mac_unit_spec	1	PASS	OK	
+2026-10-14T00:38:59+05:30	e43672fbc7c5	True	units_spec	tb_dsu_mac_cluster_spec	1	PASS	OK	
+2026-10-14T00:38:59+05:30	e43672fbc7c5	True	units_spec	tb_dsu_top_ovf_b2b	1	FAIL	XFAIL:DSU-18	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+2026-10-14T00:38:59+05:30	e43672fbc7c5	True	units_spec	negctl_overflow_flag_clear_wins	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] set+clear same cycle mac=001 sat=0 clr=1 -> flag=0 expected 1
+2026-10-14T00:38:59+05:30	e43672fbc7c5	True	units_spec	negctl_barrel_shifter_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] acc=ffffffffffff amt=17 dir=0 -> 7fffffff expected ffffffff
+2026-10-14T00:38:59+05:30	e43672fbc7c5	True	units_spec	negctl_decoder_sel3_legal	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] instr=0631038b en=1: illegal mac_en
+2026-10-14T00:38:59+05:30	e43672fbc7c5	True	units_spec	negctl_stall_no_interlock	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
+2026-10-14T00:38:59+05:30	e43672fbc7c5	True	units_spec	negctl_mac_unit_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
+2026-10-14T00:38:59+05:30	e43672fbc7c5	True	units_spec	negctl_mac_cluster_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035b9d88), cluster_out[0] 770c065d2ece, o
+2026-10-14T00:49:03+05:30	e43672fbc7c5	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-14T00:49:03+05:30	e43672fbc7c5	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-14T00:49:03+05:30	e43672fbc7c5	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-14T00:49:03+05:30	e43672fbc7c5	True	model	tb_dsu_top_10k	1	PASS	OK	
+2026-10-14T00:49:03+05:30	e43672fbc7c5	True	model	tb_dsu_top_ovf_fx	1	PASS	OK	
+2026-10-14T00:49:03+05:30	e43672fbc7c5	True	model	tb_dsu_top_ovf_fy	1	PASS	OK	
+2026-10-14T00:49:03+05:30	e43672fbc7c5	True	model	tb_dsu_top_ovf_mag	1	PASS	OK	
+2026-10-14T00:49:15+05:30	e43672fbc7c5	True	units_spec	tb_dsu_overflow_flag_spec	1	PASS	OK	
+2026-10-14T00:49:15+05:30	e43672fbc7c5	True	units_spec	tb_dsu_barrel_shifter_spec	1	PASS	OK	
+2026-10-14T00:49:15+05:30	e43672fbc7c5	True	units_spec	tb_dsu_decoder_spec	1	PASS	OK	
+2026-10-14T00:49:15+05:30	e43672fbc7c5	True	units_spec	tb_dsu_stall_spec	1	PASS	OK	
+2026-10-14T00:49:15+05:30	e43672fbc7c5	True	units_spec	tb_dsu_mac_unit_spec	1	PASS	OK	
+2026-10-14T00:49:15+05:30	e43672fbc7c5	True	units_spec	tb_dsu_mac_cluster_spec	1	PASS	OK	
+2026-10-14T00:49:15+05:30	e43672fbc7c5	True	units_spec	tb_dsu_top_ovf_b2b	1	FAIL	XFAIL:DSU-18	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+2026-10-14T00:49:15+05:30	e43672fbc7c5	True	units_spec	negctl_overflow_flag_clear_wins	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] set+clear same cycle mac=001 sat=0 clr=1 -> flag=0 expected 1
+2026-10-14T00:49:15+05:30	e43672fbc7c5	True	units_spec	negctl_barrel_shifter_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] acc=ffffffffffff amt=17 dir=0 -> 7fffffff expected ffffffff
+2026-10-14T00:49:15+05:30	e43672fbc7c5	True	units_spec	negctl_decoder_sel3_legal	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] instr=0631038b en=1: illegal mac_en
+2026-10-14T00:49:15+05:30	e43672fbc7c5	True	units_spec	negctl_stall_no_interlock	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
+2026-10-14T00:49:15+05:30	e43672fbc7c5	True	units_spec	negctl_mac_unit_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
+2026-10-14T00:49:15+05:30	e43672fbc7c5	True	units_spec	negctl_mac_cluster_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035b9d88), cluster_out[0] 770c065d2ece, o
+2026-10-14T01:05:45+05:30	e43672fbc7c5	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-14T01:05:45+05:30	e43672fbc7c5	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-14T01:05:45+05:30	e43672fbc7c5	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-14T01:05:45+05:30	e43672fbc7c5	True	model	tb_dsu_top_10k	1	PASS	OK	
+2026-10-14T01:05:45+05:30	e43672fbc7c5	True	model	tb_dsu_top_ovf_fx	1	PASS	OK	
+2026-10-14T01:05:45+05:30	e43672fbc7c5	True	model	tb_dsu_top_ovf_fy	1	PASS	OK	
+2026-10-14T01:05:45+05:30	e43672fbc7c5	True	model	tb_dsu_top_ovf_mag	1	PASS	OK	
+2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	tb_dsu_overflow_flag_spec	1	PASS	OK	
+2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	tb_dsu_barrel_shifter_spec	1	PASS	OK	
+2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	tb_dsu_decoder_spec	1	PASS	OK	
+2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	tb_dsu_stall_spec	1	PASS	OK	
+2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	tb_dsu_mac_unit_spec	1	PASS	OK	
+2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	tb_dsu_mac_cluster_spec	1	PASS	OK	
+2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	tb_dsu_top_ovf_b2b	1	FAIL	XFAIL:DSU-18	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	negctl_overflow_flag_clear_wins	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] set+clear same cycle mac=001 sat=0 clr=1 -> flag=0 expected 1
+2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	negctl_barrel_shifter_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] acc=ffffffffffff amt=17 dir=0 -> 7fffffff expected ffffffff
+2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	negctl_decoder_sel3_legal	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] instr=0631038b en=1: illegal mac_en
+2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	negctl_stall_no_interlock	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
+2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	negctl_mac_unit_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
+2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	negctl_mac_cluster_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035b9d88), cluster_out[0] 770c065d2ece, o

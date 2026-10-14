@@ -1,0 +1,22 @@
+garuda-run 1  suite sanity.cov  block core  2026-10-13T07:50:29+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      t_loadbranch         
+PASS    OK                      t_flush              
+PASS    OK                      t_buserr             
+PASS    OK                      t_irq                
+PASS    OK                      t_wfi                
+PASS    OK                      t_dsu                
+PASS    OK                      t_mem                
+PASS    OK                      t_clic               
+PASS    OK                      t_cov                
+PASS    OK                      t_mtip               
+PASS    OK                      t_hold_flush_matrix  
+PASS    OK                      t_dsu_b2b            
+PASS    OK                      t_dsu_gate           
+PASS    OK                      t_cov_wfi_mti        
+
+PASS    14
+FAIL    0
+BLOCKED 0
+total   14

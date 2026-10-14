@@ -1,0 +1,3 @@
+# garuda-run 1 suite=negctl_t12 block=flow date=2026-10-14T01:02:04+05:30 design=e43672fbc7c55a12b889efe114a952ac5fe753cb rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+t_core_irq_nest_no_t12	FAIL	XFAIL:PLANTED	1	no	2	3	1	n/a	51	0	REPLACED	1	0.02	20			exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil: [SVA-FAIL] T-12: a trap did not sav	logs/flow/raw/negctl_t12/sim_t_core_irq_nest_no_t12_s1.log

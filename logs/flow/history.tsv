@@ -1,0 +1,382 @@
+date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
+2026-10-11T02:48:43+05:30	b90b481d8f91	False	selftest	pass	1	PASS	OK	
+2026-10-11T02:48:43+05:30	b90b481d8f91	False	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T02:48:43+05:30	b90b481d8f91	False	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T02:48:43+05:30	b90b481d8f91	False	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T02:48:43+05:30	b90b481d8f91	False	selftest	no_marker	1	PASS	XPASS:PLANTED	
+2026-10-11T02:48:43+05:30	b90b481d8f91	False	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T02:48:43+05:30	b90b481d8f91	False	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T02:48:43+05:30	b90b481d8f91	False	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T02:48:43+05:30	b90b481d8f91	False	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T02:48:43+05:30	b90b481d8f91	False	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T02:48:43+05:30	b90b481d8f91	False	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T02:49:03+05:30	b90b481d8f91	False	selftest	pass	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/core/selftest/runner_selftest.sv:36:9: Unknown verilator comment: '/*verilator keeps executing this process after a $finish until it*/'
+2026-10-11T02:49:03+05:30	b90b481d8f91	False	selftest	fail_line	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/core/selftest/runner_selftest.sv:36:9: Unknown verilator comment: '/*verilator keeps executing this process after a $finish until it*/'
+2026-10-11T02:49:03+05:30	b90b481d8f91	False	selftest	assert_fail	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/core/selftest/runner_selftest.sv:36:9: Unknown verilator comment: '/*verilator keeps executing this process after a $finish until it*/'
+2026-10-11T02:49:03+05:30	b90b481d8f91	False	selftest	error	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/core/selftest/runner_selftest.sv:36:9: Unknown verilator comment: '/*verilator keeps executing this process after a $finish until it*/'
+2026-10-11T02:49:03+05:30	b90b481d8f91	False	selftest	no_marker	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/core/selftest/runner_selftest.sv:36:9: Unknown verilator comment: '/*verilator keeps executing this process after a $finish until it*/'
+2026-10-11T02:49:03+05:30	b90b481d8f91	False	selftest	fatal	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/core/selftest/runner_selftest.sv:36:9: Unknown verilator comment: '/*verilator keeps executing this process after a $finish until it*/'
+2026-10-11T02:49:03+05:30	b90b481d8f91	False	selftest	hang	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/core/selftest/runner_selftest.sv:36:9: Unknown verilator comment: '/*verilator keeps executing this process after a $finish until it*/'
+2026-10-11T02:49:03+05:30	b90b481d8f91	False	selftest	require_missing	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/core/selftest/runner_selftest.sv:36:9: Unknown verilator comment: '/*verilator keeps executing this process after a $finish until it*/'
+2026-10-11T02:49:03+05:30	b90b481d8f91	False	selftest	forbid_present	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/core/selftest/runner_selftest.sv:36:9: Unknown verilator comment: '/*verilator keeps executing this process after a $finish until it*/'
+2026-10-11T02:49:03+05:30	b90b481d8f91	False	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T02:49:03+05:30	b90b481d8f91	False	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T02:49:21+05:30	b90b481d8f91	False	selftest	pass	1	PASS	OK	
+2026-10-11T02:49:21+05:30	b90b481d8f91	False	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T02:49:21+05:30	b90b481d8f91	False	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T02:49:21+05:30	b90b481d8f91	False	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T02:49:21+05:30	b90b481d8f91	False	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-11T02:49:21+05:30	b90b481d8f91	False	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T02:49:21+05:30	b90b481d8f91	False	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T02:49:21+05:30	b90b481d8f91	False	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T02:49:21+05:30	b90b481d8f91	False	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T02:49:21+05:30	b90b481d8f91	False	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T02:49:21+05:30	b90b481d8f91	False	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T02:49:24+05:30	b90b481d8f91	False	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-11T02:50:22+05:30	b90b481d8f91	False	selftest	pass	1	PASS	OK	
+2026-10-11T02:50:22+05:30	b90b481d8f91	False	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T02:50:22+05:30	b90b481d8f91	False	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T02:50:22+05:30	b90b481d8f91	False	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T02:50:22+05:30	b90b481d8f91	False	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-11T02:50:22+05:30	b90b481d8f91	False	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T02:50:22+05:30	b90b481d8f91	False	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T02:50:22+05:30	b90b481d8f91	False	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T02:50:22+05:30	b90b481d8f91	False	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T02:50:22+05:30	b90b481d8f91	False	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T02:50:22+05:30	b90b481d8f91	False	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T02:50:25+05:30	b90b481d8f91	False	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-11T02:50:29+05:30	b90b481d8f91	False	negctl_prog	N1_add_to_sub	1	PASS	XPASS:PLANTED	
+2026-10-11T02:51:03+05:30	b90b481d8f91	False	selftest	pass	1	PASS	OK	
+2026-10-11T02:51:03+05:30	b90b481d8f91	False	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T02:51:03+05:30	b90b481d8f91	False	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T02:51:03+05:30	b90b481d8f91	False	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T02:51:03+05:30	b90b481d8f91	False	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-11T02:51:03+05:30	b90b481d8f91	False	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T02:51:03+05:30	b90b481d8f91	False	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T02:51:03+05:30	b90b481d8f91	False	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T02:51:03+05:30	b90b481d8f91	False	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T02:51:03+05:30	b90b481d8f91	False	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T02:51:03+05:30	b90b481d8f91	False	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T02:51:06+05:30	b90b481d8f91	False	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-11T02:51:09+05:30	b90b481d8f91	False	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	pass marker missing | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-11T03:02:26+05:30	b90b481d8f91	False	selftest	pass	1	PASS	OK	
+2026-10-11T03:02:26+05:30	b90b481d8f91	False	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T03:02:26+05:30	b90b481d8f91	False	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T03:02:26+05:30	b90b481d8f91	False	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T03:02:26+05:30	b90b481d8f91	False	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-11T03:02:26+05:30	b90b481d8f91	False	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T03:02:26+05:30	b90b481d8f91	False	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T03:02:26+05:30	b90b481d8f91	False	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T03:02:26+05:30	b90b481d8f91	False	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T03:02:26+05:30	b90b481d8f91	False	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T03:02:26+05:30	b90b481d8f91	False	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T03:02:29+05:30	b90b481d8f91	False	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-11T03:02:33+05:30	b90b481d8f91	False	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	pass marker missing | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-11T08:48:37+05:30	b90b481d8f91	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[7 asserts, 6 covers in model] model has 7 assert(s), manifest wants >= 1000
+2026-10-11T09:22:01+05:30	b90b481d8f91	True	selftest	pass	1	PASS	OK	
+2026-10-11T09:22:01+05:30	b90b481d8f91	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T09:22:01+05:30	b90b481d8f91	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T09:22:01+05:30	b90b481d8f91	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T09:22:01+05:30	b90b481d8f91	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-11T09:22:01+05:30	b90b481d8f91	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T09:22:01+05:30	b90b481d8f91	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T09:22:01+05:30	b90b481d8f91	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T09:22:01+05:30	b90b481d8f91	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T09:22:01+05:30	b90b481d8f91	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T09:22:01+05:30	b90b481d8f91	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T09:22:01+05:30	b90b481d8f91	True	selftest	known_exact	1	PASS	OK	
+2026-10-11T09:22:01+05:30	b90b481d8f91	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-11T09:36:58+05:30	b90b481d8f91	True	selftest	pass	1	PASS	OK	
+2026-10-11T09:36:58+05:30	b90b481d8f91	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T09:36:58+05:30	b90b481d8f91	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T09:36:58+05:30	b90b481d8f91	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T09:36:58+05:30	b90b481d8f91	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-11T09:36:58+05:30	b90b481d8f91	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T09:36:58+05:30	b90b481d8f91	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T09:36:58+05:30	b90b481d8f91	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T09:36:58+05:30	b90b481d8f91	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T09:36:58+05:30	b90b481d8f91	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T09:36:58+05:30	b90b481d8f91	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T09:36:58+05:30	b90b481d8f91	True	selftest	known_exact	1	PASS	OK	
+2026-10-11T09:36:58+05:30	b90b481d8f91	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-11T09:37:01+05:30	b90b481d8f91	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-11T09:37:04+05:30	b90b481d8f91	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	pass marker missing | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-11T09:38:02+05:30	b90b481d8f91	True	selftest	pass	1	PASS	OK	
+2026-10-11T09:38:02+05:30	b90b481d8f91	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T09:38:02+05:30	b90b481d8f91	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T09:38:02+05:30	b90b481d8f91	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T09:38:02+05:30	b90b481d8f91	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-11T09:38:02+05:30	b90b481d8f91	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T09:38:02+05:30	b90b481d8f91	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T09:38:02+05:30	b90b481d8f91	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T09:38:02+05:30	b90b481d8f91	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T09:38:02+05:30	b90b481d8f91	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T09:38:02+05:30	b90b481d8f91	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T09:38:02+05:30	b90b481d8f91	True	selftest	known_exact	1	PASS	OK	
+2026-10-11T09:38:02+05:30	b90b481d8f91	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-11T09:38:05+05:30	b90b481d8f91	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-11T09:38:08+05:30	b90b481d8f91	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	pass marker missing | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-11T09:38:10+05:30	b90b481d8f91	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[24 asserts, 19 covers in model] model has 24 assert(s), manifest wants >= 1000
+2026-10-11T09:42:09+05:30	b90b481d8f91	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-11T09:43:40+05:30	b90b481d8f91	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil
+2026-10-11T09:48:00+05:30	b90b481d8f91	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [383000] %Error: core_ctl_sva.sv:39: Assertion failed in tb_boot.dut.u_ctl_sva.a_ctl_preempt: [SVA-FAIL
+2026-10-11T09:48:27+05:30	b90b481d8f91	True	selftest	pass	1	PASS	OK	
+2026-10-11T09:48:27+05:30	b90b481d8f91	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T09:48:27+05:30	b90b481d8f91	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T09:48:27+05:30	b90b481d8f91	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T09:48:27+05:30	b90b481d8f91	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-11T09:48:27+05:30	b90b481d8f91	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T09:48:27+05:30	b90b481d8f91	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T09:48:27+05:30	b90b481d8f91	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T09:48:27+05:30	b90b481d8f91	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T09:48:27+05:30	b90b481d8f91	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T09:48:27+05:30	b90b481d8f91	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T09:48:27+05:30	b90b481d8f91	True	selftest	known_exact	1	PASS	OK	
+2026-10-11T09:48:27+05:30	b90b481d8f91	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-11T09:48:30+05:30	b90b481d8f91	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-11T09:48:33+05:30	b90b481d8f91	True	selftest_reason	wrong_reason	1	FAIL	UNEXPECTED	1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
+2026-10-11T09:48:36+05:30	b90b481d8f91	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-11T09:48:40+05:30	b90b481d8f91	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil
+2026-10-11T09:48:43+05:30	b90b481d8f91	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [383000] %Error: core_ctl_sva.sv:39: Assertion failed in tb_boot.dut.u_ctl_sva.a_ctl_preempt: [SVA-FAIL
+2026-10-11T09:48:44+05:30	b90b481d8f91	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[24 asserts, 19 covers in model] model has 24 assert(s), manifest wants >= 1000
+2026-10-11T09:56:44+05:30	b90b481d8f91	True	negctl_elem	E_clic_ctrl_no_preempt	1	FAIL	XFAIL:PLANTED	pass marker missing; 542 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+2026-10-11T09:58:09+05:30	b90b481d8f91	True	selftest	pass	1	PASS	OK	
+2026-10-11T09:58:09+05:30	b90b481d8f91	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T09:58:09+05:30	b90b481d8f91	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T09:58:09+05:30	b90b481d8f91	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T09:58:09+05:30	b90b481d8f91	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-11T09:58:09+05:30	b90b481d8f91	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T09:58:09+05:30	b90b481d8f91	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T09:58:09+05:30	b90b481d8f91	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T09:58:09+05:30	b90b481d8f91	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T09:58:09+05:30	b90b481d8f91	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T09:58:09+05:30	b90b481d8f91	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T09:58:09+05:30	b90b481d8f91	True	selftest	known_exact	1	PASS	OK	
+2026-10-11T09:58:09+05:30	b90b481d8f91	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-11T09:58:12+05:30	b90b481d8f91	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-11T09:58:15+05:30	b90b481d8f91	True	selftest_reason	wrong_reason	1	FAIL	UNEXPECTED	1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
+2026-10-11T09:58:18+05:30	b90b481d8f91	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-11T09:58:22+05:30	b90b481d8f91	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil
+2026-10-11T09:58:28+05:30	b90b481d8f91	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [383000] %Error: core_ctl_sva.sv:39: Assertion failed in tb_boot.dut.u_ctl_sva.a_ctl_preempt: [SVA-FAIL
+2026-10-11T09:58:30+05:30	b90b481d8f91	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[24 asserts, 19 covers in model] model has 24 assert(s), manifest wants >= 1000
+2026-10-11T10:04:05+05:30	b90b481d8f91	True	negctl_elem	E_clic_ctrl_no_preempt	1	FAIL	XFAIL:PLANTED	pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+2026-10-11T10:07:43+05:30	b90b481d8f91	True	selftest	pass	1	PASS	OK	
+2026-10-11T10:07:43+05:30	b90b481d8f91	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T10:07:43+05:30	b90b481d8f91	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T10:07:43+05:30	b90b481d8f91	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T10:07:43+05:30	b90b481d8f91	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-11T10:07:43+05:30	b90b481d8f91	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T10:07:43+05:30	b90b481d8f91	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T10:07:43+05:30	b90b481d8f91	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T10:07:43+05:30	b90b481d8f91	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T10:07:43+05:30	b90b481d8f91	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T10:07:43+05:30	b90b481d8f91	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T10:07:43+05:30	b90b481d8f91	True	selftest	known_exact	1	PASS	OK	
+2026-10-11T10:07:43+05:30	b90b481d8f91	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-11T15:00:34+05:30	b90b481d8f91	True	selftest	pass	1	PASS	OK	
+2026-10-11T15:00:34+05:30	b90b481d8f91	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T15:00:34+05:30	b90b481d8f91	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T15:00:34+05:30	b90b481d8f91	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T15:00:34+05:30	b90b481d8f91	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-11T15:00:34+05:30	b90b481d8f91	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T15:00:34+05:30	b90b481d8f91	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T15:00:34+05:30	b90b481d8f91	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T15:00:34+05:30	b90b481d8f91	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T15:00:34+05:30	b90b481d8f91	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T15:00:34+05:30	b90b481d8f91	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T15:00:34+05:30	b90b481d8f91	True	selftest	known_exact	1	PASS	OK	
+2026-10-11T15:00:34+05:30	b90b481d8f91	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-11T15:00:37+05:30	b90b481d8f91	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-11T15:00:40+05:30	b90b481d8f91	True	selftest_reason	wrong_reason	1	FAIL	UNEXPECTED	1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
+2026-10-11T15:00:44+05:30	b90b481d8f91	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-11T15:00:47+05:30	b90b481d8f91	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil
+2026-10-11T15:00:50+05:30	b90b481d8f91	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [383000] %Error: core_ctl_sva.sv:39: Assertion failed in tb_boot.dut.u_ctl_sva.a_ctl_preempt: [SVA-FAIL
+2026-10-11T15:00:53+05:30	b90b481d8f91	True	negctl_elem	E_clic_ctrl_no_preempt	1	FAIL	XFAIL:PLANTED	pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+2026-10-11T15:00:54+05:30	b90b481d8f91	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[26 asserts, 20 covers in model] model has 26 assert(s), manifest wants >= 1000
+2026-10-11T15:32:38+05:30	b90b481d8f91	True	negctl_cosim	N_rd	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T15:32:38+05:30	b90b481d8f91	True	negctl_cosim	N_store	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T15:32:38+05:30	b90b481d8f91	True	negctl_cosim	N_pc	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T15:32:38+05:30	b90b481d8f91	True	negctl_cosim	N_trap	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T15:32:38+05:30	b90b481d8f91	True	negctl_cosim	N_irq_drop	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike
+2026-10-11T15:32:38+05:30	b90b481d8f91	True	negctl_cosim	N_irq_extra	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T21:06:44+05:30	b90b481d8f91	True	selftest	pass	1	PASS	OK	
+2026-10-11T21:06:44+05:30	b90b481d8f91	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T21:06:44+05:30	b90b481d8f91	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T21:06:44+05:30	b90b481d8f91	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T21:06:44+05:30	b90b481d8f91	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-11T21:06:44+05:30	b90b481d8f91	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T21:06:44+05:30	b90b481d8f91	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T21:06:44+05:30	b90b481d8f91	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T21:06:44+05:30	b90b481d8f91	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T21:06:44+05:30	b90b481d8f91	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T21:06:44+05:30	b90b481d8f91	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T21:06:44+05:30	b90b481d8f91	True	selftest	known_exact	1	PASS	OK	
+2026-10-11T21:06:44+05:30	b90b481d8f91	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-11T21:06:47+05:30	b90b481d8f91	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-11T21:06:50+05:30	b90b481d8f91	True	selftest_reason	wrong_reason	1	FAIL	UNEXPECTED	1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
+2026-10-11T21:06:53+05:30	b90b481d8f91	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-11T21:06:56+05:30	b90b481d8f91	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil
+2026-10-11T21:07:00+05:30	b90b481d8f91	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [383000] %Error: core_ctl_sva.sv:39: Assertion failed in tb_boot.dut.u_ctl_sva.a_ctl_preempt: [SVA-FAIL
+2026-10-11T21:07:03+05:30	b90b481d8f91	True	negctl_elem	E_clic_ctrl_no_preempt	1	FAIL	XFAIL:PLANTED	pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+2026-10-11T21:07:08+05:30	b90b481d8f91	True	negctl_cosim	N_rd	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T21:07:08+05:30	b90b481d8f91	True	negctl_cosim	N_store	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T21:07:08+05:30	b90b481d8f91	True	negctl_cosim	N_pc	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T21:07:08+05:30	b90b481d8f91	True	negctl_cosim	N_trap	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T21:07:08+05:30	b90b481d8f91	True	negctl_cosim	N_irq_drop	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike
+2026-10-11T21:07:08+05:30	b90b481d8f91	True	negctl_cosim	N_irq_extra	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T21:07:09+05:30	b90b481d8f91	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[27 asserts, 21 covers in model] model has 27 assert(s), manifest wants >= 1000
+2026-10-11T22:11:12+05:30	b90b481d8f91	True	selftest	pass	1	PASS	OK	
+2026-10-11T22:11:12+05:30	b90b481d8f91	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-11T22:11:12+05:30	b90b481d8f91	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-11T22:11:12+05:30	b90b481d8f91	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-11T22:11:12+05:30	b90b481d8f91	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-11T22:11:12+05:30	b90b481d8f91	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-11T22:11:12+05:30	b90b481d8f91	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-11T22:11:12+05:30	b90b481d8f91	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-11T22:11:12+05:30	b90b481d8f91	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-11T22:11:12+05:30	b90b481d8f91	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-11T22:11:12+05:30	b90b481d8f91	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-11T22:11:12+05:30	b90b481d8f91	True	selftest	known_exact	1	PASS	OK	
+2026-10-11T22:11:12+05:30	b90b481d8f91	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-11T22:11:16+05:30	b90b481d8f91	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-11T22:11:19+05:30	b90b481d8f91	True	selftest_reason	wrong_reason	1	FAIL	UNEXPECTED	1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
+2026-10-11T22:11:22+05:30	b90b481d8f91	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-11T22:11:26+05:30	b90b481d8f91	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil
+2026-10-11T22:11:29+05:30	b90b481d8f91	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [383000] %Error: core_ctl_sva.sv:39: Assertion failed in tb_boot.dut.u_ctl_sva.a_ctl_preempt: [SVA-FAIL
+2026-10-11T22:11:32+05:30	b90b481d8f91	True	negctl_elem	E_clic_ctrl_no_preempt	1	FAIL	XFAIL:PLANTED	pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+2026-10-11T22:11:37+05:30	b90b481d8f91	True	negctl_cosim	N_rd	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T22:11:37+05:30	b90b481d8f91	True	negctl_cosim	N_store	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T22:11:37+05:30	b90b481d8f91	True	negctl_cosim	N_pc	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T22:11:37+05:30	b90b481d8f91	True	negctl_cosim	N_trap	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T22:11:37+05:30	b90b481d8f91	True	negctl_cosim	N_irq_drop	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike
+2026-10-11T22:11:37+05:30	b90b481d8f91	True	negctl_cosim	N_irq_extra	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-11T22:11:38+05:30	b90b481d8f91	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[27 asserts, 21 covers in model] model has 27 assert(s), manifest wants >= 1000
+2026-10-12T00:53:41+05:30	b90b481d8f91	True	selftest	pass	1	PASS	OK	
+2026-10-12T00:53:41+05:30	b90b481d8f91	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-12T00:53:41+05:30	b90b481d8f91	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-12T00:53:41+05:30	b90b481d8f91	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-12T00:53:41+05:30	b90b481d8f91	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-12T00:53:41+05:30	b90b481d8f91	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-12T00:53:41+05:30	b90b481d8f91	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-12T00:53:41+05:30	b90b481d8f91	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-12T00:53:41+05:30	b90b481d8f91	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-12T00:53:41+05:30	b90b481d8f91	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-12T00:53:41+05:30	b90b481d8f91	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-12T00:53:41+05:30	b90b481d8f91	True	selftest	known_exact	1	PASS	OK	
+2026-10-12T00:53:41+05:30	b90b481d8f91	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-12T00:53:44+05:30	b90b481d8f91	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-12T00:53:47+05:30	b90b481d8f91	True	selftest_reason	wrong_reason	1	FAIL	UNEXPECTED	1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
+2026-10-12T00:53:50+05:30	b90b481d8f91	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-12T00:53:53+05:30	b90b481d8f91	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil
+2026-10-12T00:53:57+05:30	b90b481d8f91	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [383000] %Error: core_ctl_sva.sv:39: Assertion failed in tb_boot.dut.u_ctl_sva.a_ctl_preempt: [SVA-FAIL
+2026-10-12T00:54:00+05:30	b90b481d8f91	True	negctl_elem	E_clic_ctrl_no_preempt	1	FAIL	XFAIL:PLANTED	pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+2026-10-12T00:54:05+05:30	b90b481d8f91	True	negctl_cosim	N_rd	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-12T00:54:05+05:30	b90b481d8f91	True	negctl_cosim	N_store	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-12T00:54:05+05:30	b90b481d8f91	True	negctl_cosim	N_pc	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-12T00:54:05+05:30	b90b481d8f91	True	negctl_cosim	N_trap	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-12T00:54:05+05:30	b90b481d8f91	True	negctl_cosim	N_irq_drop	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike
+2026-10-12T00:54:05+05:30	b90b481d8f91	True	negctl_cosim	N_irq_extra	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-12T00:54:06+05:30	b90b481d8f91	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[27 asserts, 21 covers in model] model has 27 assert(s), manifest wants >= 1000
+2026-10-12T08:26:22+05:30	b90b481d8f91	True	selftest	pass	1	PASS	OK	
+2026-10-12T08:26:22+05:30	b90b481d8f91	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-12T08:26:22+05:30	b90b481d8f91	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-12T08:26:22+05:30	b90b481d8f91	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-12T08:26:22+05:30	b90b481d8f91	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-12T08:26:22+05:30	b90b481d8f91	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-12T08:26:22+05:30	b90b481d8f91	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-12T08:26:22+05:30	b90b481d8f91	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-12T08:26:22+05:30	b90b481d8f91	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-12T08:26:22+05:30	b90b481d8f91	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-12T08:26:22+05:30	b90b481d8f91	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-12T08:26:22+05:30	b90b481d8f91	True	selftest	known_exact	1	PASS	OK	
+2026-10-12T08:26:22+05:30	b90b481d8f91	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-12T08:26:25+05:30	b90b481d8f91	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-12T08:26:28+05:30	b90b481d8f91	True	selftest_reason	wrong_reason	1	FAIL	UNEXPECTED	1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
+2026-10-12T08:26:31+05:30	b90b481d8f91	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-12T08:26:34+05:30	b90b481d8f91	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil
+2026-10-12T08:26:37+05:30	b90b481d8f91	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [383000] %Error: core_ctl_sva.sv:39: Assertion failed in tb_boot.dut.u_ctl_sva.a_ctl_preempt: [SVA-FAIL
+2026-10-12T08:26:41+05:30	b90b481d8f91	True	negctl_elem	E_clic_ctrl_no_preempt	1	FAIL	XFAIL:PLANTED	pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+2026-10-12T08:26:45+05:30	b90b481d8f91	True	negctl_cosim	N_rd	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-12T08:26:45+05:30	b90b481d8f91	True	negctl_cosim	N_store	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-12T08:26:45+05:30	b90b481d8f91	True	negctl_cosim	N_pc	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-12T08:26:45+05:30	b90b481d8f91	True	negctl_cosim	N_trap	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-12T08:26:45+05:30	b90b481d8f91	True	negctl_cosim	N_irq_drop	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike
+2026-10-12T08:26:45+05:30	b90b481d8f91	True	negctl_cosim	N_irq_extra	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-12T08:26:47+05:30	b90b481d8f91	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[27 asserts, 21 covers in model] model has 27 assert(s), manifest wants >= 1000
+2026-10-13T08:07:24+05:30	b90b481d8f91	True	selftest	pass	1	PASS	OK	
+2026-10-13T08:07:24+05:30	b90b481d8f91	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-13T08:07:24+05:30	b90b481d8f91	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-13T08:07:24+05:30	b90b481d8f91	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-13T08:07:24+05:30	b90b481d8f91	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-13T08:07:24+05:30	b90b481d8f91	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-13T08:07:24+05:30	b90b481d8f91	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-13T08:07:24+05:30	b90b481d8f91	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-13T08:07:24+05:30	b90b481d8f91	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-13T08:07:24+05:30	b90b481d8f91	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-13T08:07:24+05:30	b90b481d8f91	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-13T08:07:24+05:30	b90b481d8f91	True	selftest	known_exact	1	PASS	OK	
+2026-10-13T08:07:24+05:30	b90b481d8f91	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-13T08:07:27+05:30	b90b481d8f91	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-13T08:07:30+05:30	b90b481d8f91	True	selftest_reason	wrong_reason	1	FAIL	UNEXPECTED	1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
+2026-10-13T08:07:33+05:30	b90b481d8f91	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-13T08:07:37+05:30	b90b481d8f91	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil
+2026-10-13T08:07:40+05:30	b90b481d8f91	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [383000] %Error: core_ctl_sva.sv:39: Assertion failed in tb_boot.dut.u_ctl_sva.a_ctl_preempt: [SVA-FAIL
+2026-10-13T08:07:43+05:30	b90b481d8f91	True	negctl_elem	E_clic_ctrl_no_preempt	1	FAIL	XFAIL:PLANTED	pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+2026-10-13T08:07:48+05:30	b90b481d8f91	True	negctl_cosim	N_rd	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-13T08:07:48+05:30	b90b481d8f91	True	negctl_cosim	N_store	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-13T08:07:48+05:30	b90b481d8f91	True	negctl_cosim	N_pc	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-13T08:07:48+05:30	b90b481d8f91	True	negctl_cosim	N_trap	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-13T08:07:48+05:30	b90b481d8f91	True	negctl_cosim	N_irq_drop	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike
+2026-10-13T08:07:48+05:30	b90b481d8f91	True	negctl_cosim	N_irq_extra	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-13T08:07:49+05:30	b90b481d8f91	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[30 asserts, 24 covers in model] model has 30 assert(s), manifest wants >= 1000
+2026-10-14T00:52:06+05:30	e43672fbc7c5	True	selftest	pass	1	PASS	OK	
+2026-10-14T00:52:06+05:30	e43672fbc7c5	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-14T00:52:06+05:30	e43672fbc7c5	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-14T00:52:06+05:30	e43672fbc7c5	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-14T00:52:06+05:30	e43672fbc7c5	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-14T00:52:06+05:30	e43672fbc7c5	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-14T00:52:06+05:30	e43672fbc7c5	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-14T00:52:06+05:30	e43672fbc7c5	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-14T00:52:06+05:30	e43672fbc7c5	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-14T00:52:06+05:30	e43672fbc7c5	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-14T00:52:06+05:30	e43672fbc7c5	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-14T00:52:06+05:30	e43672fbc7c5	True	selftest	known_exact	1	PASS	OK	
+2026-10-14T00:52:06+05:30	e43672fbc7c5	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-14T00:52:09+05:30	e43672fbc7c5	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-14T00:52:13+05:30	e43672fbc7c5	True	selftest_reason	wrong_reason	1	FAIL	UNEXPECTED	1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
+2026-10-14T00:52:20+05:30	e43672fbc7c5	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-14T00:52:24+05:30	e43672fbc7c5	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil
+2026-10-14T00:52:29+05:30	e43672fbc7c5	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [383000] %Error: core_ctl_sva.sv:39: Assertion failed in tb_boot.dut.u_ctl_sva.a_ctl_preempt: [SVA-FAIL
+2026-10-14T00:52:32+05:30	e43672fbc7c5	True	negctl_elem	E_clic_ctrl_no_preempt	1	FAIL	XFAIL:PLANTED	pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+2026-10-14T00:52:40+05:30	e43672fbc7c5	True	negctl_cosim	N_rd	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-14T00:52:40+05:30	e43672fbc7c5	True	negctl_cosim	N_store	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-14T00:52:40+05:30	e43672fbc7c5	True	negctl_cosim	N_pc	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-14T00:52:40+05:30	e43672fbc7c5	True	negctl_cosim	N_trap	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-14T00:52:40+05:30	e43672fbc7c5	True	negctl_cosim	N_irq_drop	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike
+2026-10-14T00:52:40+05:30	e43672fbc7c5	True	negctl_cosim	N_irq_extra	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-14T01:01:51+05:30	e43672fbc7c5	True	selftest	pass	1	PASS	OK	
+2026-10-14T01:01:51+05:30	e43672fbc7c5	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-10-14T01:01:51+05:30	e43672fbc7c5	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-10-14T01:01:51+05:30	e43672fbc7c5	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-10-14T01:01:51+05:30	e43672fbc7c5	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-10-14T01:01:51+05:30	e43672fbc7c5	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-10-14T01:01:51+05:30	e43672fbc7c5	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-10-14T01:01:51+05:30	e43672fbc7c5	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-10-14T01:01:51+05:30	e43672fbc7c5	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-10-14T01:01:51+05:30	e43672fbc7c5	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-10-14T01:01:51+05:30	e43672fbc7c5	True	selftest	sva_liveness	1	PASS	OK	
+2026-10-14T01:01:51+05:30	e43672fbc7c5	True	selftest	known_exact	1	PASS	OK	
+2026-10-14T01:01:51+05:30	e43672fbc7c5	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-10-14T01:01:55+05:30	e43672fbc7c5	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-10-14T01:01:57+05:30	e43672fbc7c5	True	selftest_reason	wrong_reason	1	FAIL	UNEXPECTED	1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
+2026-10-14T01:02:01+05:30	e43672fbc7c5	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-10-14T01:02:04+05:30	e43672fbc7c5	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil
+2026-10-14T01:02:07+05:30	e43672fbc7c5	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [383000] %Error: core_ctl_sva.sv:39: Assertion failed in tb_boot.dut.u_ctl_sva.a_ctl_preempt: [SVA-FAIL
+2026-10-14T01:02:10+05:30	e43672fbc7c5	True	negctl_elem	E_clic_ctrl_no_preempt	1	FAIL	XFAIL:PLANTED	pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+2026-10-14T01:02:15+05:30	e43672fbc7c5	True	negctl_cosim	N_rd	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-14T01:02:15+05:30	e43672fbc7c5	True	negctl_cosim	N_store	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-14T01:02:15+05:30	e43672fbc7c5	True	negctl_cosim	N_pc	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-14T01:02:15+05:30	e43672fbc7c5	True	negctl_cosim	N_trap	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-14T01:02:15+05:30	e43672fbc7c5	True	negctl_cosim	N_irq_drop	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike
+2026-10-14T01:02:15+05:30	e43672fbc7c5	True	negctl_cosim	N_irq_extra	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-10-14T01:02:16+05:30	e43672fbc7c5	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[30 asserts, 24 covers in model] model has 30 assert(s), manifest wants >= 1000

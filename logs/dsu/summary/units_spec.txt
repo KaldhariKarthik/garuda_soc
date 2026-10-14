@@ -1,0 +1,21 @@
+garuda-run 1  suite units_spec  block dsu  2026-10-14T01:23:41+05:30
+design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      tb_dsu_overflow_flag_spec        
+PASS    OK                      tb_dsu_barrel_shifter_spec       
+PASS    OK                      tb_dsu_decoder_spec              
+PASS    OK                      tb_dsu_stall_spec                
+PASS    OK                      tb_dsu_mac_unit_spec             
+PASS    OK                      tb_dsu_mac_cluster_spec          
+FAIL    XFAIL:DSU-18            tb_dsu_top_ovf_b2b               pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+FAIL    XFAIL:PLANTED           negctl_overflow_flag_clear_wins  pass marker missing; 10 [FAIL] line(s) | first: [FAIL] set+clear same cycle mac=001 sat=0 clr=1 -> flag=0 expected 1
+FAIL    XFAIL:PLANTED           negctl_barrel_shifter_logical    pass marker missing; 10 [FAIL] line(s) | first: [FAIL] acc=ffffffffffff amt=17 dir=0 -> 7fffffff expected ffffffff
+FAIL    XFAIL:PLANTED           negctl_decoder_sel3_legal        pass marker missing; 10 [FAIL] line(s) | first: [FAIL] instr=0631038b en=1: illegal mac_en
+FAIL    XFAIL:PLANTED           negctl_stall_no_interlock        pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
+FAIL    XFAIL:PLANTED           negctl_mac_unit_no_fold          pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
+FAIL    XFAIL:PLANTED           negctl_mac_cluster_no_fold       pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035
+
+PASS    6
+FAIL    7
+BLOCKED 0
+total   13

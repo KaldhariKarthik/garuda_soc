@@ -1,0 +1,9 @@
+garuda-run 1  suite selftest_reason  block flow  2026-10-14T01:01:57+05:30
+design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    UNEXPECTED              wrong_reason  1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
+
+PASS    0
+FAIL    1
+BLOCKED 0
+total   1

@@ -1,0 +1,31 @@
+# Extra tb_boot programs (Makefile test_boot / test_c / test_flag2).
+# Run: make -f flow/mk/track_a.mk core_extra
+[suite]
+block = "core"
+name  = "extra"
+kind  = "prog"
+xfail = "tb/core/run/xfail.tsv"
+
+[bench]
+flist = "tb/soc/filelist_boot.f"
+cov_flist = "tb/soc/filelist_boot_cov.f"   # --coverage: + bound covergroups (tb/cov/garuda_cov.sv)
+top   = "tb_boot"
+
+[defaults]
+marker   = 'TOHOST=1 -> PASSED'
+timeout  = 300
+require  = ['AHB-PROTOCOL: iport=0 dport=0']
+
+
+[[test]]
+name = "boot6"
+hex = "sw/build/boot6.hex"
+plusargs = ["+MAXCYC=2000", "+QUIET"]
+[[test]]
+name = "ctest1"
+hex = "sw/build/ctest1.hex"
+plusargs = ["+MAXCYC=20000", "+QUIET"]
+[[test]]
+name = "dsu_flag2"
+hex = "sw/build/dsu_flag2.hex"
+plusargs = ["+MAXCYC=2000", "+QUIET"]

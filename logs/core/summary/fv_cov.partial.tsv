@@ -1,0 +1,3 @@
+# garuda-fv 1 suite=fv_cov block=core date=2026-10-11T14:34:41+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+cov_reach	cover	COVERED	OK	20	[46 asserts, 23 covers in model] 	logs/core/raw/fv_cov/fv_cov_reach.log

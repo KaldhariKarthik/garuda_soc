@@ -1,0 +1,15 @@
+# xfail list for core suites: one row per EXPECTED non-pass, each with a bug ID.
+# suite<TAB>test<TAB>expect(FAIL|BLOCKED)<TAB>bug<TAB>reason
+fv_trap	trap_prove_unfixed	FAIL	PLANTED	pre-fix trap_ctrl must fail the T-13/T-14 proof
+fv_csr	csr_prove_no_t12	FAIL	PLANTED	csr_file with the T-12 fix reverted must fail the proof
+fv_csr	csr_prove_no_c16	FAIL	PLANTED	csr_file with the C-16 fix reverted must fail the proof
+fv_rdc1	rdc1_prove_rawgrant	FAIL	PLANTED	a DM granting on the raw request (pre-fix) must break a waited transfer
+fv_trap	ctl_no_bpdis	FAIL	PLANTED	mgarudactl knob ignored must fail its a_ctl_* property
+fv_trap	ctl_no_pfdis	FAIL	PLANTED	mgarudactl knob ignored must fail its a_ctl_* property
+fv_trap	ctl_no_preempt	FAIL	PLANTED	mgarudactl knob ignored must fail its a_ctl_* property
+fv_trap	ctl_no_cgdis	FAIL	PLANTED	mgarudactl knob ignored must fail its a_ctl_* property
+fv_trap	t17_no_fix	FAIL	PLANTED	trap_ctrl without the T-17 fix must fail a_ex_exc_needs_instr
+fv_trap	buse_no_fix	FAIL	PLANTED	the I-port without the BUS-E fix must fail a_ihaddr_aligned
+fv_trap	t18_no_fix	FAIL	PLANTED	branch_unit without the T-18 fix must fail a_misfetch_tval_misaligned
+covtests	t_dsu_ovf_raw	FAIL	DSU-14	csrr dsu_ovf right after the overflowing MAC reads the old flag (fail code 9)
+covtests	t_dsu_macsat_rd	FAIL	DSU-15	MACSAT writes no rd and clamps to int32, not Q1.15 (all three cases fail: code 7)

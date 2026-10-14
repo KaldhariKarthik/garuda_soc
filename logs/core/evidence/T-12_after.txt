@@ -1,0 +1,30 @@
+T-12 -- AFTER the fix (rtl/core/csr_file.v ERRATUM T-12; DN-T12 with rulings R1-R3 as recommended, Karthik to confirm), 2026-10-11T09:01:47+05:30
+
+1) tb/core/tb_csr_file_t12.sv (suite core/csr):
+   checks passing: 24
+   RESULT: ALL CHECKS PASSED (24 checks)
+
+2) regression (Verilator 5.052):
+   csr       PASS 1 FAIL 0 BLOCKED 0 
+   directed  PASS 4 FAIL 0 BLOCKED 0 
+   sanity    PASS 12 FAIL 0 BLOCKED 0 
+   isa       PASS 65 FAIL 0 BLOCKED 0 
+   isa_rand  PASS 65 FAIL 0 BLOCKED 0 
+   extra     PASS 3 FAIL 0 BLOCKED 0 
+   smokes    PASS 7 FAIL 0 BLOCKED 0 
+   units     PASS 5 FAIL 1 BLOCKED 0  U_id_stage=XFAIL:TB-33
+   elements  PASS 11 FAIL 3 BLOCKED 0  E_garuda_pc_gen=XFAIL:TB-32 E_d_port_ahb_master=XFAIL:ELEM-8 E_mem_wb_reg=XFAIL:TB-34
+
+3) formal:
+   fv_csr  csr_prove            prove  PROVEN       [10 asserts, 8 covers in model] 
+   fv_csr  csr_cover            cover  COVERED      [10 asserts, 8 covers in model] 
+   fv_csr  csr_prove_unfixed    prove  FAIL         [10 asserts, 8 covers in model] props: u_csr_sva.a_exc_mti_keep_mil, u_csr_sva.a_trap_pushes_mpil
+   fv_trap trap_bmc             bmc    BOUNDED(20)  [19 asserts, 14 covers in model] 
+   fv_trap trap_prove           prove  PROVEN       [19 asserts, 14 covers in model] 
+   fv_trap trap_cover           cover  COVERED      [19 asserts, 14 covers in model] 
+   fv_trap trap_prove_unfixed   prove  FAIL         [19 asserts, 14 covers in model] assertion failed (see trace)
+   csr_prove_unfixed: the pre-fix csr_file FAILS a_trap_pushes_mpil / a_exc_mti_keep_mil
+   (fv_csr assumption FA-5 added: reset in the first cycle; see tb/core/formal/ASSUMPTIONS.md)
+
+Still to come: program-level t_core_irq_nest.S (needs the tb_boot test device, plan P0.8);
+crt0_chip.S / crt0.S save+restore of mcause in handlers (Karthik's files; firmware rule in the TRM, W7).

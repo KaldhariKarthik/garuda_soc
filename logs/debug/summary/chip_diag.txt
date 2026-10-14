@@ -1,0 +1,16 @@
+garuda-run 1  suite chip_diag  block debug  2026-10-14T01:10:13+05:30
+design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      t_chip_jtag    
+PASS    OK                      t_chip_irq     
+PASS    OK                      t_chip_uart    
+PASS    OK                      t_chip_periph  
+PASS    OK                      t_chip_integ   
+PASS    OK                      t_chip_basic   
+PASS    OK                      t_chip_wdt     
+PASS    OK                      t_chip_flash   
+
+PASS    8
+FAIL    0
+BLOCKED 0
+total   8

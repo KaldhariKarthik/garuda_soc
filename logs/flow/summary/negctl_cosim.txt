@@ -1,0 +1,14 @@
+garuda-run 1  suite negctl_cosim  block flow  2026-10-14T01:02:15+05:30
+design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    XFAIL:PLANTED           N_rd         exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+FAIL    XFAIL:PLANTED           N_store      exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+FAIL    XFAIL:PLANTED           N_pc         exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+FAIL    XFAIL:PLANTED           N_trap       exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+FAIL    XFAIL:PLANTED           N_irq_drop   exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike
+FAIL    XFAIL:PLANTED           N_irq_extra  exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+
+PASS    0
+FAIL    6
+BLOCKED 0
+total   6

@@ -1,0 +1,95 @@
+vPlan trace: tb/dsu/GARUDA_DSU_vplan.csv (tools/run/vplan_trace.py dsu)
+totals: CHK UNMAPPED 1, CHK mapped 25, COV mapped 9, TC UNMAPPED 1, TC mapped 8
+
+DSU.F01.CHK1     CHK  model compare
+                      tb_dsu_top against the cycle-accurate DSUModel, generator cross-checked against ArchDSU (448 + 33368 clamp walk + 10048 random); note: both models defer to the RTL by their own rule (TB-45) [tb_dsu_top: OK (model.tsv), tb_dsu_top_icarus: OK (model.tsv), tb_dsu_top_clamp: OK (model.tsv), tb_dsu_top_10k: OK (model.tsv)]
+DSU.F01.COV2     COV  cg_dsu_mac.x_op_signs_acc
+                      cg_dsu_mac (not in report)
+DSU.F02.CHK1     CHK  model compare
+                      tb_dsu_top against the cycle-accurate DSUModel, generator cross-checked against ArchDSU (448 + 33368 clamp walk + 10048 random); note: both models defer to the RTL by their own rule (TB-45) [tb_dsu_top: OK (model.tsv), tb_dsu_top_icarus: OK (model.tsv), tb_dsu_top_clamp: OK (model.tsv), tb_dsu_top_10k: OK (model.tsv)]
+DSU.F02.COV2     COV  cg_dsu_dot.cp_pair
+                      cg_dsu_dot (not in report)
+DSU.F03.CHK1     CHK  a_other_acc_unchanged
+                      assert a_other_acc_unchanged: sim bound; formal: dsu_bmc BOUNDED(16) OK; dsu_prove PROVEN OK
+DSU.F03.CHK2     CHK  model compare
+                      tb_dsu_top against the cycle-accurate DSUModel, generator cross-checked against ArchDSU (448 + 33368 clamp walk + 10048 random); note: both models defer to the RTL by their own rule (TB-45) [tb_dsu_top: OK (model.tsv), tb_dsu_top_icarus: OK (model.tsv), tb_dsu_top_clamp: OK (model.tsv), tb_dsu_top_10k: OK (model.tsv)]
+DSU.F04.CHK1     CHK  model compare
+                      tb_dsu_top against the cycle-accurate DSUModel, generator cross-checked against ArchDSU (448 + 33368 clamp walk + 10048 random); note: both models defer to the RTL by their own rule (TB-45) [tb_dsu_top: OK (model.tsv), tb_dsu_top_icarus: OK (model.tsv), tb_dsu_top_clamp: OK (model.tsv), tb_dsu_top_10k: OK (model.tsv)]
+DSU.F05.COV1     COV  cg_dsu_shift.x_amount_sign
+                      cg_dsu_shift (not in report)
+DSU.F05.CHK2     CHK  model compare
+                      tb_dsu_top against the cycle-accurate DSUModel, generator cross-checked against ArchDSU (448 + 33368 clamp walk + 10048 random); note: both models defer to the RTL by their own rule (TB-45) [tb_dsu_top: OK (model.tsv), tb_dsu_top_icarus: OK (model.tsv), tb_dsu_top_clamp: OK (model.tsv), tb_dsu_top_10k: OK (model.tsv)]
+DSU.F06.CHK1     CHK  a_macsat -> t_dsu_macsat_rd
+                      UNMAPPED
+DSU.F06.COV2     COV  cg_dsu_sat.cp_range
+                      cg_dsu_sat (not in report)
+DSU.F07.COV1     COV  cg_dsu_abs.cp_value
+                      cg_dsu_abs (not in report)
+DSU.F07.CHK2     CHK  model compare
+                      tb_dsu_top against the cycle-accurate DSUModel, generator cross-checked against ArchDSU (448 + 33368 clamp walk + 10048 random); note: both models defer to the RTL by their own rule (TB-45) [tb_dsu_top: OK (model.tsv), tb_dsu_top_icarus: OK (model.tsv), tb_dsu_top_clamp: OK (model.tsv), tb_dsu_top_10k: OK (model.tsv)]
+DSU.F08.CHK1     CHK  model compare
+                      tb_dsu_top against the cycle-accurate DSUModel, generator cross-checked against ArchDSU (448 + 33368 clamp walk + 10048 random); note: both models defer to the RTL by their own rule (TB-45) [tb_dsu_top: OK (model.tsv), tb_dsu_top_icarus: OK (model.tsv), tb_dsu_top_clamp: OK (model.tsv), tb_dsu_top_10k: OK (model.tsv)]
+DSU.F09.CHK1     CHK  a_no_realign -> model
+                      tb_dsu_top against the cycle-accurate DSUModel, generator cross-checked against ArchDSU (448 + 33368 clamp walk + 10048 random); note: both models defer to the RTL by their own rule (TB-45) [tb_dsu_top: OK (model.tsv), tb_dsu_top_icarus: OK (model.tsv), tb_dsu_top_clamp: OK (model.tsv), tb_dsu_top_10k: OK (model.tsv)]
+DSU.F09.TC2      TC   dsu random -> tb_dsu_top_10k
+                      test tb_dsu_top_10k: OK (model.tsv)
+DSU.F10.CHK1     CHK  a_saturate_pos -> ruling-D0
+                      WAITS FOR RULING D0 (saturate vs wrap): the vPlan rows say saturate; the RTL and both oracles wrap and set the sticky flag (a_ovf_from_49, a_ovf_sticky PROVEN)
+DSU.F10.CHK2     CHK  a_saturate_neg -> ruling-D0
+                      WAITS FOR RULING D0 (saturate vs wrap): the vPlan rows say saturate; the RTL and both oracles wrap and set the sticky flag (a_ovf_from_49, a_ovf_sticky PROVEN)
+DSU.F10.CHK3     CHK  a_never_wraps -> ruling-D0
+                      WAITS FOR RULING D0 (saturate vs wrap): the vPlan rows say saturate; the RTL and both oracles wrap and set the sticky flag (a_ovf_from_49, a_ovf_sticky PROVEN)
+DSU.F10.CHK4     CHK  a_ovf_from_49
+                      assert a_ovf_from_49: sim bound; formal: dsu_bmc BOUNDED(16) OK; dsu_prove PROVEN OK
+DSU.F10.COV5     COV  cg_dsu_ovf.x_acc_dir_op
+                      cg_dsu_ovf (not in report)
+DSU.F11.CHK1     CHK  a_ovf_sticky
+                      assert a_ovf_sticky: sim bound; formal: dsu_bmc BOUNDED(16) OK; dsu_prove PROVEN OK
+DSU.F11.CHK2     CHK  a_ovf_set_beats_clear
+                      assert a_ovf_set_beats_clear: sim bound; formal: dsu_bmc BOUNDED(16) OK; dsu_prove PROVEN OK
+DSU.F12.CHK1     CHK  a_accsel3_illegal
+                      assert a_accsel3_illegal: sim bound; formal: dsu_bmc BOUNDED(16) OK; dsu_prove PROVEN OK
+DSU.F12.CHK2     CHK  a_accsel3_no_effect
+                      assert a_accsel3_no_effect: sim bound; formal: dsu_bmc BOUNDED(16) OK; dsu_prove PROVEN OK
+DSU.F12.COV3     COV  cg_dsu_ill.cp_insn_with_sel3
+                      cg_dsu_ill (not in report)
+DSU.F13.COV1     COV  cg_dsu_ill.cp_class
+                      cg_dsu_ill (not in report)
+DSU.F13.CHK2     CHK  model compare
+                      tb_dsu_top against the cycle-accurate DSUModel, generator cross-checked against ArchDSU (448 + 33368 clamp walk + 10048 random); note: both models defer to the RTL by their own rule (TB-45) [tb_dsu_top: OK (model.tsv), tb_dsu_top_icarus: OK (model.tsv), tb_dsu_top_clamp: OK (model.tsv), tb_dsu_top_10k: OK (model.tsv)]
+DSU.F14.CHK1     CHK  a_inert_when_disabled
+                      assert a_inert_when_disabled: sim bound; formal: dsu_bmc BOUNDED(16) OK; dsu_prove PROVEN OK
+DSU.F15.CHK1     CHK  a_single_cycle
+                      assert a_single_cycle: sim bound; formal: dsu_bmc BOUNDED(16) OK; dsu_prove PROVEN OK
+DSU.F16.CHK1     CHK  a_interlock_fires
+                      assert a_interlock_fires: sim bound; formal: dsu_bmc BOUNDED(16) OK; dsu_prove PROVEN OK
+DSU.F16.COV2     COV  cg_dsu_pair.x_first_second_same
+                      cg_dsu_pair (not in report)
+DSU.F17.CHK1     CHK  a_interlock_per_acc
+                      assert a_interlock_per_acc: sim bound; formal: dsu_bmc BOUNDED(16) OK; dsu_prove PROVEN OK
+DSU.F18.TC1      TC   t_dsu_b2b
+                      test t_dsu_b2b: OK (sanity.tsv)
+DSU.F19.CHK1     CHK  a_flush_no_accumulate
+                      assert a_flush_no_accumulate: sim bound; formal: dsu_bmc BOUNDED(16) OK; dsu_prove PROVEN OK
+DSU.F20.TC1      TC   t_hold_flush_matrix
+                      test t_hold_flush_matrix: OK (sanity.tsv)
+DSU.F21.TC1      TC   t_hold_flush_matrix
+                      test t_hold_flush_matrix: OK (sanity.tsv)
+DSU.F22.TC1      TC   riscv-dv with DSU instructions and interrupts -> stress
+                      1000-seed stress and the 1e9-instruction endurance run include t_cov_dsu / DSU programs under interrupts, compared with Spike + ArchDSU [stress.tsv: OK 690, logs/core/evidence/stress_1000_2026-10-11.txt: present, logs/core/evidence/instret_total.txt: present]
+DSU.F23.CHK1     CHK  a_taps_live
+                      assert a_taps_live: sim bound; formal: dsu_bmc BOUNDED(16) OK; dsu_prove PROVEN OK
+DSU.F24.TC1      TC   t_dsu_gate
+                      UNMAPPED
+DSU.F25.CHK1     CHK  review
+                      review item (Karthik's review record)
+DSU.F26.TC1      TC   t_dsu_apf
+                      LATER (stage 5): the potential-field loop firmware against a Python reference; the firmware does not exist yet
+DSU.F27.TC1      TC   t_dsu_ekf_scope
+                      LATER (stage 5): the estimator prediction / residual firmware against a floating-point reference; not written yet
+DSU.F28.TC1      TC   dsu_flag2
+                      test dsu_flag2: OK (extra.tsv)
+
+UNMAPPED (2): need an alias, an implementation or a decision
+  DSU.F06.CHK1 a_macsat
+  DSU.F24.TC1 t_dsu_gate

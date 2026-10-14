@@ -1,0 +1,9 @@
+garuda-run 1  suite units_spec.partial  block dsu  2026-10-12T19:57:35+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    XFAIL:DSU-18            tb_dsu_top_ovf_b2b  pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+
+PASS    0
+FAIL    1
+BLOCKED 0
+total   1

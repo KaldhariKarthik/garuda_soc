@@ -1,0 +1,9 @@
+garuda-run 1  suite negctl_t12  block flow  2026-10-14T01:02:04+05:30
+design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    XFAIL:PLANTED           t_core_irq_nest_no_t12  exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed
+
+PASS    0
+FAIL    1
+BLOCKED 0
+total   1

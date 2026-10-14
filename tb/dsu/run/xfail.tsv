@@ -1,0 +1,26 @@
+# xfail list for DSU suites.
+# suite<TAB>test<TAB>expect(FAIL|BLOCKED)<TAB>bug<TAB>reason
+fv_dsu	dsu_no_dsu9	FAIL	PLANTED	dsu_top without the DSU-9 fix (busy not gated by dsu_en) must fail its interlock properties
+fv_dsu	dsu_mut_no_interlock	FAIL	PLANTED	DSU mutant (no_interlock) must break a proven DSU property (TB-42)
+fv_dsu	dsu_mut_ovf_not_sticky	FAIL	PLANTED	DSU mutant (ovf_not_sticky) must break a proven DSU property (TB-42)
+fv_dsu	dsu_mut_ovf_clear_drops_set	FAIL	PLANTED	DSU mutant (ovf_clear_drops_set) must break a proven DSU property (TB-42)
+dsu_mut	mut_shift_logical	FAIL	PLANTED	DSU mutant: MACSHIFT right shift loses the sign (the DSU shift erratum reverted)
+dsu_mut	mut_rdhi_zext	FAIL	PLANTED	DSU mutant: MACRD_HI zero-extends instead of sign-extending
+dsu_mut	mut_dot_hi_is_lo	FAIL	PLANTED	DSU mutant: MACDOT multiplies the low halfword twice
+dsu_mut	mut_no_interlock	FAIL	PLANTED	DSU mutant: the read-after-MAC interlock never fires
+dsu_mut	mut_no_fold	FAIL	PLANTED	DSU mutant: the stage-2 fold of an accumulate never happens
+dsu_mut	mut_sat_no_ovf	FAIL	PLANTED	DSU mutant: MACSAT clamps but never sets the overflow flag
+dsu_mut	mut_ovf_not_sticky	FAIL	PLANTED	DSU mutant: the overflow flag is not sticky
+units	tb_dsu_barrel_shifter	FAIL	TB-43	shift 48..63 undefined in the spec (D0)
+units	tb_dsu_decoder	FAIL	TB-43	MACSHIFT reserved imm bits (D0)
+units	tb_dsu_mac_unit	FAIL	TB-43	bench models a single-stage accumulate (stale)
+units	tb_dsu_mac_cluster	FAIL	TB-43	bench models a single-stage accumulate (stale)
+units	tb_dsu_overflow_flag	FAIL	TB-43	bench requires clear-beats-set, spec N-6.9 says set beats clear
+units	tb_dsu_stall	FAIL	TB-43	FINDING1 over-stall after MACRD/MACSAT (performance)
+units_spec	tb_dsu_top_ovf_b2b	FAIL	DSU-18	an overflowing accumulate followed at once by MACCLEAR / MACLOAD of the same accumulator does not set the sticky overflow flag
+units_spec	negctl_overflow_flag_clear_wins	FAIL	PLANTED	negative control of a DSU spec bench (planted defect in its unit)
+units_spec	negctl_barrel_shifter_logical	FAIL	PLANTED	negative control of a DSU spec bench (planted defect in its unit)
+units_spec	negctl_decoder_sel3_legal	FAIL	PLANTED	negative control of a DSU spec bench (planted defect in its unit)
+units_spec	negctl_stall_no_interlock	FAIL	PLANTED	negative control of a DSU spec bench (planted defect in its unit)
+units_spec	negctl_mac_unit_no_fold	FAIL	PLANTED	negative control of a DSU spec bench (planted defect in its unit)
+units_spec	negctl_mac_cluster_no_fold	FAIL	PLANTED	negative control of a DSU spec bench (planted defect in its unit)

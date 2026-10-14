@@ -1,0 +1,109 @@
+# Coverage-closure directed tests (Track A, 2026-10-11): each one targets holes
+# found by tools/cov/cov_report.py and checks results, not only that it ran.
+# Images: make -f flow/mk/track_a.mk sw_open      Run: make -f flow/mk/track_a.mk core_covtests
+[suite]
+block = "core"
+name  = "covtests"
+kind  = "prog"
+xfail = "tb/core/run/xfail.tsv"
+
+[bench]
+flist = "tb/soc/filelist_boot.f"
+top   = "tb_boot"
+cov_flist = "tb/soc/filelist_boot_cov.f"   # --coverage: + bound covergroups
+
+[defaults]
+marker   = 'TOHOST=1 -> PASSED'
+timeout  = 600
+require  = ['AHB-PROTOCOL: iport=0 dport=0']
+
+# access faults (fetch / load / store, byte / half / word) at patterned addresses
+[[test]]
+name = "t_cov_fault"
+hex  = "sw/build/t_cov_fault.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET"]
+[[test]]
+name = "t_cov_fault_w3"
+hex  = "sw/build/t_cov_fault.hex"
+plusargs = ["+MAXCYC=400000", "+QUIET", "+IWAIT=3", "+DWAIT=3"]
+
+# CSR patterns, counter writes, read-only / read-zero reads, illegal accesses
+[[test]]
+name = "t_cov_csr"
+hex  = "sw/build/t_cov_csr.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET"]
+
+# illegal encodings per opcode class
+[[test]]
+name = "t_cov_illegal"
+hex  = "sw/build/t_cov_illegal.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET"]
+
+# DSU in the core: all ops x accumulators, overflow, dsu_ovf read-to-clear (ArchDSU-checked)
+[[test]]
+name = "t_cov_dsu"
+hex  = "sw/build/t_cov_dsu.hex"
+plusargs = ["+MAXCYC=8000000", "+QUIET"]
+# DSU-14: the overflowing MACDOT directly followed by `csrr dsu_ovf` (expected 1)
+[[test]]
+name = "t_dsu_ovf_raw"
+hex  = "sw/build/t_dsu_ovf_raw.hex"
+plusargs = ["+MAXCYC=8000000", "+QUIET"]
+fail_reason = 'TOHOST=00000013 -> FAILED'
+
+# warm system reset in the middle of operation (tb_boot +RERESET_AT); the
+# second boot must find every architectural reset value back
+[[test]]
+name = "t_cov_rereset"
+hex  = "sw/build/t_cov_rereset.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+RERESET_AT=3000"]
+[[test]]
+name = "t_cov_rereset_w2"
+hex  = "sw/build/t_cov_rereset.hex"
+plusargs = ["+MAXCYC=400000", "+QUIET", "+RERESET_AT=7001", "+IWAIT=2", "+DWAIT=2"]
+
+# interrupt-gate cases (equal / lower level inside a handler, MTI at level 0)
+# and WFI with and without CG_DIS, through the test device
+[[test]]
+name = "t_cov_irq"
+hex  = "sw/build/t_cov_irq.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET"]
+[[test]]
+name = "t_cov_irq_w2"
+hex  = "sw/build/t_cov_irq.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IWAIT=2", "+DWAIT=2"]
+
+# jumps / branches to misaligned targets: cause 0 when taken, nothing when a
+# predicted-taken branch is not taken (lockstep with Spike: same traps)
+[[test]]
+name = "t_cov_misfetch"
+hex  = "sw/build/t_cov_misfetch.hex"
+plusargs = ["+MAXCYC=50000", "+QUIET"]
+lockstep = true
+[[test]]
+name = "t_cov_misfetch_w2"
+hex  = "sw/build/t_cov_misfetch.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET", "+IWAIT=2", "+DWAIT=2"]
+[[test]]
+name = "t_cov_misfetch_d3"
+hex  = "sw/build/t_cov_misfetch.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET", "+DWAIT=3"]
+
+# DSU vPlan F06 / DSU-15 (open, ruling): MACSAT must return the accumulator saturated
+# to Q1.15 in rd[15:0]; the RTL writes no rd and clamps to int32 in place
+[[test]]
+name = "t_dsu_macsat_rd"
+hex  = "sw/build/t_dsu_macsat_rd.hex"
+plusargs = ["+MAXCYC=20000", "+QUIET"]
+fail_reason = 'TOHOST=0000000[fF] -> FAILED'
+
+# core vPlan coverage stimulus (Track A wrap-up 2026-10-12): operand corners, class
+# pairs, load-use consumers, CSR ops on every group, traps at the end of memory
+[[test]]
+name = "t_cov_vplan"
+hex  = "sw/build/t_cov_vplan.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET"]
+[[test]]
+name = "t_cov_vplan_w2"
+hex  = "sw/build/t_cov_vplan.hex"
+plusargs = ["+MAXCYC=400000", "+QUIET", "+IWAIT=2", "+DWAIT=2"]

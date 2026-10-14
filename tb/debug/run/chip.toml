@@ -1,0 +1,70 @@
+# Chip-level integration check of the debug path (Track A W4 changed
+# rtl/debug/debug_top.v and the two RDC-1 nets in rtl/soc/garuda_soc_top.v).
+# tb/soc/tb_chip.sv is Karthik's bench; run here as the integration evidence for
+# the debug change. Known bench issues are classified, not hidden:
+#   TB-30  fixed by Karthik (c0dce4d, 2026-10-11): the reset pin now falls, so every
+#          program passes here; the whole-test XFAIL:TB-30 rows were removed on the
+#          rebase onto e43672f (2026-10-14) in favour of the exact known lines below.
+#   TB-38  timers a_mtimecmp_reset fires at 51 ns in 2-state (all 8, once each)
+#   TB-37  2-state image sizing: jtag streams 64 KB, so it needs a 60 ms budget
+# Run: make -f flow/mk/track_a.mk debug_chip
+[suite]
+block = "debug"
+name  = "chip"
+kind  = "prog"
+xfail = "tb/debug/run/xfail.tsv"
+
+[bench]
+flist = "tb/soc/filelist_chip.f"
+top   = "tb_chip"
+# Declared exclusion (TOOL-21): Verilator 5.052 cannot elaborate pwm_sva.sv
+# ($past of an unpacked-array element inside a generate loop, line 44). The PWM
+# properties are not the subject here; they run in Karthik's uvm_pwm (Xcelium).
+exclude = ["rtl/pwm/pwm_sva.sv"]
+
+[defaults]
+marker  = '^RESULT: PASSED'
+timeout = 1800
+cwd     = "root"
+# known lines (each exactly once per run, see tools/run/garuda_run.py `known`)
+known = [
+  ['a_mtimecmp_reset', 1, "TB-38"],
+]
+
+# Declared Verilator-only deviation (audit shim): Verilator 5.052 rejects
+# strength-qualified pullup/pulldown; the default pull strength is equivalent
+# here (every opposing driver is strong or open-drain strong-0).
+[[shim]]
+id = "SHIM-PULL"
+glob = "tb/soc/tb_chip.sv"
+match = '^(\s*)(pullup|pulldown) +\((weak|pull|strong)[01]\) +([^;]*;)(.*)$'
+replace = '\1\2 \4\5  // shim:SHIM-PULL strength dropped (Verilator 5.052)'
+lines = 4
+
+[[test]]
+name = "t_chip_jtag"
+plusargs = ["+MODE=jtag", "+TEST=sw/build/t_chip_jtag.hex", "+MAXUS=60000"]
+[[test]]
+name = "t_chip_irq"
+plusargs = ["+MODE=irq", "+TEST=sw/build/t_chip_irq.hex"]
+[[test]]
+name = "t_chip_uart"
+plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_uart.hex"]
+[[test]]
+name = "t_chip_periph"
+plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_periph.hex", "+MAXUS=1200"]
+[[test]]
+name = "t_chip_integ"
+plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_integ.hex", "+MAXUS=4000"]
+[[test]]
+name = "t_chip_basic"
+plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_basic.hex"]
+known = [
+  ['a_mtimecmp_reset', 1, "TB-38"],
+]
+[[test]]
+name = "t_chip_wdt"
+plusargs = ["+MODE=wdt", "+TEST=sw/build/t_chip_wdt.hex"]
+[[test]]
+name = "t_chip_flash"
+plusargs = ["+MODE=flash", "+TEST=sw/build/flash.hex", "+MAXUS=3000"]

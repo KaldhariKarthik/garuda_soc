@@ -1,0 +1,121 @@
+GARUDA Track A -- Gate A execution baseline
+written      : 2026-10-11T03:02:34+05:30
+design SHA   : b90b481d8f91d5d8d1cd3887c3856c38033d87f7  (execution baseline = origin/main when Phase 0 began)
+rtl/ state   : clean (no change under rtl/)
+tree changes : 12 path(s): Track A flow files only (tools/run, tb/*/run, tb/core/selftest, flow/mk, logs, .gitignore, tools/lockstep.py TOOL-12)
+audit ref    : aae00a2 (results compared below only with the diff named)
+
+Specification revisions
+  GARUDA-ADR-001.md                    1.0
+  GARUDA-AHB-SPEC-001.md               4.0
+  GARUDA-AHB2APB-SPEC-001.md           2.0
+  GARUDA-CLIC-SPEC-001.md              2.0
+  GARUDA-CLKRST-SPEC-001.md            2.0
+  GARUDA-CORE-SPEC-001.md              3.0
+  GARUDA-DEBUG-SPEC-001.md             2.0
+  GARUDA-DMA-SPEC-001.md               3.0
+  GARUDA-DSU-SPEC-001.md               3.0
+  GARUDA-GPIO-SPEC-001.md              1.0
+  GARUDA-I2C-SPEC-001.md               1.0
+  GARUDA-MEM-SPEC-001.md               2.0
+  GARUDA-PHYS-SPEC-001.md              1.0
+  GARUDA-PWM-SPEC-001.md               1.0
+  GARUDA-SPIM-SPEC-001.md              1.0
+  GARUDA-SPIS-SPEC-001.md              1.0
+  GARUDA-TIMERS-SPEC-001.md            2.0
+  GARUDA-TRM-001.md                    4.0
+  GARUDA-UART-SPEC-001.md              1.0
+
+Pinned tools
+  verilator            Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+  verilator_coverage   Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+  iverilog             Icarus Verilog version 12.0 (stable) (v12_0)
+  spike                Spike RISC-V ISA Simulator 1.1.1-dev  src 609dbe0b
+  riscv gcc            riscv-none-elf-gcc (xPack GNU RISC-V Embedded GCC x86_64) 15.2.0
+  riscv-tests          bcffa2b
+  yosys                Yosys 0.69+190 (git sha1 0e8336b4e, Release, Clang /usr/bin/clang++ 21.1.8)
+  sby                  SBY v0.69
+  python               Python 3.12.14
+  host                 Rocky Linux release 8.10 (Green Obsidian)
+
+Suites (verdict / classification; full rows in logs/<blk>/summary/<suite>.tsv)
+
+  core/units: 6 tests  PASS=5 FAIL=1 BLOCKED=0  unclassified=0  run 2026-10-11T03:01:15+05:30
+    XFAIL:TB-33      U_id_stage               218 assertion failure(s) | first: [25000] %Error: tb_id_stage.sv:769: Assertion failed in $unit.id_generator.b
+
+  core/elements: 14 tests  PASS=11 FAIL=3 BLOCKED=0  unclassified=0  run 2026-10-11T03:01:45+05:30
+    shims   : SHIM-SB-SUMMARY (declared in the suite manifest)
+    XFAIL:TB-32      E_garuda_pc_gen          pass marker missing; 3 [FAIL] line(s); 1 assertion failure(s) | first: [FAIL] reset                    pc = bo
+    XFAIL:ELEM-8     E_d_port_ahb_master      1 [FAIL] line(s); 1 assertion failure(s) | first: [6275000] %Error: tb_d_port_ahb_master.sv:100: Assertion fai
+    XFAIL:TB-34      E_mem_wb_reg             1 [FAIL] line(s); 1 assertion failure(s) | first: [165000] %Error: tb_mem_wb_reg.sv:75: Assertion failed in tb
+
+  core/smokes: 7 tests  PASS=7 FAIL=0 BLOCKED=0  unclassified=0  run 2026-10-11T03:01:50+05:30
+
+  core/isa: 64 tests  PASS=64 FAIL=0 BLOCKED=0  unclassified=0  run 2026-10-11T03:01:54+05:30
+    lockstep: MATCH=58, n/a=6
+    shims   : SHIM-SHM (declared in the suite manifest)
+
+  core/isa_rand: 64 tests  PASS=64 FAIL=0 BLOCKED=0  unclassified=0  run 2026-10-11T03:01:59+05:30
+    lockstep: MATCH=58, n/a=6
+    shims   : SHIM-SHM (declared in the suite manifest)
+
+  core/sanity: 12 tests  PASS=12 FAIL=0 BLOCKED=0  unclassified=0  run 2026-10-11T03:02:03+05:30
+    lockstep: n/a=12
+    shims   : SHIM-SHM (declared in the suite manifest)
+
+  core/extra: 3 tests  PASS=3 FAIL=0 BLOCKED=0  unclassified=0  run 2026-10-11T03:02:07+05:30
+    lockstep: n/a=3
+    shims   : SHIM-SHM (declared in the suite manifest)
+
+  dsu/model: 2 tests  PASS=1 FAIL=1 BLOCKED=0  unclassified=0  run 2026-10-11T03:02:10+05:30
+    XFAIL:TB-35      tb_dsu_top               pass marker missing; 10 [FAIL] line(s); missing: /tests compared *: *445\b/; missing: /mismatches *: *0\b/ | f
+
+  flow/selftest: 11 tests  PASS=2 FAIL=8 BLOCKED=1  unclassified=0  run 2026-10-11T03:02:26+05:30
+    XFAIL:PLANTED    fail_line                1 [FAIL] line(s) | first: [FAIL] planted check failure
+    XFAIL:PLANTED    assert_fail              1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_p
+    XFAIL:PLANTED    error                    1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: pl
+    XFAIL:PLANTED    no_marker                pass marker missing
+    XFAIL:PLANTED    fatal                    exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest
+    XFAIL:PLANTED    hang                     TIMEOUT after 5s; pass marker missing
+    XFAIL:PLANTED    require_missing          missing: /this line is never printed/
+    XFAIL:PLANTED    forbid_present           forbidden: /mode=pass/
+    XBLOCK:PLANTED   build_broken             %Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+
+  flow/negctl_prog: 1 tests  PASS=0 FAIL=1 BLOCKED=0  unclassified=0  run 2026-10-11T03:02:33+05:30
+    lockstep: not-run=1
+    shims   : SHIM-SHM (declared in the suite manifest)
+    XFAIL:PLANTED    N1_add_to_sub            pass marker missing | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+
+Gate A baseline classification: COMPLETE
+
+Differences against the audit reference aae00a2 (same tools: Verilator 5.052, Icarus 12, Spike 609dbe0)
+------------------------------------------------------------------------------------------------------
+Core/DSU RTL diff aae00a2..b90b481: rtl/core/csr_file.v only (+9/-1, 4b4ca55: T-15, mepc bit 1 masked).
+Flow diff: 919ae7a (VER-3) lockstep also compares stores, traps and CSR values; 4b4ca55 adds
+sw/riscv-tests/local/csr_warl.S.
+
+suite        audit (aae00a2)                 baseline (b90b481)              explained by
+units        5/6, id_stage FAIL              5/6, id_stage XFAIL TB-33       identical
+elements     10/13 shimmed + clic_ctrl PASS  11/14 (same 3 fail, classified) identical (SHIM-SB-SUMMARY = audit shim)
+smokes       7/7                             7/7                             identical
+isa          63/63, 57 MATCH + 6 n/a         64/64, 58 MATCH + 6 n/a         +p-csr_warl (4b4ca55); MATCH now incl. stores/traps/CSRs (VER-3)
+isa_rand     63/63 (seed 3)                  64/64 (seed 3)                  +p-csr_warl
+sanity       12/12                           12/12                           identical
+extra        3/3                             3/3                             identical
+dsu          445/0 on Icarus                 445/0 on Icarus; Verilator      identical; TB-35 = audit F-09, now a
+                                             row XFAIL TB-35                 classified row instead of a note
+
+Oracle qualification on this baseline (logs/flow/summary/lockstep_negctl.txt):
+  N0 match; N2 flipped value DIVERGE; N3 short RTL log MISMATCH; N4 short Spike log MISMATCH
+  (the audit's N4 hole is closed by VER-3); N5 Spike exit 1 after a full log: NOT caught on
+  b90b481 (TOOL-12, evidence logs/flow/evidence/TOOL-12_before_lockstep_negctl.txt), caught
+  after the Track A fix in tools/lockstep.py; N1 add->sub image FAILs its self-check.
+Runner qualification (logs/flow/summary/selftest.tsv): 8 planted FAILs + 1 planted BLOCKED all
+caught, a stale xfail entry fails the suite, SVA liveness counts exact (Verilator deviations pinned:
+async disable iff fires once; $isunknown never fires).
+
+New Verilator fact found while qualifying (2026-10-11): a process keeps executing after $finish
+until it yields, so a bench must not rely on an earlier $finish to skip its pass line.
+
+XCELIUM-ONLY (never claimed from these runs): X-propagation, reset-X, $isunknown checks, IMC
+code coverage. Karthik's Xcelium cross-run of the same suites completes Gate A.

@@ -1,0 +1,3 @@
+# garuda-run 1 suite=csr.cov block=core date=2026-10-13T07:51:14+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+t12_level_stack	PASS	OK	0	yes	0	0	0	-	11	0	-	1	0.04	20		logs/core/raw/csr.cov/cov/t12_level_stack_s1.dat		logs/core/raw/csr.cov/sim_t12_level_stack_s1.log

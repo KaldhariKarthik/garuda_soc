@@ -1,0 +1,19 @@
+Plan 5.5: riscv-dv random programs (open flow: pygen + GARUDA target) under Spike co-simulation -- 2026-10-11
+generator: riscv-dv 0d71c2b pygen, target tb/core/riscv_dv/pygen_overlay/pygen_src/target/garuda (DN-ISA: RV32I + Zmmul, no DIV/REM, M-mode, no C), tests from tb/core/riscv_dv/testlist (shared with Karthik's xrun flow), seeds 1-10
+built: 85 of 100 (pygen limits, see tools/gen/garuda_dv_gen.py: no sub-programs, 4 streams missing, illegal-instr randomization unsolvable, la-zero retried; mmu_stress 9 and unaligned 6 seeds fail or hang in the generator)
+result: 85/85 PASS, 0 co-simulation mismatches; checked: 141669 instructions, 110 traps
+
+[riscv_dv] PASS=85 FAIL=0 BLOCKED=0 -> OK  (logs/core/summary/riscv_dv.tsv)
+
+  arith: 10 programs
+  rand_instr: 10 programs
+  jump_stress: 10 programs
+  loop: 10 programs
+  rand_jump: 9 programs
+  mmu_stress: 2 programs
+  no_fence: 10 programs
+  illegal: 10 programs
+  ebreak: 10 programs
+  unaligned: 4 programs
+
+The full SV-generator list (sub-programs, all streams, illegal instructions) runs on Xcelium: make riscv_dv (Karthik's flow).

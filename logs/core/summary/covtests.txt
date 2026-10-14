@@ -1,0 +1,24 @@
+garuda-run 1  suite covtests  block core  2026-10-14T01:04:31+05:30
+design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      t_cov_fault        
+PASS    OK                      t_cov_fault_w3     
+PASS    OK                      t_cov_csr          
+PASS    OK                      t_cov_illegal      
+PASS    OK                      t_cov_dsu          
+FAIL    XFAIL:DSU-14            t_dsu_ovf_raw      exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=00000013 -> FAILED (test 9, 197100 retired) ***
+PASS    OK                      t_cov_rereset      
+PASS    OK                      t_cov_rereset_w2   
+PASS    OK                      t_cov_irq          
+PASS    OK                      t_cov_irq_w2       
+PASS    OK                      t_cov_misfetch     
+PASS    OK                      t_cov_misfetch_w2  
+PASS    OK                      t_cov_misfetch_d3  
+FAIL    XFAIL:DSU-15            t_dsu_macsat_rd    exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (test 7, 55 retired) ***
+PASS    OK                      t_cov_vplan        
+PASS    OK                      t_cov_vplan_w2     
+
+PASS    14
+FAIL    2
+BLOCKED 0
+total   16

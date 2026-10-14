@@ -1,0 +1,19 @@
+Plan D1: dsu-verification sub-block benches on the real DSU RTL -- 2026-10-11
+port: tools/gen/port_dsu_benches.py (origin/dsu-verification 391e8e0, author shrey, 2026-08-30): pasted DUT copies removed; class covergroups compiled out under Verilator only (TOOL-23); compiled with the whole rtl/dsu filelist, DSU properties bound (none fires)
+result: 7 PASS on the real RTL (added to the DSU regression, make dsu_units); 6 xfail TB-43 (classified in Docs/bugs/dsu.md: 2 D0 rulings, 2 stale benches, 1 bench contradicting the spec, 1 performance-only over-stall); no RTL correctness defect
+
+[units] block=dsu tests=13 seed=1 design=b90b481d8f91 DIRTY tool='Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a'
+  FAIL    XFAIL:TB-43            tb_dsu_barrel_shifter            pass marker missing; 315 [FAIL] line(s) | first: [FAIL] dir_arith_right_past48_neg cluster_out=ffffffffffff sh
+  PASS    OK                     tb_dsu_csa_3to2                  
+  FAIL    XFAIL:TB-43            tb_dsu_decoder                   pass marker missing; 355 [FAIL] line(s) | first: [FAIL] EXH_f54_f31_ic01_acc0          instr=2000100b dsu_en=1
+  PASS    OK                     tb_dsu_kogge_stone_49            
+  FAIL    XFAIL:TB-43            tb_dsu_mac_cluster               pass marker missing; 1501 [FAIL] line(s) | first: [FAIL] dir_idle2            rs1=00000000 rs2=00000000 contro
+  FAIL    XFAIL:TB-43            tb_dsu_mac_unit                  pass marker missing; 1158 [FAIL] line(s) | first: [FAIL] #3 dir_settle2              rs1=00000000 rs2=00000000
+  PASS    OK                     tb_dsu_mult_16x16                
+  PASS    OK                     tb_dsu_operand_router            
+  FAIL    XFAIL:TB-43            tb_dsu_overflow_flag             pass marker missing; 355 [FAIL] line(s); 118 assertion failure(s) | first: [FAIL] dir_settle_after_priority   
+  PASS    OK                     tb_dsu_readback_mux              
+  PASS    OK                     tb_dsu_result_selector           
+  PASS    OK                     tb_dsu_saturation_unit           
+  FAIL    XFAIL:TB-43            tb_dsu_stall                     pass marker missing; 105 [FAIL] line(s) | first: [FAIL] seq=FINDING1_compute_0_then_read_same_acc  cyc=1 op=OP
+[units] PASS=7 FAIL=6 BLOCKED=0 -> OK  (logs/dsu/summary/units.tsv)

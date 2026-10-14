@@ -1,0 +1,31 @@
+# ISA regression under random I-port and D-port wait states (make regress_rand).
+# its own TOHOST self-check AND Spike lockstep (scripts/run_regression.sh).
+# Images: make -f flow/mk/track_a.mk sw_open
+# Run:    make -f flow/mk/track_a.mk core_isa_rand
+[suite]
+block = "core"
+name  = "isa_rand"
+kind  = "prog"
+xfail = "tb/core/run/xfail.tsv"
+
+[bench]
+flist = "tb/soc/filelist_boot.f"
+cov_flist = "tb/soc/filelist_boot_cov.f"   # --coverage: + bound covergroups (tb/cov/garuda_cov.sv)
+top   = "tb_boot"
+
+[defaults]
+marker   = 'TOHOST=1 -> PASSED'
+timeout  = 600
+require  = ['AHB-PROTOCOL: iport=0 dport=0']
+plusargs = ["+MAXCYC=600000", "+QUIET", "+IWAIT=8", "+DWAIT=8", "+IRAND=1", "+DRAND=1", "+SEED=3"]
+
+# Lockstep NOT applicable by construction (same list and reasons as
+# scripts/run_regression.sh:47): no hardware divider (p-div/divu/rem/remu),
+# mtvec.MODE=3 vs Spike (p-sbreak), mimpid (p-mcsr). DN-ISA (zmmul) revisits.
+[lockstep]
+enabled = true
+skip = ["p-div", "p-divu", "p-rem", "p-remu", "p-sbreak", "p-mcsr"]
+
+
+[[programs]]
+glob = "sw/riscv-tests/build/*.hex"

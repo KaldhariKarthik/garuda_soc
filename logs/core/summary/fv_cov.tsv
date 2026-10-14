@@ -1,0 +1,5 @@
+# garuda-fv 1 suite=fv_cov block=core date=2026-10-13T18:51:23+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+cov_bmc	bmc	BOUNDED(24)	OK	16	[56 asserts, 36 covers in model] 	logs/core/raw/fv_cov/fv_cov_bmc.log
+cov_prove	prove	PROVEN	OK	7	[49 asserts, 36 covers in model] 	logs/core/raw/fv_cov/fv_cov_prove.log
+cov_reach	cover	COVERED	OK	25	[56 asserts, 35 covers in model] 	logs/core/raw/fv_cov/fv_cov_reach.log

@@ -1,0 +1,21 @@
+# Runner qualification: an expected FAIL for the WRONG reason must not count.
+# `wrong_reason` fails (planted [FAIL] line) and is listed as an expected FAIL,
+# but its `fail_reason` never appears, so it must be UNEXPECTED and the suite
+# MUST exit 1. (selftest.toml has the matching-reason case, which stays XFAIL.)
+# Run: make -f flow/mk/track_a.mk selftest_runners
+[suite]
+block = "flow"
+name  = "selftest_reason"
+kind  = "sim"
+xfail = "tb/core/selftest/xfail_reason.tsv"
+
+[defaults]
+top     = "runner_selftest"
+flist   = "tb/core/selftest/filelist_runner_selftest.f"
+marker  = 'ALL CHECKS PASSED'
+timeout = 20
+
+[[test]]
+name = "wrong_reason"
+plusargs = ["+MODE=fail_line"]
+fail_reason = 'this text never appears in the log'

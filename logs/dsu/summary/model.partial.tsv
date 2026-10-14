@@ -1,0 +1,3 @@
+# garuda-run 1 suite=model block=dsu date=2026-10-11T19:08:18+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+tb_dsu_top	FAIL	UNEXPECTED	0	yes	7	7	0	-	12	0	-	1	0.02	20			7 [FAIL] line(s); 7 assertion failure(s) | first: [825000] %Error: dsu_sva.sv:114: Assertion failed in tb_dsu_top.dut.u_dsu_sva.a_inert_when_disabled: [SVA-FAIL] DSU F14: the DSU acted with 	logs/dsu/raw/model/sim_tb_dsu_top_s1.log

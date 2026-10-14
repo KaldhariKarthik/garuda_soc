@@ -1,0 +1,3 @@
+# garuda-run 1 suite=sanity.cov block=core date=2026-10-12T18:21:39+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+t_cov	PASS	OK	0	yes	0	0	0	n/a	48	20	-	1	0.30	33		logs/core/raw/sanity.cov/cov/t_cov_s1.dat		logs/core/raw/sanity.cov/sim_t_cov_s1.log

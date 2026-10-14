@@ -1,0 +1,73 @@
+garuda-run 1  suite isa_rand.cov  block core  2026-10-13T07:50:10+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      add              
+PASS    OK                      addi             
+PASS    OK                      and              
+PASS    OK                      andi             
+PASS    OK                      auipc            
+PASS    OK                      beq              
+PASS    OK                      bge              
+PASS    OK                      bgeu             
+PASS    OK                      blt              
+PASS    OK                      bltu             
+PASS    OK                      bne              
+PASS    OK                      fence_i          
+PASS    OK                      jal              
+PASS    OK                      jalr             
+PASS    OK                      lb               
+PASS    OK                      lbu              
+PASS    OK                      ld_st            
+PASS    OK                      lh               
+PASS    OK                      lhu              
+PASS    OK                      lui              
+PASS    OK                      lw               
+PASS    OK                      mul              
+PASS    OK                      mulh             
+PASS    OK                      mulhsu           
+PASS    OK                      mulhu            
+PASS    OK                      or               
+PASS    OK                      ori              
+PASS    OK                      p-csr            
+PASS    OK                      p-csr_readzero   
+PASS    OK                      p-csr_warl       
+PASS    OK                      p-div            
+PASS    OK                      p-divu           
+PASS    OK                      p-illegal        
+PASS    OK                      p-lh-misaligned  
+PASS    OK                      p-lw-misaligned  
+PASS    OK                      p-ma_addr        
+PASS    OK                      p-ma_data        
+PASS    OK                      p-ma_fetch       
+PASS    OK                      p-mcsr           
+PASS    OK                      p-rem            
+PASS    OK                      p-remu           
+PASS    OK                      p-sbreak         
+PASS    OK                      p-scall          
+PASS    OK                      p-sh-misaligned  
+PASS    OK                      p-shamt          
+PASS    OK                      p-sw-misaligned  
+PASS    OK                      p-zicntr         
+PASS    OK                      sb               
+PASS    OK                      sh               
+PASS    OK                      simple           
+PASS    OK                      sll              
+PASS    OK                      slli             
+PASS    OK                      slt              
+PASS    OK                      slti             
+PASS    OK                      sltiu            
+PASS    OK                      sltu             
+PASS    OK                      sra              
+PASS    OK                      srai             
+PASS    OK                      srl              
+PASS    OK                      srli             
+PASS    OK                      st_ld            
+PASS    OK                      sub              
+PASS    OK                      sw               
+PASS    OK                      xor              
+PASS    OK                      xori             
+
+PASS    65
+FAIL    0
+BLOCKED 0
+total   65

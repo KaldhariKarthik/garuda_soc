@@ -1,0 +1,14 @@
+# garuda-run 1 suite=directed block=core date=2026-10-14T01:04:22+05:30 design=e43672fbc7c55a12b889efe114a952ac5fe753cb rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+t_core_mret_buserr	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/directed/sim_t_core_mret_buserr_s1.log
+t_core_mret_buserr_w2	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/directed/sim_t_core_mret_buserr_w2_s1.log
+t_core_wfi_buserr	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/directed/sim_t_core_wfi_buserr_s1.log
+t_core_wfi_buserr_w2	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/directed/sim_t_core_wfi_buserr_w2_s1.log
+t_core_ctl	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.04	20				logs/core/raw/directed/sim_t_core_ctl_s1.log
+t_core_ctl_w3	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.06	20				logs/core/raw/directed/sim_t_core_ctl_w3_s1.log
+t_core_irq_nest	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/directed/sim_t_core_irq_nest_s1.log
+t_core_irq_nest_w2	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/directed/sim_t_core_irq_nest_w2_s1.log
+t_core_preempt	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/directed/sim_t_core_preempt_s1.log
+t_core_preempt_w2	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/directed/sim_t_core_preempt_w2_s1.log
+t_exc_priority	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/directed/sim_t_exc_priority_s1.log
+t_exc_priority_w3	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/directed/sim_t_exc_priority_w3_s1.log

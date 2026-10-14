@@ -1,0 +1,6 @@
+# garuda-run 1 suite=elements block=core date=2026-10-11T09:59:38+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=12
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	detail	log
+E_garuda_pc_gen	PASS	OK	0	yes	0	0	0	-	6	0	SHIM-SB-SUMMARY	12		logs/core/raw/elements/sim_E_garuda_pc_gen_s12.log
+E_d_port_ahb_master	PASS	OK	0	yes	0	0	0	-	7	0	SHIM-SB-SUMMARY	12		logs/core/raw/elements/sim_E_d_port_ahb_master_s12.log
+E_mem_wb_reg	PASS	OK	0	yes	0	0	0	-	5	0	SHIM-SB-SUMMARY	12		logs/core/raw/elements/sim_E_mem_wb_reg_s12.log
+E_clic_ctrl	PASS	OK	0	yes	0	0	0	-	0	0	-	12		logs/core/raw/elements/sim_E_clic_ctrl_s12.log

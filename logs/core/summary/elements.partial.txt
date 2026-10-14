@@ -1,0 +1,12 @@
+garuda-run 1  suite elements.partial  block core  2026-10-11T09:59:38+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 12
+
+PASS    OK                      E_garuda_pc_gen      
+PASS    OK                      E_d_port_ahb_master  
+PASS    OK                      E_mem_wb_reg         
+PASS    OK                      E_clic_ctrl          
+
+PASS    4
+FAIL    0
+BLOCKED 0
+total   4

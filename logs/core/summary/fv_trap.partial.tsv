@@ -1,0 +1,3 @@
+# garuda-fv 1 suite=fv_trap block=core date=2026-10-12T19:59:38+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+pipe_prove	prove	FAIL	UNEXPECTED	11	[9 asserts, 35 covers in model] props: u_pipe_sva.a_no_gate_with_flush	logs/core/raw/fv_trap/fv_pipe_prove.log

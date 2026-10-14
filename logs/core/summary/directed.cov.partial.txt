@@ -1,0 +1,9 @@
+garuda-run 1  suite directed.cov.partial  block core  2026-10-11T14:12:24+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      t_core_irq_nest  
+
+PASS    1
+FAIL    0
+BLOCKED 0
+total   1

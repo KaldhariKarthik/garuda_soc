@@ -1,0 +1,85 @@
+# Core directed tests on tb_boot (spec CORE §11 names: t_core_*). One row per
+# test and bus-timing variant. No Spike lockstep for the bus-error tests: the
+# error window is a tb_boot slave feature Spike has no model of (comes with E3).
+# Images: make -f flow/mk/track_a.mk sw_open
+# Run:    make -f flow/mk/track_a.mk core_directed
+[suite]
+block = "core"
+name  = "directed"
+kind  = "prog"
+xfail = "tb/core/run/xfail.tsv"
+
+[bench]
+flist = "tb/soc/filelist_boot.f"
+cov_flist = "tb/soc/filelist_boot_cov.f"   # --coverage: + bound covergroups (tb/cov/garuda_cov.sv)
+top   = "tb_boot"
+
+[defaults]
+marker   = 'TOHOST=1 -> PASSED'
+timeout  = 120
+require  = ['AHB-PROTOCOL: iport=0 dport=0']
+
+
+# T-13: a load bus error directly before an MRET must be taken (mcause 5, mepc = the load)
+[[test]]
+name = "t_core_mret_buserr"
+hex  = "sw/build/t_core_mret_buserr.hex"
+plusargs = ["+MAXCYC=20000", "+QUIET", "+ERR_EN=1", "+ERR_BASE=10020000", "+ERR_SIZE=1000"]
+[[test]]
+name = "t_core_mret_buserr_w2"
+hex  = "sw/build/t_core_mret_buserr.hex"
+plusargs = ["+MAXCYC=20000", "+QUIET", "+ERR_EN=1", "+ERR_BASE=10020000", "+ERR_SIZE=1000", "+DWAIT=2"]
+
+# T-14: a load bus error directly before a WFI must run the handler at once (no wake exists)
+[[test]]
+name = "t_core_wfi_buserr"
+hex  = "sw/build/t_core_wfi_buserr.hex"
+plusargs = ["+MAXCYC=20000", "+QUIET", "+ERR_EN=1", "+ERR_BASE=10020000", "+ERR_SIZE=1000"]
+[[test]]
+name = "t_core_wfi_buserr_w2"
+hex  = "sw/build/t_core_wfi_buserr.hex"
+plusargs = ["+MAXCYC=20000", "+QUIET", "+ERR_EN=1", "+ERR_BASE=10020000", "+ERR_SIZE=1000", "+DWAIT=2"]
+
+# W5: mgarudactl -- register, 16-setting architectural equivalence, knobs effective
+[[test]]
+name = "t_core_ctl"
+hex  = "sw/build/t_core_ctl.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET"]
+[[test]]
+name = "t_core_ctl_w3"
+hex  = "sw/build/t_core_ctl_arch.hex"
+plusargs = ["+MAXCYC=400000", "+QUIET", "+IWAIT=3", "+DWAIT=3"]
+
+# T-12 at program level (needs the tb_boot test device, P0.8): depth-3 nesting,
+# an exception and the machine timer inside a level-80 handler, the final level-30 take
+[[test]]
+name = "t_core_irq_nest"
+hex  = "sw/build/t_core_irq_nest.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET"]
+[[test]]
+name = "t_core_irq_nest_w2"
+hex  = "sw/build/t_core_irq_nest.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IWAIT=2", "+DWAIT=2"]
+
+# W5 (b): mgarudactl.PREEMPT_DIS with deterministic test-device interrupts:
+# PREEMPT_DIS=1 holds a level-200 request until the level-40 handler returns;
+# PREEMPT_DIS=0 lets it preempt (the only architectural difference DN-CTL allows)
+[[test]]
+name = "t_core_preempt"
+hex  = "sw/build/t_core_preempt.hex"
+plusargs = ["+MAXCYC=50000", "+QUIET"]
+[[test]]
+name = "t_core_preempt_w2"
+hex  = "sw/build/t_core_preempt.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET", "+IWAIT=2", "+DWAIT=2"]
+
+# core vPlan F15: one instruction with two causes, the privileged specification's order
+# (misaligned beats access fault for loads, stores and jumps; fetch fault beats illegal)
+[[test]]
+name = "t_exc_priority"
+hex  = "sw/build/t_exc_priority.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET"]
+[[test]]
+name = "t_exc_priority_w3"
+hex  = "sw/build/t_exc_priority.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IWAIT=3", "+DWAIT=3"]

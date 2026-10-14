@@ -1,0 +1,3 @@
+# garuda-run 1 suite=negctl_elem block=flow date=2026-10-14T01:02:10+05:30 design=e43672fbc7c55a12b889efe114a952ac5fe753cb rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+E_clic_ctrl_no_preempt	FAIL	XFAIL:PLANTED	0	no	446	0	0	-	0	0	REPLACED	1	0.02	20			pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)	logs/flow/raw/negctl_elem/sim_E_clic_ctrl_no_preempt_s1.log

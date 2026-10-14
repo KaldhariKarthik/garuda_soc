@@ -1,0 +1,259 @@
+date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
+2026-10-11T09:08:48+05:30	b90b481d8f91	True	block	tb_debug	1	PASS	OK	
+2026-10-11T09:14:08+05:30	b90b481d8f91	True	chip	t_chip_jtag	1	BLOCKED	UNEXPECTED	%Error: rtl/pwm/pwm_sva.sv:44:106: Illegal assignment of constant to unpacked array
+2026-10-11T09:14:08+05:30	b90b481d8f91	True	chip	t_chip_irq	1	BLOCKED	UNEXPECTED	%Error: rtl/pwm/pwm_sva.sv:44:106: Illegal assignment of constant to unpacked array
+2026-10-11T09:14:08+05:30	b90b481d8f91	True	chip	t_chip_uart	1	BLOCKED	UNEXPECTED	%Error: rtl/pwm/pwm_sva.sv:44:106: Illegal assignment of constant to unpacked array
+2026-10-11T09:14:08+05:30	b90b481d8f91	True	chip	t_chip_periph	1	BLOCKED	UNEXPECTED	%Error: rtl/pwm/pwm_sva.sv:44:106: Illegal assignment of constant to unpacked array
+2026-10-11T09:14:08+05:30	b90b481d8f91	True	chip	t_chip_integ	1	BLOCKED	UNEXPECTED	%Error: rtl/pwm/pwm_sva.sv:44:106: Illegal assignment of constant to unpacked array
+2026-10-11T09:14:08+05:30	b90b481d8f91	True	chip	t_chip_basic	1	BLOCKED	UNEXPECTED	%Error: rtl/pwm/pwm_sva.sv:44:106: Illegal assignment of constant to unpacked array
+2026-10-11T09:14:08+05:30	b90b481d8f91	True	chip	t_chip_wdt	1	BLOCKED	UNEXPECTED	%Error: rtl/pwm/pwm_sva.sv:44:106: Illegal assignment of constant to unpacked array
+2026-10-11T09:14:08+05:30	b90b481d8f91	True	chip	t_chip_flash	1	BLOCKED	UNEXPECTED	%Error: rtl/pwm/pwm_sva.sv:44:106: Illegal assignment of constant to unpacked array
+2026-10-11T09:16:00+05:30	b90b481d8f91	True	chip	t_chip_jtag	1	FAIL	UNEXPECTED	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:16:00+05:30	b90b481d8f91	True	chip	t_chip_irq	1	FAIL	UNEXPECTED	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:16:00+05:30	b90b481d8f91	True	chip	t_chip_uart	1	FAIL	UNEXPECTED	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:16:00+05:30	b90b481d8f91	True	chip	t_chip_periph	1	FAIL	UNEXPECTED	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:16:00+05:30	b90b481d8f91	True	chip	t_chip_integ	1	FAIL	UNEXPECTED	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:16:00+05:30	b90b481d8f91	True	chip	t_chip_basic	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T09:16:00+05:30	b90b481d8f91	True	chip	t_chip_wdt	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T09:16:00+05:30	b90b481d8f91	True	chip	t_chip_flash	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip	t_chip_jtag	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip	t_chip_irq	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip	t_chip_uart	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip	t_chip_periph	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip	t_chip_integ	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip	t_chip_basic	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip	t_chip_wdt	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip	t_chip_flash	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip_diag	t_chip_jtag	1	BLOCKED	UNEXPECTED	%Error-UNSUPPORTED: logs/debug/raw/chip_diag/shim/tb/soc/tb_chip.sv:150:13: Unsupported: pullup strength
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip_diag	t_chip_irq	1	BLOCKED	UNEXPECTED	%Error-UNSUPPORTED: logs/debug/raw/chip_diag/shim/tb/soc/tb_chip.sv:150:13: Unsupported: pullup strength
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip_diag	t_chip_uart	1	BLOCKED	UNEXPECTED	%Error-UNSUPPORTED: logs/debug/raw/chip_diag/shim/tb/soc/tb_chip.sv:150:13: Unsupported: pullup strength
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip_diag	t_chip_periph	1	BLOCKED	UNEXPECTED	%Error-UNSUPPORTED: logs/debug/raw/chip_diag/shim/tb/soc/tb_chip.sv:150:13: Unsupported: pullup strength
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip_diag	t_chip_integ	1	BLOCKED	UNEXPECTED	%Error-UNSUPPORTED: logs/debug/raw/chip_diag/shim/tb/soc/tb_chip.sv:150:13: Unsupported: pullup strength
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip_diag	t_chip_basic	1	BLOCKED	UNEXPECTED	%Error-UNSUPPORTED: logs/debug/raw/chip_diag/shim/tb/soc/tb_chip.sv:150:13: Unsupported: pullup strength
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip_diag	t_chip_wdt	1	BLOCKED	UNEXPECTED	%Error-UNSUPPORTED: logs/debug/raw/chip_diag/shim/tb/soc/tb_chip.sv:150:13: Unsupported: pullup strength
+2026-10-11T09:18:03+05:30	b90b481d8f91	True	chip_diag	t_chip_flash	1	BLOCKED	UNEXPECTED	%Error-UNSUPPORTED: logs/debug/raw/chip_diag/shim/tb/soc/tb_chip.sv:150:13: Unsupported: pullup strength
+2026-10-11T09:19:37+05:30	b90b481d8f91	True	chip_diag	t_chip_jtag	1	FAIL	UNEXPECTED	2 [FAIL] line(s); 2 assertion failure(s) | first: [0] %Error: clk_div_sva.sv:54: Assertion failed in tb_chip.dut.u_clk_div.u_clk_div_sva.a_pclk_subset_hclk: [SVA-FAIL] a_pclk_subset_hclk: pc
+2026-10-11T09:19:37+05:30	b90b481d8f91	True	chip_diag	t_chip_irq	1	FAIL	UNEXPECTED	2 [FAIL] line(s); 2 assertion failure(s) | first: [0] %Error: clk_div_sva.sv:54: Assertion failed in tb_chip.dut.u_clk_div.u_clk_div_sva.a_pclk_subset_hclk: [SVA-FAIL] a_pclk_subset_hclk: pc
+2026-10-11T09:19:37+05:30	b90b481d8f91	True	chip_diag	t_chip_uart	1	FAIL	UNEXPECTED	2 [FAIL] line(s); 2 assertion failure(s) | first: [0] %Error: clk_div_sva.sv:54: Assertion failed in tb_chip.dut.u_clk_div.u_clk_div_sva.a_pclk_subset_hclk: [SVA-FAIL] a_pclk_subset_hclk: pc
+2026-10-11T09:19:37+05:30	b90b481d8f91	True	chip_diag	t_chip_periph	1	FAIL	UNEXPECTED	2 [FAIL] line(s); 2 assertion failure(s) | first: [0] %Error: clk_div_sva.sv:54: Assertion failed in tb_chip.dut.u_clk_div.u_clk_div_sva.a_pclk_subset_hclk: [SVA-FAIL] a_pclk_subset_hclk: pc
+2026-10-11T09:19:37+05:30	b90b481d8f91	True	chip_diag	t_chip_integ	1	FAIL	UNEXPECTED	2 [FAIL] line(s); 2 assertion failure(s) | first: [0] %Error: clk_div_sva.sv:54: Assertion failed in tb_chip.dut.u_clk_div.u_clk_div_sva.a_pclk_subset_hclk: [SVA-FAIL] a_pclk_subset_hclk: pc
+2026-10-11T09:19:37+05:30	b90b481d8f91	True	chip_diag	t_chip_basic	1	FAIL	UNEXPECTED	2 [FAIL] line(s); 2 assertion failure(s) | first: [0] %Error: clk_div_sva.sv:54: Assertion failed in tb_chip.dut.u_clk_div.u_clk_div_sva.a_pclk_subset_hclk: [SVA-FAIL] a_pclk_subset_hclk: pc
+2026-10-11T09:19:37+05:30	b90b481d8f91	True	chip_diag	t_chip_wdt	1	FAIL	UNEXPECTED	2 [FAIL] line(s); 2 assertion failure(s) | first: [0] %Error: clk_div_sva.sv:54: Assertion failed in tb_chip.dut.u_clk_div.u_clk_div_sva.a_pclk_subset_hclk: [SVA-FAIL] a_pclk_subset_hclk: pc
+2026-10-11T09:19:37+05:30	b90b481d8f91	True	chip_diag	t_chip_flash	1	FAIL	UNEXPECTED	2 [FAIL] line(s); 2 assertion failure(s) | first: [0] %Error: clk_div_sva.sv:54: Assertion failed in tb_chip.dut.u_clk_div.u_clk_div_sva.a_pclk_subset_hclk: [SVA-FAIL] a_pclk_subset_hclk: pc
+2026-10-11T09:21:38+05:30	b90b481d8f91	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-10-11T09:21:38+05:30	b90b481d8f91	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-10-11T09:21:38+05:30	b90b481d8f91	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-10-11T09:21:38+05:30	b90b481d8f91	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-10-11T09:21:38+05:30	b90b481d8f91	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-10-11T09:21:38+05:30	b90b481d8f91	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-10-11T09:21:38+05:30	b90b481d8f91	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-10-11T09:21:38+05:30	b90b481d8f91	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-10-11T09:27:54+05:30	b90b481d8f91	True	block	tb_debug	1	PASS	OK	
+2026-10-11T09:33:06+05:30	b90b481d8f91	True	block	tb_debug	1	PASS	OK	
+2026-10-11T09:34:28+05:30	b90b481d8f91	True	chip	t_chip_jtag	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:34:28+05:30	b90b481d8f91	True	chip	t_chip_irq	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:34:28+05:30	b90b481d8f91	True	chip	t_chip_uart	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:34:28+05:30	b90b481d8f91	True	chip	t_chip_periph	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:34:28+05:30	b90b481d8f91	True	chip	t_chip_integ	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:34:28+05:30	b90b481d8f91	True	chip	t_chip_basic	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T09:34:28+05:30	b90b481d8f91	True	chip	t_chip_wdt	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T09:34:28+05:30	b90b481d8f91	True	chip	t_chip_flash	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T09:35:50+05:30	b90b481d8f91	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-10-11T09:35:50+05:30	b90b481d8f91	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-10-11T09:35:50+05:30	b90b481d8f91	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-10-11T09:35:50+05:30	b90b481d8f91	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-10-11T09:35:50+05:30	b90b481d8f91	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-10-11T09:35:50+05:30	b90b481d8f91	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-10-11T09:35:50+05:30	b90b481d8f91	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-10-11T09:35:50+05:30	b90b481d8f91	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-10-11T09:54:15+05:30	b90b481d8f91	True	block	tb_debug	1	PASS	OK	
+2026-10-11T09:55:34+05:30	b90b481d8f91	True	chip	t_chip_jtag	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:55:34+05:30	b90b481d8f91	True	chip	t_chip_irq	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:55:34+05:30	b90b481d8f91	True	chip	t_chip_uart	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:55:34+05:30	b90b481d8f91	True	chip	t_chip_periph	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:55:34+05:30	b90b481d8f91	True	chip	t_chip_integ	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T09:55:34+05:30	b90b481d8f91	True	chip	t_chip_basic	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T09:55:34+05:30	b90b481d8f91	True	chip	t_chip_wdt	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T09:55:34+05:30	b90b481d8f91	True	chip	t_chip_flash	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T09:56:53+05:30	b90b481d8f91	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-10-11T09:56:53+05:30	b90b481d8f91	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-10-11T09:56:53+05:30	b90b481d8f91	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-10-11T09:56:53+05:30	b90b481d8f91	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-10-11T09:56:53+05:30	b90b481d8f91	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-10-11T09:56:53+05:30	b90b481d8f91	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-10-11T09:56:53+05:30	b90b481d8f91	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-10-11T09:56:53+05:30	b90b481d8f91	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-10-11T14:56:18+05:30	b90b481d8f91	True	block	tb_debug	1	PASS	OK	
+2026-10-11T14:57:38+05:30	b90b481d8f91	True	chip	t_chip_jtag	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T14:57:38+05:30	b90b481d8f91	True	chip	t_chip_irq	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T14:57:38+05:30	b90b481d8f91	True	chip	t_chip_uart	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T14:57:38+05:30	b90b481d8f91	True	chip	t_chip_periph	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T14:57:38+05:30	b90b481d8f91	True	chip	t_chip_integ	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T14:57:38+05:30	b90b481d8f91	True	chip	t_chip_basic	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T14:57:38+05:30	b90b481d8f91	True	chip	t_chip_wdt	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T14:57:38+05:30	b90b481d8f91	True	chip	t_chip_flash	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T14:58:58+05:30	b90b481d8f91	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-10-11T14:58:58+05:30	b90b481d8f91	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-10-11T14:58:58+05:30	b90b481d8f91	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-10-11T14:58:58+05:30	b90b481d8f91	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-10-11T14:58:58+05:30	b90b481d8f91	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-10-11T14:58:58+05:30	b90b481d8f91	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-10-11T14:58:58+05:30	b90b481d8f91	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-10-11T14:58:58+05:30	b90b481d8f91	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-10-11T21:02:07+05:30	b90b481d8f91	True	block	tb_debug	1	PASS	OK	
+2026-10-11T21:03:36+05:30	b90b481d8f91	True	chip	t_chip_jtag	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T21:03:36+05:30	b90b481d8f91	True	chip	t_chip_irq	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T21:03:36+05:30	b90b481d8f91	True	chip	t_chip_uart	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T21:03:36+05:30	b90b481d8f91	True	chip	t_chip_periph	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T21:03:36+05:30	b90b481d8f91	True	chip	t_chip_integ	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-11T21:03:36+05:30	b90b481d8f91	True	chip	t_chip_basic	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T21:03:36+05:30	b90b481d8f91	True	chip	t_chip_wdt	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T21:03:36+05:30	b90b481d8f91	True	chip	t_chip_flash	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-11T21:05:04+05:30	b90b481d8f91	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-10-11T21:05:04+05:30	b90b481d8f91	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-10-11T21:05:04+05:30	b90b481d8f91	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-10-11T21:05:04+05:30	b90b481d8f91	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-10-11T21:05:04+05:30	b90b481d8f91	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-10-11T21:05:04+05:30	b90b481d8f91	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-10-11T21:05:04+05:30	b90b481d8f91	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-10-11T21:05:04+05:30	b90b481d8f91	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-10-12T00:32:27+05:30	b90b481d8f91	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-10-12T00:32:27+05:30	b90b481d8f91	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-10-12T00:32:27+05:30	b90b481d8f91	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-10-12T00:32:27+05:30	b90b481d8f91	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-10-12T00:32:27+05:30	b90b481d8f91	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-10-12T00:32:27+05:30	b90b481d8f91	True	chip_diag	t_chip_basic	1	FAIL	UNEXPECTED	1 [FAIL] line(s); 1 assertion failure(s) | first: [8283000] %Error: dma_sva.sv:617: Assertion failed in tb_chip.dut.u_soc.u_dma.u_dma_sva.a_no_read_before_refusal: [SVA-FAIL] a_no_read_befor
+2026-10-12T00:32:27+05:30	b90b481d8f91	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-10-12T00:32:27+05:30	b90b481d8f91	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-10-12T00:34:39+05:30	b90b481d8f91	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-10-12T00:34:39+05:30	b90b481d8f91	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-10-12T00:34:39+05:30	b90b481d8f91	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-10-12T00:34:39+05:30	b90b481d8f91	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-10-12T00:34:39+05:30	b90b481d8f91	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-10-12T00:34:39+05:30	b90b481d8f91	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-10-12T00:34:39+05:30	b90b481d8f91	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-10-12T00:34:39+05:30	b90b481d8f91	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-10-12T00:36:15+05:30	b90b481d8f91	True	chip	t_chip_jtag	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T00:36:15+05:30	b90b481d8f91	True	chip	t_chip_irq	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T00:36:15+05:30	b90b481d8f91	True	chip	t_chip_uart	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T00:36:15+05:30	b90b481d8f91	True	chip	t_chip_periph	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T00:36:15+05:30	b90b481d8f91	True	chip	t_chip_integ	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T00:36:15+05:30	b90b481d8f91	True	chip	t_chip_basic	1	FAIL	XFAIL:TB-30	known /a_no_read_before_refusal/ (DMA-10) occurred 0 time(s), want 1; pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_ch
+2026-10-12T00:36:15+05:30	b90b481d8f91	True	chip	t_chip_wdt	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-12T00:36:15+05:30	b90b481d8f91	True	chip	t_chip_flash	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-12T00:38:04+05:30	b90b481d8f91	True	chip	t_chip_jtag	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T00:38:04+05:30	b90b481d8f91	True	chip	t_chip_irq	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T00:38:04+05:30	b90b481d8f91	True	chip	t_chip_uart	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T00:38:04+05:30	b90b481d8f91	True	chip	t_chip_periph	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T00:38:04+05:30	b90b481d8f91	True	chip	t_chip_integ	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T00:38:04+05:30	b90b481d8f91	True	chip	t_chip_basic	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-12T00:38:04+05:30	b90b481d8f91	True	chip	t_chip_wdt	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-12T00:38:04+05:30	b90b481d8f91	True	chip	t_chip_flash	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-12T00:44:19+05:30	b90b481d8f91	True	chip_diag.cov	t_chip_jtag	1	PASS	OK	
+2026-10-12T00:44:19+05:30	b90b481d8f91	True	chip_diag.cov	t_chip_irq	1	PASS	OK	
+2026-10-12T00:44:19+05:30	b90b481d8f91	True	chip_diag.cov	t_chip_uart	1	PASS	OK	
+2026-10-12T00:44:19+05:30	b90b481d8f91	True	chip_diag.cov	t_chip_periph	1	PASS	OK	
+2026-10-12T00:44:19+05:30	b90b481d8f91	True	chip_diag.cov	t_chip_integ	1	PASS	OK	
+2026-10-12T00:44:19+05:30	b90b481d8f91	True	chip_diag.cov	t_chip_basic	1	PASS	OK	
+2026-10-12T00:44:19+05:30	b90b481d8f91	True	chip_diag.cov	t_chip_wdt	1	PASS	OK	
+2026-10-12T00:44:19+05:30	b90b481d8f91	True	chip_diag.cov	t_chip_flash	1	PASS	OK	
+2026-10-12T00:48:12+05:30	b90b481d8f91	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-10-12T00:48:12+05:30	b90b481d8f91	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-10-12T00:48:12+05:30	b90b481d8f91	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-10-12T00:48:12+05:30	b90b481d8f91	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-10-12T00:48:12+05:30	b90b481d8f91	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-10-12T00:48:12+05:30	b90b481d8f91	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-10-12T00:48:12+05:30	b90b481d8f91	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-10-12T00:48:12+05:30	b90b481d8f91	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-10-12T01:27:47+05:30	b90b481d8f91	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-10-12T01:27:47+05:30	b90b481d8f91	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-10-12T01:27:47+05:30	b90b481d8f91	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-10-12T01:27:47+05:30	b90b481d8f91	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-10-12T01:27:47+05:30	b90b481d8f91	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-10-12T01:27:47+05:30	b90b481d8f91	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-10-12T01:27:47+05:30	b90b481d8f91	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-10-12T01:27:47+05:30	b90b481d8f91	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-10-12T18:20:30+05:30	b90b481d8f91	True	block	tb_debug	1	PASS	OK	
+2026-10-12T18:22:15+05:30	b90b481d8f91	True	chip	t_chip_jtag	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T18:22:15+05:30	b90b481d8f91	True	chip	t_chip_irq	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T18:22:15+05:30	b90b481d8f91	True	chip	t_chip_uart	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T18:22:15+05:30	b90b481d8f91	True	chip	t_chip_periph	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T18:22:15+05:30	b90b481d8f91	True	chip	t_chip_integ	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-12T18:22:15+05:30	b90b481d8f91	True	chip	t_chip_basic	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-12T18:22:15+05:30	b90b481d8f91	True	chip	t_chip_wdt	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-12T18:22:15+05:30	b90b481d8f91	True	chip	t_chip_flash	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-12T18:23:58+05:30	b90b481d8f91	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-10-12T18:23:58+05:30	b90b481d8f91	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-10-12T18:23:58+05:30	b90b481d8f91	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-10-12T18:23:58+05:30	b90b481d8f91	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-10-12T18:23:58+05:30	b90b481d8f91	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-10-12T18:23:58+05:30	b90b481d8f91	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-10-12T18:23:58+05:30	b90b481d8f91	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-10-12T18:23:58+05:30	b90b481d8f91	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-10-13T07:34:53+05:30	b90b481d8f91	True	block	tb_debug	1	PASS	OK	
+2026-10-13T07:36:37+05:30	b90b481d8f91	True	chip	t_chip_jtag	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-13T07:36:37+05:30	b90b481d8f91	True	chip	t_chip_irq	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-13T07:36:37+05:30	b90b481d8f91	True	chip	t_chip_uart	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-13T07:36:37+05:30	b90b481d8f91	True	chip	t_chip_periph	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-13T07:36:37+05:30	b90b481d8f91	True	chip	t_chip_integ	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-13T07:36:37+05:30	b90b481d8f91	True	chip	t_chip_basic	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-13T07:36:37+05:30	b90b481d8f91	True	chip	t_chip_wdt	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-13T07:36:37+05:30	b90b481d8f91	True	chip	t_chip_flash	1	FAIL	XFAIL:TB-30	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtim
+2026-10-13T07:38:21+05:30	b90b481d8f91	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-10-13T07:38:21+05:30	b90b481d8f91	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-10-13T07:38:21+05:30	b90b481d8f91	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-10-13T07:38:21+05:30	b90b481d8f91	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-10-13T07:38:21+05:30	b90b481d8f91	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-10-13T07:38:21+05:30	b90b481d8f91	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-10-13T07:38:21+05:30	b90b481d8f91	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-10-13T07:38:21+05:30	b90b481d8f91	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-10-14T00:53:37+05:30	e43672fbc7c5	True	block	tb_debug	1	PASS	OK	
+2026-10-14T00:57:03+05:30	e43672fbc7c5	True	chip	t_chip_jtag	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-14T00:57:03+05:30	e43672fbc7c5	True	chip	t_chip_irq	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-14T00:57:03+05:30	e43672fbc7c5	True	chip	t_chip_uart	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-14T00:57:03+05:30	e43672fbc7c5	True	chip	t_chip_periph	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-14T00:57:03+05:30	e43672fbc7c5	True	chip	t_chip_integ	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-14T00:57:03+05:30	e43672fbc7c5	True	chip	t_chip_basic	1	FAIL	XFAIL:TB-30	2 [FAIL] line(s); 2 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-14T00:57:03+05:30	e43672fbc7c5	True	chip	t_chip_wdt	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-14T00:57:03+05:30	e43672fbc7c5	True	chip	t_chip_flash	1	FAIL	XFAIL:TB-30	1 [FAIL] line(s); 1 assertion failure(s) | first: [51000] %Error: timers_sva.sv:66: Assertion failed in tb_chip.dut.u_soc.u_timers.u_timers_sva.a_mtimecmp_reset: [SVA-FAIL] a_mtimecmp_reset
+2026-10-14T00:59:17+05:30	e43672fbc7c5	True	chip_diag	t_chip_jtag	1	FAIL	UNEXPECTED	known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
+2026-10-14T00:59:17+05:30	e43672fbc7c5	True	chip_diag	t_chip_irq	1	FAIL	UNEXPECTED	known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
+2026-10-14T00:59:17+05:30	e43672fbc7c5	True	chip_diag	t_chip_uart	1	FAIL	UNEXPECTED	known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
+2026-10-14T00:59:17+05:30	e43672fbc7c5	True	chip_diag	t_chip_periph	1	FAIL	UNEXPECTED	known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
+2026-10-14T00:59:17+05:30	e43672fbc7c5	True	chip_diag	t_chip_integ	1	FAIL	UNEXPECTED	known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
+2026-10-14T00:59:17+05:30	e43672fbc7c5	True	chip_diag	t_chip_basic	1	FAIL	UNEXPECTED	known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
+2026-10-14T00:59:17+05:30	e43672fbc7c5	True	chip_diag	t_chip_wdt	1	FAIL	UNEXPECTED	known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
+2026-10-14T00:59:17+05:30	e43672fbc7c5	True	chip_diag	t_chip_flash	1	FAIL	UNEXPECTED	known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
+2026-10-14T01:02:25+05:30	e43672fbc7c5	True	chip	t_chip_jtag	1	PASS	OK	
+2026-10-14T01:02:25+05:30	e43672fbc7c5	True	chip	t_chip_irq	1	PASS	OK	
+2026-10-14T01:02:25+05:30	e43672fbc7c5	True	chip	t_chip_uart	1	PASS	OK	
+2026-10-14T01:02:25+05:30	e43672fbc7c5	True	chip	t_chip_periph	1	PASS	OK	
+2026-10-14T01:02:25+05:30	e43672fbc7c5	True	chip	t_chip_integ	1	PASS	OK	
+2026-10-14T01:02:25+05:30	e43672fbc7c5	True	chip	t_chip_basic	1	PASS	OK	
+2026-10-14T01:02:25+05:30	e43672fbc7c5	True	chip	t_chip_wdt	1	PASS	OK	
+2026-10-14T01:02:25+05:30	e43672fbc7c5	True	chip	t_chip_flash	1	PASS	OK	
+2026-10-14T01:04:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-10-14T01:04:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-10-14T01:04:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-10-14T01:04:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-10-14T01:04:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-10-14T01:04:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-10-14T01:04:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-10-14T01:04:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-10-14T01:06:33+05:30	e43672fbc7c5	True	block	tb_debug	1	PASS	OK	
+2026-10-14T01:08:25+05:30	e43672fbc7c5	True	chip	t_chip_jtag	1	PASS	OK	
+2026-10-14T01:08:25+05:30	e43672fbc7c5	True	chip	t_chip_irq	1	PASS	OK	
+2026-10-14T01:08:25+05:30	e43672fbc7c5	True	chip	t_chip_uart	1	PASS	OK	
+2026-10-14T01:08:25+05:30	e43672fbc7c5	True	chip	t_chip_periph	1	PASS	OK	
+2026-10-14T01:08:25+05:30	e43672fbc7c5	True	chip	t_chip_integ	1	PASS	OK	
+2026-10-14T01:08:25+05:30	e43672fbc7c5	True	chip	t_chip_basic	1	PASS	OK	
+2026-10-14T01:08:25+05:30	e43672fbc7c5	True	chip	t_chip_wdt	1	PASS	OK	
+2026-10-14T01:08:25+05:30	e43672fbc7c5	True	chip	t_chip_flash	1	PASS	OK	
+2026-10-14T01:10:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-10-14T01:10:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-10-14T01:10:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-10-14T01:10:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-10-14T01:10:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-10-14T01:10:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-10-14T01:10:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-10-14T01:10:13+05:30	e43672fbc7c5	True	chip_diag	t_chip_flash	1	PASS	OK	

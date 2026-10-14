@@ -1,0 +1,78 @@
+# Sanity programs (scripts/run_sanity.sh, the 12 rows, MAXCYC 200000).
+# No Spike lockstep: interrupts injected by the bench cannot be reproduced by
+# Spike (comes with E3 co-simulation).
+# Run: make -f flow/mk/track_a.mk core_sanity
+[suite]
+block = "core"
+name  = "sanity"
+kind  = "prog"
+xfail = "tb/core/run/xfail.tsv"
+
+[bench]
+flist = "tb/soc/filelist_boot.f"
+cov_flist = "tb/soc/filelist_boot_cov.f"   # --coverage: + bound covergroups (tb/cov/garuda_cov.sv)
+top   = "tb_boot"
+
+[defaults]
+marker   = 'TOHOST=1 -> PASSED'
+timeout  = 600
+require  = ['AHB-PROTOCOL: iport=0 dport=0']
+plusargs = ["+MAXCYC=200000", "+QUIET"]
+
+
+[[test]]
+name = "t_loadbranch"
+hex = "sw/build/t_loadbranch.hex"
+[[test]]
+name = "t_flush"
+hex = "sw/build/t_flush.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IWAIT=3", "+IRAND=1", "+SEED=7"]
+[[test]]
+name = "t_buserr"
+hex = "sw/build/t_buserr.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+ERR_EN=1", "+ERR_BASE=10020000", "+ERR_SIZE=1000"]
+[[test]]
+name = "t_irq"
+hex = "sw/build/t_irq.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IRQ_AT=300"]
+[[test]]
+name = "t_wfi"
+hex = "sw/build/t_wfi.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IRQ_AT=400"]
+[[test]]
+name = "t_dsu"
+hex = "sw/build/t_dsu.hex"
+[[test]]
+name = "t_mem"
+hex = "sw/build/t_mem.hex"
+[[test]]
+name = "t_clic"
+hex = "sw/build/t_clic.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IRQ_EVERY=40", "+IRQ_SWEEP=1"]
+[[test]]
+name = "t_cov"
+hex = "sw/build/t_cov.hex"
+[[test]]
+name = "t_mtip"
+hex = "sw/build/t_mtip.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+MTIP_AT=300"]
+[[test]]
+name = "t_hold_flush_matrix"
+hex = "sw/build/t_hold_flush_matrix.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IRQ_EVERY=61", "+DWAIT=2", "+DRAND=1", "+SEED=3"]
+[[test]]
+name = "t_dsu_b2b"
+hex = "sw/build/t_dsu_b2b.hex"
+
+# DSU vPlan F24: all three accumulators and the overflow flag survive a clock-gated
+# WFI sleep (Track A wrap-up 2026-10-12)
+[[test]]
+name = "t_dsu_gate"
+hex = "sw/build/t_dsu_gate.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IRQ_AT=3000"]
+
+# core vPlan F31: WFI woken by the machine timer with MIE = 1 (t_mtip covers MIE = 0)
+[[test]]
+name = "t_cov_wfi_mti"
+hex = "sw/build/t_cov_wfi_mti.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+MTIP_AT=600"]

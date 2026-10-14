@@ -1,0 +1,9 @@
+garuda-run 1  suite negctl_preempt  block flow  2026-10-14T01:02:07+05:30
+design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    XFAIL:PLANTED           t_core_preempt_no_knob  exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [383000] %Error: core_ctl_sva.sv:39: Assertion failed
+
+PASS    0
+FAIL    1
+BLOCKED 0
+total   1

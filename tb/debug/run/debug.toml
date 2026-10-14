@@ -1,0 +1,18 @@
+# Debug block bench (tb/debug/tb_debug.sv): JTAG TAP + DTM + DMI CDC + Debug
+# Module + SBA master against real slaves. Baseline (audit aae00a2, rtl/debug
+# unchanged to b90b481): 93 checks, 0 FAIL. The count is pinned so a check that
+# silently stops running fails the suite.
+# Run: make -f flow/mk/track_a.mk debug_block
+[suite]
+block = "debug"
+name  = "block"
+kind  = "sim"
+xfail = "tb/debug/run/xfail.tsv"
+
+[[test]]
+name    = "tb_debug"
+flist   = "tb/debug/filelist_debug.f"
+top     = "tb_debug"
+marker  = '^RESULT: PASSED'
+timeout = 900
+require = ['tb_debug: checks=93 +FAIL=0']

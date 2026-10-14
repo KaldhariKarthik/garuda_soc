@@ -1,0 +1,6 @@
+# garuda-run 1 suite=halt block=core date=2026-10-14T01:05:17+05:30 design=e43672fbc7c55a12b889efe114a952ac5fe753cb rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+t_core_hartreset_s1	PASS	OK	0	yes	0	0	0	-	51	0	-	1	0.04	20				logs/core/raw/halt/sim_t_core_hartreset_s1_s1.log
+t_core_hartreset_s2	PASS	OK	0	yes	0	0	0	-	51	0	-	1	0.04	20				logs/core/raw/halt/sim_t_core_hartreset_s2_s1.log
+t_core_hartreset_s3	PASS	OK	0	yes	0	0	0	-	51	0	-	1	0.04	20				logs/core/raw/halt/sim_t_core_hartreset_s3_s1.log
+t_core_hartreset_timeout	PASS	OK	0	yes	0	0	0	-	51	0	-	1	0.02	20				logs/core/raw/halt/sim_t_core_hartreset_timeout_s1.log

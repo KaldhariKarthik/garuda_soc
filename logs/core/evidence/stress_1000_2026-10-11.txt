@@ -1,0 +1,31 @@
+Plan 5.10 stress, 1000 seeds -- 2026-10-11, design b90b481 + Track A tree (DIRTY), Verilator 5.052
+manifests: tools/gen/gen_stress_manifest.py --seeds 1000 -> tb/core/run/stress.toml (690 rows, 13 self-checking programs, tb_boot + Spike co-simulation, random I/D wait profiles, warm reset at random cycles) + stress_halt.toml (310 halt-by-reset storms)
+
+first run (make core_stress JOBS=12):
+    FAIL    UNEXPECTED             t_core_ctl_s15                   exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s25                   exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s42                   exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s141                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s175                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s195                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s212                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s252                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s387                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s477                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s619                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s705                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s786                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s806                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s813                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s977                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+    FAIL    UNEXPECTED             t_core_ctl_s990                  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (
+  [stress] PASS=673 FAIL=17 BLOCKED=0 -> 17 unexpected  (logs/core/summary/stress.tsv)
+    FAIL    UNEXPECTED             halt_s108                        pass marker missing; 1 [FAIL] line(s) | first: [FAIL] only 0 halt(s) landed on a waited store (want >= 1): the
+  [stress_halt] PASS=309 FAIL=1 BLOCKED=0 -> 1 unexpected  (logs/core/summary/stress_halt.tsv)
+
+triage: (1) 17 x t_core_ctl fail code 7 = the program's zero-wait-only timing check (its source says so; t_core_ctl_arch is the any-wait twin) run under bus waits by the generator -- generator fixed (t_core_ctl rows zero waits); rerun of all t_core_ctl rows:
+  [stress] PASS=51 FAIL=0 BLOCKED=0 -> OK  (logs/core/summary/stress.partial.tsv)
+(2) halt_s108: tb_core_halt's non-vacuity guard (0 of 60 halts on a waited store at DWAIT=2) -- generator fixed (150 halts when DWAIT<3); rerun of those 78 rows:
+  [stress_halt] PASS=78 FAIL=0 BLOCKED=0 -> OK  (logs/core/summary/stress_halt.partial.tsv)
+
+result: 1000/1000 seeds pass (no design failure); a clean full rerun of the final manifests is part of the closing regression

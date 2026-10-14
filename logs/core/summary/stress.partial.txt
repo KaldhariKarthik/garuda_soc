@@ -1,0 +1,59 @@
+garuda-run 1  suite stress.partial  block core  2026-10-11T20:04:06+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      t_core_ctl_s2    
+PASS    OK                      t_core_ctl_s15   
+PASS    OK                      t_core_ctl_s25   
+PASS    OK                      t_core_ctl_s36   
+PASS    OK                      t_core_ctl_s42   
+PASS    OK                      t_core_ctl_s52   
+PASS    OK                      t_core_ctl_s86   
+PASS    OK                      t_core_ctl_s98   
+PASS    OK                      t_core_ctl_s141  
+PASS    OK                      t_core_ctl_s143  
+PASS    OK                      t_core_ctl_s175  
+PASS    OK                      t_core_ctl_s195  
+PASS    OK                      t_core_ctl_s209  
+PASS    OK                      t_core_ctl_s212  
+PASS    OK                      t_core_ctl_s234  
+PASS    OK                      t_core_ctl_s240  
+PASS    OK                      t_core_ctl_s247  
+PASS    OK                      t_core_ctl_s252  
+PASS    OK                      t_core_ctl_s261  
+PASS    OK                      t_core_ctl_s318  
+PASS    OK                      t_core_ctl_s345  
+PASS    OK                      t_core_ctl_s363  
+PASS    OK                      t_core_ctl_s387  
+PASS    OK                      t_core_ctl_s395  
+PASS    OK                      t_core_ctl_s422  
+PASS    OK                      t_core_ctl_s443  
+PASS    OK                      t_core_ctl_s444  
+PASS    OK                      t_core_ctl_s473  
+PASS    OK                      t_core_ctl_s477  
+PASS    OK                      t_core_ctl_s519  
+PASS    OK                      t_core_ctl_s520  
+PASS    OK                      t_core_ctl_s560  
+PASS    OK                      t_core_ctl_s606  
+PASS    OK                      t_core_ctl_s619  
+PASS    OK                      t_core_ctl_s641  
+PASS    OK                      t_core_ctl_s662  
+PASS    OK                      t_core_ctl_s668  
+PASS    OK                      t_core_ctl_s683  
+PASS    OK                      t_core_ctl_s705  
+PASS    OK                      t_core_ctl_s740  
+PASS    OK                      t_core_ctl_s775  
+PASS    OK                      t_core_ctl_s786  
+PASS    OK                      t_core_ctl_s806  
+PASS    OK                      t_core_ctl_s813  
+PASS    OK                      t_core_ctl_s885  
+PASS    OK                      t_core_ctl_s895  
+PASS    OK                      t_core_ctl_s907  
+PASS    OK                      t_core_ctl_s934  
+PASS    OK                      t_core_ctl_s977  
+PASS    OK                      t_core_ctl_s981  
+PASS    OK                      t_core_ctl_s990  
+
+PASS    51
+FAIL    0
+BLOCKED 0
+total   51

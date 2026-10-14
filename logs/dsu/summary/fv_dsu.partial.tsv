@@ -1,0 +1,3 @@
+# garuda-fv 1 suite=fv_dsu block=dsu date=2026-10-12T01:06:18+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+dsu_bmc	bmc	BOUNDED(16)	OK	3	[18 asserts, 6 covers in model] 	logs/dsu/raw/fv_dsu/fv_dsu_bmc.log

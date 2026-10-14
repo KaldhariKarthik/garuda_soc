@@ -1,0 +1,32 @@
+# DSU coverage configuration (plan D5, H5). Used by tools/cov/cov_report.py.
+# The DSU is measured from its own bench (445 vectors vs the model) and from
+# the core suites, where DSU instructions run inside the pipeline.
+# Collect:  make -f flow/mk/track_a.mk cov_core cov_dsu
+# Report:   make -f flow/mk/track_a.mk cov_dsu_report
+block = "dsu"
+target_code = 95.0
+target_functional = 100.0
+
+suites = [
+  "logs/dsu/summary/model.cov.tsv",
+  "logs/core/summary/units.cov.tsv",
+  "logs/core/summary/elements.cov.tsv",
+  "logs/core/summary/smokes.cov.tsv",
+  "logs/core/summary/isa.cov.tsv",
+  "logs/core/summary/isa_rand.cov.tsv",
+  "logs/core/summary/sanity.cov.tsv",
+  "logs/core/summary/extra.cov.tsv",
+  "logs/core/summary/directed.cov.tsv",
+  "logs/core/summary/csr_map.cov.tsv",
+  "logs/core/summary/covtests.cov.tsv",
+]
+
+design    = ["rtl/dsu/*.v"]
+testbench = ["tb/dsu/*", "rtl/dsu/*_sva.sv"]
+
+functional_files = ["tb/dsu/*.sv", "tb/cov/garuda_cov.sv::^cg_dsu$"]
+
+# DUT top for the IMC instance paths (tools/cov/gen_imc_exclusions.py)
+imc_dut = "dsu_top"
+
+waivers = "tb/dsu/cov/dsu_waivers.toml"
