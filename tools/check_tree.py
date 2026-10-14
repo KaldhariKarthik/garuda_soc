@@ -20,7 +20,8 @@ The repository is public. It fails, naming each file and line, on:
      files, Docs/bugs/track_a.md and track_b.md, only the rows with the ID in
      bold are definitions (the plain rows there carry over entries of BUGS.md).
      Six IDs were defined twice in Docs/BUGS.md before the register was split
-     into tracks; they are history and are listed in OLD_DUPLICATES.
+     into tracks; they are history and are listed in OLD_DUPLICATES. The section
+     "1. Open items" of Docs/BUGS.md is an index of IDs and is not read.
 """
 import re
 import subprocess
@@ -64,7 +65,14 @@ def main():
         p = os.path.join(ROOT, f)
         if not os.path.exists(p):
             continue
+        index = False
         for n, line in enumerate(open(p).read().split("\n"), 1):
+            # a summary table that lists open entries by ID (the "Open items" section of
+            # Docs/BUGS.md, added 2026-10-14) refers to entries; it does not define them
+            if line.startswith("## "):
+                index = line.lower().startswith("## 1. open items")
+            if index:
+                continue
             m = re.match(r"^\| \*\*(%s)\*\* \|" % ID, line)
             if not m and not bold_only:
                 m = re.match(r"^\| (%s) \|" % ID, line) or re.match(r"^#{2,4} (%s)\b" % ID, line)
