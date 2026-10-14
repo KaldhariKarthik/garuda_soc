@@ -1,0 +1,15 @@
+# Line endings. Every text file is stored with LF, whatever machine commits it:
+# on 2026-10-14 four documents arrived from a Windows checkout with CRLF, and a
+# whole file then showed as changed in every merge. Git converts on commit;
+# binary files (Word exports, images, archives) are detected and left alone.
+* text=auto eol=lf
+*.docx binary
+*.xlsx binary
+*.pdf binary
+*.png binary
+*.jpg binary
+*.gds binary
+*.bit binary
+# vPlanner plans and other CSV files keep the line endings they were written
+# with (CRLF, the CSV convention, which vPlanner reads): never converted.
+*.csv -text
