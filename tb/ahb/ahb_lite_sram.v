@@ -122,7 +122,10 @@ module ahb_lite_sram #(
     // a deselected slave never stalls the layer.
     // -----------------------------------------------------------------------
     assign hreadyout_o = (wcnt == 8'd0) && !(dp_err && !err2);
-    assign hresp_o     = dp_err;
+    // TB-47: ERROR only in the two ERROR cycles (after the wait states). HRESP was
+    // dp_err for the whole data phase, i.e. ERROR with HREADY low during the waits,
+    // which AHB-Lite reads as an ERROR first cycle that lasts several cycles.
+    assign hresp_o     = dp_err && (wcnt == 8'd0);
 
     wire [31:0] widx = (dp_addr - BASE_ADDR) >> 2;
 

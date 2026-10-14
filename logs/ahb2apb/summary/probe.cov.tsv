@@ -1,0 +1,4 @@
+# garuda-run 1 suite=probe.cov block=ahb2apb date=2026-10-14T01:23:06+05:30 design=e43672fbc7c55a12b889efe114a952ac5fe753cb rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+probe_alias	PASS	OK	0	yes	0	0	0	-	5	0	-	1	0.06	20		logs/ahb2apb/raw/probe.cov/cov/probe_alias_s1.dat		logs/ahb2apb/raw/probe.cov/sim_probe_alias_s1.log
+probe_control	PASS	OK	0	yes	0	0	0	-	5	0	-	1	0.06	20		logs/ahb2apb/raw/probe.cov/cov/probe_control_s1.dat		logs/ahb2apb/raw/probe.cov/sim_probe_control_s1.log

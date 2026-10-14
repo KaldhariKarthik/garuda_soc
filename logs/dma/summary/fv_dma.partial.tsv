@@ -1,0 +1,11 @@
+# garuda-fv 1 suite=fv_dma block=dma date=2026-10-13T08:07:07+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+dma10_find	bmc	FAIL	XFAIL:DMA-10	1	[1 asserts, 303 covers in model] props: u_dma_sva.a_no_read_before_refusal	logs/dma/raw/fv_dma/fv_dma10_find.log
+dma11_find	bmc	FAIL	XFAIL:DMA-11	1	[18 asserts, 303 covers in model] props: u_dma_sva.g_ch[2].a_beat_belongs_to_arm	logs/dma/raw/fv_dma/fv_dma11_find.log
+dma13_find	bmc	FAIL	XFAIL:DMA-13	1	[1 asserts, 303 covers in model] props: u_dma_sva.a_haddr_aligned	logs/dma/raw/fv_dma/fv_dma13_find.log
+dma14_find	bmc	FAIL	XFAIL:DMA-14	1	[1 asserts, 303 covers in model] props: u_dma_sva.a_beat_size_atomic	logs/dma/raw/fv_dma/fv_dma14_find.log
+mut_eng1	bmc	FAIL	XFAIL:PLANTED	1	[1 asserts, 303 covers in model] props: u_dma_sva.a_no_grant_while_reporting	logs/dma/raw/fv_dma/fv_mut_eng1.log
+mut_d2	bmc	FAIL	XFAIL:PLANTED	1	[6 asserts, 303 covers in model] props: u_dma_sva.g_ch[5].a_hw_wins_en	logs/dma/raw/fv_dma/fv_mut_d2.log
+mut_dma8	bmc	FAIL	XFAIL:PLANTED	1	[6 asserts, 303 covers in model] props: u_dma_sva.g_ch[0].a_failed_beat_keeps_request	logs/dma/raw/fv_dma/fv_mut_dma8.log
+mut_iclr_wins	bmc	FAIL	XFAIL:PLANTED	1	[6 asserts, 303 covers in model] props: u_dma_sva.g_ch[2].a_set_beats_clear_complete	logs/dma/raw/fv_dma/fv_mut_iclr_wins.log
+mut_aud13	bmc	FAIL	XFAIL:PLANTED	0	[1 asserts, 303 covers in model] props: u_dma_sva.a_pslverr_rule	logs/dma/raw/fv_dma/fv_mut_aud13.log

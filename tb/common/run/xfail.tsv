@@ -1,0 +1,3 @@
+# xfail list for shared verification infrastructure (tb/common).
+# suite	test	expect(FAIL|BLOCKED)	bug	reason
+b0	map_pkg_negctl	FAIL	PLANTED	a deliberately wrong constant must be reported by tb_map_pkg

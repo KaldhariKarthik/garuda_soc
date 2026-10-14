@@ -88,3 +88,12 @@ F29 Every window from the core,2,SECTION,AHB2APB.F29,"A register read and write 
 t_chip_integ,3,TC,AHB2APB.F29.TC1,Bus fault part.,Passing.,Karthik,
 F30 Peripherals run at 125 MHz,2,SECTION,AHB2APB.F30,pclk is half of hclk at the bridge and at every peripheral. Requirement R-3.,Method: sim + connectivity. Today: tb_crg t_pclk_div2,Karthik,P2
 conn_pclk,3,CHK,AHB2APB.F30.CHK1,Bound assertion at the SoC top - every peripheral's clock is the divider's pclk.,Planned.,Karthik,
+Track A additions,1,SECTION,AHB2APB.TA,Rows added by Track A bus plan B0 (2026-10-13): the gaps found by the Fresh AHB/APB/DMA plan and the Track A review. Method and evidence location in implementation_note.,,Track A,
+t_apb_aperture,2,TC,AHB2APB.TA.t_apb_aperture,"Out-of-aperture addresses in region 0x4 (0x4000_C000, 0x4001_0000, 0x4001_5000, 0x4FFF_F000) are an ERROR with no PSEL; sentinel targets see no access. APB-2.",tb/ahb2apb/tb_apb_probe.sv probe_alias (xfail APB-2 until fixed) + B2 env + a_aperture.,Track A,high
+t_apb_all_windows,2,TC,AHB2APB.TA.t_apb_all_windows,"All 12 map windows read and written, windows 12-15 unmapped, mask variants; window 0 = SPI slave (APB-3: the R-2 / t_apb_rw / t_apb_unmapped text says eleven).","B2 env, expectations from garuda_map_pkg.",Track A,high
+a_one_to_one,2,CHK,AHB2APB.TA.a_one_to_one,One accepted AHB transfer gives exactly one APB transfer and one AHB completion; a rejected request gives no APB activity.,SVA rtl/ahb2apb/ahb2apb_sva.sv (B2) + formal; negative control = BRG-1 revert.,Track A,high
+a_resp_from_active_window,2,CHK,AHB2APB.TA.a_resp_from_active_window,PREADY / PSLVERR / PRDATA are taken from the window being accessed.,SVA (B2) + formal.,Track A,high
+t_apb_div_all,2,TC,AHB2APB.TA.t_apb_div_all,"APB_DIV /4 and /8 in addition to /1 and /2, mixed by window, PREADY early and late.",B2: one elaboration per DIV set.,Track A,medium
+t_apb_req_phase,2,TC,AHB2APB.TA.t_apb_req_phase,AHB request arriving on both pclk phases.,B2 env + cover.,Track A,medium
+t_apb_real_dma_cfg,2,TC,AHB2APB.TA.t_apb_real_dma_cfg,"Real window 5: bridge + fabric + dma_apb_slave; back-to-back writes then reads, illegal offsets, one hclk write strobe per APB write.",B2 integration bench.,Track A,high
+t_apb_timeout_edges,2,TC,AHB2APB.TA.t_apb_timeout_edges,"PREADY at the first allowed sample, at limit-1, at the limit and never; next access clean. APB-1 handled as a narrow checker exception only if ruled.",B2 env + a_timeout_at_16.,Track A,high

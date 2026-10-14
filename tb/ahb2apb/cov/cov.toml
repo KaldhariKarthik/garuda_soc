@@ -1,0 +1,30 @@
+# AHB-to-APB bridge + fabric + APB shim coverage (Track A bus plan B2; handbook H5). Design
+# code (the bridge, its FSM, the fabric, and garuda_apb_shim as in Karthik's vPlan
+# AHB2APB.COV), design functional (tb/ahb2apb/env/ahb2apb_cov.sv) and testbench code are
+# reported separately. Collect: make -f flow/mk/track_a.mk cov_apb   Report: cov_apb_report
+block = "ahb2apb"
+target_code = 95.0
+target_functional = 100.0
+
+suites = [
+  "logs/ahb2apb/summary/bridge.cov.tsv",
+  "logs/ahb2apb/summary/probe.cov.tsv",
+  "logs/ahb2apb/summary/env.cov.tsv",
+  "logs/ahb2apb/summary/units.cov.tsv",
+  "logs/common/summary/b0.cov.tsv",
+]
+
+# garuda_apb_shim (rtl/common) is every peripheral's front end and is covered with the
+# peripherals (Track B); it is reported, not signed off, here (tb_apb_shim in b0).
+design    = ["rtl/ahb2apb/ahb2apb_bridge.v", "rtl/ahb2apb/ahb2apb_apb_fsm.v", "rtl/ahb2apb/ahb2apb_fabric.v"]
+testbench = ["rtl/common/garuda_apb_shim.v", "tb/ahb2apb/*", "tb/common/*", "tb/ahb/agent/*", "tb/ahb/ahb_lite_master_bfm.sv", "rtl/ahb2apb/ahb2apb_sva.sv"]
+
+functional_files = ["tb/ahb2apb/env/ahb2apb_cov.sv"]
+
+merge_variants = ["ahb2apb_sva", "ahb2apb_cov", "apb_target"]
+# built with different WINDOW_MASK / APB_DIV / shim parameters on purpose: union per module
+union_variants = ["ahb2apb_bridge", "ahb2apb_apb_fsm", "garuda_apb_shim"]
+
+waivers = "tb/ahb2apb/cov/ahb2apb_waivers.toml"
+
+imc_dut = "ahb2apb_bridge"

@@ -1,0 +1,18 @@
+garuda-run 1  suite units  block dma  2026-10-14T01:23:18+05:30
+design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      tb_dma_apb_slave_unit     
+PASS    OK                      tb_dma_chan_unit          
+PASS    OK                      tb_dma_engine_unit        
+FAIL    XFAIL:PLANTED           negctl_apb_double_strobe  pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 000: 2 strobe(s), expected 1
+FAIL    XFAIL:PLANTED           negctl_apb_aud13          pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 010: PSLVERR 1 (expected 0), PREADY 1
+FAIL    XFAIL:PLANTED           negctl_chan_d2            pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 2322: cr 00000041/00000040 sar d485a702/d485a702 dar c48bf794/c48bf794 cnt 00000001/0001 
+FAIL    XFAIL:PLANTED           negctl_chan_half_step     pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 457: cr 000000bb/000000bb sar 97dcb355/97dcb356 dar 77559be1/77559be1 cnt 00000004/0004 s
+FAIL    XFAIL:PLANTED           negctl_engine_eng1        pass marker missing; 12 [FAIL] line(s) | first: [FAIL] ENG-1: a new beat was taken in the cycle ch4's result was reported (t=66000)
+FAIL    XFAIL:PLANTED           negctl_engine_ack_width   pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch4 done: ack high 1 hclk, expected 2 (t=86000)
+FAIL    XFAIL:PLANTED           negctl_engine_lane0       pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch4: wrote lane 000000ff, read lane 00000098 (t=86000)
+
+PASS    3
+FAIL    7
+BLOCKED 0
+total   10

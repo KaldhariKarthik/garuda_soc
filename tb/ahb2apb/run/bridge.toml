@@ -1,0 +1,17 @@
+# Track A bus plan B0: fresh baseline of Karthik's bridge bench tb_ahb2apb (real clk_div).
+# Run: make -f flow/mk/track_a.mk apb_bridge
+[suite]
+block = "ahb2apb"
+name  = "bridge"
+count = [['checks=22  FAIL=0', 1]]
+kind  = "sim"
+xfail = "tb/ahb2apb/run/xfail.tsv"
+
+[defaults]
+marker  = '^RESULT: PASSED'
+timeout = 600
+
+[[test]]
+name  = "bridge"
+flist = "tb/ahb2apb/filelist_ahb2apb.f"
+top   = "tb_ahb2apb"

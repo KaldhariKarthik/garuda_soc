@@ -1,0 +1,4 @@
+# garuda-fv 1 suite=fv_dma_arb block=dma date=2026-10-12T06:41:11+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+arb_mut_tie_high	bmc	FAIL	XFAIL:PLANTED	0	[10 asserts, 3 covers in model] props: u_equal.a_grant, u_pairs.a_grant	logs/dma/raw/fv_dma_arb/fv_arb_mut_tie_high.log
+arb_mut_tie_high_shipped	bmc	BOUNDED(2)	OK	0	[2 asserts, 3 covers in model] 	logs/dma/raw/fv_dma_arb/fv_arb_mut_tie_high_shipped.log

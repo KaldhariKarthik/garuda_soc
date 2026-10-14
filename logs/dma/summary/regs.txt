@@ -1,0 +1,10 @@
+garuda-run 1  suite regs  block dma  2026-10-14T01:14:39+05:30
+design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      tb_dma_regs        
+FAIL    XFAIL:PLANTED           negctl_size_reset  pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [F01] [F11] reset: ch0 CR = 00000000 (want 00000040) (t=42000)
+
+PASS    1
+FAIL    1
+BLOCKED 0
+total   2

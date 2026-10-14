@@ -1,0 +1,12 @@
+garuda-run 1  suite b0.cov  block common  2026-10-14T01:25:32+05:30
+design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      map_pkg               
+FAIL    XFAIL:PLANTED           map_pkg_negctl        pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [negctl] DMA prio ch0 compared against a wrong constant (4)
+PASS    OK                      apb_checker_selftest  
+PASS    OK                      apb_shim              
+
+PASS    3
+FAIL    1
+BLOCKED 0
+total   4

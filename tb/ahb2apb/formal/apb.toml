@@ -1,0 +1,120 @@
+# AHB2APB bridge formal (Track A bus plan B2; Karthik's plan 6A.3 "R, mostly formal:
+# handshake, timeout, error"): rtl/ahb2apb/ahb2apb_sva.sv on ahb2apb_bridge with a free
+# AHB-Lite master and twelve completely free APB targets (apb_fv_env.sv, FB-1..FB-3).
+# Default parameters: WINDOW_MASK 0x0FFE, APB_DIV 0, TIMEOUT 16; apb_div tasks set
+# every window's divider (the chgparam script line).
+# Run: make -f flow/mk/track_a.mk fv_apb
+[suite]
+block = "ahb2apb"
+name  = "fv_apb"
+xfail = "tb/ahb2apb/run/xfail.tsv"
+
+[design]
+flist   = "tb/ahb2apb/formal/filelist_apb_fv.f"
+top     = "ahb2apb_bridge"
+extra   = ["tb/ahb2apb/formal/apb_fv_env.sv"]
+min_asserts = 25
+min_covers  = 12
+
+[[task]]
+name    = "apb_bmc"
+mode    = "bmc"
+depth   = 40
+engine  = "smtbmc yices"
+timeout = 3600
+
+[[task]]
+name    = "apb_prove"
+mode    = "prove"
+engine  = "abc pdr"
+# FB-4: the AIGER export for abc pdr refuses x bits; they come from part-selects at
+# window indexes 12..15 of 12-window vectors. techmap, then setundef -anyseq (free
+# values: an over-approximation, sound for a proof), as the DMA's FD-5.
+script  = ["prep -top ahb2apb_bridge", "techmap", "opt -fast", "setundef -anyseq"]
+timeout = 3600
+
+[[task]]
+name    = "apb_cover"
+mode    = "cover"
+depth   = 40
+engine  = "smtbmc yices"
+# unreachable here by construction, each covered elsewhere: c_div_ready_early needs an
+# APB_DIV extension (every window /1 in this top; covered in apb_div.toml div_cover), c_reset_gap
+# needs the two resets released apart (FB-1; simulation test t_apb_reset_skew)
+script  = ["chformal -cover -remove n:u_apb_sva.c_div_ready_early n:u_apb_sva.c_reset_gap %u"]
+min_covers = 10
+timeout = 3600
+
+
+# Negative controls (bus plan B2): each planted defect must FAIL; only its named properties
+# are kept (chformal), so the FAIL can only come from them.
+
+[[task]]
+name    = "mut_brg1"
+mode    = "bmc"
+depth   = 40
+engine  = "smtbmc yices"
+replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_brg1.v" }
+script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_one_to_one n:u_apb_sva.a_resp n:u_apb_sva.a_subword_no_apb %u %u %d"]
+min_asserts = 3
+timeout = 3600
+
+[[task]]
+name    = "mut_apb2"
+mode    = "bmc"
+depth   = 40
+engine  = "smtbmc yices"
+replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_apb2.v" }
+script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_subword_no_apb n:u_apb_sva.a_resp %u %d"]
+min_asserts = 2
+timeout = 3600
+
+[[task]]
+name    = "mut_subword"
+mode    = "bmc"
+depth   = 40
+engine  = "smtbmc yices"
+replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_subword.v" }
+script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_subword_no_apb n:u_apb_sva.a_resp %u %d"]
+min_asserts = 2
+timeout = 3600
+
+[[task]]
+name    = "mut_to15"
+mode    = "bmc"
+depth   = 40
+engine  = "smtbmc yices"
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to15.v" }
+script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_apb_div %d"]
+min_asserts = 1
+timeout = 3600
+
+[[task]]
+name    = "mut_to17"
+mode    = "bmc"
+depth   = 40
+engine  = "smtbmc yices"
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to17.v" }
+script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_timeout_at_16 n:u_apb_sva.a_access_ends %u %d"]
+min_asserts = 2
+timeout = 3600
+
+[[task]]
+name    = "mut_win"
+mode    = "bmc"
+depth   = 40
+engine  = "smtbmc yices"
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_win.v" }
+script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_unmapped n:u_apb_sva.a_rdata n:u_apb_sva.a_resp %u %u %d"]
+min_asserts = 3
+timeout = 3600
+
+[[task]]
+name    = "mut_nosetup"
+mode    = "bmc"
+depth   = 40
+engine  = "smtbmc yices"
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_nosetup.v" }
+script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_apb_setup_first %d"]
+min_asserts = 1
+timeout = 3600

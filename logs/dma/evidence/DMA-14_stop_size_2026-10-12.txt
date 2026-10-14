@@ -1,0 +1,20 @@
+DMA-14: a CR write that changes SIZE (the usual stop, CR = 0) while a beat is in flight changes that beat's size
+date      : 2026-10-12T01:26:01+05:30
+tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+design    : b90b481d8f91 + working tree (a/p0-infra); rtl/dma unchanged except AUD-13
+
+== found by formal (DMA plan D2) ==
+tb/dma/formal/dma.toml (single-clock harness), first dma11_find run with all properties: a_write_data failed.
+Trace (logs/dma/raw/fv_dma/dma11_find/.../trace.vcd at the time): ch1 armed P2M word, SAR 0x8000_0001; the engine reads a word;
+between the read and the write software writes CR with SIZE = byte; the write goes out as a byte from the wrong lane.
+
+== replayed with real timing (H6): tb/dma/tb_dma_probe.sv +CASE=stop_size ==
+word M2M channel, CNT 8, stopped with CR = 0 at 72 points (read waits 0-5 x 0-11 hclk after the first read address)
+[FAIL] [DMA-14] [F20] [F45] stop with CR = 0 at 72 points of a word beat: 38 beat(s) written with a different HSIZE than read, 44 word(s) counted as moved but wrong
+dma_sva a_beat_size_atomic fired 50 times; silent in tb_dma_top, the other probe cases and all 9 chip programs
+
+== cause ==
+dma_engine.v: wire [31:0] sar  = sar_i[32*ch +: 32];
+dma_engine.v: wire [31:0] dar  = dar_i[32*ch +: 32];
+dma_engine.v: wire [1:0]  size = size_i[2*ch +: 2];
+dma_chan.v:93: size_q <= (wdata_i[6:5] == 2'b11) ? size_q : wdata_i[6:5];

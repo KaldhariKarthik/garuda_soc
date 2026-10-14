@@ -1,0 +1,32 @@
+garuda-run 1  suite dma_mut  block dma  2026-10-13T09:03:29+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    XFAIL:PLANTED           mut_m01  pass marker missing; 7 [FAIL] line(s); 6 assertion failure(s) | first: [283418000] %Error: dma_sva.sv:347: Assertion failed in tb_dma_env.dut.u_dma_sv
+FAIL    XFAIL:PLANTED           mut_m02  pass marker missing; 3 [FAIL] line(s); 2 assertion failure(s) | first: [45566000] %Error: dma_sva.sv:505: Assertion failed in tb_dma_env.dut.u_dma_sva
+FAIL    XFAIL:PLANTED           mut_m03  pass marker missing; 216 [FAIL] line(s); 214 assertion failure(s) | first: [2034000] %Error: dma_sva.sv:502: Assertion failed in tb_dma_env.dut.u_dma_
+FAIL    XFAIL:PLANTED           mut_m04  pass marker missing; 7 [FAIL] line(s); 2 assertion failure(s) | first: [167450000] %Error: dma_sva.sv:442: Assertion failed in tb_dma_env.dut.u_dma_sv
+FAIL    XFAIL:PLANTED           mut_m05  pass marker missing; 235 [FAIL] line(s); 182 assertion failure(s) | first: [1410000] %Error: dma_sva.sv:369: Assertion failed in tb_dma_env.dut.u_dma_
+FAIL    XFAIL:PLANTED           mut_m06  pass marker missing; 558 [FAIL] line(s); 546 assertion failure(s) | first: [8922000] %Error: dma_sva.sv:314: Assertion failed in tb_dma_regs.dut.u_dma
+FAIL    XFAIL:PLANTED           mut_m07  pass marker missing; 159 [FAIL] line(s); 154 assertion failure(s) | first: [47326000] %Error: dma_sva.sv:479: Assertion failed in tb_dma_env.dut.u_dma
+FAIL    XFAIL:PLANTED           mut_m08  pass marker missing; 443 [FAIL] line(s); 262 assertion failure(s) | first: [3506000] %Error: dma_sva.sv:439: Assertion failed in tb_dma_env.dut.u_dma_
+FAIL    XFAIL:PLANTED           mut_m09  exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [238000] %Error: dma_sva.sv:465: Assertion fail
+FAIL    XFAIL:PLANTED           mut_m10  pass marker missing; 125 [FAIL] line(s); 52 assertion failure(s) | first: [3234000] %Error: dma_sva.sv:372: Assertion failed in tb_dma_env.dut.u_dma_s
+FAIL    XFAIL:PLANTED           mut_m11  exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [394278000] %Error: dma_sva.sv:560: Assertion f
+FAIL    XFAIL:PLANTED           mut_m13  pass marker missing; 192 [FAIL] line(s); 186 assertion failure(s) | first: [3130000] %Error: dma_sva.sv:642: Assertion failed in tb_dma_top.dut.u_dma_
+FAIL    XFAIL:PLANTED           mut_m14  exit 1; pass marker missing; 1102 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [158000] %Error: dma_sva.sv:515: Assertion fail
+FAIL    XFAIL:PLANTED           mut_m15  exit 1; pass marker missing; 1043 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [158000] %Error: dma_sva.sv:575: Assertion fail
+FAIL    XFAIL:PLANTED           mut_m16  pass marker missing; 112 [FAIL] line(s); 52 assertion failure(s) | first: [45562000] %Error: dma_sva.sv:630: Assertion failed in tb_dma_env.dut.u_dma_
+FAIL    XFAIL:PLANTED           mut_m17  pass marker missing; 342 [FAIL] line(s); 287 assertion failure(s) | first: [766000] %Error: dma_sva.sv:605: Assertion failed in tb_dma_env.dut.u_dma_s
+FAIL    XFAIL:PLANTED           mut_m18  pass marker missing; 27 [FAIL] line(s); 6 assertion failure(s) | first: [3230000] %Error: dma_sva.sv:627: Assertion failed in tb_dma_env.dut.u_dma_sva
+FAIL    XFAIL:PLANTED           mut_m19  pass marker missing; 520 [FAIL] line(s); 468 assertion failure(s) | first: [4326000] %Error: dma_sva.sv:598: Assertion failed in tb_dma_env.dut.u_dma_
+FAIL    XFAIL:PLANTED           mut_m20  exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [930000] %Error: dma_sva.sv:283: Assertion fail
+FAIL    XFAIL:PLANTED           mut_m21  7 [FAIL] line(s); 7 assertion failure(s) | first: [54618000] %Error: dma_sva.sv:268: Assertion failed in tb_dma_regs.dut.u_dma_sva.a_pslverr_rule: [SV
+FAIL    XFAIL:PLANTED           mut_m22  pass marker missing; 12 [FAIL] line(s); 6 assertion failure(s) | first: [52882000] %Error: dma_sva.sv:273: Assertion failed in tb_dma_regs.dut.u_dma_s
+FAIL    XFAIL:PLANTED           mut_m23  pass marker missing; 627 [FAIL] line(s); 612 assertion failure(s) | first: [762000] %Error: dma_sva.sv:268: Assertion failed in tb_dma_regs.dut.u_dma_
+FAIL    XFAIL:PLANTED           mut_m24  exit 1; pass marker missing; 1006 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [4022000] %Error: dma_sva.sv:308: Assertion fai
+FAIL    XFAIL:PLANTED           mut_m25  exit 1; pass marker missing; 1014 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [274000] %Error: dma_sva.sv:479: Assertion fail
+
+PASS    0
+FAIL    24
+BLOCKED 0
+total   24

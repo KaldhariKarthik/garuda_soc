@@ -1,0 +1,24 @@
+# AHB2APB bridge defect reproducers (Track A bus plan B0): tb/ahb2apb/tb_apb_probe.sv,
+# one row per case. Each case checks the specified behaviour, so it fails on today's
+# RTL exactly while its defect is open (xfail with the bug ID) and passes once fixed.
+# Run: make -f flow/mk/track_a.mk apb_probe
+[suite]
+block = "ahb2apb"
+name  = "probe"
+kind  = "sim"
+xfail = "tb/ahb2apb/run/xfail.tsv"
+
+[defaults]
+flist   = "tb/ahb2apb/filelist_apb_probe.f"
+top     = "tb_apb_probe"
+marker  = '^RESULT: PASSED'
+timeout = 300
+
+[[test]]
+name        = "probe_alias"
+fail_reason = '^\[FAIL\] \[APB-2\] \[R-8\] above the aperture 0x40015000 write -> AHB ERROR'
+plusargs    = ["+CASE=alias"]
+
+[[test]]
+name     = "probe_control"
+plusargs = ["+CASE=control"]

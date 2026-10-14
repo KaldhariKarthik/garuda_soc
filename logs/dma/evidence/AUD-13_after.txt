@@ -1,0 +1,17 @@
+AUD-13 after the fix: a write to read-only STAT / GSTAT is ignored without PSLVERR; unmapped offsets still answer PSLVERR
+date      : 2026-10-12T00:08:46+05:30
+tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+seed      : 1
+design    : b90b481d8f91 + working tree (a/p0-infra), rtl/dma/dma_apb_slave.v with the AUD-13 fix (pslverr = psel & penable & ~hit)
+test      : dma/block tb_dma_top (xfail entry removed)
+
+== runner row ==
+tb_dma_top	PASS	OK
+
+== the PSLVERR checks, and the verdict ==
+[PASS] PSLVERR on unmapped offset (channel 6)
+[PASS] [AUD-13] a write to read-only STAT is ignored: no PSLVERR, STAT unchanged
+[PASS] [AUD-13] a write to read-only GSTAT is ignored: no PSLVERR, GSTAT unchanged
+tb_dma_top: checks=64  FAIL=0
+RESULT: PASSED
+# verdict   : PASS

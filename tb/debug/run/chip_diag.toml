@@ -74,6 +74,8 @@ name = "t_chip_basic"
 plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_basic.hex"]
 known = [
   ['a_mtimecmp_reset', 1, "TB-38"],
+  # dma_sva (bound 2026-10-12): step 12 refuses DAR 0x8000 (ISRAM) after reading the source
+  ['a_no_read_before_refusal', 1, "DMA-10"],
 ]
 [[test]]
 name = "t_chip_wdt"

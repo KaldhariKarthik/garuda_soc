@@ -1,0 +1,35 @@
+# DMA coverage configuration (Track A, DMA plan D7; handbook H5). Used by
+# tools/cov/cov_report.py: design code (rtl/dma, the five modules), design
+# functional (tb/dma/env/dma_cov.sv) and testbench code are reported separately.
+# Collect: make -f flow/mk/track_a.mk cov_dma    Report: cov_dma_report
+block = "dma"
+target_code = 95.0
+target_functional = 100.0
+
+suites = [
+  "logs/dma/summary/block.cov.tsv",
+  "logs/dma/summary/probe.cov.tsv",
+  "logs/dma/summary/env.cov.tsv",
+  "logs/dma/summary/regs.cov.tsv",
+]
+
+design    = ["rtl/dma/dma_top.v", "rtl/dma/dma_chan.v", "rtl/dma/dma_arbiter.v", "rtl/dma/dma_engine.v", "rtl/dma/dma_apb_slave.v"]
+testbench = ["tb/dma/*", "tb/ahb/*", "tb/common/dma_req_checker.sv", "rtl/dma/dma_sva.sv"]
+
+functional_files = ["tb/dma/env/dma_cov.sv"]
+
+# One parameter set in every DMA bench (dma_top's defaults; no bench overrides PRIO,
+# N_CH or ACK_CYCLES), so Verilator's per-build __Pz<N> names are merged.
+merge_variants = ["dma_arbiter", "dma_sva"]
+
+waivers = "tb/dma/cov/dma_waivers.toml"
+
+# IMC instance names per module (tools/cov/gen_imc_exclusions.py -> flow/cov/dma_exclusions.tcl)
+imc_dut = "dma_top"
+
+[imc_instances]
+dma_top       = ["dma_top"]
+dma_apb_slave = ["dma_top.u_apb"]
+dma_chan      = ["dma_top.g_ch[0].u_ch", "dma_top.g_ch[1].u_ch", "dma_top.g_ch[2].u_ch", "dma_top.g_ch[3].u_ch", "dma_top.g_ch[4].u_ch", "dma_top.g_ch[5].u_ch"]
+dma_arbiter   = ["dma_top.u_arb"]
+dma_engine    = ["dma_top.u_eng"]

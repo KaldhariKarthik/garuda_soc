@@ -1,0 +1,102 @@
+# Every rtl/ahb sub-module on its own (Track A bus plan B1 A6): tb/ahb/units/tb_ahb_units.sv,
+# references written from GARUDA-AHB-SPEC-001. Each unit has at least one negative control:
+# a planted defect from tb/ahb/mut/ that must fail that unit's checks (PLANTED).
+# Run: make -f flow/mk/track_a.mk ahb_units
+[suite]
+block = "ahb"
+name  = "units"
+kind  = "sim"
+xfail = "tb/ahb/run/xfail.tsv"
+
+[defaults]
+flist   = "tb/ahb/units/filelist_ahb_units.f"
+top     = "tb_ahb_units"
+marker  = '^RESULT: PASSED'
+timeout = 600
+
+[[test]]
+name     = "unit_decoder"
+plusargs = ["+UNIT=decoder", "+CYCLES=5000"]
+
+[[test]]
+name     = "unit_arbiter"
+plusargs = ["+UNIT=arbiter", "+CYCLES=5000"]
+
+[[test]]
+name     = "unit_master_port"
+plusargs = ["+UNIT=master_port", "+CYCLES=5000"]
+
+[[test]]
+name     = "unit_default_slave"
+plusargs = ["+UNIT=default_slave", "+CYCLES=5000"]
+
+[[test]]
+name     = "unit_slave_mux"
+plusargs = ["+UNIT=slave_mux", "+CYCLES=5000"]
+
+[[test]]
+name     = "unit_master_mux"
+plusargs = ["+UNIT=master_mux", "+CYCLES=5000"]
+
+# negative control: DSRAM decoded at nibble 3
+[[test]]
+name        = "negctl_decoder_a07"
+plusargs    = ["+UNIT=decoder", "+CYCLES=5000"]
+replace     = { "rtl/ahb/ahb_decoder.v" = "tb/ahb/mut/ahb_decoder_mut_a07.v" }
+fail_reason = '^\[FAIL\] '
+
+# negative control: SBA above DMA
+[[test]]
+name        = "negctl_arbiter_a05"
+plusargs    = ["+UNIT=arbiter", "+CYCLES=5000"]
+replace     = { "rtl/ahb/ahb_arbiter.v" = "tb/ahb/mut/ahb_arbiter_mut_a05.v" }
+fail_reason = '^\[FAIL\] '
+
+# negative control: grant freeze removed
+[[test]]
+name        = "negctl_arbiter_a09"
+plusargs    = ["+UNIT=arbiter", "+CYCLES=5000"]
+replace     = { "rtl/ahb/ahb_arbiter.v" = "tb/ahb/mut/ahb_arbiter_mut_a09.v" }
+fail_reason = '^\[FAIL\] '
+
+# negative control: AHB-2 revert: no response hold
+[[test]]
+name        = "negctl_master_port_a02"
+plusargs    = ["+UNIT=master_port", "+CYCLES=5000"]
+replace     = { "rtl/ahb/ahb_master_port.v" = "tb/ahb/mut/ahb_master_port_mut_a02.v" }
+fail_reason = '^\[FAIL\] '
+
+# negative control: AHB-4 revert: idle master gated
+[[test]]
+name        = "negctl_master_port_a04"
+plusargs    = ["+UNIT=master_port", "+CYCLES=5000"]
+replace     = { "rtl/ahb/ahb_master_port.v" = "tb/ahb/mut/ahb_master_port_mut_a04.v" }
+fail_reason = '^\[FAIL\] '
+
+# negative control: one-cycle ERROR
+[[test]]
+name        = "negctl_default_slave_a12"
+plusargs    = ["+UNIT=default_slave", "+CYCLES=5000"]
+replace     = { "rtl/ahb/ahb_default_slave.v" = "tb/ahb/mut/ahb_default_slave_mut_a12.v" }
+fail_reason = '^\[FAIL\] '
+
+# negative control: select moves in a wait state
+[[test]]
+name        = "negctl_slave_mux_a14"
+plusargs    = ["+UNIT=slave_mux", "+CYCLES=5000"]
+replace     = { "rtl/ahb/ahb_slave_mux.v" = "tb/ahb/mut/ahb_slave_mux_mut_a14.v" }
+fail_reason = '^\[FAIL\] '
+
+# negative control: AHB-1 revert: HWDATA from the grant
+[[test]]
+name        = "negctl_master_mux_a01"
+plusargs    = ["+UNIT=master_mux", "+CYCLES=5000"]
+replace     = { "rtl/ahb/ahb_master_mux.v" = "tb/ahb/mut/ahb_master_mux_mut_a01.v" }
+fail_reason = '^\[FAIL\] '
+
+# negative control: AHB-3 rewrite inverted
+[[test]]
+name        = "negctl_master_mux_a19"
+plusargs    = ["+UNIT=master_mux", "+CYCLES=5000"]
+replace     = { "rtl/ahb/ahb_master_mux.v" = "tb/ahb/mut/ahb_master_mux_mut_a19.v" }
+fail_reason = '^\[FAIL\] '

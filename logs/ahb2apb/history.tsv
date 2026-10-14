@@ -1,0 +1,174 @@
+date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
+2026-10-13T18:48:40+05:30	b90b481d8f91	True	probe	probe_alias	1	BLOCKED	UNEXPECTED	%Error: tb/ahb2apb/tb_apb_probe.sv:102:20: syntax error, unexpected before
+2026-10-13T18:48:40+05:30	b90b481d8f91	True	probe	probe_control	1	BLOCKED	UNEXPECTED	%Error: tb/ahb2apb/tb_apb_probe.sv:102:20: syntax error, unexpected before
+2026-10-13T18:48:50+05:30	b90b481d8f91	True	probe	probe_alias	1	FAIL	UNEXPECTED	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s); fail_reason /^\[FAIL\] \[APB-2\] \[R-8\] above the aperture 0x40015000 write -> AHB ERROR/ not in the log | first: [0] %Error: clk_div_sv
+2026-10-13T18:48:50+05:30	b90b481d8f91	True	probe	probe_control	1	FAIL	UNEXPECTED	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [0] %Error: clk_div_sva.sv:54: Assertion failed in tb_apb_probe.u_clk.u_clk_div_sva.a_pclk_subset_hclk: [SVA-FAIL] a_pclk_subset_
+2026-10-13T18:49:12+05:30	b90b481d8f91	True	probe	probe_alias	1	FAIL	XFAIL:APB-2	pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [APB-2] [R-8] above the aperture 0x40015000 write -> AHB ERROR (t=211000)
+2026-10-13T18:49:12+05:30	b90b481d8f91	True	probe	probe_control	1	PASS	OK	
+2026-10-13T18:50:41+05:30	b90b481d8f91	True	probe	probe_alias	1	FAIL	XFAIL:APB-2	pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [APB-2] [R-8] above the aperture 0x40015000 write -> AHB ERROR (t=211000)
+2026-10-13T18:50:41+05:30	b90b481d8f91	True	probe	probe_control	1	PASS	OK	
+2026-10-13T18:59:56+05:30	b90b481d8f91	True	bridge	bridge	1	FAIL	UNEXPECTED	1 [FAIL] line(s); 1 assertion failure(s) | first: [0] %Error: clk_div_sva.sv:54: Assertion failed in tb_ahb2apb.u_clk.u_clk_div_sva.a_pclk_subset_hclk: [SVA-FAIL] a_pclk_subset_hclk: pclk ch
+2026-10-13T19:00:25+05:30	b90b481d8f91	True	bridge	bridge	1	PASS	OK	
+2026-10-13T19:00:51+05:30	b90b481d8f91	True	bridge	bridge	1	PASS	OK	
+2026-10-13T19:00:55+05:30	b90b481d8f91	True	probe	probe_alias	1	FAIL	XFAIL:APB-2	pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [APB-2] [R-8] above the aperture 0x40015000 write -> AHB ERROR (t=211000)
+2026-10-13T19:00:55+05:30	b90b481d8f91	True	probe	probe_control	1	PASS	OK	
+2026-10-14T00:39:47+05:30	e43672fbc7c5	True	probe	probe_alias	1	FAIL	XFAIL:APB-2	pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [APB-2] [R-8] above the aperture 0x40015000 write -> AHB ERROR (t=211000)
+2026-10-14T00:39:47+05:30	e43672fbc7c5	True	probe	probe_control	1	PASS	OK	
+2026-10-14T00:42:56+05:30	e43672fbc7c5	True	bridge	bridge	1	PASS	OK	
+2026-10-14T00:44:08+05:30	e43672fbc7c5	True	probe	probe_alias	1	PASS	OK	
+2026-10-14T00:44:08+05:30	e43672fbc7c5	True	probe	probe_control	1	PASS	OK	
+2026-10-14T00:44:13+05:30	e43672fbc7c5	True	bridge	bridge	1	PASS	OK	
+2026-10-14T00:50:08+05:30	e43672fbc7c5	True	probe	probe_alias	1	PASS	OK	
+2026-10-14T00:50:08+05:30	e43672fbc7c5	True	probe	probe_control	1	PASS	OK	
+2026-10-14T00:53:50+05:30	e43672fbc7c5	True	bridge	bridge	1	PASS	OK	
+2026-10-14T01:06:29+05:30	e43672fbc7c5	True	fv_apb	apb_bmc	-	BOUNDED(40)	OK	[22 asserts, 12 covers in model] 
+2026-10-14T01:06:29+05:30	e43672fbc7c5	True	fv_apb	apb_prove	-	ERROR	UNEXPECTED	[22 asserts, 12 covers in model] 02 [/home/tg/garuda_track_a/logs/ahb2apb/raw/fv_apb/apb_prove/apb_prove] aig: ERROR: Design contains 'x' or 'z' bits. Use 'setundef' to replace those constants.
+2026-10-14T01:06:29+05:30	e43672fbc7c5	True	fv_apb	apb_cover	-	ERROR	UNEXPECTED	[22 asserts, 12 covers in model] model has 12 cover(s), manifest wants >= 15
+2026-10-14T01:07:18+05:30	e43672fbc7c5	True	fv_apb	apb_bmc	-	BOUNDED(40)	OK	[22 asserts, 12 covers in model] 
+2026-10-14T01:07:18+05:30	e43672fbc7c5	True	fv_apb	apb_prove	-	PROVEN	OK	[22 asserts, 12 covers in model] 
+2026-10-14T01:07:18+05:30	e43672fbc7c5	True	fv_apb	apb_cover	-	UNREACHED(2)	UNEXPECTED	[22 asserts, 12 covers in model] u_apb_sva.c_div_ready_early u_apb_sva.c_reset_gap
+2026-10-14T01:08:21+05:30	e43672fbc7c5	True	fv_apb	apb_bmc	-	BOUNDED(40)	OK	[22 asserts, 12 covers in model] 
+2026-10-14T01:08:21+05:30	e43672fbc7c5	True	fv_apb	apb_prove	-	PROVEN	OK	[22 asserts, 12 covers in model] 
+2026-10-14T01:08:21+05:30	e43672fbc7c5	True	fv_apb	apb_cover	-	COVERED	OK	[22 asserts, 10 covers in model] 
+2026-10-14T01:08:57+05:30	e43672fbc7c5	True	fv_apb_div	div_prove	-	PROVEN	OK	[22 asserts, 12 covers in model] 
+2026-10-14T01:08:57+05:30	e43672fbc7c5	True	fv_apb_div	div_cover	-	COVERED	OK	[22 asserts, 11 covers in model] 
+2026-10-14T01:09:48+05:30	e43672fbc7c5	True	fv_apb	apb_bmc	-	BOUNDED(40)	OK	[22 asserts, 12 covers in model] 
+2026-10-14T01:09:48+05:30	e43672fbc7c5	True	fv_apb	apb_prove	-	PROVEN	OK	[22 asserts, 12 covers in model] 
+2026-10-14T01:09:48+05:30	e43672fbc7c5	True	fv_apb	apb_cover	-	COVERED	OK	[22 asserts, 10 covers in model] 
+2026-10-14T01:09:48+05:30	e43672fbc7c5	True	fv_apb	mut_brg1	-	FAIL	XFAIL:PLANTED	[3 asserts, 12 covers in model] props: u_apb_sva.a_resp
+2026-10-14T01:09:48+05:30	e43672fbc7c5	True	fv_apb	mut_apb2	-	FAIL	XFAIL:PLANTED	[2 asserts, 12 covers in model] props: u_apb_sva.a_subword_no_apb
+2026-10-14T01:09:48+05:30	e43672fbc7c5	True	fv_apb	mut_subword	-	FAIL	XFAIL:PLANTED	[2 asserts, 12 covers in model] props: u_apb_sva.a_subword_no_apb
+2026-10-14T01:09:48+05:30	e43672fbc7c5	True	fv_apb	mut_to15	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_apb_sva.a_apb_div
+2026-10-14T01:09:48+05:30	e43672fbc7c5	True	fv_apb	mut_to17	-	FAIL	XFAIL:PLANTED	[2 asserts, 12 covers in model] props: u_apb_sva.a_access_ends, u_apb_sva.a_timeout_at_16
+2026-10-14T01:09:48+05:30	e43672fbc7c5	True	fv_apb	mut_win	-	FAIL	XFAIL:PLANTED	[3 asserts, 12 covers in model] props: u_apb_sva.a_unmapped
+2026-10-14T01:09:48+05:30	e43672fbc7c5	True	fv_apb	mut_nosetup	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_apb_sva.a_apb_setup_first
+2026-10-14T01:10:18+05:30	e43672fbc7c5	True	fv_apb_div	div_prove	-	PROVEN	OK	[22 asserts, 12 covers in model] 
+2026-10-14T01:10:18+05:30	e43672fbc7c5	True	fv_apb_div	div_cover	-	COVERED	OK	[22 asserts, 11 covers in model] 
+2026-10-14T01:11:04+05:30	e43672fbc7c5	True	probe	probe_alias	1	PASS	OK	
+2026-10-14T01:11:04+05:30	e43672fbc7c5	True	probe	probe_control	1	PASS	OK	
+2026-10-14T01:14:18+05:30	e43672fbc7c5	True	bridge	bridge	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_smoke	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_windows	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_waits	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_b2b	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_reject	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_aperture	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_timeout	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_slverr	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_phase	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_reset	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_random	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_div	1	FAIL	UNEXPECTED	pass marker missing; 30 [FAIL] line(s) | first: [FAIL] [SB] div_wait0: AHB  read 0x40001300 data 1300c003 -> APB window 1 write 0x300 data 1300c002 (t=1595000)
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_div_random	1	FAIL	UNEXPECTED	pass marker missing; 30 [FAIL] line(s) | first: [FAIL] [SB] random/0: AHB  read 0x40003b9c data 3b9cc003 -> APB window 10  read 0xcd0 data 00000000 (t=2675000)
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_mask_nospis	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_real_dma	1	PASS	OK	
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	env_real_dma_smoke	1	FAIL	UNEXPECTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [SB] smoke: AHB write 0x40005010 data 5010c00a -> APB window 6 write 0x010 data 6010c00c (t=923000)
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 30 [FAIL] line(s) | first: [FAIL] [SB] random/0: 49 of 50 AHB transfers completed (t=2227000)
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 8 [FAIL] line(s) | first: [FAIL] [SB] random/0: read 0x4000972c got a9b0973c, target sent a9b0972c (t=2227000)
+2026-10-14T01:16:37+05:30	e43672fbc7c5	True	env	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 30 [FAIL] line(s) | first: [FAIL] [SB] random/0: AHB  read 0x4000acd0 data acd0c002 -> APB window 9  read 0x72c data 00000000 (t=2227000)
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_smoke	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_windows	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_waits	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_b2b	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_reject	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_aperture	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_timeout	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_slverr	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_phase	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_reset	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_random	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_div	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_div_random	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_mask_nospis	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_real_dma	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_real_dma_smoke	1	PASS	OK	
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 30 [FAIL] line(s) | first: [FAIL] [SB] random/0: 49 of 50 AHB transfers completed (t=2227000)
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 8 [FAIL] line(s) | first: [FAIL] [SB] random/0: read 0x4000972c got a9b0973c, target sent a9b0972c (t=2227000)
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 30 [FAIL] line(s) | first: [FAIL] [SB] random/0: AHB  read 0x4000acd0 data acd0c002 -> APB window 9  read 0x72c data 00000000 (t=2227000)
+2026-10-14T01:20:11+05:30	e43672fbc7c5	True	env	env_real_dma_div8	1	PASS	OK	
+2026-10-14T01:21:31+05:30	e43672fbc7c5	True	units	unit_fsm	1	FAIL	UNEXPECTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.15] ACCESS ended ( PREADY after 1 sample(s)) (t=328000)
+2026-10-14T01:21:31+05:30	e43672fbc7c5	True	units	unit_fabric	1	PASS	OK	
+2026-10-14T01:21:31+05:30	e43672fbc7c5	True	units	negctl_fsm_to15	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.15] ACCESS ended ( PREADY after 1 sample(s)) (t=328000)
+2026-10-14T01:21:31+05:30	e43672fbc7c5	True	units	negctl_fsm_to17	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.15] ACCESS ended ( PREADY after 1 sample(s)) (t=328000)
+2026-10-14T01:21:31+05:30	e43672fbc7c5	True	units	negctl_fsm_win	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] SETUP: PSEL 020 for window 4, PENABLE 0 (t=16000)
+2026-10-14T01:21:31+05:30	e43672fbc7c5	True	units	negctl_fsm_nosetup	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] SETUP: PSEL 010 for window 4, PENABLE 1 (t=16000)
+2026-10-14T01:21:31+05:30	e43672fbc7c5	True	units	negctl_fabric_rdy	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [a_resp_from_active_window] window 9 return (t=9000)
+2026-10-14T01:22:14+05:30	e43672fbc7c5	True	units	unit_fsm	1	FAIL	UNEXPECTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.15] ACCESS ended ( PREADY after 1 sample(s); window 3 ext 7 ready_at 1; fsm state 2 div 6 to 0) (t=328000)
+2026-10-14T01:22:14+05:30	e43672fbc7c5	True	units	unit_fabric	1	PASS	OK	
+2026-10-14T01:22:14+05:30	e43672fbc7c5	True	units	negctl_fsm_to15	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.15] ACCESS ended ( PREADY after 1 sample(s); window 3 ext 7 ready_at 1; fsm state 2 div 6 to 0) (t=328000)
+2026-10-14T01:22:14+05:30	e43672fbc7c5	True	units	negctl_fsm_to17	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.15] ACCESS ended ( PREADY after 1 sample(s); window 3 ext 7 ready_at 1; fsm state 2 div 6 to 0) (t=328000)
+2026-10-14T01:22:14+05:30	e43672fbc7c5	True	units	negctl_fsm_win	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] SETUP: PSEL 020 for window 4, PENABLE 0 (t=16000)
+2026-10-14T01:22:14+05:30	e43672fbc7c5	True	units	negctl_fsm_nosetup	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] SETUP: PSEL 010 for window 4, PENABLE 1 (t=16000)
+2026-10-14T01:22:14+05:30	e43672fbc7c5	True	units	negctl_fabric_rdy	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [a_resp_from_active_window] window 9 return (t=9000)
+2026-10-14T01:22:31+05:30	e43672fbc7c5	True	units	unit_fsm	1	PASS	OK	
+2026-10-14T01:22:31+05:30	e43672fbc7c5	True	units	unit_fabric	1	PASS	OK	
+2026-10-14T01:22:31+05:30	e43672fbc7c5	True	units	negctl_fsm_to15	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [R-5] ACCESS held: cycle 15 of extension 1, sample 15 (t=212000)
+2026-10-14T01:22:31+05:30	e43672fbc7c5	True	units	negctl_fsm_to17	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.15] ACCESS ended (timeout after 16 sample(s); window 9 ext 1 ready_at 99; fsm state 2 div 0 to 16) (t=216000)
+2026-10-14T01:22:31+05:30	e43672fbc7c5	True	units	negctl_fsm_win	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] SETUP: PSEL 020 for window 4, PENABLE 0 (t=16000)
+2026-10-14T01:22:31+05:30	e43672fbc7c5	True	units	negctl_fsm_nosetup	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] SETUP: PSEL 010 for window 4, PENABLE 1 (t=16000)
+2026-10-14T01:22:31+05:30	e43672fbc7c5	True	units	negctl_fabric_rdy	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [a_resp_from_active_window] window 9 return (t=9000)
+2026-10-14T01:22:59+05:30	e43672fbc7c5	True	bridge.cov	bridge	1	PASS	OK	
+2026-10-14T01:23:06+05:30	e43672fbc7c5	True	probe.cov	probe_alias	1	PASS	OK	
+2026-10-14T01:23:06+05:30	e43672fbc7c5	True	probe.cov	probe_control	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_smoke	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_windows	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_waits	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_b2b	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_reject	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_aperture	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_timeout	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_slverr	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_phase	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_reset	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_random	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_div	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_div_random	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_mask_nospis	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_real_dma	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_real_dma_smoke	1	PASS	OK	
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 30 [FAIL] line(s) | first: [FAIL] [SB] random/0: 49 of 50 AHB transfers completed (t=2227000)
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 8 [FAIL] line(s) | first: [FAIL] [SB] random/0: read 0x4000972c got a9b0973c, target sent a9b0972c (t=2227000)
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 30 [FAIL] line(s) | first: [FAIL] [SB] random/0: AHB  read 0x4000acd0 data acd0c002 -> APB window 9  read 0x72c data 00000000 (t=2227000)
+2026-10-14T01:25:17+05:30	e43672fbc7c5	True	env.cov	env_real_dma_div8	1	PASS	OK	
+2026-10-14T01:25:24+05:30	e43672fbc7c5	True	units.cov	unit_fsm	1	PASS	OK	
+2026-10-14T01:25:24+05:30	e43672fbc7c5	True	units.cov	unit_fabric	1	PASS	OK	
+2026-10-14T01:25:24+05:30	e43672fbc7c5	True	units.cov	negctl_fsm_to15	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [R-5] ACCESS held: cycle 14 of extension 0, sample 15 (t=80000)
+2026-10-14T01:25:24+05:30	e43672fbc7c5	True	units.cov	negctl_fsm_to17	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.15] ACCESS ended (timeout after 16 sample(s); window 6 ext 3 ready_at 99; fsm state 2 div 0 to 16) (t=1048000)
+2026-10-14T01:25:24+05:30	e43672fbc7c5	True	units.cov	negctl_fsm_win	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] SETUP: PSEL 020 for window 4, PENABLE 0 (t=16000)
+2026-10-14T01:25:24+05:30	e43672fbc7c5	True	units.cov	negctl_fsm_nosetup	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] SETUP: PSEL 010 for window 4, PENABLE 1 (t=16000)
+2026-10-14T01:25:24+05:30	e43672fbc7c5	True	units.cov	negctl_fabric_rdy	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [a_resp_from_active_window] window 9 return (t=9000)
+2026-10-14T01:27:18+05:30	e43672fbc7c5	True	fv_apb	apb_bmc	-	BOUNDED(40)	OK	[25 asserts, 12 covers in model] 
+2026-10-14T01:27:18+05:30	e43672fbc7c5	True	fv_apb	apb_prove	-	PROVEN	OK	[25 asserts, 12 covers in model] 
+2026-10-14T01:27:18+05:30	e43672fbc7c5	True	fv_apb	apb_cover	-	COVERED	OK	[25 asserts, 10 covers in model] 
+2026-10-14T01:27:18+05:30	e43672fbc7c5	True	fv_apb	mut_brg1	-	FAIL	XFAIL:PLANTED	[3 asserts, 12 covers in model] props: u_apb_sva.a_resp
+2026-10-14T01:27:18+05:30	e43672fbc7c5	True	fv_apb	mut_apb2	-	FAIL	XFAIL:PLANTED	[2 asserts, 12 covers in model] props: u_apb_sva.a_subword_no_apb
+2026-10-14T01:27:18+05:30	e43672fbc7c5	True	fv_apb	mut_subword	-	FAIL	XFAIL:PLANTED	[2 asserts, 12 covers in model] props: u_apb_sva.a_subword_no_apb
+2026-10-14T01:27:18+05:30	e43672fbc7c5	True	fv_apb	mut_to15	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_apb_sva.a_apb_div
+2026-10-14T01:27:18+05:30	e43672fbc7c5	True	fv_apb	mut_to17	-	FAIL	XFAIL:PLANTED	[2 asserts, 12 covers in model] props: u_apb_sva.a_access_ends, u_apb_sva.a_timeout_at_16
+2026-10-14T01:27:18+05:30	e43672fbc7c5	True	fv_apb	mut_win	-	FAIL	XFAIL:PLANTED	[3 asserts, 12 covers in model] props: u_apb_sva.a_unmapped
+2026-10-14T01:27:18+05:30	e43672fbc7c5	True	fv_apb	mut_nosetup	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_apb_sva.a_apb_setup_first
+2026-10-14T01:27:51+05:30	e43672fbc7c5	True	fv_apb_div	div_prove	-	PROVEN	OK	[25 asserts, 12 covers in model] 
+2026-10-14T01:27:51+05:30	e43672fbc7c5	True	fv_apb_div	div_cover	-	COVERED	OK	[25 asserts, 11 covers in model] 
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_smoke	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_windows	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_waits	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_b2b	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_reject	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_aperture	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_timeout	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_slverr	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_phase	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_reset	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_random	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_skew	1	FAIL	UNEXPECTED	1 assertion failure(s) | first: [231000] %Error: ahb2apb_sva.sv:221: Assertion failed in tb_apb_env.u_dut.u_apb_sva.a_dual_reset_hold: 'assert' failed.
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_toggle	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_mut_baseline	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); 1 assertion failure(s) | first: [25015000] %Error: ahb2apb_sva.sv:221: Assertion failed in tb_apb_env.u_dut.u_apb_sva.a_dual_reset_hold: 'assert' failed.
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_div	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_div_random	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_mask_nospis	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_real_dma	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_real_dma_smoke	1	PASS	OK	
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 30 [FAIL] line(s) | first: [FAIL] [SB] random/0: 49 of 50 AHB transfers completed (t=2227000)
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 8 [FAIL] line(s) | first: [FAIL] [SB] random/0: read 0x4000972c got a9b0973c, target sent a9b0972c (t=2227000)
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 30 [FAIL] line(s) | first: [FAIL] [SB] random/0: AHB  read 0x4000acd0 data acd0c002 -> APB window 9  read 0x72c data 00000000 (t=2227000)
+2026-10-14T01:30:17+05:30	e43672fbc7c5	True	env	env_real_dma_div8	1	PASS	OK	

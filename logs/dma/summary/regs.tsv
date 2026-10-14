@@ -1,0 +1,4 @@
+# garuda-run 1 suite=regs block=dma date=2026-10-14T01:14:39+05:30 design=e43672fbc7c55a12b889efe114a952ac5fe753cb rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+tb_dma_regs	PASS	OK	0	yes	0	0	0	-	89	0	-	1	0.10	20				logs/dma/raw/regs/sim_tb_dma_regs_s1.log
+negctl_size_reset	FAIL	XFAIL:PLANTED	0	no	6	0	0	-	89	0	REPLACED	1	0.10	20			pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [F01] [F11] reset: ch0 CR = 00000000 (want 00000040) (t=42000)	logs/dma/raw/regs/sim_negctl_size_reset_s1.log

@@ -3,3 +3,4 @@
 tb/ahb/ahb_lite_sram.v
 tb/ahb/ahb_lite_checker.v
 tb/dma/tb_dma_top.sv
+tb/dma/env/dma_cov.sv

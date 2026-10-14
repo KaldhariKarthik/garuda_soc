@@ -1,0 +1,597 @@
+date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
+2026-10-13T18:59:53+05:30	b90b481d8f91	True	ic	checker_selftest	1	PASS	OK	
+2026-10-13T18:59:53+05:30	b90b481d8f91	True	ic	ic	1	PASS	OK	
+2026-10-13T18:59:53+05:30	b90b481d8f91	True	ic	ic_wait	1	PASS	OK	
+2026-10-13T19:00:48+05:30	b90b481d8f91	True	ic	checker_selftest	1	PASS	OK	
+2026-10-13T19:00:48+05:30	b90b481d8f91	True	ic	ic	1	PASS	OK	
+2026-10-13T19:00:48+05:30	b90b481d8f91	True	ic	ic_wait	1	PASS	OK	
+2026-10-13T19:07:02+05:30	b90b481d8f91	True	ic	checker_selftest	1	PASS	OK	
+2026-10-13T19:07:02+05:30	b90b481d8f91	True	ic	ic	1	PASS	OK	
+2026-10-13T19:07:02+05:30	b90b481d8f91	True	ic	ic_wait	1	PASS	OK	
+2026-10-13T19:08:31+05:30	b90b481d8f91	True	fv_ahb	ahb_bmc	-	FAIL	UNEXPECTED	[48 asserts, 46 covers in model] props: u_ahb_sva.a_reset_state
+2026-10-13T19:08:31+05:30	b90b481d8f91	True	fv_ahb	ahb_prove	-	FAIL	UNEXPECTED	[48 asserts, 46 covers in model] props: u_ahb_sva.a_reset_state
+2026-10-13T19:08:31+05:30	b90b481d8f91	True	fv_ahb	ahb_cover	-	COVERED	OK	[48 asserts, 46 covers in model] 
+2026-10-13T19:09:02+05:30	b90b481d8f91	True	fv_ahb	ahb_bmc	-	FAIL	UNEXPECTED	[48 asserts, 46 covers in model] props: u_ahb_sva.a_slave_addr_stable
+2026-10-13T19:09:02+05:30	b90b481d8f91	True	fv_ahb	ahb_prove	-	FAIL	UNEXPECTED	[48 asserts, 46 covers in model] props: u_ahb_sva.a_slave_addr_stable
+2026-10-13T19:09:02+05:30	b90b481d8f91	True	fv_ahb	ahb_cover	-	COVERED	OK	[48 asserts, 46 covers in model] 
+2026-10-13T19:09:42+05:30	b90b481d8f91	True	fv_ahb	ahb_bmc	-	FAIL	UNEXPECTED	[48 asserts, 47 covers in model] props: u_ahb_sva.a_slave_addr_stable
+2026-10-13T19:09:42+05:30	b90b481d8f91	True	fv_ahb	ahb_prove	-	FAIL	UNEXPECTED	[48 asserts, 47 covers in model] props: u_ahb_sva.a_slave_addr_stable
+2026-10-13T19:09:42+05:30	b90b481d8f91	True	fv_ahb	ahb_cover	-	COVERED	OK	[48 asserts, 47 covers in model] 
+2026-10-13T19:14:06+05:30	b90b481d8f91	True	fv_ahb	ahb_bmc	-	BOUNDED(24)	OK	[56 asserts, 47 covers in model] 
+2026-10-13T19:14:06+05:30	b90b481d8f91	True	fv_ahb	ahb_prove	-	PROVEN	OK	[56 asserts, 47 covers in model] 
+2026-10-13T19:14:06+05:30	b90b481d8f91	True	fv_ahb	ahb_cover	-	COVERED	OK	[56 asserts, 47 covers in model] 
+2026-10-13T19:14:06+05:30	b90b481d8f91	True	fv_ahb	ahb7_find	-	FAIL	XFAIL:AHB-7	[8 asserts, 47 covers in model] props: u_ahb_sva.g_resp[0].a_held_resp_okay, u_ahb_sva.g_resp[0].a_master_err_shape
+2026-10-13T19:18:37+05:30	b90b481d8f91	True	fv_ahb	ahb_bmc	-	BOUNDED(24)	OK	[56 asserts, 47 covers in model] 
+2026-10-13T19:18:37+05:30	b90b481d8f91	True	fv_ahb	ahb_prove	-	PROVEN	OK	[56 asserts, 47 covers in model] 
+2026-10-13T19:18:37+05:30	b90b481d8f91	True	fv_ahb	ahb_cover	-	COVERED	OK	[56 asserts, 47 covers in model] 
+2026-10-13T19:18:37+05:30	b90b481d8f91	True	fv_ahb	ahb7_find	-	FAIL	XFAIL:AHB-7	[8 asserts, 47 covers in model] props: u_ahb_sva.g_resp[0].a_held_resp_okay, u_ahb_sva.g_resp[0].a_master_err_shape
+2026-10-13T19:18:37+05:30	b90b481d8f91	True	fv_ahb	mut_ahb1	-	ERROR	UNEXPECTED	[1 asserts, 47 covers in model] model has 1 assert(s), manifest wants >= 50
+2026-10-13T19:18:37+05:30	b90b481d8f91	True	fv_ahb	mut_ahb2	-	ERROR	UNEXPECTED	[12 asserts, 47 covers in model] model has 12 assert(s), manifest wants >= 50
+2026-10-13T19:18:37+05:30	b90b481d8f91	True	fv_ahb	mut_ahb3	-	ERROR	UNEXPECTED	[1 asserts, 47 covers in model] model has 1 assert(s), manifest wants >= 50
+2026-10-13T19:18:37+05:30	b90b481d8f91	True	fv_ahb	mut_ahb4	-	ERROR	UNEXPECTED	[5 asserts, 47 covers in model] model has 5 assert(s), manifest wants >= 50
+2026-10-13T19:18:37+05:30	b90b481d8f91	True	fv_ahb	mut_prio	-	ERROR	UNEXPECTED	[1 asserts, 47 covers in model] model has 1 assert(s), manifest wants >= 50
+2026-10-13T19:18:37+05:30	b90b481d8f91	True	fv_ahb	mut_decode	-	ERROR	UNEXPECTED	[1 asserts, 47 covers in model] model has 1 assert(s), manifest wants >= 50
+2026-10-13T19:18:37+05:30	b90b481d8f91	True	fv_ahb	mut_nofreeze	-	ERROR	UNEXPECTED	[2 asserts, 47 covers in model] model has 2 assert(s), manifest wants >= 50
+2026-10-13T19:21:47+05:30	b90b481d8f91	True	fv_ahb	ahb_bmc	-	BOUNDED(24)	OK	[56 asserts, 47 covers in model] 
+2026-10-13T19:21:47+05:30	b90b481d8f91	True	fv_ahb	ahb_prove	-	PROVEN	OK	[56 asserts, 47 covers in model] 
+2026-10-13T19:21:47+05:30	b90b481d8f91	True	fv_ahb	ahb_cover	-	COVERED	OK	[56 asserts, 47 covers in model] 
+2026-10-13T19:21:47+05:30	b90b481d8f91	True	fv_ahb	ahb7_find	-	FAIL	XFAIL:AHB-7	[8 asserts, 47 covers in model] props: u_ahb_sva.g_resp[0].a_held_resp_okay, u_ahb_sva.g_resp[0].a_master_err_shape
+2026-10-13T19:21:47+05:30	b90b481d8f91	True	fv_ahb	mut_ahb1	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_hwdata_data_phase
+2026-10-13T19:21:47+05:30	b90b481d8f91	True	fv_ahb	mut_ahb2	-	FAIL	XFAIL:PLANTED	[12 asserts, 47 covers in model] props: u_ahb_sva.g_resp[1].a_rdata_value
+2026-10-13T19:21:47+05:30	b90b481d8f91	True	fv_ahb	mut_ahb3	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_burst_restart_nonseq
+2026-10-13T19:21:47+05:30	b90b481d8f91	True	fv_ahb	mut_ahb4	-	FAIL	XFAIL:PLANTED	[5 asserts, 47 covers in model] props: u_ahb_sva.a_reset_state, u_ahb_sva.g_held[1].a_idle_not_gated, u_ahb_sva.g_held[2].a_idle_not_gated, u_ahb_sva.g_held[3].a_idle_not_gated
+2026-10-13T19:21:47+05:30	b90b481d8f91	True	fv_ahb	mut_prio	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_priority
+2026-10-13T19:21:47+05:30	b90b481d8f91	True	fv_ahb	mut_decode	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_decode
+2026-10-13T19:21:47+05:30	b90b481d8f91	True	fv_ahb	mut_nofreeze	-	FAIL	XFAIL:PLANTED	[2 asserts, 47 covers in model] props: u_ahb_sva.a_grant_stable_in_data_phase
+2026-10-13T19:36:18+05:30	b90b481d8f91	True	env	env_smoke	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/ahb/env/ahb_cov.sv:10:1: Unknown verilator comment: '/*verilator 5.052 reads covergroup bins only from coverage.dat with*/'
+2026-10-13T19:36:18+05:30	b90b481d8f91	True	env	env_sets	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/ahb/env/ahb_cov.sv:10:1: Unknown verilator comment: '/*verilator 5.052 reads covergroup bins only from coverage.dat with*/'
+2026-10-13T19:36:18+05:30	b90b481d8f91	True	env	env_preempt	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/ahb/env/ahb_cov.sv:10:1: Unknown verilator comment: '/*verilator 5.052 reads covergroup bins only from coverage.dat with*/'
+2026-10-13T19:36:18+05:30	b90b481d8f91	True	env	env_decode	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/ahb/env/ahb_cov.sv:10:1: Unknown verilator comment: '/*verilator 5.052 reads covergroup bins only from coverage.dat with*/'
+2026-10-13T19:36:18+05:30	b90b481d8f91	True	env	env_errnext	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/ahb/env/ahb_cov.sv:10:1: Unknown verilator comment: '/*verilator 5.052 reads covergroup bins only from coverage.dat with*/'
+2026-10-13T19:36:18+05:30	b90b481d8f91	True	env	env_waits	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/ahb/env/ahb_cov.sv:10:1: Unknown verilator comment: '/*verilator 5.052 reads covergroup bins only from coverage.dat with*/'
+2026-10-13T19:36:18+05:30	b90b481d8f91	True	env	env_reset	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/ahb/env/ahb_cov.sv:10:1: Unknown verilator comment: '/*verilator 5.052 reads covergroup bins only from coverage.dat with*/'
+2026-10-13T19:36:18+05:30	b90b481d8f91	True	env	env_starve	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/ahb/env/ahb_cov.sv:10:1: Unknown verilator comment: '/*verilator 5.052 reads covergroup bins only from coverage.dat with*/'
+2026-10-13T19:36:18+05:30	b90b481d8f91	True	env	env_dma	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/ahb/env/ahb_cov.sv:10:1: Unknown verilator comment: '/*verilator 5.052 reads covergroup bins only from coverage.dat with*/'
+2026-10-13T19:36:18+05:30	b90b481d8f91	True	env	env_sba	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/ahb/env/ahb_cov.sv:10:1: Unknown verilator comment: '/*verilator 5.052 reads covergroup bins only from coverage.dat with*/'
+2026-10-13T19:36:18+05:30	b90b481d8f91	True	env	env_random	1	BLOCKED	UNEXPECTED	%Error-BADVLTPRAGMA: tb/ahb/env/ahb_cov.sv:10:1: Unknown verilator comment: '/*verilator 5.052 reads covergroup bins only from coverage.dat with*/'
+2026-10-13T19:37:19+05:30	b90b481d8f91	True	env	env_smoke	1	PASS	OK	
+2026-10-13T19:37:19+05:30	b90b481d8f91	True	env	env_sets	1	PASS	OK	
+2026-10-13T19:37:19+05:30	b90b481d8f91	True	env	env_preempt	1	PASS	OK	
+2026-10-13T19:37:19+05:30	b90b481d8f91	True	env	env_decode	1	PASS	OK	
+2026-10-13T19:37:19+05:30	b90b481d8f91	True	env	env_errnext	1	FAIL	UNEXPECTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] [SB] errnext: M0 read 0x20002010 got a3000001, slave sent a2000000 (t=642000)
+2026-10-13T19:37:19+05:30	b90b481d8f91	True	env	env_waits	1	PASS	OK	
+2026-10-13T19:37:19+05:30	b90b481d8f91	True	env	env_reset	1	PASS	OK	
+2026-10-13T19:37:19+05:30	b90b481d8f91	True	env	env_starve	1	PASS	OK	
+2026-10-13T19:37:19+05:30	b90b481d8f91	True	env	env_dma	1	PASS	OK	
+2026-10-13T19:37:19+05:30	b90b481d8f91	True	env	env_sba	1	PASS	OK	
+2026-10-13T19:37:19+05:30	b90b481d8f91	True	env	env_random	1	FAIL	UNEXPECTED	88 assertion failure(s) | first: [234000] %Error: ahb_interconnect_sva.sv:278: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	env_smoke	1	PASS	OK	
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	env_sets	1	PASS	OK	
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	env_preempt	1	PASS	OK	
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	env_decode	1	PASS	OK	
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	env_errnext	1	PASS	OK	
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	env_waits	1	PASS	OK	
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	env_reset	1	PASS	OK	
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	env_starve	1	PASS	OK	
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	env_dma	1	PASS	OK	
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	env_sba	1	PASS	OK	
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	env_random	1	FAIL	UNEXPECTED	pass marker missing; 2 [FAIL] line(s); 8 assertion failure(s) | first: [102000] %Error: ahb_interconnect_sva.sv:278: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert'
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	env_ahb7	1	FAIL	XFAIL:AHB-7	2 assertion failure(s) | first: [30000] %Error: ahb_interconnect_sva.sv:278: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 88 [FAIL] line(s); 8 assertion failure(s) | first: [102000] %Error: ahb_interconnect_sva.sv:278: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 14 [FAIL] line(s); 8 assertion failure(s) | first: [102000] %Error: ahb_interconnect_sva.sv:278: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 14 [FAIL] line(s); 8 assertion failure(s) | first: [102000] %Error: ahb_interconnect_sva.sv:278: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert
+2026-10-13T19:40:12+05:30	b90b481d8f91	True	env	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 26 [FAIL] line(s); 8 assertion failure(s) | first: [102000] %Error: ahb_interconnect_sva.sv:278: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	env_smoke	1	PASS	OK	
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	env_sets	1	PASS	OK	
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	env_preempt	1	PASS	OK	
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	env_decode	1	PASS	OK	
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	env_errnext	1	PASS	OK	
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	env_waits	1	PASS	OK	
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	env_reset	1	PASS	OK	
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	env_starve	1	PASS	OK	
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	env_dma	1	PASS	OK	
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	env_sba	1	PASS	OK	
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	env_random	1	FAIL	UNEXPECTED	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] [F01] master-port protocol violations I=24 D=0 S=0 M=0 (t=6206000)
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	env_ahb7	1	FAIL	XFAIL:AHB-7	2 assertion failure(s) | first: [30000] %Error: ahb_interconnect_sva.sv:278: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 88 [FAIL] line(s) | first: [FAIL] [SB] random/0: M1 completed 5 of 6 issued transfers (t=454000)
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 14 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 write 0x220001a4 size 1 data a2000000; slave 2 saw write 0x220001a4 size 1 data a2000100 (t=454000)
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 14 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 read 0x22000260 got 00000001, slave sent 00000000 (t=454000)
+2026-10-13T19:41:58+05:30	b90b481d8f91	True	env	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 26 [FAIL] line(s) | first: [FAIL] [SB] random/0: slave 0 logged 8 transfers, masters had 7 accepted (t=454000)
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	env_smoke	1	PASS	OK	
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	env_sets	1	PASS	OK	
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	env_preempt	1	PASS	OK	
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	env_decode	1	PASS	OK	
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	env_errnext	1	PASS	OK	
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	env_waits	1	PASS	OK	
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	env_reset	1	PASS	OK	
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	env_starve	1	PASS	OK	
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	env_dma	1	PASS	OK	
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	env_sba	1	PASS	OK	
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	env_random	1	PASS	OK	
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	env_ahb7	1	FAIL	XFAIL:AHB-7	2 assertion failure(s) | first: [30000] %Error: ahb_interconnect_sva.sv:278: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 86 [FAIL] line(s) | first: [FAIL] [SB] random/0: M1 completed 5 of 6 issued transfers (t=454000)
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 write 0x220001a4 size 1 data a2000000; slave 2 saw write 0x220001a4 size 1 data a2000100 (t=454000)
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 read 0x22000260 got 00000001, slave sent 00000000 (t=454000)
+2026-10-13T19:43:44+05:30	b90b481d8f91	True	env	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 24 [FAIL] line(s) | first: [FAIL] [SB] random/0: slave 0 logged 8 transfers, masters had 7 accepted (t=454000)
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28600	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28601	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28602	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28603	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28604	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28605	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28606	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28607	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28608	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28609	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28610	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28611	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28612	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28613	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28614	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28615	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28616	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28617	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28618	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28619	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28620	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28621	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28622	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28623	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28624	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28625	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28626	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28627	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28628	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28629	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28630	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28631	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28632	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28633	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28634	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28635	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28636	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28637	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28638	1	PASS	OK	
+2026-10-13T19:47:00+05:30	b90b481d8f91	True	env_seeds	env_random_s28639	1	PASS	OK	
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	env_smoke	1	PASS	OK	
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	env_sets	1	PASS	OK	
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	env_preempt	1	PASS	OK	
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	env_decode	1	PASS	OK	
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	env_errnext	1	PASS	OK	
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	env_waits	1	PASS	OK	
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	env_reset	1	PASS	OK	
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	env_starve	1	PASS	OK	
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	env_dma	1	PASS	OK	
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	env_sba	1	PASS	OK	
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	env_random	1	PASS	OK	
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	env_mut_baseline	1	PASS	OK	
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	env_ahb7	1	FAIL	XFAIL:AHB-7	2 assertion failure(s) | first: [30000] %Error: ahb_interconnect_sva.sv:278: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 86 [FAIL] line(s) | first: [FAIL] [SB] random/0: M1 completed 5 of 6 issued transfers (t=454000)
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 write 0x220001a4 size 1 data a2000000; slave 2 saw write 0x220001a4 size 1 data a2000100 (t=454000)
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 read 0x22000260 got 00000001, slave sent 00000000 (t=454000)
+2026-10-13T19:50:10+05:30	b90b481d8f91	True	env	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 24 [FAIL] line(s) | first: [FAIL] [SB] random/0: slave 0 logged 8 transfers, masters had 7 accepted (t=454000)
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a01	1	FAIL	XFAIL:PLANTED	pass marker missing; 248 [FAIL] line(s); 891 assertion failure(s) | first: [34000] %Error: ahb_interconnect_sva.sv:240: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_hwdata_data_phase: 'assert' fai
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a02	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s); 3 assertion failure(s) | first: [13750000] %Error: ahb_interconnect_sva.sv:263: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_rdata_value: 'assert' 
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a03	1	FAIL	XFAIL:PLANTED	35 assertion failure(s) | first: [6870000] %Error: ahb_interconnect_sva.sv:311: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_burst_restart_nonseq: 'assert' failed.
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a04	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1000 assertion failure(s); 1 %Error line(s) | first: [10000] %Error: ahb_interconnect_sva.sv:206: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_held[1].a_idle_not_gated
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a05	1	FAIL	XFAIL:PLANTED	51 assertion failure(s) | first: [22000] %Error: ahb_interconnect_sva.sv:217: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_priority: 'assert' failed.
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a06	1	FAIL	XFAIL:PLANTED	92 assertion failure(s) | first: [26000] %Error: ahb_interconnect_sva.sv:217: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_priority: 'assert' failed.
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a07	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 227 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [30000] %Error: ahb_interconnect_sva.sv:304: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_deco
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a08	1	FAIL	XFAIL:PLANTED	pass marker missing; 92 [FAIL] line(s); 299 assertion failure(s) | first: [54000] %Error: ahb_interconnect_sva.sv:304: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_decode: 'assert' failed.
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a09	1	FAIL	XFAIL:PLANTED	26 assertion failure(s) | first: [7274000] %Error: ahb_interconnect_sva.sv:221: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_grant_stable_in_data_phase: 'assert' failed.
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a10	1	PASS	XPASS:PLANTED	
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a11	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 322 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [2042000] %Error: ahb_interconnect_sva.sv:248: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_no
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a12	1	FAIL	XFAIL:PLANTED	245 assertion failure(s) | first: [8258000] %Error: ahb_interconnect_sva.sv:292: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_error_first_cycle: 'assert' failed.
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a13	1	FAIL	XFAIL:PLANTED	pass marker missing; 108 [FAIL] line(s); 216 assertion failure(s) | first: [8258000] %Error: ahb_interconnect_sva.sv:292: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_error_first_cycle: 'assert' f
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a14	1	FAIL	XFAIL:PLANTED	pass marker missing; 125 [FAIL] line(s); 154 assertion failure(s) | first: [1894000] %Error: ahb_interconnect_sva.sv:263: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[1].a_rdata_value: 'asser
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a15	1	FAIL	XFAIL:PLANTED	694 assertion failure(s) | first: [8258000] %Error: ahb_interconnect_sva.sv:269: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_error_not_broadcast: 'assert' fail
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a16	1	PASS	XPASS:PLANTED	
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a17	1	FAIL	XFAIL:PLANTED	pass marker missing; 181 [FAIL] line(s); 164 assertion failure(s) | first: [78000] %Error: ahb_interconnect_sva.sv:194: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_one_accept: 'assert' failed.
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a18	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 4 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [8690000] %Error: ahb_interconnect_sva.sv:278: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a19	1	FAIL	XFAIL:PLANTED	35 assertion failure(s) | first: [6870000] %Error: ahb_interconnect_sva.sv:311: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_burst_restart_nonseq: 'assert' failed.
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a20	1	FAIL	XFAIL:PLANTED	443 assertion failure(s) | first: [22000] %Error: ahb_interconnect_sva.sv:320: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_sba_ind: 'assert' failed.
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a21	1	FAIL	XFAIL:PLANTED	237 assertion failure(s) | first: [22000] %Error: ahb_interconnect_sva.sv:328: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_hprot_const: 'assert' failed.
+2026-10-13T19:52:31+05:30	b90b481d8f91	True	ahb_mut	mut_a22	1	FAIL	XFAIL:PLANTED	pass marker missing; 499 [FAIL] line(s); 205 assertion failure(s) | first: [26000] %Error: ahb_interconnect_sva.sv:198: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_ctrl_of_acceptor: 'assert' fail
+2026-10-13T19:56:17+05:30	b90b481d8f91	True	fv_ahb	ahb_bmc	-	BOUNDED(24)	OK	[60 asserts, 47 covers in model] 
+2026-10-13T19:56:17+05:30	b90b481d8f91	True	fv_ahb	ahb_prove	-	PROVEN	OK	[60 asserts, 47 covers in model] 
+2026-10-13T19:56:17+05:30	b90b481d8f91	True	fv_ahb	ahb_cover	-	COVERED	OK	[60 asserts, 47 covers in model] 
+2026-10-13T19:56:17+05:30	b90b481d8f91	True	fv_ahb	ahb7_find	-	FAIL	XFAIL:AHB-7	[8 asserts, 47 covers in model] props: u_ahb_sva.g_resp[0].a_held_resp_okay, u_ahb_sva.g_resp[0].a_master_err_shape
+2026-10-13T19:56:17+05:30	b90b481d8f91	True	fv_ahb	mut_ahb1	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_hwdata_data_phase
+2026-10-13T19:56:17+05:30	b90b481d8f91	True	fv_ahb	mut_ahb2	-	FAIL	XFAIL:PLANTED	[12 asserts, 47 covers in model] props: u_ahb_sva.g_resp[1].a_rdata_value
+2026-10-13T19:56:17+05:30	b90b481d8f91	True	fv_ahb	mut_ahb3	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_burst_restart_nonseq
+2026-10-13T19:56:17+05:30	b90b481d8f91	True	fv_ahb	mut_ahb4	-	FAIL	XFAIL:PLANTED	[5 asserts, 47 covers in model] props: u_ahb_sva.a_reset_state, u_ahb_sva.g_held[1].a_idle_not_gated, u_ahb_sva.g_held[2].a_idle_not_gated, u_ahb_sva.g_held[3].a_idle_not_gated
+2026-10-13T19:56:17+05:30	b90b481d8f91	True	fv_ahb	mut_prio	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_priority
+2026-10-13T19:56:17+05:30	b90b481d8f91	True	fv_ahb	mut_decode	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_decode
+2026-10-13T19:56:17+05:30	b90b481d8f91	True	fv_ahb	mut_nofreeze	-	FAIL	XFAIL:PLANTED	[2 asserts, 47 covers in model] props: u_ahb_sva.a_grant_stable_in_data_phase
+2026-10-13T19:56:17+05:30	b90b481d8f91	True	fv_ahb	equiv_a10	-	ERROR	UNEXPECTED	[56 asserts, 47 covers in model] model has 56 assert(s), manifest wants >= 60
+2026-10-13T19:56:17+05:30	b90b481d8f91	True	fv_ahb	equiv_a16	-	PROVEN	OK	[60 asserts, 47 covers in model] 
+2026-10-13T19:59:35+05:30	b90b481d8f91	True	fv_ahb	ahb_bmc	-	BOUNDED(24)	OK	[60 asserts, 47 covers in model] 
+2026-10-13T19:59:35+05:30	b90b481d8f91	True	fv_ahb	ahb_prove	-	PROVEN	OK	[60 asserts, 47 covers in model] 
+2026-10-13T19:59:35+05:30	b90b481d8f91	True	fv_ahb	ahb_cover	-	COVERED	OK	[60 asserts, 47 covers in model] 
+2026-10-13T19:59:35+05:30	b90b481d8f91	True	fv_ahb	ahb7_find	-	FAIL	XFAIL:AHB-7	[8 asserts, 47 covers in model] props: u_ahb_sva.g_resp[0].a_held_resp_okay, u_ahb_sva.g_resp[0].a_master_err_shape
+2026-10-13T19:59:35+05:30	b90b481d8f91	True	fv_ahb	mut_ahb1	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_hwdata_data_phase
+2026-10-13T19:59:35+05:30	b90b481d8f91	True	fv_ahb	mut_ahb2	-	FAIL	XFAIL:PLANTED	[12 asserts, 47 covers in model] props: u_ahb_sva.g_resp[1].a_rdata_value
+2026-10-13T19:59:35+05:30	b90b481d8f91	True	fv_ahb	mut_ahb3	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_burst_restart_nonseq
+2026-10-13T19:59:35+05:30	b90b481d8f91	True	fv_ahb	mut_ahb4	-	FAIL	XFAIL:PLANTED	[5 asserts, 47 covers in model] props: u_ahb_sva.a_reset_state, u_ahb_sva.g_held[1].a_idle_not_gated, u_ahb_sva.g_held[2].a_idle_not_gated, u_ahb_sva.g_held[3].a_idle_not_gated
+2026-10-13T19:59:35+05:30	b90b481d8f91	True	fv_ahb	mut_prio	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_priority
+2026-10-13T19:59:35+05:30	b90b481d8f91	True	fv_ahb	mut_decode	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_decode
+2026-10-13T19:59:35+05:30	b90b481d8f91	True	fv_ahb	mut_nofreeze	-	FAIL	XFAIL:PLANTED	[2 asserts, 47 covers in model] props: u_ahb_sva.a_grant_stable_in_data_phase
+2026-10-13T19:59:35+05:30	b90b481d8f91	True	fv_ahb	equiv_a10	-	PROVEN	OK	[56 asserts, 47 covers in model] 
+2026-10-13T19:59:35+05:30	b90b481d8f91	True	fv_ahb	equiv_a16	-	PROVEN	OK	[60 asserts, 47 covers in model] 
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a01	1	FAIL	XFAIL:PLANTED	pass marker missing; 248 [FAIL] line(s); 891 assertion failure(s) | first: [34000] %Error: ahb_interconnect_sva.sv:242: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_hwdata_data_phase: 'assert' fai
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a02	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s); 3 assertion failure(s) | first: [13750000] %Error: ahb_interconnect_sva.sv:265: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_rdata_value: 'assert' 
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a03	1	FAIL	XFAIL:PLANTED	35 assertion failure(s) | first: [6870000] %Error: ahb_interconnect_sva.sv:318: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_burst_restart_nonseq: 'assert' failed.
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a04	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1000 assertion failure(s); 1 %Error line(s) | first: [10000] %Error: ahb_interconnect_sva.sv:208: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_held[1].a_idle_not_gated
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a05	1	FAIL	XFAIL:PLANTED	51 assertion failure(s) | first: [22000] %Error: ahb_interconnect_sva.sv:219: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_priority: 'assert' failed.
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a06	1	FAIL	XFAIL:PLANTED	92 assertion failure(s) | first: [26000] %Error: ahb_interconnect_sva.sv:219: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_priority: 'assert' failed.
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a07	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 227 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [30000] %Error: ahb_interconnect_sva.sv:311: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_deco
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a08	1	FAIL	XFAIL:PLANTED	pass marker missing; 92 [FAIL] line(s); 299 assertion failure(s) | first: [54000] %Error: ahb_interconnect_sva.sv:311: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_decode: 'assert' failed.
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a09	1	FAIL	XFAIL:PLANTED	26 assertion failure(s) | first: [7274000] %Error: ahb_interconnect_sva.sv:223: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_grant_stable_in_data_phase: 'assert' failed.
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a11	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 322 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [2042000] %Error: ahb_interconnect_sva.sv:250: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_no
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a12	1	FAIL	XFAIL:PLANTED	245 assertion failure(s) | first: [8258000] %Error: ahb_interconnect_sva.sv:299: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_error_first_cycle: 'assert' failed.
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a13	1	FAIL	XFAIL:PLANTED	pass marker missing; 108 [FAIL] line(s); 216 assertion failure(s) | first: [8258000] %Error: ahb_interconnect_sva.sv:299: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_error_first_cycle: 'assert' f
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a14	1	FAIL	XFAIL:PLANTED	pass marker missing; 125 [FAIL] line(s); 154 assertion failure(s) | first: [1894000] %Error: ahb_interconnect_sva.sv:265: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[1].a_rdata_value: 'asser
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a15	1	FAIL	XFAIL:PLANTED	694 assertion failure(s) | first: [8258000] %Error: ahb_interconnect_sva.sv:271: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_error_not_broadcast: 'assert' fail
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a17	1	FAIL	XFAIL:PLANTED	pass marker missing; 181 [FAIL] line(s); 164 assertion failure(s) | first: [78000] %Error: ahb_interconnect_sva.sv:196: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_one_accept: 'assert' failed.
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a18	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 4 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [86000] %Error: ahb_interconnect_sva.sv:290: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a19	1	FAIL	XFAIL:PLANTED	35 assertion failure(s) | first: [6870000] %Error: ahb_interconnect_sva.sv:318: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_burst_restart_nonseq: 'assert' failed.
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a20	1	FAIL	XFAIL:PLANTED	443 assertion failure(s) | first: [22000] %Error: ahb_interconnect_sva.sv:327: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_sba_ind: 'assert' failed.
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a21	1	FAIL	XFAIL:PLANTED	237 assertion failure(s) | first: [22000] %Error: ahb_interconnect_sva.sv:335: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_hprot_const: 'assert' failed.
+2026-10-13T20:01:52+05:30	b90b481d8f91	True	ahb_mut	mut_a22	1	FAIL	XFAIL:PLANTED	pass marker missing; 499 [FAIL] line(s); 205 assertion failure(s) | first: [26000] %Error: ahb_interconnect_sva.sv:200: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_ctrl_of_acceptor: 'assert' fail
+2026-10-13T20:02:01+05:30	b90b481d8f91	True	ic	checker_selftest	1	PASS	OK	
+2026-10-13T20:02:01+05:30	b90b481d8f91	True	ic	ic	1	PASS	OK	
+2026-10-13T20:02:01+05:30	b90b481d8f91	True	ic	ic_wait	1	FAIL	UNEXPECTED	4 assertion failure(s) | first: [2223000] %Error: ahb_interconnect_sva.sv:285: Assertion failed in tb_ahb_interconnect.u_ic.u_ahb_sva.g_resp[1].a_master_err_shape: 'assert'
+2026-10-13T20:02:49+05:30	b90b481d8f91	True	ic	checker_selftest	1	PASS	OK	
+2026-10-13T20:02:49+05:30	b90b481d8f91	True	ic	ic	1	PASS	OK	
+2026-10-13T20:02:49+05:30	b90b481d8f91	True	ic	ic_wait	1	PASS	OK	
+2026-10-13T20:06:23+05:30	b90b481d8f91	True	fv_ahb	ahb_bmc	-	BOUNDED(24)	OK	[61 asserts, 47 covers in model] 
+2026-10-13T20:06:23+05:30	b90b481d8f91	True	fv_ahb	ahb_prove	-	PROVEN	OK	[61 asserts, 47 covers in model] 
+2026-10-13T20:06:23+05:30	b90b481d8f91	True	fv_ahb	ahb_cover	-	COVERED	OK	[61 asserts, 47 covers in model] 
+2026-10-13T20:06:23+05:30	b90b481d8f91	True	fv_ahb	ahb7_find	-	FAIL	XFAIL:AHB-7	[8 asserts, 47 covers in model] props: u_ahb_sva.g_resp[0].a_held_resp_okay, u_ahb_sva.g_resp[0].a_master_err_shape
+2026-10-13T20:06:23+05:30	b90b481d8f91	True	fv_ahb	mut_ahb1	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_hwdata_data_phase
+2026-10-13T20:06:23+05:30	b90b481d8f91	True	fv_ahb	mut_ahb2	-	FAIL	XFAIL:PLANTED	[12 asserts, 47 covers in model] props: u_ahb_sva.g_resp[1].a_rdata_value
+2026-10-13T20:06:23+05:30	b90b481d8f91	True	fv_ahb	mut_ahb3	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_burst_restart_nonseq
+2026-10-13T20:06:23+05:30	b90b481d8f91	True	fv_ahb	mut_ahb4	-	FAIL	XFAIL:PLANTED	[5 asserts, 47 covers in model] props: u_ahb_sva.a_reset_state, u_ahb_sva.g_held[1].a_idle_not_gated, u_ahb_sva.g_held[2].a_idle_not_gated, u_ahb_sva.g_held[3].a_idle_not_gated
+2026-10-13T20:06:23+05:30	b90b481d8f91	True	fv_ahb	mut_prio	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_priority
+2026-10-13T20:06:23+05:30	b90b481d8f91	True	fv_ahb	mut_decode	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_decode
+2026-10-13T20:06:23+05:30	b90b481d8f91	True	fv_ahb	mut_nofreeze	-	FAIL	XFAIL:PLANTED	[2 asserts, 47 covers in model] props: u_ahb_sva.a_grant_stable_in_data_phase
+2026-10-13T20:06:23+05:30	b90b481d8f91	True	fv_ahb	equiv_a10	-	PROVEN	OK	[57 asserts, 47 covers in model] 
+2026-10-13T20:06:23+05:30	b90b481d8f91	True	fv_ahb	equiv_a16	-	PROVEN	OK	[61 asserts, 47 covers in model] 
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	env_smoke	1	PASS	OK	
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	env_sets	1	PASS	OK	
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	env_preempt	1	PASS	OK	
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	env_decode	1	PASS	OK	
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	env_errnext	1	PASS	OK	
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	env_waits	1	PASS	OK	
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	env_reset	1	PASS	OK	
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	env_starve	1	PASS	OK	
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	env_dma	1	PASS	OK	
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	env_sba	1	PASS	OK	
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	env_random	1	PASS	OK	
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	env_mut_baseline	1	PASS	OK	
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	env_ahb7	1	FAIL	XFAIL:AHB-7	2 assertion failure(s) | first: [30000] %Error: ahb_interconnect_sva.sv:280: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 86 [FAIL] line(s) | first: [FAIL] [SB] random/0: M1 completed 5 of 6 issued transfers (t=454000)
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 write 0x220001a4 size 1 data a2000000; slave 2 saw write 0x220001a4 size 1 data a2000100 (t=454000)
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 read 0x22000260 got 00000001, slave sent 00000000 (t=454000)
+2026-10-13T20:09:17+05:30	b90b481d8f91	True	env	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 24 [FAIL] line(s) | first: [FAIL] [SB] random/0: slave 0 logged 8 transfers, masters had 7 accepted (t=454000)
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a01	1	FAIL	XFAIL:PLANTED	pass marker missing; 248 [FAIL] line(s); 891 assertion failure(s) | first: [34000] %Error: ahb_interconnect_sva.sv:242: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_hwdata_data_phase: 'assert' fai
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a02	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s); 3 assertion failure(s) | first: [13750000] %Error: ahb_interconnect_sva.sv:265: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_rdata_value: 'assert' 
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a03	1	FAIL	XFAIL:PLANTED	35 assertion failure(s) | first: [6870000] %Error: ahb_interconnect_sva.sv:323: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_burst_restart_nonseq: 'assert' failed.
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a04	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1000 assertion failure(s); 1 %Error line(s) | first: [10000] %Error: ahb_interconnect_sva.sv:208: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_held[1].a_idle_not_gated
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a05	1	FAIL	XFAIL:PLANTED	51 assertion failure(s) | first: [22000] %Error: ahb_interconnect_sva.sv:219: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_priority: 'assert' failed.
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a06	1	FAIL	XFAIL:PLANTED	92 assertion failure(s) | first: [26000] %Error: ahb_interconnect_sva.sv:219: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_priority: 'assert' failed.
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a07	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 227 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [30000] %Error: ahb_interconnect_sva.sv:316: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_deco
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a08	1	FAIL	XFAIL:PLANTED	pass marker missing; 92 [FAIL] line(s); 299 assertion failure(s) | first: [54000] %Error: ahb_interconnect_sva.sv:316: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_decode: 'assert' failed.
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a09	1	FAIL	XFAIL:PLANTED	26 assertion failure(s) | first: [7274000] %Error: ahb_interconnect_sva.sv:223: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_grant_stable_in_data_phase: 'assert' failed.
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a11	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 322 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [2042000] %Error: ahb_interconnect_sva.sv:250: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_no
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a12	1	FAIL	XFAIL:PLANTED	245 assertion failure(s) | first: [8258000] %Error: ahb_interconnect_sva.sv:299: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_error_first_cycle: 'assert' failed.
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a13	1	FAIL	XFAIL:PLANTED	pass marker missing; 108 [FAIL] line(s); 216 assertion failure(s) | first: [8258000] %Error: ahb_interconnect_sva.sv:299: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_error_first_cycle: 'assert' f
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a14	1	FAIL	XFAIL:PLANTED	pass marker missing; 125 [FAIL] line(s); 154 assertion failure(s) | first: [1894000] %Error: ahb_interconnect_sva.sv:265: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[1].a_rdata_value: 'asser
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a15	1	FAIL	XFAIL:PLANTED	694 assertion failure(s) | first: [8258000] %Error: ahb_interconnect_sva.sv:271: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_error_not_broadcast: 'assert' fail
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a17	1	FAIL	XFAIL:PLANTED	pass marker missing; 181 [FAIL] line(s); 164 assertion failure(s) | first: [78000] %Error: ahb_interconnect_sva.sv:196: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_one_accept: 'assert' failed.
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a18	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 4 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [86000] %Error: ahb_interconnect_sva.sv:290: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a19	1	FAIL	XFAIL:PLANTED	35 assertion failure(s) | first: [6870000] %Error: ahb_interconnect_sva.sv:323: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_burst_restart_nonseq: 'assert' failed.
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a20	1	FAIL	XFAIL:PLANTED	443 assertion failure(s) | first: [22000] %Error: ahb_interconnect_sva.sv:332: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_sba_ind: 'assert' failed.
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a21	1	FAIL	XFAIL:PLANTED	237 assertion failure(s) | first: [22000] %Error: ahb_interconnect_sva.sv:340: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_hprot_const: 'assert' failed.
+2026-10-13T20:12:22+05:30	b90b481d8f91	True	ahb_mut	mut_a22	1	FAIL	XFAIL:PLANTED	pass marker missing; 499 [FAIL] line(s); 205 assertion failure(s) | first: [26000] %Error: ahb_interconnect_sva.sv:200: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_ctrl_of_acceptor: 'assert' fail
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	unit_decoder	1	PASS	OK	
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	unit_arbiter	1	PASS	OK	
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	unit_master_port	1	PASS	OK	
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	unit_default_slave	1	PASS	OK	
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	unit_slave_mux	1	FAIL	UNEXPECTED	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] [N-7.5] data-phase select register (t=9000)
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	unit_master_mux	1	PASS	OK	
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	negctl_decoder_a07	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] decode 0x20000008 -> 10000 (want 00100) (t=73000)
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	negctl_arbiter_a05	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 2 for requests 1101 (want 3, frozen=0) (t=9000)
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	negctl_arbiter_a09	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 3 for requests 1100 (want 0, frozen=1) (t=1161000)
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	negctl_master_port_a02	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-8.2/AHB-2] HRDATA / HRESP returned to the master (t=21000)
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	negctl_master_port_a04	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.20/AHB-4] HREADY seen by the master (t=37000)
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	negctl_default_slave_a12	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.6] state 1: HREADYOUT 1 HRESP 1 (t=37000)
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	negctl_slave_mux_a14	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.5] data-phase select register (t=9000)
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	negctl_master_mux_a01	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-1] HWDATA from the data-phase owner (t=9000)
+2026-10-13T23:44:21+05:30	b90b481d8f91	True	units	negctl_master_mux_a19	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-3] SEQ -> NONSEQ only on seq_break (t=61000)
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	unit_decoder	1	PASS	OK	
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	unit_arbiter	1	PASS	OK	
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	unit_master_port	1	PASS	OK	
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	unit_default_slave	1	PASS	OK	
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	unit_slave_mux	1	PASS	OK	
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	unit_master_mux	1	PASS	OK	
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	negctl_decoder_a07	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] decode 0x20000008 -> 10000 (want 00100) (t=73000)
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	negctl_arbiter_a05	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 2 for requests 1101 (want 3, frozen=0) (t=9000)
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	negctl_arbiter_a09	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 3 for requests 1100 (want 0, frozen=1) (t=1161000)
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	negctl_master_port_a02	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-8.2/AHB-2] HRDATA / HRESP returned to the master (t=21000)
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	negctl_master_port_a04	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.20/AHB-4] HREADY seen by the master (t=37000)
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	negctl_default_slave_a12	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.6] state 1: HREADYOUT 1 HRESP 1 (t=37000)
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	negctl_slave_mux_a14	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.5] data-phase select register (t=17000)
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	negctl_master_mux_a01	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-1] HWDATA from the data-phase owner (t=9000)
+2026-10-13T23:44:41+05:30	b90b481d8f91	True	units	negctl_master_mux_a19	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-3] SEQ -> NONSEQ only on seq_break (t=61000)
+2026-10-13T23:45:12+05:30	b90b481d8f91	True	ic.cov	checker_selftest	1	PASS	OK	
+2026-10-13T23:45:12+05:30	b90b481d8f91	True	ic.cov	ic	1	PASS	OK	
+2026-10-13T23:45:12+05:30	b90b481d8f91	True	ic.cov	ic_wait	1	PASS	OK	
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	env_smoke	1	PASS	OK	
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	env_sets	1	PASS	OK	
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	env_preempt	1	PASS	OK	
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	env_decode	1	PASS	OK	
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	env_errnext	1	PASS	OK	
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	env_waits	1	PASS	OK	
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	env_reset	1	PASS	OK	
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	env_starve	1	PASS	OK	
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	env_dma	1	PASS	OK	
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	env_sba	1	PASS	OK	
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	env_random	1	PASS	OK	
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	env_mut_baseline	1	PASS	OK	
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	env_ahb7	1	FAIL	XFAIL:AHB-7	2 assertion failure(s) | first: [30000] %Error: ahb_interconnect_sva.sv:280: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 86 [FAIL] line(s) | first: [FAIL] [SB] random/0: M1 completed 5 of 6 issued transfers (t=454000)
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 write 0x220001a4 size 1 data a2000000; slave 2 saw write 0x220001a4 size 1 data a2000100 (t=454000)
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 read 0x22000260 got 00000001, slave sent 00000000 (t=454000)
+2026-10-13T23:49:11+05:30	b90b481d8f91	True	env.cov	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 24 [FAIL] line(s) | first: [FAIL] [SB] random/0: slave 0 logged 8 transfers, masters had 7 accepted (t=454000)
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	unit_decoder	1	PASS	OK	
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	unit_arbiter	1	PASS	OK	
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	unit_master_port	1	PASS	OK	
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	unit_default_slave	1	PASS	OK	
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	unit_slave_mux	1	PASS	OK	
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	unit_master_mux	1	PASS	OK	
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	negctl_decoder_a07	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] decode 0x20000008 -> 10000 (want 00100) (t=73000)
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	negctl_arbiter_a05	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 2 for requests 1101 (want 3, frozen=0) (t=9000)
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	negctl_arbiter_a09	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 3 for requests 1100 (want 0, frozen=1) (t=1161000)
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	negctl_master_port_a02	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-8.2/AHB-2] HRDATA / HRESP returned to the master (t=21000)
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	negctl_master_port_a04	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.20/AHB-4] HREADY seen by the master (t=37000)
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	negctl_default_slave_a12	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.6] state 1: HREADYOUT 1 HRESP 1 (t=37000)
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	negctl_slave_mux_a14	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.5] data-phase select register (t=17000)
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	negctl_master_mux_a01	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-1] HWDATA from the data-phase owner (t=9000)
+2026-10-13T23:49:28+05:30	b90b481d8f91	True	units.cov	negctl_master_mux_a19	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-3] SEQ -> NONSEQ only on seq_break (t=61000)
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_smoke	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_sets	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_preempt	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_decode	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_errnext	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_waits	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_reset	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_starve	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_dma	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_sba	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_random	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_toggle	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_capture	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_mut_baseline	1	PASS	OK	
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	env_ahb7	1	FAIL	XFAIL:AHB-7	2 assertion failure(s) | first: [30000] %Error: ahb_interconnect_sva.sv:281: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 86 [FAIL] line(s) | first: [FAIL] [SB] random/0: M1 completed 5 of 6 issued transfers (t=454000)
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 write 0x220001a4 size 1 data a2000000; slave 2 saw write 0x220001a4 size 1 data a2000100 (t=454000)
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 read 0x22000260 got 00000001, slave sent 00000000 (t=454000)
+2026-10-13T23:53:31+05:30	b90b481d8f91	True	env	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 24 [FAIL] line(s) | first: [FAIL] [SB] random/0: slave 0 logged 8 transfers, masters had 7 accepted (t=454000)
+2026-10-13T23:56:25+05:30	b90b481d8f91	True	fv_ahb	ahb_bmc	-	BOUNDED(24)	OK	[62 asserts, 47 covers in model] 
+2026-10-13T23:56:25+05:30	b90b481d8f91	True	fv_ahb	ahb_prove	-	PROVEN	OK	[62 asserts, 47 covers in model] 
+2026-10-13T23:56:25+05:30	b90b481d8f91	True	fv_ahb	ahb_cover	-	COVERED	OK	[62 asserts, 47 covers in model] 
+2026-10-13T23:56:25+05:30	b90b481d8f91	True	fv_ahb	ahb7_find	-	FAIL	XFAIL:AHB-7	[8 asserts, 47 covers in model] props: u_ahb_sva.g_resp[0].a_held_resp_okay, u_ahb_sva.g_resp[0].a_master_err_shape
+2026-10-13T23:56:25+05:30	b90b481d8f91	True	fv_ahb	mut_ahb1	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_hwdata_data_phase
+2026-10-13T23:56:25+05:30	b90b481d8f91	True	fv_ahb	mut_ahb2	-	FAIL	XFAIL:PLANTED	[12 asserts, 47 covers in model] props: u_ahb_sva.g_resp[1].a_rdata_value
+2026-10-13T23:56:25+05:30	b90b481d8f91	True	fv_ahb	mut_ahb3	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_burst_restart_nonseq
+2026-10-13T23:56:25+05:30	b90b481d8f91	True	fv_ahb	mut_ahb4	-	FAIL	XFAIL:PLANTED	[5 asserts, 47 covers in model] props: u_ahb_sva.a_reset_state, u_ahb_sva.g_held[1].a_idle_not_gated, u_ahb_sva.g_held[2].a_idle_not_gated, u_ahb_sva.g_held[3].a_idle_not_gated
+2026-10-13T23:56:25+05:30	b90b481d8f91	True	fv_ahb	mut_prio	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_priority
+2026-10-13T23:56:25+05:30	b90b481d8f91	True	fv_ahb	mut_decode	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_sva.a_decode
+2026-10-13T23:56:25+05:30	b90b481d8f91	True	fv_ahb	mut_nofreeze	-	FAIL	XFAIL:PLANTED	[2 asserts, 47 covers in model] props: u_ahb_sva.a_grant_stable_in_data_phase
+2026-10-13T23:56:25+05:30	b90b481d8f91	True	fv_ahb	equiv_a10	-	PROVEN	OK	[58 asserts, 47 covers in model] 
+2026-10-13T23:56:25+05:30	b90b481d8f91	True	fv_ahb	equiv_a16	-	PROVEN	OK	[62 asserts, 47 covers in model] 
+2026-10-13T23:56:38+05:30	b90b481d8f91	True	ic.cov	checker_selftest	1	PASS	OK	
+2026-10-13T23:56:38+05:30	b90b481d8f91	True	ic.cov	ic	1	PASS	OK	
+2026-10-13T23:56:38+05:30	b90b481d8f91	True	ic.cov	ic_wait	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_smoke	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_sets	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_preempt	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_decode	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_errnext	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_waits	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_reset	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_starve	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_dma	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_sba	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_random	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_toggle	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_capture	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_mut_baseline	1	PASS	OK	
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	env_ahb7	1	FAIL	XFAIL:AHB-7	2 assertion failure(s) | first: [30000] %Error: ahb_interconnect_sva.sv:281: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 86 [FAIL] line(s) | first: [FAIL] [SB] random/0: M1 completed 5 of 6 issued transfers (t=454000)
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 write 0x220001a4 size 1 data a2000000; slave 2 saw write 0x220001a4 size 1 data a2000100 (t=454000)
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 read 0x22000260 got 00000001, slave sent 00000000 (t=454000)
+2026-10-14T00:02:50+05:30	b90b481d8f91	True	env.cov	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 24 [FAIL] line(s) | first: [FAIL] [SB] random/0: slave 0 logged 8 transfers, masters had 7 accepted (t=454000)
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	unit_decoder	1	PASS	OK	
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	unit_arbiter	1	PASS	OK	
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	unit_master_port	1	PASS	OK	
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	unit_default_slave	1	PASS	OK	
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	unit_slave_mux	1	PASS	OK	
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	unit_master_mux	1	PASS	OK	
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	negctl_decoder_a07	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] decode 0x20000008 -> 10000 (want 00100) (t=73000)
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	negctl_arbiter_a05	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 2 for requests 1101 (want 3, frozen=0) (t=9000)
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	negctl_arbiter_a09	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 3 for requests 1100 (want 0, frozen=1) (t=1161000)
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	negctl_master_port_a02	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-8.2/AHB-2] HRDATA / HRESP returned to the master (t=21000)
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	negctl_master_port_a04	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.20/AHB-4] HREADY seen by the master (t=37000)
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	negctl_default_slave_a12	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.6] state 1: HREADYOUT 1 HRESP 1 (t=37000)
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	negctl_slave_mux_a14	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.5] data-phase select register (t=17000)
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	negctl_master_mux_a01	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-1] HWDATA from the data-phase owner (t=9000)
+2026-10-14T00:03:08+05:30	b90b481d8f91	True	units.cov	negctl_master_mux_a19	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-3] SEQ -> NONSEQ only on seq_break (t=61000)
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_smoke	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_sets	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_preempt	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_decode	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_errnext	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_waits	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_reset	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_starve	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_dma	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_sba	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_random	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_toggle	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_capture	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_mut_baseline	1	PASS	OK	
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	env_ahb7	1	FAIL	XFAIL:AHB-7	2 assertion failure(s) | first: [30000] %Error: ahb_interconnect_sva.sv:281: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 86 [FAIL] line(s) | first: [FAIL] [SB] random/0: M1 completed 5 of 6 issued transfers (t=454000)
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 write 0x220001a4 size 1 data a2000000; slave 2 saw write 0x220001a4 size 1 data a2000100 (t=454000)
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 read 0x22000260 got 00000001, slave sent 00000000 (t=454000)
+2026-10-14T00:07:56+05:30	b90b481d8f91	True	env	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 24 [FAIL] line(s) | first: [FAIL] [SB] random/0: slave 0 logged 8 transfers, masters had 7 accepted (t=454000)
+2026-10-14T00:08:17+05:30	b90b481d8f91	True	ic.cov	checker_selftest	1	PASS	OK	
+2026-10-14T00:08:17+05:30	b90b481d8f91	True	ic.cov	ic	1	PASS	OK	
+2026-10-14T00:08:17+05:30	b90b481d8f91	True	ic.cov	ic_wait	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_smoke	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_sets	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_preempt	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_decode	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_errnext	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_waits	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_reset	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_starve	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_dma	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_sba	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_random	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_toggle	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_capture	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_mut_baseline	1	PASS	OK	
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	env_ahb7	1	FAIL	XFAIL:AHB-7	2 assertion failure(s) | first: [30000] %Error: ahb_interconnect_sva.sv:281: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 86 [FAIL] line(s) | first: [FAIL] [SB] random/0: M1 completed 5 of 6 issued transfers (t=454000)
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 write 0x220001a4 size 1 data a2000000; slave 2 saw write 0x220001a4 size 1 data a2000100 (t=454000)
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 read 0x22000260 got 00000001, slave sent 00000000 (t=454000)
+2026-10-14T00:15:29+05:30	b90b481d8f91	True	env.cov	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 24 [FAIL] line(s) | first: [FAIL] [SB] random/0: slave 0 logged 8 transfers, masters had 7 accepted (t=454000)
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	unit_decoder	1	PASS	OK	
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	unit_arbiter	1	PASS	OK	
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	unit_master_port	1	PASS	OK	
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	unit_default_slave	1	PASS	OK	
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	unit_slave_mux	1	PASS	OK	
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	unit_master_mux	1	PASS	OK	
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	negctl_decoder_a07	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] decode 0x20000008 -> 10000 (want 00100) (t=73000)
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	negctl_arbiter_a05	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 2 for requests 1101 (want 3, frozen=0) (t=9000)
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	negctl_arbiter_a09	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 3 for requests 1100 (want 0, frozen=1) (t=1161000)
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	negctl_master_port_a02	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-8.2/AHB-2] HRDATA / HRESP returned to the master (t=21000)
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	negctl_master_port_a04	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.20/AHB-4] HREADY seen by the master (t=37000)
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	negctl_default_slave_a12	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.6] state 1: HREADYOUT 1 HRESP 1 (t=37000)
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	negctl_slave_mux_a14	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.5] data-phase select register (t=17000)
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	negctl_master_mux_a01	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-1] HWDATA from the data-phase owner (t=9000)
+2026-10-14T00:15:45+05:30	b90b481d8f91	True	units.cov	negctl_master_mux_a19	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-3] SEQ -> NONSEQ only on seq_break (t=61000)
+2026-10-14T00:40:08+05:30	e43672fbc7c5	True	ic	checker_selftest	1	PASS	OK	
+2026-10-14T00:40:08+05:30	e43672fbc7c5	True	ic	ic	1	PASS	OK	
+2026-10-14T00:40:08+05:30	e43672fbc7c5	True	ic	ic_wait	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_smoke	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_sets	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_preempt	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_decode	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_errnext	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_waits	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_reset	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_starve	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_dma	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_sba	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_random	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_toggle	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_capture	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_mut_baseline	1	PASS	OK	
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	env_ahb7	1	FAIL	XFAIL:AHB-7	2 assertion failure(s) | first: [30000] %Error: ahb_interconnect_sva.sv:281: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 86 [FAIL] line(s) | first: [FAIL] [SB] random/0: M1 completed 5 of 6 issued transfers (t=454000)
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 write 0x220001a4 size 1 data a2000000; slave 2 saw write 0x220001a4 size 1 data a2000100 (t=454000)
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 read 0x22000260 got 00000001, slave sent 00000000 (t=454000)
+2026-10-14T00:42:39+05:30	e43672fbc7c5	True	env	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 24 [FAIL] line(s) | first: [FAIL] [SB] random/0: slave 0 logged 8 transfers, masters had 7 accepted (t=454000)
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	unit_decoder	1	PASS	OK	
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	unit_arbiter	1	PASS	OK	
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	unit_master_port	1	PASS	OK	
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	unit_default_slave	1	PASS	OK	
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	unit_slave_mux	1	PASS	OK	
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	unit_master_mux	1	PASS	OK	
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	negctl_decoder_a07	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] decode 0x20000008 -> 10000 (want 00100) (t=73000)
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	negctl_arbiter_a05	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 2 for requests 1101 (want 3, frozen=0) (t=9000)
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	negctl_arbiter_a09	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 3 for requests 1100 (want 0, frozen=1) (t=1161000)
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	negctl_master_port_a02	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-8.2/AHB-2] HRDATA / HRESP returned to the master (t=21000)
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	negctl_master_port_a04	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.20/AHB-4] HREADY seen by the master (t=37000)
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	negctl_default_slave_a12	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.6] state 1: HREADYOUT 1 HRESP 1 (t=37000)
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	negctl_slave_mux_a14	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.5] data-phase select register (t=17000)
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	negctl_master_mux_a01	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-1] HWDATA from the data-phase owner (t=9000)
+2026-10-14T00:42:49+05:30	e43672fbc7c5	True	units	negctl_master_mux_a19	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-3] SEQ -> NONSEQ only on seq_break (t=61000)
+2026-10-14T00:50:30+05:30	e43672fbc7c5	True	ic	checker_selftest	1	PASS	OK	
+2026-10-14T00:50:30+05:30	e43672fbc7c5	True	ic	ic	1	PASS	OK	
+2026-10-14T00:50:30+05:30	e43672fbc7c5	True	ic	ic_wait	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_smoke	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_sets	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_preempt	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_decode	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_errnext	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_waits	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_reset	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_starve	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_dma	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_sba	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_random	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_toggle	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_capture	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_mut_baseline	1	PASS	OK	
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	env_ahb7	1	FAIL	XFAIL:AHB-7	2 assertion failure(s) | first: [30000] %Error: ahb_interconnect_sva.sv:281: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 86 [FAIL] line(s) | first: [FAIL] [SB] random/0: M1 completed 5 of 6 issued transfers (t=454000)
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 write 0x220001a4 size 1 data a2000000; slave 2 saw write 0x220001a4 size 1 data a2000100 (t=454000)
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 read 0x22000260 got 00000001, slave sent 00000000 (t=454000)
+2026-10-14T00:53:31+05:30	e43672fbc7c5	True	env	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 24 [FAIL] line(s) | first: [FAIL] [SB] random/0: slave 0 logged 8 transfers, masters had 7 accepted (t=454000)
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	unit_decoder	1	PASS	OK	
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	unit_arbiter	1	PASS	OK	
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	unit_master_port	1	PASS	OK	
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	unit_default_slave	1	PASS	OK	
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	unit_slave_mux	1	PASS	OK	
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	unit_master_mux	1	PASS	OK	
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	negctl_decoder_a07	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] decode 0x20000008 -> 10000 (want 00100) (t=73000)
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	negctl_arbiter_a05	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 2 for requests 1101 (want 3, frozen=0) (t=9000)
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	negctl_arbiter_a09	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 3 for requests 1100 (want 0, frozen=1) (t=1161000)
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	negctl_master_port_a02	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-8.2/AHB-2] HRDATA / HRESP returned to the master (t=21000)
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	negctl_master_port_a04	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.20/AHB-4] HREADY seen by the master (t=37000)
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	negctl_default_slave_a12	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.6] state 1: HREADYOUT 1 HRESP 1 (t=37000)
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	negctl_slave_mux_a14	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.5] data-phase select register (t=17000)
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	negctl_master_mux_a01	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-1] HWDATA from the data-phase owner (t=9000)
+2026-10-14T00:53:43+05:30	e43672fbc7c5	True	units	negctl_master_mux_a19	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-3] SEQ -> NONSEQ only on seq_break (t=61000)
+2026-10-14T01:11:25+05:30	e43672fbc7c5	True	ic	checker_selftest	1	PASS	OK	
+2026-10-14T01:11:25+05:30	e43672fbc7c5	True	ic	ic	1	PASS	OK	
+2026-10-14T01:11:25+05:30	e43672fbc7c5	True	ic	ic_wait	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_smoke	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_sets	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_preempt	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_decode	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_errnext	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_waits	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_reset	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_starve	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_dma	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_sba	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_random	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_toggle	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_capture	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_mut_baseline	1	PASS	OK	
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	env_ahb7	1	FAIL	XFAIL:AHB-7	2 assertion failure(s) | first: [30000] %Error: ahb_interconnect_sva.sv:281: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_held_resp_okay: 'assert' failed.
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 86 [FAIL] line(s) | first: [FAIL] [SB] random/0: M1 completed 5 of 6 issued transfers (t=454000)
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 write 0x220001a4 size 1 data a2000000; slave 2 saw write 0x220001a4 size 1 data a2000100 (t=454000)
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	negctl_sb_rdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] [SB] random/0: M2 read 0x22000260 got 00000001, slave sent 00000000 (t=454000)
+2026-10-14T01:13:59+05:30	e43672fbc7c5	True	env	negctl_sb_dup	1	FAIL	XFAIL:PLANTED	pass marker missing; 24 [FAIL] line(s) | first: [FAIL] [SB] random/0: slave 0 logged 8 transfers, masters had 7 accepted (t=454000)
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	unit_decoder	1	PASS	OK	
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	unit_arbiter	1	PASS	OK	
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	unit_master_port	1	PASS	OK	
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	unit_default_slave	1	PASS	OK	
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	unit_slave_mux	1	PASS	OK	
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	unit_master_mux	1	PASS	OK	
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	negctl_decoder_a07	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] decode 0x20000008 -> 10000 (want 00100) (t=73000)
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	negctl_arbiter_a05	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 2 for requests 1101 (want 3, frozen=0) (t=9000)
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	negctl_arbiter_a09	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 3 for requests 1100 (want 0, frozen=1) (t=1161000)
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	negctl_master_port_a02	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-8.2/AHB-2] HRDATA / HRESP returned to the master (t=21000)
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	negctl_master_port_a04	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.20/AHB-4] HREADY seen by the master (t=37000)
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	negctl_default_slave_a12	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.6] state 1: HREADYOUT 1 HRESP 1 (t=37000)
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	negctl_slave_mux_a14	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.5] data-phase select register (t=17000)
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	negctl_master_mux_a01	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-1] HWDATA from the data-phase owner (t=9000)
+2026-10-14T01:14:12+05:30	e43672fbc7c5	True	units	negctl_master_mux_a19	1	FAIL	XFAIL:PLANTED	pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-3] SEQ -> NONSEQ only on seq_break (t=61000)

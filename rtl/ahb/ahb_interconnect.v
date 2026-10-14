@@ -8,10 +8,12 @@
 //                 Sec. 3.3 (hierarchy), Sec. 5 (ports), Sec. 7.3 (hold rule),
 //                 Sec. 8.2 (read-data return), Sec. 10 (reset)
 //
-// Single shared AHB-Lite layer, 3 masters x 4 slaves + default slave.
+// Single shared AHB-Lite layer, 4 masters x 4 slaves + default slave
+// (AHB-6: this header said 3 masters with the DMA as M2; Rev 4.0 added the SBA).
 //   M0 i_  CPU I-Port   lowest priority, may issue INCR
 //   M1 d_  CPU D-Port   SINGLE only
-//   M2     DMA          highest priority, SINGLE only, no HPROT at its
+//   M2 s_  Debug SBA    SINGLE only, no HPROT at its boundary
+//   M3 m_  DMA          highest priority, SINGLE only, no HPROT at its
 //                       boundary (the DMA spec Sec. 5.7 port list is frozen
 //                       and drops the _i/_o suffix, hence the bare names)
 //

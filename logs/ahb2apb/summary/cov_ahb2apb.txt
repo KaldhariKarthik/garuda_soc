@@ -1,0 +1,244 @@
+Coverage report: block ahb2apb  (Verilator 5.052, merged per module definition)
+runs merged : 25 passing runs from 5 suite summaries
+      1  logs/ahb2apb/summary/bridge.cov.tsv
+      2  logs/ahb2apb/summary/probe.cov.tsv
+     17  logs/ahb2apb/summary/env.cov.tsv
+      2  logs/ahb2apb/summary/units.cov.tsv
+      3  logs/common/summary/b0.cov.tsv
+targets     : design code >= 95.0% per metric per module; design functional = 100.0% of bins (after reviewed waivers)
+
+== DESIGN CODE COVERAGE (sign-off) ==
+module                                  line            branch              expr            toggle               fsm   waived
+ahb2apb_apb_fsm                 9/9     100.0       7/8      87.5!      9/10     90.0!    386/388    99.5                  -   0
+ahb2apb_bridge                  9/11     81.8!     13/14     92.9!     32/34     94.1!    656/744    88.2!                 -   0
+ahb2apb_fabric                  2/2     100.0                  -     26/26    100.0     140/140   100.0                  -   0
+garuda_apb_shim                11/11    100.0      15/16     93.8!     53/61     86.9!    273/396    68.9!                 -   0
+TOTAL                          31/33     93.9      35/38     92.1     120/131    91.6    1455/1668   87.2                  -   0
+RAW (before waivers)           31/33     93.9      35/38     92.1     120/131    91.6    1455/1668   87.2                  -
+
+== TESTBENCH CODE COVERAGE (reported, not sign-off) ==
+module                                  line            branch              expr            toggle               fsm   waived
+ahb2apb_cov                    24/26     92.3      25/34     73.5      33/58     56.9     140/236    59.3                  -   0
+ahb2apb_cov__Wz1               26/26    100.0      30/34     88.2      40/58     69.0     172/236    72.9                  -   0
+ahb2apb_cov__Wz1_Az2           24/26     92.3      26/34     76.5      37/58     63.8     160/236    67.8                  -   0
+ahb2apb_sva                     5/5     100.0      24/28     85.7      75/85     88.2     470/712    66.0                  -   0
+ahb2apb_sva__Wz1                5/5     100.0      25/28     89.3      83/85     97.6     602/712    84.6                  -   0
+ahb2apb_sva__Wz1_Az2            5/5     100.0      24/28     85.7      80/85     94.1     541/712    76.0                  -   0
+ahb_lite_master_bfm            10/16     62.5       7/8      87.5      18/24     75.0     331/1986   16.7                  -   0
+ahb_master_agent__I1            9/9     100.0      19/24     79.2      39/44     88.6     187/238    78.6                  -   0
+apb_checker                     6/6     100.0      41/68     60.3      60/66     90.9     223/376    59.3                  -   0
+apb_checker__E1                 6/6     100.0      42/68     61.8      60/66     90.9     222/376    59.0                  -   0
+apb_checker__E3                 2/6      33.3      28/68     41.2      51/66     77.3     166/376    44.1                  -   0
+apb_checker__E7                 2/6      33.3      29/68     42.6      51/66     77.3     178/376    47.3                  -   0
+apb_checker__MB4                5/6      83.3      37/68     54.4      61/66     92.4     204/376    54.3                  -   0
+apb_slave_model                 7/9      77.8      13/18     72.2      24/25     96.0     187/396    47.2                  -   0
+apb_target                     18/19     94.7      16/24     66.7      25/28     89.3     192/284    67.6                  -   0
+apb_target__W1                 19/19    100.0      16/24     66.7      23/28     82.1     196/284    69.0                  -   0
+apb_target__W2                 19/19    100.0      18/24     75.0      26/28     92.9     196/284    69.0                  -   0
+apb_target__W3                 19/19    100.0      16/24     66.7      24/28     85.7     202/284    71.1                  -   0
+apb_target__W4                 18/19     94.7      15/24     62.5      23/28     82.1     194/284    68.3                  -   0
+apb_target__W5                 19/19    100.0      17/24     70.8      26/28     92.9     208/284    73.2                  -   0
+apb_target__W6                 19/19    100.0      16/24     66.7      24/28     85.7     198/284    69.7                  -   0
+apb_target__W7                 19/19    100.0      16/24     66.7      23/28     82.1     204/284    71.8                  -   0
+apb_target__W8                 18/19     94.7      16/24     66.7      25/28     89.3     192/284    67.6                  -   0
+apb_target__W9                 19/19    100.0      16/24     66.7      23/28     82.1     192/284    67.6                  -   0
+apb_target__Wa                 19/19    100.0      17/24     70.8      26/28     92.9     196/284    69.0                  -   0
+apb_target__Wb                 19/19    100.0      16/24     66.7      24/28     85.7     202/284    71.1                  -   0
+dma_req_checker__Nz4            9/11     81.8       7/8      87.5       7/9      77.8       9/10     90.0                  -   0
+garuda_apb_bfm                  7/9      77.8                  -                 -     99/166    59.6                  -   0
+tb_ahb2apb                     31/32     96.9      17/24     70.8      56/113    49.6     257/420    61.2                  -   0
+tb_apb_checker_selftest        18/19     94.7       2/4      50.0       2/2     100.0      94/150    62.7                  -   0
+tb_apb_env                    112/116    96.6      54/92     58.7      36/56     64.3     317/408    77.7                  -   0
+tb_apb_probe                   23/25     92.0       6/10     60.0      26/43     60.5      92/408    22.5                  -   0
+tb_apb_shim                    35/36     97.2       6/8      75.0      30/53     56.6     244/1344   18.2                  -   0
+tb_apb_units                   24/25     96.0      17/24     70.8      20/43     46.5     495/496    99.8                  -   0
+tb_map_pkg                      9/9     100.0       5/10     50.0      12/36     33.3                  -                 -   0
+TOTAL                         629/667    94.3     679/1044   65.0    1193/1543   77.3    7762/14154  54.8                  -   0
+RAW (before waivers)          629/667    94.3     679/1044   65.0    1193/1543   77.3    7762/14154  54.8                  -
+
+== DESIGN FUNCTIONAL COVERAGE (covergroup bins) ==
+cg_b2b (ahb2apb_cov.sv)                            4/14      28.6%!  waived 0
+cg_div (ahb2apb_cov.sv)                            7/7      100.0%   waived 0
+cg_end (ahb2apb_cov.sv)                            3/3      100.0%   waived 0
+cg_phase (ahb2apb_cov.sv)                          2/2      100.0%   waived 0
+cg_ready_at (ahb2apb_cov.sv)                       6/6      100.0%   waived 0
+cg_reject (ahb2apb_cov.sv)                        11/11     100.0%   waived 0
+cg_rst (ahb2apb_cov.sv)                            4/6       66.7%!  waived 0
+cg_win (ahb2apb_cov.sv)                           50/50     100.0%   waived 0
+TOTAL                                             87/99      87.9%
+RAW (before waivers)                              87/99      87.9%   (0 waived bins; illegal/ignore bins declared in the source are never targets)
+
+== ILLEGAL / IGNORE BINS (declared in the source; not targets; illegal must stay 0) ==
+
+== WAIVERS (0) ==
+
+== DESIGN HOLES (uncovered, not waived) ==
+-- ahb2apb_apb_fsm (rtl/ahb2apb/ahb2apb_apb_fsm.v) branch: 1
+     line:53 cond_else                                            wire [1:0] div_sel = (win_i < 4'd12) ? APB_DIV[2*win_i +: 2] : 2'b00;
+-- ahb2apb_apb_fsm (rtl/ahb2apb/ahb2apb_apb_fsm.v) expr: 1
+     line:53 ((win_i < 4'hc)==0) => 0                             wire [1:0] div_sel = (win_i < 4'd12) ? APB_DIV[2*win_i +: 2] : 2'b00;
+-- ahb2apb_apb_fsm (rtl/ahb2apb/ahb2apb_apb_fsm.v) toggle: 2
+     to_cnt[4]:0->1                                               
+     to_cnt[4]:1->0                                               
+-- ahb2apb_bridge (rtl/ahb2apb/ahb2apb_bridge.v) branch: 1
+     line:228 if                                                  if (hreset_n_i && hstate == H_WAIT && hstate_d == H_WAIT &&
+-- ahb2apb_bridge (rtl/ahb2apb/ahb2apb_bridge.v) expr: 2
+     line:144 (prst_ok_q==0 && (hstate == H_ERR2)==1) => 1        if (!prst_ok_q && hstate == H_ERR2) begin
+     line:228 (hreset_n_i==1 && (hstate == H_WAIT)==1 && (hstate_d == H_WAIT)==1 && (cap_prev !== {32'h1{{{{win_cap, addr_cap}, write_cap}, wdata_cap[27:0]}}})==1) => 1 if (hreset_n_i && hstate == H_WAIT && hstate_d == H_WAIT &&
+-- ahb2apb_bridge (rtl/ahb2apb/ahb2apb_bridge.v) line: 2
+     line:144 elsif                                               if (!prst_ok_q && hstate == H_ERR2) begin
+     line:172 case                                                default: hstate <= H_IDLE;
+-- ahb2apb_bridge (rtl/ahb2apb/ahb2apb_bridge.v) toggle: 88
+     addr_cap[0]:0->1                                             
+     addr_cap[0]:1->0                                             
+     addr_cap[1]:0->1                                             
+     addr_cap[1]:1->0                                             
+     wdata_cap[10]:0->1                                           
+     wdata_cap[10]:1->0                                           
+     wdata_cap[11]:0->1                                           
+     wdata_cap[11]:1->0                                           
+     wdata_cap[12]:1->0                                           
+     wdata_cap[13]:1->0                                           
+     wdata_cap[7]:0->1                                            
+     wdata_cap[7]:1->0                                            
+     wdata_cap[8]:0->1                                            
+     wdata_cap[8]:1->0                                            
+     wdata_cap[9]:1->0                                            
+     cap_prev[10]:0->1                                            
+     cap_prev[10]:1->0                                            
+     cap_prev[11]:0->1                                            
+     cap_prev[11]:1->0                                            
+     cap_prev[12]:1->0                                            
+     cap_prev[13]:1->0                                            
+     cap_prev[29]:0->1                                            
+     cap_prev[29]:1->0                                            
+     cap_prev[30]:0->1                                            
+     cap_prev[30]:1->0                                            
+     cap_prev[7]:0->1                                             
+     cap_prev[7]:1->0                                             
+     cap_prev[8]:0->1                                             
+     cap_prev[8]:1->0                                             
+     cap_prev[9]:1->0                                             
+     haddr_i[17]:1->0                                             
+     haddr_i[18]:1->0                                             
+     haddr_i[19]:1->0                                             
+     haddr_i[20]:1->0                                             
+     haddr_i[21]:1->0                                             
+     haddr_i[22]:1->0                                             
+     haddr_i[23]:1->0                                             
+     haddr_i[24]:1->0                                             
+     haddr_i[25]:1->0                                             
+     haddr_i[26]:1->0                                             
+     haddr_i[27]:1->0                                             
+     haddr_i[28]:0->1                                             
+     haddr_i[28]:1->0                                             
+     haddr_i[29]:1->0                                             
+     haddr_i[31]:0->1                                             
+     haddr_i[31]:1->0                                             
+     htrans_i[0]:0->1                                             
+     htrans_i[0]:1->0                                             
+     hsize_i[2]:0->1                                              
+     hsize_i[2]:1->0                                              
+     hwdata_i[10]:0->1                                            
+     hwdata_i[10]:1->0                                            
+     hwdata_i[11]:0->1                                            
+     hwdata_i[11]:1->0                                            
+     hwdata_i[7]:0->1                                             
+     hwdata_i[7]:1->0                                             
+     hwdata_i[8]:0->1                                             
+     hwdata_i[8]:1->0                                             
+     hwdata_i[9]:1->0                                             
+     paddr_o[0]:0->1                                              
+     ... 28 more
+-- garuda_apb_shim (rtl/common/garuda_apb_shim.v) branch: 1
+     line:197 if                                                  if (preset_n_i && ip_psel_o && !ip_pready_i)
+-- garuda_apb_shim (rtl/common/garuda_apb_shim.v) expr: 8
+     line:136 (evt_i==1) => 1                                     irqstat_q <= (irqstat_q & ~w1c) | evt_i;
+     line:136 (irqstat_q==1 && w1c==0) => 1                       irqstat_q <= (irqstat_q & ~w1c) | evt_i;
+     line:136 (w1c==1 && evt_i==0) => 0                           irqstat_q <= (irqstat_q & ~w1c) | evt_i;
+     line:140 ((irqstat_q & irqen_q)[2]==1) => 1                  assign irq_o = |(irqstat_q & irqen_q);
+     line:140 ((irqstat_q & irqen_q)[3]==1) => 1                  assign irq_o = |(irqstat_q & irqen_q);
+     line:140 (irqstat_q==1 && irqen_q==1) => 1                   assign irq_o = |(irqstat_q & irqen_q);
+     line:158 (dmactl_q[1]==1 && tx_space_i==1 && holdoff_q==0 && dma_ack_i==0) => 1 ~holdoff_q & ~dma_ack_i;
+     line:197 (preset_n_i==1 && ip_psel_o==1 && ip_pready_i==0) => 1 if (preset_n_i && ip_psel_o && !ip_pready_i)
+-- garuda_apb_shim (rtl/common/garuda_apb_shim.v) toggle: 123
+     irqstat_q[3]:0->1                                            
+     irqstat_q[3]:1->0                                            
+     irqen_q[0]:1->0                                              
+     sync0_q[0]:1->0                                              
+     sync1_q[0]:1->0                                              
+     preset_n_i:1->0                                              
+     paddr_i[0]:0->1                                              
+     paddr_i[0]:1->0                                              
+     paddr_i[11]:1->0                                             
+     paddr_i[1]:0->1                                              
+     paddr_i[1]:1->0                                              
+     paddr_i[4]:1->0                                              
+     pwdata_i[10]:0->1                                            
+     pwdata_i[10]:1->0                                            
+     pwdata_i[11]:0->1                                            
+     pwdata_i[11]:1->0                                            
+     pwdata_i[12]:0->1                                            
+     pwdata_i[12]:1->0                                            
+     pwdata_i[13]:0->1                                            
+     pwdata_i[13]:1->0                                            
+     pwdata_i[14]:0->1                                            
+     pwdata_i[14]:1->0                                            
+     pwdata_i[15]:0->1                                            
+     pwdata_i[15]:1->0                                            
+     pwdata_i[16]:0->1                                            
+     pwdata_i[16]:1->0                                            
+     pwdata_i[24]:0->1                                            
+     pwdata_i[24]:1->0                                            
+     pwdata_i[26]:0->1                                            
+     pwdata_i[26]:1->0                                            
+     pwdata_i[28]:0->1                                            
+     pwdata_i[28]:1->0                                            
+     pwdata_i[29]:0->1                                            
+     pwdata_i[29]:1->0                                            
+     pwdata_i[4]:1->0                                             
+     pwdata_i[6]:1->0                                             
+     pwdata_i[8]:0->1                                             
+     pwdata_i[8]:1->0                                             
+     pwdata_i[9]:0->1                                             
+     pwdata_i[9]:1->0                                             
+     prdata_o[12]:0->1                                            
+     prdata_o[12]:1->0                                            
+     prdata_o[13]:0->1                                            
+     prdata_o[13]:1->0                                            
+     prdata_o[14]:0->1                                            
+     prdata_o[14]:1->0                                            
+     prdata_o[15]:0->1                                            
+     prdata_o[15]:1->0                                            
+     prdata_o[24]:0->1                                            
+     prdata_o[24]:1->0                                            
+     prdata_o[26]:0->1                                            
+     prdata_o[26]:1->0                                            
+     prdata_o[28]:0->1                                            
+     prdata_o[28]:1->0                                            
+     prdata_o[9]:0->1                                             
+     prdata_o[9]:1->0                                             
+     pready_o:1->0                                                
+     ip_paddr_o[0]:1->0                                           
+     ip_paddr_o[11]:1->0                                          
+     ip_paddr_o[1]:1->0                                           
+     ... 63 more
+
+== FUNCTIONAL HOLES (bins never hit, not waived) ==
+-- cg_b2b (ahb2apb_cov.sv): 10
+     cg_b2b.cp_prev.auto_0   (tb/ahb2apb/env/ahb2apb_cov.sv:58)
+     cg_b2b.cp_cur.auto_1   (tb/ahb2apb/env/ahb2apb_cov.sv:58)
+     cg_b2b.cp_same.auto_0   (tb/ahb2apb/env/ahb2apb_cov.sv:58)
+     cg_b2b.x_b2b.auto_0_x_auto_0_x_auto_0   (tb/ahb2apb/env/ahb2apb_cov.sv:59)
+     cg_b2b.x_b2b.auto_0_x_auto_0_x_auto_1   (tb/ahb2apb/env/ahb2apb_cov.sv:59)
+     cg_b2b.x_b2b.auto_0_x_auto_1_x_auto_0   (tb/ahb2apb/env/ahb2apb_cov.sv:59)
+     cg_b2b.x_b2b.auto_0_x_auto_1_x_auto_1   (tb/ahb2apb/env/ahb2apb_cov.sv:59)
+     cg_b2b.x_b2b.auto_1_x_auto_0_x_auto_0   (tb/ahb2apb/env/ahb2apb_cov.sv:59)
+     cg_b2b.x_b2b.auto_1_x_auto_1_x_auto_0   (tb/ahb2apb/env/ahb2apb_cov.sv:59)
+     cg_b2b.x_b2b.auto_1_x_auto_1_x_auto_1   (tb/ahb2apb/env/ahb2apb_cov.sv:59)
+-- cg_rst (ahb2apb_cov.sv): 2
+     cg_rst.cp_reset_point.access   (tb/ahb2apb/env/ahb2apb_cov.sv:65)
+     cg_rst.cp_reset_point.gap_access   (tb/ahb2apb/env/ahb2apb_cov.sv:66)
+
+verdict: FAIL  (11 below target, 0 waiver/input error(s))
+below target: ahb2apb_apb_fsm branch 87.5%; ahb2apb_apb_fsm expr 90.0%; ahb2apb_bridge line 81.8%; ahb2apb_bridge branch 92.9%; ahb2apb_bridge expr 94.1%; ahb2apb_bridge toggle 88.2%; garuda_apb_shim branch 93.8%; garuda_apb_shim expr 86.9%; garuda_apb_shim toggle 68.9%; covergroup cg_b2b (ahb2apb_cov.sv) 28.6%; covergroup cg_rst (ahb2apb_cov.sv) 66.7%

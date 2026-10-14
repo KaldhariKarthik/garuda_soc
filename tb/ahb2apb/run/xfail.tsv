@@ -1,0 +1,17 @@
+# xfail list for AHB2APB suites.
+# suite	test	expect(FAIL|BLOCKED)	bug	reason
+fv_apb	mut_brg1	FAIL	PLANTED	negative control: planted defect brg1 must fail a_one_to_one a_resp a_subword_no_apb
+fv_apb	mut_apb2	FAIL	PLANTED	negative control: planted defect apb2 must fail a_subword_no_apb a_resp
+fv_apb	mut_subword	FAIL	PLANTED	negative control: planted defect subword must fail a_subword_no_apb a_resp
+fv_apb	mut_to15	FAIL	PLANTED	negative control: planted defect to15 must fail a_apb_div
+fv_apb	mut_to17	FAIL	PLANTED	negative control: planted defect to17 must fail a_timeout_at_16 a_access_ends
+fv_apb	mut_win	FAIL	PLANTED	negative control: planted defect win must fail a_unmapped a_rdata a_resp
+fv_apb	mut_nosetup	FAIL	PLANTED	negative control: planted defect nosetup must fail a_apb_setup_first
+env	negctl_sb_drop	FAIL	PLANTED	scoreboard negative control: an injected drop fault must be reported
+env	negctl_sb_rdata	FAIL	PLANTED	scoreboard negative control: an injected rdata fault must be reported
+env	negctl_sb_dup	FAIL	PLANTED	scoreboard negative control: an injected dup fault must be reported
+units	negctl_fsm_to15	FAIL	PLANTED	unit negative control: timeout one sample early
+units	negctl_fsm_to17	FAIL	PLANTED	unit negative control: timeout one sample late
+units	negctl_fsm_win	FAIL	PLANTED	unit negative control: PSEL on the neighbouring window
+units	negctl_fsm_nosetup	FAIL	PLANTED	unit negative control: PENABLE with PSEL, no SETUP
+units	negctl_fabric_rdy	FAIL	PLANTED	unit negative control: PREADY from the neighbouring window

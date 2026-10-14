@@ -1,0 +1,2 @@
+# AHB2APB coverage waivers (bus plan B2). Every waiver needs evidence: literal, or PROVEN
+# (tb/ahb2apb/formal). Hand-written waivers go ABOVE the generated toggle section.

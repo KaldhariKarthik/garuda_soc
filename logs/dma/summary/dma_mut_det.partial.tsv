@@ -1,0 +1,3 @@
+# garuda-run 1 suite=dma_mut_det block=dma date=2026-10-12T07:10:57+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+mut_m19	FAIL	XFAIL:PLANTED	0	no	196	152	0	-	89	0	REPLACED	1	0.22	21			pass marker missing; 196 [FAIL] line(s); 152 assertion failure(s) | first: [4326000] %Error: dma_sva.sv:598: Assertion failed in tb_dma_env.dut.u_dma_sva.a_addr_hold_in_wait: [SVA-FAIL] a_addr_hold_in_wait: address 	logs/dma/raw/dma_mut_det/sim_mut_m19_s1.log

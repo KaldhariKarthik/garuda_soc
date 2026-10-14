@@ -1,0 +1,9 @@
+garuda-run 1  suite dma_mut.partial  block dma  2026-10-12T06:53:04+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    XFAIL:PLANTED           mut_m07  pass marker missing; 349 [FAIL] line(s); 343 assertion failure(s) | first: [46606000] %Error: dma_sva.sv:479: Assertion failed in tb_dma_env.dut.u_dma
+
+PASS    0
+FAIL    1
+BLOCKED 0
+total   1

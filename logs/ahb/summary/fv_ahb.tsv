@@ -1,0 +1,15 @@
+# garuda-fv 1 suite=fv_ahb block=ahb date=2026-10-13T23:56:25+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+ahb_bmc	bmc	BOUNDED(24)	OK	160	[62 asserts, 47 covers in model] 	logs/ahb/raw/fv_ahb/fv_ahb_bmc.log
+ahb_prove	prove	PROVEN	OK	9	[62 asserts, 47 covers in model] 	logs/ahb/raw/fv_ahb/fv_ahb_prove.log
+ahb_cover	cover	COVERED	OK	4	[62 asserts, 47 covers in model] 	logs/ahb/raw/fv_ahb/fv_ahb_cover.log
+ahb7_find	bmc	FAIL	XFAIL:AHB-7	0	[8 asserts, 47 covers in model] props: u_ahb_sva.g_resp[0].a_held_resp_okay, u_ahb_sva.g_resp[0].a_master_err_shape	logs/ahb/raw/fv_ahb/fv_ahb7_find.log
+mut_ahb1	bmc	FAIL	XFAIL:PLANTED	0	[1 asserts, 47 covers in model] props: u_ahb_sva.a_hwdata_data_phase	logs/ahb/raw/fv_ahb/fv_mut_ahb1.log
+mut_ahb2	bmc	FAIL	XFAIL:PLANTED	0	[12 asserts, 47 covers in model] props: u_ahb_sva.g_resp[1].a_rdata_value	logs/ahb/raw/fv_ahb/fv_mut_ahb2.log
+mut_ahb3	bmc	FAIL	XFAIL:PLANTED	0	[1 asserts, 47 covers in model] props: u_ahb_sva.a_burst_restart_nonseq	logs/ahb/raw/fv_ahb/fv_mut_ahb3.log
+mut_ahb4	bmc	FAIL	XFAIL:PLANTED	0	[5 asserts, 47 covers in model] props: u_ahb_sva.a_reset_state, u_ahb_sva.g_held[1].a_idle_not_gated, u_ahb_sva.g_held[2].a_idle_not_gated, u_ahb_sva.g_held[3].a_idle_not_gated	logs/ahb/raw/fv_ahb/fv_mut_ahb4.log
+mut_prio	bmc	FAIL	XFAIL:PLANTED	0	[1 asserts, 47 covers in model] props: u_ahb_sva.a_priority	logs/ahb/raw/fv_ahb/fv_mut_prio.log
+mut_decode	bmc	FAIL	XFAIL:PLANTED	0	[1 asserts, 47 covers in model] props: u_ahb_sva.a_decode	logs/ahb/raw/fv_ahb/fv_mut_decode.log
+mut_nofreeze	bmc	FAIL	XFAIL:PLANTED	0	[2 asserts, 47 covers in model] props: u_ahb_sva.a_grant_stable_in_data_phase	logs/ahb/raw/fv_ahb/fv_mut_nofreeze.log
+equiv_a10	prove	PROVEN	OK	12	[58 asserts, 47 covers in model] 	logs/ahb/raw/fv_ahb/fv_equiv_a10.log
+equiv_a16	prove	PROVEN	OK	8	[62 asserts, 47 covers in model] 	logs/ahb/raw/fv_ahb/fv_equiv_a16.log

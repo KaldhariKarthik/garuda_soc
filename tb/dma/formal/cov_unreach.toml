@@ -1,0 +1,48 @@
+# Formal evidence for the DMA coverage exclusions (Track A, DMA plan D7; H5): the
+# properties of tb/dma/formal/dma_cov_sva.sv and dma_sva's a_state_legal, proven on
+# dma_top under the D2 single-clock environment (tb/dma/formal/dma_fv_env.sv,
+# assumptions in ASSUMPTIONS.md; its proofs carry over to the two-clock design, H6).
+# The covers show each excluded point sits next to a reachable one (not vacuous).
+# A FAIL means the point is reachable: it gets a test, not a waiver.
+# Run: make -f flow/mk/track_a.mk fv_dma_cov
+[suite]
+block = "dma"
+name  = "fv_dma_cov"
+xfail = "tb/dma/run/xfail.tsv"
+
+[design]
+flist   = "rtl/dma/filelist.f"
+top     = "dma_top"
+extra   = ["tb/dma/formal/dma_fv_env.sv", "tb/dma/formal/dma_cov_sva.sv"]
+min_asserts = 5
+min_covers  = 4
+
+# the same model preparation as dma.toml dma_prove (no x bits for abc pdr); only the
+# coverage-evidence properties are kept
+[[task]]
+name    = "cov_prove"
+mode    = "prove"
+engine  = "abc pdr"
+script  = ["prep -top dma_top", "techmap", "opt -fast", "setundef -anyseq", "chformal -assert -remove t:$check n:u_dma_cov_sva.* n:u_dma_sva.*a_state_legal* %u %d"]
+timeout = 3600
+
+[[task]]
+name    = "cov_reach"
+mode    = "cover"
+depth   = 24
+engine  = "smtbmc yices"
+script  = ["chformal -assert -remove t:$check", "chformal -cover -remove t:$check n:u_dma_cov_sva.* %d"]
+timeout = 3600
+min_asserts = 0
+
+# negative control: an arbiter in which the LOWEST priority wins must break the
+# arbiter exclusions (channel 5 then wins contests); expected FAIL (xfail PLANTED)
+[[task]]
+name    = "mut_cov_prio_inv"
+mode    = "bmc"
+depth   = 16
+engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_arbiter.v" = "tb/dma/formal/mutants/dma_arbiter_mut_prio_inv.v" }
+script  = ["chformal -assert -remove t:$check n:u_dma_cov_sva.*a_cov_arb_c5_alone* %d"]
+timeout = 1800
+min_asserts = 1

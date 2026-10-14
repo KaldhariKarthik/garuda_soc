@@ -1,0 +1,31 @@
+# AHB2APB bridge formal with every divider in use (Track A bus plan B2; R-5, a_apb_div):
+# apb_div_fv.sv instantiates the bridge with APB_DIV /1 /2 /4 /8 across the twelve windows
+# and every window present; same environment and properties as apb.toml.
+# Run: make -f flow/mk/track_a.mk fv_apb
+[suite]
+block = "ahb2apb"
+name  = "fv_apb_div"
+xfail = "tb/ahb2apb/run/xfail.tsv"
+
+[design]
+flist   = "tb/ahb2apb/formal/filelist_apb_fv.f"
+top     = "apb_div_fv"
+extra   = ["tb/ahb2apb/formal/apb_fv_env.sv", "tb/ahb2apb/formal/apb_div_fv.sv"]
+min_asserts = 25
+min_covers  = 11
+
+[[task]]
+name    = "div_prove"
+mode    = "prove"
+engine  = "abc pdr"
+script  = ["prep -top apb_div_fv", "techmap", "opt -fast", "setundef -anyseq"]
+timeout = 3600
+
+[[task]]
+name    = "div_cover"
+mode    = "cover"
+depth   = 48
+engine  = "smtbmc yices"
+# c_reset_gap: the two resets release together here (FB-1); simulation test t_apb_reset_skew
+script  = ["chformal -cover -remove n:*c_reset_gap*"]
+timeout = 3600

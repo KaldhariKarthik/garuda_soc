@@ -4,3 +4,5 @@ rtl/dma/dma_arbiter.v
 rtl/dma/dma_engine.v
 rtl/dma/dma_apb_slave.v
 rtl/dma/dma_top.v
+// bound properties (Track A, 2026-10-12): bound to dma_top, skipped under SYNTHESIS
+rtl/dma/dma_sva.sv

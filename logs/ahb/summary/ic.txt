@@ -1,0 +1,11 @@
+garuda-run 1  suite ic  block ahb  2026-10-14T01:11:25+05:30
+design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      checker_selftest  
+PASS    OK                      ic                
+PASS    OK                      ic_wait           
+
+PASS    3
+FAIL    0
+BLOCKED 0
+total   3

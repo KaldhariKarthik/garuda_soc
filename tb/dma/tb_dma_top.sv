@@ -27,7 +27,13 @@
 module tb_dma_top;
     reg hclk = 0, pclk = 0, rst_n = 0;
     always #2 hclk = ~hclk;
-    always @(posedge hclk) pclk <= ~pclk;
+    // pclk = hclk/2 on shared edges (D-5), made in the same time step and region as
+    // hclk. Until 2026-10-12 it was a toggle flop on hclk (pclk <= ~pclk): the pclk
+    // edge then came one delta after the hclk flops had updated, so pclk-domain flops
+    // (dma_apb_slave's PRDATA) captured post-edge hclk values, which silicon never does
+    // (the SIM-1 race). Found by dma_sva a_read_data (TB-44). Same phase as before:
+    // pclk rises with hclk at t = 2 + 8k.
+    initial begin #2; forever begin pclk = ~pclk; #4; end end
 
     // ---- APB -------------------------------------------------------------------
     reg        psel = 0, penable = 0, pwrite = 0;
@@ -341,7 +347,13 @@ module tb_dma_top;
         wr(R(2, CR), crv(0, 2'd3, 0, 0, 2'd2, 0, 0), e);          // MODE = 3 (reserved)
         rd(R(2, CR), d); check(d[2:1] == 2'd1, "[N-6.1] MODE = 3 write leaves MODE unchanged");
         wr(12'h0C0, 32'h0, e); check(e, "PSLVERR on unmapped offset (channel 6)");
-        wr(R(1, STAT), 32'h0, e); check(e, "PSLVERR on a write to read-only STAT");
+        // AUD-13 (Karthik's plan, task 0.5): PSLVERR only for an offset that is not a
+        // register; a write to a read-only register is ignored. Until 2026-10-12 this
+        // bench expected PSLVERR on the STAT write.
+        rd(R(1, STAT), d1); wr(R(1, STAT), 32'hFFFF_FFFF, e); rd(R(1, STAT), d2);
+        check(!e && d2 == d1, "[AUD-13] a write to read-only STAT is ignored: no PSLVERR, STAT unchanged");
+        rd(12'h100, d1); wr(12'h100, 32'hFFFF_FFFF, e); rd(12'h100, d2);
+        check(!e && d2 == d1, "[AUD-13] a write to read-only GSTAT is ignored: no PSLVERR, GSTAT unchanged");
 
         // ====================================================================================
         // Added 2026-10-04. Expected values below come from GARUDA-DMA-SPEC-001, not the RTL.

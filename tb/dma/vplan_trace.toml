@@ -1,0 +1,67 @@
+# vPlan trace configuration for the DMA (tools/run/vplan_trace.py dma; DMA plan D10).
+# [alias]: vPlan NAMEs (planned in the 2026-10-05 plan) -> what was built, keyed by
+# element_id; every rename is recorded here, the vPlan CSV keeps its names.
+# [rule]: names that are a kind of check, not one property / bin / test.
+vplan = "tb/dma/GARUDA_DMA_vplan.csv"
+sva_files = ["rtl/dma/dma_sva.sv", "tb/dma/formal/dma_cov_sva.sv"]
+cov_files = ["tb/dma/env/dma_cov.sv"]
+cov_report = "logs/dma/summary/cov_dma.txt"
+formal_manifests = ["tb/dma/formal/dma.toml", "tb/dma/formal/dma_2clk.toml", "tb/dma/formal/cov_unreach.toml"]
+formal_summaries = ["logs/dma/summary/fv_dma.tsv", "logs/dma/summary/fv_dma_2clk.tsv", "logs/dma/summary/fv_dma_cov.tsv"]
+suite_summaries = ["logs/dma/summary/block.tsv", "logs/dma/summary/probe.tsv", "logs/dma/summary/regs.tsv",
+                   "logs/dma/summary/env.tsv", "logs/dma/summary/chip.tsv", "logs/dma/summary/dma_mut.tsv"]
+
+[alias]
+"DMA.F01.COV2" = ["cg_dma_cr.x_mode_size", "cg_dma_cr.x_inc"]
+"DMA.F03.COV2" = "cg_dma_cr3.x_s"
+"DMA.F06.CHK2" = "a_active_def"
+"DMA.F07.CHK1" = ["a_set_beats_clear_complete", "a_set_beats_clear_error"]
+"DMA.F07.COV2" = "cg_dma_iclr.x_bw"
+"DMA.F09.COV2" = "cg_dma_apb.x_rw"
+"DMA.F10.CHK1" = "a_strobe_first_cycle"
+"DMA.F10.CHK2" = "a_strobe_once"
+"DMA.F11.CHK2" = "a_reset_state"
+"DMA.F12.COV1" = "cg_dma_live.cp_kind"
+"DMA.F17.COV1" = ["cg_dma_lanes.x_byte_dir", "cg_dma_lanes.x_half_dir"]
+"DMA.F20.COV1" = "cg_dma_coll.x_ks"
+"DMA.F21.COV2" = "cg_dma_req.cp_req_width"
+"DMA.F23.COV1" = "cg_dma_req.cp_withdrawn"
+"DMA.F25.COV1" = "cg_dma_req.cp_req_vs_en"
+"DMA.F26.COV2" = "cg_dma_arb.x_nw"
+"DMA.F27.CHK2" = ["a_one_result", "a_takes_grant"]
+"DMA.F28.COV1" = "cg_dma_starve.x_ch_starved"
+"DMA.F29.CHK1" = ["a_errphase_read", "a_errphase_write"]
+"DMA.F29.COV3" = ["cg_dma_err.x_ph_mode", "cg_dma_err.x_ph_pos"]
+"DMA.F30.COV2" = "cg_dma_err.x_ph_ch"
+"DMA.F31.CHK1" = ["a_no_write_after_read_error", "a_freeze_on_error"]
+"DMA.F33.COV2" = "cg_dma_irq.x_all"
+"DMA.F35.COV1" = "cg_dma_coll.x_ks"
+"DMA.F39.TC1"  = "t_chip_dma_uart"
+"DMA.F42.CHK1" = "probe_dma9"
+"DMA.F42.COV2" = "c_restart_after_stop"
+"DMA.F43.COV2" = "cg_dma_r9.x_r9_side_mode"
+"DMA.F44.COV2" = "c_rearm_in_flight"
+"DMA.F45.COV1" = "cg_dma_live.cp_kind"
+"DMA.F47.CHK1" = "a_reset_state"
+"DMA.F47.COV2" = "cg_dma_reset.x_phase_other"
+"DMA.F48.COV2" = ["cg_dma_wait.x_dw", "cg_dma_err.x_ph_mode"]
+
+[rule."ral_*"]
+what  = "register tests from the RDL-generated package (tb/dma/tb_dma_regs.sv)"
+tests = ["tb_dma_regs", "negctl_size_reset"]
+[rule."sb_*"]
+what  = "reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv)"
+tests = ["env_smoke", "env_qual", "env_matrix", "env_edge", "env_coll", "env_rand", "negctl_sb_wdata", "negctl_sb_drop", "negctl_sb_stat", "negctl_beatchk_lane0"]
+[rule.ahb_checker]
+what  = "tb/ahb/ahb_lite_checker.v on M3, in the block bench and the environment"
+tests = ["tb_dma_top", "env_smoke", "env_rand"]
+[rule.dma_req_checker]
+what  = "tb/common/dma_req_checker.sv x6 in the environment; negative control: a held request"
+tests = ["env_req", "negctl_held_request"]
+[rule."conn_*"]
+what  = "connectivity: Karthik's task 7.2 (formal, out of Track A); exercised end to end by the chip programs"
+tests = ["t_chip_dma_traffic", "t_chip_dma_uart"]
+[rule.hal_cdc]
+what  = "static CDC check: Karthik's flow/2_static (HAL), waived boundary"
+[rule.review]
+what  = "review item: F41 waits for ruling D5 ([N-9.3]), F49 for the DMA-12 fix (D6)"

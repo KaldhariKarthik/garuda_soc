@@ -1,0 +1,9 @@
+# garuda-run 1 suite=units block=ahb2apb date=2026-10-14T01:22:31+05:30 design=e43672fbc7c55a12b889efe114a952ac5fe753cb rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+unit_fsm	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.04	21				logs/ahb2apb/raw/units/sim_unit_fsm_s1.log
+unit_fabric	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.04	21				logs/ahb2apb/raw/units/sim_unit_fabric_s1.log
+negctl_fsm_to15	FAIL	XFAIL:PLANTED	0	no	20	0	0	-	0	0	REPLACED	1	0.04	21			pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [R-5] ACCESS held: cycle 15 of extension 1, sample 15 (t=212000)	logs/ahb2apb/raw/units/sim_negctl_fsm_to15_s1.log
+negctl_fsm_to17	FAIL	XFAIL:PLANTED	0	no	20	0	0	-	0	0	REPLACED	1	0.04	21			pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.15] ACCESS ended (timeout after 16 sample(s); window 9 ext 1 ready_at 99; fsm state 2 div 0 to 16) (t=216000)	logs/ahb2apb/raw/units/sim_negctl_fsm_to17_s1.log
+negctl_fsm_win	FAIL	XFAIL:PLANTED	0	no	20	0	0	-	0	0	REPLACED	1	0.04	21			pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] SETUP: PSEL 020 for window 4, PENABLE 0 (t=16000)	logs/ahb2apb/raw/units/sim_negctl_fsm_win_s1.log
+negctl_fsm_nosetup	FAIL	XFAIL:PLANTED	0	no	20	0	0	-	0	0	REPLACED	1	0.02	21			pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] SETUP: PSEL 010 for window 4, PENABLE 1 (t=16000)	logs/ahb2apb/raw/units/sim_negctl_fsm_nosetup_s1.log
+negctl_fabric_rdy	FAIL	XFAIL:PLANTED	0	no	20	0	0	-	0	0	REPLACED	1	0.04	21			pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [a_resp_from_active_window] window 9 return (t=9000)	logs/ahb2apb/raw/units/sim_negctl_fabric_rdy_s1.log

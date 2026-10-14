@@ -1,0 +1,152 @@
+# AHB interconnect formal (Track A bus plan B1 phase A2; Karthik's plan 6A.2 "R, mostly
+# formal: arbitration, no starvation, bursts"). The bound properties of
+# rtl/ahb/ahb_interconnect_sva.sv on ahb_interconnect with four free AHB-Lite masters and
+# four free slaves (tb/ahb/formal/ahb_fv_env.sv, assumptions FA-1..FA-4 in ASSUMPTIONS.md).
+# The proof tasks run under FA-4 (a master cancels its next transfer after its own ERROR
+# first cycle), the condition under which AHB-7 cannot happen; ahb7_find runs without it
+# and must find AHB-7 (xfail).
+# Run: make -f flow/mk/track_a.mk fv_ahb
+[suite]
+block = "ahb"
+name  = "fv_ahb"
+xfail = "tb/ahb/run/xfail.tsv"
+
+[design]
+flist   = "rtl/ahb/filelist.f"
+top     = "ahb_interconnect"
+extra   = ["tb/ahb/formal/ahb_fv_env.sv"]
+min_asserts = 60
+min_covers  = 40
+
+[[task]]
+name    = "ahb_bmc"
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+defines = ["AHB_FV_CANCEL_ON_ERROR"]
+timeout = 3600
+
+[[task]]
+name    = "ahb_prove"
+mode    = "prove"
+engine  = "abc pdr"
+defines = ["AHB_FV_CANCEL_ON_ERROR"]
+timeout = 3600
+
+[[task]]
+name    = "ahb_cover"
+mode    = "cover"
+depth   = 16
+engine  = "smtbmc yices"
+timeout = 3600
+
+# the solver finds AHB-7 by itself: free masters (no FA-4), only its detectors kept
+[[task]]
+name    = "ahb7_find"
+mode    = "bmc"
+depth   = 12
+engine  = "smtbmc yices"
+script  = ["chformal -assert -remove t:$check n:u_ahb_sva.*a_held_resp_okay* n:u_ahb_sva.*a_master_err_shape* %u %d"]
+timeout = 3600
+min_asserts = 8
+
+# Negative controls (bus plan B1 A2): each planted defect must FAIL; only its named
+# properties are kept (chformal), so the FAIL can only come from them. Same FA-4
+# environment as the proof.
+
+[[task]]
+name    = "mut_ahb1"
+min_asserts = 1
+mode    = "bmc"
+depth   = 12
+engine  = "smtbmc yices"
+defines = ["AHB_FV_CANCEL_ON_ERROR"]
+replace = { "rtl/ahb/ahb_master_mux.v" = "tb/ahb/formal/mutants/ahb_master_mux_mut_ahb1.v" }
+script  = ["chformal -assert -remove t:$check n:u_ahb_sva.*a_hwdata_data_phase* %d"]
+timeout = 3600
+
+[[task]]
+name    = "mut_ahb2"
+min_asserts = 12
+mode    = "bmc"
+depth   = 12
+engine  = "smtbmc yices"
+defines = ["AHB_FV_CANCEL_ON_ERROR"]
+replace = { "rtl/ahb/ahb_master_port.v" = "tb/ahb/formal/mutants/ahb_master_port_mut_ahb2.v" }
+script  = ["chformal -assert -remove t:$check n:u_ahb_sva.*a_complete_has_response* n:u_ahb_sva.*a_rdata_value* n:u_ahb_sva.*a_resp_value* %u %u %d"]
+timeout = 3600
+
+[[task]]
+name    = "mut_ahb3"
+min_asserts = 1
+mode    = "bmc"
+depth   = 12
+engine  = "smtbmc yices"
+defines = ["AHB_FV_CANCEL_ON_ERROR"]
+replace = { "rtl/ahb/ahb_arbiter.v" = "tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v" }
+script  = ["chformal -assert -remove t:$check n:u_ahb_sva.*a_burst_restart_nonseq* %d"]
+timeout = 3600
+
+[[task]]
+name    = "mut_ahb4"
+min_asserts = 5
+mode    = "bmc"
+depth   = 12
+engine  = "smtbmc yices"
+defines = ["AHB_FV_CANCEL_ON_ERROR"]
+replace = { "rtl/ahb/ahb_master_port.v" = "tb/ahb/formal/mutants/ahb_master_port_mut_ahb4.v" }
+script  = ["chformal -assert -remove t:$check n:u_ahb_sva.*a_idle_not_gated* n:u_ahb_sva.*a_reset_state* %u %d"]
+timeout = 3600
+
+[[task]]
+name    = "mut_prio"
+min_asserts = 1
+mode    = "bmc"
+depth   = 12
+engine  = "smtbmc yices"
+defines = ["AHB_FV_CANCEL_ON_ERROR"]
+replace = { "rtl/ahb/ahb_arbiter.v" = "tb/ahb/formal/mutants/ahb_arbiter_mut_prio.v" }
+script  = ["chformal -assert -remove t:$check n:u_ahb_sva.*a_priority* %d"]
+timeout = 3600
+
+[[task]]
+name    = "mut_decode"
+min_asserts = 1
+mode    = "bmc"
+depth   = 12
+engine  = "smtbmc yices"
+defines = ["AHB_FV_CANCEL_ON_ERROR"]
+replace = { "rtl/ahb/ahb_decoder.v" = "tb/ahb/formal/mutants/ahb_decoder_mut_decode.v" }
+script  = ["chformal -assert -remove t:$check n:u_ahb_sva.*a_decode* %d"]
+timeout = 3600
+
+[[task]]
+name    = "mut_nofreeze"
+min_asserts = 2
+mode    = "bmc"
+depth   = 12
+engine  = "smtbmc yices"
+defines = ["AHB_FV_CANCEL_ON_ERROR"]
+replace = { "rtl/ahb/ahb_arbiter.v" = "tb/ahb/formal/mutants/ahb_arbiter_mut_nofreeze.v" }
+script  = ["chformal -assert -remove t:$check n:u_ahb_sva.*a_grant_stable_in_data_phase* n:u_ahb_sva.*a_slave_addr_stable* %u %d"]
+timeout = 3600
+
+# Equivalence of the two planted defects that survive the simulation run (bus plan B1 A9):
+# each must still PROVE every property (expected PROVEN; argument in tools/gen/gen_ahb_mutants.py)
+[[task]]
+name    = "equiv_a10"
+min_asserts = 56
+mode    = "prove"
+engine  = "abc pdr"
+defines = ["AHB_FV_CANCEL_ON_ERROR"]
+replace = { "rtl/ahb/ahb_arbiter.v" = "tb/ahb/mut/ahb_arbiter_mut_a10.v" }
+script  = ["chformal -assert -remove n:u_ahb_sva.*a_hold_not_owner*"]
+timeout = 3600
+
+[[task]]
+name    = "equiv_a16"
+mode    = "prove"
+engine  = "abc pdr"
+defines = ["AHB_FV_CANCEL_ON_ERROR"]
+replace = { "rtl/ahb/ahb_master_port.v" = "tb/ahb/mut/ahb_master_port_mut_a16.v" }
+timeout = 3600

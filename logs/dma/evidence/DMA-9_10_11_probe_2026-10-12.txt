@@ -1,0 +1,49 @@
+DMA-9 / DMA-10 / DMA-11 / DMA-13 reproduced on today's RTL by tb/dma/tb_dma_probe.sv (the 2026-10-05 probe, ported and made self-checking), dma_sva bound
+date      : 2026-10-12T00:29:59+05:30
+tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+design    : b90b481d8f91 + working tree (a/p0-infra): rtl/dma unchanged except AUD-13 (dma_apb_slave PSLVERR)
+run       : source tools/run/env.sh && python3.12 tools/run/garuda_run.py suite tb/dma/run/probe.toml
+
+== runner rows ==
+test	verdict	class
+probe_dma9	FAIL	XFAIL:DMA-9
+probe_dma10	FAIL	XFAIL:DMA-10
+probe_r9_sar	PASS	OK
+probe_dma11a	FAIL	XFAIL:DMA-11
+probe_dma11b	FAIL	XFAIL:DMA-11
+probe_ack	PASS	OK
+
+== +CASE=dma9 ==
+[PASS] [F20] EN cleared mid-transfer: stopped at a beat boundary after 4 beats, REMAINING 4, no COMPLETE, no ERROR
+[FAIL] [DMA-9] [F20] EN set again continues: 4 + 8 beats = 12 (CNT 8), last write 2000102c (buffer ends at 2000101C)
+
+== +CASE=dma10 ==
+[PASS] [R-9] [N-7.20] DAR in ISRAM: ERROR, ERRPHASE = write, not COMPLETE, EN clear
+[PASS] [R-9] no write, no ack, the peripheral is still requesting
+[FAIL] [DMA-10] [F43] a refused beat touches nothing: 1 AHB read(s) issued before the refusal (40002000)
+   property fired:   1 x a_no_read_before_refusal
+
+== +CASE=r9_sar ==
+[PASS] [R-9] [F32] SAR in Boot ROM: ERROR, ERRPHASE = read, no AHB transfer (0 reads, 0 writes)
+
+== +CASE=dma11a ==
+[PASS] [F44] zero-length re-arm while the old beat is still in its read: COMPLETE, REMAINING 0
+[FAIL] [DMA-11] [F44] [R-6] after the old beat landed: COMPLETE with REMAINING 65535 (0xffff), must stay 0
+   property fired:   1 x a_beat_belongs_to_arm[2]
+   property fired:   1 x a_no_rem_underflow[2]
+   property fired:  31 x a_remaining_complete_consistent[2]
+
+== +CASE=dma11b ==
+[PASS] [F44] the new transfer completes with REMAINING 0
+[FAIL] [DMA-11] [F44] the new transfer copies its own words: dst[0] = a0000000 dst[1] = a0000041, want a0000040 a0000041 (old src[0] = a0000000)
+   property fired:   1 x a_beat_belongs_to_arm[2]
+
+== +CASE=ack ==
+[PASS] [F22] [D-16] 24 ack pulses (want 24): 0 not 2 hclk wide, 0 not seen by exactly one pclk edge
+
+== +CASE=unaligned (added 2026-10-12 for DMA-13) ==
+[FAIL] [DMA-13] [F17] no misaligned transfer on the bus: 4 address phase(s) not aligned to HSIZE
+   property fired: a_haddr_aligned: HADDR 20000002 is not aligned to HSIZE 2
+   property fired: a_haddr_aligned: HADDR 20000006 is not aligned to HSIZE 2
+   property fired: a_haddr_aligned: HADDR 20007001 is not aligned to HSIZE 1
+   property fired: a_haddr_aligned: HADDR 20007003 is not aligned to HSIZE 1
