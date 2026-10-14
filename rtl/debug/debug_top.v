@@ -24,6 +24,8 @@ module debug_top (
     input  wire        dm_rst_n_i,        // reset_ctrl.dm_rst_n_o (excludes ndmreset)
     output wire        ndmreset_o,
     output wire        hartreset_o,
+    output wire        halt_req_o,        // RDC-1: to the core (drain before the reset)
+    input  wire        halt_safe_i,       // RDC-1: from the core (no bus transfer in flight)
 
     input  wire [47:0] dsu_acc0_i,
     input  wire [47:0] dsu_acc1_i,
@@ -75,6 +77,7 @@ module debug_top (
         .req_i(req_pulse), .addr_i(req_addr), .wdata_i(req_data), .op_i(req_op),
         .rdata_o(dm_rdata), .done_o(dm_done),
         .ndmreset_o(ndmreset_o), .hartreset_o(hartreset_o),
+        .halt_req_o(halt_req_o), .halt_safe_i(halt_safe_i),
         .dsu_acc0_i(dsu_acc0_i), .dsu_acc1_i(dsu_acc1_i), .dsu_acc2_i(dsu_acc2_i),
         .dsu_ovf_i(dsu_ovf_i),
         .sba_start_o(sba_start), .sba_write_o(sba_write), .sba_addr_o(sba_addr),

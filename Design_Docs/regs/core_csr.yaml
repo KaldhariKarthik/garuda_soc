@@ -1,0 +1,142 @@
+# =============================================================================
+# GARUDA core CSR contract (DN-CSR, Track A plan W2), one entry per address.
+# Single source for: tools/csr_map.py (which addresses must exist / must trap,
+# and every difference from Spike with its reason), the co-simulation CSR
+# table (E3), riscv-formal [csrs] (E4), riscv-dv implemented_csr (E6), the
+# cg_csr coverage bins (E8) and the CORE spec 6.1 table.
+#
+# kind:   implemented  storage or a defined read value; never traps on read
+#         read-zero    exists (privileged 1.12) but reads 0; writes ignored
+#                      unless access is RO, in which case a write traps
+#         absent       not implemented: every access traps (illegal instruction)
+# access: RW, WARL, RO (RO also by address: 0xC00-0xFFF are read-only)
+# spike:  same | garuda-only | spike-only -- whether Spike agrees the address
+#         exists; anything but `same` carries the reason it differs.
+# Addresses not listed are absent on both and trap.
+# =============================================================================
+csrs:
+  - {addr: 0x300, name: mstatus, kind: implemented, access: WARL, reset: "0x00001800", spike: same, desc: "MIE(3), MPIE(7) storage; MPP reads 11 (M only); all else 0"}
+  - {addr: 0x301, name: misa, kind: implemented, access: WARL, reset: "0x40001100", spike: same, desc: "RV32 I+M; writes ignored (ERRATUM T-2). DN-ISA ruling pending: M vs Zmmul"}
+  - {addr: 0x304, name: mie, kind: implemented, access: WARL, reset: "0x00000000", spike: same, desc: "MTIE(7) only"}
+  - {addr: 0x305, name: mtvec, kind: implemented, access: WARL, reset: "0x00000003", spike: same, desc: "BASE[31:2] storage; MODE reads 3 (CLIC)"}
+  - {addr: 0x310, name: mstatush, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no MBE/SBE: reads 0, writes ignored (C-16)"}
+  - {addr: 0x320, name: mcountinhibit, kind: absent, access: -, reset: "-", spike: spike-only, reason: "mcountinhibit is optional (privileged 1.12, 3.1.12)", desc: "not implemented: an access traps"}
+  - {addr: 0x323, name: mhpmevent3, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x324, name: mhpmevent4, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x325, name: mhpmevent5, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x326, name: mhpmevent6, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x327, name: mhpmevent7, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x328, name: mhpmevent8, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x329, name: mhpmevent9, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x32A, name: mhpmevent10, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x32B, name: mhpmevent11, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x32C, name: mhpmevent12, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x32D, name: mhpmevent13, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x32E, name: mhpmevent14, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x32F, name: mhpmevent15, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x330, name: mhpmevent16, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x331, name: mhpmevent17, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x332, name: mhpmevent18, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x333, name: mhpmevent19, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x334, name: mhpmevent20, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x335, name: mhpmevent21, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x336, name: mhpmevent22, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x337, name: mhpmevent23, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x338, name: mhpmevent24, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x339, name: mhpmevent25, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x33A, name: mhpmevent26, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x33B, name: mhpmevent27, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x33C, name: mhpmevent28, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x33D, name: mhpmevent29, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x33E, name: mhpmevent30, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x33F, name: mhpmevent31, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "no hardware performance events: reads 0, writes ignored (C-16)"}
+  - {addr: 0x340, name: mscratch, kind: implemented, access: RW, reset: "0x00000000", spike: same, desc: "32-bit storage"}
+  - {addr: 0x341, name: mepc, kind: implemented, access: WARL, reset: "0x00000000", spike: same, desc: "bits [1:0] read 0 (ERRATUM T-15)"}
+  - {addr: 0x342, name: mcause, kind: implemented, access: RW, reset: "0x00000000", spike: same, desc: "32-bit storage; T-12 places mpil in [23:16] (W3)"}
+  - {addr: 0x343, name: mtval, kind: implemented, access: RW, reset: "0x00000000", spike: same, desc: "32-bit storage"}
+  - {addr: 0x344, name: mip, kind: implemented, access: RO, reset: "0x00000000", spike: same, desc: "MTIP(7) only, read-only"}
+  - {addr: 0x345, name: mnxti, kind: implemented, access: RO, reset: "0x00000000", spike: garuda-only, reason: "CLIC register (CORE 6.1); Spike has no CLIC", desc: "CLIC: reads 0, not implemented (D-15)"}
+  - {addr: 0x346, name: mintstatus, kind: implemented, access: RO, reset: "0x00000000", spike: garuda-only, reason: "CLIC register (CORE 6.1); Spike has no CLIC", desc: "mil[7:0] (and mpil[15:8] until T-12)"}
+  - {addr: 0x347, name: mintthresh, kind: implemented, access: WARL, reset: "0x00000000", spike: garuda-only, reason: "CLIC register (CORE 6.1); Spike has no CLIC", desc: "8-bit threshold"}
+  - {addr: 0x7A0, name: tselect, kind: absent, access: -, reset: "-", spike: spike-only, reason: "trigger registers are optional; GARUDA has no trigger module", desc: "no trigger module: an access traps"}
+  - {addr: 0x7A1, name: tdata1, kind: absent, access: -, reset: "-", spike: spike-only, reason: "trigger registers are optional; GARUDA has no trigger module", desc: "no trigger module: an access traps"}
+  - {addr: 0x7A2, name: tdata2, kind: absent, access: -, reset: "-", spike: spike-only, reason: "trigger registers are optional; GARUDA has no trigger module", desc: "no trigger module: an access traps"}
+  - {addr: 0x7A3, name: tdata3, kind: absent, access: -, reset: "-", spike: spike-only, reason: "trigger registers are optional; GARUDA has no trigger module", desc: "no trigger module: an access traps"}
+  - {addr: 0x7A4, name: tinfo, kind: absent, access: -, reset: "-", spike: spike-only, reason: "trigger registers are optional; GARUDA has no trigger module", desc: "no trigger module: an access traps"}
+  - {addr: 0x7A8, name: mcontext, kind: absent, access: -, reset: "-", spike: spike-only, reason: "trigger registers are optional; GARUDA has no trigger module", desc: "no trigger module: an access traps"}
+  - {addr: 0x7C0, name: mgarudactl, kind: implemented, access: WARL, reset: "0x00000000", spike: garuda-only, reason: "GARUDA feature-disable register (CORE-4, custom M-mode RW)", desc: "[0] BP_DIS [1] PF_DIS [2] PREEMPT_DIS [3] CG_DIS; bits [31:4] read 0"}
+  - {addr: 0xB00, name: mcycle, kind: implemented, access: RW, reset: "0x00000000", spike: same, desc: "64-bit cycle counter, low half"}
+  - {addr: 0xB02, name: minstret, kind: implemented, access: RW, reset: "0x00000000", spike: same, desc: "64-bit retired-instruction counter, low half"}
+  - {addr: 0xB03, name: mhpmcounter3, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB04, name: mhpmcounter4, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB05, name: mhpmcounter5, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB06, name: mhpmcounter6, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB07, name: mhpmcounter7, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB08, name: mhpmcounter8, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB09, name: mhpmcounter9, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB0A, name: mhpmcounter10, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB0B, name: mhpmcounter11, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB0C, name: mhpmcounter12, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB0D, name: mhpmcounter13, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB0E, name: mhpmcounter14, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB0F, name: mhpmcounter15, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB10, name: mhpmcounter16, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB11, name: mhpmcounter17, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB12, name: mhpmcounter18, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB13, name: mhpmcounter19, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB14, name: mhpmcounter20, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB15, name: mhpmcounter21, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB16, name: mhpmcounter22, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB17, name: mhpmcounter23, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB18, name: mhpmcounter24, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB19, name: mhpmcounter25, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB1A, name: mhpmcounter26, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB1B, name: mhpmcounter27, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB1C, name: mhpmcounter28, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB1D, name: mhpmcounter29, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB1E, name: mhpmcounter30, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB1F, name: mhpmcounter31, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter (C-16)"}
+  - {addr: 0xB80, name: mcycleh, kind: implemented, access: RW, reset: "0x00000000", spike: same, desc: "high half"}
+  - {addr: 0xB82, name: minstreth, kind: implemented, access: RW, reset: "0x00000000", spike: same, desc: "high half"}
+  - {addr: 0xB83, name: mhpmcounter3h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB84, name: mhpmcounter4h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB85, name: mhpmcounter5h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB86, name: mhpmcounter6h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB87, name: mhpmcounter7h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB88, name: mhpmcounter8h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB89, name: mhpmcounter9h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB8A, name: mhpmcounter10h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB8B, name: mhpmcounter11h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB8C, name: mhpmcounter12h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB8D, name: mhpmcounter13h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB8E, name: mhpmcounter14h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB8F, name: mhpmcounter15h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB90, name: mhpmcounter16h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB91, name: mhpmcounter17h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB92, name: mhpmcounter18h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB93, name: mhpmcounter19h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB94, name: mhpmcounter20h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB95, name: mhpmcounter21h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB96, name: mhpmcounter22h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB97, name: mhpmcounter23h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB98, name: mhpmcounter24h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB99, name: mhpmcounter25h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB9A, name: mhpmcounter26h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB9B, name: mhpmcounter27h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB9C, name: mhpmcounter28h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB9D, name: mhpmcounter29h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB9E, name: mhpmcounter30h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xB9F, name: mhpmcounter31h, kind: read-zero, access: WARL, reset: "0x00000000", spike: same, desc: "hardwired zero counter, high half (C-16)"}
+  - {addr: 0xBC0, name: dsu_ovf, kind: implemented, access: RO, reset: "0x00000000", spike: garuda-only, reason: "DSU overflow flag, a GARUDA custom register (CORE 6.1)", desc: "DSU sticky overflow (D-18), cleared by a read"}
+  - {addr: 0xC00, name: cycle, kind: implemented, access: RO, reset: "0x00000000", spike: same, desc: "Zicntr alias of mcycle (ERRATUM C-4)"}
+  - {addr: 0xC01, name: time, kind: absent, access: -, reset: "-", spike: spike-only, reason: "GARUDA's timer is memory mapped (block 11); a read of time traps, which the privileged spec allows", desc: "the timer is memory mapped (block 11); a read traps"}
+  - {addr: 0xC02, name: instret, kind: implemented, access: RO, reset: "0x00000000", spike: same, desc: "Zicntr alias of minstret (ERRATUM C-4)"}
+  - {addr: 0xC80, name: cycleh, kind: implemented, access: RO, reset: "0x00000000", spike: same, desc: "Zicntr alias"}
+  - {addr: 0xC81, name: timeh, kind: absent, access: -, reset: "-", spike: spike-only, reason: "GARUDA's timer is memory mapped (block 11); a read of time traps, which the privileged spec allows", desc: "see time"}
+  - {addr: 0xC82, name: instreth, kind: implemented, access: RO, reset: "0x00000000", spike: same, desc: "Zicntr alias"}
+  - {addr: 0xF11, name: mvendorid, kind: implemented, access: RO, reset: "0x00000000", spike: same, desc: "non-commercial"}
+  - {addr: 0xF12, name: marchid, kind: implemented, access: RO, reset: "0x00000000", spike: same, desc: "not registered"}
+  - {addr: 0xF13, name: mimpid, kind: implemented, access: RO, reset: "0x00000110", spike: same, desc: "Rev 1.1"}
+  - {addr: 0xF14, name: mhartid, kind: implemented, access: RO, reset: "0x00000000", spike: same, desc: "single hart"}
+  - {addr: 0xF15, name: mconfigptr, kind: read-zero, access: RO, reset: "0x00000000", spike: same, desc: "no configuration structure: reads 0; a write traps (read-only by address) (C-16)"}
+  - {addr: 0xFB1, name: mintstatus_std, kind: implemented, access: RO, reset: "0x00000000", spike: garuda-only, reason: "CLIC register (CORE 6.1); Spike has no CLIC", desc: "CLIC standard address of mintstatus (D-15); layout ruling R3 pending"}

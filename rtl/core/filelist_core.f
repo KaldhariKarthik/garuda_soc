@@ -43,9 +43,14 @@ rtl/core/pipe_ctrl.v
 // the rest of this filelist is Verilog-2001.
 -sv
 rtl/core/pipe_ctrl_sva.sv
+rtl/core/trap_ctrl_sva.sv
+rtl/core/csr_file_sva.sv
+rtl/core/core_ctl_sva.sv
+rtl/core/core_vplan_sva.sv
 rtl/core/core_clk_gate.v
 
 // core top
+rtl/core/garuda_rvfi.v
 rtl/core/garuda_core_top.v
 
 // DSU: stub for standalone core elaborate (swap for rtl/dsu/dsu_top.v in the SoC — never both)

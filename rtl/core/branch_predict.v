@@ -25,6 +25,10 @@ module branch_predict (
     input  wire         branch_i,   // ctrl.branch from Decode/Control
     input  wire         jal_i,      // ctrl.jal from Decode/Control
     input  wire         fencei_i,   // FENCE.I: redirect to pc+4 to flush prefetch
+    // ERRATUM CORE-4 (pre-M0 item C, 2026-10-11): mgarudactl (CSR 0x7C0) lets
+    // firmware turn this feature off if it is found broken in silicon. Timing only:
+    // architectural results are the same with the bit set (sw/tests/t_core_ctl.S).
+    input  wire         bp_dis_i,   // mgarudactl.BP_DIS: predict every branch not-taken
 
     output wire         predict_taken_o,
     output wire         id_redirect_valid_o,
@@ -39,7 +43,7 @@ module branch_predict (
 
     // Backward branch (negative B-immediate) predicted taken;
     // forward branch predicted not-taken.
-    assign predict_taken_o = branch_i & imm_b_i[31];
+    assign predict_taken_o = branch_i & imm_b_i[31] & ~bp_dis_i;   // CORE-4: BP_DIS
 
     // ERRATUM C-3: FENCE.I redirects to the NEXT instruction. The redirect is
     // what does the work - garuda_prefetch_buffer drops its entire contents on

@@ -38,6 +38,17 @@ module garuda_core_top #(
     input  wire        clk_i,           // hclk, ungated
     input  wire        core_rst_n_i,    // from reset_ctrl
     input  wire        hartreset_n_i,   // from the Debug Module (core only)
+    // ERRATUM RDC-1 (reset-domain review crossing 5; fixed 2026-10-11): a debugger
+    // halt (= hartreset, ADR-0012) used to reset the core at any cycle, also in the
+    // waited data phase of a store, on a bus that is NOT reset: the store's
+    // HWDATA changed under the slave and a presented address was withdrawn.
+    // Now the Debug Module first raises halt_req_i: the core starts no new
+    // fetch, the instructions already fetched drain (a few, bounded), and
+    // halt_safe_o reports that neither port presents an address or owns a data
+    // phase. Only then (or after a bounded timeout, flagged sticky) does the
+    // Debug Module assert hartreset. Test: tb/core/tb_core_halt.sv.
+    input  wire        halt_req_i,      // from the Debug Module: drain, a reset follows
+    output wire        halt_safe_o,     // to the Debug Module: a reset now breaks no transfer
 
     // ---- I-port AHB-Lite master ----
     output wire [31:0] i_haddr_o,
@@ -77,6 +88,31 @@ module garuda_core_top #(
     output wire [47:0] dbg_acc_2_o,
     output wire        dsu_ovf_o,       // sticky DSU overflow (read by the DM)
     output wire        core_sleep_o     // clock gated (observability)
+`ifdef GARUDA_RVFI
+    // RISC-V Formal Interface (plan 5.1): verification builds only
+    ,
+    output wire        rvfi_valid,
+    output wire [63:0] rvfi_order,
+    output wire [31:0] rvfi_insn,
+    output wire        rvfi_trap,
+    output wire        rvfi_halt,
+    output wire        rvfi_intr,
+    output wire [1:0]  rvfi_mode,
+    output wire [1:0]  rvfi_ixl,
+    output wire [4:0]  rvfi_rs1_addr,
+    output wire [4:0]  rvfi_rs2_addr,
+    output wire [31:0] rvfi_rs1_rdata,
+    output wire [31:0] rvfi_rs2_rdata,
+    output wire [4:0]  rvfi_rd_addr,
+    output wire [31:0] rvfi_rd_wdata,
+    output wire [31:0] rvfi_pc_rdata,
+    output wire [31:0] rvfi_pc_wdata,
+    output wire [31:0] rvfi_mem_addr,
+    output wire [3:0]  rvfi_mem_rmask,
+    output wire [3:0]  rvfi_mem_wmask,
+    output wire [31:0] rvfi_mem_rdata,
+    output wire [31:0] rvfi_mem_wdata
+`endif
 );
     // =========================================================================
     // reset and clock
@@ -86,6 +122,7 @@ module garuda_core_top #(
     // apart from simultaneous opposite transitions, which cannot occur (one is
     // a stretched system reset, the other a debugger-held level).
     wire rst_n_i = core_rst_n_i & hartreset_n_i;
+    wire [3:0] csr_ctl;                  // CORE-4: mgarudactl (BP_DIS, PF_DIS, PREEMPT_DIS, CG_DIS)
     wire gclk;
     wire quiescent;
 
@@ -151,7 +188,8 @@ module garuda_core_top #(
     // Root clock gate (R11). Everything below this point is clocked by gclk.
     // =========================================================================
     core_clk_gate u_cg (
-        .clk_i(clk_i), .en_i(~quiescent | (CLK_GATE == 0)), .test_en_i(1'b0), .gclk_o(gclk)
+        .clk_i(clk_i), .en_i(~quiescent | (CLK_GATE == 0) | csr_ctl[3]),   // CORE-4: CG_DIS
+        .test_en_i(1'b0), .gclk_o(gclk)
     );
     assign core_sleep_o = quiescent;
 
@@ -177,6 +215,9 @@ module garuda_core_top #(
     // a load's register write not yet done, for the whole sleep.
     wire bus_idle = ~i_htrans_o[1] & ~d_htrans_o[1] & ~i_dph_q & ~d_dph_q &
                     ~em_valid & ~mw_retire & ~mw_reg_write;
+    // RDC-1: the port part of bus_idle -- no address presented, no data phase
+    // owned, on either port. A hart reset in such a cycle breaks no transfer.
+    assign halt_safe_o = ~i_htrans_o[1] & ~d_htrans_o[1] & ~i_dph_q & ~d_dph_q;
 
     // =========================================================================
     // IF stage
@@ -187,7 +228,9 @@ module garuda_core_top #(
         .i_hburst_o(i_hburst_o), .i_hprot_o(i_hprot_o), .i_hwrite_o(i_hwrite_o), .i_hwdata_o(i_hwdata_o),
         .i_hrdata_i(i_hrdata_i), .i_hready_i(i_hready_i), .i_hresp_i(i_hresp_i),
         .instr_o(if_instr), .instr_pc_o(if_pc), .instr_valid_o(if_valid), .instr_fault_o(if_fault),
-        .stall_i(pc_if_stall), .redirect_i(pc_if_redir), .redirect_pc_i(pc_if_redir_pc)
+        .stall_i(pc_if_stall), .redirect_i(pc_if_redir), .redirect_pc_i(pc_if_redir_pc),
+        .fetch_stop_i(halt_req_i),                          // RDC-1
+        .pf_dis_i(csr_ctl[1])                               // CORE-4: PF_DIS
     );
     if_id u_ifid (
         .clk_i(gclk), .rst_n_i(rst_n_i), .stall_i(pc_ifid_s), .flush_i(pc_ifid_f),
@@ -213,7 +256,8 @@ module garuda_core_top #(
         .instr_o(id_instr), .fault_o(id_fault),
         .load_use_stall_o(id_load_use),
         .id_redirect_valid_o(id_redir_v), .id_redirect_target_o(id_redir_t),
-        .predict_taken_o(id_predict_taken), .valid_o(id_valid)
+        .predict_taken_o(id_predict_taken), .valid_o(id_valid),
+        .bp_dis_i(csr_ctl[0])                               // CORE-4: BP_DIS
     );
     id_ex u_idex (
         .clk_i(gclk), .rst_n_i(rst_n_i), .stall_i(pc_idex_s), .flush_i(pc_idex_f),
@@ -328,12 +372,14 @@ module garuda_core_top #(
         .mtip_i(mtip),
         .mstatus_mie_o(csr_mstatus_mie), .mtvec_o(csr_mtvec),
         .mepc_o(csr_mepc), .mintthresh_o(csr_mintthresh), .mintstatus_mil_o(csr_mil),
-        .mti_pending_o(csr_mti_pending)
+        .mti_pending_o(csr_mti_pending),
+        .mgarudactl_o(csr_ctl)                              // CORE-4
     );
     clic_ctrl #(.ID_W(5)) u_clic (
         .clic_irq_valid_i(clic_irq_valid_i), .clic_irq_id_i(clic_irq_id_i),
         .clic_irq_level_i(clic_irq_level_i),
         .mstatus_mie_i(csr_mstatus_mie), .mintthresh_i(csr_mintthresh), .mintstatus_mil_i(csr_mil),
+        .preempt_dis_i(csr_ctl[2]),                         // CORE-4: PREEMPT_DIS
         .mtvec_i(csr_mtvec),
         .take_cond_o(clic_take_cond), .wake_cond_o(clic_wake_cond), .irq_id_o(clic_id),
         .irq_lvl_o(clic_lvl), .vector_target_o(clic_vec_target)
@@ -384,5 +430,33 @@ module garuda_core_top #(
         .id_ex_stall_o(pc_idex_s), .id_ex_flush_o(pc_idex_f),
         .ex_mem_stall_o(pc_exmem_s), .ex_mem_flush_o(pc_exmem_f), .mem_wb_flush_o(pc_mwb_f)
     );
+
+`ifdef GARUDA_RVFI
+    // =========================================================================
+    // RVFI (plan 5.1): records follow ex_mem / mem_wb hold and flush exactly
+    // =========================================================================
+    garuda_rvfi u_rvfi (
+        .clk_i(gclk), .clk_free_i(clk_i), .rst_n_i(rst_n_i),
+        .xe_valid_i(xe_valid), .xe_pc_i(xe_pc), .xe_instr_i(xe_instr), .xe_imm_i(xe_imm),
+        .xe_rs1_i(xe_rs1i), .xe_rs2_i(xe_rs2i), .xe_funct3_i(xe_funct3),
+        .xe_branch_i(xe_branch), .xe_jal_i(xe_jal), .xe_pred_taken_i(xe_predicted_taken),
+        .xe_mem_read_i(xe_mem_read), .xe_mem_write_i(xe_mem_write),
+        .ex_rs1_val_i(ex_rs1_fwd), .ex_rs2_val_i(ex_rs2_fwd), .ex_result_i(ex_result),
+        .ex_redirect_i(ex_redirect), .ex_redirect_target_i(ex_redirect_target),
+        .exmem_stall_i(pc_exmem_s), .exmem_flush_i(pc_exmem_f), .memwb_flush_i(pc_mwb_f),
+        .em_valid_i(em_valid),
+        .mw_retire_i(mw_retire), .mw_reg_write_i(mw_reg_write), .mw_rd_i(mw_rd), .mw_data_i(mw_data),
+        .d_hrdata_i(d_hrdata_i), .mem_exc_v_i(mem_exc_v),
+        .tr_enter_i(tr_enter), .tr_is_int_i(tr_is_int), .tr_mret_i(tr_mret), .tr_redir_t_i(tr_redir_t),
+        .rvfi_valid(rvfi_valid), .rvfi_order(rvfi_order), .rvfi_insn(rvfi_insn), .rvfi_trap(rvfi_trap),
+        .rvfi_halt(rvfi_halt), .rvfi_intr(rvfi_intr), .rvfi_mode(rvfi_mode), .rvfi_ixl(rvfi_ixl),
+        .rvfi_rs1_addr(rvfi_rs1_addr), .rvfi_rs2_addr(rvfi_rs2_addr),
+        .rvfi_rs1_rdata(rvfi_rs1_rdata), .rvfi_rs2_rdata(rvfi_rs2_rdata),
+        .rvfi_rd_addr(rvfi_rd_addr), .rvfi_rd_wdata(rvfi_rd_wdata),
+        .rvfi_pc_rdata(rvfi_pc_rdata), .rvfi_pc_wdata(rvfi_pc_wdata),
+        .rvfi_mem_addr(rvfi_mem_addr), .rvfi_mem_rmask(rvfi_mem_rmask), .rvfi_mem_wmask(rvfi_mem_wmask),
+        .rvfi_mem_rdata(rvfi_mem_rdata), .rvfi_mem_wdata(rvfi_mem_wdata)
+    );
+`endif
 endmodule
 `default_nettype wire

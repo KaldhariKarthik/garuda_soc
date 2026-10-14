@@ -12,12 +12,36 @@ address "exists" if its read does not trap. The program is run on the RTL
         (GARUDA has neither); see flow/COMMANDS.md, or `make csr_map`
     python3 tools/csr_map.py diff sim/csr_map/csr_sweep.elf sim/csr_map/commit.log sim/csr_map/spike.log
 
-Every difference is either listed in EXPECTED below, with the reason, or is
-reported as unexplained and makes the exit status 1.
+Two checks, both against the CSR contract Design_Docs/regs/core_csr.yaml
+(Track A W2 / DN-CSR; it replaces the EXPECTED list that used to live here):
+  1. RTL vs contract: an address the contract says exists (implemented or
+     read-zero) must not trap on the RTL, and every other address must trap.
+     A mismatch is a design bug (C-16 was 89 of them).
+  2. Contract vs Spike: every address where GARUDA and Spike disagree must be
+     marked garuda-only / spike-only in the contract, with the reason.
+Anything unexplained makes the exit status 1.
 """
+import os
 import re
 import subprocess
 import sys
+
+CONTRACT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Design_Docs", "regs",
+                        "core_csr.yaml")
+
+
+def load_contract(path=CONTRACT):
+    """Parse the one-entry-per-line flow mappings of core_csr.yaml (no PyYAML
+    needed, so the script still runs with the python3 of any machine)."""
+    out = {}
+    for line in open(path):
+        m = re.match(r"\s*-\s*\{(.*)\}\s*$", line)
+        if not m:
+            continue
+        e = dict(re.findall(r'(\w+):\s*("(?:[^"]*)"|[^,]+)', m.group(1)))
+        e = {k: v.strip().strip('"') for k, v in e.items()}
+        out[int(e["addr"], 16)] = e
+    return out
 
 NAMES = {0x300: "mstatus", 0x301: "misa", 0x302: "medeleg", 0x303: "mideleg", 0x304: "mie", 0x305: "mtvec",
          0x306: "mcounteren", 0x30A: "menvcfg", 0x310: "mstatush", 0x31A: "menvcfgh", 0x320: "mcountinhibit",
@@ -41,20 +65,13 @@ for i in range(64):
     NAMES[0x3B0 + i] = f"pmpaddr{i}"
 
 # Differences that are understood. Key: address; value: (which side has it, reason).
-EXPECTED = {}
-for a in (0x345, 0x346, 0x347, 0xFB1):
-    EXPECTED[a] = ("GARUDA", "CLIC register (CORE 6.1); Spike has no CLIC")
-EXPECTED[0xBC0] = ("GARUDA", "DSU overflow flag, a GARUDA custom register (CORE 6.1)")
-EXPECTED[0x320] = ("Spike", "mcountinhibit is optional (privileged 1.12, 3.1.12)")
-for a in (0x7A0, 0x7A1, 0x7A2, 0x7A3, 0x7A4, 0x7A8):
-    EXPECTED[a] = ("Spike", "trigger registers are optional; GARUDA has no trigger module")
-for a in (0xC01, 0xC81):
-    EXPECTED[a] = ("Spike", "GARUDA's timer is memory mapped (block 11); a read of time traps, which the privileged spec allows")
-# Open: the privileged specification the core spec cites (v1.12) says these exist,
-# though each may read zero. GARUDA traps on them. Docs/BUGS.md C-16.
-OPEN = "OPEN, BUGS.md C-16: privileged 1.12 says it exists (it may read 0); GARUDA traps"
-for a in [0x310, 0xF15] + list(range(0x323, 0x340)) + list(range(0xB03, 0xB20)) + list(range(0xB83, 0xBA0)):
-    EXPECTED[a] = ("Spike", OPEN)
+CON = load_contract()
+MUST_EXIST = {a for a, e in CON.items() if e["kind"] in ("implemented", "read-zero")}
+for a, e in CON.items():
+    NAMES.setdefault(a, e["name"])
+# Spike differences with their recorded reason (who has it, why)
+EXPECTED = {a: ("GARUDA" if e["spike"] == "garuda-only" else "Spike", e.get("reason", ""))
+            for a, e in CON.items() if e["spike"] in ("garuda-only", "spike-only")}
 
 
 def enc(addr):                       # csrrs t0, addr, x0
@@ -124,6 +141,19 @@ def diff(elf, rtl_log, spike_log, nm):
                 spike_trap.add(a)
     allv = set(range(4096))
     rtl_has, spike_has = allv - rtl_trap, allv - spike_trap
+    # 1. RTL against the contract
+    print("RTL against Design_Docs/regs/core_csr.yaml:")
+    c_bad = 0
+    for title, addrs in (("  contract says it EXISTS, the RTL traps:", MUST_EXIST - rtl_has),
+                         ("  contract says it TRAPS, the RTL has it:", rtl_has - MUST_EXIST)):
+        print(title)
+        for lo, hi in ranges(addrs):
+            print("    " + show(lo, hi) + "    <- DESIGN DOES NOT MATCH THE CONTRACT")
+            c_bad += hi - lo + 1
+        if not addrs:
+            print("    none")
+    print(f"  {len(MUST_EXIST)} addresses must exist; RTL has {len(rtl_has)}; "
+          f"{c_bad} mismatch(es)\n")
     print(f"csr_map: GARUDA has {len(rtl_has)} CSR addresses, Spike has {len(spike_has)}, "
           f"{len(rtl_has & spike_has)} in common")
     print("\nOn both:")
@@ -142,10 +172,9 @@ def diff(elf, rtl_log, spike_log, nm):
                 print("  " + show(lo, hi) + "    (" + "; ".join(sorted(why)) + ")")
         if not only:
             print("  none")
-    n_open = sum(1 for a in (rtl_has ^ spike_has) if a in EXPECTED and EXPECTED[a][1].startswith("OPEN"))
-    print(f"\ncsr_map: {bad} address(es) differ with no recorded reason" if bad else
-          f"\ncsr_map: every difference has a recorded reason; {n_open} of them are an open finding")
-    return 1 if bad else 0
+    print(f"\ncsr_map: RTL vs contract {c_bad} mismatch(es); RTL vs Spike {bad} unexplained difference(s)"
+          f" -> {'PASS' if not (bad or c_bad) else 'FAIL'}")
+    return 1 if (bad or c_bad) else 0
 
 
 if __name__ == "__main__":

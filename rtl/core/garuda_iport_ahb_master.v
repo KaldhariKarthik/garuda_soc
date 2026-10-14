@@ -46,6 +46,15 @@ module garuda_iport_ahb_master #(
     // ever hold" invariant).
     input  wire [ 2:0] fifo_occupancy_i,
     input  wire        fifo_rd_en_i,
+    // ERRATUM RDC-1: the debugger has asked for a halt. No NEW address phase
+    // is started; a waited one stays presented until accepted (AHB-Lite does
+    // not allow a master to withdraw it), then the port goes IDLE, which ends
+    // an INCR burst legally. See garuda_core_top.v, halt_req_i.
+    input  wire        stop_i,
+    // ERRATUM CORE-4 (pre-M0 item C, 2026-10-11): mgarudactl (CSR 0x7C0) lets
+    // firmware turn this feature off if it is found broken in silicon. Timing only:
+    // architectural results are the same with the bit set (sw/tests/t_core_ctl.S).
+    input  wire        pf_dis_i,        // mgarudactl.PF_DIS: at most one fetch buffered or in flight
 
     // ----------------------------------------------------------------
     // I-port AHB-Lite master (to interconnect)
@@ -177,14 +186,22 @@ module garuda_iport_ahb_master #(
 
     wire [3:0] projected_occ = occ_after_pop + inflight;
 
-    wire room_for_new_fetch = (projected_occ < FIFO_DEPTH);
+    wire room_for_new_fetch = (projected_occ < (pf_dis_i ? 4'd1 : FIFO_DEPTH));   // CORE-4: PF_DIS
 
     // Issue a new address phase when: the bus is ready, the previous address
     // phase has been accepted (or is being accepted this cycle), the buffer
     // will have room for everything in flight, and we're not mid-redirect.
-    assign fetch_issue_o = ~redirect_i & i_hready_i &
+    // ERRATUM BUS-E (2026-10-11, found by the coverage test t_cov_misfetch): a
+    // JAL / predicted-taken branch in ID can redirect fetch to a target that is
+    // 2 mod 4. While the instruction then waits in EX (behind a load in MEM, T-9)
+    // this port issued a WORD fetch at that address -- an AHB-Lite violation
+    // (HADDR must be aligned to HSIZE). No fetch is issued from a misaligned
+    // fetch_pc: the redirect that produced it always resolves in EX (cause-0
+    // trap, mispredict, or an older trap / interrupt) to an aligned address.
+    assign fetch_issue_o = ~redirect_i & ~stop_i & i_hready_i &   // RDC-1: ~stop_i
                             (~addr_outstanding | addr_phase_done) &
-                            room_for_new_fetch;
+                            room_for_new_fetch &
+                            (fetch_pc_i[1:0] == 2'b00);           // BUS-E
 
     // Only a legitimate (non-dropped) data phase writes the buffer. HRDATA is
     // sampled here in the DATA phase - one cycle after the address phase was
