@@ -22,11 +22,14 @@ It says nothing about GARUDA's RTL, timing or tapeout readiness.
 | Host | Windows 11 Home 10.0.26200, 16 logical CPUs, 15.3 GiB RAM |
 | WSL | WSL 2, distribution `Ubuntu-22.04` (`wsl -l -v`) |
 | OS | Ubuntu 22.04.5 LTS (`lsb_release -ds`), kernel `6.18.40.1-microsoft-standard-WSL2` |
-| Resources | 16 CPUs, 7584 MiB RAM, 2048 MiB swap (`nproc`, `free -m`); **WSL defaults, no `.wslconfig`** |
+| Resources | 16 CPUs, 7584 MiB RAM, 2048 MiB swap (`nproc`, `free -m`): the WSL defaults. There is no `.wslconfig` at 2026-10-14 (see below) |
 | GUI | WSLg (`DISPLAY=:0`, `WAYLAND_DISPLAY=wayland-0`) |
 
-There is deliberately no `.wslconfig`. It would be created only if a run fails or swaps heavily, and
-only with the smallest change the logs justify. The 59-minute ORFS build ran within the defaults.
+The ORFS build ran within the WSL defaults. GARUDA detailed routing does not: pnr_r5 was
+OOM-killed at 16 threads (BUGS TOOL-21). For pnr_r6 and pnr_r7 the owner set a `.wslconfig` of
+`memory=12GB`, `swap=8GB`, `processors=8` (D-30; peak 8.65 GiB at `NUM_CORES=8`), and deleted it
+on 2026-10-14. Create it again, with the owner's approval, before the next full P&R run, then
+run `wsl --shutdown`.
 
 ## 2. Tools
 
@@ -35,12 +38,12 @@ only with the smallest change the logs justify. The 59-minute ORFS build ran wit
 | Tool | Source pin | Version reported | Location | Status |
 |---|---|---|---|---|
 | OpenROAD-flow-scripts | `3451ca1f56902a49baf50bb8eba345eb709cf9c8` (master, 2026-10-10) | — | `~/tools/OpenROAD-flow-scripts` | **validated** (§5) |
-| OpenROAD (incl. OpenSTA) | submodule `91e5f5ff2f198fd130e8915c8ad4408b56987fa4` | `26Q4-110-g91e5f5ff2f` | `tools/install/OpenROAD/bin/openroad` | **validated** (§5: flow and GUI) |
-| Yosys (ORFS submodule) | submodule `a5af9d690a43744bf6b2cc3dea2717c16b54621c` | `Yosys 0.68+ (git sha1 a5af9d690, Release, GNU /usr/bin/c++ 11.4.0)` | `tools/install/yosys/bin/yosys` | **validated** (§5: synthesis) |
+| OpenROAD (incl. OpenSTA) | submodule `91e5f5ff2f198fd130e8915c8ad4408b56987fa4` | `26Q4-110-g91e5f5ff2f` | `~/tools/OpenROAD-flow-scripts/tools/install/OpenROAD/bin/openroad` | **validated** (§5: flow and GUI) |
+| Yosys (ORFS submodule) | submodule `a5af9d690a43744bf6b2cc3dea2717c16b54621c` | `Yosys 0.68+ (git sha1 a5af9d690, Release, GNU /usr/bin/c++ 11.4.0)` | `~/tools/OpenROAD-flow-scripts/tools/install/yosys/bin/yosys` | **validated** (§5: synthesis) |
 | ↳ slang frontend | built in; no plugin file | `sv-elab revision 3dddccd478618d68f8a5e160fb4b5783c4da35d4` | `read_slang` command | installed (not used by gcd) |
-| kepler-formal | submodule `f70c2e38592d704c8cccf68433b091e82c8118f0` | has no `--version` option | `tools/install/kepler-formal/bin/kepler-formal` | **validated** (§5: LEC) |
+| kepler-formal | submodule `f70c2e38592d704c8cccf68433b091e82c8118f0` | has no `--version` option | `~/tools/OpenROAD-flow-scripts/tools/install/kepler-formal/bin/kepler-formal` | **validated** (§5: LEC) |
 | KLayout | Ubuntu-22 `.deb`, md5 `6dfffa50f385881768dee30bdc759608` | `KLayout 0.30.12` (dpkg `0.30.12-1`) | `/usr/bin/klayout` | **validated** (§5: GDS merge and GUI) |
-| Bazel | `tools/OpenROAD/.bazelversion` | `9.1.1`, fetched by bazelisk `v1.28.1` | `/usr/local/bin/bazelisk`, `~/.cache/bazel` | installed (build only) |
+| Bazel | `~/tools/OpenROAD-flow-scripts/tools/OpenROAD/.bazelversion` | `9.1.1`, fetched by bazelisk `v1.28.1` | `/usr/local/bin/bazelisk`, `~/.cache/bazel` | installed (build only) |
 
 OpenSTA has no standalone `sta` binary here. It is inside `openroad`.
 
@@ -75,7 +78,7 @@ These are in `~/tools/OpenROAD-flow-scripts/dependencies`:
 
 | Tool | Proposed pin | Notes |
 |---|---|---|
-| Icarus Verilog | `v12_0` = `d61ab44c8a62d10dc80c3ae219387de04b7217c7` | `~/tools/iverilog`; deferred until after the gcd gate |
+| Icarus Verilog | `v12_0` = `d61ab44c8a62d10dc80c3ae219387de04b7217c7` | `~/tools/iverilog`; deferred by the owner |
 | Verilator | `v5.052` (newest release tag on 2026-10-11) | `~/tools/verilator`; the Windows 5.053-devel crashed on `pwm_sva.sv` |
 | Spike | `17e8a69fb75546dea445cfc0fb78769d2510f339` (master, 2026-10-11; no release since v1.1.0) | `~/external/spike-inst`, the Makefile's `SPIKE` default |
 | riscv-tests | `7b68f7b91f827f8d94cc1c57ff123752c5c8f704` (master, 2026-10-11) | `~/external/riscv-tests`; for ISA builds only |
@@ -133,7 +136,7 @@ git -C ~/tools/OpenROAD-flow-scripts rev-parse HEAD   # expect 3451ca1f...
 git -C ~/tools/OpenROAD-flow-scripts submodule status # no leading '+' or '-'
 ```
 
-ORFS's `flow/scripts/synth_preamble.tcl` states that `read_slang` is built into Yosys from 0.67
+ORFS's `~/tools/OpenROAD-flow-scripts/flow/scripts/synth_preamble.tcl` states that `read_slang` is built into Yosys from 0.67
 and needs no plugin load. The default flow reads Verilog with `read_verilog`, and uses slang only
 when `SYNTH_HDL_FRONTEND=slang`.
 
@@ -186,4 +189,4 @@ returned, before the GUI started.
 | Everything Linux | `wsl --unregister Ubuntu-22.04` (PowerShell) | **Irreversible.** Deletes the whole Linux disk: every tool, the WSL clone of this repo and any uncommitted work there. The user's decision only |
 | WSL itself | `wsl --uninstall`; remove the VS Code WSL extension | Optional. Nothing else on Windows was touched |
 
-There is no `.wslconfig` to delete.
+If a `.wslconfig` exists, delete `C:\Users\gover\.wslconfig` and run `wsl --shutdown`.

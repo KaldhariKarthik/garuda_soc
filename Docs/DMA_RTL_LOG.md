@@ -1,14 +1,14 @@
 # GARUDA DMA Controller — RTL implementation and verification log
 
 **Block 9 of 24 — 6-channel DMA, AHB-Lite master / APB slave**
-Spec: `Design_Docs/DMA/GARUDA_DMA_Controller_Design_Spec_v2.0.docx` (GARUDA-DMA-SPEC-001 Rev 2.0)
+Spec: `Design_Docs/archive/DMA/GARUDA_DMA_Controller_Design_Spec_v2.0.docx` (GARUDA-DMA-SPEC-001 Rev 2.0)
 Session date: 2026-08-09 · Branch: `main` · **Nothing committed**
 
 ---
 
-> **Where to look:** every bug in this document is also in `docs/BUGS.md`, which
+> **Where to look:** every bug in this document is also in `Docs/BUGS.md`, which
 > is the project-wide register and the one list to read if you only read one.
-> Interconnect and SoC-integration work is logged in `docs/SOC_RTL_LOG.md`.
+> Interconnect and SoC-integration work is logged in `Docs/SOC_RTL_LOG.md`.
 > The latest DMA work is in §16 at the end of this file.
 
 ## 0. Status in one paragraph — read this before anything else
@@ -60,12 +60,12 @@ All 15 files are **new**. No pre-existing file in the repository was modified.
 
 | File | Purpose |
 |---|---|
-| `docs/DMA_RTL_LOG.md` | This report. |
+| `Docs/DMA_RTL_LOG.md` | This report. |
 
-> ⚠️ **Placement note:** I created this report in `docs/` because that is where
+> ⚠️ **Placement note:** I created this report in `Docs/` because that is where
 > the repo keeps `HANDOFF.md` and `VERIFICATION_LOG_2026-07-29.md`, and because
-> `rtl/dma/dma_cdc_gray.v` already references `docs/DMA_RTL_LOG.md` by name.
-> `docs/` is arguably outside the "RTL/testbench/simulation" areas you scoped —
+> `rtl/dma/dma_cdc_gray.v` already references `Docs/DMA_RTL_LOG.md` by name.
+> `Docs/` is arguably outside the "RTL/testbench/simulation" areas you scoped —
 > say the word and I will move it.
 
 ### Deliberately **not** done 
@@ -94,7 +94,7 @@ staging, no pushes.**
 
 **Diff summary: 15 additions, 0 modifications, 0 deletions.** `rtl/dma/.gitkeep`
 and `tb/dma/.gitkeep` remain in place and untouched. No file outside `rtl/dma/`,
-`tb/dma/` and `docs/` was created or changed.
+`tb/dma/` and `Docs/` was created or changed.
 
 ---
 
@@ -135,7 +135,7 @@ yosys -s syn.ys     # read_verilog -I rtl/dma <11 files>; hierarchy -top dma_top
 
 **Not run:** Xcelium (`xrun`), Vivado `xsim`, Synopsys VCS, Genus. None are
 available on this Windows machine — the team's flow lives on the Linux box
-described in `docs/HANDOFF.md` §2.
+described in `Docs/HANDOFF.md` §2.
 
 ---
 
@@ -516,7 +516,7 @@ and 12 seeds:
 4. **Collect coverage.** Spec §14 requires FSM state coverage, register
    coverage and >95% toggle, and none exists. Follow the `tb/cov/garuda_cov.sv`
    pattern (`bind`, no RTL edits). `state_o` is exposed on every channel FSM for
-   this. Note `docs/HANDOFF.md` §7's two IMC traps — `-initial_model union_all`
+   this. Note `Docs/HANDOFF.md` §7's two IMC traps — `-initial_model union_all`
    is mandatory, and `report -summary` shows `n/a` for functional coverage.
 
 5. **Force the untested races explicitly**, ideally with directed tests or
@@ -620,9 +620,9 @@ existing regression cannot see, and then integrate it. This section records what
 that found.
 
 > **Bugs have moved.** Every bug in this document — and every bug in every other
-> block — is now also registered in `docs/BUGS.md`, which is the single list to
+> block — is now also registered in `Docs/BUGS.md`, which is the single list to
 > read. This log stays as the narrative for Block 9. The interconnect and SoC
-> work is logged separately in `docs/SOC_RTL_LOG.md`.
+> work is logged separately in `Docs/SOC_RTL_LOG.md`.
 
 ### 16.1 Regression re-run — the numbers reproduce
 
@@ -668,7 +668,7 @@ cover a completion ISR doing exactly what §6.6 tells it to do.
 engine that takes work from a register write. The full derivation, the four
 deliberate properties (one-bit coalescing, EN not cleared on restart, the `en_h`
 qualifier, CIRC absorb) and the rejected PL330-style alternative are in DESIGN
-NOTE 4 in `rtl/dma/dma_channel_fsm.v` and in `docs/BUGS.md` §3. The contract it
+NOTE 4 in `rtl/dma/dma_channel_fsm.v` and in `Docs/BUGS.md` §3. The contract it
 establishes is worth repeating here because it is a programming-model change:
 
 > A CR write with EN=1 **always** starts a transfer. If the channel is busy, the
@@ -677,7 +677,7 @@ establishes is worth repeating here because it is a programming-model change:
 > it runs, not a stale copy.
 
 **Two near-misses inside the fix**, both caught by tests written for it, both
-recorded in `docs/BUGS.md` as DMA-3a: the deferred start initially had no `en_h`
+recorded in `Docs/BUGS.md` as DMA-3a: the deferred start initially had no `en_h`
 qualifier (so a queued start fired on a channel software had already disabled),
 and once qualified it did not clear the pending bit when it declined (so IDLE
 consumed it on the next cycle and the channel ran anyway). The second is the
@@ -737,7 +737,7 @@ were traced in detail before wiring (full derivations in
    master, so it wins the arbitration for its own write address phase
    unconditionally. During `S_WDATA` it drives HTRANS=IDLE and the bus can be
    handed on — which is exactly why HWDATA must be muxed on the data-phase
-   owner, not the grant (ERRATUM AHB-1 in `docs/BUGS.md`). Following the
+   owner, not the grant (ERRATUM AHB-1 in `Docs/BUGS.md`). Following the
    interconnect specification literally here would have written another master's
    store data into the DMA's destination, with every DMA status bit reading
    success.
@@ -791,7 +791,7 @@ block TB covers P2M against a direct slave only. `dma_req`/`dma_ack` are tied lo
 at SoC level. This is the single most valuable test still to write.
 
 **Closed this session:** DMA-3 (§16.2). The block now has no open RTL defect —
-what remains in `docs/BUGS.md` §3 for Block 9 is three *waived* limitations
+what remains in `Docs/BUGS.md` §3 for Block 9 is three *waived* limitations
 (DMA-4 SR.REMAINING across the TCR load, DMA-5 event merging in
 `dma_cdc_pulse`, DMA-6 the unforced W1C/set race) and the twelve specification
 defects already resolved in RTL.

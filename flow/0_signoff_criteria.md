@@ -14,7 +14,7 @@ that meets all of them except formal is "closed for simulation" and says so.
 | 6 | Regression | every test passing over at least 20 seeds, no new failure in the last full run | vManager session |
 | 7 | Lint and clock-domain checks | 0 errors, or each one waived in writing | HAL; `flow/2_static/hal_waivers.txt` |
 | 8 | Register model | reset value, access policy and aliasing tests pass on every register | UVM register tests |
-| 9 | Formal, on the features the vPlan assigns to it | proved | JasperGold. Not installed on this machine as of 2026-10-04: these items are listed and wait for the tool |
+| 9 | Formal, on the features the vPlan assigns to it | proved | SymbiYosys with z3 (installed in WSL 2026-10-12; `pipe_ctrl` proved, FV-2). JasperGold and IFV are not available. Whole-core properties wait for a whole-core formal run |
 
 Priorities: **P1** the chip does the wrong thing or hangs; **P2** a specified
 feature does not work but there is a workaround; **P3** everything else.

@@ -1,5 +1,10 @@
 # GARUDA on KV260 — FPGA prototype
 
+> **Status at 2026-10-14.** The bitstream that ran on 2026-09-29 (`Docs/FPGA_BRINGUP_LOG.md`)
+> predates the RTL fixes of 2026-10-04 and later, and the P2 top split (`garuda_chip_top` is
+> now a pin wrapper over `garuda_chip_core`). Build the bitstream again before an FPGA run.
+> `build.tcl` has not been run since the split.
+
 Unmodified `garuda_chip_top` on the K26 PL. The A53 running stock Kria
 Ubuntu 22.04 acts as the "board": it drives GARUDA's JTAG pins, reset and
 boot_sel, and reads uart0. This is the same development loop as `tb_chip

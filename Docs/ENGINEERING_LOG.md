@@ -1,7 +1,7 @@
 # GARUDA verification — engineering log
 
 Complete record: what was done, in what order, every bug found, how it was found, and
-how it was fixed. Companion to `docs/HANDOFF.md` (reference) and `docs/HOWTO_RUN.md`
+how it was fixed. Companion to `Docs/HANDOFF.md` (reference) and `Docs/HOWTO_RUN.md`
 (command reference).
 
 ---
@@ -643,7 +643,7 @@ arbitrary points rather than one fixed offset.
 
 That also **settles `clic_ctrl.v`'s open question by evidence**: the RTL implements the
 jump-instruction table interpretation, demonstrated end to end with a 4096-entry table.
-`docs/COVERAGE.md` has been corrected.
+`Docs/COVERAGE.md` has been corrected.
 
 ### 🐛 BUGS 21-23 — C-2, C-3, C-4
 
@@ -749,8 +749,8 @@ says nothing about the chip.
 
 Work began on the AHB-Lite fabric and APB subsystem. The first thing done was **not**
 fabric RTL; it was closing **BUS-A/B/C/D**, the four AHB-Lite protocol errata the checker
-had found and reported but which had been left open (see `docs/ORACLES.md` §Oracle 1, and
-`docs/HANDOFF.md` §11).
+had found and reported but which had been left open (see `Docs/ORACLES.md` §Oracle 1, and
+`Docs/HANDOFF.md` §11).
 
 The sequencing argument is worth recording, because the tempting order is the wrong one.
 The interconnect is the **first consumer in this project that actually reads HBURST** —

@@ -1,210 +1,163 @@
-# How to run GARUDA yourself
+# How to run GARUDA
 
-Everything here is reproducible from a fresh terminal. Run the commands in order
-the first time; after that, jump to whichever section you need.
+This file gives the commands for the lab machine (Cadence tools) and for a machine with no
+licence. Run section 1 first in each new terminal. `make help` lists every target.
+The full verification flow, stage by stage, is in `flow/COMMANDS.md`.
 
 ---
 
-## 0. Set up the shell (do this every new terminal)
+## 1. Set up the shell
 
 ```bash
 cd ~/garuda_soc
 source scripts/setup_env.sh
 ```
 
-You should see six `OK` lines. **Nothing works without this** — no tool is on
-`PATH` by default, and the Cadence license variable is not set globally.
+Make sure that you see six `OK` lines. No tool is on `PATH` until you do this.
 
-The failure mode if you forget: `xrun` compiles and elaborates perfectly, then
-dies at simulation with `xmsim: *F,NOLICN`. It looks like a design problem and
-is not.
+**Caution:** if the licence variable is not set, `xrun` compiles and elaborates, then stops
+at simulation with `xmsim: *F,NOLICN`. This looks like a design fault. It is not.
 
 ---
 
-## 1. The 30-second check: does the CPU still work?
+## 2. Quick check of the core
 
 ```bash
-make test_boot     # 6 instructions, the smallest possible program
-make test_c        # a real C program: stack, function calls, arrays, multiply
+make test_boot     # 6 instructions
+make test_c        # a C program: stack, calls, arrays, multiply
 ```
 
-Expected:
-
-```
-*** TOHOST=1 -> PASSED (5 instructions retired) ***
-*** TOHOST=1 -> PASSED (98 instructions retired) ***
-```
-
-If either says `TIMEOUT` or `FAILED`, something you changed broke the core.
+Each must print `TOHOST=1 -> PASSED`. If one prints `TIMEOUT` or `FAILED`, your change broke
+the core.
 
 ---
 
-## 2. The full instruction test suite
+## 3. Full regression
 
 ```bash
-make isa_tests     # compile the RISC-V test programs (once, or after edits)
-make regress       # run them all
+make regress_all       # core, elements, blocks, sanity, DSU, ISA and chip
+make -k regress_all    # the same; continue after a failure
 ```
 
-This runs every test twice over, two independent ways:
+A target fails when the simulator fails, when the log reports a failure, or when the pass
+marker is missing (`scripts/sim_verdict.sh`).
 
-- **TOHOST** — the test checks its own answers and reports pass/fail itself.
-- **LOCKSTEP** — we run the identical program on Spike (the reference RISC-V
-  simulator) and compare *every single instruction*. Any disagreement is a bug.
+| Target | What it runs |
+|---|---|
+| `make test_core` | Core unit smokes and the six constrained-random unit testbenches |
+| `make test_elements` | The 14 per-element core testbenches |
+| `make test_blocks` | The 15 block testbenches |
+| `make test_sanity` | 12 directed core programs, including the hold × flush matrix |
+| `make test_dsu` | The DSU against its model (vectors regenerated each run) |
+| `make regress` | 64 ISA tests, each with its own check and, for 58, Spike lockstep |
+| `make regress_wait` / `make regress_rand SEED=n` | The same with fixed / random bus wait states |
+| `make test_chip` | 8 programs on the whole chip, from its pins |
+| `make riscv_dv` | Random programs in lockstep with Spike |
+| `make uvm_clic` (and `uvm_timers`, `uvm_pwm`, `uvm_gpio`, `uvm_crg`) | UVM environments with coverage |
+| `make static` | HAL lint, clock-domain check, X-propagation |
+| `make synth` | Genus structural synthesis (latches, drivers) |
 
-Both must say `PASS` / `MATCH`. A test can pass its own check and still diverge
-from Spike — that is exactly the class of bug the self-checks miss, which is why
-both columns exist.
-
-Expected tail:
-
-```
-PASS=51 FAIL=11
-```
-
-### Run just one test
+### Run some ISA tests only
 
 ```bash
 ./scripts/run_regression.sh add
 ./scripts/run_regression.sh add sub lw sw
 ```
 
-### Run with slow memory
+---
 
-```bash
-make regress_wait      # injects 2 wait states on instruction fetch, 3 on data
-```
+## 4. Debug a failing ISA test
 
-Real memory is not instant. This proves the bus logic survives being made to
-wait — it is how three of the four bugs found so far were exposed.
+1. Read the lockstep result. It shows the first instruction where GARUDA and Spike disagree:
+
+   ```bash
+   cat sim/regress/<test>.lockstep.txt
+   ```
+
+   Only the first divergence is important. Everything after it follows from it.
+
+2. Find the instruction:
+
+   ```bash
+   ${RISCV_PREFIX}objdump -d sw/riscv-tests/build/<test>.elf | less
+   ```
+
+3. Run the test with a probe. The probes are listed in `Docs/HANDOFF.md` §7.
+
+   ```bash
+   xrun -f tb/soc/filelist_boot.f -top tb_boot \
+        -xmlibdirname sim/dbg/xcelium.d -l sim/dbg/run.log \
+        +HEX=sw/riscv-tests/build/<test>.hex +COMMIT=sim/dbg/commit.log \
+        +MAXCYC=2000 +DBGD
+   ```
+
+4. For waveforms, add `+WAVES`, then run `simvision sim/dbg/waves.shm &`.
 
 ---
 
-## 3. When a test fails: how to actually debug it
+## 5. Run your own program on the core
 
-**Step 1 — what does lockstep say?**
+1. Put the C or assembly file in `sw/tests/`.
+2. Add its name to `CTESTS` or `ATESTS` in `sw/Makefile`.
+3. Build and run it:
 
-```bash
-cat sim/regress/<testname>.lockstep.txt
-```
+   ```bash
+   make -C sw all
+   xrun -f tb/soc/filelist_boot.f -top tb_boot \
+        -xmlibdirname sim/mine/xcelium.d -l sim/mine/run.log \
+        +HEX=sw/build/<yourtest>.hex +COMMIT=sim/mine/commit.log +MAXCYC=20000
+   ```
 
-It prints the *first* instruction where GARUDA and Spike disagree, with the
-three instructions before it for context:
+The program reports its result with a write to `tohost` (`0x1000_F000` in `tb_boot`):
+`1` is pass and `(n<<1)|1` is fail number *n*. In C, return 0 from `main()`; `crt0.S`
+writes `tohost`.
 
-```
-DIVERGE at instruction 135 of 143
-  ok   pc=10000234  x12=10000540      <- these three were correct
-  ok   pc=10000238  (no gpr write)
-  spike  pc=1000023c  x14=aabbccdd    <- what SHOULD have happened
-  rtl    pc=1000023c  x14=00000617    <- what GARUDA did
-```
-
-Only the first divergence matters. Everything after it is downstream of the same
-bug.
-
-**Step 2 — what instruction is that?**
-
-```bash
-$RISCV_PREFIX'objdump' -d sw/riscv-tests/build/<testname>.elf | less
-# then search for the pc, e.g. /1000023c
-```
-
-**Step 3 — watch the hardware do it.** `tb_boot` has built-in probes, switched
-on with plusargs:
-
-| Plusarg | Shows |
-|---|---|
-| `+DBGBUS` | instruction fetch: bus address, data, and each pipeline stage |
-| `+DBGTRAP` | why a trap fired: cause, illegal-instruction flags |
-| `+DBGD` | data bus: every load/store, address phase and data phase |
-| `+DBGM` | the MEM stage and the writeback handshake |
-| `+DBGACC` | DSU accumulator contents |
-
-```bash
-xrun -f tb/soc/filelist_boot.f -top tb_boot \
-     -xmlibdirname sim/dbg/xcelium.d -l sim/dbg/run.log \
-     +HEX=sw/riscv-tests/build/sw.hex +COMMIT=sim/dbg/commit.log \
-     +MAXCYC=2000 +DBGD
-```
-
-**Step 4 — waveforms**, if the printouts are not enough. Add `+WAVES`, then:
-
-```bash
-simvision sim/dbg/waves.shm &
-```
+**Caution:**
+1. Use `lla`, not `la`. The compiler makes position-independent code, and `la` then loads
+   address zero. The store goes to address 0, and this looks like a defect in the load unit.
+2. Keep `-fno-pic -no-pie -mno-relax`. They are in `sw/Makefile` for this reason.
 
 ---
 
-## 4. Run your own program on the CPU
+## 6. Without a Cadence licence
 
-Write C or assembly, drop it in `sw/tests/`, add its name to `CTESTS` or
-`ATESTS` in `sw/Makefile`, then:
+These targets use Icarus, Verilator and Yosys. Put the oss-cad-suite `lib/` and `bin/` on
+`PATH`, `lib/` first, and set `VERILATOR_ROOT` (`Docs/BUGS.md` TOOL-2, TOOL-3).
 
 ```bash
-make -C sw all
-xrun -f tb/soc/filelist_boot.f -top tb_boot \
-     -xmlibdirname sim/mine/xcelium.d -l sim/mine/run.log \
-     +HEX=sw/build/<yourtest>.hex +COMMIT=sim/mine/commit.log +MAXCYC=20000
+make local_sim      # every block testbench that Icarus can build
+make local_lint     # whole-chip Verilator lint
+make local_synth    # whole-chip Yosys synthesis and the latch gate
+make local          # all three
 ```
 
-Your program signals its result by writing to `tohost` (`0x1000F000`):
-`1` = pass, `(n<<1)|1` = fail number *n*. For C, just `return 0;` from `main()`
-— `crt0.S` does the rest.
+Icarus cannot build `tb_mem_subsystem`, `tb_uart`, `tb_gpio` and `tb_spim`. They still run,
+so that a change in that result is reported. These targets do not replace the xrun flow.
 
-### Two traps that will cost you an afternoon
-
-1. **Use `lla`, never `la`.** The compiler defaults to position-independent
-   code, where `la` becomes a load through a table that is empty on bare metal.
-   Your address silently becomes **zero**. The CPU executes it perfectly and the
-   program writes to address 0. It looks exactly like a broken load unit.
-2. **Keep `-fno-pic -no-pie -mno-relax`** in the flags. They are in `sw/Makefile`
-   for this reason.
-
----
-
-## 5. The unit tests (individual blocks)
+Formal proof of `pipe_ctrl` (needs SymbiYosys and z3):
 
 ```bash
-make test_core     # all seven: EX, ID/EX forwarding, EX/MEM, pipeline
-                   # control, CSR file, trap control, EX+real DSU
+sby -f flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl.sby
 ```
 
 ---
 
-## 6. The DSU (the accelerator)
+## 7. Design documents
 
 ```bash
-make test_flag2    # compute-then-read ordering probe
+make check_docs     # fails if a .docx is older than its .md
+make docs           # regenerate the .docx exports (needs pandoc)
+python3 tools/garuda_gen.py --check   # generated headers match the yaml
 ```
-
-This one currently **demonstrates a known issue**, it does not pass. See
-`docs/VERIFICATION_LOG_2026-07-29.md`, FLAG-C.
 
 ---
 
-## 7. Cleaning up
+## 8. Clean up
 
 ```bash
-make clean                 # simulation outputs
-make -C sw clean           # compiled test programs
+make clean                     # simulation outputs
+make -C sw clean               # compiled programs
 make -C sw/riscv-tests clean
 ```
 
-Nothing under `sim/`, `sw/build/` or `sw/riscv-tests/build/` is tracked by git —
-all of it regenerates.
-
----
-
-## Quick reference
-
-| Command | What it does |
-|---|---|
-| `source scripts/setup_env.sh` | **required first, every terminal** |
-| `make help` | list all targets |
-| `make test_boot` | 6-instruction smoke test |
-| `make test_c` | C program test |
-| `make regress` | full instruction suite + Spike lockstep |
-| `make regress_wait` | same, with slow memory |
-| `make test_core` | the seven block-level unit tests |
-| `make test_flag2` | DSU ordering probe |
-| `./scripts/run_regression.sh add sub` | run named tests only |
+Git does not track `sim/`, `sw/build/` or `sw/riscv-tests/build/`. All of it can be made again.

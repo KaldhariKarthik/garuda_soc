@@ -1,142 +1,102 @@
 # Meeting cheat sheet — one page
 
+**Status at 2026-10-14.** Check each number against `Docs/HANDOFF.md` before a meeting.
+
 ## Before you start
 
 ```bash
 cd ~/garuda_soc
-source scripts/setup_env.sh      # MUST be first in every new terminal
-make regress                     # run once beforehand so it's warm (~8 min)
+source scripts/setup_env.sh      # first, in each new terminal
+make regress                     # run once before the meeting (about 8 min)
 ```
 
-Have `docs/ENGINEERING_LOG.md` open in a second window.
+Keep `Docs/BUGS.md` and `Docs/HANDOFF.md` open.
 
 ---
 
 ## The 60-second story
 
-> The RTL was complete but had never executed a single instruction — every test drove
-> pipeline-stage inputs by hand. I built the boot infrastructure, the C runtime, and
-> instruction-by-instruction lockstep against Spike. That found **23 real RTL bugs**.
-> Four of them would have produced wrong collision-avoidance vectors rather than crashes,
-> which is the failure mode you cannot see in flight. It now passes 63/63 ISA tests
-> including under randomised memory timing, 9/9 directed corner cases, and 645/645 DSU
-> tests against a cycle-accurate model.
+> GARUDA is an RV32IM SoC with a DSU coprocessor for swarm collision avoidance, for TSMC 28 nm.
+> All 22 blocks in the system description have RTL, and the chip boots from SPI flash.
+> The full flow ran on Cadence tools on 2026-10-04: block, core, integration and chip
+> tests all pass. Each instruction is compared with Spike, and 200 random programs
+> (2.46 million instructions) match it. Five UVM environments catch nearly all of the
+> defects we planted in the RTL. The open-source physical-design flow takes the chip to GDS
+> on ASAP7, with timing met in all four clock modes. That proves the flow and the
+> constraints. It does not prove 28 nm timing.
 
 ---
 
-## Demo order (stop anywhere, each stands alone)
+## Demo order (each step stands alone)
 
-| # | command | what to say |
+| # | Command | What to say |
 |---|---|---|
-| 1 | `make test_boot` | "Six instructions. This is the first program that ever ran on this chip." |
-| 2 | `make test_c` | "Real C — stack, function calls, .bss, all load/store widths, multiply." |
-| 3 | `make regress` | "Every test twice: its own self-check, **and** every instruction compared against Spike." |
-| 4 | `make regress_rand SEED=1` | "Randomised memory timing. Three of the bugs only appear under specific stall timing." |
-| 5 | `make test_dsu` | "645 randomised DSU tests against a cycle-accurate model." |
+| 1 | `make test_boot` | "Six instructions: the first program that ran on this core." |
+| 2 | `make regress` | "Each ISA test checks itself, and Spike checks each instruction, store, trap and CSR value." |
+| 3 | `make regress_rand SEED=1` | "Random bus wait states. Several defects appeared only with specific stall timing." |
+| 4 | `make test_chip_flash` | "The boot ROM reads the image from the SPI pins, checks its CRC and jumps." |
+| 5 | `make test_chip_jtag` | "A debugger loads a program over JTAG and runs it." |
 
-**Show the proof, not just the PASS:**
-```bash
-head -6 sim/regress/add.commit.log        # pc, rd, value per retired instruction
-```
+To show the evidence, not only PASS: `head -6 sim/regress/add.commit.log`.
 
 ---
 
-## The four bugs worth leading with
+## Defects worth leading with
 
-**1. The core could not execute a single instruction (I-1).**
-The I-port sampled read data one cycle early — during the *address* phase. Every
-instruction was paired with the previous bus cycle's data. AHB-Lite is pipelined; the old
-code used one flag where two are needed.
-
-**2. Every store wrote zero (D-1).**
-Same mistake, data side. Write data was driven during the address phase and collapsed to
-zero in the cycle the memory actually samples it.
-
-**3. A branch deleted by its own predictor (P-2) — the timing-sensitive one.**
-`ma_addr` **failed with fast memory and passed with slow memory**. A load-use stall holds
-a branch in the fetch buffer; the predictor redirects for that same branch, and the
-redirect flushes the buffer — destroying the branch. It never executes, never resolves,
-and the prediction stands unchallenged. *That's the kind that ships and reproduces once a
-month.*
-
-**4. Any interrupt in a branch shadow destroyed the return address (T-4).**
-Interrupt entry wasn't gated on a valid instruction in EX. Landing on a pipeline bubble
-latched `mepc = 0`, so `mret` jumped to address 0. Only found by asserting interrupts at
-*many different offsets* — a fixed injection point misses it forever.
+1. **I-1:** the instruction port sampled read data in the address phase. The core could not
+   execute one instruction.
+2. **P-2:** a predicted branch held by a load-use stall was flushed by its own redirect. It
+   failed with fast memory and passed with slow memory.
+3. **AHB-2:** the arbitration rule in the interconnect spec starved the DMA, the one master
+   that must never wait.
+4. **T-9:** a trap taken while a load or store waited on the bus lost its redirect. The core
+   continued with its CSRs saying it was in the handler. Found by a chip program.
+5. **PD-3:** synthesis turned the pin tri-states into plain drivers, so the I²C and GPIO
+   inputs read the chip's own outputs. Found by tracing the netlist; fixed by P2.
 
 ---
 
 ## Numbers
 
-| | |
-|---|---|
-| ISA tests (self-check + Spike lockstep) | **63/63** |
-| — with fixed and randomised memory waits | 63/63 |
-| Directed corner cases | **9/9** |
-| DSU vs cycle-accurate model | **645/645**, five seeds — see caveat below |
-| Block-level unit TB checks | **14,359, zero failures** |
-| RTL bugs found and fixed | **23** |
-| Code coverage: statement / branch / toggle | **98.5% / 96.1% / 86.0%** |
+| Item | Value | Source |
+|---|---|---|
+| ISA tests | 64, 58 of them in Spike lockstep | `make regress` |
+| Random programs in lockstep | 200; 2,458,733 instructions | BUGS VER-3 |
+| Block testbenches | 15, all pass | `make test_blocks` |
+| Chip programs from the pins | 8, all pass, 0 AHB violations | `make test_chip` |
+| UVM planted defects caught | CLIC 5/5, timers 22/23, PWM 20/21, GPIO 18/18, clock/reset 19/21 | BUGS VER-1..VER-6 |
+| Yosys whole chip (2026-10-12) | 72,809 generic cells, 7,032 flops, 1 latch (the ICG) | `Docs/VERIFICATION_LOG_2026-10-12.md` |
+| ASAP7 exploratory P&R (pnr_r7) | 320 × 300 µm, DRC 0, setup and hold met in 4 modes | `Docs/PD_LOG_2026-10-14.md` |
+
+Every planted defect that was not caught has a stated reason in BUGS.md (for example, a
+one-flop synchroniser that no RTL simulation can see).
 
 ---
 
-## Caveat you should state before anyone finds it
+## Say these before someone else finds them
 
-> "645/645 checks the DSU's timing and values hard, and it found 9 DSU bugs. But
-> the model it checks against was written by reading the RTL, so for the
-> *overflow flag* it reproduced the hardware's formula rather than the intent —
-> it measured self-consistency. I've since put an independent oracle back in the
-> loop, and it found a real defect: **the overflow flag is wrong roughly half
-> the time once the accumulator passes 2⁴⁶**, the top quarter of its range.
-> Values are correct everywhere. Confirmed against RTL, not just model-to-model.
-> Details in `docs/ORACLES.md`."
-
-Same for the AHB number: 88.54% went up *because of* a protocol bug the
-covergroup rewarded. Both are now fixed in the measurement, not just the docs.
-
-## If they push on coverage
-
-> "Statement is 98.5% and branch 96.1% — both above the 95% bar. Toggle is 86%. Every
-> module below 95% overall is at **100% statement coverage** — `clic_ctrl`,
-> `if_stage_top`, `pc_gen`, `trap_ctrl` have zero uncovered blocks. The gap is individual
-> bits of 32-bit buses that never change state, not logic that never ran. Some are
-> unreachable in principle — `mcycleh` needs 2³² cycles to flip its low bit. My
-> recommendation is to meet the bar on statement and branch, and waive toggle per module
-> with written reasons."
-
-## If they ask what isn't covered
-
-> "Only the core and the DSU exist. `rtl/clic`, `dma`, `debug`, `isram`, `dsram`,
-> `ahb2apb` and every peripheral are empty directories. There's no interconnect and no
-> TCM — my memory model stands in for both, and its header says explicitly it verifies
-> nothing about arbitration, address decoding or the bridge. This says the core and DSU
-> work. It says nothing about the SoC."
-
-## Three things to raise proactively
-
-1. **A teammate's coverage numbers (~97%) measured a stale DUT snapshot.** Their
-   testbenches inline a copy of the design that predates two decode fixes, and two of
-   their reference models were wrong against real RTL. Both corrected; their numbers need
-   regenerating.
-2. **FLAG-2 is closed** — as an RTL interlock, not a software ordering contract. A
-   contract nothing in the toolchain enforces would outlive everyone who knows about it.
-3. **The SHV question in `clic_ctrl.v` is settled by evidence**, not by decision: the RTL
-   implements the jump-instruction table interpretation and it works end to end.
+- **Some fixes are not yet run on xrun.** T-13, T-14, two UART vendor patches and the
+  physical-design top split were checked on free tools only (`Docs/HANDOFF.md` §2).
+- **One P1 is open: T-12.** A second trap inside an interrupt handler leaves the interrupt
+  level wrong. The fix changes what handlers read in `mcause`, so it is the owner's call.
+- **Coverage is collected, not closed.** CLIC, the IF stage, the CSR file and GPIO are the
+  gaps (`Docs/COVERAGE.md`).
+- **ASAP7 is not 28 nm.** No 28 nm library or memory compiler is available. The memories in
+  the ASAP7 run are mock blocks.
+- **No DFT and no gate-level simulation yet.**
+- **The KV260 bitstream (2026-09-29) predates the RTL changes of 2026-10-04.** Rebuild it
+  before an FPGA demo.
 
 ---
 
-## Honest answers to hard questions
+## Hard questions
 
-**"Did you verify the whole SoC?"** No — see above. Core and DSU only.
+**"How do you know the tests test anything?"** Each UVM environment was run against planted
+defects, and the results are in BUGS.md. The Spike lockstep has negative controls.
 
-**"Is 23 bugs a lot?"** For RTL that had never run an instruction, it's what you'd expect.
-Three of them were unreachable until a fourth was fixed — fixing one bug makes others
-findable.
+**"Why are so many first-run failures testbench defects?"** The same team wrote the tests and
+the RTL from the same reading of the specs. That is why we use independent oracles: Spike,
+protocol checkers, formal, and mutation runs.
 
-**"How confident are you?"** High on the ISA and the DSU: every instruction is compared
-against an independent reference model, and the DSU against a cycle-accurate one. Lower
-on anything involving blocks that don't exist yet.
-
-**"What would you do next?"** Directed CSR sweep for `csr_file`, prefetch-buffer corners
-for `if_stage_top`, and an exception-priority matrix for `trap_ctrl` — those three are the
-largest genuine gaps. Then the SoC, once there's an interconnect to verify.
+**"What next?"** Lab run of the new fixes, the owner's rulings (T-12 first), coverage
+closure, then 28 nm implementation when the library arrives.

@@ -1,21 +1,15 @@
 # Core element-level verification
 
-Per-element testbenches for Block I (`U_CORE`), written against
-**AERO-GARUDA-DS-001 Rev 1.1** (`Design_Docs/Core/GARUDA_Core_Design_Doc.docx`)
-and the RTL in `rtl/core/`.
+Per-element testbenches for Block 1 (core), written against
+**AERO-GARUDA-DS-001 Rev 1.1** (`Design_Docs/archive/Core/GARUDA_Core_Design_Doc.docx`,
+superseded by `Design_Docs/GARUDA-CORE-SPEC-001.md`) and the RTL in `rtl/core/`.
 
-> **STATUS: NOT YET RUN.** These testbenches were authored on a machine with no
-> simulator available and have never been compiled or simulated. Treat every
-> result claim here as *intended* behaviour, not measured. What HAS been checked
-> statically: block/`begin`-`end`/`case`/`task`/`function` balance, that every
-> macro used resolves in `garuda_defs.vh` / `core_ex_defs.vh`, and that all 15
-> DUT instantiations connect exactly the ports their RTL module declares — no
-> extras, none left unconnected. Expect first-run fixes anyway, most likely in
-> `tb_garuda_iport_ahb_master` and `tb_garuda_if_stage_top`, whose checks are
-> the most cycle-timing dependent.
->
-> `test_elements` is deliberately kept OUT of `make test_core` until it reports
-> clean, so the existing regression flow is unaffected.
+> **Status at 2026-10-14.** All 14 testbenches ran under Xcelium on 2026-10-04 and pass,
+> with 0 assertion failures. Each first-run failure was a testbench defect, not an RTL
+> defect: TB-27 (soak stimulus not random) and ELEM-1..ELEM-6 (`Docs/BUGS.md` §1h).
+> Open: ELEM-8 (`tb_d_port_ahb_master` withdraws a waited transfer at teardown, seed 1).
+> TB-32 (`tb_garuda_pc_gen` reset edge) is fixed and waits for the lab xrun run.
+> `make regress_all` runs `test_elements`; `make test_core` does not.
 >
 > These are SystemVerilog (`.sv`), following the same convention as the six
 > existing `tb_top` unit TBs: interface with bound SVA, `rand`/`constraint`
@@ -30,8 +24,7 @@ source scripts/setup_env.sh
 make test_elements          # the 14 element TBs
 ```
 
-`test_elements` is NOT part of `make test_core` yet — see the status note
-above. Move it into that list once it reports clean.
+`make regress_all` runs `test_elements`. `make test_core` does not.
 
 Or one at a time — `make test_alu`, `make test_dport`, and so on (table below).
 
@@ -146,7 +139,7 @@ input. That priority lives in `ex_stage` and is covered by `tb_ex_smoke`;
 
 ## Checks aimed at named coverage gaps
 
-`docs/COVERAGE.md` Category C lists specific holes. These TBs target them
+`Docs/COVERAGE.md` Category C lists specific holes. These TBs target them
 directly, so re-measure after running them:
 
 - `garuda_pc_gen` (75.94%, "redirect-source priority combinations") →

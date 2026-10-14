@@ -1,532 +1,155 @@
-# GARUDA verification — handoff
+# GARUDA verification — lab handoff
 
-Last updated 2026-10-04 (§0a below). §1 onward is the 2026-09-02 core/DSU
-handoff, kept as history; where it disagrees with §0, §0 is current.
+**Status at 2026-10-14.** This file tells the next engineer at the lab machine what passes,
+what waits for a run, and what waits for a decision. The history of the earlier rounds is in
+`Docs/ENGINEERING_LOG.md`, the dated logs and git history. The Linux (WSL) environment and
+physical design are in `Docs/CLAUDE_HANDOFF.md`.
 
 ---
 
-## 0a. Flow re-run, stages 1 to 6 — 2026-10-04
+## 1. State in one table
 
-The flow was run in order on Cadence tools (vPlan, static, block, core,
-integration, SoC top): commands in `flow/COMMANDS.md`, findings in
-`Docs/BUGS.md` §1h. Where §0 below disagrees with this section, this is current.
+The last full run on Cadence tools was on 2026-10-04 (stages 1 to 6 of `flow/COMMANDS.md`).
+All results below are from that run unless a row says otherwise.
 
-| stage | what ran | result |
+| Stage | What ran | Result |
 |---|---|---|
-| 1 vPlan | vPlanner CSV plan generated from the spec notes (`flow/1_vplan/`) | 885 elements; 396 notes still have no check that cites them |
-| 2 Static | HAL lint on the chip, HAL clock-domain checks on `debug_top` | 696 errors down to 5, all dispositioned (`flow/2_static/hal_waivers.txt`); formal not run, no IFV licence |
-| 3 Block/IP | 15 block benches | all pass; DMA 63, debug 93, UART 116, I²C 88, PWM 56, SPI slave 71 checks |
-| 4 CPU core | 20 unit/element benches, 64 ISA tests, 58 of them also in Spike lockstep (PC, register writes, stores, traps, CSR values) and 6 judged by their own result by design (plain and random waits), 12 sanity programs incl. the hold × flush matrix, DSU vs model | all pass, 0 assertion failures |
-| 5 Integration | interconnect, bridge, shim, `t_chip_integ` | all pass |
-| 6 SoC top | 8 chip programs from the pins, 2 of them also with X-propagation | all pass |
+| 1 vPlan | A feature-level plan per block (`tb/<block>/GARUDA_<BLOCK>_vplan.csv`), 512 features | Done. 27 features are places where a spec is silent or wrong (AUD-12) |
+| 2 Static | HAL lint (whole chip), HAL clock-domain check (`debug_top`), reset-domain review | 5 lint errors, each waived in `flow/2_static/hal_waivers.txt`. RDC review: `flow/2_static/rdc_review.md` |
+| 2 Formal | `pipe_ctrl` in SymbiYosys (FV-2, 2026-10-11/12) | 8 of 9 properties proved, 17 of 17 covers reached. The 9th is a whole-core property |
+| 3 Block | 15 block testbenches; UVM environments for CLIC, timers, PWM, GPIO, clock/reset | All pass. Each UVM environment catches its planted defects (VER-1, VER-2, VER-4, VER-5, VER-6) |
+| 4 Core | 20 unit and element testbenches; 64 ISA tests (58 in Spike lockstep, also with random waits); 12 sanity programs; DSU against its model; 200 riscv-dv programs in lockstep | All pass, 0 assertion failures |
+| 5 Integration | Interconnect, bridge, shim, `t_chip_integ` | All pass |
+| 6 Chip | 8 chip programs from the pins, 2 also with X-propagation | All pass, 0 AHB protocol violations |
+| Synthesis | Genus 21.1, generic, SRAMs black-boxed (`make synth`) | 67,460 cells, 7,909 flops, 1 latch (the ICG). **May be low:** see PD-1 |
+| Coverage | vManager, 119 runs, IMC merge | Collected, not closed. See `Docs/COVERAGE.md` |
 
-**RTL changed on 2026-10-04** in `rtl/core` (decode, trap, pipeline control,
-CSR file, core top), `rtl/dsu`, `rtl/dma`, `rtl/debug`, `rtl/i2c`,
-`rtl/spi_slave`, `rtl/pwm`, `rtl/clic`, `rtl/soc`. **The KV260 bitstream
-predates all of it** and has to be rebuilt before the FPGA stage is repeated.
+## 2. Run first: changes not yet run on xrun
 
-**For the owner to decide:** the DMA error interrupts moved from CLIC IDs 7..12
-to 8..13 (INT-2); the ID tables in the CLIC, DMA and TRM documents and CLIC
-[N-6.2]/[N-6.3] (enable mask) still describe the old map.
+These changes were made after 2026-10-04 on free tools. Each one is checked by the method
+named in `Docs/BUGS.md` §1k or §1l. None has passed the lab regression yet.
 
-**Not done:** block-level note-by-note review for SPI master, CLIC, clock/reset,
-memories and GPIO; CSR sweep and exception-priority tests; random-program
-lockstep; coverage closure.
-
----
-
-## 0. Rev 4.0 SoC — status 2026-09-26
-
-The RTL implements the Rev 4.0 set (`Design_Docs/garuda_system.yaml`, the
-`GARUDA-*-SPEC-001` documents); contradictions between those documents were
-ruled on in `Docs/DECISIONS.md` D-4..D-20. Cross-block numbers reach RTL and C
-only through `tools/garuda_gen.py` -> `rtl/include/garuda_map.vh`,
-`sw/common/garuda_map.h` (run it after any yaml change; `--check` for CI).
-
-**One command:** `source scripts/setup_env.sh && make regress_all`
-(or the pieces below). Everything listed passes on Xcelium 22.09.
-
-| suite | result | command |
+| Change | Files | Run this |
 |---|---|---|
-| core unit smokes + 6 constrained-random unit TBs | all pass | `make test_core` |
-| core sanity (IRQ, WFI + clock gate, bus error, DSU, CLIC, T-8 timer wake) | 10/10 | `make test_sanity` |
-| ISA rv32ui/um/mi + Spike lockstep | 63/63 (and 63/63 random waits) | `make regress`, `make regress_rand` |
-| DSU vs model (+ clamp walk, oracle sweep) | pass, 0 mismatches | `make test_dsu` |
-| block TBs: crg ahb_ic bridge mem dma clic timers debug apb_shim spim uart i2c gpio pwm spis | 43, 802, 20, 18, 25, 15, 23, 25, 22, 24, 53, 42, 25, 26, 32 checks, 0 fail | `make test_blocks` |
-| whole chip from the pins: basic / irq / wdt / flash / uart / **periph** / jtag | all pass, 0 AHB violations | `make test_chip` |
-| per-element core TBs | 8/14 pass, 6 are testbench issues (BUGS.md ELEM-1..6) | `make test_elements` |
-| structural synthesis, whole chip (Genus 21.1, stand-in 180 nm lib, SRAMs black-boxed) | 67 460 cells, 7 909 flops, 0 unresolved / undriven / multi-driven, 1 latch = the intended ICG in `core_clk_gate` | `make synth` |
+| T-13, T-14 (trap control) | `rtl/core/trap_ctrl.v` | `make regress_all`, then the two tests below |
+| UART-3, UART-4 (vendor patch) | `rtl/third_party/pulp/apb_uart_sv/` | `make test_uart` |
+| PWM-3 (latch) | `rtl/pwm/garuda_pwm_top.v` | `make test_pwm`, `make uvm_pwm` |
+| TB-30, TB-32, TB-35 (testbench resets, DSU stimulus check) | `tb/soc/tb_chip.sv`, `tb/core/tb_garuda_pc_gen.sv`, `tb/dsu/tb_dsu_top.sv` | `make test_chip`, `make test_pc_gen`, `make test_dsu` |
+| P1, P2, P3 (physical-design hooks, D-28) | `core_clk_gate.v`, `garuda_chip_top.v` (now a wrapper of `garuda_chip_core`), `sram_wrapper.v` | `make test_chip`. P1 and P3 are behind defines that simulation does not set |
+| TOOL-13 (make fails when a simulation fails) | `Makefile`, `scripts/sim_verdict.sh` | Use `make -k` to run a full group |
 
-**Development loop on the chip** (`make test_chip_jtag` is the executable
-spec): `boot_sel = 1` -> ROM recovery loop -> debugger halts the hart, streams
-the image into ISRAM over SBA, writes `{0x4A544147, entry}` to the DSRAM
-mailbox at `0x2000_FFF0`, resumes -> ROM jumps (D-20).
+Run the T-13 and T-14 tests by hand. They are built by `make sw` but are not in the sanity list:
 
-**The chip now boots itself from SPI flash.** `make test_chip_flash` is the
-first test that runs `boot.c` steps 3–11 for real: nothing is placed in ISRAM
-and no mailbox is posted — with `boot_sel = 0` the ROM reads the image off the
-SPI pins word by word, checks its CRC-32, sets ILOCK and jumps. The image comes
-from `tools/mkbootimg.py` (32-byte header + payload) into
-`tb/models/spi_flash_model.sv`. 1.12 ms for a 700-byte image; see SPIM
-[N-7.3a] for why a full 64 KiB image would take ~67 ms and how to halve it.
+```bash
+for t in t_lead1_mret_buserr t_lead2_wfi_buserr; do
+  for w in "" "+DWAIT=3"; do
+    xrun -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname sim/$t/xcelium.d \
+         -l sim/$t/run$w.log +HEX=sw/build/$t.hex +COMMIT=sim/$t/commit.log \
+         +MAXCYC=20000 +ERR_EN=1 +ERR_BASE=10020000 +ERR_SIZE=1000 $w
+  done
+done
+```
 
-**All seven peripherals are in.** `garuda_chip_top.v` instantiates every block
-in `garuda_system.yaml`; every APB window in the mask answers; the chip boots
-itself from SPI flash. **GARUDA is functionally RTL-complete.**
+Each run must end in `TOHOST=1 -> PASSED`.
 
-| Window | Block | CLIC | DMA | Source |
-|---|---|---|---|---|
-| 1 | `spi_master` 13 | 15 | 0 | PULP `apb_spi_master` + `axi_spi_master` |
-| 2 | `i2c` 15 | 16 | 1 | OpenCores controllers + **GARUDA's own register layer** |
-| 3/4/6 | `uart0/1/2` 16/17/18 | 17/18/19 | 2/3/5 | PULP `apb_uart_sv`, **one patch** (ERR-U2/U3) |
-| 7 | `gpio` 19 | 20 | — | PULP `apb_gpio` |
-| 8 | `pwm` 20 | 21 | — | **in-house** (D-25) |
+## 3. Decisions the owner must make
 
-Two blocks are not adapted, for two different reasons, both recorded in
-**D-25**: PWM because the verification argument is the deliverable when the
-load is a propeller, and I²C's register layer because PULP's has no licence.
+Each item is open in `Docs/BUGS.md`. None is an RTL change that a verification engineer can
+make alone.
 
-**Before touching any of it, read `Docs/DECISIONS.md` D-23 and D-24 and
-`Docs/BUGS.md` §1c.** Across five blocks, four defects were the kind no
-register-level test can see — SPI's MISO on the wrong upstream lane, the UART's
-rx synchroniser resetting low, the UART's interrupt wired to the transmit flag,
-and an I²C abort that would have free-run the bus at 125 MHz. Every one was
-caught by reading the upstream RTL that *uses* a port, or by moving real data
-through the pins. §1c also records three testbench defects that each looked
-like an RTL bug first.
-
-**One vendored file set is modified**: `apb_uart_sv`, patch 0001, recorded under
-`patches/` with the pristine originals, machine-verified by
-`tools/vendor_sync.py --check`, and declared in `THIRD_PARTY_NOTICES.md`.
-Anyone re-vendoring it must re-apply or re-derive that patch.
-
-**Documents and RTL were reconciled on 2026-09-26** (`Docs/BUGS.md` §1d,
-AUD-1..AUD-10). 267 normative notes across eleven specifications were compared
-against the RTL. Everything the toolchain touches was already correct; the
-errors lived where nothing executes. Outcomes:
-
-- **ADR-0002 Rev 2 is now implemented.** `dma_apb_slave` and `timers_apb` run
-  their protocol side on `pclk` with registers still on `hclk`. PRDATA is
-  registered on pclk, so the 4 ns hclk-to-pclk hop is local to each block
-  instead of crossing to the bridge. `tb_timers` counts mid-access PRDATA
-  movement: 3 on the old RTL, 0 on the new.
-- **The core's named properties exist** (`rtl/core/pipe_ctrl_sva.sv`) and run
-  in every core simulation. `make pipe_matrix` measures the [N-11.2] matrix.
-- **Two sources of truth were ruled on**: the `.md` is normative,
-  `make check_docs` fails on drift (`Design_Docs/README.md`).
-
-**Block 14 (`spi_slave`) is built** — `rtl/spi_slave/`, in-house, 32/32 on
-`make test_spis`, window 0, CLIC 14, DMA channel 4 now un-tied. That was the
-last missing block: **every block in `garuda_system.yaml` now has RTL.** Its
-four pins are present on `garuda_chip_top` and gated by `WITH_SPI_SLAVE`
-(default 1); setting it to 0 gives back the exact 28-pin build, because the
-bonding question is OPEN-2 and not ours.
-
-**Two things an owner still has to decide:**
-
-1. **AUD-8 — formal on `pipe_ctrl`.** All four hold-versus-flush collision
-   cells are reached **zero** times by any test, and they are where errata P-1,
-   P-2 and P-3 came from. They may be unreachable by construction. Simulation
-   cannot tell "unreachable" from "untested"; formal can, and will either
-   retire the concern or hand you the sequence the directed test needs.
-2. **AUD-9 — DSU naming.** The DSU's ports do not match its spec
-   (`dsu_busy` vs `dsu_busy_o`, `dsu_rd_data` vs `dsu_result_o`, …) and it is
-   the only block without `_i`/`_o` suffixes. Rename the RTL or correct the
-   spec; renaming touches the core/DSU interface, so it is not free.
-
-**Next, in order:**
-1. **Physical design is now the critical path, not RTL.** SDC from PHYS §5.2
-   (+ `aon_clk` generated clock, D-14), foundry SRAM/ROM macros behind
-   `sram_wrapper.v`, the ICG cell in `core_clk_gate.v`, the pad ring, then STA
-   at 250 MHz with the 28 nm library.
-2. Triage the six element TBs (BUGS.md ELEM-1..6).
-3. **DFT.** Still not mentioned in any Rev 4.0 document and still the biggest
-   gap. GPIO's `dft_cg_enable_i` is tied low (GPIO OPEN-G1) and wants driving
-   from a test-mode signal that does not exist.
-4. Coverage closure on the new blocks (none collected yet), gate-level sim.
-5. `make synth` per new block as it lands, not at the end — PULP targets
-   50–100 MHz and we run APB at 125 MHz; `APB_DIV` is the per-window escape
-   hatch if a block cannot make it (AHB2APB [N-7.10]).
-
----
-
-## 1. Where things stand
-
-Before this work, the RTL had never executed a single instruction — every test drove
-pipeline-stage inputs by hand. It now boots, runs C, and passes the RISC-V ISA suite in
-instruction-by-instruction lockstep against Spike.
-
-| suite | result | command |
+| ID | Priority | Decision |
 |---|---|---|
-| ISA (rv32ui + rv32um + rv32mi), self-check **and** Spike lockstep | **63/63** | `make regress` |
-| — same, with fixed AHB wait states | 63/63 | `make regress_wait` |
-| — same, randomised waits 0..8 | 63/63 | `make regress_rand SEED=n` |
-| Core Sanity directed tests | **8/9** — see note | `make test_sanity` |
-| DSU vs cycle-accurate golden model | **645/645** (seeds 1,2,3,5,7) | `make test_dsu` |
-| Block-level unit TBs | **14,359 checks, 0 fail** | `make test_units` |
-| Legacy unit smokes | 7/7 | `make test_core` |
-| Boot / first C program | pass | `make test_boot` / `make test_c` |
-| AHB-Lite protocol, both ports, every test above | **0 violations** | always on, now fatal; `docs/ORACLES.md` |
+| T-12 | **P1** | Nested interrupts and exceptions in a handler leave the interrupt level wrong. Fix needs `mcause.mpil` (changes what handlers read) |
+| RDC-1 | P2 | A debugger halt resets the core in the middle of a waited store |
+| GPIO-2 | P2 | Five spec/IP differences; INTTYPE `11` (level) raises no interrupt |
+| AUD-12 | P2 | 27 spec-vs-RTL differences found while writing the plans |
+| PWM-2 | — | PWM pins are combinational and can glitch |
+| APB-1 | low | The bridge timeout abandons an APB access; state it in the spec or change it |
+| CRG-3, SIM-1, C-16, AUD-13 | P3 | Reset-cause priority, a simulation/silicon ordering difference on pclk, missing standard CSRs, the PSLVERR rule |
+| AUD-9 | — | DSU port names do not match its spec |
+| OPEN-2 | — | Are the supply pads inside the 40? Decides whether the 4 SPI-slave pins are bonded (`WITH_SPI_SLAVE`) |
 
-> **`t_clic` currently TIMEOUTs**, so the sanity suite is 8/9, not the 9/9 recorded on
-> 2026-08-04. This is **pre-existing and unrelated to the bus errata** — it was confirmed
-> by re-running the suite against the unmodified RTL (`git stash`), where it times out
-> identically. It reports `iport=0 dport=0`, so it is not a protocol failure. Not yet
-> diagnosed; it is the first thing to look at before trusting this table again.
+INT-2 moved the DMA error interrupts from CLIC IDs 7..12 to 8..13. The yaml, RTL and
+specifications now agree (2026-10-14). The owner confirms the move.
 
-**27 RTL bugs found and fixed** (see §4). Zero known RTL defects outstanding.
+## 4. Set up the shell
 
-> The authoritative number is taken from the `ERRATUM` markers in the RTL
-> (`grep -rn "ERRATUM [A-Z]*-[0-9]" rtl/`). It was 23 through 2026-08-04; the four
-> AHB-Lite protocol errata **BUS-A/B/C/D** were added 2026-09-02 as prerequisite work
-> for the interconnect (§11). Figures of 22 or 25 quoted verbally during the first round
-> were miscounts.
-
----
-
-## 2. Getting a working shell
-
-**Nothing is on `PATH` by default.** One command fixes that:
+Do this in each new terminal:
 
 ```bash
 cd ~/garuda_soc
 source scripts/setup_env.sh      # expect six OK lines
 ```
 
-| tool | location | role |
+| Tool | Location | Use |
 |---|---|---|
-| Xcelium 22.09 `xrun` | `/home/install/XCELIUM2209/**tools/bin**` | regression |
-| Incisive 15.20 `irun` | `/home/install/INCISIVE152/tools/bin` | coverage collection only |
-| Incisive 15.20 `imc` | `/home/install/INCISIVE152/bin` | coverage merge/report |
-| RISC-V GCC | `/home/vivado/2025.2/Vitis/gnu/riscv/linux_toolchain/lin64/bin` | prefix `riscv64-amd-linux-gnu-` |
-| Spike | `~/external/spike-inst/bin/spike` | golden ISS, built from source |
-| riscv-tests | `~/external/riscv-tests` | test sources |
+| Xcelium 22.09 `xrun` | `/home/install/XCELIUM2209/tools/bin` | Regression |
+| Incisive 15.20 `irun`, `hal`, `imc` | `/home/install/INCISIVE152` | Coverage, lint, coverage merge |
+| RISC-V GCC | `/home/vivado/2025.2/Vitis/gnu/riscv/linux_toolchain/lin64/bin` | Prefix `riscv64-amd-linux-gnu-` |
+| Spike | `~/external/spike-inst/bin/spike` | Golden ISS |
+| riscv-tests, riscv-dv | `~/external/riscv-tests`, `~/external/riscv-dv` | Test sources |
 
-Licence is `5280@192.168.6.16`. Without it `xrun` compiles and elaborates fine, then dies
-at simulation with `xmsim: *F,NOLICN` — a late failure that looks unrelated to licensing.
+The licence is `5280@192.168.6.16`. **Caution:** without it, `xrun` compiles and elaborates,
+then stops at simulation with `xmsim: *F,NOLICN`. This looks like a design fault. It is not.
 
-### Environment traps that masquerade as RTL bugs
+## 5. Run the regression
 
-Both of these cost real debugging time. Neither is a core defect.
+```bash
+make regress_all        # core, elements, blocks, sanity, DSU, ISA, chip
+make -k regress_all     # the same, but do not stop at the first failure
+make help               # every target
+```
 
-1. **Spike's NS16550 UART is hard-wired at 0x1000_0000** — exactly GARUDA's reset vector.
-   `spike -m0x10000000:0x40000` fails with `devices ... overlap`. `tools/lockstep.py`
-   already passes `--disable-dtb --pc=0x10000000 --priv=m`.
-2. **The Vitis GCC defaults to PIC/PIE.** `la t0, tohost` becomes a GOT load; the GOT is
-   empty on bare metal, so the address loads as **zero** and the store goes to address 0.
-   The core executes it perfectly — it reads exactly like a broken load unit. Use `lla`,
-   never `la`, and keep `-fno-pic -no-pie -mno-relax`.
+The vManager flow with coverage is in `flow/COMMANDS.md` ("Stages 3 to 6").
 
-**Spike's ISA string must name every extension GARUDA implements** or the golden model
-raises illegal on correct instructions and the whole test "diverges". Currently
-`rv32im_zicsr_zifencei_zicntr` — `rv32im` alone does **not** imply Zicsr.
+## 6. Traps that look like RTL defects
 
----
+1. **Spike's UART is at `0x1000_0000`,** which is GARUDA's reset vector. `tools/lockstep.py`
+   passes `--disable-dtb --pc=0x10000000 --priv=m`. Keep these options.
+2. **The Vitis GCC makes position-independent code by default.** `la t0, tohost` then loads
+   zero, and the store goes to address 0. Use `lla`. Keep `-fno-pic -no-pie -mno-relax`.
+3. **Spike's ISA string must name every extension:** `rv32im_zicsr_zifencei_zicntr`.
+   `rv32im` alone does not include Zicsr.
+4. **IMC 15.20 cannot read an Xcelium 22.09 database.** Collect coverage with `irun`. Merge
+   with `-initial_model union_all`. Read covergroups with `report -detail -metrics covergroup`.
+5. **Suspect the testbench.** Most first-run failures in this project were testbench
+   defects (`Docs/BUGS.md` §6 and §1h). When the RTL and a model disagree, examine both.
 
-## 3. What exists, and where
+## 7. Debug a failing test
 
-### Testbenches
-| path | what |
-|---|---|
-| `tb/soc/tb_boot.v` | the main TB. Loads a `+HEX` image, runs it, records a commit log, reports pass/fail via `tohost`. Also injects interrupts, bus errors and wait states. |
-| `tb/dsu/tb_dsu_top.sv` | DSU unit TB, compares against `DSUModel` |
-| `tb/cov/garuda_cov.sv` | 7 covergroups, `bind`-ed into the core (no RTL edits) |
-| `tb/core/tb_*.sv` | six constrained-random block TBs (from a teammate) |
-| `rtl/ahb/ahb_mem_slave.v` | dual-port AHB memory model — **verification only**, not silicon |
-
-### Tools
-| path | what |
-|---|---|
-| `tools/lockstep.py` | normalises Spike's log and ours to `(pc, rd, value)`, reports the **first** divergence |
-| `tools/elf2hex.py` | binary → `$readmemh` image |
-| `tools/golden/DSU_Golden.py` | `DSUModel`, cycle-accurate, the DSU's de-facto spec |
-| `tools/gen/DSU_gen.py` | generates DSU stimulus + expected vectors |
-
-### Scripts
-`setup_env.sh`, `run_regression.sh`, `run_sanity.sh`, `run_coverage.sh`.
-`make help` lists every target.
-
-### Software
-`sw/common/` (crt0 + linker script), `sw/tests/` (directed tests), `sw/riscv-tests/`
-(two envs — see §6).
-
----
-
-## 4. Errata index — 27 fixed bugs
-
-Every one is documented in full at its fix site; search the RTL for `ERRATUM <id>`.
-
-### Bus interface
-| id | file | defect |
-|---|---|---|
-| **I-1** | `garuda_iport_ahb_master.v` | Sampled HRDATA during the **address** phase, so every instruction was paired with the previous cycle's data. The first fetch returned `0x00000000` and the core trapped on instruction one. **It could not execute a single instruction.** |
-| **D-1** | `d_port_ahb_master.v` | Same conflation on the data side. HWDATA was driven in the address phase and collapsed to 0 before the slave sampled it — **every store wrote zero**. Loads sampled HRDATA a cycle early. |
-
-### AHB-Lite protocol (all I-port; the D-port was clean in every configuration)
-
-Found by `tb/ahb/ahb_lite_checker.v`, the first thing in the project ever to read HBURST.
-All four are **silent** against `ahb_mem_slave.v`, which services every transfer as an
-independent SINGLE and returns correct data no matter what the burst signalling claims —
-which is why they survived 63 passing ISA tests, 9 directed tests and every coverage run.
-Full write-up in `docs/ORACLES.md`.
-
-| id | file | defect |
-|---|---|---|
-| **BUS-A** | `garuda_iport_ahb_master.v` | HBURST derived from the **current** HTRANS, so the opening NONSEQ beat declared SINGLE and every following SEQ beat declared INCR. Breaks two rules at once: HBURST must be constant across a burst, and a SINGLE burst has exactly one transfer. **494 violations in one `add.hex` run.** |
-| **BUS-B** | `garuda_iport_ahb_master.v` | The "next beat must be NONSEQ" flag tracked only redirects, so a burst broken by a **full prefetch buffer** resumed with SEQ — a SEQ beat with no open burst. Needed a specific stall shape to appear; no amount of extra random ISA stimulus would have found it. |
-| **BUS-C** | `garuda_iport_ahb_master.v` | On redirect, an address phase already presented but not yet accepted was **retracted to IDLE**. AHB-Lite has no cancel — a presented transfer must be held to acceptance and its data discarded. The old comment asserted the opposite, which is what made the bug look correct. |
-| **BUS-D** | `garuda_iport_ahb_master.v`, `ahb_lite_checker.v` | Bursts could **cross a 1 KB boundary**. Neither enforced nor checked. Harmless against a flat memory model; a decode defect the moment a fabric exists, since 1 KB is the minimum AHB slave window. Found by asking what the protocol requires, not what the TB noticed. |
-
-### Pipeline control
-| id | file | defect |
-|---|---|---|
-| **F-1** | `id_ex.v`, `ex_stage.v` | A forwarded operand was lost across a multi-cycle stall: the producer drains out of MEM/WB and EX silently reverts to the stale register-file value. |
-| **P-1** | `pipe_ctrl.v` | Load-use flushed ID/EX while MEM was stalled — which **destroys the load** parked there instead of inserting a bubble behind it. |
-| **P-2** | `pipe_ctrl.v` | A predicted-taken branch held in IF/ID by a load-use stall was **flushed by its own predictor's redirect**. Timing-sensitive: passed with slow memory, failed with fast. |
-| **P-3** | `pipe_ctrl.v` | `dsu_busy`/`wfi_hold` held ID/EX but never bubbled EX/MEM, so the parked instruction **re-committed every cycle** — caught as an instruction executing 381 times. |
-
-### Decode
-| id | file | defect |
-|---|---|---|
-| **C-1** | `decode_control.v` | SLLI/SRLI/SRAI ignored all of `funct7` but bit 5, so shift-by-≥32 executed instead of trapping. |
-| **C-2** | `decode_control.v` | No `OP_MISC_MEM` case at all — **FENCE trapped**, which RV32I forbids. |
-| **C-3** | `decode_control.v`, `branch_predict.v`, `id_stage.v` | FENCE.I implemented as an ID redirect to PC+4; the redirect flushes the prefetch buffer, which is exactly Zifencei's requirement. |
-| **C-4** | `csr_file.v` | Zicntr shadows (`cycle`/`instret`/`cycleh`/`instreth`) were unimplemented. |
-
-### Traps and CSRs
-| id | file | defect |
-|---|---|---|
-| **T-1** | `branch_unit.v`, `ex_stage.v` | Cause 0 (instruction-address-misaligned) **was not implemented**. Without the C extension a jump to a non-4-byte-aligned target must trap. |
-| **T-2** | `csr_file.v` | `misa` treated as read-only, so `csrsi misa,4` — the standard probe for the C extension — raised illegal. It is WARL. |
-| **T-3** | `trap_ctrl.v` | `mtvec` base masked to **64 bytes** instead of 4, silently relocating every handler backwards. |
-| **T-4** | `trap_ctrl.v`, `garuda_core_top.v` | **Interrupt entry was not gated on a valid instruction in EX.** An interrupt arriving on a pipeline bubble latched `mepc = 0`, so `mret` jumped to address 0. Any interrupt in a branch shadow destroyed the return address. |
-
-### DSU
-| id | file | defect |
-|---|---|---|
-| **DSU-1** | `dsu_stall.v` | The interlock **deadlocked** — holding ID/EX re-presents the same instruction, so the stall condition sustained itself. |
-| **DSU-2** | `mac_unit.v` | MACLOAD/MACCLEAR/MACSAT latched pending products from their own meaningless operand fields (FLAG-A); a stale product also survived a MACCLEAR. |
-| **DSU-3** | `dsu_stall.v` | compute→readback was not interlocked (FLAG-C / FLAG-2). |
-| **DSU-4** | `mac_unit.v` | **Stage 2 never self-drained.** `acc` only updated when a new instruction arrived, so the last product of any sequence sat stranded indefinitely. This — not the missing interlock — is why FLAG-2 read 0 instead of 15. |
-| **DSU-5** | `barrel_shifter.v` | The arithmetic right shift was **silently logical**: Verilog takes a conditional expression's signedness from both arms, and the left-shift arm is unsigned, so `>>>` lost its signed context. |
-| **DSU-6** | `dsu_decoder.v` | MACSHIFT amounts 48..63 now raise illegal (FLAG-D closed in RTL, not documentation). |
-| **DSU-7** | `dsu_decoder.v` | I-type `imm[11:9]` reserved, reclaiming 7/8 of the encoding space. |
-| **DSU-8** | `overflow_flag.v` | An overflow coinciding with its own clear was **lost** (FLAG-E). |
-| **DSU-9** | `dsu_top.v` | `dsu_busy` was the only DSU output not gated by `dsu_en`. |
-
-### Patterns worth internalising
-
-**BUS-A/B/C/D share a different shape from the rest, and it is the more general lesson:**
-they were not missed for lack of stimulus or coverage — the code ran constantly, at 98.5%
-statement coverage. They were missed because **nothing in the testbench was asking the
-question.** A functional model answers "what data comes back?"; protocol legality is a
-different question needing a separate, passive observer that cannot be satisfied by the
-thing it is checking. Adding tests could never have found these. Adding an oracle found
-all four in an afternoon.
-
-Four of the others (**F-1, P-1, P-2, P-3**) are the same shape as each other: *a flush or hold whose
-premise is that an instruction has already advanced, firing while a stall is holding it
-in place.* If you touch `pipe_ctrl`, check that every flush term is gated against every
-hold source.
-
-**F-1, P-1 and P-3 were unreachable until D-1 was fixed** — with a one-cycle D-port
-there was never a multi-cycle MEM stall to expose them. Fixing one bug made three more
-reachable, which is normal and worth expecting.
-
----
-
-## 5. Debugging workflow
-
-`docs/HOWTO_RUN.md` has the full version. In short:
-
-1. **Lockstep first.** `cat sim/regress/<test>.lockstep.txt` prints the first
-   instruction where GARUDA and Spike disagree, with three instructions of context.
-   Only the first divergence matters — everything after is downstream.
+1. **Read the lockstep result.** `cat sim/regress/<test>.lockstep.txt` shows the first
+   instruction where GARUDA and Spike disagree. Only the first divergence is important.
 2. **Disassemble.** `riscv64-amd-linux-gnu-objdump -d sw/riscv-tests/build/<test>.elf`
-3. **Probe.** `tb_boot` carries built-in probes, all windowed by `+DBGFROM`/`+DBGTO`:
+3. **Use the probes in `tb_boot`.** Limit them to a window with `+DBGFROM` and `+DBGTO`.
 
-| plusarg | shows |
+| Plusarg | Shows |
 |---|---|
-| `+DBGBUS` | instruction fetch: bus address/data and each pipeline stage |
-| `+DBGTRAP` | trap entry: cause, target, every exception source |
-| `+DBGD` | data bus, address phase and data phase separately |
-| `+DBGM` | MEM stage and the writeback handshake |
+| `+DBGBUS` | Instruction fetch: bus address, data, each pipeline stage |
+| `+DBGTRAP` | Trap entry: cause, target, each exception source |
+| `+DBGD` | Data bus, address phase and data phase |
+| `+DBGM` | MEM stage and the write-back handshake |
 | `+DBGEX` | EX stage, hazard and stall signals |
 | `+DBGACC` | DSU accumulators |
 
-4. **Waveforms** with `+WAVES`, then `simvision sim/.../waves.shm`.
+4. **Look at waveforms.** Add `+WAVES`, then `simvision sim/<dir>/waves.shm`.
 
-**Suspect the testbench too.** Several apparent RTL bugs during this work were harness
-faults: a TB driving inputs *at* the clock edge (racing the DUT's flops), a trap handler
-clobbering a register the test held an expected value in, a test writing over its own
-far-linked code. When RTL and model disagree, the model is a suspect too.
+## 8. Test environments for the ISA suite
 
----
-
-## 6. Test suites
-
-### `sw/riscv-tests/` — two environments, deliberately
-
-| env | reports via | used for |
+| Environment | Reports through | Used for |
 |---|---|---|
-| `env/riscv_test.h` | direct `tohost` store | rv32ui, rv32um — keeps the trap unit **out** of base ISA tests, so a failing ADD is reported by ADD |
-| `env/p/riscv_test.h` | ECALL + trap handler | rv32mi, `ma_data`, div/rem — tests that are *about* traps |
+| `sw/riscv-tests/env/riscv_test.h` | A direct `tohost` store | rv32ui, rv32um |
+| `sw/riscv-tests/env/p/riscv_test.h` | ECALL and a trap handler | rv32mi, `ma_data`, divide and remainder |
 
-The p-env carries **three GARUDA-specific deviations** from upstream, all documented in
-its header. The critical one: `trap_vector` must be **64-byte aligned** because
-`trap_ctrl` masked `mtvec[5:0]`. That mask is now fixed (T-3), so the alignment is
-belt-and-braces rather than load-bearing — but leave it.
+The p-environment has a software DIV/REM emulator (`divrem_emu.S`). GARUDA has no hardware
+divider. Spike lockstep does not apply to `p-div/divu/rem/remu`, `p-csr`, `p-mcsr` and
+`p-ma_fetch`; these pass their own self-check. Excluded tests: `breakpoint` (no Sdtrig),
+`pmpaddr` (no PMP), `instret_overflow`.
 
-The p-env also contains a **software DIV/REM emulator** (`divrem_emu.S`). GARUDA has no
-hardware divider by design (Sec. 7.2); the trap handler decodes the faulting instruction
-and computes the result. Misaligned load/store emulation lives in the same file.
+## 9. Next work, in order
 
-### Still excluded, with reasons
-
-| test | why |
-|---|---|
-| `breakpoint` | probes Sdtrig debug-trigger CSRs. **No debug module exists** (README: Pending). Not a bug. |
-| `pmpaddr` | no PMP, by design |
-| `instret_overflow` | needs a counter-overflow mechanism; confirm against Sec. 13 |
-
-### Lockstep not applicable (still must pass their own self-check)
-
-`p-div/divu/rem/remu` — GARUDA emulates in ~100 instructions where Spike's hardware
-divider takes one; the streams cannot match. `p-csr`, `p-mcsr`, `p-ma_fetch` — `misa`
-bit 23 (X, non-standard extension) is set because of the DSU, and Spike knows nothing
-about it.
-
----
-
-## 7. Coverage
-
-Run: `./scripts/run_coverage.sh`. Reports in `sim/cov/`.
-
-**Collected with `irun`, not `xrun`** — IMC here is Incisive 15.20 and cannot read an
-Xcelium 22.09 database (`*E,DBERR: serialization exception`). There is no
-format-downgrade option, so the fix was to move the *writer* back to a matching vintage.
-Both simulators use the same filelists.
-
-### Two IMC traps that silently produce wrong answers
-
-1. **`-initial_model union_all` is mandatory.** The default (`primary_run`) builds the
-   merged model from the first run only and **discards every run with a different top
-   module** — all seven unit databases contributed nothing, with no error reported.
-2. **`report -summary` shows `n/a` for functional coverage** even when covergroups are
-   populated. Use `report -detail -metrics covergroup`.
-
-### Current numbers
-
-DUT 73.24%; 24 of 44 design modules ≥95%. Split by metric:
-
-| metric | mean |
-|---|---|
-| block (statement) | **98.5%** |
-| expression (branch) | **96.1%** |
-| toggle | **86.0%** |
-
-**Every module below 95% is at 100% statement coverage.** `clic_ctrl`,
-`garuda_if_stage_top`, `garuda_pc_gen` and `trap_ctrl` have **zero uncovered blocks**.
-The shortfall is entirely toggle — individual bits of wide buses that never change
-state, not logic that never ran. Writing more tests that exercise *logic* cannot move
-these numbers.
-
-Some toggle bits are unreachable in principle: `mcycleh` needs 2³² cycles to flip its
-low bit.
-
----
-
-## 8. What is left
-
-1. **`docs/COVERAGE.md` is partly stale** and committed. It lists SHV under "blocked on
-   an open design decision" — that was disproven (see §9) — and carries pre-closure
-   figures. Correct or delete those sections.
-2. **Reconcile both `.xlsx` plans.** `Done` columns unset; the DSU plan's Open Questions
-   rows 1–9 are all resolved, several of them in RTL.
-3. **Decide the coverage signoff position.** A judgement call, not more testing: meet the
-   bar on statement/branch, report toggle separately with per-module written waivers.
-4. **Tell the teammate their coverage figures are stale.** Their TBs inlined a snapshot
-   of the DUT predating the shamt and FENCE fixes, and two of their reference models were
-   wrong against real RTL (both corrected here). Their ~97% needs regenerating.
-
----
-
-## 9. Design questions that were answered by evidence
-
-- **SHV vectoring.** `clic_ctrl.v`'s header flags an unresolved question: does `mtvt`
-  hold jump instructions or handler pointers? **Answered: jump instructions.** SHV
-  interrupts through a 4096-entry jump table work end to end. An earlier conclusion that
-  SHV was broken was wrong — the `mepc = 0` symptom was **T-4**, and SHV merely hit that
-  window more often because it arrives at arbitrary points in the instruction stream.
-- **FLAG-2 / FLAG-C** (compute→readback). Closed as an **RTL interlock**, not a software
-  ordering contract — a contract nothing in the toolchain can enforce would outlive
-  everyone who knows about it. Note the interlock alone was **not sufficient**; DSU-4
-  (self-draining stage 2) was the actual fix.
-- **FLAG-A, FLAG-D, FLAG-E** — all closed in RTL (DSU-2, DSU-6, DSU-8).
-
-## 10. Scope limits — state these, do not let numbers imply otherwise
-
-Only `rtl/core/` and `rtl/dsu/` exist. `rtl/clic/`, `dma`, `debug`, `isram`, `dsram`,
-`ahb2apb` and every peripheral are **empty directories**. There is no interconnect and no
-TCM — `ahb_mem_slave.v` stands in for both, and its header states plainly that it
-verifies nothing about arbitration, address decoding or the AHB-to-APB bridge.
-
-A passing regression here says the **core and DSU** work. It says nothing about the SoC.
-
----
-
-## 11. Interconnect work — started 2026-09-02
-
-Building the AHB-Lite fabric and APB subsystem per the TRM (§III). Decisions taken:
-
-- **Multi-layer bus matrix**, not a single shared layer. The TRM's own "different banks —
-  zero stall" claim (§III.II) is only achievable with a per-slave arbiter and mux. Note
-  the TRM is internally inconsistent here: it lists **three** masters (CPU I-port, CPU
-  D-port, DMA) while calling the bus AHB-Lite, which has exactly one master by
-  definition. The matrix resolves this — one AHB-Lite layer per slave. DMA's port is
-  stubbed until `rtl/dma/` exists; the matrix means it lands later with no redesign.
-- **Synchronous 2:1 clock-enable bridge**, not async CDC. The 100 MHz peripheral clock is
-  derived from the 200 MHz core clock by division, so the domains are phase-aligned and
-  this is not a true CDC. An enable-gated bridge is smaller, has deterministic latency,
-  and matches the TRM's "~3–4 cycles" access cost (§III.III). Writing 2FF synchronisers
-  here would add latency and verification burden for a hazard that does not exist.
-
-### Step 1 — DONE: close the bus errata first
-
-BUS-A/B/C/D fixed, and `+AHBCHK_FATAL` flipped so protocol violations now **fail** by
-default (`+NO_AHBCHK_FATAL` demotes). This was sequenced first deliberately: the fabric
-is the **first consumer in the project that actually reads HBURST**, so a master that
-mis-signals bursts would have produced fabric bugs indistinguishable from its own, and
-under an advisory checker the fabric's own violations would have been invisible in the
-existing noise.
-
-### Step 2 — NEXT: memory-map migration, before any fabric RTL
-
-`sw/common/link.ld` puts text, data, bss and stack in **one flat 256 KB RWX region at
-`0x1000_0000`**, with `_tohost_addr = 0x1000F000`. Under the TRM map (§III.IV) that
-address is inside **Boot ROM — 4 KB, read-only**:
-
-| region | base | size | bus |
-|---|---|---|---|
-| Instruction SRAM | `0x0000_0000` | 64 KB | AHB |
-| Boot ROM | `0x1000_0000` | 4 KB | AHB |
-| Data SRAM | `0x2000_0000` | 64 KB | AHB |
-| Peripherals | `0x4000_0000` | 4 KB per peripheral | APB |
-
-So `tohost` is both **outside the 4 KB window and a write to ROM**. That handshake is the
-pass/fail mechanism for all 63 ISA tests, the 9 sanity tests and `tools/lockstep.py`.
-
-**Do this migration as its own step, against the existing flat memory model, and prove
-63/63 on both sides of it.** Landing it together with the fabric makes every subsequent
-failure ambiguous between a decode bug and a linker-script bug. `RESET_VECTOR` is already
-a parameter and `link.ld`'s header anticipates the change, so it is tractable.
-
-### Step 3 — the fabric itself
-
-Decoder + matrix, ISRAM/DSRAM/BROM slaves, AHB→APB bridge, one APB peripheral to prove
-the path end to end.
-
-**Write the APB protocol checker before the bridge**, on the same principle that produced
-BUS-A/B/C/D: `ahb_lite_checker.v` explicitly disclaims decode, arbitration and
-multi-master behaviour, so it cannot cover any of the new failure modes. A bridge built
-before its oracle is a bridge nobody is looking at.
+1. Run §2 at the lab.
+2. Get the owner's decisions in §3. T-12 first.
+3. Coverage closure (`Docs/COVERAGE.md`): CLIC, `garuda_if_stage_top`, `csr_file`, GPIO.
+4. Write the 27 tests that the specifications plan and nobody wrote (AUD-11).
+5. TB-33 and ELEM-8 (testbench defects, open).
+6. Gate-level simulation and DFT, when there is a netlist and a DFT decision.
