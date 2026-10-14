@@ -7,14 +7,12 @@
 # whole precondition for lockstep comparison being meaningful.
 # =============================================================================
 
-RISCV_PREFIX ?= riscv64-amd-linux-gnu-
-RISCV_BIN    ?= /home/vivado/2025.2/Vitis/gnu/riscv/linux_toolchain/lin64/bin
+# Toolchain (CC/OBJCOPY/OBJDUMP): Vitis on the lab machines, xPack for Track A,
+# or RISCV_BIN/RISCV_PREFIX as given -- see toolchain.mk
+include toolchain.mk
 
-CC      = $(RISCV_BIN)/$(RISCV_PREFIX)gcc
-OBJCOPY = $(RISCV_BIN)/$(RISCV_PREFIX)objcopy
-OBJDUMP = $(RISCV_BIN)/$(RISCV_PREFIX)objdump
-
-ARCH    = rv32im_zicsr        # zicsr: the assembler needs it named explicitly for csrr/csrw
+# zicsr/zifencei: newer assemblers need them named explicitly for csrr/csrw and fence.i
+ARCH    = rv32im_zicsr_zifencei
 ABI     = ilp32
 
 # -mno-relax: no __global_pointer$ is set up by crt0, so gp-relative

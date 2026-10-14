@@ -106,6 +106,8 @@ module tb_top;
     garuda_if_stage_top dut (
         .clk_i         (clk),
         .rst_n_i       (rst_n),
+        .fetch_stop_i  (1'b0),          // RDC-1 halt drain: not exercised here
+        .pf_dis_i      (1'b0),          // CORE-4 (mgarudactl): full prefetch
         .i_haddr_o     (vif.i_haddr),
         .i_htrans_o    (vif.i_htrans),
         .i_hsize_o     (vif.i_hsize),

@@ -15,3 +15,7 @@
 
 -sv
 tb/cov/garuda_cov.sv
+// Track A plan E8: pipe / branch / csr / irq / sleep / bus / halt / ctl coverage
+tb/cov/garuda_cov_ext.sv
+tb/cov/garuda_cov_vplan.sv
+tb/dsu/dsu_cov_vplan.sv

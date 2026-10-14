@@ -136,9 +136,17 @@ module tb_top;
             bins write_only   = {2'b10};
             bins simultaneous = {2'b11};     // the off-by-one corner
         }
-        // Every wr/rd combination at every occupancy, including a write at
-        // full and a read at empty.
-        cross cp_occupancy, cp_rw;
+        // Every wr/rd combination at every occupancy that the buffer can see in
+        // the core. Read at empty, write at full and write+read at full never
+        // occur there: tb/core/formal/cov_const_sva.sv a_pfb_no_underflow,
+        // a_pfb_no_overflow, a_pfb_no_full_rw are PROVEN on the whole core
+        // (2026-10-11), so they are outside the module's operating envelope.
+        cross cp_occupancy, cp_rw {
+            ignore_bins out_of_envelope = binsof(cp_occupancy.empty_) && binsof(cp_rw.read_only) ||
+                                          binsof(cp_occupancy.empty_) && binsof(cp_rw.simultaneous) ||
+                                          binsof(cp_occupancy.full_)  && binsof(cp_rw.write_only) ||
+                                          binsof(cp_occupancy.full_)  && binsof(cp_rw.simultaneous);
+        }
         cp_flush_at: coverpoint vif.occupancy iff (vif.redirect) {
             bins flush_empty = {0};
             bins flush_part  = {[1:3]};

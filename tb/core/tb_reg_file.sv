@@ -55,53 +55,10 @@
 // -------------------------------------------------------------
 // 1. DUT: regfile.v (pasted verbatim, self-contained file)
 // -------------------------------------------------------------
-`ifndef GARUDA_REAL_RTL
-// -----------------------------------------------------------------------------
-// INLINED DUT COPY -- guarded (added 2026-08-02).
-//
-// This file carries its own copy of the DUT so it can be compiled standalone
-// under VCS. That copy is a SNAPSHOT and had already drifted from rtl/core/*.v
-// (it predates the SLLI/SRLI/SRAI funct7 check and the FENCE decode), so a
-// green run against it proves nothing about the RTL that actually ships.
-//
-// Defining GARUDA_REAL_RTL skips this copy so the testbench binds to the real
-// rtl/core sources -- that is what tb/core/filelist_*.f does. Compiling this
-// file standalone with no define behaves exactly as before.
-// -----------------------------------------------------------------------------
-module regfile (
-    input  wire         clk_i,
-    input  wire         rst_n_i,
-
-    input  wire [4:0]  rs1_idx_i,
-    input  wire [4:0]  rs2_idx_i,
-
-    input  wire         wb_reg_write_i,
-    input  wire [4:0]  wb_rd_i,
-    input  wire [31:0] wb_data_i,
-
-    output wire [31:0] rs1_data_o,
-    output wire [31:0] rs2_data_o
-);
-
-    reg [31:0] mem [1:31];   // x0 not stored - reads as 0 by construction
-    wire [31:0] rs1_raw, rs2_raw;
-
-    always @(posedge clk_i) begin
-        if (wb_reg_write_i && (wb_rd_i != 5'd0)) begin
-            mem[wb_rd_i] <= wb_data_i;
-        end
-    end
-
-    assign rs1_raw = (rs1_idx_i == 5'd0) ? 32'd0 : mem[rs1_idx_i];
-    assign rs2_raw = (rs2_idx_i == 5'd0) ? 32'd0 : mem[rs2_idx_i];
-
-    assign rs1_data_o = (wb_reg_write_i && (wb_rd_i != 5'd0) && (wb_rd_i == rs1_idx_i))
-                           ? wb_data_i : rs1_raw;
-    assign rs2_data_o = (wb_reg_write_i && (wb_rd_i != 5'd0) && (wb_rd_i == rs2_idx_i))
-                           ? wb_data_i : rs2_raw;
-
-endmodule
-`endif // GARUDA_REAL_RTL -- inlined DUT copy ends; verification env follows
+// (W6, 2026-10-11) The inlined DUT copy that stood here under `ifndef
+// GARUDA_REAL_RTL is removed: no flow compiled it (every filelist defines the
+// macro), it had drifted from rtl/core, and a build without the define would
+// have verified the stale copy. The bench binds the real rtl/core sources only.
 
 
 

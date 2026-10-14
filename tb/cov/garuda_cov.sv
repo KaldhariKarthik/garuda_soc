@@ -110,7 +110,15 @@ module garuda_cov (
         }
         cp_off:  coverpoint d_haddr[1:0];
         x_size_off: cross cp_size, cp_off;
-        x_dir_size: cross cp_dir,  cp_size;
+        // TB-40: per direction instead of cross cp_dir x cp_size, which asked for
+        // stores of the unsigned sizes (RV32I has no SBU/SHU: funct3 4/5 stores
+        // are illegal and never set mem_write). Same bins, none impossible.
+        cp_load_size:  coverpoint em_funct3 iff (xe_mem_read) {
+            bins b={3'b000}; bins h={3'b001}; bins w={3'b010}; bins bu={3'b100}; bins hu={3'b101};
+        }
+        cp_store_size: coverpoint em_funct3 iff (xe_mem_write) {
+            bins b={3'b000}; bins h={3'b001}; bins w={3'b010};
+        }
     endgroup
 
     // ---------------------------------------------------------------------
@@ -207,9 +215,15 @@ module garuda_cov (
     // 7. DSU: instruction x accumulator. The plan asks for all 30 legal
     //    combinations (10 Custom-0 ops x 3 accumulators).
     // ---------------------------------------------------------------------
-    wire [4:0] dsu_funct5  = xe_instr[31:27];
-    wire [1:0] dsu_acc_sel = xe_instr[26:25];
+    // TB-41 (2026-10-11): MACSHIFT is I-type (funct3 = 001, imm = {left, acc,
+    // amt}: acc in instr[27:26]); only the R-type ops carry funct5 in [31:27] and
+    // acc in [26:25]. Decoding MACSHIFT with the R-type layout left its bins
+    // (and its 3 accumulator crosses) unhittable. The op seen here is the
+    // architectural one.
     wire [2:0] dsu_funct3  = xe_instr[14:12];
+    wire       dsu_is_shift = (dsu_funct3 == 3'b001);
+    wire [4:0] dsu_funct5  = dsu_is_shift ? 5'd9 : xe_instr[31:27];
+    wire [1:0] dsu_acc_sel = dsu_is_shift ? xe_instr[27:26] : xe_instr[26:25];
 
     covergroup cg_dsu @(posedge clk_i iff (rst_n_i && xe_valid && xe_dsu_en));
         option.per_instance = 1;
@@ -274,7 +288,13 @@ bind garuda_core_top garuda_cov u_cov (
     .fwd_a_sel(fwd_a_sel), .fwd_b_sel(fwd_b_sel),
     .load_use(id_load_use), .mem_stall(mem_stall), .dsu_busy(ex_dsu_busy),
     .trap_enter(tr_enter), .trap_cause(tr_cause),
-    .em_funct3(em_funct3), .d_haddr(d_haddr_o),
+    // TB-40 (2026-10-11): cg_ldst samples on an EX-stage condition (xe_valid,
+    // xe_mem_read/write), so the size and address must be EX-stage too: the
+    // funct3 and effective address of the SAME instruction. They were the MEM
+    // stage's (em_funct3, d_haddr_o), which belong to the previous instruction,
+    // and the misaligned bins (which trap in EX and never reach the bus) could
+    // not be hit. Port names are kept.
+    .em_funct3(xe_funct3), .d_haddr(ex_result),
     .d_htrans(d_htrans_o), .i_htrans(i_htrans_o),
     .d_hburst(d_hburst_o), .i_hburst(i_hburst_o),
     .d_hresp(d_hresp_i),   .i_hresp(i_hresp_i),

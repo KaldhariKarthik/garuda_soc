@@ -1,0 +1,121 @@
+# Whole-core formal for trap_ctrl (rtl/core/trap_ctrl_sva.sv: T-13, T-14, TC-1, TC-3).
+# Model: garuda_core_top from rtl/core/filelist_core.f (inert DSU stub),
+# clock gate = pass-through (the design's CLK_GATE==0 build), reset env
+# core_fv_env.sv. Every bus response, instruction and interrupt is free.
+# Assumptions: tb/core/formal/ASSUMPTIONS.md. Classes: Docs/handbook/H6_formal.md.
+# Run: make -f flow/mk/track_a.mk fv_core_trap
+[suite]
+block = "core"
+name  = "fv_trap"
+xfail = "tb/core/run/xfail.tsv"
+
+[design]
+flist   = "rtl/core/filelist_core.f"
+top     = "garuda_core_top"
+replace = { "rtl/core/core_clk_gate.v" = "tb/core/formal/core_clk_gate_passthru.sv" }
+extra   = ["tb/core/formal/core_fv_env.sv"]
+# the model must contain at least these (11 asserts + 9 covers in trap_ctrl_sva.sv, + a_ihaddr_aligned)
+min_asserts = 12
+min_covers  = 9
+
+[[task]]
+name   = "trap_bmc"
+mode   = "bmc"
+depth  = 20
+engine = "smtbmc --keep-going yices"
+
+[[task]]
+name    = "trap_prove"
+mode    = "prove"
+engine  = "abc pdr"
+timeout = 3600
+# the pipe_ctrl properties have their own proof (core_trap.toml pipe_prove / pipe_bmc):
+# together with the rest PDR does not converge in an hour
+script  = ["chformal -assert -remove n:*u_pipe_sva*"]
+
+# [N-11.3] the five pipe_ctrl properties (a_flush_beats_hold x3, a_h2_defers_flush x2,
+# a_trap_beats_branch, a_no_gate_with_bus / _mid_work / _with_flush) on the whole core.
+# Formal for the first time on 2026-10-12 (before, pipe_ctrl_sva.sv was excluded and
+# pointed at an fv_core_pipe task that did not exist).
+# No unbounded proof yet: abc pdr ran 40 min without converging (UNRESOLVED) and
+# k-induction at 24 is not inductive without helper lemmas (basecase passed). The nine
+# properties are BOUNDED(30) here (pipe_bmc); the unbounded proof is a JasperGold item
+# (tb/core README / XCELIUM-ONLY list) or needs strengthening lemmas.
+[[task]]
+name    = "pipe_bmc"
+mode    = "bmc"
+depth   = 30
+engine  = "smtbmc --keep-going yices"
+script  = ["chformal -assert -remove t:$check n:*u_pipe_sva* %d"]
+min_asserts = 9
+
+[[task]]
+name   = "trap_cover"
+mode   = "cover"
+depth  = 24
+engine = "smtbmc yices"
+# the H4 cells (pipe_ctrl_sva c_h4_*: a DSU interlock against a hold or a flush)
+# are unreachable here by construction: the DSU is the inert stub (ASSUMPTIONS.md
+# FA-3). They are covered in simulation (tb_boot runs the real DSU).
+script = ["chformal -cover -remove n:*c_h4_*"]
+
+# Negative control: the same proof on trap_ctrl.v as it stood at b90b481
+# (before T-13/T-14). Must FAIL; listed in tb/core/run/xfail.tsv as PLANTED.
+[[task]]
+name    = "trap_prove_unfixed"
+mode    = "prove"
+engine  = "abc pdr"
+timeout = 3600
+replace = { "rtl/core/trap_ctrl.v" = "tb/core/formal/mutants/trap_ctrl_b90b481.v" }
+
+# T-17 negative control: trap_ctrl.v before the T-17 fix (a fetch-fault bit on a
+# bubble raises cause 1). a_ex_exc_needs_instr must FAIL (PLANTED in xfail.tsv).
+[[task]]
+name    = "t17_no_fix"
+mode    = "bmc"
+depth   = 20
+engine  = "smtbmc yices"
+replace = { "rtl/core/trap_ctrl.v" = "tb/core/formal/mutants/trap_ctrl_no_t17.v" }
+
+# T-18 negative control: branch_unit.v before the fix (a JAL's mtval follows the
+# fake branch compare of its bit fields). a_misfetch_tval_misaligned must FAIL.
+[[task]]
+name    = "t18_no_fix"
+mode    = "bmc"
+depth   = 20
+engine  = "smtbmc yices"
+replace = { "rtl/core/branch_unit.v" = "tb/core/formal/mutants/branch_unit_no_t18.v" }
+
+# BUS-E negative control: the I-port before the fix must issue a misaligned fetch
+[[task]]
+name    = "buse_no_fix"
+mode    = "bmc"
+depth   = 20
+engine  = "smtbmc yices"
+replace = { "rtl/core/garuda_iport_ahb_master.v" = "tb/core/formal/mutants/garuda_iport_ahb_master_no_buse.v" }
+
+# CORE-4 (mgarudactl) negative controls: each knob ignored must break its property
+[[task]]
+name    = "ctl_no_bpdis"
+mode    = "bmc"
+depth   = 16
+engine  = "smtbmc yices"
+replace = { "rtl/core/branch_predict.v" = "tb/core/formal/mutants/branch_predict_no_bpdis.v" }
+[[task]]
+name    = "ctl_no_pfdis"
+mode    = "bmc"
+depth   = 16
+engine  = "smtbmc yices"
+replace = { "rtl/core/garuda_iport_ahb_master.v" = "tb/core/formal/mutants/garuda_iport_ahb_master_no_pfdis.v" }
+[[task]]
+name    = "ctl_no_preempt"
+mode    = "bmc"
+depth   = 16
+engine  = "smtbmc yices"
+replace = { "rtl/core/clic_ctrl.v" = "tb/core/formal/mutants/clic_ctrl_no_preempt.v" }
+[[task]]
+name    = "ctl_no_cgdis"
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+replace = { "rtl/core/garuda_core_top.v" = "tb/core/formal/mutants/garuda_core_top_no_cgdis.v" }

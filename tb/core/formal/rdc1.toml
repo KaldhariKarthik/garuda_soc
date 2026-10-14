@@ -1,0 +1,48 @@
+# RDC-1: a debugger halt never breaks a bus transfer (tb/core/formal/rdc1_top.sv).
+# Core + real Debug Module; DMI, bus responses and interrupts free; bus reset
+# only at start (FA-6), AHB-legal ERROR responses (FA-7). The core's own bound
+# properties (trap_ctrl_sva, csr_file_sva) come along and must also hold with
+# hart resets at arbitrary moments.
+# Run: make -f flow/mk/track_a.mk fv_core_rdc1
+[suite]
+block = "core"
+name  = "fv_rdc1"
+xfail = "tb/core/run/xfail.tsv"
+
+[design]
+flist   = "tb/core/formal/filelist_rdc1_fv.f"
+top     = "rdc1_top"
+replace = { "rtl/core/core_clk_gate.v" = "tb/core/formal/core_clk_gate_passthru.sv" }
+min_asserts = 4
+min_covers  = 3
+
+[[task]]
+name   = "rdc1_bmc"
+mode   = "bmc"
+depth  = 30
+engine = "smtbmc --keep-going yices"
+
+[[task]]
+name    = "rdc1_prove"
+mode    = "prove"
+engine  = "abc pdr"
+timeout = 3600
+# the pipe_ctrl properties have their own proof (core_trap.toml pipe_prove / pipe_bmc):
+# together with the rest PDR does not converge in an hour
+script  = ["chformal -assert -remove n:*u_pipe_sva*"]
+
+[[task]]
+name   = "rdc1_cover"
+mode   = "cover"
+depth  = 30
+engine = "smtbmc yices"
+# the H4 cells (pipe_ctrl_sva c_h4_*) are unreachable with the DSU stub (ASSUMPTIONS.md FA-3)
+script = ["chformal -cover -remove n:*c_h4_*"]
+
+# Negative control: hartreset_o following the raw request (pre-fix) must FAIL.
+[[task]]
+name    = "rdc1_prove_rawgrant"
+mode    = "bmc"
+depth   = 30
+engine  = "smtbmc yices"
+replace = { "rtl/debug/debug_module.v" = "tb/core/formal/mutants/debug_module_rawgrant.v" }

@@ -154,10 +154,16 @@ directly, so re-measure after running them:
   redirects.
 - `garuda_if_stage_top` (58.36%, "buffer full, redirect with 2 fetches in
   flight, back-to-back redirects") → one section each.
-- `cp_lvl_vs_thresh` / `cp_lvl_vs_active` in `tb_clic_ctrl.sv` bin the
-  **equality** case separately, so a coverage report that shows those bins hit
-  is the evidence that strict `>` (test C24) was actually exercised rather
-  than assumed.
+- `cp_lvl_vs_thresh` / `cp_lvl_vs_active` (covergroup `cg_clic` in
+  `tb_clic_ctrl.sv`) bin the **equality** case separately, so a coverage report
+  that shows those bins hit is the evidence that strict `>` (test C24) was
+  actually exercised rather than assumed. The bench also counts the same bins
+  in plain variables, checks at the end that every relation (below / equal /
+  above, both compares) and `PREEMPT_DIS` in and out of a handler occurred, and
+  prints them on its ` COVERAGE:` line. Under Verilator 5.052 the covergroup's
+  `get_coverage()` reads 0.0 % (TOOL-22); its bin counts are in `coverage.dat`
+  with `--coverage-user`. (ELEM-7: before 2026-10-11 the cited covergroups did
+  not exist.)
 - The wide-bus toggle shortfall the same doc describes is attacked here by
   driving complementary patterns (`0000_0000` / `FFFF_FFFF` / `8081_8283` /
   `AAAA_5555`) and full-range addresses through the datapath elements, rather
