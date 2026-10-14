@@ -1,57 +1,45 @@
 # Design_Docs — which file is the specification?
 
-**The `.md` is normative. The `.docx` is an export.**
+**The `.md` is normative. The `.docx` is an export.** If a `.md` and its `.docx` disagree,
+the `.md` is correct and the `.docx` is a defect.
 
-Where a `.md` and a `.docx` disagree, the `.md` wins, and the `.docx` is a bug.
+`garuda_system.yaml` (GARUDA-SYS-001) is above both. It holds the cross-block facts: block
+numbers, address map, APB windows, CLIC IDs, DMA channels, clocks and pins. If a spec and the
+yaml disagree, the yaml is correct. `tools/garuda_gen.py` writes the yaml into
+`rtl/include/garuda_map.vh` and `sw/common/garuda_map.h`; `--check` fails if they are stale.
 
-## Why this needed saying
+## Contents
 
-Most specifications here exist twice, as `GARUDA-X-SPEC-001.md` and
-`GARUDA-X-SPEC-001.docx`, **with no generator between them** — the Word files
-were produced by hand. Two hand-maintained sources of truth is not a
-documentation style, it is a defect generator, and it has already produced one:
+| Path | What it is |
+|---|---|
+| `garuda_system.yaml` | System description, Rev 4.0. Normative for cross-block facts |
+| `GARUDA-ADR-001.md` | Architecture decision records (ADR-0001..) |
+| `GARUDA-TRM-001.md` | Technical reference manual |
+| `GARUDA-<BLOCK>-SPEC-001.md` | 17 specifications: one per block or block group, and PHYS for pins and physical constraints |
+| `SPEC_TEMPLATE.md` | The section layout that every block spec follows |
+| `regs/*.rdl` | SystemRDL register descriptions (CLIC, clock/reset, GPIO, PWM, timers). They are written from each spec's §6 and generate the UVM register models |
+| `archive/` | Rev 1.x and 2.0 documents, kept for history. Superseded |
 
-> **AUD-2** (`Docs/BUGS.md` §1d). The AHB2APB window table numbered its rows
-> from 0 while the hardware numbers windows from 1 — window *n* sits at
-> `0x4000_0000 + 0x1000 x n`, decoded as `haddr[15:12]`. Four specifications
-> inherited the off-by-one, so `GARUDA-CLIC-SPEC-001` told a reader to program
-> window 9, which is `reset_ctrl`'s. Every base address in every document was
-> correct throughout; only the index was wrong, and nothing executed it, so
-> nothing caught it.
+Rulings that resolve a conflict between documents are in `Docs/DECISIONS.md`.
 
-## The rule
+## Rules
 
-1. **Edit the `.md`.** Never edit a `.docx` directly; the next regeneration
-   discards it.
-2. **Regenerate before circulating**, with `make docs`.
-3. **`make check_docs` fails** if any `.docx` is older than its `.md`, by git
-   commit date rather than filesystem mtime so a fresh clone gives the same
-   answer. Run it before sending anything to a reviewer.
+1. **Edit the `.md`.** Do not edit a `.docx`. The next export overwrites it.
+2. **Export before you send a document to a reviewer:** `make docs` (needs pandoc).
+3. **Check before you send:** `make check_docs` fails if a `.docx` is older than its `.md`.
+   It compares git commit dates, not file times, so commit the `.md` and the `.docx` together.
 
-## Current state
+## Why the rule exists
 
-`make check_docs` prints the table. As of the 2026-09-26 audit, **seven
-`.docx` are stale** (AHB2APB, CLIC, CLKRST, DMA, MEM, PHYS, TIMERS — all of
-them corrected in `.md` by that audit) and **five specifications have no
-`.docx` at all**: SPIM, I2C, UART, GPIO, PWM, the five peripherals added on
-2026-09-22/23.
+The `.docx` files were first made by hand, with no generator. Two hand-kept copies drift.
+That drift caused AUD-2 (`Docs/BUGS.md` §1d): one table numbered the APB windows from 0 while
+the hardware numbers them from 1, and four specifications copied the error.
 
-So a reviewer working from Word today would be reading the window-numbering
-error the audit fixed, and would have no document at all for five of the
-twenty-two blocks.
+## Current state (2026-10-14)
 
-**Pandoc is not installed on the simulation host**, which is why the exports
-were not regenerated as part of that audit. `make docs` will do it on a machine
-that has it:
+All 20 `.md` files have a `.docx`. The exports were made again with pandoc 2.9.2.1 on
+2026-10-14 for every document that was stale, missing or edited that day. `GARUDA-ADR-001`,
+`GARUDA-AHB-SPEC-001` and `GARUDA-DSU-SPEC-001` were current and keep their earlier exports.
 
-```sh
-pandoc -f gfm -t docx -o Design_Docs/GARUDA-X-SPEC-001.docx \
-                         Design_Docs/GARUDA-X-SPEC-001.md
-```
-
-## The alternative, if that is a nuisance
-
-Delete the `.docx` and circulate the `.md` — GitHub renders it, it diffs
-properly in review, and it cannot drift from itself. The only reason to keep
-Word files is that someone downstream requires the format. If nobody does,
-deleting them removes the failure mode rather than monitoring it.
+If nobody downstream needs Word files, delete the `.docx` files and send the `.md`. The
+`.md` renders on GitHub, shows clean diffs, and cannot drift from itself.

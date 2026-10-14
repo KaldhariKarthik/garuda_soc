@@ -43,7 +43,7 @@
 // Wait states are drawn from a local xorshift PRNG, never $random: Icarus
 // Verilog 14 accepts $random(seed) and silently ignores the seed, so a seed
 // sweep built on it repeats one stimulus N times and reports N passes (see
-// TOOL-4 in docs/DMA_RTL_LOG.md). Seeds here reproduce on any simulator.
+// TOOL-4 in Docs/DMA_RTL_LOG.md). Seeds here reproduce on any simulator.
 //
 // READ_ONLY=1 makes the model a ROM: writes are accepted on the bus (OKAY, no
 // error) but discarded, which is what a boot ROM does. Preload with bd_load_hex
@@ -68,7 +68,7 @@ module ahb_lite_sram #(
     // a parameter is fixed at elaboration, so a regression that sweeps a
     // +SEED plusarg over a single build would draw byte-identical wait states
     // on every run and report N passes for one stimulus. That is precisely
-    // TOOL-4 in docs/BUGS.md wearing different clothes, and it was caught here
+    // TOOL-4 in Docs/BUGS.md wearing different clothes, and it was caught here
     // by a seed sweep whose reported numbers did not move. The parameter is
     // kept as a per-instance salt so that four slaves in one testbench do not
     // all stall on the same cycles.

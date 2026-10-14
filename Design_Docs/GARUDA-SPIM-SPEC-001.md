@@ -122,7 +122,7 @@ flash read, which is why the boot path fits the 4 KiB ROM budget.
 
 ## 6 Register map — APB window 1 (`0x4000_1000`)
 
-Machine-readable source: `spec/regs/spim.yaml`. Offsets `0x00`–`0x2C` are the
+No machine-readable register description exists for this block yet; this table is the register map. Offsets `0x00`–`0x2C` are the
 vendored register file; `0xFE0`–`0xFEC` are the GARUDA tail common to every
 peripheral (D-21).
 

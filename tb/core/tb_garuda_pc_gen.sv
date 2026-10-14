@@ -6,7 +6,7 @@
 //       Sec. 6.5 (redirect).
 // Plan: C28 ("Reset: PC = 0x1000_0000"), plus the PC half of C14/C15.
 //
-// Coverage note: docs/COVERAGE.md Category C lists garuda_pc_gen at 75.94%
+// Coverage note: Docs/COVERAGE.md Category C lists garuda_pc_gen at 75.94%
 // with "redirect-source priority combinations (trap vs EX vs ID in the same
 // cycle)" as the named next action. From this block's port list those all
 // arrive as one redirect_i/redirect_pc_i pair -- the SOURCE arbitration is

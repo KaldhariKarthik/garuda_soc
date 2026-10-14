@@ -1,5 +1,5 @@
 // =============================================================================
-// crg.rdl - register description of block 23, the reset controller (APB window
+// crg.rdl - register description of block 22, the reset controller (APB window
 // 9, 0x4000_9000), which also holds the clock divider's select and the
 // instruction-memory lock.
 //

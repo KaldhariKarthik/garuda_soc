@@ -80,11 +80,11 @@ help:
 	@echo "                          branch, CSR_RW, LSU, load-fmt, D-port, MEM, MEM/WB,"
 	@echo "                          PC-gen, prefetch, I-port, IF top, CLIC)"
 	@echo "  make test_ex_dsu     -- EX smoke against the real DSU"
-	@echo "  make sw              -- build bare-metal tests (boot6, ctest1, dsu_flag2)"
+	@echo "  make sw              -- build the bare-metal tests, the boot ROM and the chip programs"
 	@echo "  make isa_tests       -- build riscv-tests rv32ui + rv32um"
 	@echo "  make test_boot       -- 6-instruction boot smoke through tb_boot"
 	@echo "  make test_c          -- first C test (crt0 + stack + .bss + M-ext)"
-	@echo "  make test_flag2      -- DSU FLAG-2 compute->read ordering probe"
+	@echo "  make test_flag2      -- DSU FLAG-2 compute->read ordering probe (closed: DSU-3/DSU-4)"
 	@echo "  make test_dsu        -- DSU unit TB vs DSUModel (regenerates vectors)"
 	@echo "  make test_sanity     -- Core Sanity TB: IRQ, bus error, WFI, flush, DSU"
 	@echo "  make regress         -- full ISA regression + Spike lockstep"
@@ -93,11 +93,23 @@ help:
 	@echo "  make coverage        -- functional coverage sweep (code cov: see script)"
 	@echo "  ---- Rev 4.0 SoC ----"
 	@echo "  make test_blocks     -- every block TB: crg ahb_ic bridge mem dma clic timers debug apb_shim spim uart i2c gpio pwm spis"
-	@echo "  make test_chip       -- whole chip from the pins: basic, irq, wdt, jtag"
+	@echo "  make test_chip       -- whole chip from the pins: basic, irq, wdt, flash, uart, periph, integ, jtag"
 	@echo "  make elab_chip       -- elaborate garuda_chip_top"
-	@echo "  make regress_all     -- everything above plus core, sanity, DSU and ISA"
+	@echo "  make regress_all     -- core, elements, blocks, sanity, DSU, ISA and chip"
+	@echo "  make static          -- HAL lint + clock-domain check + X-propagation"
+	@echo "  make uvm_clic        -- UVM environment with coverage (also uvm_timers, uvm_pwm, uvm_gpio, uvm_crg)"
+	@echo "  make riscv_dv        -- random programs in lockstep with Spike"
+	@echo "  make csr_map         -- CSR existence, RTL against Spike"
+	@echo "  make pipe_matrix     -- which CORE [N-11.2] hold x flush cells any test reaches"
 	@echo "  make synth           -- Genus structural synthesis check (latches, drivers)"
+	@echo "  make check_docs      -- fail if a Design_Docs .docx is older than its .md"
+	@echo "  make docs            -- regenerate the .docx exports (needs pandoc)"
 	@echo "  make clean           -- remove all simulation artifacts"
+	@echo "  ---- No licence (Icarus, Verilator, Yosys) ----"
+	@echo "  make local_sim       -- every block TB that Icarus can build"
+	@echo "  make local_lint      -- whole-chip Verilator lint"
+	@echo "  make local_synth     -- whole-chip Yosys synthesis + latch gate"
+	@echo "  make local           -- all three"
 	@echo ""
 	@echo "Select simulator with SIM=xrun (default) or SIM=xsim."
 
@@ -176,7 +188,7 @@ test_trap:
 #
 # Unlike run_tb_top this keeps the log's RESULT and coverage lines, which is
 # what actually tells you WHICH check failed rather than only how many did.
-# See docs/CORE_ELEMENT_VERIFICATION.md for the element -> spec section ->
+# See Docs/CORE_ELEMENT_VERIFICATION.md for the element -> spec section ->
 # C-test mapping.
 define run_tb_elem
 	@mkdir -p $(SIM_DIR)/elem_$(1) && \

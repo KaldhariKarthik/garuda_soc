@@ -8,7 +8,7 @@
 // Plan: C14 (buffer fill/drain, full backpressure, empty fetch bubble),
 //       C15 (whole-buffer flush on redirect; no stale instruction issued),
 //       C12/C13 (I-port ERROR tagged, and dropped when flushed).
-// Coverage note: docs/COVERAGE.md Category C names garuda_if_stage_top at
+// Coverage note: Docs/COVERAGE.md Category C names garuda_if_stage_top at
 //       58.36%, with "buffer full, redirect with 2 fetches in flight,
 //       back-to-back redirects" as the outstanding corners. There is a
 //       section below for each of the three, and the covergroup bins them.

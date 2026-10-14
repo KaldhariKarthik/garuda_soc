@@ -26,7 +26,7 @@
 3. `GARUDA-ADR-001` Rev 1.0.
 4. `GARUDA-AHB-SPEC-001` Rev 4.0 — the DMA is master M3, highest priority.
 5. `GARUDA-AHB2APB-SPEC-001` Rev 2.0 — **the no-CDC proof this revision depends on**.
-6. `GARUDA-CLIC-SPEC-001` Rev 2.0 — IDs 1–12.
+6. `GARUDA-CLIC-SPEC-001` Rev 2.0 — IDs 1–6 (complete) and 8–13 (error).
 
 ---
 
@@ -127,7 +127,7 @@ now polled PIO (ADR-0015), so the DMA has no boot-time role and no ISRAM path.
   │  └──────────────────────────┘                           │
   │                                                         │
   │  complete[5:0] ──────────────────────────────────────────┼──▶ CLIC 1–6
-  │  error[5:0]    ──────────────────────────────────────────┼──▶ CLIC 7–12
+  │  error[5:0]    ──────────────────────────────────────────┼──▶ CLIC 8–13
   └─────────────────────────────────────────────────────────┘
 
   No ISRAM path. No Boot ROM path. (R-9)
@@ -158,7 +158,7 @@ now polled PIO (ADR-0015), so the DMA has no boot-time role and no ISRAM path.
 | `dma_req_i` | in | 6 | hclk | — | One per channel, from its peripheral. |
 | `dma_ack_o` | out | 6 | hclk | 0 | One per channel. |
 | `dma_complete_o` | out | 6 | hclk | 0 | To CLIC IDs 1–6. |
-| `dma_error_o` | out | 6 | hclk | 0 | To CLIC IDs 7–12. |
+| `dma_error_o` | out | 6 | hclk | 0 | To CLIC IDs 8–13 (ID 7 is reserved, `Docs/BUGS.md` INT-2). |
 | AHB M3 | — | — | hclk | — | Per `GARUDA-AHB-SPEC-001` §5.1. |
 | APB slave | — | — | pclk | — | Window 5. |
 
@@ -238,18 +238,18 @@ Generated from `GARUDA-SYS-001` `dma.assignment`:
 
 | Channel | Peripheral | Function | Priority | CLIC complete | CLIC error |
 |---|---|---|---|---|---|
-| 0 | `spi_master` | IMU | 5 (highest) | 1 | 7 |
-| 1 | `i2c` | baro, mag, sonar | 3 | 2 | 8 |
-| 2 | `uart0` | GPS | 1 | 3 | 9 |
-| 3 | `uart1` | ground link | 2 | 4 | 10 |
-| 4 | — | spare | 4 | 5 | 11 |
-| 5 | `uart2` | console | 0 (lowest) | 6 | 12 |
+| 0 | `spi_master` | IMU | 5 (highest) | 1 | 8 |
+| 1 | `i2c` | baro, mag, sonar | 3 | 2 | 9 |
+| 2 | `uart0` | GPS | 1 | 3 | 10 |
+| 3 | `uart1` | ground link | 2 | 4 | 11 |
+| 4 | `spi_slave` | companion link | 4 | 5 | 12 |
+| 5 | `uart2` | console | 0 (lowest) | 6 | 13 |
 
 **[N-6.4]** Channel 4 serves the SPI slave (ESP32 / ESP-NOW mesh), **restored and required
 per ADR-0020 Rev 2** (APF's neighbour-position source). Its registers, interrupts and
-arbiter position already exist and work; `dma_req_i[4]` is still tied low at the top level
-and **must be un-tied when `rtl/spi_slave/` is built** (RTL work item). Pending that, CH4
-carries no traffic. The final pin outcome is gated on OPEN-2 (ADR-0020 Rev 2).
+arbiter position work, and `rtl/spi_slave/` drives `dma_req_i[4]` (built 2026-09-26,
+`Docs/BUGS.md` §1e). The final pin outcome is gated on OPEN-2 (ADR-0020 Rev 2); with
+`WITH_SPI_SLAVE = 0` the request is tied low.
 
 **[N-6.5]** The priority order is by consequence of not being serviced. The IMU is the
 control loop's hard-real-time input and is highest. The console is lowest because nothing
@@ -536,9 +536,9 @@ a_mode3_rejected: assert property (
   @(posedge pclk_i) disable iff (!preset_n_i)
   (apb_write && apb_wdata[2:1] == 2'b11) |=> $stable(ch_mode[n]));
 
-// --- channel 4 never requests (N-6.4)
+// --- channel 4 never requests when the SPI slave is not built (N-6.4)
 a_ch4_tied: assert property (
-  @(posedge hclk_i) disable iff (!hreset_n_i) !dma_req_i[4]);
+  @(posedge hclk_i) disable iff (!hreset_n_i) !WITH_SPI_SLAVE |-> !dma_req_i[4]);
 
 // --- all channels disabled at reset
 a_reset_disabled: assert property (
@@ -584,8 +584,8 @@ directed, cycle-accurate trigger.
 | No CDC on the config port; three CDC modules deleted | ADR-0002 |
 | Channel assignment generated once; no shared channels | ADR-0008 |
 | No boot role; no ISRAM path | ADR-0015, 0005 |
-| Channel 4 spare, registers retained for the 36-pin variant | ADR-0020 |
-| Block 9, CLIC IDs 1–12 | ADR-0011, 0009 |
+| Channel 4 serves the SPI slave; pin bonding gated on OPEN-2 | ADR-0020 Rev 2 |
+| Block 9, CLIC IDs 1–6 and 8–13 | ADR-0011, 0009; INT-2 |
 
 ---
 

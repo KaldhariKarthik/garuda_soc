@@ -51,12 +51,18 @@ clocks:
     derived_from: hclk
     scheme: toggle_flop_div2          # NOT an ICG: an ICG gives 25% duty, not 50%
     freq_mhz: 125.0
-    div_default: 2
-    div_options: [2, 4, 8]            # per-window override if an IP needs slower
+    div_options: [2]                  # always hclk / 2. A slow IP uses the bridge's per-window
+                                      # APB_DIV access stretch instead (AHB2APB-SPEC-001 §5.3)
     cdc_required: false
     cdc_argument: "Every pclk rising edge coincides with an hclk rising edge, so pclk
                    edges are a strict subset of hclk edges and both sides always sample
                    on a shared edge. Synchronous multi-frequency, not a crossing."
+  aon_clk:
+    derived_from: refclk
+    scheme: toggle_flop_div2          # clk_div t1_q, the pad-adjacent flop (ADR-0018)
+    freq_mhz: 250.0
+    always_on: true                   # reset only by the raw pin; DIVSEL does not change it
+    domain_of: [reset_ctrl_stretch, reset_ctrl_requests, rstreason]   # D-14
   tck:
     source: external_jtag_probe
     freq_mhz_max: 20.0
@@ -64,9 +70,9 @@ clocks:
     note: "The only genuinely asynchronous clock in the chip."
 
 clock_domains:
-  count: 3
-  list: [hclk, pclk, tck]
-  synchronous_set: [hclk, pclk]     # integer ratio, shared edges, no CDC
+  count: 4
+  list: [aon_clk, hclk, pclk, tck]
+  synchronous_set: [aon_clk, hclk, pclk]   # one source, shared edges, no CDC (D-27)
   cdc_locations:
     - block: debug
       crossing: tck <-> hclk
@@ -103,7 +109,7 @@ reset:
       reason_bit: 3
   stretch:
     implemented_in: reset_ctrl
-    clock: refclk                     # refclk, NOT hclk - hclk is gated off during reset
+    clock: aon_clk                    # D-14: refclk/2, always on. NOT hclk, NOT refclk (R-10: refclk reaches one flop)
     cycles: 1024
     reason: "ADR-0003: an unstretched internal reset source clears itself in one flop
              delay and produces a runt pulse. Stretch is mandatory, not optional."

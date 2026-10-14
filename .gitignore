@@ -1,16 +1,18 @@
-# Cadence Xcelium
+# Cadence Xcelium / Incisive
 xcelium.d/
 xrun.history
 xrun.log
 xrun.key
 .simvision/
 *.shm/
-waves.shm/
 INCA_libs/
+worklib_i/
 irun.history
 irun.log
 irun.key
+imc.key
 cov_work/
+.bpad/
 
 # Cadence Genus / Innovus stragglers
 genus.log
@@ -25,10 +27,22 @@ fv/
 # Build outputs
 sim/
 *.log
+*.log.bak
+*.err
 *.vcd
 *.fsdb
 *.o
 *.so
+
+# Bare-metal software build outputs (regenerate with `make sw` / `make isa_tests`)
+sw/build/
+sw/riscv-tests/build/
+*.spike.log
+
+# DSU vector generator outputs when run without --outdir (BUGS 1f)
+/dsu_stim.mem
+/dsu_expected.mem
+/dsu_crosscheck.txt
 
 # Editor / OS
 *~
@@ -41,31 +55,9 @@ sim/
 # Reports
 *.rpt
 
-# --- sim/synth run artifacts (never commit) ---
-xcelium.d/
-INCA_libs/
-worklib_i/
-*.err
-xrun.log
-xrun.history
-irun.log
-irun.history
-genus.log
-*.vcd
-*.shm/
-.bpad/
-
-# --- bare-metal software build outputs (regenerate with `make sw` / `make isa_tests`) ---
-sw/build/
-sw/riscv-tests/build/
-*.spike.log
-
-# stray tool artifacts
-imc.key
+# Python and host tool artifacts
 __pycache__/
 *.pyc
-
-# host tool timestamps
 .rs_*.tstamp
 
 # KV260 FPGA build outputs
@@ -74,7 +66,7 @@ fpga/kv260/out/
 fpga/kv260/.Xil/
 fpga/kv260/garuda.dtbo
 *.jou
-*.log.bak
 
-# SymbiYosys run directories
+# SymbiYosys run directories (TOOL-20: SBY 0.68 also writes pipe_ctrl/status.sqlite)
+flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl/
 flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl_*/

@@ -131,7 +131,7 @@ class lsu_cycle;
     }
 
     // Complementary data patterns: aimed at the wide-bus toggle shortfall
-    // described in docs/COVERAGE.md, which ordinary small constants never hit.
+    // described in Docs/COVERAGE.md, which ordinary small constants never hit.
     constraint c_pattern {
         (kind == LK_PATTERN) -> data inside {32'h0000_0000, 32'hFFFF_FFFF,
                                              32'h5555_5555, 32'hAAAA_AAAA};

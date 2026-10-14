@@ -183,18 +183,21 @@ Decode on `HADDR[31:28]`. Sizes in KiB = 1024 bytes.
 
 | Window | Base | Block | Peripheral |
 |---|---|---|---|
-| — | `0x4000_0000` | — | unmapped (SPI slave, ADR-0020) |
-| 0 | `0x4000_1000` | 13 | `spi_master` |
-| 1 | `0x4000_2000` | 15 | `i2c` |
-| 2 | `0x4000_3000` | 16 | `uart0` |
-| 3 | `0x4000_4000` | 17 | `uart1` |
-| 4 | `0x4000_5000` | 9 | `dma_cfg` |
-| 5 | `0x4000_6000` | 18 | `uart2` |
-| 6 | `0x4000_7000` | 19 | `gpio` |
-| 7 | `0x4000_8000` | 20 | `pwm` |
-| 8 | `0x4000_9000` | 22 | `reset_ctrl` + `mem_ctl` |
-| 9 | `0x4000_A000` | 10 | `clic_cfg` |
-| 10 | `0x4000_B000` | 11 | `timers_cfg` |
+| 0 | `0x4000_0000` | 14 | `spi_slave` (present when `WITH_SPI_SLAVE = 1`, OPEN-2) |
+| 1 | `0x4000_1000` | 13 | `spi_master` |
+| 2 | `0x4000_2000` | 15 | `i2c` |
+| 3 | `0x4000_3000` | 16 | `uart0` |
+| 4 | `0x4000_4000` | 17 | `uart1` |
+| 5 | `0x4000_5000` | 9 | `dma_cfg` |
+| 6 | `0x4000_6000` | 18 | `uart2` |
+| 7 | `0x4000_7000` | 19 | `gpio` |
+| 8 | `0x4000_8000` | 20 | `pwm` |
+| 9 | `0x4000_9000` | 22 | `reset_ctrl` + `mem_ctl` |
+| 10 | `0x4000_A000` | 10 | `clic_cfg` |
+| 11 | `0x4000_B000` | 11 | `timers_cfg` |
+
+Window *n* is at `0x4000_0000 + 0x1000 × n` and is decoded from `haddr[15:12]`
+(`Docs/BUGS.md` AUD-2).
 
 ### 3.4 AHB masters
 
@@ -212,6 +215,7 @@ Every master reaches every slave, except that the DMA has no Boot ROM path. The 
 | Block | Peripheral | Function | DMA ch | CLIC ID |
 |---|---|---|---|---|
 | 13 | `spi_master` | IMU + boot flash (2 chip selects) | 0 | 15 |
+| 14 | `spi_slave` | ESP32 companion link | 4 | 14 |
 | 15 | `i2c` | barometer, magnetometer, sonar | 1 | 16 |
 | 16 | `uart0` | GPS | 2 | 17 |
 | 17 | `uart1` | ground link (telemetry **or** LoRa) | 3 | 18 |
@@ -228,9 +232,9 @@ contradicted each other on where LoRa lived, and both contradicted the DMA spec.
 |---|---|
 | 0 | permanently unassigned sentinel |
 | 1–6 | DMA channel 0–5 complete |
-| 7–12 | DMA channel 0–5 error |
-| 13 | reserved (freed — `mtip` does not use the CLIC) |
-| 14 | reserved (freed — SPI slave removed) |
+| 7 | reserved: `mcause` `0x8000_0007` is the machine timer (`Docs/BUGS.md` INT-2) |
+| 8–13 | DMA channel 0–5 error |
+| 14 | `spi_slave` |
 | 15–21 | `spi_master`, `i2c`, `uart0`, `uart1`, `uart2`, `gpio`, `pwm` fault |
 | 22 | watchdog early warning |
 | 23–31 | reserved, unenableable |
@@ -240,7 +244,7 @@ contradicted each other on where LoRa lived, and both contradicted the DMA spec.
 | Channel | Peripheral | Function | Priority |
 |---|---|---|---|
 | 0 | `spi_master` | IMU | 5 (highest) |
-| 4 | — | spare | 4 |
+| 4 | `spi_slave` | companion link | 4 |
 | 1 | `i2c` | baro, mag, sonar | 3 |
 | 3 | `uart1` | ground link | 2 |
 | 2 | `uart0` | GPS | 1 |
@@ -254,9 +258,10 @@ contradicted each other on where LoRa lived, and both contradicted the DMA spec.
 | `hclk` | 250 MHz, `refclk` ÷ 2, DIV parameter 2/4/8/16 |
 | `pclk` | 125 MHz, `hclk` ÷ 2, toggle flop, 50% duty |
 | `tck` | ≤20 MHz, asynchronous |
-| Domains | 3: `hclk`, `pclk` (synchronous pair), `tck` |
+| `aon_clk` | 250 MHz, `refclk` ÷ 2, always on, never divided by DIVSEL (D-14) |
+| Domains | `aon_clk`, `hclk`, `pclk` (one synchronous family) and `tck` (asynchronous) |
 | Reset sources | `ext_rst_n`, watchdog, `ndmreset`, software |
-| Reset stretch | 1024 `refclk` cycles (≈2.05 µs) |
+| Reset stretch | 1024 `aon_clk` cycles = 2048 `refclk` cycles (≈4.1 µs), D-14 |
 
 ### 3.9 Pins — 28-pin baseline
 

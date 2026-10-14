@@ -169,7 +169,7 @@ Same AHB signals, without `hmaster_is_sba_i`. Adds internal bank decode on
 
 Same AHB signals, read-only. No `hwdata_i` consumption.
 
-### 5.4 `mem_ctl` — APB, part of window 8's address space
+### 5.4 `mem_ctl` — APB, part of window 9's address space (`reset_ctrl`, `0x4000_9000`)
 
 | Port | Dir | Description |
 |---|---|---|

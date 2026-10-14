@@ -254,9 +254,11 @@ custom configuration.
 | 30 | `resumereq` | W1 | — | Alias for clearing `hartreset`. See [N-7.8]. |
 | 31 | `haltreq` | W1 | — | Alias for setting `hartreset`. See [N-7.8]. |
 
-**[N-6.4]** `dmactive` resets to 0 and is reset only by `tck`-domain TAP reset — never by
-`hreset_n`, `ndmreset` or `hartreset`. This is what satisfies R-8: a system reset in the
-middle of a debug session leaves the session intact.
+**[N-6.4]** `dmactive` resets to 0. It is an `hclk` register on `dm_rst_n`, which the
+external, watchdog and software resets assert, and which `ndmreset` and `hartreset` never
+assert (`Docs/DECISIONS.md` D-18). This meets the intent of R-8: a reset that the debugger
+starts never ends the session. An external, watchdog or software reset does end it, and the
+debugger writes `dmactive` = 1 again.
 
 ### 6.6 `dmstatus` (0x11)
 
@@ -491,10 +493,9 @@ DMI read dsuacc0_hi
 | `tck` | `jtag_tap`, `dtm`, the `tck` half of `dmi_cdc`. |
 | `hclk` | `debug_module`, `sba_master`, the `hclk` half of `dmi_cdc`. |
 
-**[N-9.1]** `dmactive` is in the `tck` domain and is reset only by TAP reset. Everything
-else in the `hclk` half is reset by `hreset_n` **excluding** `ndmreset` — that is, the DM's
-`hclk` logic is reset by external, watchdog and software resets, but not by the debug reset
-it generates itself.
+**[N-9.1]** `dmactive` and the rest of the `hclk` half are reset by `dm_rst_n` (D-18):
+external, watchdog and software resets reset them, and the debug resets the DM generates
+itself (`ndmreset`, `hartreset`) do not.
 
 **[N-9.2]** The TAP works with `hclk` stopped and `hreset_n` asserted. The `hclk` half does
 not, so SBA requires the system to be out of reset. A chip stuck in reset can still be
@@ -512,9 +513,9 @@ capture only.
 ## 10 Assertions
 
 ```systemverilog
-// --- dmactive survives every system reset (R-8, N-6.4)
-a_dmactive_survives: assert property (
-  @(posedge hclk_i) (dmactive && !hreset_n_i) |=> dmactive);
+// --- dmactive survives the debugger's own resets (R-8, N-6.4, D-18)
+a_dmactive_survives_hart: assert property (
+  @(posedge hclk_i) (dmactive && hartreset_o) |=> dmactive);
 a_dmactive_survives_ndm: assert property (
   @(posedge hclk_i) (dmactive && ndmreset_o) |=> dmactive);
 
@@ -600,7 +601,7 @@ a_dmi_handshake: assert property (
 | R-6 | `t_dsu_taps` | all three accumulators read while the core runs | all 3 | new |
 | R-6 | `t_dsu_snapshot` | `_lo` then `_hi` is coherent while the DSU accumulates | — | new |
 | R-7 | — | `git diff` on `rtl/core` shows only the `hartreset` input | — | review gate |
-| R-8 | `t_session_survives_reset` | `dmactive` holds through external, watchdog and software reset | all 3 | new |
+| R-8 | `t_session_survives_reset` | `dmactive` holds through `ndmreset` and `hartreset`, and clears on external, watchdog and software reset (D-18) | all 5 | new |
 | §7.2 | `t_sba_errors` | alignment, unsupported size, bus error; sticky; W1C | all 3 codes | new |
 | §7.2 | `t_sba_autoinc` | autoincrement and `sbreadondata` bulk paths | both | new |
 | §7.5 | `t_dmi_cdc` | random `tck`/`hclk` ratios from 1:2 to 1:100 | — | new |

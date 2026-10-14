@@ -115,7 +115,7 @@ on the other end of the wire is a motor, that difference is the whole decision.
 
 ## 6 Register map — APB window 8 (`0x4000_8000`)
 
-Machine-readable source: `spec/regs/pwm.yaml`.
+The register description `Design_Docs/regs/pwm.rdl` is written from this table and generates the UVM register model `tb/pwm/uvm/pwm_reg_pkg.sv` (`tools/gen/gen_ral.py`).
 
 | Offset | Name | Access | Reset | Description |
 |---|---|---|---|---|

@@ -4,6 +4,16 @@
 in this order, with these numbers. A reviewer, a new engineer and a script all know where
 to look, and a missing section is visible as a gap rather than hidden in prose.
 
+> **Status of the tooling this template names (2026-10-14).** `gen/tables.md`,
+> `tools/check_specs.py` and `spec/regs/<block>.yaml` were planned and do not exist.
+> What exists: `Design_Docs/garuda_system.yaml` with `tools/garuda_gen.py` (address map,
+> windows, CLIC IDs and DMA channels into `rtl/include/garuda_map.vh` and
+> `sw/common/garuda_map.h`; `--check` fails on drift); SystemRDL register descriptions in
+> `Design_Docs/regs/` for the CLIC, clock/reset, GPIO, PWM and timers, written from each
+> spec's §6 and used to generate the UVM register models (`tools/gen/gen_ral.py`); and
+> `tools/check_docs.py` (`make check_docs`) for `.docx` exports. Rules 1 and the register
+> generation in "Machine-readable sources" below are therefore targets, not checks.
+
 ## Rules that apply to every spec
 
 1. **No cross-block facts are written by hand.** Frequencies, addresses, block numbers,

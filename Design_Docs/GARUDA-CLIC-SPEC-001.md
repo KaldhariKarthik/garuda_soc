@@ -186,8 +186,11 @@ whose state is not yet initialised.
 
 **[N-6.2]** Bit 0 is hardwired to zero and ignores writes. ID 0 is never assigned (§7.5).
 
-**[N-6.3]** Bits 13 and 14 are hardwired to zero and ignore writes: ID 13 is reserved by
-ADR-0010 and ID 14 by ADR-0020. Reserved-and-unwritable rather than merely unassigned,
+**[N-6.3]** Bit 7 and bits 31:23 are hardwired to zero and ignore writes. ID 7 is
+reserved because the core reports a CLIC interrupt as `mcause = 0x8000_0000 | ID`, and
+`0x8000_0007` is the machine-timer cause (`Docs/BUGS.md` INT-2). IDs 23–31 have no source.
+The enable mask is generated from the ID map (`GARUDA_CLIC_ID_MASK` = `0x007F_FF7E`,
+`Docs/BUGS.md` INT-3). Reserved-and-unwritable rather than merely unassigned,
 so an enable of an ID with no source cannot produce a permanently-clear pending bit that a
 debugging engineer then spends an afternoon on.
 
@@ -216,7 +219,7 @@ disturbing the pending state, since pending is combinational from the source (R-
 Changing the level of an interrupt that is currently *being serviced* changes the
 `mintstatus.mil` comparison for nested interrupts and is firmware's responsibility.
 
-**[N-6.8]** `CLICINTCFG` for IDs 0, 13, 14 and 23–31 is writable but has no effect, as those
+**[N-6.8]** `CLICINTCFG` for IDs 0, 7 and 23–31 is writable but has no effect, as those
 IDs can never be enabled.
 
 ### 6.5 ID map
@@ -227,9 +230,9 @@ Generated from `GARUDA-SYS-001` `clic.map`:
 |---|---|---|
 | 0 | **permanently unassigned sentinel** | — |
 | 1–6 | DMA channel 0–5 complete | 9 |
-| 7–12 | DMA channel 0–5 error | 9 |
-| 13 | reserved (freed by ADR-0010) | — |
-| 14 | reserved (freed by ADR-0020) | — |
+| 7 | **reserved**: `mcause` `0x8000_0007` is the machine timer (INT-2) | — |
+| 8–13 | DMA channel 0–5 error | 9 |
+| 14 | `spi_slave` (ADR-0020 Rev 2) | 14 |
 | 15 | `spi_master` | 13 |
 | 16 | `i2c` | 15 |
 | 17 | `uart0` (GPS) | 16 |
@@ -273,12 +276,11 @@ stated here because Rev 1.1's configurable trigger type left it ambiguous.
 **[N-7.5]** `level_select` finds the enabled pending ID with the highest `level`. Ties are
 broken by the **lowest ID**.
 
-**[N-7.6]** Implemented as a two-stage tree: eight 4-input comparators, then one 8-input
-comparator. Each comparison carries `{level, ~id}` so that a single magnitude comparison
-resolves both the level and the tie-break, and the tree is 5 levels of logic deep at 32
-inputs.
+**[N-7.6]** Implemented as a balanced binary tree of 2-input comparators (`clic_select.v`),
+five levels deep at 32 inputs. Each comparison carries `{level, ~id}` so that a single
+magnitude comparison resolves both the level and the tie-break.
 
-**[N-7.7]** The lowest-ID tie-break puts the DMA channels (IDs 1–12) ahead of the
+**[N-7.7]** The lowest-ID tie-break puts the DMA channels (IDs 1–6 and 8–13) ahead of the
 peripherals at equal level, which matches the priority reasoning in
 `GARUDA-SYS-001` `dma.priority_note` — a DMA channel not serviced loses data, a peripheral
 interrupt merely waits.
@@ -445,7 +447,7 @@ a_id0_never_wins: assert property (
 // --- reserved IDs can never be enabled (N-6.3)
 a_reserved_ids: assert property (
   @(posedge hclk_i) disable iff (!hreset_n_i)
-  (clic_ie[13] == 1'b0) && (clic_ie[14] == 1'b0) && (clic_ie[31:23] == 9'd0));
+  (clic_ie[7] == 1'b0) && (clic_ie[31:23] == 9'd0));
 
 // --- valid is exactly the OR of enable & pending
 a_valid_correct: assert property (
@@ -489,7 +491,7 @@ a_reset_disabled: assert property (
 
 // --- no CLIC ID is ever asserted for the machine timer (R-6, N-7.14)
 a_no_mtip_id: assert property (
-  @(posedge hclk_i) disable iff (!hreset_n_i) !irq_src_i[13]);
+  @(posedge hclk_i) disable iff (!hreset_n_i) !irq_src_i[7]);
 
 // --- selection adds no register stage (R-7)
 a_no_latency: assert property (
@@ -538,7 +540,8 @@ the interleavings someone thought of.
 |---|---|
 | IDs assigned once in `GARUDA-SYS-001`; level-triggered fixed in hardware; ID 0 sentinel | ADR-0009 |
 | `mtip` does not consume a CLIC ID; ID 13 freed | ADR-0010 |
-| ID 14 freed with the SPI slave | ADR-0020 |
+| ID 14 restored to the SPI slave | ADR-0020 Rev 2 |
+| ID 7 reserved; DMA errors on IDs 8–13 | `Docs/BUGS.md` INT-2 |
 | Take decision stays in `clic_ctrl` inside the core; no `mintthresh` port on this block | ADR-0009, §5.1 |
 
 ---
@@ -552,7 +555,7 @@ the interleavings someone thought of.
 | Supervisor or user mode CLIC | M-mode only chip. |
 | `mnxti` | Not implemented in the core; its CSR address reads 0. Interrupt-tail-chaining is a performance optimisation for high interrupt rates that this workload does not have. |
 | Selective hardware vectoring (`CLICINTATTR.shv`) | All interrupts use the same vectored entry. A per-ID vector table would need a base register and a memory read in the trap path. |
-| More than 32 IDs | 20 assigned, 9 spare, 3 reserved. No growth pressure. |
+| More than 32 IDs | 21 assigned (1–6, 8–22), 9 spare (23–31), 2 reserved (0, 7). No growth pressure. |
 | Fewer than 8 level bits | 8 bits is what the core's `mintthresh` and `mintstatus.mil` already carry; narrowing would save a handful of flops and create a mismatch. |
 | Software-triggerable interrupts | No use case; firmware can call the handler directly. |
 

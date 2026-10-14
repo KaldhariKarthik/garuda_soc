@@ -35,7 +35,7 @@
 ### 1.1 In scope
 
 One AHB-Lite slave that converts AHB transfers in the `0x4000_0000` region into APB3
-transfers on eleven peripheral windows, and returns the response. Includes the window
+transfers on twelve peripheral windows (0–11), and returns the response. Includes the window
 decode, the AHB↔APB state machine, the per-window access-rate divider, sub-word rejection,
 and the peripheral timeout.
 
@@ -71,7 +71,7 @@ was solving a problem that does not exist. §7.2 of this document supplies the p
 | ID | Requirement | Source |
 |---|---|---|
 | R-1 | Convert AHB-Lite transfers in the APB region to APB3 transfers. | Protocol |
-| R-2 | Decode eleven 4 KiB windows. | ADR-0008, 0020 |
+| R-2 | Decode twelve 4 KiB windows (0–11). | ADR-0008, 0020 Rev 2 |
 | R-3 | Peripherals shall be clocked at 125 MHz, not 250 MHz, to halve peripheral-domain dynamic power. | ADR-0002 |
 | R-4 | No clock-domain-crossing synchronisers shall be required between `hclk` and `pclk`, and the reason shall be stated as a checkable property rather than asserted. | ADR-0002 |
 | R-5 | The APB access rate shall be a per-window parameter, so an IP with a lower maximum frequency can be accommodated without a second clock. | ADR-0002 |
@@ -158,20 +158,20 @@ was solving a problem that does not exist. §7.2 of this document supplies the p
 
 | Port | Dir | Width | Description |
 |---|---|---|---|
-| `psel_o` | out | 11 | One-hot per window. |
+| `psel_o` | out | 12 | One-hot per window. |
 | `penable_o` | out | 1 | Shared. |
 | `paddr_o` | out | 12 | Word offset within the window. |
 | `pwrite_o` | out | 1 | |
 | `pwdata_o` | out | 32 | |
-| `prdata_i` | in | 32×11 | |
-| `pready_i` | in | 11 | |
-| `pslverr_i` | in | 11 | |
+| `prdata_i` | in | 32×12 | |
+| `pready_i` | in | 12 | |
+| `pslverr_i` | in | 12 | |
 
 ### 5.3 Parameters
 
 | Parameter | Width | Default | Description |
 |---|---|---|---|
-| `APB_DIV[10:0][1:0]` | 2 per window | `2'b00` (÷1) | Additional ACCESS-phase stretching per window. 00=÷1 (125 MHz), 01=÷2 (62.5 MHz), 10=÷4, 11=÷8. |
+| `APB_DIV[11:0][1:0]` | 2 per window | `2'b00` (÷1) | Additional ACCESS-phase stretching per window. 00=÷1 (125 MHz), 01=÷2 (62.5 MHz), 10=÷4, 11=÷8. |
 
 **[N-5.1]** `APB_DIV` is a synthesis parameter, not a register. The value is a property of
 the peripheral IP instantiated in that window, fixed at integration, and a register would
@@ -183,7 +183,7 @@ let firmware set a value the IP cannot meet.
 
 **[N-6.1]** The bridge has no registers. It is transparent apart from the error responses
 of §7.5–§7.7, which surface as precise faults in the accessing master. `mem_ctl`'s
-`MEMCTL` register occupies offset `0x20` of window 8 and belongs to
+`MEMCTL` register occupies offset `0x20` of window 9 (`reset_ctrl`, `0x4000_9000`) and belongs to
 `GARUDA-MEM-SPEC-001`, not to the bridge.
 
 ### 6.1 Window map
@@ -217,10 +217,11 @@ The base addresses were right throughout; only the index was wrong.)*
 | 10 | `0x4000_A000` | 10 | `clic_cfg` | ÷1 |
 | 11 | `0x4000_B000` | 11 | `timers_cfg` | ÷1 |
 
-**[N-6.2]** `0x4000_0000` (window index 0 of the old map) is unmapped: it held the SPI slave,
-which ADR-0020 removed for the pin budget. An access there returns SLVERR per §7.7. The
-address is retained as unmapped rather than compacting the map, so the 36-pin variant can
-reinstate the SPI slave without moving ten other base addresses and every firmware
+**[N-6.2]** Window 0 (`0x4000_0000`) is the SPI slave. It answers only when the chip is
+built with `WITH_SPI_SLAVE = 1` (the default); with `WITH_SPI_SLAVE = 0` its bit is clear in
+`WINDOW_MASK` and an access there faults per §7.6. The pin bonding is OPEN-2
+(`GARUDA-PHYS-SPEC-001` §10). ADR-0020 kept the address free instead of compacting the
+map, so restoring the block (ADR-0020 Rev 2) moved no other base address and no firmware
 constant.
 
 ---
@@ -290,7 +291,7 @@ timing needs longer phases, but **not** an IP whose internal logic cannot meet t
 (`GARUDA-CLKRST-SPEC-001` §6.2), which slows the whole chip, or a different IP. This
 distinction is stated because it is easy to assume `APB_DIV` solves both, and it does not.
 
-**[N-7.11]** All eleven windows default to ÷1 on the assumption that a simple UART, SPI or
+**[N-7.11]** All twelve windows default to ÷1 on the assumption that a simple UART, SPI or
 I²C block in a 28 nm process meets 125 MHz. If an IP datasheet later shows otherwise, that
 window's `APB_DIV` changes and nothing else in the chip is affected.
 
@@ -329,8 +330,8 @@ fault as fatal and reset.
 
 ### 7.6 Unmapped windows
 
-**[N-7.19]** `haddr[15:12]` values with no window — `0x0` (the removed SPI slave) and
-`0xB`–`0xF` — assert no `PSEL` and return a two-cycle AHB ERROR.
+**[N-7.19]** `haddr[15:12]` values with no window — `0xC`–`0xF`, and `0x0` when the chip
+is built with `WITH_SPI_SLAVE = 0` — assert no `PSEL` and return a two-cycle AHB ERROR.
 
 ### 7.7 SLVERR
 
@@ -509,7 +510,7 @@ a_no_hang: assert property (
 // --- unmapped window asserts no PSEL and errors
 a_unmapped: assert property (
   @(posedge hclk_i) disable iff (!hreset_n_i)
-  (hsel_i && htrans_i != IDLE && haddr_i[15:12] inside {4'h0, [4'hB:4'hF]})
+  (hsel_i && htrans_i != IDLE && !WINDOW_MASK[haddr_i[15:12]])
     |-> ##[1:2] hresp_o);
 
 // --- PSLVERR propagates as an AHB error
@@ -542,7 +543,7 @@ a_apb_div: assert property (
 | R-6 | `t_apb_subword` | BYTE and HALF rejected, no APB transfer generated | both sizes × 4 offsets | new |
 | R-7 | `t_apb_timeout` | stuck `PREADY` → ERROR at 16 cycles, bus recovers | each window | new |
 | R-7 | `t_apb_no_hang` | `a_no_hang` under a randomly stalling peripheral model | — | new |
-| R-8 | `t_apb_unmapped` | window `0x0` and `0xB`–`0xF` error | all 6 | new |
+| R-8 | `t_apb_unmapped` | windows `0xC`–`0xF` error, and `0x0` with `WITH_SPI_SLAVE = 0` | all 5 | new |
 | §7.7 | `t_apb_slverr` | `PSLVERR` becomes an AHB ERROR and a precise fault | — | new |
 | §9.2 | `t_apb_reset_skew` | AHB access during the `hreset`/`preset` gap is held, not falsely acked | — | new |
 | §7.1 | `t_apb_backtoback` | consecutive transfers to the same and different windows | same/different | new |
@@ -565,7 +566,7 @@ small, bounded, and load-bearing for the rest of the design.
 | No CDC, with the subset-of-edges proof rather than an assertion | ADR-0002 |
 | Per-window `APB_DIV` as the remedy for a slow IP, not a second clock | ADR-0002 |
 | Window map after the peripheral reassignment | ADR-0008 |
-| Window `0x0` left unmapped rather than compacting the map | ADR-0020 |
+| Window `0x0` kept for the SPI slave rather than compacting the map | ADR-0020, Rev 2 |
 
 ---
 
