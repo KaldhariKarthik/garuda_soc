@@ -3,12 +3,15 @@
 **Decisions that resolve a contradiction between two documents, or that close an
 open item a specification left for the architecture owner.**
 
-This file exists because `docs/BUGS.md` is the register for defects *found*, and
+This file exists because `Docs/BUGS.md` is the register for defects *found*, and
 a defect that spans two released documents needs a recorded *ruling* as well as an
 entry. One decision per section. Never renumber — other files reference these by ID.
 
-Related: `docs/BUGS.md` (defect register), `docs/SOC_RTL_LOG.md` (interconnect and
+Related: `Docs/BUGS.md` (defect register), `Docs/SOC_RTL_LOG.md` (interconnect and
 SoC reasoning), `Design_Docs/` (the specifications themselves).
+
+Last updated 2026-10-14. D-1 to D-3 refer to the Rev 2.0/3.0 documents, now in
+`Design_Docs/archive/`. D-4 made the Rev 4.0 set normative.
 
 ---
 
@@ -70,9 +73,13 @@ explicitly rejected for this tapeout.
 > claim is actually in **§8.5**, with the two consequential restatements in §14
 > and §17. §16 is Design Decisions and contains no bank-parallelism wording.
 
-### TRM erratum — NOT YET APPLIED
+### TRM erratum — RESOLVED by supersession (2026-10-14)
 
-The TRM body could not be edited in this repository. `Design_Docs/GARUDA - Team
+The Rev 3.0 TRM below is archived (`Design_Docs/archive/GARUDA - Team AeroSoC.docx`/`.pdf`).
+Its replacement, `Design_Docs/GARUDA-TRM-001.md` (Rev 4.0), makes none of the three claims.
+The text that follows is kept as the record of what was wrong.
+
+The TRM body could not be edited in this repository. `Design_Docs/archive/GARUDA - Team
 AeroSoC.docx` contains only the cover page and table of contents; the body exists
 only in the exported `.pdf`. Whoever holds the editable source must apply these
 three corrections:
@@ -118,7 +125,7 @@ specification.
 
 ## D-3 — Bridge §9.1 is the authoritative peripheral-access latency
 
-**Decided 2026-09-16 · Closes** `AHB-5` in `docs/BUGS.md`
+**Decided 2026-09-16 · Closes** `AHB-5` in `Docs/BUGS.md`
 
 `GARUDA-BRG-SPEC-001` Rev 2.0 §9.1 is the single authoritative figure for the
 cost of a peripheral access, superseding the TRM's loose "~3-4 cycles":
@@ -572,33 +579,32 @@ The owner resized WSL to 12 GB RAM + 8 GB swap; `nproc` is now 8 (verified: `fre
 pnr_r6 resumes from pnr_r5's global-route database with the detailed router at `NUM_CORES=8`,
 falling back to 6 if memory gets tight. It goes through finish and GDS.
 
+*Follow-up, 2026-10-14 (owner):* after pnr_r7 the owner deleted the `.wslconfig`; WSL is back
+on its defaults (16 CPUs, 7.4 GiB, 2 GiB swap). Create the file again (`memory=12GB`,
+`swap=8GB`, `processors=8`) before the next full place-and-route run (`Docs/CLAUDE_HANDOFF.md` §2).
+
 ---
 
 ## Open — carried forward, not decided
 
-These are recorded so they are not mistaken for settled. Neither blocks RTL.
+These are recorded so they are not mistaken for settled. None blocks RTL.
 
 - **Memory §13.6 — pre-PDK array budgets.** The ≈2.8 ns array read inside a 5 ns
   cycle is analytic, derived from TRM targets, not compiler output. When the
   foundry memory compiler lands, three things get revisited: whether
   single-cycle access at 200 MHz survives (if not, the memories gain a
-  wait-state, which changes the **core's** timing model), the per-bank aspect
+  wait-state, which changes the **core's** timing model; at 250 MHz the cycle is 4 ns,
+  MEM [N-7.7]), the per-bank aspect
   ratio and therefore the bank count, and whether byte-write-enable is native or
   must be built around a word-write macro. Until then, RTL uses behavioural array
   models behind the specified interfaces so only the array instantiation changes.
   *2026-10-13:* none of ASAP7's 17 fake RAMs has a write mask either (BUGS 1l, D-29),
   so the byte-write question is live for any macro source, not only the foundry's.
-- **CLIC §11.1 — genuinely asynchronous interrupt sources.** The
-  no-synchroniser configuration path is sound for sources in either on-chip
-  domain, because pclk is a ÷2 of hclk from one source. It does not cover a
-  source asynchronous to clk, the clear candidate being a GPIO interrupt from an
-  external pad. Such a source needs a two-flop synchroniser before the CLIC
-  samples it, and an edge-triggered pad input needs the edge detected *after*
-  the synchroniser. The GPIO specification must state whether it synchronises
-  internally or delivers the pad interrupt raw.
-- **Duplicate bridge specification.** `Design_Docs/ahb2apb/` holds two documents
-  both numbered Rev 2.0: `AS-GRD-08_...` (2026-09-02, APB **v3**, crossing
-  described as *mesochronous*) and `GARUDA_AHB2APB_...` (2026-09-14, APB**4**
-  with PSTRB, and §13.4 explicitly rejects "mesochronous" as inaccurate). The
-  newer supersedes the older on both points. The stale file should be deleted or
-  moved to an archive folder — pending owner confirmation.
+- **CLIC §11.1 — genuinely asynchronous interrupt sources.** *Answered by the
+  Rev 4.0 GPIO design (2026-10-14 review):* every pad input passes a two-flop
+  synchroniser in the shared shim before the vendored block detects edges
+  (GARUDA-GPIO-SPEC-001 R-7, §4), so the CLIC sees only synchronous sources.
+  No longer open.
+- **Duplicate bridge specification.** *Resolved:* the older APB3 document
+  (`AS-GRD-08_...`) is no longer in the repository; the newer one is in
+  `Design_Docs/archive/ahb2apb/`, and `GARUDA-AHB2APB-SPEC-001.md` supersedes it.

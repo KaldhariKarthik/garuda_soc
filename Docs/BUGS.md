@@ -4,17 +4,11 @@
 Not per-block: a bug that crosses a boundary belongs in one list, and the
 cross-block ones are the expensive ones.
 
-Last updated: 2026-10-05 (independent free-tool audit, §1i; block 14, §1e) · Covers Blocks 1 (core), 2 (DSU), 6 (interconnect),
-9 (DMA), plus toolchain and testbench defects.
+Last updated: 2026-10-14 (§1l physical design; DOC-1 documentation sync). Covers every
+block of `Design_Docs/garuda_system.yaml`, the testbenches, the tools and physical design.
 
-Specification-only entries now also reach blocks that have no RTL yet: the
-Rev 2.0 documents for Blocks 3/4/5 (memory), 8 (bridge), 16 (CLIC) and 22/23
-(clock/reset) resolved **AHB-5** and raised the cross-document defect recorded
-in `docs/DECISIONS.md` (D-1). A spec defect found before the RTL exists is the
-cheapest one this project will ever fix.
-
-Related: `docs/SOC_RTL_LOG.md` (interconnect + SoC reasoning), `docs/DMA_RTL_LOG.md`
-(Block 9 narrative).
+Related: `Docs/DECISIONS.md` (rulings), `Docs/HANDOFF.md` (what to run next),
+`Docs/SOC_RTL_LOG.md` and `Docs/DMA_RTL_LOG.md` (narratives of the early blocks).
 
 ---
 
@@ -30,40 +24,42 @@ Related: `docs/SOC_RTL_LOG.md` (interconnect + SoC reasoning), `docs/DMA_RTL_LOG
 A bug listed as FIXED means a test exists that fails without the fix. Where a
 mutation test was run to prove that, it is named.
 
+Sections are in the order they were written: §1b to §1l are dated sessions, §2 to §6 are
+the original per-block registers. A later section can change the status of an earlier
+entry; the entry itself then says so.
+
 ---
 
-## 1. Summary
+## 1. Open items (2026-10-14)
 
-| Block | Fixed | Open | Waived | Spec defects |
-|---|---:|---:|---:|---:|
-| 1 — RV32IM core | 7 | 1 | 0 | 0 |
-| 2 — DSU | 10 | 0 | 0 | 0 |
-| 6 — AHB-Lite interconnect | 3 | 0 | 0 | 3 |
-| 8 — AHB-to-APB bridge | 0 | 0 | 0 | 1 |
-| 9 — DMA controller | 3 | 0 | 3 | 12 |
-| 3/4/5 — Memory subsystem | 0 | 0 | 0 | 1 |
-| 16 — CLIC | 1 | 0 | 0 | 0 |
-| 22/23 — Clock and reset | 0 | 0 | 0 | 1 |
-| Testbench / toolchain | 25 | 7 | 1 | — |
+The per-block counts that used to be here stopped at §1a and are removed. This table lists
+every entry that is not closed.
 
-Blocks 8, 16 and 22/23 and the memory subsystem list **zero RTL defects**, and
-that row should be read carefully. Their RTL was written on 2026-09-16 and now
-compiles, simulates (1,007 checks, 0 failures across six testbenches) and
-synthesises with zero latches — so the row is no longer "unproven". But it was
-verified under Icarus and Yosys only, never Xcelium, with no gate-level, coverage
-or timing, and by testbenches written by the same author at the same sitting as
-the RTL. Their spec-defect counts (BRG-1, CRG-1, and D-1 for the memories) are
-real findings from implementing the documents. Read the row as "passes its own
-tests", not "verified".
+| ID | Where | Status | Needs |
+|---|---|---|---|
+| **T-12** | `csr_file.v` (`mpil`) | OPEN, **P1** | Owner decision (`mcause.mpil`) |
+| **RDC-1** | core reset by debugger halt | OPEN, P2 | Owner decision |
+| **GPIO-2** | GPIO spec vs vendored IP | OPEN, P2 | Owner decision, per item |
+| **AUD-12** | 27 spec silences or disagreements | OPEN, P2 | Rulings; window numbers, CLIC map and register sources done in DOC-1 |
+| **AUD-11** | 27 planned tests not written, 28 partly | OPEN | Tests |
+| **AUD-9** | DSU port names | OPEN | Owner decision |
+| **PWM-2** | PWM outputs combinational | OPEN | Owner decision |
+| **APB-1** | bridge timeout abandons an APB access | OPEN, low | Owner ruling |
+| **CRG-3**, **SIM-1**, **C-16**, **AUD-13** | reset cause, pclk ordering, missing CSRs, PSLVERR rule | OPEN, P3 | Owner decisions |
+| **INT-2** | CLIC ID map | FIXED | Owner to confirm the move of DMA errors to IDs 8..13 |
+| **SPIM-2** | vendored SPI master FSM | OPEN | Vendor patch record |
+| **TB-33**, **ELEM-8** | `tb_id_stage`, `tb_d_port_ahb_master` | OPEN | Testbench changes |
+| **TOOL-16** | irun 15.2 UVM DPI message | OPEN (worked around) | — |
+| **PD-1** | `GARUDA_SRAM_BLACKBOX` | OPEN | RTL change |
+| **PD-10** | `ext_rst_n` exception target | OPEN, low | Script change |
+| **TOOL-18** | OpenROAD crash in CTS hold repair | OPEN (tool) | Upstream report |
+| **TOOL-19** | `run_synth.sh` summary under Yosys 0.68 | OPEN (cosmetic) | Script change |
+| **DMA-4/5/6** | DMA | WAIVED, tested | — |
 
-**Every RTL defect found so far is fixed.** What remains open is a small set of
-waived limitations and one uncovered-but-redundant line, all named below.
+**Track A (§1m, 2026-10-14):** more open core and DSU entries (T-16..T-18, BUS-E, C-17, CORE-4, DSU-14..18, TB-39..TB-48). T-12, RDC-1 and C-16 have fixes in progress on branch `a/core-dsu`, not yet merged to main.
 
-> **2026-10-05 note (§1i):** no longer true. **T-13** and **T-14** are open RTL defects in `rtl/core/trap_ctrl.v` (§1i), and APB-1, AUD-4, AUD-9, AUD-11 and the vendored SPIM-2 and UART-3 are open (§1d, §1g, §1h). The summary counts above do not yet include §1i.
->
-> **2026-10-05 note (§1j):** the summary counts above do not include §1j either. It adds two RTL defects that are fixed (T-15, PWM-4) and findings that wait for an owner decision (T-12, RDC-1, GPIO-2, SIM-1, C-16, CRG-3, AUD-12, AUD-13).
->
-> **2026-10-11 note (§1k):** T-13 and T-14 are fixed in RTL, with UART-3, UART-4, PWM-3, TB-30, TB-32, TB-34, TB-35 and TOOL-12 to TOOL-17; the RTL and testbench changes are *xrun pending* (see §1k). The summary counts above do not include §1i to §1k.
+**Waiting for the lab xrun run** (fixed on free tools, `Docs/HANDOFF.md` §2): T-13, T-14,
+UART-3, UART-4, PWM-3, TB-30, TB-32, TB-35, and chip-level simulation of P2 (PD-3).
 
 **The four most instructive entries, if you read nothing else:**
 
@@ -451,23 +447,25 @@ but chip-level simulation of P2 is **pending** (lab xrun `make test_chip`).
 | **PD-2** | `rtl/core/core_clk_gate.v` (`GARUDA_ICG_CELL`) | **FIXED** (P1) | **Enabling the library-ICG option left `gclk` undriven.** The branch had only a comment and `initial $finish`. Now instantiates the flow's `OPENROAD_CLKGATE` (ASAP7 → `ICGx1_ASAP7_75t_R`), with a guard that fails elaboration if `OPENROAD_CLKGATE` is not also defined (otherwise ORFS's map is a wire and the gate vanishes silently). Verified: synth_r2 has exactly 1 ICGx1 and 0 latches, and STA reports its clock-gating check. Simulation branch byte-identical. |
 | **PD-3** | `rtl/soc/garuda_chip_top.v` (pin tri-states) | **FIXED** (P2), chip sim pending | **Yosys silently collapsed the six top-level tri-states into plain drivers:** `tdo`, `spis_miso`, `i2c_scl/sda` and `gpio0/1` were always driven, and the **I²C and GPIO input synchronisers read the chip's own output instead of the pad**. Fixed by moving the body into `garuda_chip_core` (o/oe/i ports, no tri-states) under a thin `garuda_chip_top` wrapper with unchanged pins; equivalence at the pins 411/411 (submodules black-boxed; Z modelled as 0 and as 1, so contention and pull-ups are not modelled). Found by: netlist pin tracing in synth_r1. |
 | **PD-4** | `rtl/mem/sram_wrapper.v` (`GARUDA_SRAM_MACRO`) | **FIXED** (P3) | **The macro branch instantiated nothing** (`initial $finish`), so no physical flow could substitute a macro. Now one named macro per shape (`garuda_sram_16384x32`, `garuda_sram_4096x32`, `garuda_rom_1024x32`); any other shape fails elaboration. Limitation: elaborating `sram_wrapper` standalone at its default parameters with the define set also fails (ORFS and simulation are unaffected). |
-| **PD-5** | `Design_Docs/GARUDA-PHYS-SPEC-001.md` §5.2, `garuda_system.yaml` | **OPEN** (docs) | Stale clock documentation: PHYS §5.2's SDC sketch (port `refclk_i`, flop names, fixed ÷2, no aon_clk, as its own [N-5.3] says); yaml `reset.stretch.clock: refclk` (D-14 moved it to aon_clk); yaml `clocks.pclk.div_options: [2,4,8]` (RTL/CLKRST: pclk is always hclk/2). The working constraints are `flow/constraints/`. |
+| **PD-5** | `Design_Docs/GARUDA-PHYS-SPEC-001.md` §5.2, `garuda_system.yaml` | **FIXED** (docs, 2026-10-14, DOC-1; the generator's "refclk cycles" comment on `RESET_STRETCH_CYCLES` in `tools/garuda_gen.py` remains, because changing it rewrites `rtl/include/garuda_map.vh`) | Stale clock documentation: PHYS §5.2's SDC sketch (port `refclk_i`, flop names, fixed ÷2, no aon_clk, as its own [N-5.3] says); yaml `reset.stretch.clock: refclk` (D-14 moved it to aon_clk); yaml `clocks.pclk.div_options: [2,4,8]` (RTL/CLKRST: pclk is always hclk/2). The working constraints are `flow/constraints/`. |
 | **PD-6** | `flow/constraints/asap7/gen_modes.py` (exploratory SDC) | **FIXED** | **Generated clocks on QN pins were half a period out of phase**: `-divide_by 2` (and `-invert`) on the toggle flops' QN put aon_clk 2000 ps off hclk, so hclk↔aon setup was checked over 2 ns instead of 4 ns and **hold was optimistic by 2 ns**. Now every derived clock has explicit `-edges` counted in refclk edges; every crossing validated against the physical edges. |
 | **PD-7** | ASAP7 flow, CTS (`flow/pd/asap7/config.mk` `CTS_ARGS`) | **FIXED** (config, 2026-10-14) | **CTS latency balancing delayed hclk and pclk by ≈2.1 ns relative to aon_clk**: `CTS-0033 Balancing latency for clock aon_clk` inserted 112–116 `delaybuf_*` on the aon_clk branch feeding the hclk mux, giving 1702 hold violations (worst −2.64 ns: `u_reset_ctrl.sys_req_q` → `prst_q[1]/RESETN` removal; `u_bridge.u_fsm.rdata_o`). `-delay_buffer_derate 0` did not stop it (pnr_r3). **`-no_insertion_delay`**, which gates `balanceMacroRegisterLatencies()` (`TritonCTS.cpp:2747`), did (pnr_r4): no CTS-0033, 1747 small hold violations, all repaired (3240 hold buffers, +0.4 % area, hold WNS +0.004 ps, TNS 0), no crash. Relevant beyond ASAP7: the aon/hclk/pclk trees must stay latency-aligned for every cross-clock path; the 28 nm CTS setup must check the same. |
 | **PD-8** | `flow/pd/asap7/macro_place.tcl` | **FIXED** (script, 2026-10-14) | **Macro pins off the routing grid**: macros were placed on the 0.054/0.27 µm site/row grid (origin y = 7.02 µm), but the mock blocks' pins sit on 0.048/0.036 µm tracks relative to their own origin, so every pin landed 0.012 µm off the parent's tracks (`DRT-0419`) and `addr[0]` of every RAM had no access point (`[ERROR DRT-0073]`, global route stopped, pnr_r4). Origins are now snapped to x = n·0.432 µm and y = n·2.16 µm (the lcm of the track, site and row pitches). |
-| **TOOL-21** | ORFS detailed route (`5_2_route`) under WSL | **RESOLVED** (owner resized WSL to 12 GB + 8 GB, D-30; pnr_r6/r7 peak 8.65 GiB at 8 threads) | **Detailed route OOM-killed** in pnr_r5: OpenROAD reached 7.2 GiB RSS at 16 threads on a 7.4 GiB WSL VM (`Out of memory: Killed process … (openroad)`, make Error 247). The b3_flow guard needs swap > 1900 MiB, so it didn't fire. Candidate fix (config only): fewer router threads via `NUM_CORES`. |
+| **TOOL-21** | ORFS detailed route (`5_2_route`) under WSL | **RESOLVED** (owner resized WSL to 12 GB + 8 GB, D-30; pnr_r6/r7 peak 8.65 GiB at 8 threads. The `.wslconfig` was deleted on 2026-10-14: create it again before the next P&R run) | **Detailed route OOM-killed** in pnr_r5: OpenROAD reached 7.2 GiB RSS at 16 threads on a 7.4 GiB WSL VM (`Out of memory: Killed process … (openroad)`, make Error 247). The b3_flow guard needs swap > 1900 MiB, so it didn't fire. Candidate fix (config only): fewer router threads via `NUM_CORES`. |
 | **PD-9** | flow (CTS hold repair is single-mode) | **FIXED** (flow step, pnr_r7; post-route all modes hold ≥ +1.79 ps) | **Hold misses in DIV4/8/16 only.** ORFS repairs timing against one SDC (DIV2). In DIV4/8/16, hclk/pclk come through the ripple divider stages t2–t4, so their clock latency rises (668 ps vs aon_clk 133 ps in DIV16). aon_clk→hclk/pclk crossings then fail hold: post-CTS pnr_r6 DIV4 −87 ps (10 endpoints), DIV8 −184 ps (11), DIV16 −262 ps (13), e.g. `u_reset_ctrl.core_req_q → core_q[1]/RESETN` removal and `u_bridge.u_fsm.rdata_o[4]/D`. These are real silicon paths, not waived. Fix: `~/tools/logs/b3_mm_hold.tcl` after CTS defines one OpenSTA mode + scene per DIVSEL SDC (`read_sdc -mode`, `define_scene`) and runs `repair_timing -hold` across all scenes: 15 endpoints, 175 buffers, worst hold −261.88 → +0.07 ps, worst setup over all modes unchanged at +862.49 ps. |
 | **PD-10** | `flow/constraints/asap7/gen_modes.py` (ext_rst_n exception) | **OPEN** (low) | The ext_rst_n false path names the loads of net `ext_rst_n`. After placement an input buffer (`input6906`) is inserted, so the target becomes `input6906/A` (`STA-1551 … is not a valid endpoint`). No effect on results, because ext_rst_n has no input delay and is therefore unconstrained, but the exception no longer documents the 184 async pins post-layout. Fix later: name the async reset/set pins through the buffer (e.g. via `all_fanout -endpoints_only`). |
 | **TOOL-18** *(see also)* | | | With PD-7 fixed the crash did not recur (pnr_r4), so it is triggered by the large-violation case; still open as a tool bug. |
 | **TOOL-18** | OpenROAD `26Q4-110-g91e5f5ff2f` | **OPEN** (tool) | **OpenROAD crashes (Signal 11) in CTS-stage hold repair** (`repair_timing -hold`) on GARUDA, reproducibly (pnr_r1, pnr_r3), with ~1700 violating endpoints. Not reported upstream. |
 | **TOOL-19** | `scripts/run_synth.sh` | OPEN (cosmetic) | Under Yosys 0.68 the "design hierarchy" block and the cell summary print empty (the sed/grep patterns no longer match `stat`'s layout). The latch gate reads `latches.txt` and is unaffected. |
-| **TOOL-20** | `.gitignore` / SymbiYosys | OPEN | SBY v0.68 also writes `flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl/status.sqlite`; `.gitignore` covers only `pipe_ctrl_*/`, so the folder shows as untracked. |
+| **TOOL-20** | `.gitignore` / SymbiYosys | **FIXED** (2026-10-14, `.gitignore` covers `pipe_ctrl/`) | SBY v0.68 also writes `flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl/status.sqlite`; `.gitignore` covers only `pipe_ctrl_*/`, so the folder shows as untracked. |
+| **TOOL-22** | `scripts/run_sim.sh`, `scripts/run_synth.sh` | **FIXED** (2026-10-14) | **`make local_sim` and `make local_synth` could not start.** Both scripts were mode 100644 in git, and the Makefile runs them as `./scripts/...`, so each target stopped with "Permission denied". The workaround `bash scripts/...` hid it. Now 100755. Found by: comparing the git file modes with the Makefile. |
+| **DOC-1** | `Design_Docs/`, `Docs/`, `README.md` | **DONE** (2026-10-14) | **Documentation sync with the yaml, the RTL and the rulings.** Specifications: CLIC ID map, enable mask and assertions after INT-2/INT-3 (CLIC, DMA, TRM); APB windows numbered 0–11 with window 0 the SPI slave (AHB2APB, TRM; AUD-2, AUD-12 item 6); `MEMCTL` in window 9 (MEM, AHB2APB); DMA channel 4 and `a_ch4_tied` (DMA; AUD-7, AUD-11); `dmactive` per D-18 (DEBUG; AUD-11); CLIC selection tree (AUD-12 item 8); clock and reset description after D-14 (`aon_clk`, `t1_q`, stretch on `aon_clk`, CRG-3 item 3 reason written into [N-7.16]) (CLKRST, TRM); PHYS §5.2 SDC sketch replaced by the rules of `flow/constraints/` (AUD-4, PD-5); the dead `spec/regs/*.yaml` pointers (AUD-12 item 5); SPEC_TEMPLATE states which of its tools exist. Yaml: `aon_clk` added, stretch clock `aon_clk`, pclk always ÷2 (PD-5); `garuda_gen.py --check` passes. `.docx` exports made again with pandoc. Living documents rewritten for the state at 2026-10-14 (README, HANDOFF, CLAUDE_HANDOFF, HOWTO_RUN, COVERAGE, MEETING_CHEATSHEET, Design_Docs/README); `docs/` paths corrected to `Docs/`; paths to archived specs corrected. Spec revision numbers are unchanged, because RTL headers cite them. Not changed: AUD-12 items that need a ruling, and CORE §11's 20-cell matrix against the 19-cell test (AUD-11). |
 
 ---
 
 ## 2. Block 6 — AHB-Lite interconnect
 
-Specification: `Design_Docs/AHB_Int/GARUDA_AHB_Bus_Design_Spec_v2.0.docx`
+Specification: `Design_Docs/archive/AHB_Int/GARUDA_AHB_Bus_Design_Spec_v2.0.docx`
 (GARUDA-AHB-SPEC-001 Rev 2.0). RTL: `rtl/ahb/`. Tests: `tb/ahb/tb_ahb_interconnect.sv`.
 
 ### AHB-1 — HWDATA follows the wrong master  ·  `SPEC` / `FIXED` · **Severity: high (silent data corruption)**
@@ -605,7 +603,7 @@ HREADY logic. Full derivation is in the header of `rtl/ahb/ahb_master_port.v`.
 
 Specifications: `GARUDA-BRG-SPEC-001` Rev 2.0, `GARUDA-CRG-SPEC-001` Rev 2.0.
 RTL: `rtl/ahb2apb/`, `rtl/clk_div/`, `rtl/reset_ctrl/`.
-Narrative: `docs/RTL_LOG_2026-09-16.md`.
+Narrative: `Docs/RTL_LOG_2026-09-16.md`.
 
 BRG-1 and CRG-1 are defects in the **specification**, found by implementing it.
 The RTL as written does not contain them, and both have a passing test that
@@ -699,7 +697,7 @@ RTL defect in the new blocks found by a tool rather than by reading.
 ## 3. Block 9 — DMA controller
 
 Specification: GARUDA-DMA-SPEC-001 Rev 2.0. RTL: `rtl/dma/`.
-Full narrative in `docs/DMA_RTL_LOG.md`.
+Full narrative in `Docs/DMA_RTL_LOG.md`.
 
 ### DMA-1 — inconsistent SR snapshot across the clock-domain crossing  ·  `FIXED` · **Severity: high**
 
@@ -831,7 +829,7 @@ simulation**. Still open as a verification gap rather than a known defect.
 ### DMA spec defects — SPEC-1 … SPEC-12
 
 Twelve contradictions, gaps and errata in GARUDA-DMA-SPEC-001 Rev 2.0, each
-resolved on the record in `docs/DMA_RTL_LOG.md` §9.4. Summarised here because
+resolved on the record in `Docs/DMA_RTL_LOG.md` §9.4. Summarised here because
 four of them were latent failure modes the spec never addressed:
 
 | ID | Class | One-line |
@@ -871,7 +869,7 @@ Found in prior sessions; listed here so the register is complete.
 ## 5. Block 2 — DSU
 
 Nine errata were found and fixed in prior sessions (see
-`Design_Docs/DSU/DSU_Verification_reports/`), of which ERRATUM DSU-8 —
+`Design_Docs/archive/DSU/DSU_Verification_reports/`), of which ERRATUM DSU-8 —
 an overflow coinciding with its own clear being lost — is referenced by the DMA
 RTL as the shape its W1C ordering avoids.
 
@@ -1002,7 +1000,7 @@ one of the three.
 ### Earlier testbench bugs — TB-1 … TB-8
 
 Eight defects from the DMA block-level bring-up, detailed in
-`docs/DMA_RTL_LOG.md` §9.2. **Six of the eight are the same shape**: *the
+`Docs/DMA_RTL_LOG.md` §9.2. **Six of the eight are the same shape**: *the
 testbench observing a fast hardware event through a slow APB read*. In a design
 with a 200 MHz core domain and a 100 MHz config port, any check of the form
 "poll a status register, then sample a counter" is racing the DUT by tens of
