@@ -26,7 +26,7 @@ addrmap i2c {
           field { sw = r; hw = w; reset = 8'h0; desc = "Byte received; the read clears STATUS.rxvalid ([N-6.4])"; } value[7:0];
     } RXDATA @ 0x0C;
     reg { name = "Command";
-          desc = "Write only, self-clearing, reads 0. A write while STATUS.tip is 1 is ignored ([N-6.2b])";
+          desc = "Write only, self-clearing, reads 0. Refused with PSLVERR: a write while STATUS.tip is 1 ([N-6.2b]), and a write with none of rd_byte, wr_byte and sto ([N-6.2c])";
           field { sw = w; hw = r; desc = "Generate a START"; } sta[0:0];
           field { sw = w; hw = r; desc = "Generate a STOP"; } sto[1:1];
           field { sw = w; hw = r; desc = "Read a byte"; } rd_byte[2:2];

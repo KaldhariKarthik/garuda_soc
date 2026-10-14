@@ -22,9 +22,10 @@ How the items are matched:
     block       IMC's block number -> its source line (IMC's report) -> JasperGold's
                 statement and branch items that start on that line; if there is
                 none, the smallest branch that contains the line
-    expression  only the row in which every term is true (the row that takes the
-                branch), by source line; other rows are counted differently by
-                the two tools and are NOT CHECKED
+    expression  by source line: the row in which every term is true (the row that
+                takes the branch) must be dead; or, when the two tools write the
+                rows differently, as many rows must be dead in JasperGold as
+                simulation never hit; anything else is NOT CHECKED
     assertion   by name, in the log of flow/formal/vacuity_block.tcl (property app):
                 the precondition of an assertion, or a cover itself, proven
                 unreachable
@@ -142,7 +143,13 @@ def main():
                 continue
             line, bkind, cnt = b
             code = [i for i in items if i[2] == r and i[1] in ("statement", "branch")]
-            found = [i for i in code if i[3] == line and (i[6] == "implicit else") == (bkind == "implicit else")]
+            # an implicit else or default has no line of its own: both tools put it on the line of
+            # its "if" or "case", and JasperGold names it the same way
+            implicit = ("implicit else", "implicit default")
+            if bkind in implicit:
+                found = [i for i in code if i[3] == line and i[6] == bkind]
+            else:
+                found = [i for i in code if i[3] == line and i[6] not in implicit]
             if not found:
                 around = sorted((i for i in code if i[1] == "branch" and i[3] <= line <= i[4] and i[4] > i[3]), key=lambda i: i[4] - i[3])
                 found = around[:1]
@@ -163,6 +170,9 @@ def main():
                 note(kind, "NOT CHECKED", "%s expression %s, line %d (no item of JasperGold there: code under `ifndef SYNTHESIS)" % (inst, what, line))
             elif takes and alltrue:
                 note(kind, verdict(alltrue), "%s expression %s, line %d, the row that takes the branch" % (inst, what, line))
+            elif unhit and len(unhit) == sum(1 for i in jg if i[0] == "deadcode") and all(i[0] != "unreachable" for i in jg):
+                # the same number of rows that simulation never hit and that JasperGold cannot reach
+                note(kind, "CONFIRMED", "%s expression %s, line %d" % (inst, what, line))
             else:
                 note(kind, "NOT CHECKED", "%s expression %s, line %d: %d row(s) not hit in simulation, JasperGold has %d of %d rows dead there; rows not matched one to one"
                      % (inst, what, line, len(unhit), sum(1 for i in jg if i[0] != "covered"), len(jg)))

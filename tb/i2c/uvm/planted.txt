@@ -1,0 +1,19 @@
+# <RTL file> @@ <sed -E expression> @@ <what the defect is>
+rtl/i2c/garuda_i2c_top.v @@ s/end else if \(core_al \| core_held\) begin/end else if (core_al) begin/ @@ EN cleared in mid-transfer leaves TIP set (I2C-6)
+rtl/i2c/garuda_i2c_top.v @@ s/wire       cmd_ok    = cmd_write \& ~tip_q \& ~core_held/wire       cmd_ok    = cmd_write \& ~core_held/ @@ a CMD written during a transfer replaces the one in progress
+rtl/i2c/garuda_i2c_top.v @@ s/assign pslverr_o = shim_slverr \| cmd_busy_err;/assign pslverr_o = shim_slverr;/ @@ a CMD written during a transfer is dropped without PSLVERR
+rtl/i2c/garuda_i2c_top.v @@ s/rxvalid_q <= 1'b1;/rxvalid_q <= 1'b0;/ @@ RXVALID is never set
+rtl/i2c/garuda_i2c_top.v @@ s/if \(c_wr\) rxnack_q <= core_ackout;/if (c_wr) rxnack_q <= ~core_ackout;/ @@ RXNACK is inverted
+rtl/i2c/garuda_i2c_top.v @@ s/\(ip_paddr == A_CTRL\) \& pwdata_i\[1\]\) \| to_pulse;/(ip_paddr == A_CTRL) \& pwdata_i[1]);/ @@ the timeout sets its flag but does not abandon the transfer
+rtl/i2c/garuda_i2c_top.v @@ s/if \(core_al\)  al_q <= 1'b1;/if (1'b0)  al_q <= 1'b1;/ @@ STATUS.AL is never set
+rtl/i2c/garuda_i2c_top.v @@ s/assign evt\[3\] = core_ack_q \& was_wr_q \& nacked_q;/assign evt[3] = core_ack_q \& nacked_q;/ @@ the NACK interrupt is raised for a byte read with CMD.NACK
+rtl/i2c/garuda_i2c_top.v @@ s/\.tx_space_i\(en_q \& ~tip_q\),/.tx_space_i(en_q),/ @@ the transmit DMA request stays up during a transfer
+rtl/i2c/garuda_i2c_top.v @@ s/assign i2c_sda_o  = 1'b0;/assign i2c_sda_o  = 1'b1;/ @@ SDA is driven high instead of low
+rtl/i2c/garuda_i2c_top.v @@ s/\.ack_in\(c_nack\), \.din\(txdata_q\),/.ack_in(c_nack), .din({txdata_q[0], txdata_q[7:1]}),/ @@ the byte sent is TXDATA rotated by one bit
+rtl/i2c/garuda_i2c_top.v @@ s/\.ack_in\(c_nack\), \.din\(txdata_q\),/.ack_in(~c_nack), .din(txdata_q),/ @@ the acknowledge sent for a byte read is inverted
+rtl/i2c/garuda_i2c_top.v @@ s/\& \(tocnt_q == 16'd1\);/\& (tocnt_q == 16'd0);/ @@ the timeout comes one pclk late
+rtl/i2c/garuda_i2c_top.v @@ s/IP_MAP   = 64'h0000_0000_0000_007F;/IP_MAP   = 64'h0000_0000_0000_00FF;/ @@ offset 0x1C answers without PSLVERR
+rtl/i2c/garuda_i2c_top.v @@ s/al_q, core_busy, tip_q\}/al_q, tip_q, core_busy}/ @@ STATUS.TIP and STATUS.BUSY are swapped
+rtl/common/garuda_apb_shim.v @@ s/irqstat_q <= \(irqstat_q \& ~w1c\) \| evt_i;/irqstat_q <= (irqstat_q | evt_i) \& ~w1c;/ @@ an event in the cycle of its own clear is lost
+rtl/i2c/garuda_i2c_top.v @@ s/wire       cmd_noop  = cmd_write \& ~\(\|pwdata_i\[3:1\]\);/wire       cmd_noop  = 1'b0;/ @@ a CMD with nothing to do is accepted and leaves TIP set (I2C-7)
+rtl/i2c/garuda_i2c_top.v @@ s/if \(irqstat_clr\[2\]\) to_q <= 1'b0;/if (irqstat_clr[2] \& ~to_pulse) to_q <= 1'b0;/; s/if \(to_pulse\) to_q <= 1'b1;/if (to_pulse \& ~irqstat_clr[2]) to_q <= 1'b1;/ @@ a timeout in the cycle its interrupt bit is cleared is lost from STATUS (I2C-9)

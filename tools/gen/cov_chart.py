@@ -83,7 +83,8 @@ BLOCKS = [
     dict(key="UART", name="UART", plan="tb/uart/GARUDA_UART_vplan.csv", track="B",
          modules="garuda_uart_top apb_uart_sv uart_rx uart_tx uart_interrupt io_generic_fifo"),
     dict(key="I2C", name="I2C", plan="tb/i2c/GARUDA_I2C_vplan.csv", track="B",
-         modules="garuda_i2c_top i2c_master_byte_ctrl i2c_master_bit_ctrl"),
+         modules="garuda_i2c_top i2c_master_byte_ctrl i2c_master_bit_ctrl", sva="garuda_i2c_sva",
+         uvm=("uvm_i2c", ["garuda_i2c_top"], "flow/cov/i2c_exclusions.tcl")),
     dict(key="SPIM", name="SPI master", plan="tb/spi_master/GARUDA_SPIM_vplan.csv", track="B",
          modules="garuda_spim_top apb_spi_master spi_master_apb_if spi_master_clkgen spi_master_controller "
                  "spi_master_fifo spi_master_rx spi_master_tx"),

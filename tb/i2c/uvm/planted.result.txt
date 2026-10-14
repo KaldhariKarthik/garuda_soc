@@ -1,0 +1,26 @@
+Planted defects, block i2c: 2026-10-14, tree 8829691.
+Each defect is planted in a copy of the RTL; the register test, the directed test and two
+random seeds are run on it (scripts/planted_defects.sh i2c).
+
+unchanged RTL: all four runs pass
+
+1. caught by the directed test, property a_abort_releases: EN cleared in mid-transfer leaves TIP set (I2C-6)
+2. caught by the directed test, property a_cmd_while_tip: a CMD written during a transfer replaces the one in progress
+3. caught by the directed test, property a_cmd_nothing_to_do: a CMD written during a transfer is dropped without PSLVERR
+4. caught by the directed test, check sb_status: RXVALID is never set
+5. caught by the directed test, check sb_status: RXNACK is inverted
+6. caught by the directed test, property a_tip_bounded: the timeout sets its flag but does not abandon the transfer
+7. caught by the directed test, property a_set_beats_clear_status: STATUS.AL is never set
+8. caught by the directed test, check sb_status: the NACK interrupt is raised for a byte read with CMD.NACK
+9. caught by the directed test, check TEST: the transmit DMA request stays up during a transfer
+10. caught by the reg test, property a_never_high: SDA is driven high instead of low
+11. caught by the directed test, check sb_bus: the byte sent is TXDATA rotated by one bit
+12. caught by the directed test, property a_sda_stable_scl_high: the acknowledge sent for a byte read is inverted
+13. caught by the directed test, property a_tip_bounded: the timeout comes one pclk late
+14. caught by the directed test, check sb_pslverr: offset 0x1C answers without PSLVERR
+15. caught by the directed test, property a_tip_bounded: STATUS.TIP and STATUS.BUSY are swapped
+16. caught by the directed test, property a_shim_capture: an event in the cycle of its own clear is lost
+17. caught by the directed test, property a_cmd_nothing_to_do: a CMD with nothing to do is accepted and leaves TIP set (I2C-7)
+18. caught by the directed test, property a_set_beats_clear_status: a timeout in the cycle its interrupt bit is cleared is lost from STATUS (I2C-9)
+
+18 defects planted, 18 caught.

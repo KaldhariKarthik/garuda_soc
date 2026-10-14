@@ -100,7 +100,11 @@ module garuda_i2c_top #(
     // bus unasked. A CMD written while disabled was kept the same way.
     wire       core_held;
     wire       cmd_write = wr_hit & (ip_paddr == A_CMD);
-    wire       cmd_ok    = cmd_write & ~tip_q & ~core_held;  // ignored while busy
+    // I2C-7: a CMD with none of RD, WR and STO has nothing to put on the bus. The
+    // vendored byte controller starts only on one of those three, so such a CMD
+    // used to set TIP and nothing ever cleared it. It is refused ([N-6.2c]).
+    wire       cmd_noop  = cmd_write & ~(|pwdata_i[3:1]);
+    wire       cmd_ok    = cmd_write & ~tip_q & ~core_held & ~cmd_noop;  // ignored while busy
 
     // vendored core status
     wire       core_ack, core_ackout, core_busy, core_al;
@@ -208,9 +212,6 @@ module garuda_i2c_top #(
                 tip_q <= 1'b0;
             end
 
-            if (core_al)  al_q <= 1'b1;
-            if (to_pulse) to_q <= 1'b1;
-
             // reading RXDATA consumes the byte
             if (ip_psel & ip_penable & ~ip_pwrite & (ip_paddr == A_RXDATA))
                 rxvalid_q <= 1'b0;
@@ -219,6 +220,11 @@ module garuda_i2c_top #(
             // firmware has one place to acknowledge a fault rather than two
             if (irqstat_clr[1]) al_q <= 1'b0;
             if (irqstat_clr[2]) to_q <= 1'b0;
+            // I2C-9: the event is written after the clear, so that an event in the
+            // cycle of its own clear is kept, as it is in IRQSTAT (the shim).
+            // Before, the clear came last: STATUS lost a fault IRQSTAT still showed.
+            if (core_al)  al_q <= 1'b1;
+            if (to_pulse) to_q <= 1'b1;
         end
     end
 
@@ -266,7 +272,7 @@ module garuda_i2c_top #(
 
     // A CMD write while a transfer is running is a firmware error, not a queued
     // command: fault it rather than silently drop it ([N-6.2b]).
-    wire cmd_busy_err = cmd_write & tip_q;
+    wire cmd_busy_err = (cmd_write & tip_q) | cmd_noop;
 
     garuda_apb_shim #(
         .N_EVT(4), .SYNC_W(2), .SYNC_RESET(8'h03), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),

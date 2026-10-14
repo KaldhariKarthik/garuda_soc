@@ -333,6 +333,34 @@ make uvm_spis SEEDS=50
 the first run found one (a packet-complete event for a packet that was never opened passed the
 directed test, because the flag was already set), and the test was made to clear and check it.
 
+### The same for the I2C master
+
+The bit and byte controllers are vendored, so the I2C scoreboard does not model them cycle
+by cycle: it knows what each command must put on the bus and in the registers, compares
+every START, byte, acknowledge bit and STOP that a bus monitor decodes, and allows each
+status bit a bounded time to change. The agent is a slave that refuses, returns bytes and
+stretches the clock, and a second master that wins arbitration and makes spikes.
+
+```bash
+python3 tools/gen/gen_ral.py Design_Docs/regs/i2c.rdl tb/i2c/uvm/i2c_reg_pkg.sv   # only after editing the .rdl
+make uvm_i2c                       # register test, directed test, 20 random seeds
+./flow/formal/unr_block.sh i2c     # the waivers against JasperGold
+./scripts/planted_defects.sh i2c   # eighteen planted defects
+```
+
+One transfer by hand at a chosen PRESCALE (`i2c_probe_test`, which found that PRESCALE
+below 3 does not work, I2C-8):
+
+```bash
+D=sim/uvm_i2c_probe; mkdir -p $D
+irun -64bit -uvm -uvmhome CDNS-1.2 -f tb/i2c/uvm/filelist_i2c_uvm.f -top tb_i2c_uvm \
+     -nclibdirname $D/INCA_libs +UVM_TESTNAME=i2c_probe_test +PS=3 -l $D/p3.log
+grep PROBE $D/p3.log
+```
+
+Add `+UVM_VERBOSITY=UVM_HIGH` to any I2C test to see every bus event (`[BUS]`) as the
+scoreboard receives it.
+
 ## Random instruction programs on the core (stage 3), by hand: riscv-dv
 
 riscv-dv is the open-source random instruction generator (a UVM program that

@@ -178,6 +178,22 @@ never one that overruns the mode's limit. Recommended values at `pclk` = 125 MHz
 | Standard (≤100 kHz) | 249 | 94.5 kHz |
 | Fast (≤400 kHz) | 61 | 373.1 kHz |
 
+**[N-6.1a] The smallest usable `PRESCALE` is 3** (found 2026-10-14, bug entry I2C-8).
+The block reads its own SDA back through four flops and the spike filter. With
+`PRESCALE` 0, 1 or 2 a bit is shorter than that path: the block compares what it
+sent with a level that is one bit old, reports **arbitration lost** on its own
+first bit, and releases both lines. Nothing reaches the bus. The reset value of
+`PRESCALE` is 0, so firmware must write it before the first command; a value
+below 3 would be an SCL above 6 MHz at `pclk` = 125 MHz, which no I2C mode
+allows, so the limit costs nothing. After such an attempt the block works as
+soon as `PRESCALE` is legal (clear `IRQSTAT[1]`, send a STOP).
+
+**[N-6.1b] Change `PRESCALE` with `EN` clear.** The bit controller reloads its
+divider only when the count it is on runs out. With `EN` set, a new value takes
+effect up to `(old PRESCALE + 1)` `pclk` later, 65536 `pclk` at the largest:
+the first command after the change is that much late. With `EN` clear the
+controllers are in reset and the new value is taken at once.
+
 `PRESCALE` must only be changed while `CTRL.EN` is 0 or the bus is idle.
 
 ### 6.2 `CMD` (0x10)
@@ -202,6 +218,18 @@ refuses to produce a STOP.
 
 **[N-6.2b]** Writing `CMD` while `STATUS.TIP` is set is ignored and raises
 `PSLVERR`. One command at a time — the byte controller has no queue.
+
+**[N-6.2c]** A `CMD` with none of `RD`, `WR` and `STO` (`STA` alone, `NACK`
+alone, or 0) has nothing to put on the bus. It is refused in the same way: ignored,
+with `PSLVERR`. A START is sent together with the byte that follows it
+(`STA | WR`), never by itself. (Until 2026-10-14 such a command was accepted
+and left `TIP` set until `ABORT` or the timeout: bug entry I2C-7.)
+
+**[N-6.2d]** Two combinations are not in the table above and are not for
+firmware to use; what the block does with them is fixed by the vendored byte
+controller and is checked so that it does not change unseen. `RD` with `WR`:
+the read is done, the write is not. `STA | STO` with neither: START, the byte
+in `TXDATA`, STOP.
 
 ### 6.3 `STATUS` (0x14)
 

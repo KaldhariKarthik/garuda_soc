@@ -591,14 +591,12 @@ module tb_i2c;
         wr_byte(8'hC3, CMD_STO, ok);
         check(u_slv.bd_read(8'h72) == 8'hC3, "[R-8] and the block transfers correctly after a disable");
 
-        // ---- a CMD with nothing to do (not a check: the spec is silent) ------------------------------------
-        bfm.wr(R_CMD, CMD_STA);                      // STA with no WR, RD or STO
-        repeat (4000) @(posedge pclk);
-        bfm.read(R_STATUS, d, e);
-        $display("[OBSERVED] CMD = STA alone, TIMEOUT = 0: STATUS.TIP = %0b after 4000 pclk", d[ST_TIP]);
-        bfm.wr(R_CTRL, 32'h3);
+        // ---- a CMD with nothing to do is refused ([N-6.2c], I2C-7) -------------------------------------------
+        bfm.write(R_CMD, CMD_STA, e);                // STA with no WR, RD or STO
+        check(e, "CMD = STA alone raises PSLVERR");
         repeat (8) @(posedge pclk);
-        bus_recover();
+        bfm.read(R_STATUS, d, e);
+        check(!d[ST_TIP], "CMD = STA alone does not set TIP");
 
         // ---- the invariants -----------------------------------------------------------------------
         check(drive_high == 0, "[R-9] [N-9.2] the block never drove either line high");
