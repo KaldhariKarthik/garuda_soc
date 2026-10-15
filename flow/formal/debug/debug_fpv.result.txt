@@ -1,0 +1,15 @@
+top: debug_top
+children: jtag_tap dtm dmi_cdc debug_module sba_master
+script: flow/formal/debug/debug_fpv.tcl
+proved: 25/26
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+26 assertions: 25 proved, 1 counterexample; 39 covers all covered (no vacuous proof).
+Clocks: tck (both edges) and hclk, unrelated.
+The counterexample is a finding, Docs/bugs/track_a.md DBG-4: an SBA bus error in the same cycle as a
+debugger write to sbcs is lost (a_dm_bus_error). DBG-5: dmistat = 2 cannot occur (rsp_err_i tied 0).
+Planted defects (tools/mutate.py sim/lab/debug/mut_spec.py): simulation catches 6 of 8 (assertions and
+bench alike). M7 (hartreset not gated by dmactive) is an equivalent mutant: formal still proves
+a_dm_inactive_quiet on it, because hartreset is already 0 whenever dmactive is 0. M8 (SBA drops its
+address phase before HREADY) cannot happen in the bench, where the SBA is the only master; formal
+gives a counterexample on a_sba_addr_stable.

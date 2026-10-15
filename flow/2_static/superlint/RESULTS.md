@@ -35,6 +35,6 @@ proved can never execute; "overflow" is an arithmetic or assignment overflow it 
 | Shift that truncates | `dma_apb_slave:78` (channel 6 and 7 select nothing) | by design: PSLVERR for channel 6 is tested |
 | Boot ROM write-back path | 8 in `bootrom_top` | by design: one front end shared with the RAMs, writes to a ROM are errors |
 | **Reset modelled as assumed inactive after release** | `wdt.v:79` (`else if (!hreset_n_i)`) | **an artefact of the run**: the formal engine treats the reset pin as inactive once it has released, so "reset asserts again" is dead. Not a finding. |
-| **Needs a counterexample trace before it is classed** | `dma_chan.v:115` (`rem_q - 1` can reach below 0: **confirmed, DMA-9**, JasperGold trace 2026-10-15), `ahb2apb_apb_fsm.v:105` (`to_cnt` reaches 32; the timeout is 16), `dtm.v:66` (DMI error status never set: the Debug Module never returns an error) | open; may be unreachable in the chip because the block inputs are free here |
+| **Needs a counterexample trace before it is classed** | `dma_chan.v:115` (`rem_q - 1` can reach below 0: **confirmed, DMA-9**, JasperGold trace 2026-10-15), `ahb2apb_apb_fsm.v:105` (`to_cnt` reaches 32; the timeout is 16), `dtm.v:66` (DMI error status never set: **explained, DBG-5**, `rsp_err_i` tied 0 in `debug_top`) | open; may be unreachable in the chip because the block inputs are free here |
 
 A finding is "reachable with the block's inputs free", which is not the same as reachable in the chip.

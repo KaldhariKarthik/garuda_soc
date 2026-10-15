@@ -5,3 +5,4 @@ rtl/debug/dmi_cdc.v
 rtl/debug/sba_master.v
 rtl/debug/debug_module.v
 rtl/debug/debug_top.v
+rtl/debug/debug_sva.sv

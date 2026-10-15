@@ -3,4 +3,5 @@
 -f rtl/mem/filelist.f
 tb/ahb/ahb_lite_sram.v
 tb/ahb/ahb_lite_checker.v
+tb/debug/debug_cov.sv
 tb/debug/tb_debug.sv
