@@ -61,7 +61,7 @@ if [ -s "$OUT/check_timing_intent.rpt" ]; then
     python3 - "$OUT/check_timing_intent.rpt" > "$OUT/intent_findings.txt" <<'PY'
 import re, sys
 ok = {"Sequential data pins driven by a clock signal":
-          r"^pin:garuda_chip_top/u_clk_div/((t[234]_q|pclk_q)_reg/d|sel_act_q_reg\[[01]\]/sena)$",
+          r"^pin:garuda_chip_top/u_core/u_clk_div/((t[234]_q|pclk_q)_reg/d|sel_act_q_reg\[[01]\]/sena)$",
       "Timing exceptions with no effect": r"^exception:garuda_chip_top/clk_t[234]$"}
 sec, prev = None, ""
 for l in open(sys.argv[1]):
@@ -81,5 +81,7 @@ else
     note "no check_timing_intent report"
 fi
 grep -E "^SDC_FLOPS" "$OUT/stdout.log"
-[ $bad -eq 0 ] && echo "run_sdc_check: garuda_rtl.sdc loads clean at DIV$DIV" || echo "run_sdc_check: NOT clean at DIV$DIV (reports in $OUT)"
+if [ $bad -eq 0 ]; then echo "run_sdc_check: garuda_rtl.sdc loads clean at DIV$DIV"
+else echo "run_sdc_check: NOT clean at DIV$DIV (reports in $OUT)"; fi
+exit $bad
 exit $bad

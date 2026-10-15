@@ -288,5 +288,5 @@ unr_waivers:
 # clock ratios (plan task 3.2). flow/constraints/exceptions.md has every exception.
 .PHONY: sdc_check
 sdc_check:
-	@rc=0; for d in 2 4 8 16; do ./scripts/run_sdc_check.sh $$d | tail -1 || rc=1; done; exit $$rc
+	@rc=0; for d in 2 4 8 16; do ./scripts/run_sdc_check.sh $$d > sim/sdc_check_$$d.out 2>&1 || rc=1; tail -1 sim/sdc_check_$$d.out; done; exit $$rc
 

@@ -41,10 +41,10 @@ create_clock -name refclk -period $T_REF [get_ports refclk]
 create_clock -name tck    -period $T_TCK [get_ports tck]
 
 # The ripple chain: each flop divides the output of the one before it by two.
-set T1 [get_pins -of_objects [get_cells u_clk_div/t1_q_reg] -filter {direction == out}]
-set T2 [get_pins -of_objects [get_cells u_clk_div/t2_q_reg] -filter {direction == out}]
-set T3 [get_pins -of_objects [get_cells u_clk_div/t3_q_reg] -filter {direction == out}]
-set T4 [get_pins -of_objects [get_cells u_clk_div/t4_q_reg] -filter {direction == out}]
+set T1 [get_pins -of_objects [get_cells u_core/u_clk_div/t1_q_reg] -filter {direction == out}]
+set T2 [get_pins -of_objects [get_cells u_core/u_clk_div/t2_q_reg] -filter {direction == out}]
+set T3 [get_pins -of_objects [get_cells u_core/u_clk_div/t3_q_reg] -filter {direction == out}]
+set T4 [get_pins -of_objects [get_cells u_core/u_clk_div/t4_q_reg] -filter {direction == out}]
 create_generated_clock -name aon_clk -source [get_ports refclk] -divide_by 2 $T1
 create_generated_clock -name clk_t2  -source $T1 -divide_by 2 $T2
 create_generated_clock -name clk_t3  -source $T2 -divide_by 2 $T3
@@ -52,15 +52,15 @@ create_generated_clock -name clk_t4  -source $T3 -divide_by 2 $T4
 
 # The mode: the active select of the hclk multiplexer (exception E1).
 set SEL [expr {$GARUDA_DIV == 2 ? 0 : $GARUDA_DIV == 4 ? 1 : $GARUDA_DIV == 8 ? 2 : 3}]
-set_case_analysis [expr {$SEL & 1}]        [get_pins -of_objects [get_cells u_clk_div/sel_act_q_reg[0]] -filter {direction == out}]
-set_case_analysis [expr {($SEL >> 1) & 1}] [get_pins -of_objects [get_cells u_clk_div/sel_act_q_reg[1]] -filter {direction == out}]
+set_case_analysis [expr {$SEL & 1}]        [get_pins -of_objects [get_cells u_core/u_clk_div/sel_act_q_reg[0]] -filter {direction == out}]
+set_case_analysis [expr {($SEL >> 1) & 1}] [get_pins -of_objects [get_cells u_core/u_clk_div/sel_act_q_reg[1]] -filter {direction == out}]
 
 # hclk is the chosen one of the four, so it needs no clock of its own: at DIV2 the
 # flops of the hclk domain are clocked by aon_clk, at DIV4 by clk_t2, and so on.
 # pclk is hclk divided by two in one flop.
 set HSRC [lindex [list $T1 $T2 $T3 $T4] $SEL]
 create_generated_clock -name pclk -source $HSRC -divide_by 2 \
-    [get_pins -of_objects [get_cells u_clk_div/pclk_q_reg] -filter {direction == out}]
+    [get_pins -of_objects [get_cells u_core/u_clk_div/pclk_q_reg] -filter {direction == out}]
 
 # The pins that have no clock in common with the chip are timed against a clock of
 # their own, io_async, which exists only in this file (exception E3).
