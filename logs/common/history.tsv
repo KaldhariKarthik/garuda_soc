@@ -27,3 +27,23 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-10-14T01:25:32+05:30	e43672fbc7c5	True	b0.cov	map_pkg_negctl	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [negctl] DMA prio ch0 compared against a wrong constant (4)
 2026-10-14T01:25:32+05:30	e43672fbc7c5	True	b0.cov	apb_checker_selftest	1	PASS	OK	
 2026-10-14T01:25:32+05:30	e43672fbc7c5	True	b0.cov	apb_shim	1	PASS	OK	
+2026-10-14T16:38:53+05:30	5ed5f6d8df83	True	b0.cov	map_pkg	1	PASS	OK	
+2026-10-14T16:38:53+05:30	5ed5f6d8df83	True	b0.cov	map_pkg_negctl	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [negctl] DMA prio ch0 compared against a wrong constant (4)
+2026-10-14T16:38:53+05:30	5ed5f6d8df83	True	b0.cov	apb_checker_selftest	1	PASS	OK	
+2026-10-14T16:38:53+05:30	5ed5f6d8df83	True	b0.cov	apb_shim	1	PASS	OK	
+2026-10-14T20:03:47+05:30	5ed5f6d8df83	True	b0.cov	map_pkg	1	PASS	OK	
+2026-10-14T20:03:47+05:30	5ed5f6d8df83	True	b0.cov	map_pkg_negctl	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [negctl] DMA prio ch0 compared against a wrong constant (4)
+2026-10-14T20:03:47+05:30	5ed5f6d8df83	True	b0.cov	apb_checker_selftest	1	PASS	OK	
+2026-10-14T20:03:47+05:30	5ed5f6d8df83	True	b0.cov	apb_shim	1	PASS	OK	
+2026-10-14T20:09:31+05:30	5ed5f6d8df83	True	b0.cov	map_pkg	1	PASS	OK	
+2026-10-14T20:09:31+05:30	5ed5f6d8df83	True	b0.cov	map_pkg_negctl	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [negctl] DMA prio ch0 compared against a wrong constant (4)
+2026-10-14T20:09:31+05:30	5ed5f6d8df83	True	b0.cov	apb_checker_selftest	1	PASS	OK	
+2026-10-14T20:09:31+05:30	5ed5f6d8df83	True	b0.cov	apb_shim	1	PASS	OK	
+2026-10-14T20:13:26+05:30	5ed5f6d8df83	True	b0.cov	map_pkg	1	PASS	OK	
+2026-10-14T20:13:26+05:30	5ed5f6d8df83	True	b0.cov	map_pkg_negctl	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [negctl] DMA prio ch0 compared against a wrong constant (4)
+2026-10-14T20:13:26+05:30	5ed5f6d8df83	True	b0.cov	apb_checker_selftest	1	PASS	OK	
+2026-10-14T20:13:26+05:30	5ed5f6d8df83	True	b0.cov	apb_shim	1	PASS	OK	
+2026-10-14T20:18:52+05:30	5ed5f6d8df83	True	b0.cov	map_pkg	1	PASS	OK	
+2026-10-14T20:18:52+05:30	5ed5f6d8df83	True	b0.cov	map_pkg_negctl	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [negctl] DMA prio ch0 compared against a wrong constant (4)
+2026-10-14T20:18:52+05:30	5ed5f6d8df83	True	b0.cov	apb_checker_selftest	1	PASS	OK	
+2026-10-14T20:18:52+05:30	5ed5f6d8df83	True	b0.cov	apb_shim	1	PASS	OK	

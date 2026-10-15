@@ -1,18 +1,18 @@
-# garuda-run 1 suite=covtests block=core date=2026-10-14T01:04:31+05:30 design=e43672fbc7c55a12b889efe114a952ac5fe753cb rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+# garuda-run 1 suite=covtests block=core date=2026-10-14T20:21:19+05:30 design=5ed5f6d8df83b246d8c2e3232e0b40884454283b rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
 test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
 t_cov_fault	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_fault_s1.log
-t_cov_fault_w3	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_fault_w3_s1.log
+t_cov_fault_w3	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.04	20				logs/core/raw/covtests/sim_t_cov_fault_w3_s1.log
 t_cov_csr	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_csr_s1.log
 t_cov_illegal	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_illegal_s1.log
-t_cov_dsu	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	2.00	20				logs/core/raw/covtests/sim_t_cov_dsu_s1.log
+t_cov_dsu	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	2.02	20				logs/core/raw/covtests/sim_t_cov_dsu_s1.log
 t_dsu_ovf_raw	FAIL	XFAIL:DSU-14	1	no	0	1	1	n/a	51	0	-	1	0.69	20			exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=00000013 -> FAILED (test 9, 197100 retired) ***	logs/core/raw/covtests/sim_t_dsu_ovf_raw_s1.log
 t_cov_rereset	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_rereset_s1.log
-t_cov_rereset_w2	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_rereset_w2_s1.log
-t_cov_irq	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_irq_s1.log
-t_cov_irq_w2	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_irq_w2_s1.log
-t_cov_misfetch	PASS	OK	0	yes	0	0	0	MATCH	51	0	-	1	0.02	20	0.07			logs/core/raw/covtests/sim_t_cov_misfetch_s1.log
-t_cov_misfetch_w2	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_misfetch_w2_s1.log
-t_cov_misfetch_d3	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_misfetch_d3_s1.log
-t_dsu_macsat_rd	FAIL	XFAIL:DSU-15	1	no	0	1	1	n/a	51	0	-	1	0.02	20			exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (test 7, 55 retired) ***	logs/core/raw/covtests/sim_t_dsu_macsat_rd_s1.log
-t_cov_vplan	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_vplan_s1.log
-t_cov_vplan_w2	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_vplan_w2_s1.log
+t_cov_rereset_w2	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	21				logs/core/raw/covtests/sim_t_cov_rereset_w2_s1.log
+t_cov_irq	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	21				logs/core/raw/covtests/sim_t_cov_irq_s1.log
+t_cov_irq_w2	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	21				logs/core/raw/covtests/sim_t_cov_irq_w2_s1.log
+t_cov_misfetch	PASS	OK	0	yes	0	0	0	MATCH	51	0	-	1	0.02	21	0.07			logs/core/raw/covtests/sim_t_cov_misfetch_s1.log
+t_cov_misfetch_w2	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	21				logs/core/raw/covtests/sim_t_cov_misfetch_w2_s1.log
+t_cov_misfetch_d3	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	21				logs/core/raw/covtests/sim_t_cov_misfetch_d3_s1.log
+t_dsu_macsat_rd	FAIL	XFAIL:DSU-15	1	no	0	1	1	n/a	51	0	-	1	0.02	21			exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (test 7, 55 retired) ***	logs/core/raw/covtests/sim_t_dsu_macsat_rd_s1.log
+t_cov_vplan	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	21				logs/core/raw/covtests/sim_t_cov_vplan_s1.log
+t_cov_vplan_w2	PASS	OK	0	yes	0	0	0	n/a	51	0	-	1	0.02	21				logs/core/raw/covtests/sim_t_cov_vplan_w2_s1.log

@@ -1,7 +1,6 @@
 // tb_apb_env: AHB-to-APB bridge environment (Track A bus plan B2)
 -f rtl/clk_div/filelist.f
 -f rtl/ahb2apb/filelist.f
-rtl/ahb2apb/ahb2apb_sva.sv
 -f rtl/dma/filelist.f
 tb/common/garuda_map_pkg.sv
 tb/ahb/agent/ahb_agent_pkg.sv

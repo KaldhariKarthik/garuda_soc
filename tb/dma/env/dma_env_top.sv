@@ -576,6 +576,92 @@ module tb_dma_env;
     // fires once per destination case (declared `known` in tb/dma/run/env.toml). Checked
     // here and by the pin-level beat checker (R-9 rule); the model's map has no refused
     // addresses, so the slave's log is not fed to it.
+
+    // ---- bus plan B3: the Fresh plan's Phase 3 gaps ---------------------------------------
+    // CNT = 65535: the largest transfer, every beat checked by the model and the scoreboard
+    task automatic t_maxcnt();
+        logic [31:0] g;
+        int guard = 0;
+        // bytes: 65535 beats stay inside the channel's 64 KiB window (the model attributes
+        // transfers to channels by window; 65535 words would cross into channel 1's)
+        dma_xfer t = qx(0, M_M2M, 2'd0, 1, 1, 65535, 32'h0, 32'h0);
+        u_mem.rwait_max = 0; u_mem.wwait_max = 0; u_mem.stall_max = 0; u_mem.stall_pct = 0;
+        program_xfer(t);
+        do begin repeat (64) @(posedge hclk); rd(12'h100, g); guard++; end while (g[0] && guard < 20000);
+        check(!g[0], "[F05] [CNT=65535] the transfer finished");
+        finish_and_check(6'd1, "maxcnt");
+    endtask
+    // DMA-16 (open ruling): P2M from a pop-on-read FIFO, the SECOND destination write gets an
+    // AHB ERROR. Records what happens: beat 1 lands; beat 2's item is popped and its write
+    // fails (ERRPHASE write, REMAINING / DAR frozen, no ack); after ICLR and a re-arm the
+    // channel continues with item 3 -- item 2 is lost. Passes while the behaviour is as
+    // logged in Docs/bugs/dma.md DMA-16; the ruling decides whether it is accepted (A).
+    task automatic t_dma16();
+        int n = 2;
+        logic [31:0] st, sar, dar, d = dst_win(2);
+        logic [31:0] v[4] = '{32'hA160_0000, 32'hA160_0001, 32'hA160_0002, 32'hA160_0003};
+        int a0 = u_req.n_ack[n], guard = 0;
+        foreach (v[i]) u_mem.fifo_push(fifo_addr(n), v[i]);
+        u_mem.err_lo = d + 4; u_mem.err_hi = d + 8;
+        wr(R(n, SAR), fifo_addr(n)); wr(R(n, DAR), d); wr(R(n, CNT), 32'd4);
+        u_req.mode[n] = REQ_D21; u_req.todo[n] = 4;
+        wr(R(n, CR), {23'd0, 1'b1, 1'b1, 2'd2, 1'b1, 1'b0, 2'(M_P2M), 1'b1});      // word, DINC, both IEs
+        do begin rd(R(n, STAT), st); guard++; end while (!st[18] && guard < 400);
+        repeat (20) @(posedge hclk);
+        rd(R(n, STAT), st); rd(R(n, SAR), sar); rd(R(n, DAR), dar);
+        check(st[18] && st[21:19] == 3'd2 && st[15:0] == 16'd3 && !st[16],
+              $sformatf("[DMA-16] write ERROR on beat 2: ERROR, ERRPHASE write, REMAINING 3 (STAT %08h)", st));
+        check(dar == d + 4 && sar == fifo_addr(n), $sformatf("[DMA-16] SAR / DAR frozen at the failed beat (DAR %08h)", dar));
+        check(u_mem.peek(d) == v[0], "[DMA-16] beat 1 delivered item 1");
+        check(u_mem.fifo_level(fifo_addr(n)) == 2, $sformatf("[DMA-16] the FIFO gave up item 2 to the failed beat (level %0d)",
+                                                            u_mem.fifo_level(fifo_addr(n))));
+        check(u_req.n_ack[n] - a0 == 1, $sformatf("[DMA-16] one ack (beat 1), none for the failed beat (%0d)", u_req.n_ack[n] - a0));
+        // clear, fix the destination, re-arm for the two remaining items
+        u_req.mode[n] = REQ_OFF; u_mem.err_lo = 0; u_mem.err_hi = 0;
+        wr(R(n, ICLR), 32'h3); repeat (8) @(posedge pclk);
+        wr(R(n, DAR), d + 4); wr(R(n, CNT), 32'd2);
+        u_req.mode[n] = REQ_D21; u_req.todo[n] = 2;
+        wr(R(n, CR), {23'd0, 1'b1, 1'b1, 2'd2, 1'b1, 1'b0, 2'(M_P2M), 1'b1});
+        guard = 0;
+        do begin rd(R(n, STAT), st); guard++; end while (!st[17] && guard < 400);
+        check(st[17] && !st[18], "[DMA-16] the re-armed transfer completes");
+        check(u_mem.peek(d + 4) == v[2] && u_mem.peek(d + 8) == v[3],
+              $sformatf("[DMA-16] after the re-arm the stream continues with item 3: %08h %08h (item 2 = %08h is lost)",
+                        u_mem.peek(d + 4), u_mem.peek(d + 8), v[1]));
+        $display("[KNOWN DMA-16] a P2M item popped by a beat whose write fails is lost (ruling pending; proposed: document)");
+        u_req.mode[n] = REQ_OFF; u_req.todo[n] = 0;
+        wr(R(n, CR), 32'h0); wr(R(n, ICLR), 32'h3);
+        u_mem.fifo_flush(fifo_addr(n)); u_mem.log_q.delete();
+        repeat (8) @(posedge pclk);
+    endtask
+    // a request held high through a failed beat: the failure does not consume it (DMA-8 fix),
+    // so after ICLR and a re-arm the still-held request gives exactly one beat, then the
+    // channel waits for the request to drop and rise again (one beat per request, [N-7.10])
+    task automatic t_held_err();
+        int n = 3;
+        logic [31:0] st, d = dst_win(3);
+        int a0 = u_req.n_ack[n], guard = 0;
+        for (int k = 0; k < 4; k++) u_mem.fifo_push(fifo_addr(n), 32'hB0B0_0000 + k);
+        u_mem.err_lo = d; u_mem.err_hi = d + 4;                       // the first write fails
+        wr(R(n, SAR), fifo_addr(n)); wr(R(n, DAR), d); wr(R(n, CNT), 32'd3);
+        u_req.mode[n] = REQ_HELD; u_req.todo[n] = 3;              // raised once, never dropped
+        wr(R(n, CR), {23'd0, 1'b1, 1'b1, 2'd2, 1'b1, 1'b0, 2'(M_P2M), 1'b1});
+        do begin rd(R(n, STAT), st); guard++; end while (!st[18] && guard < 400);
+        check(st[18] && st[21:19] == 3'd2 && st[15:0] == 16'd3, $sformatf("[F21] held request: beat 1 write ERROR (STAT %08h)", st));
+        u_mem.err_lo = 0; u_mem.err_hi = 0;
+        wr(R(n, ICLR), 32'h3); repeat (8) @(posedge pclk);
+        wr(R(n, DAR), d + 16);
+        wr(R(n, CR), {23'd0, 1'b1, 1'b1, 2'd2, 1'b1, 1'b0, 2'(M_P2M), 1'b1});   // re-arm; the request never dropped
+        repeat (300) @(posedge pclk);
+        rd(R(n, STAT), st);
+        check(st[15:0] == 16'd2 && !st[18], $sformatf("[F21] [DMA-8] the held request survived the failure: exactly one beat after the re-arm (REMAINING %0d)", st[15:0]));
+        check(u_req.n_ack[n] - a0 == 1, $sformatf("[F22] one ack for that beat (%0d)", u_req.n_ack[n] - a0));
+        u_req.mode[n] = REQ_OFF; u_req.todo[n] = 0;
+        wr(R(n, CR), 32'h0); wr(R(n, ICLR), 32'h3);
+        u_mem.fifo_flush(fifo_addr(n)); u_mem.log_q.delete();
+        repeat (8) @(posedge pclk);
+    endtask
+
     task automatic t_r9();
         logic [31:0] st;
         for (int side = 0; side < 2; side++) for (int md = 0; md < 3; md++) begin
@@ -678,6 +764,9 @@ module tb_dma_env;
             "edge":  t_edge();
             "bits":  t_bits();
             "r9":    t_r9();
+            "maxcnt":   t_maxcnt();
+            "dma16":    t_dma16();
+            "held_err": t_held_err();
             // the planted-defect run (DMA plan D8): every directed test, then random
             // iterations with stalls, waits and errors, in one simulation
             "mut":   begin t_qual(); t_matrix(); t_edge(); t_bits(); t_coll(); t_reset();

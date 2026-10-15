@@ -24,10 +24,10 @@ marker  = '^RESULT: PASSED'
 timeout = 1800
 cwd     = "root"
 # known lines (each exactly once per run, see tools/run/garuda_run.py `known`):
-#   clk_div a_pclk_subset_hclk at 0 ns: artifact of SHIM-RSTEDGE (reset deasserted
-#   for the first 0.5 ns); timers a_mtimecmp_reset at 51 ns: TB-38 (2-state).
+#   timers a_mtimecmp_reset at 51 ns: TB-38 (2-state). (The clk_div a_pclk_subset_hclk
+#   artifact of SHIM-RSTEDGE is gone since Karthik's TB-34 fix in clk_div_sva, taken in the
+#   2026-10-14 rebase; its known entry was removed then, as in tb/debug/run/chip_diag.toml.)
 known = [
-  ['a_pclk_subset_hclk', 1, "SHIM-RSTEDGE artifact"],
   ['a_mtimecmp_reset', 1, "TB-38"],
 ]
 
@@ -64,7 +64,6 @@ plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_dma_rearm.hex", "+MAXUS=4000",
 name = "t_chip_dma_traffic"
 plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_dma_traffic.hex", "+MAXUS=4000"]
 known = [
-  ['a_pclk_subset_hclk', 1, "SHIM-RSTEDGE artifact"],
   ['a_mtimecmp_reset', 1, "TB-38"],
   ['a_no_read_before_refusal', 1, "DMA-10"],
 ]

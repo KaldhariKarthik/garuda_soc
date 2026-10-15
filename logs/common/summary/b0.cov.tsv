@@ -1,6 +1,6 @@
-# garuda-run 1 suite=b0.cov block=common date=2026-10-14T01:25:32+05:30 design=e43672fbc7c55a12b889efe114a952ac5fe753cb rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+# garuda-run 1 suite=b0.cov block=common date=2026-10-14T20:18:52+05:30 design=5ed5f6d8df83b246d8c2e3232e0b40884454283b rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
 test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
 map_pkg	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.02	20		logs/common/raw/b0.cov/cov/map_pkg_s1.dat		logs/common/raw/b0.cov/sim_map_pkg_s1.log
 map_pkg_negctl	FAIL	XFAIL:PLANTED	0	no	1	0	0	-	0	0	-	1	0.02	20		logs/common/raw/b0.cov/cov/map_pkg_negctl_s1.dat	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [negctl] DMA prio ch0 compared against a wrong constant (4)	logs/common/raw/b0.cov/sim_map_pkg_negctl_s1.log
-apb_checker_selftest	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.04	20		logs/common/raw/b0.cov/cov/apb_checker_selftest_s1.dat		logs/common/raw/b0.cov/sim_apb_checker_selftest_s1.log
+apb_checker_selftest	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.02	20		logs/common/raw/b0.cov/cov/apb_checker_selftest_s1.dat		logs/common/raw/b0.cov/sim_apb_checker_selftest_s1.log
 apb_shim	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.04	20		logs/common/raw/b0.cov/cov/apb_shim_s1.dat		logs/common/raw/b0.cov/sim_apb_shim_s1.log

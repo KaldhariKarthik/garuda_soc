@@ -1,10 +1,10 @@
-# garuda-run 1 suite=chip_diag block=debug date=2026-10-14T01:10:13+05:30 design=e43672fbc7c55a12b889efe114a952ac5fe753cb rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+# garuda-run 1 suite=chip_diag block=debug date=2026-10-14T20:26:39+05:30 design=5ed5f6d8df83b246d8c2e3232e0b40884454283b rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
 test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
-t_chip_jtag	PASS	OK	0	yes	0	0	0	-	244	0	EXCLUDED;SHIM-PULL	1	87.63	20				logs/debug/raw/chip_diag/sim_t_chip_jtag_s1.log
-t_chip_irq	PASS	OK	0	yes	0	0	0	-	244	0	EXCLUDED;SHIM-PULL	1	0.06	20				logs/debug/raw/chip_diag/sim_t_chip_irq_s1.log
-t_chip_uart	PASS	OK	0	yes	0	0	0	-	244	0	EXCLUDED;SHIM-PULL	1	0.08	20				logs/debug/raw/chip_diag/sim_t_chip_uart_s1.log
-t_chip_periph	PASS	OK	0	yes	0	0	0	-	244	0	EXCLUDED;SHIM-PULL	1	0.10	20				logs/debug/raw/chip_diag/sim_t_chip_periph_s1.log
-t_chip_integ	PASS	OK	0	yes	0	0	0	-	244	0	EXCLUDED;SHIM-PULL	1	0.77	20				logs/debug/raw/chip_diag/sim_t_chip_integ_s1.log
-t_chip_basic	PASS	OK	0	yes	0	0	0	-	244	0	EXCLUDED;SHIM-PULL	1	0.06	20				logs/debug/raw/chip_diag/sim_t_chip_basic_s1.log
-t_chip_wdt	PASS	OK	0	yes	0	0	0	-	244	0	EXCLUDED;SHIM-PULL	1	0.06	20				logs/debug/raw/chip_diag/sim_t_chip_wdt_s1.log
-t_chip_flash	PASS	OK	0	yes	0	0	0	-	244	0	EXCLUDED;SHIM-PULL	1	2.26	20				logs/debug/raw/chip_diag/sim_t_chip_flash_s1.log
+t_chip_jtag	PASS	OK	0	yes	0	0	0	-	269	0	EXCLUDED;SHIM-PULL	1	88.65	21				logs/debug/raw/chip_diag/sim_t_chip_jtag_s1.log
+t_chip_irq	PASS	OK	0	yes	0	0	0	-	269	0	EXCLUDED;SHIM-PULL	1	0.10	21				logs/debug/raw/chip_diag/sim_t_chip_irq_s1.log
+t_chip_uart	PASS	OK	0	yes	0	0	0	-	269	0	EXCLUDED;SHIM-PULL	1	0.12	21				logs/debug/raw/chip_diag/sim_t_chip_uart_s1.log
+t_chip_periph	PASS	OK	0	yes	0	0	0	-	269	0	EXCLUDED;SHIM-PULL	1	0.10	21				logs/debug/raw/chip_diag/sim_t_chip_periph_s1.log
+t_chip_integ	PASS	OK	0	yes	0	0	0	-	269	0	EXCLUDED;SHIM-PULL	1	0.79	21				logs/debug/raw/chip_diag/sim_t_chip_integ_s1.log
+t_chip_basic	PASS	OK	0	yes	0	0	0	-	269	0	EXCLUDED;SHIM-PULL	1	0.04	21				logs/debug/raw/chip_diag/sim_t_chip_basic_s1.log
+t_chip_wdt	PASS	OK	0	yes	0	0	0	-	269	0	EXCLUDED;SHIM-PULL	1	0.06	21				logs/debug/raw/chip_diag/sim_t_chip_wdt_s1.log
+t_chip_flash	PASS	OK	0	yes	0	0	0	-	269	0	EXCLUDED;SHIM-PULL	1	2.30	21				logs/debug/raw/chip_diag/sim_t_chip_flash_s1.log

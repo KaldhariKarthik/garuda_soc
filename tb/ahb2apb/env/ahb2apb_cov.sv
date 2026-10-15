@@ -108,8 +108,12 @@ module ahb2apb_cov #(
     end
     // reset points: what the bridge was doing when a reset arrived
     reg seen_setup = 0, seen_access = 0;
-    always @(negedge hreset_n_i) if (plive)
-        u_cg_rst.sample((|psel_o && !penable_o) ? 3'd1 : (|psel_o && penable_o) ? 3'd2 : (!hreadyout_o) ? 3'd3 : 3'd0);
+    // the bridge's phase as of the last hclk edge: at the reset edge itself PRESET may
+    // already have cleared the APB state (same instant), so it is snapshotted per cycle
+    reg [2:0] where_q = 3'd0;
+    always @(posedge hclk_i)
+        where_q <= (|psel_o && !penable_o) ? 3'd1 : (|psel_o && penable_o) ? 3'd2 : (!hreadyout_o) ? 3'd3 : 3'd0;
+    always @(negedge hreset_n_i) if (plive) u_cg_rst.sample(where_q);
     always @(negedge preset_n_i) if (plive && hreset_n_i) u_cg_rst.sample(3'd4);
 endmodule
 

@@ -219,7 +219,9 @@ module ahb2apb_sva #(
     a_no_hang: assert property (@(posedge hclk_i) disable iff (!hreset_n_i || !preset_n_i) low_run <= HANG_MAX[7:0]);
     // a_dual_reset_hold ([N-9.2], [N-9.3]): HREADYOUT low while the APB side is in reset
     a_dual_reset_hold: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        !(past_ok && $past(!preset_n_i)) || !hreadyout_o);
+        !(past_ok && $past(!preset_n_i)) || !hreadyout_o)
+        else $error("[SVA-FAIL] a_dual_reset_hold: preset_n %b (last cycle %b), hreadyout %b, hstate %0d, dp %b",
+                    preset_n_i, $past(preset_n_i), hreadyout_o, hstate, dp);
     // a_capture_stable_at_phase (white-box, was a $display in the RTL): the captured
     // window / address / direction / data do not move while the APB side works on them
     a_capture_stable_at_phase: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
@@ -232,7 +234,7 @@ module ahb2apb_sva #(
     // timeout counter never passes TIMEOUT-1 (bit 4 of the 5-bit counter stays 0)
     a_hstate_legal: assert property (@(posedge hclk_i) disable iff (!hreset_n_i) hstate <= 3'd5);
     a_win_cap_legal: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        hstate != H_WAIT || (win_cap < 4'd12 && WINDOW_MASK[win_cap]));
+        win_cap < 4'd12 && (hstate != H_WAIT || WINDOW_MASK[win_cap]));
     a_to_cnt_max: assert property (@(posedge pclk_i) disable iff (!preset_n_i) to_cnt <= TIMEOUT[4:0] - 5'd1);
     c_legal_read:   cover property (@(posedge hclk_i) disable iff (!hreset_n_i) acc && legal && !hwrite_i);
     c_legal_write:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i) acc && legal && hwrite_i);

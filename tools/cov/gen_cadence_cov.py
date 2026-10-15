@@ -31,7 +31,8 @@ sys.path.insert(0, os.path.join(R, "tools", "run"))
 import garuda_run as gr                                   # load_manifest, expand_flist
 
 # where the block's DUT top sits in its main bench (the instance the exclusions map onto)
-SCOPE = {"core": "tb_boot.dut", "dsu": "tb_dsu_top.dut", "dma": "tb_dma_env.dut", "ahb": "tb_ahb_env.u_dut"}
+SCOPE = {"core": "tb_boot.dut", "dsu": "tb_dsu_top.dut", "dma": "tb_dma_env.dut", "ahb": "tb_ahb_env.u_dut",
+         "ahb2apb": "tb_apb_env.u_dut"}
 
 
 def manifests_by_suite():
@@ -215,5 +216,5 @@ def gen(blk):
 
 
 if __name__ == "__main__":
-    for b in (["core", "dsu", "dma", "ahb"] if sys.argv[1] == "all" else sys.argv[1:]):
+    for b in (["core", "dsu", "dma", "ahb", "ahb2apb"] if sys.argv[1] == "all" else sys.argv[1:]):
         gen(b)

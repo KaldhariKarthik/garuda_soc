@@ -35,8 +35,10 @@ module tb_apb_probe;
                    .aon_clk_o(aon), .hclk_o(hclk), .pclk_o(pclk), .pclk_phase_o(pclk_phase),
                    .div_act_o(div_act), .div_busy_o(div_busy));
 
+    // resets driven non-blocking, as the reset controller's flops do (a blocking release on
+    // a clock edge races the bridge's preset sync flop: see tb/ahb2apb/env/tb_apb_env.sv)
     reg hreset_n = 1, preset_n = 1;
-    initial #0 begin hreset_n = 1'b0; preset_n = 1'b0; end
+    initial #0 begin hreset_n <= 1'b0; preset_n <= 1'b0; end
 
     wire [31:0] haddr, hwdata, hrdata;
     wire [1:0]  htrans;
@@ -115,9 +117,9 @@ module tb_apb_probe;
         $display("=== tb_apb_probe +CASE=%s ===", tcase);
         #50 ext_rst_n = 1'b1;
         repeat (4) @(posedge hclk);
-        hreset_n = 1'b1;
+        hreset_n <= 1'b1;
         repeat (8) @(posedge hclk);
-        preset_n = 1'b1;
+        preset_n <= 1'b1;
         repeat (8) @(posedge hclk);
 
         case (tcase)

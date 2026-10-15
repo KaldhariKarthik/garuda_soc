@@ -90,3 +90,12 @@ obj_dir/
 
 # NCLaunch state written in the design directory (flow/cov/<blk>_ncl*.tcl runs)
 .nclaunch.dd
+
+# Cadence tool state written into the repo root by NCLaunch / JasperGold runs
+/hdl.var
+/nclaunch.key
+/.nclaunch.dd*
+/jgproject/
+# runner summaries of partial (--only) runs; the full-suite summaries are the record
+logs/*/summary/*.partial.tsv
+logs/*/summary/*.partial.txt

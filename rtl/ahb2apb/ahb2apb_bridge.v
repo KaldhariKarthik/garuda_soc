@@ -218,7 +218,7 @@ module ahb2apb_bridge #(
         .pslverr_o     (pslverr_sel)
     );
 
-    // TB-48: a_capture_stable_at_phase used to be a `$display("[BRG-ASSERT] ...")` here,
+    // TB-49: a_capture_stable_at_phase used to be a `$display("[BRG-ASSERT] ...")` here,
     // which no regression counted as a failure. It is now a bound, formally PROVEN
     // property in rtl/ahb2apb/ahb2apb_sva.sv (verification only, not synthesised).
 

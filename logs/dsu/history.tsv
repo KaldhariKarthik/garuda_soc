@@ -386,3 +386,10 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	negctl_stall_no_interlock	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
 2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	negctl_mac_unit_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
 2026-10-14T01:23:41+05:30	e43672fbc7c5	True	units_spec	negctl_mac_cluster_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035b9d88), cluster_out[0] 770c065d2ece, o
+2026-10-14T20:22:19+05:30	5ed5f6d8df83	True	model	tb_dsu_top	1	PASS	OK	
+2026-10-14T20:22:19+05:30	5ed5f6d8df83	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-10-14T20:22:19+05:30	5ed5f6d8df83	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-10-14T20:22:19+05:30	5ed5f6d8df83	True	model	tb_dsu_top_10k	1	PASS	OK	
+2026-10-14T20:22:19+05:30	5ed5f6d8df83	True	model	tb_dsu_top_ovf_fx	1	PASS	OK	
+2026-10-14T20:22:19+05:30	5ed5f6d8df83	True	model	tb_dsu_top_ovf_fy	1	PASS	OK	
+2026-10-14T20:22:19+05:30	5ed5f6d8df83	True	model	tb_dsu_top_ovf_mag	1	PASS	OK	

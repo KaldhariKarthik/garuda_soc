@@ -1,5 +1,5 @@
-garuda-run 1  suite model  block dsu  2026-10-14T01:05:45+05:30
-design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+garuda-run 1  suite model  block dsu  2026-10-14T20:22:19+05:30
+design 5ed5f6d8df83b246d8c2e3232e0b40884454283b  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
 
 PASS    OK                      tb_dsu_top          
 PASS    OK                      tb_dsu_top_icarus   

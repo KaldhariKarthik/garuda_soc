@@ -15,3 +15,19 @@ units	negctl_fsm_to17	FAIL	PLANTED	unit negative control: timeout one sample lat
 units	negctl_fsm_win	FAIL	PLANTED	unit negative control: PSEL on the neighbouring window
 units	negctl_fsm_nosetup	FAIL	PLANTED	unit negative control: PENABLE with PSEL, no SETUP
 units	negctl_fabric_rdy	FAIL	PLANTED	unit negative control: PREADY from the neighbouring window
+apb_mut	mut_p01	FAIL	PLANTED	BRG-1 reverted: a new transfer is accepted only from H_IDLE
+apb_mut	mut_p02	FAIL	PLANTED	APB-2 reverted: no aperture check
+apb_mut	mut_p03	FAIL	PLANTED	sub-word accesses passed to APB
+apb_mut	mut_p04	FAIL	PLANTED	timeout one sample early (15)
+apb_mut	mut_p05	FAIL	PLANTED	timeout one sample late (17)
+apb_mut	mut_p06	FAIL	PLANTED	PSEL on the neighbouring window
+apb_mut	mut_p07	FAIL	PLANTED	PENABLE with PSEL (no SETUP cycle)
+apb_mut	mut_p08	FAIL	PLANTED	[N-9.2] gate removed: HREADYOUT while PRESET is asserted
+apb_mut	mut_p09	FAIL	PLANTED	one-cycle ERROR (no second cycle)
+apb_mut	mut_p10	FAIL	PLANTED	read data not returned
+apb_mut	mut_p11	FAIL	PLANTED	write data not captured (the previous write's data goes out)
+apb_mut	mut_p12	FAIL	PLANTED	APB_DIV ignored: every window /1
+apb_mut	mut_p13	FAIL	PLANTED	PSLVERR ignored: an erroring target answers OKAY
+apb_mut	mut_p14	FAIL	PLANTED	fabric: PSLVERR from any window, not the selected one
+apb_mut	mut_p15	FAIL	PLANTED	a second acknowledge toggle after DONE (one request, two responses)
+apb_mut	mut_p16	FAIL	PLANTED	absent / out-of-aperture windows passed to APB (only sub-word rejected)

@@ -16,8 +16,7 @@ timeout = 300
 
 [[test]]
 name        = "probe_alias"
-fail_reason = '^\[FAIL\] \[APB-2\] \[R-8\] above the aperture 0x40015000 write -> AHB ERROR'
-plusargs    = ["+CASE=alias"]
+plusargs    = ["+CASE=alias"]                # APB-2 fixed 2026-10-14: must PASS
 
 [[test]]
 name     = "probe_control"

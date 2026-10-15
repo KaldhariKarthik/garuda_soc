@@ -18,9 +18,13 @@ import cov_report as cr, tomllib
 BLOCK = sys.argv[1] if len(sys.argv) > 1 else "core"
 cfg = tomllib.load(open(os.path.join(cr.ROOT, f"tb/{BLOCK}/cov/cov.toml"), "rb"))
 runs, _ = cr.load_runs(cfg)
+# same module merging as the report (merge_variants / union_variants in cov.toml)
+cr.MERGE_VARIANTS.update(cfg.get("merge_variants", []))
+cr.UNION_VARIANTS.update(cfg.get("union_variants", []))
 pts = {}
 for _, _, dat in runs:
     for kv, c in cr.read_dat(os.path.join(cr.ROOT, dat)):
+        kv = cr.unvariant(kv)
         if cr.metric_of(kv) != "toggle": continue
         f = cr.rel(kv.get("f", "?"))
         if not cr.in_scope(f, cfg["design"]): continue
@@ -130,7 +134,18 @@ AHB_RULES = [
  ("DFRDATA", r"^(ahb_default_slave|ahb_interconnect)$", r"^(hrdata_o|hrdata_df)$", None, "constant",
   "The default slave returns no data: its HRDATA is the literal 0.", "literal rtl/ahb/ahb_default_slave.v assign hrdata_o = 32'h0000_0000"),
 ]
-RULES = {"dsu": DSU_RULES, "dma": DMA_RULES, "ahb": AHB_RULES}.get(BLOCK, CORE_RULES)
+APB_RULES = [
+ ("SIZE2", r"^ahb2apb_bridge$", r"^hsize_i$", {2}, "constant",
+  "The AHB is 32 bits wide: HSIZE <= word, so HSIZE[2] is 0 on the shared bus.",
+  "literal rtl/core/garuda_iport_ahb_master.v:89, rtl/core/load_store_unit.v:32, rtl/debug/sba_master.v:42, rtl/dma/dma_engine.v {1'b0, size}"),
+ ("WORDALIGN", r"^ahb2apb_bridge$", r"^(addr_cap|paddr_o)$", {0, 1}, "constant",
+  "Only word transfers reach APB (sub-word is rejected, a_subword_no_apb PROVEN) and an AHB-Lite word transfer is word-aligned, so the captured address and PADDR bits [1:0] are 0.",
+  "PROVEN fv_apb a_subword_no_apb; AHB-Lite alignment rule checked by ahb_lite_checker on every master port; GARUDA masters: BUS-E (a_iport_pc_aligned PROVEN), the LSU traps misaligned accesses"),
+ ("TOCNT", r"^ahb2apb_apb_fsm$", r"^to_cnt$", {4}, "constant",
+  "The 5-bit timeout counter stops at TIMEOUT-1 = 15, so bit 4 is never set.",
+  "PROVEN fv_apb / fv_apb_div a_to_cnt_max (rtl/ahb2apb/ahb2apb_sva.sv)"),
+]
+RULES = {"dsu": DSU_RULES, "dma": DMA_RULES, "ahb": AHB_RULES, "ahb2apb": APB_RULES}.get(BLOCK, CORE_RULES)
 # holes already explained by a hand-written waiver (not generated) are left alone
 _wfile = os.path.join(cr.ROOT, f"tb/{BLOCK}/cov/{BLOCK}_waivers.toml")
 _hand = [w for w in tomllib.load(open(_wfile, "rb")).get("waiver", [])

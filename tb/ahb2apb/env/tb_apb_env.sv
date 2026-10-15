@@ -45,7 +45,7 @@ module tb_apb_env;
     clk_div u_clk (.refclk_i(refclk), .raw_rst_n_i(ext_rst_n), .div_sel_i(2'b00), .aon_clk_o(aon),
                    .hclk_o(hclk), .pclk_o(pclk), .pclk_phase_o(pclk_phase), .div_act_o(div_act), .div_busy_o(div_busy));
     reg hreset_n, preset_n;
-    initial #0 begin hreset_n = 1'b0; preset_n = 1'b0; end
+    initial #0 begin hreset_n <= 1'b0; preset_n <= 1'b0; end
 
     // ---- AHB master (the B1 agent) ----------------------------------------------------
     wire [31:0] haddr, hwdata, hrdata; wire [1:0] htrans; wire hwrite, hready, hresp;
@@ -152,6 +152,12 @@ module tb_apb_env;
     // ---- scoreboard -------------------------------------------------------------------
     typedef struct { int w; logic [11:0] addr; logic write; logic [31:0] wdata, rdata; logic err, ab; longint cyc; } tev_t;
     int n_abandoned_total = 0;
+    // the APB checkers clear their counters when PRESET resets; bank them first so the
+    // APB-1 comparison at the end covers the whole run
+    int viol_bank = 0;
+    task automatic bank_viol();
+        foreach (viol[w]) viol_bank += viol[w];
+    endtask
     task automatic collect(output tev_t ev[$]);
         ev.delete();
 `define PULL(w) foreach (`T(w).log_q[k]) ev.push_back('{w, `T(w).log_q[k].addr, `T(w).log_q[k].write, `T(w).log_q[k].wdata, `T(w).log_q[k].rdata, `T(w).log_q[k].err, `T(w).log_q[k].abandoned, `T(w).log_q[k].cyc}); `T(w).log_q.delete();
@@ -273,8 +279,8 @@ module tb_apb_env;
         tcfg(2, 0, 0, 1'b0, 0, 0);
     endtask
     task automatic t_slverr();
-        for (int w = 0; w < 12; w += 5) if (MASK[w]) tcfg(w, 1, 0, 1'b0, 12'h200, 12'h210);
-        for (int w = 0; w < 12; w += 5) if (MASK[w]) begin
+        for (int w = 0; w < 12; w++) if (MASK[w]) tcfg(w, 1, 0, 1'b0, 12'h200, 12'h210);
+        for (int w = 0; w < 12; w++) if (MASK[w]) begin
             go(A(w, 'h200), 1); go(A(w, 'h204), 0); go(A(w, 'h210), 0);   // error, error, then OKAY
         end
         drain(); scoreboard("slverr");
@@ -298,30 +304,44 @@ module tb_apb_env;
     // resets: HRESET only, PRESET only (the [N-9.2] gap), and in SETUP / ACCESS / AHB wait
     task automatic t_reset();
         for (int where = 0; where < 4; where++) begin
-            tcfg(4, 6, 0, 1'b0, 0, 0);
+            tcfg(4, 12, 0, 1'b0, 0, 0);               // a long ACCESS, so a reset can land inside it
             go(A(4, 'h40), 1); go(A(4, 'h44), 0);
-            repeat (where == 0 ? 1 : where == 1 ? 3 : 6) @(posedge hclk);
+            repeat (where == 0 ? 1 : where == 1 ? 3 : 12) @(posedge hclk);
+            bank_viol();
             if (where == 3) begin
-                preset_n = 1'b0;                      // APB side alone: the bridge must hold HREADYOUT low
+                preset_n <= 1'b0;                      // APB side alone: the bridge must hold HREADYOUT low
                 repeat (4) @(posedge pclk);
                 check(!hreadyout, "[N-9.2] HREADYOUT low while PRESET is asserted");
-                preset_n = 1'b1;
+                preset_n <= 1'b1;
                 drain(); u_m.done_q.delete(); u_m.n_issued = 0;
             end else begin
-                hreset_n = 1'b0; preset_n = 1'b0;
+                hreset_n <= 1'b0; preset_n <= 1'b0;
                 u_m.flush();
                 repeat (3) @(posedge pclk);
-                hreset_n = 1'b1;                      // HRESET first, PRESET a few pclk later (production order)
+                hreset_n <= 1'b1;                      // HRESET first, PRESET a few pclk later (production order)
                 repeat (2) @(posedge hclk);
                 check(!hreadyout, "[N-9.3] HREADYOUT low until both resets release");
                 go(A(4, 'h48), 0);                    // accepted in the gap, held, then served
                 repeat (3) @(posedge pclk);
-                preset_n = 1'b1;
+                preset_n <= 1'b1;
                 drain(); u_m.done_q.delete(); u_m.n_issued = 0;
             end
             begin tev_t ev[$]; collect(ev); end      // the interrupted accesses: not scored
             t_smoke();
         end
+        // a reset at every delay 2..9 hclk after the request, so one lands in each phase
+        // (SETUP lasts one pclk = two hclk); the interrupted accesses are not scored
+        for (int d = 2; d < 10; d++) begin
+            go(A(4, 'h60), d[0]);
+            repeat (d) @(posedge hclk);
+            bank_viol();
+            hreset_n <= 1'b0; preset_n <= 1'b0; u_m.flush();
+            repeat (2) @(posedge pclk);
+            hreset_n <= 1'b1; repeat (2) @(posedge pclk); preset_n <= 1'b1;
+            repeat (4) @(posedge hclk);
+            begin tev_t ev[$]; collect(ev); end
+        end
+        t_smoke();
         tcfg(4, 0, 0, 1'b0, 0, 0);
     endtask
 
@@ -330,15 +350,16 @@ module tb_apb_env;
     // held (HREADYOUT low, no false acknowledge), and served once PRESET releases
     task automatic t_skew();
         for (int legal_first = 0; legal_first < 2; legal_first++) begin
-            hreset_n = 1'b0; preset_n = 1'b0; u_m.flush();
+            bank_viol();
+            hreset_n <= 1'b0; preset_n <= 1'b0; u_m.flush();
             repeat (3) @(posedge pclk);
-            hreset_n = 1'b1;
+            hreset_n <= 1'b1;
             repeat (2) @(posedge hclk);
             if (legal_first) begin go(A(6, 'h20), 1); go(A(6, 'h20), 0); go(A(6, 'h22), 1, 3'd1); end
             else             begin go(A(6, 'h22), 1, 3'd1); go(A(6, 'h24), 1); go(A(6, 'h24), 0); end
             repeat (24) @(posedge hclk);
             check(u_m.done_q.size() == 0 && !hreadyout, "[N-9.2] nothing acknowledged while PRESET is asserted");
-            preset_n = 1'b1;
+            preset_n <= 1'b1;
             drain(); scoreboard($sformatf("skew%0d", legal_first));
         end
     endtask
@@ -351,6 +372,13 @@ module tb_apb_env;
         for (int b = 2; b < 12; b++) begin go(A(8, 1 << b), 1); go(A(8, 'hFFC & ~(1 << b)), 0); end
         for (int b = 16; b < 28; b++) begin go(32'h4000_0000 | (32'h1 << b), 1); go(A(1, 'h10), 0); end
         go(32'h4FFF_FFFC, 0); go(A(1, 'h14), 0);
+        // the shared bus carries other regions' traffic past the bridge (HSEL low): address
+        // bits 31..28 and an I-port-style INCR burst (SEQ, HTRANS[0] = 1) the bridge ignores
+        go(32'h1000_0100, 0); go(32'h8000_0100, 0); go(32'hF000_0100, 0); go(32'h0000_0100, 0);
+        u_m.idle_in_dp = 1'b0;                        // pipelined, so the burst keeps its SEQ beats
+        for (int b = 0; b < 4; b++) u_m.push(32'h0000_0200 + 4 * b, 1'b0, 0, 3'd2, 0, 1'b1, b != 0);
+        drain(); u_m.idle_in_dp = 1'b1;
+        go(A(1, 'h18), 0);
         drain(); scoreboard("toggle");
     endtask
     task automatic t_random();
@@ -405,8 +433,8 @@ module tb_apb_env;
         u_m.idle_in_dp = 1'b1;                       // as the D-port / SBA / DMA: IDLE in the data phase
         tcfg_all(0, 0);
         #50 ext_rst_n = 1'b1;
-        repeat (4) @(posedge hclk); hreset_n = 1'b1;
-        repeat (4) @(posedge pclk); preset_n = 1'b1;
+        repeat (4) @(posedge hclk); hreset_n <= 1'b1;
+        repeat (4) @(posedge pclk); preset_n <= 1'b1;
         repeat (4) @(posedge hclk);
         case (tcase)
             "smoke": t_smoke(); "windows": t_windows(); "waits": t_waits(); "b2b": t_b2b();
@@ -418,7 +446,7 @@ module tb_apb_env;
             default: begin fails++; $display("[FAIL] unknown +TEST=%s", tcase); end
         endcase
         // APB protocol: strict checkers; the only violations allowed are the counted APB-1 aborts
-        vtot = 0; foreach (viol[w]) vtot += viol[w];
+        vtot = viol_bank; foreach (viol[w]) vtot += viol[w];
         if (n_abandoned_total) $display("[KNOWN APB-1] %0d access(es) abandoned by the bridge timeout (open ruling)", n_abandoned_total);
         check(vtot == n_abandoned_total,
               $sformatf("[R-1] APB protocol violations %0d, of which %0d are the counted APB-1 timeout aborts", vtot, n_abandoned_total));

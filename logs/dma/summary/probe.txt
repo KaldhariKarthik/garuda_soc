@@ -1,5 +1,5 @@
-garuda-run 1  suite probe  block dma  2026-10-14T01:10:58+05:30
-design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+garuda-run 1  suite probe  block dma  2026-10-14T20:27:30+05:30
+design 5ed5f6d8df83b246d8c2e3232e0b40884454283b  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
 
 FAIL    XFAIL:DMA-9             probe_dma9       pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [DMA-9] [F20] EN set again continues: 4 + 8 beats = 12 (CNT 8), last write 2000102c (buffer ends
 FAIL    XFAIL:DMA-10            probe_dma10      pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [130000] %Error: dma_sva.sv:642: Assertion failed in tb_dma_probe.dut.u_dma_sva

@@ -1493,3 +1493,44 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-10-14T01:24:19+05:30	e43672fbc7c5	True	chip	t_chip_dma_traffic	1	FAIL	UNEXPECTED	known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
 2026-10-14T01:24:19+05:30	e43672fbc7c5	True	chip	t_chip_dma_subword	1	FAIL	UNEXPECTED	known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
 2026-10-14T01:24:19+05:30	e43672fbc7c5	True	chip	t_chip_dma_uart	1	FAIL	UNEXPECTED	known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
+2026-10-14T16:28:06+05:30	5ed5f6d8df83	False	chip	t_chip_dma_rearm	1	FAIL	XFAIL:DMA-11	pass marker missing; 1873 [FAIL] line(s); 1872 assertion failure(s) | first: [8043000] %Error: dma_sva.sv:471: Assertion failed in tb_chip.dut.u_soc.u_dma.u_dma_sva.g_ch[2].a_beat_belongs_to_arm: [SVA
+2026-10-14T16:28:06+05:30	5ed5f6d8df83	False	chip	t_chip_dma_traffic	1	PASS	OK	
+2026-10-14T16:28:06+05:30	5ed5f6d8df83	False	chip	t_chip_dma_subword	1	PASS	OK	
+2026-10-14T16:28:06+05:30	5ed5f6d8df83	False	chip	t_chip_dma_uart	1	PASS	OK	
+2026-10-14T20:27:01+05:30	5ed5f6d8df83	True	block	tb_dma_top	1	PASS	OK	
+2026-10-14T20:27:30+05:30	5ed5f6d8df83	True	probe	probe_dma9	1	FAIL	XFAIL:DMA-9	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [DMA-9] [F20] EN set again continues: 4 + 8 beats = 12 (CNT 8), last write 2000102c (buffer ends at 2000101C) (t=1970000)
+2026-10-14T20:27:30+05:30	5ed5f6d8df83	True	probe	probe_dma10	1	FAIL	XFAIL:DMA-10	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [130000] %Error: dma_sva.sv:642: Assertion failed in tb_dma_probe.dut.u_dma_sva.a_no_read_before_refusal: [SVA-FAIL] a_no_read_be
+2026-10-14T20:27:30+05:30	5ed5f6d8df83	True	probe	probe_r9_sar	1	PASS	OK	
+2026-10-14T20:27:30+05:30	5ed5f6d8df83	True	probe	probe_dma11a	1	FAIL	XFAIL:DMA-11	pass marker missing; 34 [FAIL] line(s); 33 assertion failure(s) | first: [390000] %Error: dma_sva.sv:471: Assertion failed in tb_dma_probe.dut.u_dma_sva.g_ch[2].a_beat_belongs_to_arm: [SVA-FAIL] a_bea
+2026-10-14T20:27:30+05:30	5ed5f6d8df83	True	probe	probe_dma11b	1	FAIL	XFAIL:DMA-11	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [390000] %Error: dma_sva.sv:471: Assertion failed in tb_dma_probe.dut.u_dma_sva.g_ch[2].a_beat_belongs_to_arm: [SVA-FAIL] a_beat_
+2026-10-14T20:27:30+05:30	5ed5f6d8df83	True	probe	probe_unaligned	1	FAIL	XFAIL:DMA-13	pass marker missing; 5 [FAIL] line(s); 4 assertion failure(s) | first: [130000] %Error: dma_sva.sv:612: Assertion failed in tb_dma_probe.dut.u_dma_sva.a_haddr_aligned: [SVA-FAIL] a_haddr_aligned: HADD
+2026-10-14T20:27:30+05:30	5ed5f6d8df83	True	probe	probe_stop_size	1	FAIL	XFAIL:DMA-14	pass marker missing; 51 [FAIL] line(s); 50 assertion failure(s) | first: [622000] %Error: dma_sva.sv:584: Assertion failed in tb_dma_probe.dut.u_dma_sva.a_beat_size_atomic: [SVA-FAIL] a_beat_size_atom
+2026-10-14T20:27:30+05:30	5ed5f6d8df83	True	probe	probe_m2m_ack	1	FAIL	XFAIL:DMA-15	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [DMA-15] [F21] [D-21] an M2M transfer (no request) pulses no dma_ack: 6 ack pulse(s) for 6 beats (t=354000)
+2026-10-14T20:27:30+05:30	5ed5f6d8df83	True	probe	probe_ack	1	PASS	OK	
+2026-10-14T20:41:44+05:30	5ed5f6d8df83	True	env	env_maxcnt	1	FAIL	UNEXPECTED	pass marker missing; 21 [FAIL] line(s) | first: [FAIL] [SB] transfer to 20010000 belongs to no armed channel
+2026-10-14T20:41:44+05:30	5ed5f6d8df83	True	env	env_dma16	1	PASS	OK	
+2026-10-14T20:41:44+05:30	5ed5f6d8df83	True	env	env_held_err	1	FAIL	UNEXPECTED	pass marker missing; 4 [FAIL] line(s) | first: [FAIL] [F21] held request: beat 1 write ERROR (STAT 00010003) (t=9722000)
+2026-10-14T20:45:06+05:30	5ed5f6d8df83	True	env	env_maxcnt	1	PASS	OK	
+2026-10-14T20:45:06+05:30	5ed5f6d8df83	True	env	env_dma16	1	PASS	OK	
+2026-10-14T20:45:06+05:30	5ed5f6d8df83	True	env	env_held_err	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_smoke	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_qual	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_coll	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_reset	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_arb	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_req	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_matrix	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_edge	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_bits	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_r9	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_rand	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	negctl_beatchk_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 75 [FAIL] line(s); 29 assertion failure(s) | first: [2738000] %Error: dma_sva.sv:605: Assertion failed in tb_dma_env.dut.u_dma_sva.a_write_data: [SVA-FAIL] a_write_data: wrote 303
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_maxcnt	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_dma16	1	PASS	OK	
+2026-10-14T21:19:31+05:30	5ed5f6d8df83	True	env	env_held_err	1	PASS	OK	

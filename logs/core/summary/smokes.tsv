@@ -1,4 +1,4 @@
-# garuda-run 1 suite=smokes block=core date=2026-10-14T01:03:46+05:30 design=e43672fbc7c55a12b889efe114a952ac5fe753cb rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+# garuda-run 1 suite=smokes block=core date=2026-10-14T20:20:34+05:30 design=5ed5f6d8df83b246d8c2e3232e0b40884454283b rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
 test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
 S_ex_smoke	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.02	20				logs/core/raw/smokes/sim_S_ex_smoke_s1.log
 S_ex_smoke_dsu	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.02	20				logs/core/raw/smokes/sim_S_ex_smoke_dsu_s1.log

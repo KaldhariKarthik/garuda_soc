@@ -26,7 +26,7 @@ SPIKE_WANT     := 1.1.1-dev
         baseline_report core_covtests core_rvfi core_cosim core_archtest core_riscv_dv core_stress \
         core_endurance instret_report dsu_mut dsu_units fast_a nightly_a soak_a tier_report \
         dma_block dma_probe dma_regs dma_env dma_seeds dma_chip fv_dma_quick fv_dma fv_dma_cov cov_dma cov_dma_report \
-        cov_dma_imc dma_mut dsu_units_spec dma_units apb_probe bus_b0 ahb_ic apb_bridge fv_ahb ahb_env ahb_seeds ahb_mut ahb_units cov_ahb cov_ahb_report fv_apb apb_env apb_units cov_apb cov_apb_report
+        cov_dma_imc dma_mut dsu_units_spec dma_units apb_probe bus_b0 ahb_ic apb_bridge fv_ahb ahb_env ahb_seeds ahb_mut ahb_units cov_ahb cov_ahb_report fv_apb apb_env apb_units cov_apb cov_apb_report apb_mut apb_seeds
 
 help:
 	@echo "Track A targets (open tools):"
@@ -176,6 +176,7 @@ ahb_env:        ; @$(RUN) tb/ahb/run/env.toml       --jobs $(JOBS) $(SEEDARG)
 ahb_ic:         ; @$(RUN) tb/ahb/run/ic.toml        --jobs $(JOBS) $(SEEDARG)
 apb_env:        ; @$(RUN) tb/ahb2apb/run/env.toml   --jobs $(JOBS) $(SEEDARG)
 apb_units:      ; @$(RUN) tb/ahb2apb/run/units.toml --jobs $(JOBS) $(SEEDARG)
+apb_mut:        ; @$(ENV) $$PYTHON tools/gen/gen_apb_mutants.py && $(RUN) tb/ahb2apb/run/apb_mut.toml --jobs $(JOBS)
 apb_bridge:     ; @$(RUN) tb/ahb2apb/run/bridge.toml --jobs $(JOBS)
 dma_regs:       ; @$(RUN) tb/dma/run/regs.toml      --jobs $(JOBS) $(SEEDARG)
 dma_env:        ; @$(RUN) tb/dma/run/env.toml       --jobs $(JOBS) $(SEEDARG)
@@ -185,6 +186,9 @@ dma_mut:
 	 $$PYTHON tools/run/garuda_run.py suite tb/dma/run/dma_mut.toml --jobs $(JOBS); \
 	 rc=$$?; $$PYTHON tools/gen/gen_dma_mutants.py --summary; exit $$rc
 DMA_SEED_BASE ?= $(shell expr $$(date +%-j) \* 100)
+apb_seeds:
+	@$(ENV) $$PYTHON tools/gen/gen_apb_seeds_manifest.py --base $(DMA_SEED_BASE) --seeds $(or $(APB_SEEDS),100) > tb/ahb2apb/run/env_seeds.toml && \
+	 $$PYTHON tools/run/garuda_run.py suite tb/ahb2apb/run/env_seeds.toml --jobs $(JOBS)
 ahb_seeds:
 	@$(ENV) $$PYTHON tools/gen/gen_ahb_seeds_manifest.py --base $(DMA_SEED_BASE) --seeds $(or $(AHB_SEEDS),100) > tb/ahb/run/env_seeds.toml && \
 	 $$PYTHON tools/run/garuda_run.py suite tb/ahb/run/env_seeds.toml --jobs $(JOBS)
@@ -339,16 +343,19 @@ cov_apb_report:
 	@$(ENV) $$PYTHON tools/cov/cov_report.py tb/ahb2apb/cov/cov.toml
 cov_dma_report:
 	@$(ENV) $$PYTHON tools/cov/cov_report.py tb/dma/cov/cov.toml
+cov_apb_imc:
+	@$(ENV) $$PYTHON tools/cov/gen_toggle_waivers.py ahb2apb && $$PYTHON tools/cov/gen_imc_exclusions.py ahb2apb && $$PYTHON tools/cov/gen_cadence_cov.py ahb2apb
 cov_ahb_imc:
 	@$(ENV) $$PYTHON tools/cov/gen_toggle_waivers.py ahb && $$PYTHON tools/cov/gen_imc_exclusions.py ahb
 cov_dma_imc:
 	@$(ENV) $$PYTHON tools/cov/gen_toggle_waivers.py dma && $$PYTHON tools/cov/gen_imc_exclusions.py dma
-cov_a: cov_core cov_dsu cov_dma cov_ahb
+cov_a: cov_core cov_dsu cov_dma cov_ahb cov_apb
 	-@$(MAKE) -s -f flow/mk/track_a.mk cov_core_report > /dev/null
 	-@$(MAKE) -s -f flow/mk/track_a.mk cov_dsu_report > /dev/null
 	-@$(MAKE) -s -f flow/mk/track_a.mk cov_ahb_report > /dev/null
+	-@$(MAKE) -s -f flow/mk/track_a.mk cov_apb_report > /dev/null
 	@$(MAKE) -s -f flow/mk/track_a.mk cov_dma_report > /dev/null; \
-	grep -h "^verdict\|^TOTAL" logs/core/summary/cov_core.txt logs/dsu/summary/cov_dsu.txt logs/dma/summary/cov_dma.txt logs/ahb/summary/cov_ahb.txt
+	grep -h "^verdict\|^TOTAL" logs/core/summary/cov_core.txt logs/dsu/summary/cov_dsu.txt logs/dma/summary/cov_dma.txt logs/ahb/summary/cov_ahb.txt logs/ahb2apb/summary/cov_ahb2apb.txt
 
 # ---- P0.11: simulation throughput (normal and coverage build, one run at a time) ----
 .PHONY: throughput_a
@@ -359,7 +366,7 @@ throughput_a:
 regress_a: check_tools_a sw_open
 	-@$(MAKE) -s -f flow/mk/track_a.mk core_units core_elements core_smokes core_isa core_isa_rand \
 	    core_sanity core_extra core_directed core_covtests core_rvfi core_cosim core_csr core_halt core_csr_map dsu_model \
-	    debug_block debug_chip debug_chip_diag dma_block dma_probe apb_probe bus_b0 ahb_ic ahb_env ahb_units apb_bridge dma_regs dma_env dma_units dsu_units_spec dma_chip fv_core fv_dma_quick selftest_runners JOBS=$(JOBS)
+	    debug_block debug_chip debug_chip_diag dma_block dma_probe apb_probe bus_b0 ahb_ic ahb_env ahb_units apb_bridge apb_env apb_units dma_regs dma_env dma_units dsu_units_spec dma_chip fv_core fv_dma_quick selftest_runners JOBS=$(JOBS)
 	@$(MAKE) -s -f flow/mk/track_a.mk regress_a_report
 
 # ---- regression tiers (plan 1.4 / E12; times measured 2026-10-11, H9) ---------
@@ -370,10 +377,10 @@ regress_a: check_tools_a sw_open
 # soak_a     the 1e9-instruction endurance + diversity report, riscv-formal (hours)
 fast_a: check_tools_a sw_open
 	-@$(MAKE) -s -f flow/mk/track_a.mk core_units core_elements core_isa core_sanity core_directed \
-	    core_covtests dsu_model dsu_units_spec dma_block dma_probe apb_probe bus_b0 ahb_ic ahb_env ahb_units apb_bridge dma_regs dma_env dma_units fv_core_trap selftest_runners JOBS=$(JOBS)
+	    core_covtests dsu_model dsu_units_spec dma_block dma_probe apb_probe bus_b0 ahb_ic ahb_env ahb_units apb_bridge apb_env apb_units dma_regs dma_env dma_units fv_core_trap selftest_runners JOBS=$(JOBS)
 	@$(MAKE) -s -f flow/mk/track_a.mk tier_report TIER_SUITES="$(FAST_SUITES)"
 nightly_a: regress_a
-	-@$(MAKE) -s -f flow/mk/track_a.mk core_archtest core_stress core_riscv_dv dsu_mut dsu_units dsu_units_spec fv_dsu fv_dma dma_seeds dma_mut fv_ahb ahb_seeds ahb_mut JOBS=$(JOBS)
+	-@$(MAKE) -s -f flow/mk/track_a.mk core_archtest core_stress core_riscv_dv dsu_mut dsu_units dsu_units_spec fv_dsu fv_dma dma_seeds dma_mut fv_ahb ahb_seeds ahb_mut fv_apb apb_seeds apb_mut JOBS=$(JOBS)
 	@$(MAKE) -s -f flow/mk/track_a.mk tier_report TIER_SUITES="$(NIGHTLY_SUITES)"
 soak_a:
 	-@$(MAKE) -s -f flow/mk/track_a.mk core_endurance JOBS=$(JOBS)
@@ -383,11 +390,11 @@ dsu_mut:  ; @$(RUN) tb/dsu/run/dsu_mut.toml --jobs $(JOBS)
 dsu_units: ; @$(RUN) tb/dsu/run/units.toml --jobs $(JOBS)
 dsu_units_spec: ; @$(RUN) tb/dsu/run/units_spec.toml --jobs $(JOBS)
 FAST_SUITES = $(addprefix logs/core/summary/,units.tsv elements.tsv isa.tsv sanity.tsv directed.tsv covtests.tsv fv_trap.tsv) \
-              logs/dsu/summary/model.tsv logs/dma/summary/block.tsv logs/dma/summary/probe.tsv logs/ahb2apb/summary/probe.tsv logs/ahb2apb/summary/bridge.tsv logs/ahb/summary/ic.tsv logs/ahb/summary/env.tsv logs/ahb/summary/units.tsv logs/common/summary/b0.tsv logs/dma/summary/regs.tsv logs/dma/summary/env.tsv \
+              logs/dsu/summary/model.tsv logs/dma/summary/block.tsv logs/dma/summary/probe.tsv logs/ahb2apb/summary/probe.tsv logs/ahb2apb/summary/bridge.tsv logs/ahb2apb/summary/env.tsv logs/ahb2apb/summary/units.tsv logs/ahb/summary/ic.tsv logs/ahb/summary/env.tsv logs/ahb/summary/units.tsv logs/common/summary/b0.tsv logs/dma/summary/regs.tsv logs/dma/summary/env.tsv \
               logs/flow/summary/selftest.tsv
 NIGHTLY_SUITES = $(addprefix logs/core/summary/,archtest.tsv stress.tsv stress_halt.tsv riscv_dv.tsv) \
                  logs/dsu/summary/dsu_mut.tsv logs/dsu/summary/units.tsv logs/dsu/summary/fv_dsu.tsv \
-                 logs/dma/summary/fv_dma.tsv logs/dma/summary/env_seeds.tsv logs/ahb/summary/fv_ahb.tsv logs/ahb/summary/env_seeds.tsv logs/ahb/summary/ahb_mut.tsv
+                 logs/dma/summary/fv_dma.tsv logs/dma/summary/env_seeds.tsv logs/ahb/summary/fv_ahb.tsv logs/ahb/summary/env_seeds.tsv logs/ahb/summary/ahb_mut.tsv logs/ahb2apb/summary/fv_apb.tsv logs/ahb2apb/summary/env_seeds.tsv logs/ahb2apb/summary/apb_mut.tsv
 # one line per suite; exit 1 on a missing suite or any UNEXPECTED / XPASS row
 tier_report:
 	@bad=0; for f in $(TIER_SUITES); do \
@@ -403,7 +410,7 @@ tier_report:
 regress_a_report:
 	@$(ENV) printf '%-26s %s\n' SUITE RESULT; bad=0; \
 	for f in logs/core/summary/{units,elements,smokes,isa,isa_rand,sanity,extra,directed,covtests,rvfi,cosim,csr,halt,csr_map}.tsv \
-	         logs/dsu/summary/model.tsv logs/debug/summary/{block,chip,chip_diag}.tsv logs/dma/summary/{block,probe,regs,env,units,chip,fv_dma_arb,fv_dma_2clk,fv_dma_cov}.tsv logs/dsu/summary/units_spec.tsv logs/ahb2apb/summary/probe.tsv logs/ahb2apb/summary/bridge.tsv logs/ahb/summary/ic.tsv logs/common/summary/b0.tsv \
+	         logs/dsu/summary/model.tsv logs/debug/summary/{block,chip,chip_diag}.tsv logs/dma/summary/{block,probe,regs,env,units,chip,fv_dma_arb,fv_dma_2clk,fv_dma_cov}.tsv logs/dsu/summary/units_spec.tsv logs/ahb2apb/summary/probe.tsv logs/ahb2apb/summary/bridge.tsv logs/ahb2apb/summary/env.tsv logs/ahb2apb/summary/units.tsv logs/ahb/summary/ic.tsv logs/common/summary/b0.tsv \
 	         logs/core/summary/{fv_trap,fv_csr,fv_rdc1,fv_cov}.tsv \
 	         logs/flow/summary/{selftest,negctl_prog,negctl_t12,negctl_preempt,negctl_elem,negctl_cosim,fv_selftest}.tsv; do \
 	    [ -f "$$f" ] || { printf '%-26s %s\n' "$$f" "NOT RUN"; bad=1; continue; }; \

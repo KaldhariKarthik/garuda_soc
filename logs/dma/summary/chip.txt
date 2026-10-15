@@ -1,12 +1,12 @@
-garuda-run 1  suite chip  block dma  2026-10-14T01:24:19+05:30
-design e43672fbc7c55a12b889efe114a952ac5fe753cb  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+garuda-run 1  suite chip  block dma  2026-10-14T16:28:06+05:30
+design 5ed5f6d8df83b246d8c2e3232e0b40884454283b  rtl/ clean  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
 
-FAIL    XFAIL:DMA-11            t_chip_dma_rearm    known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1; pass marker missing; 1873 [FAIL] line(s); 1872 assertion failure(s) | f
-FAIL    UNEXPECTED              t_chip_dma_traffic  known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
-FAIL    UNEXPECTED              t_chip_dma_subword  known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
-FAIL    UNEXPECTED              t_chip_dma_uart     known /a_pclk_subset_hclk/ (SHIM-RSTEDGE artifact) occurred 0 time(s), want 1
+FAIL    XFAIL:DMA-11            t_chip_dma_rearm    pass marker missing; 1873 [FAIL] line(s); 1872 assertion failure(s) | first: [8043000] %Error: dma_sva.sv:471: Assertion failed in tb_chip.dut.u_soc.u
+PASS    OK                      t_chip_dma_traffic  
+PASS    OK                      t_chip_dma_subword  
+PASS    OK                      t_chip_dma_uart     
 
-PASS    0
-FAIL    4
+PASS    3
+FAIL    1
 BLOCKED 0
 total   4
