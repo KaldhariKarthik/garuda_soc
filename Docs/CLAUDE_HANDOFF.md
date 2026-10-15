@@ -75,9 +75,7 @@ area or power at 28 nm.
 | P2 chip simulation | `make test_chip` on the lab xrun after the top split (D-28) |
 | PD-9 flow step | The multi-mode hold repair is `~/tools/logs/b3_mm_hold.tcl`. It is outside the repo and is not an ORFS make step. Move it into `flow/pd/asap7/` before the next run |
 | PD-1 | `GARUDA_SRAM_BLACKBOX` folds read data to 0; Genus cell counts may be low. Needs an RTL change |
-| PD-10 | The `ext_rst_n` exception names a net that an input buffer replaces after placement |
 | TOOL-18 | OpenROAD crashes (signal 11) in CTS hold repair with about 1700 violations |
-| TOOL-19 | `scripts/run_synth.sh` prints an empty cell summary under Yosys 0.68 |
 | D2, D6 (28 nm) | Derived-clock uncertainty is a provisional 150 ps; the 28 nm ICG cell and object names need the foundry library |
 | DFT | Not in scope until the mentors decide (D-26) |
 | 28 nm | No library or memory compiler is available |
