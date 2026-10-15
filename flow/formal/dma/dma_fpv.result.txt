@@ -1,0 +1,16 @@
+top: dma_top
+children: dma_apb_slave dma_arbiter dma_chan dma_engine
+script: flow/formal/dma/dma_fpv.tcl
+proved: 80/93
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+93 assertions (dma_top_sva once, dma_chan_sva in each of six channels): 80 proved, 13 counterexamples,
+129 covers all covered (no vacuous proof).
+The 13 counterexamples are two findings, recorded in Docs/bugs/track_a.md:
+  DMA-9   a_rem_no_underflow and a_complete_consistent in all six channels: re-arm while a beat is in flight
+  DMA-10  a_aligned: an unaligned SAR or DAR goes on the bus unaligned (spec gap)
+They do not fire in the block bench, which never re-arms inside a beat or programs an unaligned address.
+
+Planted defects (tools/mutate.py sim/lab/dma/mut_spec.py): 8 of 8 caught by the assertions, 8 of 8 by
+the bench. Two properties first missed their mutant because they leaned on the RTL (the taken flag,
+the ACK_CYCLES parameter); both now use an independent shadow or the spec's value.

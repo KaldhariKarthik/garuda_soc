@@ -2,4 +2,5 @@
 -f rtl/dma/filelist.f
 tb/ahb/ahb_lite_sram.v
 tb/ahb/ahb_lite_checker.v
+tb/dma/dma_cov.sv
 tb/dma/tb_dma_top.sv

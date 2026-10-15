@@ -4,3 +4,4 @@ rtl/dma/dma_arbiter.v
 rtl/dma/dma_engine.v
 rtl/dma/dma_apb_slave.v
 rtl/dma/dma_top.v
+rtl/dma/dma_sva.sv
