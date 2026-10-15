@@ -14,7 +14,7 @@ TOML and Make are flow glue; C is firmware for the chip programs.
 |---|---|
 | `tb_dma_top.sv` | the team's directed bench (64 checks), `dma_sva` bound |
 | `tb_dma_probe.sv` | reproducers of the open defects DMA-9/10/11/13/14 (`+CASE=`) |
-| `tb_dma_regs.sv` | register tests from `Design_Docs/regs/dma.rdl` (87 checks) |
+| `tb_dma_regs.sv` | register tests from `Design_Docs/regs/dma_a.rdl` (87 checks) |
 | `units/` | each sub-module on its own: `tb_dma_apb_slave_unit` (map, strobes, PSLVERR, read mux), `tb_dma_chan_unit` (cycle model of the channel rules, 200k cycles), `tb_dma_engine_unit` (AHB slave model; per-beat read/write, lanes, errors, R-9, ack, ENG-1); 7 negative controls |
 | `env/` | the environment: `dma_env_top.sv` (tests), `dma_env_pkg.sv` (transfer class, reference model + scoreboard), `dma_beat_check.sv` (pin-level beat checker, R4), `dma_req_agent.sv` (D-21 peripherals), `dma_cov.sv` (functional coverage, bound in every DMA bench), `dma_regs_pkg.sv` (generated) |
 | `../ahb/agent/` | AHB-Lite slave with waits, address stalls, ERROR, FIFO regions (reused by the AHB/bridge work) |

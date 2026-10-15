@@ -1599,3 +1599,5 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-10-15T22:10:25+05:30	167aa935078d	True	fv_dma_cov	cov_prove	-	PROVEN	OK	[6 asserts, 307 covers in model] 
 2026-10-15T22:10:25+05:30	167aa935078d	True	fv_dma_cov	cov_reach	-	COVERED	OK	[0 asserts, 4 covers in model] 
 2026-10-15T22:10:25+05:30	167aa935078d	True	fv_dma_cov	mut_cov_prio_inv	-	FAIL	XFAIL:PLANTED	[1 asserts, 307 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone
+2026-10-16T04:24:54+05:30	1d8a30d297bc	False	regs	tb_dma_regs	1	FAIL	UNEXPECTED	7 [FAIL] line(s); 7 assertion failure(s) | first: [54618000] %Error: dma_sva.sv:119: Assertion failed in tb_dma_regs.dut.u_dma_sva.a_apb_stat_ro: [SVA-FAIL] a_apb_stat_ro: a write to STAT or
+2026-10-16T04:24:54+05:30	1d8a30d297bc	False	regs	negctl_size_reset	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s); 7 assertion failure(s) | first: [FAIL] [F01] [F11] reset: ch0 CR = 00000000 (want 00000040) (t=42000)

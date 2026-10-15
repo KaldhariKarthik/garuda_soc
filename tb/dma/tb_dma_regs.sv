@@ -4,7 +4,7 @@
 // register part; DMA sign-off checklist item 8: all 6 x 6 registers + GSTAT).
 //
 // Expected values come from tb/dma/env/dma_regs_pkg.sv, generated from
-// Design_Docs/regs/dma.rdl (the specification's register map), not from the RTL.
+// Design_Docs/regs/dma_a.rdl (the specification's register map), not from the RTL.
 // The rules a register description cannot express are applied here from the
 // specification: MODE = 3 and SIZE = 3 writes are refused ([N-6.1], F03), EN set
 // with CNT = 0 completes at once, ICLR is write-1-to-clear, a write to a
@@ -108,7 +108,7 @@ module tb_dma_regs;
         bit e;
         int bad, n;
 
-        $display("=== tb_dma_regs: DMA registers against Design_Docs/regs/dma.rdl ===");
+        $display("=== tb_dma_regs: DMA registers against Design_Docs/regs/dma_a.rdl ===");
         repeat (4) @(posedge hclk); rst_n = 1; repeat (2) @(posedge hclk);
 
         // ---- 1. reset values: all 6 x 6 registers and GSTAT -----------------------------

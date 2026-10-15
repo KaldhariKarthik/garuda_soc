@@ -1,4 +1,4 @@
-// dma_regs_pkg.sv -- GENERATED from Design_Docs/regs/dma.rdl by tools/gen/gen_regs_sv.py. Do not edit;
+// dma_regs_pkg.sv -- GENERATED from Design_Docs/regs/dma_a.rdl by tools/gen/gen_regs_sv.py. Do not edit;
 // change the RDL and regenerate. Register map of block 'dma' for plain-SV benches.
 `timescale 1ns/1ps
 package dma_regs_pkg;

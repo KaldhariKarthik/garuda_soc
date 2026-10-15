@@ -2,7 +2,7 @@
 # [alias]: vPlan NAMEs (planned in the 2026-10-05 plan) -> what was built, keyed by
 # element_id; every rename is recorded here, the vPlan CSV keeps its names.
 # [rule]: names that are a kind of check, not one property / bin / test.
-vplan = "tb/dma/GARUDA_DMA_vplan.csv"
+vplan = "tb/dma/GARUDA_DMA_vplan_a.csv"
 sva_files = ["rtl/dma/dma_props_a.sv", "tb/dma/formal/dma_cov_sva.sv"]
 cov_files = ["tb/dma/env/dma_env_cov.sv"]
 cov_report = "logs/dma/summary/cov_dma.txt"

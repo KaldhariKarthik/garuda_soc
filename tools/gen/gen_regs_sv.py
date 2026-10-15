@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """gen_regs_sv.py -- plain-SystemVerilog register package from a SystemRDL file.
 
-    python3.12 tools/gen/gen_regs_sv.py Design_Docs/regs/dma.rdl tb/dma/env/dma_regs_pkg.sv
+    python3.12 tools/gen/gen_regs_sv.py Design_Docs/regs/dma_a.rdl tb/dma/env/dma_regs_pkg.sv
 
 For benches that do not use UVM (Track A, DMA plan D3; Karthik's plan 2.2). The
 RDL is the source; the generated package is checked in, so a simulation does not

@@ -11,7 +11,7 @@ AUD-13 revert) plus the reverts of every DMA fix. Each runs on the bench whose
 checks should catch it:
   env   tb_dma_env +TEST=mut: every directed test + random iterations (model and
         scoreboard, pin-level beat checker, dma_sva, AHB-Lite and D-21 checkers)
-  regs  tb_dma_regs: the register tests generated from Design_Docs/regs/dma.rdl
+  regs  tb_dma_regs: the register tests generated from Design_Docs/regs/dma_a.rdl
   block tb_dma_top: the team's directed bench (R-9 refusals, steps 10 and 13)
 A kill counts only when a NAMED check fires (fail_reason: a [FAIL] check line or an
 [SVA-FAIL]); a timeout or a crash is KILLED-OTHER and does not count. Rows are
