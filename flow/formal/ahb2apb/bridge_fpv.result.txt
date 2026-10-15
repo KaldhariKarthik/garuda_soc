@@ -1,0 +1,16 @@
+top: ahb2apb_bridge
+children: ahb2apb_apb_fsm ahb2apb_fabric
+script: flow/formal/ahb2apb/bridge_fpv.tcl
+proved: 17/17
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+configuration                      assertions   covers      note
+MASK 0FFE  DIV 000000 (chip)       17 proved    26/27       c_div_extra unreachable: the divider is off in this configuration
+MASK 0FFE  DIV FFFFFF (/8 all)     17 proved    27/27
+mutant M3 timeout one cycle late   16 proved, 1 cex (a_timeout_counter)   the bench passes this mutant
+mutant M4 write data on a read     16 proved, 1 cex (a_read_wdata_zero)   the bench passes this mutant
+
+Every assertion's trigger is reachable (the precondition covers are all covered): no proof is vacuous.
+The three assumptions: an AHB master that holds its address phase until accepted (htrans, haddr,
+hwrite, hsize stable while HREADY is low), HSEL only for the 0x4 region, and the unused pclk_phase
+input tied low. The APB slaves are free: PREADY, PRDATA and PSLVERR are anything.

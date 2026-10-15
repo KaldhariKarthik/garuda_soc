@@ -4,4 +4,5 @@
 tb/ahb/ahb_lite_master_bfm.sv
 tb/common/apb_checker.v
 tb/ahb2apb/apb_slave_model.v
+tb/ahb2apb/ahb2apb_bridge_cov.sv
 tb/ahb2apb/tb_ahb2apb.sv

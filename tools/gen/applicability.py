@@ -45,15 +45,28 @@ def count(pat, path):
 
 ASSERT = r"assert\s+property|^\s*assert\s*\("
 def bound_asserts():
-    """module -> [(checker file, n asserts)] from bind statements in rtl/"""
+    """module -> [(checker file, n asserts)] from bind statements in rtl/ and tb/"""
     out = collections.defaultdict(list)
-    for p in glob.glob("rtl/**/*.sv", recursive=True) + glob.glob("rtl/**/*.v", recursive=True):
+    for p in glob.glob("rtl/**/*.sv", recursive=True) + glob.glob("rtl/**/*.v", recursive=True) + \
+             glob.glob("tb/**/*.sv", recursive=True):
         if "third_party" in p: continue
         t = open(p, errors="replace").read()
         for m in re.finditer(r"^\s*bind\s+(\w+)\s+(\w+)", t, re.M):
             tgt, chk = m.groups()
-            for q in glob.glob("rtl/**/%s.sv" % chk, recursive=True):
-                out[tgt].append((os.path.basename(q), count(ASSERT, q)))
+            for q in glob.glob("rtl/**/%s.sv" % chk, recursive=True) + glob.glob("tb/**/%s.sv" % chk, recursive=True):
+                n = count(ASSERT, q)
+                if n: out[tgt].append((os.path.basename(q), n))
+    return out
+
+def bound_covergroups():
+    """module -> [(file, n covergroups)] for covergroups in bound checkers"""
+    out = collections.defaultdict(list)
+    for p in glob.glob("tb/**/*.sv", recursive=True) + glob.glob("rtl/**/*.sv", recursive=True):
+        if "third_party" in p: continue
+        t = open(p, errors="replace").read()
+        for m in re.finditer(r"^\s*bind\s+(\w+)\s+(\w+)", t, re.M):
+            n = count(r"\bcovergroup\b", p)
+            if n: out[m.group(1)].append((os.path.basename(p), n))
     return out
 
 def bench_facts(mod):
@@ -76,12 +89,17 @@ ENV_OF = {"clic_top": "tb/clic/uvm/clic_env_pkg.sv", "timers_top": "tb/timers/uv
 # modules measured through their parent's environment
 CHILD_OF = {"clic_apb": "clic_top", "clic_select": "clic_top", "mtime": "timers_top", "timers_apb": "timers_top",
             "wdt": "timers_top", "reset_ctrl_apb": "reset_ctrl", "garuda_pwm_core": "garuda_pwm_top",
-            "garuda_spis_core": "garuda_spis_top"}
+            "garuda_spis_core": "garuda_spis_top",
+            "ahb2apb_apb_fsm": "ahb2apb_bridge", "ahb2apb_fabric": "ahb2apb_bridge"}
 
 def formal_facts():
     d = {}
     if os.path.exists("flow/formal/core/pipe_ctrl_core.result.txt"):
         d["pipe_ctrl"] = "properties proved: flow/formal/core/pipe_ctrl_core.tcl"
+    for f in glob.glob("flow/formal/*/*_fpv.result.txt"):
+        kv = dict(l.split(": ", 1) for l in open(f).read().split("\n") if re.match(r"^(top|children|script|proved): ", l))
+        for m in [kv["top"]] + kv.get("children", "").split():
+            d[m] = "properties proved %s%s: %s" % (kv["proved"], "" if m == kv["top"] else " (via " + kv["top"] + ")", kv["script"])
     for f in glob.glob("flow/formal/*_unr.result.txt"):
         k = os.path.basename(f).split("_unr")[0]
         d["_unr_" + k] = "waivers only (unreachability), not properties: " + os.path.basename(f)
@@ -136,7 +154,8 @@ def unr_key(mod):
     if top in ("clk_div", "reset_ctrl"): return "_unr_crg"
     return "_unr_" + top.replace("_top", "").replace("garuda_", "")
 
-def row(mod, path, bound, formal):
+def row(mod, path, bound, formal, bcov=None):
+    bcov = bcov or {}
     b = block_of(path)
     r = {"module": mod, "block": b, "path": path}
     # ---- code coverage
@@ -152,6 +171,9 @@ def row(mod, path, bound, formal):
     top = CHILD_OF.get(mod, mod)
     if top in ENV_OF and UVM.get(ENV_OF[top]):
         have.append("%d in %s%s" % (UVM[ENV_OF[top]], os.path.basename(ENV_OF[top]), "" if top == mod else " (via " + top + ")"))
+    for src in (mod, CHILD_OF.get(mod)):
+        for fn, n in bcov.get(src, []):
+            have.append("%d bound: %s%s" % (n, fn, "" if src == mod else " (via " + src + ")"))
     if mod == "garuda_core_top": have.append("8 in garuda_cov.sv (pipeline)")
     if mod == "pipe_ctrl": have.append("hold x flush matrix in garuda_cov.sv (make pipe_matrix)")
     if ap == "N": r["func"] = ("n/a", why)
@@ -181,8 +203,12 @@ def row(mod, path, bound, formal):
 
 def main():
     check = "--check" in sys.argv
-    mods = own_modules(); bound = bound_asserts(); formal = formal_facts()
-    rows = [row(m, p, bound, formal) for m, p in sorted(mods.items(), key=lambda kv: (block_of(kv[1]), kv[0]))]
+    mods = own_modules()
+    CHECKERS.update(m for m in mods if m.endswith("_sva"))
+    for m in [m for m in mods if m.endswith("_sva")]:
+        FUNC_N.setdefault(m, CHK); ASSERT_N.setdefault(m, CHK); FORMAL_N.setdefault(m, CHK)
+    bound = bound_asserts(); formal = formal_facts(); bcov = bound_covergroups()
+    rows = [row(m, p, bound, formal, bcov) for m, p in sorted(mods.items(), key=lambda kv: (block_of(kv[1]), kv[0]))]
     problems = []
     for r in rows:
         for k in ("code", "func", "assert", "formal"):

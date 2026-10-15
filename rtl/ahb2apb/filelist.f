@@ -9,3 +9,4 @@
 rtl/ahb2apb/ahb2apb_fabric.v
 rtl/ahb2apb/ahb2apb_apb_fsm.v
 rtl/ahb2apb/ahb2apb_bridge.v
+rtl/ahb2apb/ahb2apb_bridge_sva.sv
