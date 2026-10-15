@@ -140,6 +140,11 @@ ORFS's `~/tools/OpenROAD-flow-scripts/flow/scripts/synth_preamble.tcl` states th
 and needs no plugin load. The default flow reads Verilog with `read_verilog`, and uses slang only
 when `SYNTH_HDL_FRONTEND=slang`.
 
+The GARUDA steps that ORFS does not have (multi-mode hold repair, STA of the four DIVSEL scenarios,
+clock-tree and clock-phase reports, GDS images, the run driver) are `make pd_*` in the repository
+(`flow/mk/pd.mk`, `flow/pd/asap7/scripts/README.md`). `make pd_check` parses them without any of the
+tools above.
+
 ## 5. Acceptance gate (B1.6)
 
 ```bash

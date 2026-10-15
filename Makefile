@@ -7,6 +7,7 @@
 #   flow/mk/track_a.mk   core, DSU, AHB, bridge, DMA, debug, memories
 #   flow/mk/track_b.mk   peripherals, clocks and resets, chip, static, UVM,
 #                        synthesis, the licence-free local flow
+#   flow/mk/pd.mk        the ASAP7 physical-design steps (exploratory)
 # This file holds only what joins the two: help, check_tools, test_blocks,
 # regress_all and clean.
 #
@@ -20,10 +21,11 @@
 include flow/mk/common.mk
 include flow/mk/track_a.mk
 include flow/mk/track_b.mk
+include flow/mk/pd.mk
 
 .PHONY: help help_head help_tail check_tools clean test_blocks regress_all
 
-help: help_head help_a help_b help_tail
+help: help_head help_a help_b help_pd help_tail
 
 help_head:
 	@echo "GARUDA SoC build targets:"
