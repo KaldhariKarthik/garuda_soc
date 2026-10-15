@@ -97,7 +97,13 @@ module trap_ctrl #(
     wire is_wfi    = idex_is_system_i & (idex_instr_i==32'h10500073);
 
     // EX-point exception detect (Sec.14.1 priority 1>2>3>4>6>11)
-    wire e1  = idex_fault_i;
+    // ERRATUM T-17 (2026-10-11, found by the coverage test t_cov_fault): the
+    // fetch-fault bit was the one exception term not tied to a real instruction.
+    // After a fetch fault the trap flushes the prefetch buffer, whose empty slot
+    // still presents the old fault bit; IF/ID and ID/EX carried it on a bubble
+    // and cause 1 was raised again from the bubble after every redirect, so the
+    // handler never ran. A bubble carries no exception (same rule as T-4).
+    wire e1  = idex_fault_i & idex_valid_i;
     wire e2  = idex_illegal_dec_i | ex_dsu_illegal_i | ex_csr_illegal_i;
     wire e3  = is_ebreak;
     wire e4  = ex_load_misalign_i;

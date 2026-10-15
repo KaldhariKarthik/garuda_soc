@@ -1,0 +1,45 @@
+RTL against Design_Docs/regs/core_csr.yaml:
+  contract says it EXISTS, the RTL traps:
+    0x310        mstatush    <- DESIGN DOES NOT MATCH THE CONTRACT
+    0x323-0x33f  mhpmevent3 .. mhpmevent31    <- DESIGN DOES NOT MATCH THE CONTRACT
+    0xb03-0xb1f  mhpmcounter3 .. mhpmcounter31    <- DESIGN DOES NOT MATCH THE CONTRACT
+    0xb83-0xb9f  mhpmcounter3h .. mhpmcounter31h    <- DESIGN DOES NOT MATCH THE CONTRACT
+    0xf15        mconfigptr    <- DESIGN DOES NOT MATCH THE CONTRACT
+  contract says it TRAPS, the RTL has it:
+    none
+  115 addresses must exist; RTL has 26; 89 mismatch(es)
+
+csr_map: GARUDA has 26 CSR addresses, Spike has 119, 21 in common
+
+On both:
+  0x300-0x301  mstatus .. misa
+  0x304-0x305  mie .. mtvec
+  0x340-0x344  mscratch .. mip
+  0xb00        mcycle
+  0xb02        minstret
+  0xb80        mcycleh
+  0xb82        minstreth
+  0xc00        cycle
+  0xc02        instret
+  0xc80        cycleh
+  0xc82        instreth
+  0xf11-0xf14  mvendorid .. mhartid
+
+Only on GARUDA:
+  0x345-0x347  mnxti .. mintthresh    (CLIC register (CORE 6.1); Spike has no CLIC)
+  0xbc0        dsu_ovf (GARUDA)    (DSU overflow flag, a GARUDA custom register (CORE 6.1))
+  0xfb1        mintstatus (CLIC)    (CLIC register (CORE 6.1); Spike has no CLIC)
+
+Only on Spike:
+  0x310        mstatush    <- NOT EXPLAINED
+  0x320        mcountinhibit    (mcountinhibit is optional (privileged 1.12, 3.1.12))
+  0x323-0x33f  mhpmevent3 .. mhpmevent31    <- NOT EXPLAINED
+  0x7a0-0x7a4  tselect .. tinfo    (trigger registers are optional; GARUDA has no trigger module)
+  0x7a8        mcontext    (trigger registers are optional; GARUDA has no trigger module)
+  0xb03-0xb1f  mhpmcounter3 .. mhpmcounter31    <- NOT EXPLAINED
+  0xb83-0xb9f  mhpmcounter3h .. mhpmcounter31h    <- NOT EXPLAINED
+  0xc01        time    (GARUDA's timer is memory mapped (block 11); a read of time traps, which the privileged spec allows)
+  0xc81        timeh    (GARUDA's timer is memory mapped (block 11); a read of time traps, which the privileged spec allows)
+  0xf15        mconfigptr    <- NOT EXPLAINED
+
+csr_map: RTL vs contract 89 mismatch(es); RTL vs Spike 89 unexplained difference(s) -> FAIL

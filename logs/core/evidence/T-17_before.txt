@@ -1,0 +1,53 @@
+T-17 before the fix: an instruction access fault traps forever (the handler never runs)
+date      : 2026-10-11T14:10:57+05:30
+design    : b90b481d8f91 + working tree (a/p0-infra), trap_ctrl.v before the T-17 fix
+tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+test      : core/covtests t_cov_fault (jalr to 0xFFFFFFFC, outside tb_boot memory -> I-port ERROR)
+
+== runner rows ==
+t_cov_fault	FAIL	UNEXPECTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TIMEOUT after 200000 cycles (14 retired) - FAILED ***
+t_cov_fault_w3	FAIL	UNEXPECTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TIMEOUT after 400000 cycles (14 retired) - FAILED ***
+
+== commit log: 14 instructions retire, then the same cause-1 trap repeats every few cycles ==
+# garuda-commit-log 2
+10000000 02 10000000
+10000004 02 10000270
+10000008 05 10000008
+CSR 305 100000c3
+1000000c 05 100000c0
+10000010 00 00000000
+10000014 21 10000014
+10000018 21 10000140
+1000001c 22 0000000c
+10000020 23 00000000
+10000024 18 fffffffc
+10000028 20 00000001
+1000002c 19 1000002c
+10000030 19 10000038
+10000034 00 00000000
+TRAP 00000001 fffffffc fffffffc
+TRAP 00000001 fffffffc fffffffc
+TRAP 00000001 fffffffc fffffffc
+TRAP 00000001 fffffffc fffffffc
+...  (66657 identical TRAP records in 200000 cycles)
+
+== waveform (Verilator --trace, one row per posedge; logs/core/raw/dbg_fault) ==
+time    i_haddr_o i_hready_i  i_hresp_i   if_valid   if_fault      if_pc   fd_valid   fd_fault   xe_valid   xe_fault   tr_enter tr_redir_t
+112500   10000048          1          0          1          0   1000003c          1          0          1          0          0   100000c0
+117500   10000048          1          0          0          0   10000040          0          0          0          0          0   100000c0
+122500   fffffffc          1          0          0          0   10000040          0          0          0          0          0   100000c0
+127500          0          0          1          0          0   10000040          0          0          0          0          0   100000c0
+132500          0          1          1          0          0   10000040          0          0          0          0          0   100000c0
+137500          4          1          0          1          1   fffffffc          0          0          0          0          0   100000c0
+142500          8          0          1          1          0          0          1          1          0          0          0   100000c0
+147500          8          1          1          0          0   10000038          1          0          1          1          1   100000c0
+152500          8          1          0          0          1   fffffffc          0          0          0          0          0   100000c0
+157500   100000c0          1          0          0          1   fffffffc          0          1          0          0          0   100000c0
+162500   100000c4          1          0          0          1   fffffffc          0          1          0          1          1   100000c0
+167500   100000c4          1          0          0          1   fffffffc          0          0          0          0          0   100000c0
+172500   100000c0          1          0          0          1   fffffffc          0          1          0          0          0   100000c0
+
+Mechanism: after the trap flushes the prefetch buffer, its empty slot 0 still holds the
+fault bit; IF/ID and ID/EX carry it on a bubble (valid=0, fault=1), and trap_ctrl raises
+cause 1 from that bubble (e1 = idex_fault_i, not qualified by idex_valid_i). The redirect
+flushes again, slot 0 still holds the bit: endless loop. Same class as ERRATUM T-4.

@@ -1,0 +1,16 @@
+# garuda-run 1 suite=elements.cov block=core date=2026-10-13T07:49:20+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+E_garuda_pc_gen	PASS	OK	0	yes	0	0	0	-	6	0	SHIM-SB-SUMMARY	1	0.02	21		logs/core/raw/elements.cov/cov/E_garuda_pc_gen_s1.dat		logs/core/raw/elements.cov/sim_E_garuda_pc_gen_s1.log
+E_garuda_prefetch_buffer	PASS	OK	0	yes	0	0	0	-	6	18	SHIM-SB-SUMMARY	1	0.04	21		logs/core/raw/elements.cov/cov/E_garuda_prefetch_buffer_s1.dat		logs/core/raw/elements.cov/sim_E_garuda_prefetch_buffer_s1.log
+E_garuda_iport_ahb_master	PASS	OK	0	yes	0	0	0	-	6	6	SHIM-SB-SUMMARY	1	0.04	21		logs/core/raw/elements.cov/cov/E_garuda_iport_ahb_master_s1.dat		logs/core/raw/elements.cov/sim_E_garuda_iport_ahb_master_s1.log
+E_garuda_if_stage_top	PASS	OK	0	yes	0	0	0	-	5	0	SHIM-SB-SUMMARY	1	0.06	21		logs/core/raw/elements.cov/cov/E_garuda_if_stage_top_s1.dat		logs/core/raw/elements.cov/sim_E_garuda_if_stage_top_s1.log
+E_alu	PASS	OK	0	yes	0	0	0	-	6	0	SHIM-SB-SUMMARY	1	14.70	21		logs/core/raw/elements.cov/cov/E_alu_s1.dat		logs/core/raw/elements.cov/sim_E_alu_s1.log
+E_mul32	PASS	OK	0	yes	0	0	0	-	4	0	SHIM-SB-SUMMARY	1	14.26	21		logs/core/raw/elements.cov/cov/E_mul32_s1.dat		logs/core/raw/elements.cov/sim_E_mul32_s1.log
+E_branch_unit	PASS	OK	0	yes	0	0	0	-	7	6	SHIM-SB-SUMMARY	1	16.18	21		logs/core/raw/elements.cov/cov/E_branch_unit_s1.dat		logs/core/raw/elements.cov/sim_E_branch_unit_s1.log
+E_csr_rw	PASS	OK	0	yes	0	0	0	-	5	0	SHIM-SB-SUMMARY	1	6.94	21		logs/core/raw/elements.cov/cov/E_csr_rw_s1.dat		logs/core/raw/elements.cov/sim_E_csr_rw_s1.log
+E_load_store_unit	PASS	OK	0	yes	0	0	0	-	6	6	SHIM-SB-SUMMARY	1	8.41	21		logs/core/raw/elements.cov/cov/E_load_store_unit_s1.dat		logs/core/raw/elements.cov/sim_E_load_store_unit_s1.log
+E_load_formatter	PASS	OK	0	yes	0	0	0	-	7	6	SHIM-SB-SUMMARY	1	7.50	21		logs/core/raw/elements.cov/cov/E_load_formatter_s1.dat		logs/core/raw/elements.cov/sim_E_load_formatter_s1.log
+E_d_port_ahb_master	PASS	OK	0	yes	0	0	0	-	7	0	SHIM-SB-SUMMARY	1	0.02	21		logs/core/raw/elements.cov/cov/E_d_port_ahb_master_s1.dat		logs/core/raw/elements.cov/sim_E_d_port_ahb_master_s1.log
+E_mem_stage	PASS	OK	0	yes	0	0	0	-	8	0	SHIM-SB-SUMMARY	1	0.04	21		logs/core/raw/elements.cov/cov/E_mem_stage_s1.dat		logs/core/raw/elements.cov/sim_E_mem_stage_s1.log
+E_mem_wb_reg	PASS	OK	0	yes	0	0	0	-	5	0	SHIM-SB-SUMMARY	1	0.02	21		logs/core/raw/elements.cov/cov/E_mem_wb_reg_s1.dat		logs/core/raw/elements.cov/sim_E_mem_wb_reg_s1.log
+E_clic_ctrl	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.04	21		logs/core/raw/elements.cov/cov/E_clic_ctrl_s1.dat		logs/core/raw/elements.cov/sim_E_clic_ctrl_s1.log

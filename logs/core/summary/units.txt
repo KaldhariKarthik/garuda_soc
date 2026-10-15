@@ -1,0 +1,14 @@
+garuda-run 1  suite units  block core  2026-10-15T21:40:27+05:30
+design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      U_decode_control       
+PASS    OK                      U_imm_gen              
+PASS    OK                      U_reg_file             
+PASS    OK                      U_branch_predict       
+PASS    OK                      U_hazard_forward_unit  
+PASS    OK                      U_id_stage             
+
+PASS    6
+FAIL    0
+BLOCKED 0
+total   6

@@ -1,0 +1,15 @@
+TB-44 before the fix: tb_dma_top made pclk with a toggle flop on hclk (always @(posedge hclk) pclk <= ~pclk), so the pclk edge came one delta after the hclk flops updated and dma_apb_slave's PRDATA captured post-edge STAT values (SIM-1 race in the bench)
+date      : 2026-10-12T00:23:26+05:30
+tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+seed      : 1
+design    : b90b481d8f91 + working tree (a/p0-infra), dma_sva bound; tb_dma_top before the TB-44 clock fix
+
+== a_read_data failures (all STAT reads during an active transfer) ==
+count: 20
+[SVA-FAIL] a_read_data: paddr=050 prdata=0001000a (F10)
+[SVA-FAIL] a_read_data: paddr=050 prdata=00010006 (F10)
+[SVA-FAIL] a_read_data: paddr=050 prdata=00010002 (F10)
+[SVA-FAIL] a_read_data: paddr=070 prdata=00010004 (F10)
+
+== after the fix (pclk made in the same time step as hclk) ==
+a_read_data: 0 failures; tb_dma_top 64/64; see logs/dma/summary/block.tsv

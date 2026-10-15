@@ -1,0 +1,20 @@
+# Negative controls for element benches: the bench on a mutant of its DUT must
+# FAIL, for the named reason. Proves the bench checks what it claims to check.
+# Run: make -f flow/mk/track_a_run.mk selftest_runners
+[suite]
+block = "flow"
+name  = "negctl_elem"
+kind  = "sim"
+xfail = "tb/core/selftest/xfail.tsv"
+
+[defaults]
+top     = "tb_top"
+marker  = 'ALL CHECKS PASSED|^ RESULT: PASSED'
+timeout = 120
+
+# tb_clic_ctrl with PREEMPT_DIS ignored (W6 / CORE-4)
+[[test]]
+name    = "E_clic_ctrl_no_preempt"
+flist   = "tb/core/filelist_clic_ctrl.f"
+replace = { "rtl/core/clic_ctrl.v" = "tb/core/formal/mutants/clic_ctrl_no_preempt.v" }
+fail_reason = 'PREEMPT_DIS: no preemption in a handler: take=1 exp 0'

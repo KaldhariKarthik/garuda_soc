@@ -1,0 +1,2 @@
+# xfail list for debug suites.
+# suite<TAB>test<TAB>expect(FAIL|BLOCKED)<TAB>bug<TAB>reason

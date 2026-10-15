@@ -1,0 +1,9 @@
+garuda-run 1  suite negctl_elem  block flow  2026-10-15T22:11:14+05:30
+design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    XFAIL:PLANTED           E_clic_ctrl_no_preempt  pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+
+PASS    0
+FAIL    1
+BLOCKED 0
+total   1

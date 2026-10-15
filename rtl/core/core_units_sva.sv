@@ -14,6 +14,7 @@
 `ifndef __ICARUS__
 module clic_ctrl_sva #(parameter ID_W = 5) (
     input wire clic_irq_valid_i, mstatus_mie_i, take_cond_o, wake_cond_o,
+    input wire preempt_dis_i,   // CORE-4 mgarudactl.PREEMPT_DIS (track A, 2026-10-15)
     input wire [7:0] clic_irq_level_i, mintthresh_i, mintstatus_mil_i,
     input wire [31:0] mtvec_i, vector_target_o
 );
@@ -21,7 +22,9 @@ module clic_ctrl_sva #(parameter ID_W = 5) (
     always @(*) begin
         // [N-7.15], [N-7.16] strictly greater than the threshold and than the active level, with MIE
         a_take: assert #0 (take_cond_o == (clic_irq_valid_i && mstatus_mie_i &&
-                           clic_irq_level_i > mintthresh_i && clic_irq_level_i > mintstatus_mil_i))
+                           clic_irq_level_i > mintthresh_i && clic_irq_level_i > mintstatus_mil_i &&
+                           // CORE-4: with PREEMPT_DIS set an interrupt is taken only at level 0
+                           (!preempt_dis_i || mintstatus_mil_i == 8'd0)))
             else $error("[SVA-FAIL] a_take: take condition wrong");
         // [N-7.27] WFI wakes on a pending interrupt whatever MIE says
         a_wake: assert #0 (wake_cond_o == clic_irq_valid_i)
@@ -93,15 +96,19 @@ module csr_file_sva (
     a_mret_mie: assert property (@(posedge clk_i) disable iff (!rst_n_i)
         mret_i |=> (mstatus_mie == $past(mstatus_mpie) && mstatus_mpie) )
         else $error("[SVA-FAIL] a_mret_mie: MIE/MPIE wrong after MRET");
+    // T-12 (ruling, track A 2026-10-15): every trap also saves the level it leaves in mcause[23:16] (mcause.mpil)
     a_trap_mepc_mcause: assert property (@(posedge clk_i) disable iff (!rst_n_i)
-        trap_enter_i |=> (mepc_r == $past(trap_pc_i) && mcause_r == $past(trap_cause_i)) )
+        trap_enter_i |=> (mepc_r == $past(trap_pc_i) &&
+                          mcause_r == {$past(trap_cause_i[31:24]), $past(mil_r), $past(trap_cause_i[15:0])}) )
         else $error("[SVA-FAIL] a_trap_mepc_mcause: MEPC or MCAUSE not taken from the trap");
-    // CORE 14.3, 14.4: an interrupt pushes the level, MRET pops it; an exception leaves it
+    // CORE 14.3, 14.4: an interrupt pushes the level, MRET pops it; an exception leaves it.
+    // T-12 (ruling R1): only a CLIC interrupt (level >= 1) sets mil; the machine timer (level 0)
+    // and exceptions leave it. mpil_r is mcause[23:16] since T-12 (see the bind).
     a_irq_push: assert property (@(posedge clk_i) disable iff (!rst_n_i)
-        (trap_enter_i && is_interrupt_i) |=> (mil_r == $past(clic_level_i) && mpil_r == $past(mil_r)) )
+        (trap_enter_i && is_interrupt_i && clic_level_i != 8'd0) |=> (mil_r == $past(clic_level_i) && mpil_r == $past(mil_r)) )
         else $error("[SVA-FAIL] a_irq_push: the interrupt level was not pushed");
     a_exc_keeps_level: assert property (@(posedge clk_i) disable iff (!rst_n_i)
-        (trap_enter_i && !is_interrupt_i) |=> $stable({mil_r, mpil_r}) )
+        (trap_enter_i && !(is_interrupt_i && clic_level_i != 8'd0)) |=> ($stable(mil_r) && mpil_r == $past(mil_r)) )
         else $error("[SVA-FAIL] a_exc_keeps_level: an exception changed the interrupt level");
     a_mret_pop: assert property (@(posedge clk_i) disable iff (!rst_n_i)
         mret_i |=> mil_r == $past(mpil_r) )
@@ -114,7 +121,8 @@ module csr_file_sva (
         (writes && ro) |-> illegal_csr_o )
         else $error("[SVA-FAIL] a_ro_write_illegal: a write to read-only CSR %h was accepted", csr_addr_i);
     a_absent_illegal: assert property (@(posedge clk_i) disable iff (!rst_n_i)
-        (access && csr_addr_i[11:8] == 4'h7) |-> illegal_csr_o )
+        // 0x7A0-0x7BF (triggers, debug mode); 0x7C0-0x7FF is custom machine RW (mgarudactl, CORE-4)
+        (access && csr_addr_i[11:5] == 7'b0111_101) |-> illegal_csr_o )
         else $error("[SVA-FAIL] a_absent_illegal: an access to a debug-mode CSR %h was accepted", csr_addr_i);
     a_read_legal: assert property (@(posedge clk_i) disable iff (!rst_n_i)
         (access && !writes && csr_addr_i inside {12'h300, 12'h304, 12'h305, 12'h340, 12'h341, 12'h342, 12'h343, 12'h344, 12'hF14}) |-> !illegal_csr_o )
@@ -151,7 +159,7 @@ endmodule
 bind clic_ctrl clic_ctrl_sva #(.ID_W(ID_W)) u_clic_ctrl_sva (.*);
 bind d_port_ahb_master d_port_sva u_d_port_sva (.*, .state(state));
 bind csr_file csr_file_sva u_csr_file_sva (.*, .mstatus_mie(mstatus_mie), .mstatus_mpie(mstatus_mpie),
-    .mil_r(mil_r), .mpil_r(mpil_r), .mepc_r(mepc_r), .mcause_r(mcause_r));
+    .mil_r(mil_r), .mpil_r(mcause_r[23:16]), .mepc_r(mepc_r), .mcause_r(mcause_r));   // T-12: mpil lives in mcause
 bind regfile regfile_sva u_regfile_sva (.*);
 `endif
 `endif

@@ -1,0 +1,57 @@
+W6: core bench fixes (TB-32, TB-33, ELEM-8, TB-34, ELEM-7, tb_clic_ctrl unconditional PASS; new TB-39)
+date      : 2026-10-11T10:04:05+05:30
+design    : b90b481d8f91 + working tree (a/p0-infra, uncommitted)
+tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+
+== before: baseline b90b481 (logs/core/evidence/baseline_b90b481d8f91.txt) ==
+XFAIL:TB-33      U_id_stage               218 assertion failure(s) | first: [25000] %Error: tb_id_stage.sv:769: Assertion failed in $unit.id_generator.b
+XFAIL:TB-32      E_garuda_pc_gen          pass marker missing; 3 [FAIL] line(s); 1 assertion failure(s) | first: [FAIL] reset                    pc = bo
+XFAIL:ELEM-8     E_d_port_ahb_master      1 [FAIL] line(s); 1 assertion failure(s) | first: [6275000] %Error: tb_d_port_ahb_master.sv:100: Assertion fai
+XFAIL:TB-34      E_mem_wb_reg             1 [FAIL] line(s); 1 assertion failure(s) | first: [165000] %Error: tb_mem_wb_reg.sv:75: Assertion failed in tb
+
+== after: full suites, seed 1 (xfail rows TB-32/TB-33/ELEM-8/TB-34 removed) ==
+U_id_stage	PASS	OK
+E_garuda_pc_gen	PASS	OK
+E_d_port_ahb_master	PASS	OK
+E_mem_wb_reg	PASS	OK
+E_clic_ctrl	PASS	OK
+units: 6/6 OK;  elements: 14/14 OK
+
+== every run after the W6 fixes (logs/core/history.tsv, from 09:55): test -> seed:verdict ==
+E_clic_ctrl            1:PASS 2:PASS 3:PASS 4:PASS 5:PASS 6:PASS 7:PASS 8:PASS 9:PASS 10:PASS 11:PASS 12:PASS
+E_d_port_ahb_master    1:PASS 2:PASS 3:PASS 4:PASS 5:PASS 6:PASS 7:PASS 8:PASS 9:PASS 10:PASS 11:PASS 12:PASS
+E_garuda_pc_gen        1:PASS 2:PASS 3:PASS 4:PASS 5:PASS 6:PASS 7:PASS 8:PASS 9:PASS 10:PASS 11:PASS 12:PASS
+E_mem_wb_reg           1:PASS 2:PASS 3:PASS 4:PASS 5:PASS 6:PASS 7:PASS 8:PASS 9:PASS 10:PASS 11:PASS 12:PASS
+U_id_stage             1:PASS 2:PASS 3:PASS 4:PASS 5:PASS
+runs: 62, non-PASS: 1 -- E_garuda_pc_gen seed 1 at 09:56:41, the a_fetch_step failure that
+led to TB-39 (TB-32 fix in, TB-39 fix not yet); every run after the TB-39 fix passed.
+
+== TB-33 proof: random bubbles now generated (U_id_stage, seed 1) ==
+randomize() failures: 0
+random IDK_RESET_BUBBLE cycles: 103  (with wb_w=1 and ex_r=1: 24)
+random IDK_BUBBLE_WITH_FAULT cycles: 115
+
+== ELEM-7 / clic: coverage counters checked in the bench (E_clic_ctrl, seed 1) ==
+ COVERAGE: thresh below/equal/above = 2257/1120/2224  mil below/equal/above = 1845/818/2938  pdis handler/level0 = 446/206  cg_clic = 0.0%
+ RESULT: PASSED  (40056 checks, 0 failed)
+(cg_clic = 0.0% is TOOL-22: Verilator get_coverage() is not implemented; with --coverage-user
+ the same bins are in coverage.dat with counts equal to the counters; see H5)
+
+== negative control: tb_clic_ctrl on clic_ctrl_no_preempt.v must FAIL for the named reason ==
+E_clic_ctrl_no_preempt	FAIL	XFAIL:PLANTED
+[FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+[FAIL] random: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=143 thr=45 mil=73)
+
+== TB-39: the a_fetch_step failure hidden under TB-32's xfail ==
+baseline E_garuda_pc_gen had '1 assertion failure(s)' besides the reset [FAIL]s; with the TB-32
+fix alone it remained: [275000] a_fetch_step (sub-cycle mid-stream re-reset, Verilator samples
+disable iff at the clock: TB-34 class). Fixed by holding the re-reset across one clock edge.
+
+== pasted DUT copies removed (W6) ==
+tb_hazard_forward_unit.sv 28, tb_reg_file.sv 47, tb_id_stage.sv 341, tb_branch_predict.sv 38,
+tb_decode_control.sv 222, tb_imm_gen.sv 50 lines (726 in all), each a module copy under
+`ifndef GARUDA_REAL_RTL. Every filelist defines the macro (ours and the main Makefile's
+run_tb_top), so no flow compiled them; they had drifted (branch_predict's copy has no
+bp_dis_i). After removal core/units: 6/6 OK (2026-10-11T10:06:09+05:30).
+Main Makefile comment ("the testbenches also carry an inlined DUT snapshot") is Karthik's
+file: left as is, flagged in the Gate 0 message.

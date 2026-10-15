@@ -1,0 +1,36 @@
+# Core unit benches (the 6 older class-based benches). Baseline manifest:
+# same filelists and tops as Makefile run_tb_top (Makefile:119-138).
+# Run: make -f flow/mk/track_a_run.mk core_units
+[suite]
+block = "core"
+name  = "units"
+kind  = "sim"
+xfail = "tb/core/run/xfail.tsv"
+
+[defaults]
+top    = "tb_top"
+marker = 'ALL CHECKS PASSED|^ RESULT: PASSED'
+timeout = 900
+
+[[test]]
+name = "U_decode_control"
+flist = "tb/core/filelist_decode_control.f"
+[[test]]
+name = "U_imm_gen"
+flist = "tb/core/filelist_imm_gen.f"
+[[test]]
+name = "U_reg_file"
+flist = "tb/core/filelist_reg_file.f"
+[[test]]
+name = "U_branch_predict"
+flist = "tb/core/filelist_branch_predict.f"
+[[test]]
+name = "U_hazard_forward_unit"
+flist = "tb/core/filelist_hazard_forward_unit.f"
+[[test]]
+name = "U_id_stage"
+flist = "tb/core/filelist_id_stage.f"
+# TB-33: the random sequences must now produce both bubble kinds, including a
+# bubble with a write-back and a load in EX (never generated before the fix)
+require = ['seq=crv_seq_\S+ +cyc=\d+ op=IDK_RESET_BUBBLE .*wb_w=1 .*ex_r=1',
+           'seq=crv_seq_\S+ +cyc=\d+ op=IDK_BUBBLE_WITH_FAULT .*valid=0 fault=1']

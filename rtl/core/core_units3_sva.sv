@@ -52,11 +52,12 @@ endmodule
 
 module branch_predict_sva (
     input wire [31:0] pc_i, imm_b_i, imm_j_i, input wire branch_i, jal_i, fencei_i,
+    input wire bp_dis_i,   // CORE-4 mgarudactl.BP_DIS (track A, 2026-10-15)
     input wire predict_taken_o, id_redirect_valid_o, input wire [31:0] id_redirect_target_o
 );
-    always @(*) if (!$isunknown({pc_i, imm_b_i, imm_j_i, branch_i, jal_i, fencei_i})) begin
-        // CORE: static backward-taken, forward-not-taken
-        a_bp_btfn: assert #0 (predict_taken_o == (branch_i && imm_b_i[31]))
+    always @(*) if (!$isunknown({pc_i, imm_b_i, imm_j_i, branch_i, jal_i, fencei_i, bp_dis_i})) begin
+        // CORE: static backward-taken, forward-not-taken; CORE-4: BP_DIS predicts every branch not-taken
+        a_bp_btfn: assert #0 (predict_taken_o == (branch_i && imm_b_i[31] && !bp_dis_i))
             else $error("[SVA-FAIL] a_bp_btfn: the static prediction is not backward-taken");
         a_bp_jal: assert #0 (!(jal_i && !fencei_i) || (id_redirect_valid_o && id_redirect_target_o == pc_i + imm_j_i))
             else $error("[SVA-FAIL] a_bp_jal: JAL does not redirect to pc + J-imm in ID");
@@ -64,7 +65,7 @@ module branch_predict_sva (
             else $error("[SVA-FAIL] a_bp_taken: a predicted-taken branch does not go to pc + B-imm");
         a_bp_fencei: assert #0 (!fencei_i || (id_redirect_valid_o && id_redirect_target_o == pc_i + 32'd4))
             else $error("[SVA-FAIL] a_bp_fencei: FENCE.I does not refetch from pc + 4");
-        a_bp_none: assert #0 ((branch_i && imm_b_i[31]) || jal_i || fencei_i || !id_redirect_valid_o)
+        a_bp_none: assert #0 ((branch_i && imm_b_i[31] && !bp_dis_i) || jal_i || fencei_i || !id_redirect_valid_o)
             else $error("[SVA-FAIL] a_bp_none: an ID redirect with nothing to redirect for");
     end
 endmodule

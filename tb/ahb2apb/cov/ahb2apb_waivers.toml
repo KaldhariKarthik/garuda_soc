@@ -1,0 +1,70 @@
+# AHB2APB coverage waivers (bus plan B2). Every waiver needs evidence: literal, or PROVEN
+# (tb/ahb2apb/formal). Hand-written waivers go ABOVE the generated toggle section.
+
+# =============================================================================
+# LINE / BRANCH / EXPR (hand-written; keep ABOVE the generated toggle section)
+# =============================================================================
+[[waiver]]
+id       = "CL-HSTATE"
+metric   = "line"
+file     = "rtl/ahb2apb/ahb2apb_bridge.v"
+match    = "^line:172 case"
+category = "unreachable"
+reason   = "The hclk FSM's 3-bit state uses six codes (H_IDLE..H_ERR2); the `default:` arm recovers the two unused codes, which no transition produces."
+evidence = "PROVEN fv_apb apb_prove + fv_apb_div div_prove a_hstate_legal (hstate <= 5), abc pdr, 2026-10-14"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CB-WIN12"
+metric   = "branch"
+file     = "rtl/ahb2apb/ahb2apb_apb_fsm.v"
+match    = "^line:53 cond_else"
+category = "unreachable"
+reason   = "win_i is the bridge's captured window, which only takes a present window 0..11; the guard (win_i < 12) protects the APB_DIV part-select and is never false."
+evidence = "PROVEN fv_apb apb_prove + fv_apb_div div_prove a_win_cap_legal (win_cap < 12 always), 2026-10-14"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CE-WIN12"
+metric   = "expr"
+file     = "rtl/ahb2apb/ahb2apb_apb_fsm.v"
+match    = "^line:53 \\(\\(win_i < 4'hc\\)==0\\)"
+category = "unreachable"
+reason   = "Same guard as CB-WIN12: (win_i < 12) is never false."
+evidence = "PROVEN a_win_cap_legal, as CB-WIN12"
+reviewer = "pending: Sreyesh"
+
+# =============================================================================
+# CODE: toggle (generated from a rule table by tools/cov/gen_toggle_waivers.py;
+# every hole below is explained by its rule's evidence)
+# =============================================================================
+[[waiver]]
+id       = "CT-SIZE2-ahb2apb_bridge"
+metric   = "toggle"
+file     = "rtl/ahb2apb/ahb2apb_bridge.v"
+match    = "^(hsize_i\\[2\\]:0\\->1|hsize_i\\[2\\]:1\\->0)$"
+category = "constant"
+reason   = "The AHB is 32 bits wide: HSIZE <= word, so HSIZE[2] is 0 on the shared bus."
+evidence = "literal rtl/core/garuda_iport_ahb_master.v:89, rtl/core/load_store_unit.v:32, rtl/debug/sba_master.v:42, rtl/dma/dma_engine.v {1'b0, size}"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-TOCNT-ahb2apb_apb_fsm"
+metric   = "toggle"
+file     = "rtl/ahb2apb/ahb2apb_apb_fsm.v"
+match    = "^(to_cnt\\[4\\]:0\\->1|to_cnt\\[4\\]:1\\->0)$"
+category = "constant"
+reason   = "The 5-bit timeout counter stops at TIMEOUT-1 = 15, so bit 4 is never set."
+evidence = "PROVEN fv_apb / fv_apb_div a_to_cnt_max (rtl/ahb2apb/ahb2apb_sva.sv)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-WORDALIGN-ahb2apb_bridge"
+metric   = "toggle"
+file     = "rtl/ahb2apb/ahb2apb_bridge.v"
+match    = "^(addr_cap\\[0\\]:0\\->1|addr_cap\\[0\\]:1\\->0|addr_cap\\[1\\]:0\\->1|addr_cap\\[1\\]:1\\->0|paddr_o\\[0\\]:0\\->1|paddr_o\\[0\\]:1\\->0|paddr_o\\[1\\]:0\\->1|paddr_o\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Only word transfers reach APB (sub-word is rejected, a_subword_no_apb PROVEN) and an AHB-Lite word transfer is word-aligned, so the captured address and PADDR bits [1:0] are 0."
+evidence = "PROVEN fv_apb a_subword_no_apb; AHB-Lite alignment rule checked by ahb_lite_checker on every master port; GARUDA masters: BUS-E (a_iport_pc_aligned PROVEN), the LSU traps misaligned accesses"
+reviewer = "pending: Sreyesh"
+

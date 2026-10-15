@@ -1,0 +1,49 @@
+# dma_arbiter for five PRIO settings (Track A, DMA plan D2; vPlan F26, R-4, [N-7.4]).
+# Combinational, so `prove` closes at once. The negative control (a tie goes to
+# the HIGHER channel: '>' became '>=') must fail a_grant in the equal and pairs
+# settings; the shipped map alone would not show it (planted defect M12).
+# Run: make -f flow/mk/track_a_run.mk fv_dma
+[suite]
+block = "dma"
+name  = "fv_dma_arb"
+xfail = "tb/dma/run/xfail.tsv"
+
+[design]
+flist   = "tb/dma/formal/filelist_arb_fv.f"
+top     = "dma_arb_fv"
+min_asserts = 10
+min_covers  = 3     # c_tie in the equal and pairs settings, c_all (merged by yosys)
+
+[[task]]
+name    = "arb_prove"
+mode    = "prove"
+engine  = "abc pdr"
+timeout = 600
+
+[[task]]
+name    = "arb_cover"
+mode    = "cover"
+depth   = 2
+engine  = "smtbmc yices"
+timeout = 600
+
+[[task]]
+name    = "arb_mut_tie_high"
+mode    = "bmc"
+depth   = 2
+engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_arbiter.v" = "tb/dma/formal/mutants/dma_arbiter_mut_tie_high.v" }
+timeout = 600
+
+# M12 of the planted-defect run (DMA plan D8) is EQUIVALENT under the shipped map:
+# the same tie-high mutant with ONLY the shipped-map checks kept must PASS. The
+# arbiter is combinational, so depth 2 covers every eligible value: a complete proof.
+[[task]]
+name    = "arb_mut_tie_high_shipped"
+mode    = "bmc"
+depth   = 2
+engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_arbiter.v" = "tb/dma/formal/mutants/dma_arbiter_mut_tie_high.v" }
+script  = ["chformal -assert -remove t:$check n:u_shipped.* %d"]
+timeout = 600
+min_asserts = 2

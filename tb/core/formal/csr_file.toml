@@ -1,0 +1,39 @@
+# csr_file-level formal: the C-16 read-zero contract (rtl/core/csr_file_props_a.sv).
+# Every input free; reset low in the first cycle, then free (csr_file_fv_env.sv).
+# Assumptions: ASSUMPTIONS.md FA-5.
+# Run: make -f flow/mk/track_a_run.mk fv_core_csr
+[suite]
+block = "core"
+name  = "fv_csr"
+xfail = "tb/core/run/xfail.tsv"
+
+[design]
+flist = "tb/core/formal/filelist_csr_file_fv.f"
+top   = "csr_file"
+extra = ["tb/core/formal/csr_file_fv_env.sv"]
+min_asserts = 11
+min_covers  = 9
+
+[[task]]
+name   = "csr_prove"
+mode   = "prove"
+engine = "abc pdr"
+
+[[task]]
+name   = "csr_cover"
+mode   = "cover"
+# nested scenarios need reset + trap + nested trap (+ mret): depth 8
+depth  = 8
+engine = "smtbmc yices"
+
+[[task]]
+name    = "csr_prove_no_t12"
+mode    = "prove"
+engine  = "abc pdr"
+replace = { "rtl/core/csr_file.v" = "tb/core/formal/mutants/csr_file_no_t12.v" }
+
+[[task]]
+name    = "csr_prove_no_c16"
+mode    = "prove"
+engine  = "abc pdr"
+replace = { "rtl/core/csr_file.v" = "tb/core/formal/mutants/csr_file_no_c16.v" }

@@ -1,0 +1,83 @@
+dma_sva cover properties after DMA plan D1 (2026-10-12): hits merged over 16 runs
+runs: dma/block.cov tb_dma_top (1), dma/probe.cov tb_dma_probe x7, debug/chip_diag.cov tb_chip x8 (Verilator 5.052 --coverage-user)
+note: Verilator merges a cover inside a generate loop into one point (g_ch[*]); per-channel bins come from the D4 coverage module
+covers hit: 70 / 77
+
+cover                                               hits  phase that will hit it
+c_addr_stall                                           8  
+c_after_rd_err                                         1  
+c_all_eligible                                         0  D5 (six channels requesting at once, F26/F28)
+c_apb_access2                                       2140  
+c_apb_read                                           704  
+c_apb_write                                         1435  
+c_back_to_back                                        15  
+c_byte_beat                                            7  
+c_grant                                             4632  
+c_gstat_read                                           4  
+c_half_beat                                           13  
+c_rd_addr                                            507  
+c_rd_error                                             1  
+c_rd_wait                                            539  
+c_refuse_dar                                          33  
+c_refuse_sar                                          14  
+c_reset_idle                                           0  D5 (reset with a channel active and the engine idle, F47)
+c_reset_ra                                             0  D5 (reset in the read-address phase, F47)
+c_reset_rd                                             0  D5 (reset in the read-data phase, F47)
+c_reset_wa                                             0  D5 (reset in the write-address phase, F47)
+c_reset_wd                                             0  D5 (reset in the write-data phase, F47)
+c_ro_write                                             2  
+c_strobe                                            1432  
+c_take                                               507  
+c_take_blocked                                       509  
+c_unaligned                                            2  
+c_unaligned_half                                       2  
+c_unmapped                                             2  
+c_wr_addr                                            473  
+c_wr_done                                            472  
+c_wr_error                                             1  
+c_wr_wait                                            205  
+g_ch[*].c_ack                                        472  
+g_ch[*].c_ack_fall                                   472  
+g_ch[*].c_ack_pclk                                   472  
+g_ch[*].c_arm                                        266  
+g_ch[*].c_beat_done                                  472  
+g_ch[*].c_cnt_max                                      1  
+g_ch[*].c_cnt_write                                  251  
+g_ch[*].c_collision_en                                 4  
+g_ch[*].c_comp                                     41828  
+g_ch[*].c_comp_masked                              34741  
+g_ch[*].c_complete                                   177  
+g_ch[*].c_complete_held                            41656  
+g_ch[*].c_cr_write                                   359  
+g_ch[*].c_cr_write_active                             32  
+g_ch[*].c_dar_write                                  247  
+g_ch[*].c_dar_write_mid_beat                           1  
+g_ch[*].c_eligible                                  4887  
+g_ch[*].c_en_running                              176314  
+g_ch[*].c_en_zero_left                                 2  
+g_ch[*].c_err_held                                  1883  
+g_ch[*].c_err_masked                                 307  
+g_ch[*].c_err_other_active                             1  
+g_ch[*].c_err_read                                    15  
+g_ch[*].c_err_with_req                                 3  
+g_ch[*].c_err_write                                   34  
+g_ch[*].c_frozen                                    1929  
+g_ch[*].c_held_request                                21  
+g_ch[*].c_hwclr                                      226  
+g_ch[*].c_iclr_complete                              154  
+g_ch[*].c_iclr_error                                  46  
+g_ch[*].c_irq_complete                               134  
+g_ch[*].c_irq_error                                   42  
+g_ch[*].c_m2m_active                                4160  
+g_ch[*].c_mode3                                        1  
+g_ch[*].c_periph_wait                             171698  
+g_ch[*].c_rearm_in_flight                              2  
+g_ch[*].c_restart_after_stop                          77  
+g_ch[*].c_sar_write                                  247  
+g_ch[*].c_set_beats_clear_c                            2  
+g_ch[*].c_set_beats_clear_e                            2  
+g_ch[*].c_size3                                        0  D3 register tests (SIZE = 3 write, F03)
+g_ch[*].c_step_dinc                                  387  
+g_ch[*].c_step_sinc                                  243  
+g_ch[*].c_zero_length                                  2  
+g_prio__BRA__*__KET____DOT__c_contest                255  

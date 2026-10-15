@@ -1,0 +1,27 @@
+T-12 -- BEFORE the fix (design b90b481d8f91, csr_file.v level stack unchanged), 2026-10-11T08:57:37+05:30
+tb/core/tb_csr_file_t12.sv (suite core/csr), firmware-compliant: handlers save/restore mcause
+
+[PASS] A0 level after reset                             0       
+[PASS] A1 enter level 80                                50      
+[PASS] A2 preempted by level 200                        c8      
+[PASS] A3 B returns: level 80                           50      
+[FAIL] A4 A returns: level 0                            got 50       expected 0       
+[PASS] B1 enter level 80                                50      
+[PASS] B2 exception inside: level stays 80              50      
+[FAIL] B3 exception returns: still 80                   got 0        expected 50      
+[PASS] B4 handler returns: level 0                      0       
+[PASS] C1 enter level 80                                50      
+[FAIL] C2 MTI inside: level stays 80                    got 0        expected 50      
+[PASS] C3 MTI returns: still 80                         50      
+[FAIL] C4 handler returns: level 0                      got 50       expected 0       
+[PASS] D1 level 40                                      28      
+[PASS] D2 level 120                                     78      
+[PASS] D3 level 200                                     c8      
+[PASS] D4 unwind to 120                                 78      
+[FAIL] D5 unwind to 40                                  got 78       expected 28      
+[FAIL] D6 unwind to 0                                   got 78       expected 0       
+[PASS] E1 exception at level 0: plain mcause            5       
+[PASS] E2 interrupt from level 0: mpil 0                80000003
+[FAIL] E3 interrupt from level 80: mcause[23:16]=80     got 80000005 expected 80500005
+[FAIL] F1 mintstatus 0x346 = {24'b0, mil}               got 50c8     expected c8      
+[FAIL] F2 mintstatus 0xFB1 = {mil, 24'b0}               got 50c8     expected c8000000

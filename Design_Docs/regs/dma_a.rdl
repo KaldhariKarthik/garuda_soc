@@ -1,0 +1,96 @@
+// =============================================================================
+// Track A copy (plain-SV benches; STAT/GSTAT writes answer no PSLVERR, AUD-13). Karthik's dma.rdl drives the UVM model.
+// dma.rdl - register description of block 9, DMA controller
+// (APB window 5, 0x4000_5000).
+//
+// Source: GARUDA-DMA-SPEC-001 Rev 3.0a section 6 (CR reset 0x40, SIZE = 3 refused,
+// [N-6.6] PSLVERR rule), decisions D-2 / D-16, AUD-13. Written 2026-10-05 in
+// ~/garuda_dv; brought into the repo 2026-10-12 (Track A DMA plan D3, Karthik's
+// plan 2.2). The plain-SV register package the DMA benches use is generated from it:
+//     python3.12 tools/gen/gen_regs_sv.py Design_Docs/regs/dma_a.rdl tb/dma/env/dma_regs_pkg.sv
+// (the team's UVM RAL generator tools/gen/gen_ral.py applies too, if UVM is needed).
+//
+// Behaviour a register description cannot express, and where it is checked:
+//   CR.EN       hardware clears it on completion or error; hardware wins a
+//               same-cycle software write (R-7)        -> dma_sva a_hw_wins_en, reference model
+//   CR.MODE     a write of 3 leaves MODE unchanged ([N-6.1]) -> dma_sva a_mode3_rejected, dma_reg_test
+//   CR.SIZE     a write of 3 leaves SIZE unchanged (F03)     -> dma_sva a_size3_rejected, dma_reg_test
+//   CNT         loaded into STAT.REMAINING when EN goes 0 -> 1 -> reference model
+//   STAT, GSTAT read-only; a write is ignored and answers no PSLVERR (AUD-13,
+//               [N-6.6]); PSLVERR only for an offset that is not a register
+//                                                      -> dma_sva a_pslverr_rule, tb_dma_regs
+//   ICLR        write 1 to clear; reads 0; a flag set by hardware in the same
+//               cycle stays set ([N-7.19])             -> dma_sva a_set_beats_clear
+// =============================================================================
+addrmap dma {
+    name = "DMA controller";
+    desc = "Block 9: six channels, APB window 5 (0x4000_5000), AHB-Lite master M3";
+    default regwidth    = 32;
+    default accesswidth = 32;
+
+    regfile chan_rf {
+        name = "One DMA channel";
+
+        reg {
+            name = "Channel control";
+            field { sw = rw; hw = rw; reset = 1'b0;
+                    desc = "Channel enable. Hardware clears it on completion or error and wins a same-cycle software write (R-7)."; } EN[0:0];
+            field { sw = rw; hw = r;  reset = 2'd0;
+                    desc = "0 = P2M, 1 = M2P, 2 = M2M. A write of 3 leaves MODE unchanged ([N-6.1])."; } MODE[2:1];
+            field { sw = rw; hw = r;  reset = 1'b0; desc = "Increment SAR after each successful beat."; } SINC[3:3];
+            field { sw = rw; hw = r;  reset = 1'b0; desc = "Increment DAR after each successful beat."; } DINC[4:4];
+            field { sw = rw; hw = r;  reset = 2'd2;
+                    desc = "0 = byte, 1 = halfword, 2 = word. A write of 3 leaves SIZE unchanged."; } SIZE[6:5];
+            field { sw = rw; hw = r;  reset = 1'b0; desc = "Completion interrupt enable."; } IE_COMP[7:7];
+            field { sw = rw; hw = r;  reset = 1'b0; desc = "Error interrupt enable."; } IE_ERR[8:8];
+            field { sw = r;  hw = na; reset = 23'd0; desc = "Reads 0."; } RSVD[31:9];
+        } CR @ 0x00;
+
+        reg {
+            name = "Source address";
+            field { sw = rw; hw = rw; reset = 32'h0;
+                    desc = "Advances by the beat size after each successful beat when SINC is set; frozen at the failing beat ([N-7.15])."; } ADDR[31:0];
+        } SAR @ 0x04;
+
+        reg {
+            name = "Destination address";
+            field { sw = rw; hw = rw; reset = 32'h0;
+                    desc = "Advances by the beat size after each successful beat when DINC is set; frozen at the failing beat ([N-7.15])."; } ADDR[31:0];
+        } DAR @ 0x08;
+
+        reg {
+            name = "Transfer count";
+            field { sw = rw; hw = r;  reset = 16'h0; desc = "Beats to move; loaded into REMAINING when EN goes from 0 to 1."; } COUNT[15:0];
+            field { sw = r;  hw = na; reset = 16'h0; desc = "Reads 0."; } RSVD[31:16];
+        } CNT @ 0x0C;
+
+        reg {
+            name = "Channel status (read-only; a write is ignored, no PSLVERR: AUD-13)";
+            field { sw = r; hw = w; reset = 16'h0; desc = "Beats not yet transferred."; } REMAINING[15:0];
+            field { sw = r; hw = w; reset = 1'b0;  desc = "EN and REMAINING != 0."; } ACTIVE[16:16];
+            field { sw = r; hw = w; reset = 1'b0;  desc = "All beats transferred; sticky until ICLR."; } COMPLETE[17:17];
+            field { sw = r; hw = w; reset = 1'b0;  desc = "AHB ERROR or R-9 refusal; sticky until ICLR."; } ERROR[18:18];
+            field { sw = r; hw = w; reset = 3'd0;  desc = "0 = none, 1 = read, 2 = write."; } ERRPHASE[21:19];
+            field { sw = r; hw = na; reset = 10'h0; desc = "Reads 0."; } RSVD[31:22];
+        } STAT @ 0x10;
+
+        reg {
+            name = "Interrupt clear (write 1 to clear; reads 0)";
+            field { sw = w; hw = r; reset = 1'b0; desc = "1 clears COMPLETE."; } CLR_COMPLETE[0:0];
+            field { sw = w; hw = r; reset = 1'b0; desc = "1 clears ERROR and ERRPHASE."; } CLR_ERROR[1:1];
+            field { sw = r; hw = na; reset = 30'h0; desc = "Reads 0."; } RSVD[31:2];
+        } ICLR @ 0x14;
+    };
+
+    chan_rf CH[6] @ 0x000 += 0x20;
+
+    reg {
+        name = "Global status (read-only; a write is ignored, no PSLVERR: AUD-13)";
+        field { sw = r; hw = w;  reset = 6'h0;  desc = "STAT.ACTIVE of channels 5..0."; }   ACTIVE[5:0];
+        field { sw = r; hw = na; reset = 2'h0;  desc = "Reads 0."; }                          RSVD0[7:6];
+        field { sw = r; hw = w;  reset = 6'h0;  desc = "STAT.COMPLETE of channels 5..0."; } COMPLETE[13:8];
+        field { sw = r; hw = na; reset = 2'h0;  desc = "Reads 0."; }                          RSVD1[15:14];
+        field { sw = r; hw = w;  reset = 6'h0;  desc = "STAT.ERROR of channels 5..0."; }    ERROR[21:16];
+        field { sw = r; hw = na; reset = 10'h0; desc = "Reads 0."; }                          RSVD2[31:22];
+    } GSTAT @ 0x100;
+};

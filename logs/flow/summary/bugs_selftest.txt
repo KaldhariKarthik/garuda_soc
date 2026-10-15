@@ -1,0 +1,9 @@
+OK          untouched copy passes
+CAUGHT      duplicate ID  (ERROR core.md line 39: T-12 already defined in core.md line 38)
+CAUGHT      unknown status  (ERROR core.md line 38: T-12 status 'MAYBE' not in ['OPEN', 'RULING-NEEDED', 'IN-PROGRESS', 'FIXED', 'CLOSED', )
+CAUGHT      open without priority  (ERROR core.md line 38: T-12 is IN-PROGRESS without P1..P3)
+CAUGHT      bad Found date  (ERROR core.md line 38: T-12 Found '11/10/26' is not YYYY-MM-DD or legacy)
+CAUGHT      FIXED without SHA  (ERROR core.md line 40: T-15 FIXED needs Fixed-in = commit SHA (or legacy))
+CAUGHT      FIXED without test  (ERROR core.md line 33: T-13 FIXED needs the regression test that proves it)
+CAUGHT      cited erratum missing  (ERROR rtl/core/branch_unit.v:57: ERRATUM T-1 is cited but not in the register (run `bugs.py backfill-errata`))
+verdict: PASS

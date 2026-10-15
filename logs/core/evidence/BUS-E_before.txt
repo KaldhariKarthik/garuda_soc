@@ -1,0 +1,38 @@
+BUS-E before the fix: the I-port issues word fetches at addresses that are 2 mod 4 (AHB-Lite: HADDR must be aligned to HSIZE)
+date      : 2026-10-11T14:36:13+05:30
+design    : b90b481d8f91 + working tree (a/p0-infra), garuda_iport_ahb_master.v before the BUS-E fix
+tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+test      : core/covtests t_cov_misfetch (a load in front of each JAL / branch with a misaligned target)
+
+== runner rows (coverage mode) ==
+t_cov_misfetch	FAIL	UNEXPECTED
+t_cov_misfetch_w2	PASS	OK
+t_cov_misfetch_d3	FAIL	UNEXPECTED
+
+== AHB-Lite checker on the I-port (t_cov_misfetch, no waits) ==
+AHB-VIOLATION 123000 tb_boot.u_ichk.viol: HADDR is not aligned to HSIZE
+AHB-VIOLATION 473000 tb_boot.u_ichk.viol: HADDR is not aligned to HSIZE
+AHB-VIOLATION 618000 tb_boot.u_ichk.viol: HADDR is not aligned to HSIZE
+AHB-VIOLATION 663000 tb_boot.u_ichk.viol: HADDR is not aligned to HSIZE
+AHB-VIOLATION 708000 tb_boot.u_ichk.viol: HADDR is not aligned to HSIZE
+AHB-VIOLATION 748000 tb_boot.u_ichk.viol: HADDR is not aligned to HSIZE
+*** TOHOST=1 -> PASSED (94 instructions retired, 0 cycles clock-gated) ***
+     HADDR unaligned to HSIZE         : 6
+AHB-PROTOCOL: iport=6 dport=0 violations
+# verdict   : FAIL  exit 1; 1 assertion failure(s); 1 %Error line(s); missing: /AHB-PROTOCOL: iport=0 dport=0/ | first: *** AHB PROTOCOL VIOLATIONS -> FAILED (use +NO_AHBCHK_FATAL to demote) ***
+
+== formal: cover c_ihaddr_bit1 (fetch address phase with HADDR[1] = 1) REACHED at step 12 ==
+time    i_haddr_o i_htrans_o i_hready_i  mem_stall   fd_instr   xe_instr id_redir_v pc_if_redi
+80       10000008          3          1          0         13         13          0          0
+90       1000000c          3          0          0          3         13          0   10000000
+100      1000000c          3          0          0   a020016f          3          1    ff00206
+110      1000000c          3          1          1         13   a020016f          0          0
+120       ff00206          2          0          1         13   a020016f          0          0
+130       ff00206          2          0          1         13   a020016f          0          0
+
+Mechanism: a JAL / predicted-taken branch in ID redirects fetch to its misaligned target;
+the instruction then waits in EX behind a load in MEM (its trap or mispredict redirect is
+held while the D-port transfer is outstanding, T-9), and the I-port, already redirected,
+issues a word fetch at the misaligned address. Architecturally harmless (the slots are
+bubbles; Spike lockstep MATCH on the traps), but an AHB-Lite protocol violation: a slave may
+answer ERROR or misbehave, and the target can be any address (a peripheral).

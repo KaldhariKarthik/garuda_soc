@@ -1,0 +1,20 @@
+AUD-13 before the fix: a write to read-only STAT / GSTAT answers PSLVERR (Karthik's plan task 0.5: PSLVERR only for an offset that is not a register; a write to a read-only register is ignored)
+date      : 2026-10-12T00:07:43+05:30
+tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+seed      : 1
+design    : b90b481d8f91 + working tree (a/p0-infra), rtl/dma/dma_apb_slave.v:124 before the AUD-13 fix
+test      : dma/block tb_dma_top, register rules (step 7) with the AUD-13 expectation
+
+== runner row ==
+tb_dma_top	FAIL	XFAIL:AUD-13
+
+== the two AUD-13 checks, and the verdict ==
+[PASS] PSLVERR on unmapped offset (channel 6)
+[FAIL] [AUD-13] a write to read-only STAT is ignored: no PSLVERR, STAT unchanged (t=3850000)
+[FAIL] [AUD-13] a write to read-only GSTAT is ignored: no PSLVERR, GSTAT unchanged (t=3922000)
+tb_dma_top: checks=64  FAIL=2
+RESULT: FAILED
+# verdict   : FAIL  pass marker missing; 2 [FAIL] line(s); missing: /tb_dma_top: checks=64 +FAIL=0/ | first: [FAIL] [AUD-13] a write to read-only STAT is ignored: no PSLVERR, STAT unchanged (t=3850000)
+
+== cause ==
+assign pslverr_o = psel_i & penable_i & (~hit | (pwrite_i & (gstat | (chan_rgn & reg_ == 3'd4))));

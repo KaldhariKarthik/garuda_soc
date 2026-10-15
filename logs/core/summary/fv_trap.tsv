@@ -1,0 +1,14 @@
+# garuda-fv 1 suite=fv_trap block=core date=2026-10-15T22:07:35+05:30 design=167aa935078d4e9cecaa35e5186328b55cfc2ca6 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+trap_bmc	bmc	BOUNDED(20)	OK	6	[39 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_trap_bmc.log
+trap_prove	prove	PROVEN	OK	6	[30 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_trap_prove.log
+pipe_bmc	bmc	BOUNDED(30)	OK	16	[9 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_pipe_bmc.log
+trap_cover	cover	COVERED	OK	25	[39 asserts, 34 covers in model] 	logs/core/raw/fv_trap/fv_trap_cover.log
+trap_prove_unfixed	prove	FAIL	XFAIL:PLANTED	4	[39 asserts, 35 covers in model] assertion failed (see trace)	logs/core/raw/fv_trap/fv_trap_prove_unfixed.log
+t17_no_fix	bmc	FAIL	XFAIL:PLANTED	2	[39 asserts, 35 covers in model] props: u_trap.u_trap_sva.a_ex_exc_needs_instr	logs/core/raw/fv_trap/fv_t17_no_fix.log
+t18_no_fix	bmc	FAIL	XFAIL:PLANTED	1	[39 asserts, 35 covers in model] props: u_trap.u_trap_sva.a_misfetch_tval_misaligned	logs/core/raw/fv_trap/fv_t18_no_fix.log
+buse_no_fix	bmc	FAIL	XFAIL:PLANTED	1	[39 asserts, 35 covers in model] props: u_if.u_iport_master.u_ctl_sva.a_ihaddr_aligned	logs/core/raw/fv_trap/fv_buse_no_fix.log
+ctl_no_bpdis	bmc	FAIL	XFAIL:PLANTED	1	[39 asserts, 35 covers in model] props: u_ctl_sva.a_ctl_bp	logs/core/raw/fv_trap/fv_ctl_no_bpdis.log
+ctl_no_pfdis	bmc	FAIL	XFAIL:PLANTED	1	[39 asserts, 35 covers in model] props: u_if.u_iport_master.u_ctl_sva.a_ctl_pf	logs/core/raw/fv_trap/fv_ctl_no_pfdis.log
+ctl_no_preempt	bmc	FAIL	XFAIL:PLANTED	2	[39 asserts, 35 covers in model] props: u_ctl_sva.a_ctl_preempt	logs/core/raw/fv_trap/fv_ctl_no_preempt.log
+ctl_no_cgdis	bmc	FAIL	XFAIL:PLANTED	2	[39 asserts, 35 covers in model] props: u_ctl_sva.a_ctl_cg	logs/core/raw/fv_trap/fv_ctl_no_cgdis.log

@@ -1,0 +1,25 @@
+BUS-E after the fix (garuda_iport_ahb_master.v: no fetch issued while fetch_pc[1:0] != 0)
+date      : 2026-10-11T14:38:20+05:30
+design    : b90b481d8f91 + working tree (a/p0-infra)
+tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a; SBY via tools/run/garuda_fv.py
+
+== simulation: core/covtests (xfail rows removed); AHB-Lite checker clean ==
+t_cov_misfetch	PASS	OK	MATCH
+t_cov_misfetch_w2	PASS	OK	n/a
+t_cov_misfetch_d3	PASS	OK	n/a
+-- t_cov_misfetch
+*** TOHOST=1 -> PASSED (94 instructions retired, 0 cycles clock-gated) ***
+AHB-PROTOCOL: iport=0 dport=0 violations
+-- t_cov_misfetch_d3
+*** TOHOST=1 -> PASSED (94 instructions retired, 0 cycles clock-gated) ***
+AHB-PROTOCOL: iport=0 dport=0 violations
+
+== formal ==
+trap_prove	prove	PROVEN	[26 asserts, 20 covers in model] 
+buse_no_fix	bmc	FAIL	[26 asserts, 20 covers in model] props: u_if.u_iport_master.u_ctl_sva.a_ihaddr_aligned
+cov_prove	prove	PROVEN	[45 asserts, 21 covers in model] 
+
+a_ihaddr_aligned (rtl/core/core_ctl_sva.sv): every I-port address phase is word-aligned.
+PROVEN on the whole core (fv_trap trap_prove); the pre-fix I-port FAILS it (buse_no_fix).
+Consequence, also PROVEN (fv_cov a_pc_aligned, a_iport_pc_aligned): no fetch-path or
+pipeline PC copy is ever misaligned, bubbles included.

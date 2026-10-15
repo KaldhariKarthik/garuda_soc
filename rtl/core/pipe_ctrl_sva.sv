@@ -30,9 +30,21 @@
 // [N-7.24] the one exception: H2 (D-port wait) defers the flush instead,
 //          because AHB-Lite cannot abort a transfer whose address phase has
 //          been accepted.
+//
+// Portable form (H4, 2026-10-12): same-cycle implications are written
+// `!(A) || (B)` so yosys-slang reads the file and the properties are proven at
+// whole-core level by tb/core/formal/core_trap.toml (fv_trap) as well.
 // =============================================================================
 
-`ifndef SYNTHESIS
+`ifdef FORMAL
+  `define GARUDA_PIPE_SVA
+`elsif SYNTHESIS
+`elsif __ICARUS__   // Icarus has no bind / assert property (same rule as the *_sva.sv files on main)
+`else
+  `define GARUDA_PIPE_SVA
+`endif
+
+`ifdef GARUDA_PIPE_SVA
 module pipe_ctrl_sva (
     input wire clk,
     input wire rst_n,
@@ -88,10 +100,10 @@ module pipe_ctrl_sva (
     //     That is ERRATUM P-1, which destroyed the load still sitting there.
     // -------------------------------------------------------------------------
     a_h2_defers_flush: assert property (@(posedge clk) disable iff (!rst_n)
-        mem_stall |-> !if_redirect);
+        !mem_stall || !if_redirect);
 
     a_h2_defers_flush_loaduse: assert property (@(posedge clk) disable iff (!rst_n)
-        (mem_stall && load_use) |-> !id_ex_flush);
+        !(mem_stall && load_use) || !id_ex_flush);
 
     // -------------------------------------------------------------------------
     // a_trap_beats_branch
@@ -100,7 +112,7 @@ module pipe_ctrl_sva (
     // branch units are asking for at the same moment.
     // -------------------------------------------------------------------------
     a_trap_beats_branch: assert property (@(posedge clk) disable iff (!rst_n)
-        (trap_redir_v && !mem_stall) |-> (if_redirect && (if_redirect_pc == trap_redir_t)));
+        !(trap_redir_v && !mem_stall) || (if_redirect && (if_redirect_pc == trap_redir_t)));
 
     // -------------------------------------------------------------------------
     // a_no_gate_with_bus  [N-7.28]
@@ -109,12 +121,12 @@ module pipe_ctrl_sva (
     // not merely lose time.
     // -------------------------------------------------------------------------
     a_no_gate_with_bus: assert property (@(posedge clk) disable iff (!rst_n)
-        quiescent |-> bus_idle);
+        !quiescent || bus_idle);
 
     // and the two hold sources that must also be clear before gating, so a
     // gate can never freeze a DSU accumulate or a D-port data phase part-way
     a_no_gate_mid_work: assert property (@(posedge clk) disable iff (!rst_n)
-        quiescent |-> (!dsu_busy && !mem_stall));
+        !quiescent || (!dsu_busy && !mem_stall));
 
     // -------------------------------------------------------------------------
     // a_no_gate_with_flush
@@ -135,7 +147,7 @@ module pipe_ctrl_sva (
     // what must never happen while gated is a redirect being APPLIED.
     // -------------------------------------------------------------------------
     a_no_gate_with_flush: assert property (@(posedge clk) disable iff (!rst_n)
-        quiescent |-> !(if_redirect || trap_redir_v ||
+        !quiescent || !(if_redirect || trap_redir_v ||
                         if_id_flush || id_ex_flush || mem_wb_flush));
 
     // -------------------------------------------------------------------------

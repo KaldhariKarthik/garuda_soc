@@ -1,0 +1,19 @@
+CORE-4 (mgarudactl, CSR 0x7C0) -- AFTER (Track A W5, DN-CTL; address/bits: Karthik to confirm), 2026-10-11T09:38:30+05:30
+RTL: csr_file.v (register), branch_predict.v + id_stage.v (BP_DIS), garuda_iport_ahb_master.v + garuda_if_stage_top.v (PF_DIS),
+     clic_ctrl.v (PREEMPT_DIS), garuda_core_top.v (CG_DIS + wiring); properties rtl/core/core_ctl_sva.sv, csr_file_sva.sv.
+
+1) sw/tests/t_core_ctl.S (register reads [3:0]; same checksum under all 16 settings; BP_DIS and PF_DIS each slower):
+   t_core_ctl: *** TOHOST=1 -> PASSED (5368 instructions retired, 0 cycles clock-gated) ***
+   t_core_ctl_w3: *** TOHOST=1 -> PASSED (5304 instructions retired, 0 cycles clock-gated) ***
+   (t_core_ctl_w3 = t_core_ctl_arch.S with 3 wait states: results only -- with waits the predictor's saving disappears)
+
+2) formal (fv_trap, whole core): a_ctl_bp, a_ctl_pf, a_ctl_preempt, a_ctl_cg PROVEN with the rest;
+   each knob ignored (mutants ctl_no_bpdis/pfdis/preempt/cgdis) FAILS exactly its own property:
+   ctl_no_bpdis     FAIL   [24 asserts, 19 covers in model] props: u_ctl_sva.a_ctl_bp
+   ctl_no_pfdis     FAIL   [24 asserts, 19 covers in model] props: u_if.u_iport_master.u_ctl_sva.a_ctl_pf
+   ctl_no_preempt   FAIL   [24 asserts, 19 covers in model] props: u_ctl_sva.a_ctl_preempt
+   ctl_no_cgdis     FAIL   [24 asserts, 19 covers in model] props: u_ctl_sva.a_ctl_cg
+
+3) side effect found and fixed: sw/tests/t_hold_flush_matrix.S bit 4 used 0x7C0 as an 'unimplemented CSR';
+   with mgarudactl there its csrrw would have switched features off mid-test. Now uses 0x7B0 (dcsr, must trap per CORE [N-6.3]).
+4) CSR contract: 0x7C0 added (garuda-only); core_csr_map: 116 of 116, 0 unexplained differences.

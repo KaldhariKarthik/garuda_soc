@@ -20,6 +20,7 @@
 
 help_a:
 	@echo "  ---- track A: core, DSU, bus, DMA, debug, memories ----"
+	@echo "  make -f flow/mk/track_a_run.mk help  -- open-tool runner: strict verdicts, suites, formal, coverage"
 	@echo "  make elab_core       -- elaborate core standalone (inert DSU stub)"
 	@echo "  make elab_core_dsu   -- elaborate core + REAL DSU (integration)"
 	@echo "  make test_core       -- every core unit smoke + the six unit TBs"

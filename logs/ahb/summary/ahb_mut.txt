@@ -1,0 +1,28 @@
+garuda-run 1  suite ahb_mut  block ahb  2026-10-13T20:12:22+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    XFAIL:PLANTED           mut_a01  pass marker missing; 248 [FAIL] line(s); 891 assertion failure(s) | first: [34000] %Error: ahb_interconnect_sva.sv:242: Assertion failed in tb_ahb_env
+FAIL    XFAIL:PLANTED           mut_a02  pass marker missing; 3 [FAIL] line(s); 3 assertion failure(s) | first: [13750000] %Error: ahb_interconnect_sva.sv:265: Assertion failed in tb_ahb_env.
+FAIL    XFAIL:PLANTED           mut_a03  35 assertion failure(s) | first: [6870000] %Error: ahb_interconnect_sva.sv:323: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_burst_restart_nonseq:
+FAIL    XFAIL:PLANTED           mut_a04  exit 1; pass marker missing; 1000 assertion failure(s); 1 %Error line(s) | first: [10000] %Error: ahb_interconnect_sva.sv:208: Assertion failed in tb_
+FAIL    XFAIL:PLANTED           mut_a05  51 assertion failure(s) | first: [22000] %Error: ahb_interconnect_sva.sv:219: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_priority: 'assert' fail
+FAIL    XFAIL:PLANTED           mut_a06  92 assertion failure(s) | first: [26000] %Error: ahb_interconnect_sva.sv:219: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_priority: 'assert' fail
+FAIL    XFAIL:PLANTED           mut_a07  exit 1; pass marker missing; 227 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [30000] %Error: ahb_interconnect_sva.sv:316: Ass
+FAIL    XFAIL:PLANTED           mut_a08  pass marker missing; 92 [FAIL] line(s); 299 assertion failure(s) | first: [54000] %Error: ahb_interconnect_sva.sv:316: Assertion failed in tb_ahb_env.
+FAIL    XFAIL:PLANTED           mut_a09  26 assertion failure(s) | first: [7274000] %Error: ahb_interconnect_sva.sv:223: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_grant_stable_in_data_
+FAIL    XFAIL:PLANTED           mut_a11  exit 1; pass marker missing; 322 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [2042000] %Error: ahb_interconnect_sva.sv:250: A
+FAIL    XFAIL:PLANTED           mut_a12  245 assertion failure(s) | first: [8258000] %Error: ahb_interconnect_sva.sv:299: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_error_first_cycle: '
+FAIL    XFAIL:PLANTED           mut_a13  pass marker missing; 108 [FAIL] line(s); 216 assertion failure(s) | first: [8258000] %Error: ahb_interconnect_sva.sv:299: Assertion failed in tb_ahb_e
+FAIL    XFAIL:PLANTED           mut_a14  pass marker missing; 125 [FAIL] line(s); 154 assertion failure(s) | first: [1894000] %Error: ahb_interconnect_sva.sv:265: Assertion failed in tb_ahb_e
+FAIL    XFAIL:PLANTED           mut_a15  694 assertion failure(s) | first: [8258000] %Error: ahb_interconnect_sva.sv:271: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.g_resp[0].a_error_not_
+FAIL    XFAIL:PLANTED           mut_a17  pass marker missing; 181 [FAIL] line(s); 164 assertion failure(s) | first: [78000] %Error: ahb_interconnect_sva.sv:196: Assertion failed in tb_ahb_env
+FAIL    XFAIL:PLANTED           mut_a18  exit 1; pass marker missing; 4 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [86000] %Error: ahb_interconnect_sva.sv:290: Asser
+FAIL    XFAIL:PLANTED           mut_a19  35 assertion failure(s) | first: [6870000] %Error: ahb_interconnect_sva.sv:323: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_burst_restart_nonseq:
+FAIL    XFAIL:PLANTED           mut_a20  443 assertion failure(s) | first: [22000] %Error: ahb_interconnect_sva.sv:332: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_sba_ind: 'assert' fail
+FAIL    XFAIL:PLANTED           mut_a21  237 assertion failure(s) | first: [22000] %Error: ahb_interconnect_sva.sv:340: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.a_hprot_const: 'assert' 
+FAIL    XFAIL:PLANTED           mut_a22  pass marker missing; 499 [FAIL] line(s); 205 assertion failure(s) | first: [26000] %Error: ahb_interconnect_sva.sv:200: Assertion failed in tb_ahb_env
+
+PASS    0
+FAIL    20
+BLOCKED 0
+total   20

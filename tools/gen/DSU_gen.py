@@ -123,6 +123,12 @@ def directed_tests():
           (asm(MACCLEAR, ACC_FX), 0, 0, DSU_EN_N, "dsu_en=0: clear is inert"),
           ((0x1F << 27) | 0x0B, 1, 1, DSU_EN_N, "dsu_en=0: bad encoding is not illegal"),
           (asm(MACRD_LO, ACC_FX, rd=11), 0, 0, DSU_EN_N, "dsu_en=0: no interlock stall")]
+    # MACABS of the most negative lane: abs16 SATURATES, |-32768| -> 0x7FFF
+    # (operand_router.v abs16), the corner no random operand is likely to hit
+    # (Track A coverage, 2026-10-11)
+    t += [(asm(MACCLEAR, ACC_FX), 0, 0, 0, "clear FX before |-32768|"),
+          (asm(MACABS,   ACC_FX), 0x80008000, 0x80008000, 0, "MACABS |-32768| both lanes"),
+          (asm(MACABS,   ACC_FX), 0x00018000, 0x80000001, 0, "MACABS -32768 low / high lanes")]
     # illegal ones -- must be rejected, state untouched
     t += [(asm(MAC_SEL, acc_sel=3), 1, 1, 0, "illegal acc_sel=3"),
           ((0x1F << 27) | 0x0B, 1, 1, 0, "illegal unknown funct5"),
@@ -251,6 +257,53 @@ def stream_tests(rng, n_rand):
     return out
 
 
+def ovf_walk_tests(acc):
+    """Accumulator overflow by every accumulating op, in both directions, on one
+    accumulator (DSU vPlan F10.COV5, cg_dsu_ovf; Track A wrap-up 2026-10-12).
+
+    The accumulator is ramped to just below +2^47 with maximal MACDOTs (+2^31
+    each, ~65,536 of them: nothing shorter reaches the edge), then six phases run,
+    each repeating one op until the timeless model ArchDSU says that op crosses
+    the 48-bit range; the wrap leaves the accumulator at the opposite edge, ready
+    for the next phase in the other direction:
+        MAC_SEL +  -> positive overflow      MAC_SEL -  -> negative overflow
+        MACSUB  -  -> positive overflow      MACSUB  +  -> negative overflow
+        MACDOT  +  -> positive overflow      MACDOT  -  -> negative overflow
+    ArchDSU only steers the stimulus; the expected vectors still come from the
+    usual two-oracle run in main(). The RTL wraps (saturate vs wrap: ruling D0)."""
+    from DSU_Golden import ArchDSU, s48
+    arch = ArchDSU()
+    out = []
+    lim = 1 << 47
+    def emit(f5, rs1, rs2, note):
+        out.append((asm(f5, acc_sel=acc, rd=0), rs1, rs2, 0, note))
+        arch.step(out[-1][0], rs1, rs2)
+    POS16, NEG16 = 0x7FFF, 0x8000             # +32767, -32768
+    while s48(arch.acc[acc]) < lim - (1 << 32):
+        emit(MACDOT, 0x80008000, 0x80008000, "ramp")     # (-1)(-1) + (-1)(-1) = +2^31
+    def product(f5, rs1, rs2):
+        def s16(v): return v - 0x10000 if v & 0x8000 else v
+        lo = s16(rs1 & 0xFFFF) * s16(rs2 & 0xFFFF)
+        hi = s16(rs1 >> 16) * s16(rs2 >> 16)
+        return {MAC_SEL: lo, MACSUB: -lo, MACDOT: lo + hi}[f5]
+    phases = [(MAC_SEL, POS16, POS16, "MAC_SEL + -> positive overflow"),
+              (MAC_SEL, NEG16, POS16, "MAC_SEL - -> negative overflow"),
+              (MACSUB,  NEG16, POS16, "MACSUB - -> positive overflow"),
+              (MACSUB,  POS16, POS16, "MACSUB + -> negative overflow"),
+              (MACDOT,  0x80008000, 0x80008000, "MACDOT + -> positive overflow"),
+              (MACDOT,  0x80008000, 0x7FFF7FFF, "MACDOT - -> negative overflow")]
+    for f5, rs1, rs2, note in phases:
+        for _ in range(1 << 20):
+            v = s48(arch.acc[acc]) + product(f5, rs1, rs2)
+            crossed = not (-lim <= v <= lim - 1)
+            emit(f5, rs1, rs2, note if crossed else "approach")
+            if crossed:
+                break
+        else:
+            raise SystemExit(f"ovf walk: {note} never crossed")
+    return out
+
+
 def w(x):                       # 32-bit value -> 8-digit hex line
     return f"{x & MASK32:08x}"
 
@@ -341,6 +394,9 @@ def main():
                          "followed by N probe ops, instead of the normal suite. "
                          "This is the only stimulus that reaches the overflow "
                          "logic at all -- see clamp_walk_tests().")
+    ap.add_argument("--ovf-walk", type=int, default=-1, metavar="ACC",
+                    help="ramp accumulator ACC (0..2) to the 48-bit edge, then overflow it "
+                         "by MAC_SEL, MACSUB and MACDOT in both directions (see ovf_walk_tests())")
     ap.add_argument("--ramp", type=int, default=32768,
                     help="ramp length for --clamp-walk (32768 reaches 2^46)")
     ap.add_argument("--stream", action="store_true",
@@ -357,6 +413,10 @@ def main():
         directed = []
         n_rand = args.count if args.count else 300
         program = stream_tests(rng, n_rand)
+    elif args.ovf_walk >= 0:
+        directed = []
+        n_rand = 0
+        program = ovf_walk_tests(args.ovf_walk)
     elif args.clamp_walk:
         directed = []
         n_rand = args.clamp_walk

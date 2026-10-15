@@ -1,0 +1,3 @@
+# garuda-run 1 suite=selftest_reason block=flow date=2026-10-15T22:10:52+05:30 design=167aa935078d4e9cecaa35e5186328b55cfc2ca6 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+wrong_reason	FAIL	UNEXPECTED	0	yes	1	0	0	-	1	0	-	1	0.02	21			1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure	logs/flow/raw/selftest_reason/sim_wrong_reason_s1.log

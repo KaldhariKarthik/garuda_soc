@@ -149,10 +149,27 @@ module tb_top;
     garuda_tb_pkg::scoreboard sb;
     int ok_count, err_count;
 
+    // Soak slave state (ELEM-8). A data phase follows every NONSEQ accepted
+    // with HREADY high; ERROR is legal only there and only as the AHB-Lite
+    // two-cycle response (HREADY 0 + HRESP 1, then HREADY 1 + HRESP 1).
+    bit soak_dph, soak_err2;
+    always @(posedge clk)
+        if (!rst_n)              soak_dph <= 1'b0;
+        else if (vif.d_hready)   soak_dph <= (vif.d_htrans == HTRANS_NONSEQ);
+
     always @(posedge clk) if (rst_n) begin
         if (vif.ok_done)   ok_count++;
         if (vif.err_pulse) err_count++;
     end
+
+    // Direction of the transfer whose DATA phase is on the bus (AHB: HWRITE is
+    // an address-phase signal; HREADY/HRESP belong to the data phase, one
+    // cycle later). Coverage of "a store saw a wait / an ERROR" has to cross the
+    // data-phase direction, not the HWRITE of the next address phase (W6-cov).
+    bit dph_write;
+    always @(posedge clk)
+        if (!rst_n)             dph_write <= 1'b0;
+        else if (vif.d_hready)  dph_write <= (vif.d_htrans == HTRANS_NONSEQ) && vif.d_hwrite;
 
     covergroup cg_dport @(posedge clk);
         cp_htrans: coverpoint vif.d_htrans {
@@ -163,13 +180,17 @@ module tb_top;
         cp_hwrite: coverpoint vif.d_hwrite;
         cp_hsize:  coverpoint vif.d_hsize {
             bins byte_ = {3'b000}; bins half = {3'b001}; bins word = {3'b010};
-            bins other = default;
+            // RV32: no access wider than a word; d_hsize[2] is a literal 0 in
+            // load_store_unit (hsize_o = {1'b0, size}), so this must never occur
+            illegal_bins other = {[3'b011:3'b111]};
         }
         cp_hready: coverpoint vif.d_hready;
         cp_hresp:  coverpoint vif.d_hresp;
-        // Both directions must see wait states AND an error response.
-        cross cp_hwrite, cp_hready;
-        cross cp_hwrite, cp_hresp;
+        // Both directions must see wait states AND an error response: crossed
+        // with the DATA-phase direction (see dph_write above).
+        cp_dph_write: coverpoint dph_write;
+        cross cp_dph_write, cp_hready;
+        cross cp_dph_write, cp_hresp;
         cross cp_hwrite, cp_hsize;
         cp_completion: coverpoint {vif.ok_done, vif.err_pulse} {
             bins none  = {2'b00};
@@ -365,11 +386,30 @@ module tb_top;
                 vif.hsize_in  = $urandom_range(0, 2);
                 vif.hwdata_in = $urandom();
             end
-            vif.d_hready = $urandom_range(0, 99) < 70;
-            vif.d_hresp  = $urandom_range(0, 99) < 10;
+            // ELEM-8: wait states anywhere (an interconnect may hold an address
+            // phase too), ERROR only in a data phase and always two cycles
+            if (soak_err2) begin
+                vif.d_hready = 1; vif.d_hresp = 1; soak_err2 = 0;      // ERROR cycle 2
+            end else if (soak_dph && $urandom_range(0, 99) < 10) begin
+                vif.d_hready = 0; vif.d_hresp = 1; soak_err2 = 1;      // ERROR cycle 1
+            end else begin
+                vif.d_hready = $urandom_range(0, 99) < 70; vif.d_hresp = 0;
+            end
             tick();
         end
-        @(negedge clk); vif.start = 0; vif.d_hready = 1; vif.d_hresp = 0;
+        // ELEM-8: the access in flight completes before the request goes away
+        // (a master may not withdraw an address phase held by HREADY low).
+        // With HREADY high only a presented address phase still stalls.
+        @(negedge clk);
+        vif.d_hready = 1; vif.d_hresp = soak_err2; soak_err2 = 0;      // OKAY or ERROR cycle 2
+        #1;
+        while (vif.mem_stall) begin
+            tick();                                                    // address phase accepted
+            @(negedge clk); vif.d_hready = 1; vif.d_hresp = 0; #1;     // its data phase: OKAY
+        end
+        vif.start = 0;
+        tick();
+        @(negedge clk); vif.d_hresp = 0;
         repeat (4) tick();
         if (ok_count == 0)
             sb.fail("soak", "no OKAY completions observed", "");

@@ -1,0 +1,15 @@
+garuda-run 1  suite units  block ahb2apb  2026-10-15T21:56:57+05:30
+design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      unit_fsm            
+PASS    OK                      unit_fabric         
+FAIL    XFAIL:PLANTED           negctl_fsm_to15     pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [R-5] ACCESS held: cycle 15 of extension 1, sample 15 (t=212000)
+FAIL    XFAIL:PLANTED           negctl_fsm_to17     pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.15] ACCESS ended (timeout after 16 sample(s); window 9 ext 1 ready_at 99; fsm state 2 div 
+FAIL    XFAIL:PLANTED           negctl_fsm_win      pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] SETUP: PSEL 020 for window 4, PENABLE 0 (t=16000)
+FAIL    XFAIL:PLANTED           negctl_fsm_nosetup  pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] SETUP: PSEL 010 for window 4, PENABLE 1 (t=16000)
+FAIL    XFAIL:PLANTED           negctl_fabric_rdy   pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [a_resp_from_active_window] window 9 return (t=9000)
+
+PASS    2
+FAIL    5
+BLOCKED 0
+total   7

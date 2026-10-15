@@ -1,0 +1,20 @@
+garuda-run 1  suite directed  block core  2026-10-15T21:42:07+05:30
+design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      t_core_mret_buserr     
+PASS    OK                      t_core_mret_buserr_w2  
+PASS    OK                      t_core_wfi_buserr      
+PASS    OK                      t_core_wfi_buserr_w2   
+PASS    OK                      t_core_ctl             
+PASS    OK                      t_core_ctl_w3          
+PASS    OK                      t_core_irq_nest        
+PASS    OK                      t_core_irq_nest_w2     
+PASS    OK                      t_core_preempt         
+PASS    OK                      t_core_preempt_w2      
+PASS    OK                      t_exc_priority         
+PASS    OK                      t_exc_priority_w3      
+
+PASS    12
+FAIL    0
+BLOCKED 0
+total   12

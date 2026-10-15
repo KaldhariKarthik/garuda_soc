@@ -1,0 +1,80 @@
+# DMA chip-level programs (Track A, DMA plan D9) on Karthik's tb_chip, with the
+# same reset-edge diagnostic shim as tb/debug/run/chip_diag.toml (strict runs stay
+# XFAIL TB-30 until Karthik's TB-30 fix is rebased in). dma_sva is bound (through
+# rtl/soc/filelist_soc.f -> rtl/dma/filelist.f) and watches every cycle.
+#   t_chip_dma_rearm  DMA-11 reachability: stop + re-arm as fast as firmware can,
+#                     swept over 48 delays, fast (DSRAM) and slow (APB-source) beats
+# Run: make -f flow/mk/track_a_run.mk dma_chip
+[suite]
+block = "dma"
+name  = "chip"
+kind  = "prog"
+xfail = "tb/dma/run/xfail.tsv"
+
+[bench]
+flist = "tb/soc/filelist_chip.f"
+top   = "tb_chip"
+# Declared exclusion (TOOL-21): Verilator 5.052 cannot elaborate pwm_sva.sv
+# ($past of an unpacked-array element inside a generate loop, line 44). The PWM
+# properties are not the subject here; they run in Karthik's uvm_pwm (Xcelium).
+exclude = ["rtl/pwm/pwm_sva.sv"]
+
+[defaults]
+marker  = '^RESULT: PASSED'
+timeout = 1800
+cwd     = "root"
+# known lines (each exactly once per run, see tools/run/garuda_run.py `known`):
+#   timers a_mtimecmp_reset at 51 ns: TB-38, fixed on main by TB-B1 (entry removed 2026-10-15). (The clk_div a_pclk_subset_hclk
+#   artifact of SHIM-RSTEDGE is gone since Karthik's TB-34 fix in clk_div_sva, taken in the
+#   2026-10-14 rebase; its known entry was removed then, as in tb/debug/run/chip_diag.toml.)
+known = []
+
+# Declared Verilator-only deviation (audit shim): Verilator 5.052 rejects
+# strength-qualified pullup/pulldown; the default pull strength is equivalent
+# here (every opposing driver is strong or open-drain strong-0).
+[[shim]]
+id = "SHIM-PULL"
+glob = "tb/soc/tb_chip.sv"
+match = '^(\s*)(pullup|pulldown) +\((weak|pull|strong)[01]\) +([^;]*;)(.*)$'
+replace = '\1\2 \4\5  // shim:SHIM-PULL strength dropped (Verilator 5.052)'
+lines = 4
+
+[[shim]]
+id = "SHIM-RSTEDGE"
+glob = "tb/soc/tb_chip.sv"
+match = '^(\s*)reg refclk = 0, ext_rst_n = 0, boot_sel = 1;\s*$'
+replace = '\1reg refclk = 0, ext_rst_n = 1, boot_sel = 1; initial #0.5 ext_rst_n = 0;  // shim:SHIM-RSTEDGE diagnostic (TB-30)\n'
+lines = 1
+
+[[test]]
+name = "t_chip_dma_rearm"
+fail_reason = 'Assertion failed in \S*a_beat_belongs_to_arm'
+# The error limit is raised for this probe only: once a stale beat lands, the R-6
+# detector fires on every cycle the bad state lasts, and the default limit (1000)
+# would stop the sweep before the firmware reports its counts.
+plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_dma_rearm.hex", "+MAXUS=4000", "+verilator+error+limit+10000000"]
+
+# F38 / plan 8.6: six channels under CPU load, completion IDs 1-6, channel 4 refused
+# (ISRAM destination, R-9) -> ERROR, ERRPHASE write, CLIC ID 12 (INT-2), the others
+# finish (R-8). The refused channel reads its source first (DMA-10, open): the
+# detector a_no_read_before_refusal fires once, declared until the DMA-10 fix (D6).
+[[test]]
+name = "t_chip_dma_traffic"
+plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_dma_traffic.hex", "+MAXUS=4000"]
+# TB-38 (timers a_mtimecmp_reset at 51 ns) is fixed on main by Karthik's TB-B1 (timers_sva);
+# its known entry was removed on 2026-10-15 (a/track-a on 167aa93).
+known = [
+  ['a_no_read_before_refusal', 1, "DMA-10"],
+]
+
+# F51 / D-21 rule 4: byte and halfword beats to and from an APB register end in a
+# bus fault (bridge R-6), ERRPHASE write / read, no partial write; a word beat lands
+[[test]]
+name = "t_chip_dma_subword"
+plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_dma_subword.hex", "+MAXUS=4000"]
+
+# F39: UART0 rx -> DSRAM by DMA channel 2 (P2M) and DSRAM -> UART1 tx by channel 3
+# (M2P), through the pins (tb_chip loopback), request on RX data / TX space (DMACTL)
+[[test]]
+name = "t_chip_dma_uart"
+plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_dma_uart.hex", "+MAXUS=4000"]

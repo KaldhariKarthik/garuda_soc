@@ -12,7 +12,10 @@
 // =============================================================================
 module tb_ahb2apb;
 
-    reg refclk = 0, ext_rst_n = 1;
+    // TB-46: ext_rst_n starts X, not 1. X->0 at #0 is still a negedge (TB-22), and
+    // clk_div_sva's a_pclk_subset_hclk (guarded by raw_rst_n === 1) no longer
+    // fires at time 0 while pclk leaves X -- a start-up artefact, not the design.
+    reg refclk = 0, ext_rst_n;
 
     // ---- reset must arrive as an EDGE, not merely be low at time 0 (TB-22) ---
     // A Verilog async reset is edge-sensitive in simulation: `always @(... or

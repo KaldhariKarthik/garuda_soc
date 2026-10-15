@@ -1,0 +1,6 @@
+# garuda-fv 1 suite=fv_csr block=core date=2026-10-15T22:07:36+05:30 design=167aa935078d4e9cecaa35e5186328b55cfc2ca6 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+csr_prove	prove	PROVEN	OK	0	[11 asserts, 9 covers in model] 	logs/core/raw/fv_csr/fv_csr_prove.log
+csr_cover	cover	COVERED	OK	0	[11 asserts, 9 covers in model] 	logs/core/raw/fv_csr/fv_csr_cover.log
+csr_prove_no_t12	prove	FAIL	XFAIL:PLANTED	0	[11 asserts, 9 covers in model] props: u_csr_sva.a_mret_pops_mil	logs/core/raw/fv_csr/fv_csr_prove_no_t12.log
+csr_prove_no_c16	prove	FAIL	XFAIL:PLANTED	0	[11 asserts, 9 covers in model] props: u_csr_sva.a_mconfigptr_read_ok	logs/core/raw/fv_csr/fv_csr_prove_no_c16.log

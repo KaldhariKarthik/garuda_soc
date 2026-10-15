@@ -26,3 +26,6 @@ rtl/ahb/ahb_default_slave.v
 // Block boundary
 rtl/ahb/ahb_interconnect.v
 rtl/ahb/ahb_interconnect_sva.sv
+
+// Bound properties (Track A bus plan B1): ignored for synthesis (SYNTHESIS define)
+rtl/ahb/ahb_ic_props_a.sv

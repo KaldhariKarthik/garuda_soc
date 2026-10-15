@@ -1,0 +1,11 @@
+T-13 / T-14 -- formal BEFORE the fix (design b90b481d8f91, trap_ctrl.v unchanged), 2026-10-11T08:44:35+05:30
+tools/run/garuda_fv.py tb/core/formal/core_trap.toml --only trap_bmc (whole core, BMC depth 20, smtbmc yices)
+model: 7 asserts, 6 covers (rtl/core/trap_ctrl_sva.sv)
+
+  counterexample: a_mem_fault_entered
+  counterexample: a_mem_fault_no_mret
+  counterexample: a_mem_fault_vectors
+  counterexample: a_no_fault_trap_while_asleep
+  counterexample: a_no_wfi_arm_in_h2
+  holds to depth 20: a_tc1_no_int_while_held, a_tc3_no_squash_in_h2
+  traces: logs/core/raw/fv_trap/trap_bmc/trap_bmc/engine_0/trace*.vcd (not in git)

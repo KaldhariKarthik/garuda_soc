@@ -1,0 +1,60 @@
+# xfail list for DMA suites.
+# suite<TAB>test<TAB>expect(FAIL|BLOCKED)<TAB>bug<TAB>reason
+probe	probe_dma9	FAIL	DMA-9	EN set again after a software stop restarts from CNT: 12 beats for CNT 8, 4 words past the buffer (F20 as written)
+probe	probe_dma10	FAIL	DMA-10	a bad DAR is refused only after the source read; the DMA-10 detector a_no_read_before_refusal must fire
+probe	probe_dma11a	FAIL	DMA-11	zero-length re-arm with a beat in flight: REMAINING wraps to 0xFFFF; a_remaining_complete_consistent must fire
+probe	probe_dma11b	FAIL	DMA-11	re-arm with a new buffer and a beat in flight: the old beat lands in the new transfer; a_beat_belongs_to_arm must fire
+probe	probe_unaligned	FAIL	DMA-13	unaligned word/halfword channels put misaligned transfers on the bus; a_haddr_aligned must fire
+chip	t_chip_dma_rearm	FAIL	DMA-11	firmware stop + immediate re-arm (2 stores) lands inside a beat at chip level: the stale beat wraps REMAINING; a_beat_belongs_to_arm must fire
+fv_dma	dma10_find	FAIL	DMA-10	formal (only the DMA-10 detector kept) finds the source read before a bad-DAR refusal by itself
+fv_dma	dma11_find	FAIL	DMA-11	formal (only the DMA-11 detectors kept) finds a stale beat counted in a re-armed transfer by itself
+fv_dma	dma13_find	FAIL	DMA-13	formal (only the DMA-13 detector kept) finds a misaligned transfer by itself
+probe	probe_stop_size	FAIL	DMA-14	a CR = 0 stop inside a word beat changes the beat size; a_beat_size_atomic must fire
+fv_dma	dma14_find	FAIL	DMA-14	formal (only the DMA-14 detector kept) finds a beat that changes size after it was taken
+fv_dma_arb	arb_mut_tie_high	FAIL	PLANTED	arbiter mutant (a tie goes to the higher channel) must fail a_grant
+fv_dma	mut_eng1	FAIL	PLANTED	ENG-1 guard removed: a beat is taken in the cycle a result is reported; a_no_grant_while_reporting must fail
+fv_dma	mut_d2	FAIL	PLANTED	D-2 reverted: a software CR write beats the hardware EN clear; a_hw_wins_en must fail
+fv_dma	mut_dma8	FAIL	PLANTED	DMA-8 reverted: a failed beat marks the request as taken; a_failed_beat_keeps_request must fail
+fv_dma	mut_iclr_wins	FAIL	PLANTED	set-beats-clear reverted: an ICLR in the cycle COMPLETE sets clears it; a_set_beats_clear_complete must fail
+fv_dma	mut_aud13	FAIL	PLANTED	AUD-13 reverted: PSLVERR on a write to read-only STAT/GSTAT; a_pslverr_rule must fail
+regs	negctl_size_reset	FAIL	PLANTED	CR SIZE resets to byte instead of word; the reset check of CR must fail
+env	negctl_sb_wdata	FAIL	PLANTED	scoreboard negative control: an injected wdata fault must be reported
+env	negctl_sb_drop	FAIL	PLANTED	scoreboard negative control: an injected drop fault must be reported
+env	negctl_sb_stat	FAIL	PLANTED	scoreboard negative control: an injected stat fault must be reported
+env	negctl_sb_irq	FAIL	PLANTED	scoreboard negative control: an injected irq fault must be reported
+env	negctl_sb_ack	FAIL	PLANTED	scoreboard negative control: an injected ack fault must be reported
+probe	probe_m2m_ack	FAIL	DMA-15	an M2M transfer pulses dma_ack on every beat although no peripheral requested
+env	negctl_beatchk_lane0	FAIL	PLANTED	RTL mutant (byte beats from lane 0): the pin-level beat checker must report it
+env	negctl_held_request	FAIL	PLANTED	F50: a peripheral holding its request high breaks D-21; dma_req_checker must report it
+fv_dma_cov	mut_cov_prio_inv	FAIL	PLANTED	lowest priority wins: channel 5 wins a contest; a_cov_arb_c5_alone must fail (the arbiter coverage exclusions are not vacuous)
+units	negctl_apb_double_strobe	FAIL	PLANTED	negative control of a DMA unit bench (planted defect in its module)
+units	negctl_apb_aud13	FAIL	PLANTED	negative control of a DMA unit bench (planted defect in its module)
+units	negctl_chan_d2	FAIL	PLANTED	negative control of a DMA unit bench (planted defect in its module)
+units	negctl_chan_half_step	FAIL	PLANTED	negative control of a DMA unit bench (planted defect in its module)
+units	negctl_engine_eng1	FAIL	PLANTED	negative control of a DMA unit bench (planted defect in its module)
+units	negctl_engine_ack_width	FAIL	PLANTED	negative control of a DMA unit bench (planted defect in its module)
+units	negctl_engine_lane0	FAIL	PLANTED	negative control of a DMA unit bench (planted defect in its module)
+dma_mut	mut_m01	FAIL	PLANTED	D-2 reverted: a software CR write beats the hardware EN clear
+dma_mut	mut_m02	FAIL	PLANTED	DMA-8 reverted: a failed beat consumes the request
+dma_mut	mut_m03	FAIL	PLANTED	one beat per request lost: a request still high gives another beat
+dma_mut	mut_m04	FAIL	PLANTED	set-beats-clear reverted: ICLR beats a same-cycle COMPLETE set (completion lost)
+dma_mut	mut_m05	FAIL	PLANTED	halfword address step 1 instead of 2
+dma_mut	mut_m06	FAIL	PLANTED	MODE = 3 accepted
+dma_mut	mut_m07	FAIL	PLANTED	error interrupt gated by IE_COMP instead of IE_ERR
+dma_mut	mut_m08	FAIL	PLANTED	ICLR ERROR leaves ERRPHASE set
+dma_mut	mut_m09	FAIL	PLANTED	COMPLETE one beat early (D-1 shape)
+dma_mut	mut_m10	FAIL	PLANTED	SAR advances on a failed beat (no freeze, [N-7.15])
+dma_mut	mut_m11	FAIL	PLANTED	priority inverted: the lowest priority wins
+dma_mut	mut_m13	FAIL	PLANTED	R-9 DAR check removed: writes to ISRAM / Boot ROM
+dma_mut	mut_m14	FAIL	PLANTED	DMA-7 reverted: dma_ack one hclk wide
+dma_mut	mut_m15	FAIL	PLANTED	ENG-1 reverted: regrant before the channel has counted the beat
+dma_mut	mut_m16	FAIL	PLANTED	write ERROR reported as ERRPHASE = read
+dma_mut	mut_m17	FAIL	PLANTED	byte beats always take lane 0
+dma_mut	mut_m18	FAIL	PLANTED	read ERROR ignored: the beat writes garbage
+dma_mut	mut_m19	FAIL	PLANTED	read address dropped while HREADY is low (AHB violation)
+dma_mut	mut_m20	FAIL	PLANTED	every APB write applied twice (two strobes)
+dma_mut	mut_m21	FAIL	PLANTED	AUD-13 reverted: a write to read-only STAT / GSTAT answers PSLVERR
+dma_mut	mut_m22	FAIL	PLANTED	GSTAT COMPLETE bits show ERROR
+dma_mut	mut_m23	FAIL	PLANTED	channel 5 registers not decoded
+dma_mut	mut_m24	FAIL	PLANTED	a DAR write also lands in CNT; CNT never writable
+dma_mut	mut_m25	FAIL	PLANTED	completion and error interrupt lines swapped

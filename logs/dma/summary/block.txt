@@ -1,0 +1,9 @@
+garuda-run 1  suite block  block dma  2026-10-15T21:50:31+05:30
+design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    UNEXPECTED              tb_dma_top  2 [FAIL] line(s); 2 assertion failure(s) | first: [3890000] %Error: dma_sva.sv:119: Assertion failed in tb_dma_top.dut.u_dma_sva.a_apb_stat_ro: [SVA-F
+
+PASS    0
+FAIL    1
+BLOCKED 0
+total   1

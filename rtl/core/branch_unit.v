@@ -105,10 +105,15 @@ module branch_unit (
                                (jal | branch_taken) ? (branch_target[1:0] != 2'b00) :
                                                       1'b0;
 
+    // ERRATUM T-18: a JAL takes branch_target unconditionally. Its imm[14:12] /
+    // rs1 / rs2 bit fields are not a funct3 and operands, so taken_r is noise
+    // for it; before the fix a misaligned JAL whose fields read "not taken"
+    // reported mtval = pc+4. JAL never asserts `redirect` (it redirects from ID),
+    // so the only consumers of this for a JAL are the cause-0 mtval and RVFI.
     assign redirect        = jalr | mispredict;
-    assign redirect_target = jalr    ? jalr_target
-                           : taken_r ? branch_target
-                                     : fallthrough;
+    assign redirect_target = jalr             ? jalr_target
+                           : (jal | taken_r)  ? branch_target
+                                              : fallthrough;
 
 endmodule
 

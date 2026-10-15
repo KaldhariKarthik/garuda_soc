@@ -1,0 +1,9 @@
+garuda-run 1  suite dbg_fault  block core  2026-10-11T14:09:35+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    UNEXPECTED              fault_waves  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TIMEOUT after 120 cycles (14 retired) - FAILED ***
+
+PASS    0
+FAIL    1
+BLOCKED 0
+total   1

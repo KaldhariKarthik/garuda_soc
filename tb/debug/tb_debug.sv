@@ -48,6 +48,7 @@ module tb_debug;
     debug_top dut (
         .tck_i(tck), .tms_i(tms), .tdi_i(tdi), .tdo_o(tdo), .tdo_oe_o(tdo_oe), .por_n_i(por_n),
         .hclk_i(hclk), .dm_rst_n_i(rst_n), .ndmreset_o(ndmreset), .hartreset_o(hartreset),
+        .halt_req_o(), .halt_safe_i(1'b1),     // RDC-1: no core here, always at a safe point
         .dsu_acc0_i(acc0), .dsu_acc1_i(acc1), .dsu_acc2_i(acc2), .dsu_ovf_i(ovf),
         .haddr_o(haddr), .htrans_o(htrans), .hwrite_o(hwrite), .hsize_o(hsize),
         .hburst_o(hburst), .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready),

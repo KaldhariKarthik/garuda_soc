@@ -1,0 +1,34 @@
+# Debug halt (halt-by-reset, ADR-0012) against a running program with waited
+# stores: the bus must never see a broken transfer (RDC-1, CORE 11 t_core_hartreset).
+# Run: make -f flow/mk/track_a_run.mk core_halt
+[suite]
+block = "core"
+name  = "halt"
+kind  = "sim"
+xfail = "tb/core/run/xfail.tsv"
+
+[defaults]
+flist   = "tb/core/filelist_core_halt.f"
+cov_flist = "tb/core/filelist_core_halt_cov.f"
+top     = "tb_core_halt"
+marker  = 'ALL CHECKS PASSED'
+timeout = 600
+cwd     = "root"
+require = ['AHB-PROTOCOL: iport=0 dport=0']
+
+[[test]]
+name = "t_core_hartreset_s1"
+plusargs = ["+HEX=sw/build/t_mem.hex", "+NHALT=60", "+DWAIT=5", "+SEED=1"]
+[[test]]
+name = "t_core_hartreset_s2"
+plusargs = ["+HEX=sw/build/t_mem.hex", "+NHALT=60", "+DWAIT=5", "+SEED=2"]
+[[test]]
+name = "t_core_hartreset_s3"
+plusargs = ["+HEX=sw/build/t_mem.hex", "+NHALT=60", "+DWAIT=3", "+SEED=3"]
+
+# Timeout fallback: HALT_TIMEOUT = 8 and 60-cycle data waits, so most halts
+# cannot reach a safe point in time: the grant must be forced and flagged.
+[[test]]
+name = "t_core_hartreset_timeout"
+defines = ["HALT_TIMEOUT_TEST"]
+plusargs = ["+HEX=sw/build/t_mem.hex", "+NHALT=20", "+DWAIT=60", "+SEED=4", "+EXPECT_FORCED=1", "+MIN_STORE_HALTS=1"]

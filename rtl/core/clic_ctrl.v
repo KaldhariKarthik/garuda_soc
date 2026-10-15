@@ -31,6 +31,10 @@ module clic_ctrl #(
     input  wire            mstatus_mie_i,
     input  wire [7:0]      mintthresh_i,
     input  wire [7:0]      mintstatus_mil_i,
+    // ERRATUM CORE-4 (pre-M0 item C, 2026-10-11): mgarudactl (CSR 0x7C0) lets
+    // firmware turn this feature off if it is found broken in silicon. Timing only:
+    // architectural results are the same with the bit set (sw/tests/t_core_ctl.S).
+    input  wire            preempt_dis_i,    // mgarudactl.PREEMPT_DIS: take only at level 0
     input  wire [31:0]     mtvec_i,          // BASE, 4-byte aligned
 
     // to trap_ctrl
@@ -44,7 +48,8 @@ module clic_ctrl #(
     wire lvl_gt_thresh = (clic_irq_level_i > mintthresh_i);
     wire lvl_gt_active = (clic_irq_level_i > mintstatus_mil_i);
 
-    assign take_cond_o = clic_irq_valid_i & mstatus_mie_i & lvl_gt_thresh & lvl_gt_active;
+    assign take_cond_o = clic_irq_valid_i & mstatus_mie_i & lvl_gt_thresh & lvl_gt_active &
+                         (~preempt_dis_i | (mintstatus_mil_i == 8'd0));        // CORE-4: PREEMPT_DIS
     assign wake_cond_o = clic_irq_valid_i;
 
     assign irq_id_o    = clic_irq_id_i;

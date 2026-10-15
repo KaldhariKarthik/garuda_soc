@@ -1,0 +1,41 @@
+Closing regression (make -f flow/mk/track_a.mk nightly_a JOBS=16) -- 2026-10-11, design b90b481 + Track A tree (DIRTY, final RTL incl. T-18)
+
+core/units                   6 tests:   6 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/elements               14 tests:  14 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/smokes                  7 tests:   7 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/isa                    65 tests:  65 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/isa_rand               65 tests:  65 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/sanity                 12 tests:  12 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/extra                   3 tests:   3 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/directed               10 tests:  10 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/covtests               13 tests:  12 OK,   1 expected-fail (bug ID), 0 UNEXPECTED
+core/rvfi                   87 tests:  87 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/cosim                 102 tests: 102 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/csr                     1 tests:   1 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/halt                    4 tests:   4 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/csr_map                 1 tests:   1 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+dsu/model                    3 tests:   3 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+debug/block                  1 tests:   1 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+debug/chip                   8 tests:   0 OK,   8 expected-fail (bug ID), 0 UNEXPECTED
+debug/chip_diag              8 tests:   8 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/fv_trap                11 tests:   3 OK,   8 expected-fail (bug ID), 0 UNEXPECTED
+core/fv_csr                  4 tests:   2 OK,   2 expected-fail (bug ID), 0 UNEXPECTED
+core/fv_rdc1                 4 tests:   3 OK,   1 expected-fail (bug ID), 0 UNEXPECTED
+core/fv_cov                  3 tests:   3 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+flow/selftest               13 tests:   3 OK,  10 expected-fail (bug ID), 0 UNEXPECTED
+flow/negctl_prog             1 tests:   0 OK,   1 expected-fail (bug ID), 0 UNEXPECTED
+flow/negctl_t12              1 tests:   0 OK,   1 expected-fail (bug ID), 0 UNEXPECTED
+flow/negctl_preempt          1 tests:   0 OK,   1 expected-fail (bug ID), 0 UNEXPECTED
+flow/negctl_elem             1 tests:   0 OK,   1 expected-fail (bug ID), 0 UNEXPECTED
+flow/negctl_cosim            6 tests:   0 OK,   6 expected-fail (bug ID), 0 UNEXPECTED
+flow/fv_selftest             1 tests:   0 OK,   1 expected-fail (bug ID), 0 UNEXPECTED
+bugs check: 225 IDs in 19 files, 50 open, 0 error(s) -> PASS
+regress_a: PASS
+core/archtest                59 tests:   59 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/stress                 690 tests:  690 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/stress_halt            310 tests:  310 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+core/riscv_dv                85 tests:   85 OK,   0 expected-fail (bug ID), 0 UNEXPECTED
+dsu/dsu_mut                   7 tests:    0 OK,   7 expected-fail (bug ID), 0 UNEXPECTED
+dsu/units                    13 tests:    7 OK,   6 expected-fail (bug ID), 0 UNEXPECTED
+dsu/fv_dsu                    7 tests:    3 OK,   4 expected-fail (bug ID), 0 UNEXPECTED
+tier: PASS

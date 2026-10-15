@@ -1,0 +1,23 @@
+Plan 5.11 / D7: DSU planted-defect run -- 2026-10-11, design b90b481 + Track A tree (DIRTY)
+mutants: tools/gen/gen_dsu_mutants.py -> tb/dsu/mut/; sim rows tb/dsu/run/dsu_mut.toml; formal rows tb/dsu/formal/dsu.toml dsu_mut_*
+result: 8/8 KILLED-BY-CHECK (5 by the tb_dsu_top scoreboard vs the independent model, 2 at core level by t_cov_dsu + bound DSU properties, 1 by formal a_ovf_set_beats_clear); 0 survivors
+block bench alone: 5/8 -- gap TB-42 (no back-to-back stream, no flag history)
+
+[fv_dsu] block=dsu tasks=7 design=b90b481d8f91 DIRTY
+  BOUNDED(16)    OK                   dsu_bmc                        9s  [18 asserts, 6 covers in model] 
+  PROVEN         OK                   dsu_prove                      1s  [18 asserts, 6 covers in model] 
+  COVERED        OK                   dsu_cover                     78s  [18 asserts, 6 covers in model] 
+  FAIL           XFAIL:PLANTED        dsu_no_dsu9                    1s  [18 asserts, 6 covers in model] props: u_dsu_sva.a_interlock_per_acc
+  FAIL           XFAIL:PLANTED        dsu_mut_no_interlock           1s  [16 asserts, 6 covers in model] props: u_dsu_sva.a_interlock_fires
+  FAIL           XFAIL:PLANTED        dsu_mut_ovf_not_sticky        89s  [18 asserts, 6 covers in model] props: u_dsu_sva.a_ovf_sticky
+  FAIL           XFAIL:PLANTED        dsu_mut_ovf_clear_drops_set    56s  [18 asserts, 6 covers in model] props: u_dsu_sva.a_ovf_set_beats_clear
+[fv_dsu] 7 task(s) -> OK  (logs/dsu/summary/fv_dsu.tsv)
+[dsu_mut] block=dsu tests=7 seed=1 design=b90b481d8f91 DIRTY tool='Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a'
+  FAIL    XFAIL:PLANTED          mut_shift_logical                pass marker missing; 3 [FAIL] line(s) | first: [FAIL] test 25  rd_data: got 000000000001 expected 0000ffffffff
+  FAIL    XFAIL:PLANTED          mut_rdhi_zext                    pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 87  rd_data: got 00000000ffff expected 0000fffffff
+  FAIL    XFAIL:PLANTED          mut_dot_hi_is_lo                 pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 3  acc_MAG: got 00000000001b expected 000000000017
+  FAIL    XFAIL:PLANTED          mut_no_interlock                 exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [213000] %Err
+  FAIL    XFAIL:PLANTED          mut_no_fold                      pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 0  acc_FX: got 000000000000 expected 00000000000c 
+  FAIL    XFAIL:PLANTED          mut_sat_no_ovf                   pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 20  overflow: got 000000000000 expected 0000000000
+  FAIL    XFAIL:PLANTED          mut_ovf_not_sticky               exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [723000] %Err
+[dsu_mut] PASS=0 FAIL=7 BLOCKED=0 -> OK  (logs/dsu/summary/dsu_mut.tsv)

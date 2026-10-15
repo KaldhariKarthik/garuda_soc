@@ -99,7 +99,7 @@ endinterface
 // -------------------------------------------------------------
 module tb_top;
     bit clk = 0;
-    bit rst_n;
+    bit rst_n = 1'b1;   // starts high so the reset below is a real falling edge (TB-32 class)
     always #5 clk = ~clk;
 
     memwb_if vif(clk, rst_n);
@@ -173,12 +173,13 @@ module tb_top;
         cg = new();
         retire_count = 0;
 
-        rst_n = 0;
         vif.flush = 0; vif.wb_data_i = 32'hDEAD_BEEF; vif.rd_i = 5'd7;
         vif.reg_write_i = 1; vif.retire_i = 1;
 
         // ---- reset is asynchronous and forces the bubble state (C28) ----
-        #3;
+        // a falling edge at 1 ns, before the first clock edge at 5 ns
+        #1; rst_n = 0;
+        #2;
         sb.chk ("reset", "wb_data_o",   vif.wb_data_o,   32'd0);
         sb.chk ("reset", "rd_o",        vif.rd_o,        32'd0);
         sb.chk1("reset", "reg_write_o", vif.reg_write_o, 1'b0);
@@ -255,7 +256,11 @@ module tb_top;
         sb.chk1("async_reset", "reg_write cleared", vif.reg_write_o, 1'b0);
         sb.chk ("async_reset", "wb_data cleared",   vif.wb_data_o,   32'd0);
         sb.chk1("async_reset", "retire cleared",    vif.retire_o,    1'b0);
-        @(negedge clk); rst_n = 1;
+        // TB-48: hold the reset across a clock edge. A sub-cycle pulse relies on
+        // `disable iff` cancelling the a_capture attempt started at the last edge
+        // asynchronously (IEEE 1800 16.12); Verilator 5.052 samples it at the
+        // clock only, so that attempt survived and failed at the next edge.
+        @(negedge clk); @(negedge clk); rst_n = 1;
 
         // ---- randomised soak: the SVA above is the checker here ---------
         // reg_write/retire/flush combinations in random order, so the

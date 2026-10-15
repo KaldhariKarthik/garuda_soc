@@ -1,0 +1,18 @@
+C-16 -- AFTER the fix (rtl/core/csr_file.v ERRATUM C-16), 2026-10-11T08:55:18+05:30
+
+1) make core_csr_map:
+     115 addresses must exist; RTL has 115; 0 mismatch(es)
+   csr_map: GARUDA has 115 CSR addresses, Spike has 119, 110 in common
+     0x7a0-0x7a4  tselect .. tinfo    (trigger registers are optional; GARUDA has no trigger module)
+     0x7a8        mcontext    (trigger registers are optional; GARUDA has no trigger module)
+   csr_map: RTL vs contract 0 mismatch(es); RTL vs Spike 0 unexplained difference(s) -> PASS
+
+2) p-csr_readzero (lockstep with Spike, in core isa + isa_rand):
+   MATCH: 852 instructions identical; 2 stores, 1 traps, 801 CSR instructions (5 with a value) identical
+   isa PASS 65 FAIL 0 BLOCKED 0 ; isa_rand PASS 65 FAIL 0 BLOCKED 0 
+
+3) formal (tb/core/formal/csr_file.toml, csr_file level, all inputs free):
+   csr_prove          prove  PROVEN     [4 asserts, 4 covers in model] 
+   csr_cover          cover  COVERED    [4 asserts, 4 covers in model] 
+   csr_prove_unfixed  prove  FAIL       [4 asserts, 4 covers in model] props: u_csr_sva.a_mconfigptr_read_ok
+   csr_prove_unfixed = negative control: the pre-fix csr_file.v FAILS

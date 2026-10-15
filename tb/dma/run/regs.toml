@@ -1,0 +1,25 @@
+# DMA register tests (Track A, DMA plan D3; Karthik's plan R2/R7; sign-off checklist
+# item 8): tb/dma/tb_dma_regs.sv against the register package generated from
+# Design_Docs/regs/dma_a.rdl. The check count is pinned. The negative control (CR's
+# SIZE resets to byte instead of word) must fail the reset checks.
+# Run: make -f flow/mk/track_a_run.mk dma_regs
+[suite]
+block = "dma"
+name  = "regs"
+kind  = "sim"
+xfail = "tb/dma/run/xfail.tsv"
+
+[defaults]
+flist   = "tb/dma/filelist_dma_regs.f"
+top     = "tb_dma_regs"
+marker  = '^RESULT: PASSED'
+timeout = 900
+
+[[test]]
+name    = "tb_dma_regs"
+require = ['tb_dma_regs: checks=87 +FAIL=0']
+
+[[test]]
+name    = "negctl_size_reset"
+replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_size_reset.v" }
+fail_reason = '^\[FAIL\] \[F01\] \[F11\] reset: ch0 CR = 00000000'

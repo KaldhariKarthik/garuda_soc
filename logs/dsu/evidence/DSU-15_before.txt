@@ -1,0 +1,9 @@
+DSU-15 reproducer, 2026-10-12 (Track A wrap-up): sw/tests/t_dsu_macsat_rd.S on tb_boot
+spec: GARUDA-DSU-SPEC-001 section 7 table 'MACSAT rd: rd = acc saturated to Q1.15 in rd[15:0], writes rd'; [N-7.3]
+rtl : rtl/dsu/dsu_decoder.v:133 writes_regfile = (op_rd_lo | op_rd_hi | op_macshift) -- no MACSAT;
+      rtl/dsu/saturation_unit.v clamps the 48-bit accumulator to [-2^31, 2^31-1] (+-2.0 in Q18.30) and writes it back
+result (bit set = case failed): bit0 acc=0.5 want 0x4000, bit1 acc=+1.5 want 0x7FFF, bit2 acc=-1.5 want 0x8000
+
+# command   : logs/core/raw/covtests/build/tb_boot/obj/Vtb_boot +verilator+assert+lock +verilator+error+limit+1000 +verilator+seed+1 +HEX=/home/tg/garuda_track_a/sw/build/t_dsu_macsat_rd.hex +COMMIT=/home/tg/garuda_track_a/logs/core/raw/covtests/t_dsu_macsat_rd.commit.log +MAXCYC=20000 +QUIET
+*** TOHOST=0000000f -> FAILED (test 7, 55 retired) ***
+# verdict   : FAIL  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (test 7, 55 retired) ***

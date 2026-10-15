@@ -1,0 +1,40 @@
+# Track A bus plan B0: shared verification infrastructure, qualified before use.
+#   map_pkg          garuda_map_pkg (from garuda_system.yaml) == rtl/include/garuda_map.vh, decode functions
+#   map_pkg_negctl   negative control: a wrong constant must be reported
+#   apb_checker_selftest  tb/common/apb_checker.v reports each injected APB violation (Karthik's bench)
+#   apb_shim         fresh baseline of Karthik's tb_apb_shim (garuda_apb_shim + apb_checker + dma_req_checker)
+# Run: make -f flow/mk/track_a_run.mk bus_b0
+[suite]
+block = "common"
+name  = "b0"
+kind  = "sim"
+xfail = "tb/common/run/xfail.tsv"
+
+[defaults]
+marker  = '^RESULT: PASSED'
+timeout = 300
+
+[[test]]
+name  = "map_pkg"
+count = [['^CHECKS: 95  FAILS: 0', 1]]
+flist = "tb/common/filelist_map_pkg.f"
+top   = "tb_map_pkg"
+
+[[test]]
+name        = "map_pkg_negctl"
+flist       = "tb/common/filelist_map_pkg.f"
+top         = "tb_map_pkg"
+plusargs    = ["+NEGCTL"]
+fail_reason = '^\[FAIL\] \[negctl\]'
+
+[[test]]
+name  = "apb_checker_selftest"
+count = [['checks=35 FAIL=0', 1]]
+flist = "tb/common/filelist_apb_checker_selftest.f"
+top   = "tb_apb_checker_selftest"
+
+[[test]]
+name  = "apb_shim"
+count = [['checks=25  FAIL=0', 1]]
+flist = "tb/common/filelist_shim.f"
+top   = "tb_apb_shim"

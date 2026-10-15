@@ -1,0 +1,41 @@
+RDC-1 -- AFTER the fix (Track A W4; DN-RDC1 option A: request -> drain -> grant), 2026-10-11T09:22:23+05:30
+RTL: rtl/debug/debug_module.v (grant, HALT_TIMEOUT=1024, haltinfo 0x70), rtl/debug/debug_top.v (ports),
+     rtl/core/garuda_core_top.v (halt_req_i, halt_safe_o), garuda_if_stage_top.v + garuda_iport_ahb_master.v (no new fetch),
+     rtl/soc/garuda_soc_top.v (2 nets; Karthik's file). Rulings pending: option A, HALT_TIMEOUT, haltinfo address (R4).
+
+1) tb/core/tb_core_halt.sv (core + real Debug Module via DMI, AHB checkers on the bus reset):
+   t_core_hartreset_s1: halts 60, halts landing on a waited store 7, AHB violations i=0 d=0, TOHOST=00000001, haltforced=0
+   t_core_hartreset_s2: halts 60, halts landing on a waited store 12, AHB violations i=0 d=0, TOHOST=00000001, haltforced=0
+   t_core_hartreset_s3: halts 60, halts landing on a waited store 4, AHB violations i=0 d=0, TOHOST=00000001, haltforced=0
+   t_core_hartreset_timeout: halts 20, halts landing on a waited store 8, AHB violations i=0 d=5, TOHOST=00000001, haltforced=1
+   (before the fix: 6, 12 and 9 HWDATA violations on the same seeds -- RDC-1_before.txt)
+
+2) formal, tb/core/formal/rdc1.toml (core + real DM, DMI/bus/interrupts free; FA-6, FA-7):
+   rdc1_bmc               bmc    BOUNDED(30)  [23 asserts, 17 covers in model] 
+   rdc1_prove             prove  PROVEN       [23 asserts, 17 covers in model] 
+   rdc1_cover             cover  COVERED      [23 asserts, 17 covers in model] 
+   rdc1_prove_rawgrant    bmc    FAIL         [23 asserts, 17 covers in model] props: a_grant_only_safe, a_i_addr_stable
+   rdc1_prove_rawgrant = negative control (DM granting on the raw request, the pre-fix behaviour): FAILS,
+   and its counterexample also withdraws a waited I-PORT address (a_i_addr_stable) -- a second face of RDC-1
+   that the original report (HWDATA only) did not name.
+
+3) no regression:
+   core/units     PASS 5 FAIL 1 BLOCKED 0 
+   core/elements  PASS 11 FAIL 3 BLOCKED 0 
+   core/smokes    PASS 7 FAIL 0 BLOCKED 0 
+   core/isa       PASS 65 FAIL 0 BLOCKED 0 
+   core/isa_rand  PASS 65 FAIL 0 BLOCKED 0 
+   core/sanity    PASS 12 FAIL 0 BLOCKED 0 
+   core/extra     PASS 3 FAIL 0 BLOCKED 0 
+   core/directed  PASS 4 FAIL 0 BLOCKED 0 
+   core/csr       PASS 1 FAIL 0 BLOCKED 0 
+   debug/block  PASS 1 FAIL 0 BLOCKED 0  (tb_debug 93 checks, 0 FAIL)
+   debug/chip_diag PASS 8 FAIL 0 BLOCKED 0  (all 8 chip programs incl. t_chip_jtag; known lines TB-38 + shim artifact)
+   debug/chip (strict) PASS 0 FAIL 8 BLOCKED 0  (all XFAIL TB-30)
+   fv/trap_bmc           BOUNDED(20)
+   fv/trap_prove         PROVEN
+   fv/trap_cover         COVERED
+   fv/trap_prove_unfixed FAIL
+   fv/csr_prove          PROVEN
+   fv/csr_cover          COVERED
+   fv/csr_prove_unfixed  FAIL

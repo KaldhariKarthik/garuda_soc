@@ -1,0 +1,23 @@
+T-13 / T-14 -- failing BEFORE the fix (design b90b481d8f91, rtl/ unchanged), 2026-10-11T08:40:49+05:30
+suite tb/core/run/directed.toml on tb_boot, Verilator 5.052
+
+test                   verdict  class       detail
+t_core_mret_buserr     FAIL     XFAIL:T-13  pass marker missing | first: *** TOHOST=00000003 -> FAILED (test 1, 14 retired) ***
+t_core_mret_buserr_w2  FAIL     XFAIL:T-13  pass marker missing | first: *** TOHOST=00000003 -> FAILED (test 1, 14 retired) ***
+t_core_wfi_buserr      FAIL     XFAIL:T-14  pass marker missing | first: *** TIMEOUT after 20000 cycles (6 retired) - FAILED ***
+t_core_wfi_buserr_w2   FAIL     XFAIL:T-14  pass marker missing | first: *** TIMEOUT after 20000 cycles (6 retired) - FAILED ***
+
+With rtl/core/trap_ctrl_sva.sv bound (still the unfixed trap_ctrl.v), 2026-10-11T08:42:31+05:30:
+directed:
+      2 [SVA-FAIL] T-13: access fault did not redirect to mtvec
+      2 [SVA-FAIL] T-13: MEM-stage access fault not entered
+      2 [SVA-FAIL] T-13: MRET popped in
+      2 [SVA-FAIL] T-13: MRET popped in the cycle of an older access fault
+      2 [SVA-FAIL] T-14: access fault entered with the WFI sleep latch set
+      2 [SVA-FAIL] T-14: WFI sleep armed
+      2 [SVA-FAIL] T-14: WFI sleep armed while a D-port transfer was outstanding
+sanity t_hold_flush_matrix (no bus error; program passes):
+[5428000] %Error: trap_ctrl_sva.sv:67: Assertion failed in tb_boot.dut.u_trap.u_trap_sva.a_no_wfi_arm_in_h2: [SVA-FAIL] T-14: WFI sleep armed while a D-port transfer was outstanding
+*** TOHOST=1 -> PASSED (486 instructions retired, 146 cycles clock-gated) ***
+# verdict   : FAIL  1 [FAIL] line(s); 1 assertion failure(s) | first: [5428000] %Error: trap_ctrl_sva.sv:67: Assertion failed in tb_boot.dut.u_trap.u_trap_sva.a_no_wfi_arm_in_h2: [SVA-FAIL] T-14: WFI sleep arme
+isa, isa_rand, extra: no assertion failure (64/64, 64/64, 3/3)

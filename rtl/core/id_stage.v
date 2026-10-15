@@ -20,6 +20,7 @@ module id_stage (
     input  wire [31:0] if_id_pc_i,
     input  wire         if_id_fault_i,   // I-port access-fault tag, carried through
     input  wire         if_id_valid_i,
+    input  wire         bp_dis_i,        // CORE-4: mgarudactl.BP_DIS
 
     // -------------------------------------------------------------------
     // Register-file write port (from WB stage)
@@ -182,6 +183,7 @@ module id_stage (
         .branch_i                (branch_o),
         .jal_i                   (jal_o),
         .fencei_i                (fencei_w),
+        .bp_dis_i                (bp_dis_i),          // CORE-4
 
         .predict_taken_o         (predict_taken_o),   // -> id_ex (Sec. 5.2)
         .id_redirect_valid_o     (id_redirect_valid_o),
