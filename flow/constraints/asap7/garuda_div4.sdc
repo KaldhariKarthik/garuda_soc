@@ -84,9 +84,14 @@ set_max_delay 8000 -ignore_clock_latency -from [get_clocks {aon_clk hclk pclk}] 
 #      cycles, RSTREASON, exth_q/extp_q 2-flop release synchronisers); 149 in u_soc.u_debug
 #      (jtag_tap/dtm/dmi_cdc por_n_i, tck domain, tck may be stopped). The pin
 #      has no clock (board supervisor, PHYS B-1), so recovery/removal from it
-#      cannot be timed. The exception is limited to those reset/set pins:
+#      cannot be timed. The exception is limited to those reset/set pins.
+#      They are named as the timing endpoints the port reaches, not as the
+#      loads of net ext_rst_n: placement puts an input buffer on the port, and
+#      the net's only load becomes that buffer (PD-10). Checked on pnr_r7:
+#      184 pins (175 RESETN, 9 SETN) after synthesis and after placement.
 set_false_path -from [get_ports ext_rst_n] \
-    -to [get_pins -of_objects [get_nets ext_rst_n] -filter "direction == input"]
+    -to [get_pins [get_fanout -from [get_ports ext_rst_n] -endpoints_only -flat] \
+             -filter "lib_pin_name == RESETN || lib_pin_name == SETN"]
 
 # ---- 7. I/O.  PROVISIONAL: every budget = IO_PCT = 30% of the relevant clock
 #      period. Assumptions: (a) a pad + board budget of that size is enough; (b)
