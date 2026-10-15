@@ -180,7 +180,7 @@ uvm_gpio:                                        ## GPIO UVM environment, with c
 uvm_crg:                                         ## clock and reset UVM environment, with coverage
 	$(call run_uvm,crg,-covdut clk_div -covdut reset_ctrl,tb/clk_div/uvm/filelist_crg_uvm.f,tb_crg_uvm,crg)
 
-UVM_B = uvm_clic uvm_timers uvm_pwm uvm_gpio uvm_crg uvm_spis uvm_i2c
+UVM_B = uvm_clic uvm_timers uvm_pwm uvm_gpio uvm_crg uvm_spis uvm_i2c uvm_uart
 uvm_b: $(UVM_B)                                  ## the five UVM environments of track B
 
 # =============================================================================

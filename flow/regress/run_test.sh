@@ -46,6 +46,7 @@ case "$T" in
   tb_pwm)      FL=tb/pwm/filelist_pwm.f;           TOP=tb_pwm ;;
   # ---- stage 5: integration -------------------------------------------------
   tb_ahb_ic)   FL=tb/ahb/filelist_ahb_ic.f;        TOP=tb_ahb_interconnect ;;
+  tb_ahb_ic_wait) FL=tb/ahb/filelist_ahb_ic.f;     TOP=tb_ahb_interconnect; ARGS="+GWAIT=3 +GRAND=1" ;;   # random slave wait states
   tb_bridge)   FL=tb/ahb2apb/filelist_ahb2apb.f;   TOP=tb_ahb2apb ;;
   tb_apb_shim) FL=tb/common/filelist_shim.f;       TOP=tb_apb_shim ;;
   # ---- stage 4: core --------------------------------------------------------
@@ -86,7 +87,7 @@ case "$T" in
                ARGS="+HEX=sw/build/$n.hex +COMMIT=$OUT/commit.log +COVTAG=$OUT/fcov +MAXCYC=400000 +QUIET $x"
                MARK="TOHOST=1 -> PASSED" ;;
   # ---- stage 6: the chip from the pins --------------------------------------
-  chip_*)      m=${T#chip_}; FL=tb/soc/filelist_chip.f; TOP=tb_chip; MARK="RESULT: +PASSED"
+  chip_*)      m=${T#chip_}; FL=tb/soc/filelist_chip_cov.f; TOP=tb_chip; MARK="RESULT: +PASSED"
                case "$m" in
                  uart)   ARGS="+MODE=basic +TEST=sw/build/t_chip_uart.hex" ;;
                  periph) ARGS="+MODE=basic +TEST=sw/build/t_chip_periph.hex +MAXUS=1200" ;;

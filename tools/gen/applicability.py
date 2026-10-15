@@ -53,9 +53,13 @@ def bound_asserts():
         t = open(p, errors="replace").read()
         for m in re.finditer(r"^\s*bind\s+(\w+)\s+(\w+)", t, re.M):
             tgt, chk = m.groups()
-            for q in glob.glob("rtl/**/%s.sv" % chk, recursive=True) + glob.glob("tb/**/%s.sv" % chk, recursive=True):
-                n = count(ASSERT, q)
-                if n: out[tgt].append((os.path.basename(q), n))
+            for q in sorted(set(glob.glob("rtl/**/*.sv", recursive=True) + glob.glob("tb/**/*.sv", recursive=True))):
+                if "third_party" in q: continue
+                t2 = open(q, errors="replace").read()
+                m2 = re.search(r"^\s*module\s+%s\b(.*?)^\s*endmodule" % chk, t2, re.M | re.S)
+                if m2:                                   # count the assertions of that module only
+                    n = len(re.findall(ASSERT, m2.group(1), re.M))
+                    if n: out[tgt].append(("%s in %s" % (chk, os.path.basename(q)), n))
     return out
 
 def bound_covergroups():
@@ -97,7 +101,17 @@ CHILD_OF = {"clic_apb": "clic_top", "clic_select": "clic_top", "mtime": "timers_
             "sram_wrapper": "ahb_mem_slave_if",
             # the DSU: one covergroup at dsu_top samples each sub-block's decision where it is made
             "dsu_decoder": "dsu_top", "mac_cluster": "dsu_top", "readback_mux": "dsu_top",
-            "result_selector": "dsu_top", "operand_router": "dsu_top", "barrel_shifter": "dsu_top"}
+            "result_selector": "dsu_top", "operand_router": "dsu_top", "barrel_shifter": "dsu_top",
+            # the core: garuda_cov (decode, ALU, hazards, traps) and garuda_core_cov_ext (CSRs, CLIC
+            # entry, WFI sleep, write-back) are bound at garuda_core_top and sample these where they decide
+            "ex_stage": "garuda_core_top", "forward_unit": "garuda_core_top", "trap_ctrl": "garuda_core_top",
+            "csr_file": "garuda_core_top", "clic_ctrl": "garuda_core_top", "core_clk_gate": "garuda_core_top",
+            "regfile": "garuda_core_top", "wb_stage": "garuda_core_top",
+            # the bus fabric, the DMA and debug: checker and covergroup bound at the block top
+            "ahb_arbiter": "ahb_interconnect", "ahb_decoder": "ahb_interconnect", "ahb_default_slave": "ahb_interconnect",
+            "ahb_master_port": "ahb_interconnect", "ahb_slave_mux": "ahb_interconnect", "ahb_master_mux": "ahb_interconnect",
+            "dma_apb_slave": "dma_top", "dma_arbiter": "dma_top", "dma_chan": "dma_top", "dma_engine": "dma_top",
+            "debug_module": "debug_top", "dmi_cdc": "debug_top", "dtm": "debug_top", "jtag_tap": "debug_top", "sba_master": "debug_top"}
 
 def formal_facts():
     d = {}
@@ -123,6 +137,7 @@ ARRAY = "memory array: the state space is the contents; proved by simulation wit
 SERIAL = "pure datapath of a small width with no state worth a property; covered by the instruction-level tests"
 
 FUNC_N = {
+ "ahb_mem_slave": "a verification model kept in rtl/ (the memory of tb_boot), not silicon: rtl/ahb/filelist.f says so",
  "if_id": P, "id_ex": P, "ex_mem": P,
  "garuda_chip_top": TOPW, "garuda_soc_top": TOPW, "ahb_master_mux": TOPW, "ahb2apb_fabric": TOPW,
  "kogge_stone_49": "internal to mac_unit: operand corners (zero, maximum, sign flip, carry in) are sampled at mac_unit and dsu_top",
@@ -133,7 +148,9 @@ FUNC_N = {
 CHECKERS = {"clic_sva","clk_div_sva","garuda_apb_shim_sva","gpio_sva","garuda_i2c_sva","pwm_sva",
             "reset_ctrl_sva","garuda_spis_sva","timers_sva","pipe_ctrl_sva"}
 ASSERT_N = {m: CHK for m in CHECKERS}
+ASSERT_N["ahb_mem_slave"] = "a verification model kept in rtl/ (the memory of tb_boot), not silicon: rtl/ahb/filelist.f says so"
 FORMAL_N = {
+ "ahb_mem_slave": "a verification model kept in rtl/ (the memory of tb_boot), not silicon: rtl/ahb/filelist.f says so",
  "mul32": ARITH, "mult_16x16": ARITH, "kogge_stone_49": ARITH, "mac_unit": ARITH, "mac_cluster": ARITH,
  "csa_3to2": SERIAL, "barrel_shifter": None,
  "dsram_top": "four 4096-word banks: the shared front end and the array are proved on a 16-word harness (flow/formal/mem); the bank selection is checked end to end by a_data_integrity in simulation",
@@ -168,6 +185,8 @@ def row(mod, path, bound, formal, bcov=None):
     # ---- code coverage
     if mod in CHECKERS:
         r["code"] = ("n/a", CHK)
+    elif mod == "ahb_mem_slave":
+        r["code"] = ("n/a", ASSERT_N["ahb_mem_slave"])
     else:
         r["code"] = ("have", "block chart (Docs/coverage/COVERAGE_BY_BLOCK.md)")
     # ---- functional coverage

@@ -23,7 +23,7 @@ lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/apb_gpio/src/apb_gpio
 
 // ---- the one latch of the chip: the enable latch of the core's clock gate
 // (CORE [N-7.27]); a library clock-gate cell replaces it at synthesis (rtl/tech).
-lint_off -rule LATCH          -file "*rtl/core/core_clk_gate.v" -lines 36
+lint_off -rule LATCH          -file "*rtl/core/core_clk_gate.v" -lines 45
 
 // ---- track A, OPEN: to be fixed in the RTL by its owner, then removed from here
 // (asked in the status sheet on 2026-10-14). Each is a width mismatch that gives
@@ -32,3 +32,9 @@ lint_off -rule WIDTHEXPAND    -file "*rtl/debug/debug_module.v"       -lines 83
 lint_off -rule WIDTHEXPAND    -file "*rtl/ahb2apb/ahb2apb_apb_fsm.v"  -lines 97
 lint_off -rule WIDTHTRUNC     -file "*rtl/dma/dma_engine.v"           -lines 78
 lint_off -rule WIDTHTRUNC     -file "*rtl/dma/dma_engine.v"           -lines 163
+
+// Checker code (bound property and coverage modules, *_sva.sv). Not hardware: it is not
+// synthesised (`ifndef SYNTHESIS) and compares counters and indices against integer
+// constants and an associative model indexed by int. Width extension is the intent there.
+lint_off -rule WIDTHEXPAND    -file "*rtl/*_sva.sv"
+lint_off -rule UNSIGNED       -file "*rtl/dma/dma_sva.sv"

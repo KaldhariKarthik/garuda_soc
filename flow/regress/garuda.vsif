@@ -75,7 +75,7 @@ group garuda {
 
     // ---- stage 5: integration --------------------------------------------------
     group integ {
-        test tb_ahb_ic {}; test tb_bridge {}; test tb_apb_shim {};
+        test tb_ahb_ic {}; test tb_ahb_ic_wait {}; test tb_bridge {}; test tb_apb_shim {};
     };
 
     // ---- stage 6: the chip from the pins ---------------------------------------

@@ -63,7 +63,7 @@ module bootrom_top #(
         begin
             u_array.bd_write(byte_addr[AW+1:2], data);
 `ifndef __ICARUS__
-            u_if.u_mem_sva.forget(byte_addr[AW+1:2]);   // the bus-side data model (rtl/mem/mem_sva.sv) did not see this write
+            u_if.u_mem_sva.forget({{(32-AW){1'b0}}, byte_addr[AW+1:2]});   // the bus-side data model (rtl/mem/mem_sva.sv) did not see this write
 `endif
         end
     endtask

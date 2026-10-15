@@ -15,3 +15,4 @@
 
 -sv
 tb/cov/garuda_cov.sv
+tb/cov/garuda_core_cov_ext.sv

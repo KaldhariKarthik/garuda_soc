@@ -50,21 +50,26 @@ BLOCKS = [
                  "regfile trap_ctrl wb_stage",
          sva="pipe_ctrl_sva alu_if branch_if csr_rw_if decode_if dport_if hazard_if id_stage_if if_top_if "
              "imm_gen_if iport_if load_fmt_if lsu_if mem_stage_if memwb_if mul32_if pc_gen_if pfb_if regfile_if",
-         cg_types="garuda_cov"),
+         cg_types="garuda_cov garuda_core_cov_ext"),
     dict(key="DSU", name="DSU", plan="tb/dsu/GARUDA_DSU_vplan.csv", track="A",
          modules="barrel_shifter csa_3to2 dsu_decoder dsu_stall dsu_top kogge_stone_49 mac_cluster mac_unit "
-                 "mult_16x16 operand_router overflow_flag readback_mux result_selector saturation_unit"),
+                 "mult_16x16 operand_router overflow_flag readback_mux result_selector saturation_unit",
+         cg_types="dsu_cov"),
     dict(key="AHB", name="AHB interconnect", plan="tb/ahb/GARUDA_AHB_vplan.csv", track="A",
          modules="ahb_arbiter ahb_decoder ahb_default_slave ahb_interconnect ahb_master_mux ahb_master_port "
-                 "ahb_slave_mux"),
+                 "ahb_slave_mux", sva="ahb_interconnect_sva", cg_types="ahb_interconnect_cov"),
     dict(key="AHB2APB", name="AHB to APB bridge", plan="tb/ahb2apb/GARUDA_AHB2APB_vplan.csv", track="A",
-         modules="ahb2apb_apb_fsm ahb2apb_bridge ahb2apb_fabric"),
+         modules="ahb2apb_apb_fsm ahb2apb_bridge ahb2apb_fabric", sva="ahb2apb_bridge_sva",
+         cg_types="ahb2apb_bridge_cov"),
     dict(key="MEM", name="Memories", plan="tb/mem/GARUDA_MEM_vplan.csv", track="A",
-         modules="ahb_mem_slave_if sram_wrapper isram_top dsram_top bootrom_top"),
+         modules="ahb_mem_slave_if sram_wrapper isram_top dsram_top bootrom_top", sva="mem_sva",
+         cg_types="mem_cov"),
     dict(key="DMA", name="DMA", plan="tb/dma/GARUDA_DMA_vplan.csv", track="A",
-         modules="dma_apb_slave dma_arbiter dma_chan dma_engine dma_top"),
+         modules="dma_apb_slave dma_arbiter dma_chan dma_engine dma_top", sva="dma_top_sva dma_chan_sva",
+         cg_types="dma_cov"),
     dict(key="DEBUG", name="Debug", plan="tb/debug/GARUDA_DEBUG_vplan.csv", track="A",
-         modules="debug_module debug_top dmi_cdc dtm jtag_tap sba_master"),
+         modules="debug_module debug_top dmi_cdc dtm jtag_tap sba_master", sva="debug_sva",
+         cg_types="debug_cov"),
     dict(key="CLIC", name="CLIC", plan="tb/clic/GARUDA_CLIC_vplan.csv", track="B",
          modules="clic_apb clic_select clic_top", sva="clic_sva",
          uvm=("uvm_clic", ["clic_top"], "flow/cov/clic_exclusions.tcl")),
@@ -81,13 +86,14 @@ BLOCKS = [
          modules="garuda_gpio_top apb_gpio", sva="gpio_sva",
          uvm=("uvm_gpio", ["garuda_gpio_top"], "flow/cov/gpio_exclusions.tcl")),
     dict(key="UART", name="UART", plan="tb/uart/GARUDA_UART_vplan.csv", track="B",
-         modules="garuda_uart_top apb_uart_sv uart_rx uart_tx uart_interrupt io_generic_fifo"),
+         modules="garuda_uart_top apb_uart_sv uart_rx uart_tx uart_interrupt io_generic_fifo", sva="garuda_uart_sva",
+         uvm=("uvm_uart", ["garuda_uart_top"], "flow/cov/uart_exclusions.tcl")),
     dict(key="I2C", name="I2C", plan="tb/i2c/GARUDA_I2C_vplan.csv", track="B",
          modules="garuda_i2c_top i2c_master_byte_ctrl i2c_master_bit_ctrl", sva="garuda_i2c_sva",
          uvm=("uvm_i2c", ["garuda_i2c_top"], "flow/cov/i2c_exclusions.tcl")),
     dict(key="SPIM", name="SPI master", plan="tb/spi_master/GARUDA_SPIM_vplan.csv", track="B",
          modules="garuda_spim_top apb_spi_master spi_master_apb_if spi_master_clkgen spi_master_controller "
-                 "spi_master_fifo spi_master_rx spi_master_tx"),
+                 "spi_master_fifo spi_master_rx spi_master_tx", sva="garuda_spim_sva", cg_types="spim_cov"),
     dict(key="SPIS", name="SPI slave", plan="tb/spi_slave/GARUDA_SPIS_vplan.csv", track="B",
          modules="garuda_spis_core garuda_spis_top", sva="garuda_spis_sva",
          uvm=("uvm_spis", ["garuda_spis_top"], "flow/cov/spis_exclusions.tcl")),
@@ -95,9 +101,9 @@ BLOCKS = [
 # not one of the sixteen, shown below them
 EXTRA = [
     dict(key="SHIM", name="APB shim (shared by six peripherals)", plan="", track="B",
-         modules="garuda_apb_shim", sva="garuda_apb_shim_sva"),
+         modules="garuda_apb_shim", sva="garuda_apb_shim_sva", cg_types="garuda_apb_shim_cov"),
     dict(key="TOP", name="Chip and SoC top (wiring)", plan="", track="B",
-         modules="garuda_chip_top garuda_soc_top"),
+         modules="garuda_chip_top garuda_chip_core garuda_soc_top", cg_types="chip_cov"),
 ]
 METRICS = ["Block", "Expression", "Toggle", "Fsm", "Assertion"]
 
@@ -142,6 +148,8 @@ def collect():
            "report -summary -type -metrics block:expression:toggle:fsm:assertion:covergroup -out %s/type_summary.txt" % ALL,
            "report -detail -type * -metrics assertion -out %s/assert_never.txt" % ALL,
            "report -detail -type garuda_cov -metrics covergroup -out %s/cg_core_holes.txt" % ALL,
+           ] + ["report -detail -type %s -metrics covergroup -out %s/cg_holes_%s.txt" % (t, ALL, t)
+                for b in BLOCKS + EXTRA for t in b.get("cg_types", "").split()] + [
            "exit"]
     open(os.path.join(ROOT, ALL, "merge.tcl"), "w").write("\n".join(tcl) + "\n")
     out = imc("%s/merge.tcl" % ALL)
@@ -186,6 +194,7 @@ def collect():
                "source %s" % waivers,
                "report -summary -inst %s -metrics block:expression:toggle:fsm:assertion -out sim/%s/code_cov.txt" % (sel, d),
                "report -summary -inst uvm_pkg... -metrics covergroup -out sim/%s/func_sum.txt" % d,
+               "report -detail -inst uvm_pkg... -metrics covergroup -out sim/%s/func_holes.txt" % d,
                "report -detail -inst %s -metrics assertion -out sim/%s/assert_never.txt" % (sel, d),
                "report -detail -inst %s -metrics block:expression:toggle:fsm -out sim/%s/holes.txt" % (sel, d),
                "exit"]
@@ -337,9 +346,18 @@ def gather():
         d["waivers"] = []
         d["func"] = None
 
+        if b.get("cg_types") and b["key"] != "CORE":
+            parts = [(t, col(ts.get(t, {}), "CoverGroup")) for t in b["cg_types"].split()]
+            tot = (0, 0, 0)
+            for _, p in parts:
+                tot = add(tot, p)
+            if tot[1]:
+                d["func"] = tot
+                d["func_parts"] = parts
+
         if b["key"] == "CORE":
-            f = col(ts.get("garuda_cov", {}), "CoverGroup")
-            parts = [("garuda_cov (tb_boot: ISA and sanity programs)", f)]
+            parts = [("%s (tb_boot: ISA and sanity programs; chip programs)" % t, col(ts.get(t, {}), "CoverGroup"))
+                     for t in b["cg_types"].split()]
             for fn in sorted(os.listdir(os.path.join(ROOT, ALL))):
                 if fn.startswith("cg_unit_") and fn.endswith(".txt"):
                     r = read_summary("%s/%s" % (ALL, fn))

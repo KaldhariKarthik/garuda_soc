@@ -78,7 +78,7 @@ module dsram_top (
                 default: g_bank[3].u_array.bd_write(byte_addr[13:2], data);
             endcase
 `ifndef __ICARUS__
-            u_if.u_mem_sva.forget(byte_addr[15:2]);   // the bus-side data model (rtl/mem/mem_sva.sv) did not see this write
+            u_if.u_mem_sva.forget({18'd0, byte_addr[15:2]});   // the bus-side data model (rtl/mem/mem_sva.sv) did not see this write
 `endif
         end
     endtask
