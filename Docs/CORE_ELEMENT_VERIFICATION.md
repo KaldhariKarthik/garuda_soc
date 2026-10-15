@@ -147,10 +147,13 @@ directly, so re-measure after running them:
   redirects.
 - `garuda_if_stage_top` (58.36%, "buffer full, redirect with 2 fetches in
   flight, back-to-back redirects") → one section each.
-- `cp_lvl_vs_thresh` / `cp_lvl_vs_active` in `tb_clic_ctrl.sv` bin the
-  **equality** case separately, so a coverage report that shows those bins hit
-  is the evidence that strict `>` (test C24) was actually exercised rather
-  than assumed.
+- `cp_lvl_vs_thresh` / `cp_lvl_vs_active` (covergroup `cg_lvl`) in
+  `tb_clic_ctrl.sv` bin the **equality** case separately, so a coverage report
+  that shows those bins hit is the evidence that strict `>` (test C24) was
+  actually exercised rather than assumed. The same bins are counted in plain
+  code for Icarus, printed as `coverage:` lines, and the run fails if a level
+  equal to one bound, with everything else allowing the take, was never
+  applied (Docs/BUGS.md ELEM-7).
 - The wide-bus toggle shortfall the same doc describes is attacked here by
   driving complementary patterns (`0000_0000` / `FFFF_FFFF` / `8081_8283` /
   `AAAA_5555`) and full-range addresses through the datapath elements, rather
