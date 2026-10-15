@@ -1,0 +1,155 @@
+# Verification applicability by module
+
+Written by `tools/gen/applicability.py` from the tree; `make check_applicability` fails when an own RTL module has no row or a "not applicable" has no reason. What exists is read from the files; what applies is a judgement kept in the tables of that script, each "no" with its reason.
+
+A measure that **applies and does not exist is a GAP**. Nothing else is. Vendored IP is below.
+
+## Summary
+
+| Measure | have | GAP | n/a (with reason) |
+|---|---|---|---|
+| Code coverage | 94 | 0 | 10 |
+| Functional coverage | 40 | 44 | 20 |
+| Assertions | 42 | 52 | 10 |
+| Formal properties | 1 | 66 | 37 |
+
+104 own RTL modules.
+
+## Gap list
+
+**Functional coverage: 44 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_interconnect, ahb_master_port, ahb_mem_slave, ahb_slave_mux; bridge: ahb2apb_apb_fsm, ahb2apb_bridge; core: clic_ctrl, core_clk_gate, csr_file, ex_stage, forward_unit, regfile, trap_ctrl, wb_stage; debug: debug_module, debug_top, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine, dma_top; dsu: barrel_shifter, dsu_decoder, dsu_top, mac_cluster, operand_router, readback_mux, result_selector; mem: ahb_mem_slave_if, bootrom_top, dsram_top, isram_top, sram_wrapper; shim: garuda_apb_shim; soc: garuda_chip_core; spim: garuda_spim_top; uart: garuda_uart_top
+
+**Assertions: 52 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_interconnect, ahb_master_mux, ahb_master_port, ahb_mem_slave, ahb_slave_mux; bridge: ahb2apb_apb_fsm, ahb2apb_bridge, ahb2apb_fabric; core: clic_ctrl, core_clk_gate, csr_file, ex_mem, ex_stage, forward_unit, id_ex, if_id, regfile, trap_ctrl, wb_stage; debug: debug_module, debug_top, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine, dma_top; dsu: barrel_shifter, dsu_decoder, dsu_top, kogge_stone_49, mac_cluster, mult_16x16, operand_router, readback_mux, result_selector; mem: ahb_mem_slave_if, bootrom_top, dsram_top, isram_top, sram_wrapper; soc: garuda_chip_core, garuda_chip_top, garuda_soc_top; spim: garuda_spim_top; uart: garuda_uart_top
+
+**Formal properties: 66 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_interconnect, ahb_master_port, ahb_mem_slave, ahb_slave_mux; bridge: ahb2apb_apb_fsm, ahb2apb_bridge; clic: clic_apb, clic_select, clic_top; clk/rst: clk_div, reset_ctrl, reset_ctrl_apb; core: branch_predict, branch_unit, clic_ctrl, core_clk_gate, csr_file, csr_rw, d_port_ahb_master, decode_control, ex_stage, forward_unit, garuda_core_top, garuda_if_stage_top, garuda_iport_ahb_master, garuda_pc_gen, garuda_prefetch_buffer, hazard_forward_unit, id_stage, load_store_unit, mem_stage, trap_ctrl, wb_stage; debug: debug_module, debug_top, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine, dma_top; dsu: barrel_shifter, dsu_decoder, dsu_stall, dsu_top; gpio: garuda_gpio_top; i2c: garuda_i2c_top; mem: ahb_mem_slave_if; pwm: garuda_pwm_core, garuda_pwm_top; shim: garuda_apb_shim; soc: garuda_chip_core; spim: garuda_spim_top; spis: garuda_spis_core, garuda_spis_top; timers: mtime, timers_apb, timers_top, wdt; uart: garuda_uart_top
+
+## The matrix
+
+| Module | Block | Code coverage | Functional coverage | Assertions | Formal |
+|---|---|---|---|---|---|
+| `ahb_arbiter` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `ahb_decoder` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `ahb_default_slave` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `ahb_interconnect` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `ahb_master_mux` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made | **GAP** | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made |
+| `ahb_master_port` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `ahb_mem_slave` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `ahb_slave_mux` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `ahb2apb_apb_fsm` | bridge | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `ahb2apb_bridge` | bridge | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `ahb2apb_fabric` | bridge | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made | **GAP** | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made |
+| `clic_apb` | clic | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 7 in clic_env_pkg.sv (via clic_top) | **have** via clic_top: clic_sva.sv | **GAP** waivers checked only (clic_unr); no property proved |
+| `clic_select` | clic | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 7 in clic_env_pkg.sv (via clic_top) | **have** via clic_top: clic_sva.sv | **GAP** waivers checked only (clic_unr); no property proved |
+| `clic_sva` | clic | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
+| `clic_top` | clic | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 7 in clic_env_pkg.sv | **have** 14 bound: clic_sva.sv | **GAP** waivers checked only (clic_unr); no property proved |
+| `clk_div` | clk/rst | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 4 in crg_env_pkg.sv | **have** 5 bound: clk_div_sva.sv | **GAP** waivers checked only (crg_unr); no property proved |
+| `clk_div_sva` | clk/rst | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
+| `reset_ctrl` | clk/rst | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 4 in crg_env_pkg.sv | **have** 15 bound: reset_ctrl_sva.sv | **GAP** waivers checked only (crg_unr); no property proved |
+| `reset_ctrl_apb` | clk/rst | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 4 in crg_env_pkg.sv (via reset_ctrl) | **have** via reset_ctrl: reset_ctrl_sva.sv | **GAP** waivers checked only (crg_unr); no property proved |
+| `reset_ctrl_sva` | clk/rst | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
+| `alu` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in tb_alu.sv | **have** 6 in bench tb_alu.sv (not bound) | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `branch_predict` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in tb_branch_predict.sv | **have** 8 in bench tb_branch_predict.sv (not bound) | **GAP** |
+| `branch_unit` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 1 in tb_branch_unit.sv | **have** 7 in bench tb_branch_unit.sv (not bound) | **GAP** |
+| `clic_ctrl` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `core_clk_gate` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `csr_file` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `csr_rw` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 1 in tb_csr_rw.sv | **have** 5 in bench tb_csr_rw.sv (not bound) | **GAP** |
+| `d_port_ahb_master` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 1 in tb_d_port_ahb_master.sv | **have** 7 in bench tb_d_port_ahb_master.sv (not bound) | **GAP** |
+| `decode_control` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in tb_decode_control.sv | **have** 8 in bench tb_decode_control.sv (not bound) | **GAP** |
+| `ex_mem` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: pure pipeline register: no decision logic; its hold/flush behaviour is a covergroup of pipe_ctrl and garuda_cov | **GAP** | n/a: pure pipeline register: no decision logic; its hold/flush behaviour is a covergroup of pipe_ctrl and garuda_cov |
+| `ex_stage` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `forward_unit` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `garuda_core_top` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: the pipeline's functional coverage is garuda_cov (bound at this module) and the element benches | **have** 9 bound: pipe_ctrl_sva.sv | **GAP** |
+| `garuda_if_stage_top` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in tb_garuda_if_stage_top.sv | **have** 5 in bench tb_garuda_if_stage_top.sv (not bound) | **GAP** |
+| `garuda_iport_ahb_master` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 1 in tb_garuda_iport_ahb_master.sv | **have** 6 in bench tb_garuda_iport_ahb_master.sv (not bound) | **GAP** |
+| `garuda_pc_gen` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in tb_garuda_pc_gen.sv | **have** 6 in bench tb_garuda_pc_gen.sv (not bound) | **GAP** |
+| `garuda_prefetch_buffer` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 1 in tb_garuda_prefetch_buffer.sv | **have** 6 in bench tb_garuda_prefetch_buffer.sv (not bound) | **GAP** |
+| `hazard_forward_unit` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 3 in tb_hazard_forward_unit.sv | **have** 7 in bench tb_hazard_forward_unit.sv (not bound) | **GAP** |
+| `id_ex` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: pure pipeline register: no decision logic; its hold/flush behaviour is a covergroup of pipe_ctrl and garuda_cov | **GAP** | n/a: pure pipeline register: no decision logic; its hold/flush behaviour is a covergroup of pipe_ctrl and garuda_cov |
+| `id_stage` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in tb_id_stage.sv | **have** 8 in bench tb_id_stage.sv (not bound) | **GAP** |
+| `if_id` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: pure pipeline register: no decision logic; its hold/flush behaviour is a covergroup of pipe_ctrl and garuda_cov | **GAP** | n/a: pure pipeline register: no decision logic; its hold/flush behaviour is a covergroup of pipe_ctrl and garuda_cov |
+| `imm_gen` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in tb_imm_gen.sv | **have** 8 in bench tb_imm_gen.sv (not bound) | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `load_formatter` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 1 in tb_load_formatter.sv | **have** 7 in bench tb_load_formatter.sv (not bound) | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `load_store_unit` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 1 in tb_load_store_unit.sv | **have** 6 in bench tb_load_store_unit.sv (not bound) | **GAP** |
+| `mem_stage` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 1 in tb_mem_stage.sv | **have** 8 in bench tb_mem_stage.sv (not bound) | **GAP** |
+| `mem_wb_reg` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 1 in tb_mem_wb_reg.sv | **have** 5 in bench tb_mem_wb_reg.sv (not bound) | n/a: pure pipeline register: no decision logic; its hold/flush behaviour is a covergroup of pipe_ctrl and garuda_cov |
+| `mul32` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 1 in tb_mul32.sv | **have** 4 in bench tb_mul32.sv (not bound) | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
+| `pipe_ctrl` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** hold x flush matrix in garuda_cov.sv (make pipe_matrix) | **have** 9 bound at garuda_core_top: pipe_ctrl_sva | **have** properties proved: flow/formal/core/pipe_ctrl_core.tcl |
+| `pipe_ctrl_sva` | core | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
+| `regfile` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | n/a: memory array: the state space is the contents; proved by simulation with address-in-address-out patterns, not by a property engine |
+| `trap_ctrl` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `wb_stage` | core | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `debug_module` | debug | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `debug_top` | debug | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `dmi_cdc` | debug | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `dtm` | debug | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `jtag_tap` | debug | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `sba_master` | debug | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `dma_apb_slave` | dma | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `dma_arbiter` | dma | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `dma_chan` | dma | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `dma_engine` | dma | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `dma_top` | dma | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `barrel_shifter` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `csa_3to2` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 3 in csa_3to2_tb_final.sv | **have** 6 in bench csa_3to2_tb_final.sv (not bound) | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `dsu_decoder` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `dsu_stall` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in dsu_stall_tb_final.sv | **have** 6 in bench dsu_stall_tb_final.sv (not bound) | **GAP** |
+| `dsu_top` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `kogge_stone_49` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: internal to mac_unit: operand corners (zero, maximum, sign flip, carry in) are sampled at mac_unit and dsu_top | **GAP** | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
+| `mac_cluster` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
+| `mac_unit` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in mac_unit_tb_final.sv | **have** 6 in bench mac_unit_tb_final.sv (not bound) | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
+| `mult_16x16` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: internal to mac_unit: operand corners are sampled at mac_unit and dsu_top | **GAP** | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
+| `operand_router` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `overflow_flag` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in overflow_flag_tb_final.sv | **have** 6 in bench overflow_flag_tb_final.sv (not bound) | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `readback_mux` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `result_selector` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `saturation_unit` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in saturation_unit_tb_final.sv | **have** 8 in bench saturation_unit_tb_final.sv (not bound) | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `garuda_gpio_top` | gpio | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 5 in gpio_env_pkg.sv | **have** 6 bound: gpio_sva.sv | **GAP** waivers checked only (gpio_unr); no property proved |
+| `gpio_sva` | gpio | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
+| `garuda_i2c_sva` | i2c | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
+| `garuda_i2c_top` | i2c | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 13 in i2c_env_pkg.sv | **have** 16 bound: garuda_i2c_sva.sv | **GAP** waivers checked only (i2c_unr); no property proved |
+| `ahb_mem_slave_if` | mem | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `bootrom_top` | mem | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | n/a: memory array: the state space is the contents; proved by simulation with address-in-address-out patterns, not by a property engine |
+| `dsram_top` | mem | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | n/a: memory array: the state space is the contents; proved by simulation with address-in-address-out patterns, not by a property engine |
+| `isram_top` | mem | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | n/a: memory array: the state space is the contents; proved by simulation with address-in-address-out patterns, not by a property engine |
+| `sram_wrapper` | mem | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | n/a: memory array: the state space is the contents; proved by simulation with address-in-address-out patterns, not by a property engine |
+| `garuda_pwm_core` | pwm | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 8 in pwm_env_pkg.sv (via garuda_pwm_top) | **have** via garuda_pwm_top: pwm_sva.sv | **GAP** waivers checked only (pwm_unr); no property proved |
+| `garuda_pwm_top` | pwm | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 8 in pwm_env_pkg.sv | **have** 12 bound: pwm_sva.sv | **GAP** waivers checked only (pwm_unr); no property proved |
+| `pwm_sva` | pwm | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
+| `garuda_apb_shim` | shim | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **have** 15 bound: garuda_apb_shim_sva.sv | **GAP** |
+| `garuda_apb_shim_sva` | shim | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
+| `garuda_chip_core` | soc | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `garuda_chip_top` | soc | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made | **GAP** | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made |
+| `garuda_soc_top` | soc | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made | **GAP** | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made |
+| `garuda_spim_top` | spim | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `garuda_spis_core` | spis | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 8 in spis_env_pkg.sv (via garuda_spis_top) | **have** via garuda_spis_top: garuda_spis_sva.sv | **GAP** waivers checked only (spis_unr); no property proved |
+| `garuda_spis_sva` | spis | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
+| `garuda_spis_top` | spis | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 8 in spis_env_pkg.sv | **have** 11 bound: garuda_spis_sva.sv | **GAP** waivers checked only (spis_unr); no property proved |
+| `mtime` | timers | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 6 in timers_env_pkg.sv (via timers_top) | **have** via timers_top: timers_sva.sv | **GAP** waivers checked only (timers_unr); no property proved |
+| `timers_apb` | timers | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 6 in timers_env_pkg.sv (via timers_top) | **have** via timers_top: timers_sva.sv | **GAP** waivers checked only (timers_unr); no property proved |
+| `timers_sva` | timers | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
+| `timers_top` | timers | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 6 in timers_env_pkg.sv | **have** 26 bound: timers_sva.sv | **GAP** waivers checked only (timers_unr); no property proved |
+| `wdt` | timers | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 6 in timers_env_pkg.sv (via timers_top) | **have** via timers_top: timers_sva.sv | **GAP** waivers checked only (timers_unr); no property proved |
+| `garuda_uart_top` | uart | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+
+## FPGA-only files (4, not in the ASIC build)
+
+`rtl/fpga/` holds the KV260 bring-up wrapper and FPGA versions of the clock divider and clock gate (they reuse the ASIC module names). They are verified by the FPGA bring-up, not by this flow: `clk_div_fpga.v`, `core_clk_gate_fpga.v`, `garuda_fpga_core.v`, `garuda_kv260_top.v`.
+
+## Vendored IP (15 modules, not edited, D-22)
+
+| Measure | Treatment | Reason |
+|---|---|---|
+| Code coverage | measured with the block that instantiates it; findings that cannot be reached by GARUDA's use are waived by name (451 for the GPIO pads 32 to 63, for example) | the code is third-party; unreachable by our configuration is a fact about our use |
+| Functional coverage | **n/a** for the vendored module itself; covered through our wrapper's environment | the features GARUDA uses are the wrapper's spec features; the vendor's other features are not ours to verify |
+| Assertions | only at our boundary (the shim and the wrapper) | we cannot bind into code we do not maintain without a patch (D-22) |
+| Formal | **n/a** | same, and the vendor's checks belong to the vendor |
+
+Modules: `apb_gpio`, `apb_spi_master`, `apb_uart_sv`, `i2c_master_bit_ctrl`, `i2c_master_byte_ctrl`, `io_generic_fifo`, `spi_master_apb_if`, `spi_master_clkgen`, `spi_master_controller`, `spi_master_fifo`, `spi_master_rx`, `spi_master_tx`, `uart_interrupt`, `uart_rx`, `uart_tx`
+
+## How to read a row
+
+- `have` says what exists and where. `bound` means a checker attached with `bind`, so it runs in every simulation of the block, in the chip too. `in bench ... (not bound)` runs only in that element bench.
+- `GAP` on formal with "waivers checked only" means JasperGold was used to confirm coverage waivers, which is not the same as proving a property of the block.
+- `garuda_cov.sv` samples the pipeline as a whole at `garuda_core_top` (8 covergroups). Core modules listed as GAP for functional coverage may be partly covered there; reviewing each against it is the first job of the plan, not a finding.
+- A UVM environment's covergroups are counted on the block top; its children say `(via top)`.

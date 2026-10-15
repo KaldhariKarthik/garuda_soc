@@ -256,8 +256,16 @@ cov_chart: cov_runs uvm_b cov_report
 # make check_tree_selfcheck plants a .lib and checks that the check fails.
 # =============================================================================
 .PHONY: check_tree check_tree_selfcheck
+# make check_applicability: every own RTL module has a row in Docs/coverage/APPLICABILITY.md and every
+# "not applicable" has its reason (tools/gen/applicability.py).
+.PHONY: check_applicability applicability
+check_applicability:
+	@python3 tools/gen/applicability.py --check
+applicability:
+	@python3 tools/gen/applicability.py
+
 check_tree:
-	@python3 tools/check_tree.py
+	@python3 tools/check_tree.py && python3 tools/gen/applicability.py --check
 
 check_tree_selfcheck:
 	@f=flow/planted_for_check_tree.lib; echo "library (planted) { }" > $$f; git add -N $$f; \
