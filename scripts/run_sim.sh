@@ -190,7 +190,7 @@ run_one() {
     if [ "$SIM" = verilator ]; then
         # -Wno-fatal: lint warnings are local_lint's job, not a reason to skip
         # a simulation. --assert: the bound SVA must be live, as under xrun.
-        verilator --binary --timing --assert -j 0 -Wno-fatal -Wno-lint -Wno-style \
+        verilator --binary --timing --assert -j "${SIM_JOBS:-2}" -Wno-fatal -Wno-lint -Wno-style \
             --top-module "$top" -Mdir "$out/obj" $incs $defs $srcs > "$out/compile.log" 2>&1
         rc=$?
         bin="$out/obj/V$top"
