@@ -94,7 +94,10 @@ CHILD_OF = {"clic_apb": "clic_top", "clic_select": "clic_top", "mtime": "timers_
             "ahb2apb_apb_fsm": "ahb2apb_bridge", "ahb2apb_fabric": "ahb2apb_bridge",
             # the memories: the checkers are bound to the shared front end inside each top
             "isram_top": "ahb_mem_slave_if", "dsram_top": "ahb_mem_slave_if", "bootrom_top": "ahb_mem_slave_if",
-            "sram_wrapper": "ahb_mem_slave_if"}
+            "sram_wrapper": "ahb_mem_slave_if",
+            # the DSU: one covergroup at dsu_top samples each sub-block's decision where it is made
+            "dsu_decoder": "dsu_top", "mac_cluster": "dsu_top", "readback_mux": "dsu_top",
+            "result_selector": "dsu_top", "operand_router": "dsu_top", "barrel_shifter": "dsu_top"}
 
 def formal_facts():
     d = {}

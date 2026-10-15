@@ -9,7 +9,7 @@ A measure that **applies and does not exist is a GAP**. Nothing else is. Vendore
 | Measure | have | GAP | n/a (with reason) |
 |---|---|---|---|
 | Code coverage | 94 | 0 | 18 |
-| Functional coverage | 52 | 32 | 28 |
+| Functional coverage | 59 | 25 | 28 |
 | Assertions | 54 | 40 | 18 |
 | Formal properties | 26 | 44 | 42 |
 
@@ -17,7 +17,7 @@ A measure that **applies and does not exist is a GAP**. Nothing else is. Vendore
 
 ## Gap list
 
-**Functional coverage: 32 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_master_port, ahb_mem_slave, ahb_slave_mux; core: clic_ctrl, core_clk_gate, csr_file, ex_stage, forward_unit, regfile, trap_ctrl, wb_stage; debug: debug_module, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine; dsu: barrel_shifter, dsu_decoder, dsu_top, mac_cluster, operand_router, readback_mux, result_selector; shim: garuda_apb_shim; soc: garuda_chip_core
+**Functional coverage: 25 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_master_port, ahb_mem_slave, ahb_slave_mux; core: clic_ctrl, core_clk_gate, csr_file, ex_stage, forward_unit, regfile, trap_ctrl, wb_stage; debug: debug_module, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine; shim: garuda_apb_shim; soc: garuda_chip_core
 
 **Assertions: 40 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_master_mux, ahb_master_port, ahb_mem_slave, ahb_slave_mux; core: clic_ctrl, core_clk_gate, csr_file, ex_mem, ex_stage, forward_unit, id_ex, if_id, regfile, trap_ctrl, wb_stage; debug: debug_module, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine, dma_top; dsu: barrel_shifter, dsu_decoder, dsu_top, kogge_stone_49, mac_cluster, mult_16x16, operand_router, readback_mux, result_selector; soc: garuda_chip_core, garuda_chip_top, garuda_soc_top
 
@@ -95,19 +95,19 @@ A measure that **applies and does not exist is a GAP**. Nothing else is. Vendore
 | `dma_engine` | dma | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **have** properties proved 80/93 (via dma_top): flow/formal/dma/dma_fpv.tcl |
 | `dma_top` | dma | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dma_cov.sv | **GAP** | **have** properties proved 80/93: flow/formal/dma/dma_fpv.tcl |
 | `dma_top_sva` | dma | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
-| `barrel_shifter` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `barrel_shifter` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **GAP** | **GAP** |
 | `csa_3to2` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 3 in csa_3to2_tb_final.sv | **have** 6 in bench csa_3to2_tb_final.sv (not bound) | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
-| `dsu_decoder` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `dsu_decoder` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **GAP** | **GAP** |
 | `dsu_stall` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in dsu_stall_tb_final.sv | **have** 6 in bench dsu_stall_tb_final.sv (not bound) | **GAP** |
-| `dsu_top` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `dsu_top` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv | **GAP** | **GAP** |
 | `kogge_stone_49` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: internal to mac_unit: operand corners (zero, maximum, sign flip, carry in) are sampled at mac_unit and dsu_top | **GAP** | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
-| `mac_cluster` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
+| `mac_cluster` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **GAP** | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
 | `mac_unit` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in mac_unit_tb_final.sv | **have** 6 in bench mac_unit_tb_final.sv (not bound) | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
 | `mult_16x16` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: internal to mac_unit: operand corners are sampled at mac_unit and dsu_top | **GAP** | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
-| `operand_router` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `operand_router` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **GAP** | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
 | `overflow_flag` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in overflow_flag_tb_final.sv | **have** 6 in bench overflow_flag_tb_final.sv (not bound) | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
-| `readback_mux` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
-| `result_selector` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `readback_mux` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **GAP** | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `result_selector` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **GAP** | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
 | `saturation_unit` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in saturation_unit_tb_final.sv | **have** 8 in bench saturation_unit_tb_final.sv (not bound) | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
 | `garuda_gpio_top` | gpio | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 5 in gpio_env_pkg.sv | **have** 6 bound: gpio_sva.sv | **GAP** waivers checked only (gpio_unr); no property proved |
 | `gpio_sva` | gpio | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |

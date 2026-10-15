@@ -23,4 +23,5 @@ rtl/dsu/dsu_decoder.v
 rtl/dsu/dsu_top.v
 
 -sv
+tb/dsu/dsu_cov.sv
 tb/dsu/tb_dsu_top.sv
