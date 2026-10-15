@@ -156,7 +156,7 @@ package pwm_reg_pkg;
         endfunction : new
 
         virtual function void build();
-            this.default_map = create_map("reg_map", 0, 4, UVM_NO_ENDIAN);
+            this.default_map = create_map("reg_map", 0, 4, UVM_LITTLE_ENDIAN);
             this.PRESCALE = new("PRESCALE");
             this.PRESCALE.configure(this);
 

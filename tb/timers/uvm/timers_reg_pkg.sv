@@ -153,7 +153,7 @@ package timers_reg_pkg;
         endfunction : new
 
         virtual function void build();
-            this.default_map = create_map("reg_map", 0, 4, UVM_NO_ENDIAN);
+            this.default_map = create_map("reg_map", 0, 4, UVM_LITTLE_ENDIAN);
             this.MTIME_LO = new("MTIME_LO");
             this.MTIME_LO.configure(this);
 
