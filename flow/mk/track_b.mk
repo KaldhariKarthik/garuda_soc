@@ -14,7 +14,7 @@
         test_chip_uart test_chip_periph test_chip_integ test_chip_jtag elab_chip \
         docs check_docs static static_lint static_cdc static_xprop \
         uvm_clic uvm_timers uvm_pwm uvm_gpio uvm_crg uvm_spis uvm_i2c uvm_b \
-        synth local local_sim local_lint local_synth gate_b
+        synth local local_sim local_lint local_synth uvm_local gate_b
 
 help_b:
 	@echo "  ---- track B: peripherals, clocks and resets, chip, flow ----"
@@ -26,6 +26,7 @@ help_b:
 	@echo "                          uvm_timers uvm_pwm uvm_gpio uvm_crg, and uvm_b for all five"
 	@echo "  make synth           -- Genus structural synthesis check (latches, drivers)"
 	@echo "  make local           -- licence-free flow: Icarus, Verilator lint, Yosys"
+	@echo "  make uvm_local       -- the UVM environments under Verilator (no licence, no coverage)"
 	@echo "  make cov_chart       -- coverage of every block from IMC, into Docs/coverage/"
 	@echo "  make check_docs      -- are any .docx stale against their .md?"
 	@echo "  make gate_b          -- the subset to pass before a push of track B"
@@ -226,6 +227,11 @@ local_lint:                                      ## whole-chip Verilator lint
 	 echo "=== Verilator lint: garuda_chip_top ($$(echo $$src | wc -w) sources) ==="; \
 	 verilator --lint-only -sv --timing --top-module garuda_chip_top flow/2_static/verilator_waivers.vlt $$inc $$def $$src; \
 	 echo "local_lint: no warning that is not accepted in flow/2_static/verilator_waivers.vlt"
+
+# The UVM environments under Verilator with the IEEE UVM library (no coverage;
+# see the header of the script). One environment at a time, two compiler jobs.
+uvm_local:                                       ## every UVM environment under Verilator
+	@./scripts/run_uvm_local.sh all
 
 local: local_sim local_lint local_synth
 

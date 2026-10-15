@@ -22,19 +22,16 @@
 #
 # MEMORY. Verilator turns uvm_pkg into very large C++ files. With one
 # compiler per CPU (-j 0) a 16-CPU WSL with 7.4 GB ran out of memory and
-# crashed, twice (2026-10-15); with -j 2 the CLIC build still peaked at
-# 6.1 GB in use. So: UVM_JOBS compilers (default 2), at the lowest CPU and
-# disk priority, never started with less than MIN_START_MIB available
-# (default 7000: under the WSL default of 7.4 GB it refuses to start; raise
-# the WSL memory first, flow/pd/TOOLS.md §1), and stopped by a watchdog if
-# available memory falls below MIN_AVAIL_MIB while they run. One environment
-# at a time.
+# crashed, twice (2026-10-15). With -j 2 one build peaks at about 2.3 GB
+# resident (/usr/bin/time -v, CLIC). So: UVM_JOBS compilers (default 2), at
+# the lowest CPU and disk priority, never started with less than
+# MIN_START_MIB available, and stopped by a watchdog if available memory
+# falls below MIN_AVAIL_MIB while they run. One environment at a time.
 #
-# STATUS: EXPERIMENTAL. Under Verilator 5.053 the APB protocol checker of the
-# testbench flags back-to-back accesses ("PENABLE still high after PREADY
-# completed the access": clic reg 1, directed 22, random 20) that it does not
-# flag under xrun; the UVM checks themselves report 0 errors. Until that is
-# explained (Docs/BUGS.md TOOL-26), a PASS here is not a sign-off result.
+# The shared APB driver drove its outputs through the clocking block, which
+# under the IEEE UVM library lost the SETUP phase of back-to-back accesses
+# (BUGS TOOL-26, fixed in tb/uvm/apb/garuda_apb_pkg.sv); the testbench APB
+# checkers now report 0 violations here as under xrun.
 # =============================================================================
 set -u
 cd "$(dirname "$0")/.." || exit 1
@@ -44,11 +41,11 @@ SEEDS=${SEEDS:-3}
 SEED0=${SEED0:-0}
 SIM_TIMEOUT=${SIM_TIMEOUT:-900}
 UVM_JOBS=${UVM_JOBS:-2}
-MIN_START_MIB=${MIN_START_MIB:-7000}
+MIN_START_MIB=${MIN_START_MIB:-4000}
 MIN_AVAIL_MIB=${MIN_AVAIL_MIB:-1500}
 PY=${PY:-python3}
 
-# env | filelist | top | test prefix -- as the uvm_* targets of track_b.mk
+# env | filelist | top | test prefix -- as the uvm_* targets of track_b.mk (dma: track_a.mk)
 ENVS="
 clic|tb/clic/uvm/filelist_clic_uvm.f|tb_clic_uvm|clic
 timers|tb/timers/uvm/filelist_timers_uvm.f|tb_timers_uvm|tmr
@@ -58,6 +55,7 @@ i2c|tb/i2c/uvm/filelist_i2c_uvm.f|tb_i2c_uvm|i2c
 uart|tb/uart/uvm/filelist_uart_uvm.f|tb_uart_uvm|uart
 gpio|tb/gpio/uvm/filelist_gpio_uvm.f|tb_gpio_uvm|gpio
 crg|tb/clk_div/uvm/filelist_crg_uvm.f|tb_crg_uvm|crg
+dma|tb/dma/uvm/filelist_dma_uvm.f|tb_dma_uvm|dma
 "
 
 names() { echo "$ENVS" | awk -F'|' 'NF == 4 { print $1 }'; }

@@ -10,7 +10,7 @@
 .PHONY: help_a elab_core elab_core_dsu \
         test_ex test_ex_dsu test_idex test_exmem test_pipe test_csr test_trap \
         test_core isa_tests test_boot test_c regress regress_wait test_flag2 \
-        test_sanity regress_rand coverage test_dsu test_dsu_stream test_units test_decode_control \
+        test_sanity regress_rand coverage test_dsu test_dsu_stream uvm_dma test_units test_decode_control \
         test_imm_gen test_reg_file test_branch_predict test_hazard_forward_unit \
         test_id_stage test_elements test_alu test_mul32 test_branch_unit \
         test_csr_rw test_clic_ctrl test_lsu test_load_fmt test_memwb \
@@ -34,6 +34,7 @@ help_a:
 	@echo "  make test_flag2      -- DSU FLAG-2 compute->read ordering probe (closed: DSU-3/DSU-4)"
 	@echo "  make test_dsu        -- DSU unit TB vs DSUModel (regenerates vectors)"
 	@echo "  make test_dsu_stream -- the same, instructions back to back (SIM=icarus: no licence)"
+	@echo "  make uvm_dma         -- DMA UVM environment with coverage (SEEDS=n)"
 	@echo "  make test_sanity     -- Core Sanity TB: IRQ, bus error, WFI, flush, DSU"
 	@echo "  make regress         -- full ISA regression + Spike lockstep"
 	@echo "  make regress_wait    -- same, with AHB wait states injected"
@@ -248,6 +249,12 @@ test_dsu_stream:
 	 fi; \
 	 grep -E "tests compared|mismatches|interlock held|RESULT" $$d/run.log 2> /dev/null; \
 	 $(call judge,$(SIM_DIR)/dsu_stream/run.log,RESULT +: PASSED)
+
+# DMA UVM environment (block 9), with coverage, on irun 15.2 (macro run_uvm in
+# common.mk): register test, directed test, random test x SEEDS. The same
+# environment runs without a licence: ./scripts/run_uvm_local.sh dma.
+uvm_dma:                                         ## DMA UVM environment, with coverage
+	$(call run_uvm,dma,-covdut dma_top,tb/dma/uvm/filelist_dma_uvm.f,tb_dma_uvm,dma)
 
 coverage: sw isa_tests
 	@./scripts/run_coverage.sh
