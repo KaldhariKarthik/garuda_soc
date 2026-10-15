@@ -15,4 +15,5 @@ tb/ahb/ahb_lite_master_bfm.sv
 // passive protocol monitor, bound to all three master ports and the slave bus
 tb/ahb/ahb_lite_checker.v
 
+tb/ahb/ahb_interconnect_cov.sv
 tb/ahb/tb_ahb_interconnect.sv

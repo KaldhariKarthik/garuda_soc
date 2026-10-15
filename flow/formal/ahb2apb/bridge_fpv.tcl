@@ -36,6 +36,8 @@ assume {pclk_phase_i == 1'b0}
 prove -all -time_limit 600s
 report -summary
 source flow/formal/common.tcl
-file mkdir [file dirname sim/formal_bridge/props.txt]
-list_props sim/formal_bridge/props.txt
+set PROPS sim/formal_bridge/props.txt
+if {[info exists ::env(PROPS)]} { set PROPS $::env(PROPS) }
+file mkdir [file dirname $PROPS]
+list_props $PROPS
 exit

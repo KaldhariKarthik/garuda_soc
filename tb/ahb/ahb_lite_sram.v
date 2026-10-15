@@ -122,7 +122,8 @@ module ahb_lite_sram #(
     // a deselected slave never stalls the layer.
     // -----------------------------------------------------------------------
     assign hreadyout_o = (wcnt == 8'd0) && !(dp_err && !err2);
-    assign hresp_o     = dp_err;
+    // AHB-Lite 5.1.3: wait states before an ERROR are OKAY; ERROR is driven only for its two cycles (TB-B3)
+    assign hresp_o     = dp_err && (wcnt == 8'd0);
 
     wire [31:0] widx = (dp_addr - BASE_ADDR) >> 2;
 
