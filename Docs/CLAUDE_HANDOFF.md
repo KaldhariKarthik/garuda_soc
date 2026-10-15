@@ -64,6 +64,7 @@ owner to create it again, then run `wsl --shutdown`. Peak use in pnr_r7 was 8.65
 - Post-route, extracted, FF corner: setup and hold met in all four DIVSEL modes. Worst hold
   +1.79 ps (thin, no hold uncertainty). Both reset-release paths met.
 - Outputs: `~/tools/garuda_pd/` (`results/asap7/garuda/pnr_r7/6_final.gds`).
+- Flow steps beyond ORFS (multi-mode hold repair, per-scenario STA, clock reports, the run driver, run summaries): `make pd_*`, `flow/pd/asap7/scripts/README.md`; `make pd_runs` gives every run side by side. The next run is `make pd_pnr V=pnr_r8 PD_FROM=pnr_r7` or a full one without `PD_FROM`.
 
 These figures prove the flow, the constraints and the RTL hooks. They do not prove timing,
 area or power at 28 nm.
@@ -73,7 +74,6 @@ area or power at 28 nm.
 | Item | What is open |
 |---|---|
 | P2 chip simulation | `make test_chip` on the lab xrun after the top split (D-28) |
-| PD-9 flow step | The multi-mode hold repair is `~/tools/logs/b3_mm_hold.tcl`. It is outside the repo and is not an ORFS make step. Move it into `flow/pd/asap7/` before the next run |
 | PD-1 | `GARUDA_SRAM_BLACKBOX` folds read data to 0; Genus cell counts may be low. Needs an RTL change |
 | TOOL-18 | OpenROAD crashes (signal 11) in CTS hold repair with about 1700 violations |
 | D2, D6 (28 nm) | Derived-clock uncertainty is a provisional 150 ps; the 28 nm ICG cell and object names need the foundry library |
