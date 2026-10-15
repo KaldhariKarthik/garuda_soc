@@ -78,7 +78,7 @@ if [ -s "$OUT/check_design.rpt" ]; then
         v=$(val "$k"); [ "$v" = 0 ] || note "$k: ${v:-not reported}"
     done
     md=$(sed -n '/Multidriven Port(s)\/Pin(s)/,/Constant Pin(s)/p' "$OUT/check_design.rpt" | grep -E "^h?pin:" \
-         | grep -vE "/u_i2c/(i2c_s(cl|da)_i|u_shim/sync0_q_reg\[[01]\]/d)$|/u_gpio/(gpio_i\[[01]\]|u_shim/sync0_q_reg\[[01]\]/d)$")
+         | grep -vE "/u_i2c/(i2c_s(cl|da)_i|u_shim/sync0_q_reg\[[01]\]/d)$|/u_gpio/(gpio_i\[[01]\]|u_shim/sync0_q_reg\[[01]\]/d)$|/u_core/(i2c_s(cl|da)_i|gpio_i\[[01]\])$")
     [ -z "$md" ] || { note "multiply driven pins other than the bidirectional pads:"; echo "$md" | head; }
 else
     note "no check_design report"
