@@ -45,8 +45,8 @@ def code_rows():
     p = "Docs/coverage/coverage_by_block.csv"
     if os.path.exists(p):
         for r in csv.reader(open(p)):
-            if len(r) >= 6 and r[0] != "block":
-                try: rows[r[0]][(r[1], r[2])] = float(r[5])
+            if len(r) >= 7 and r[0] != "block":          # block,source,metric,covered,total,excluded,percent
+                try: rows[r[0]][(r[1], r[2])] = float(r[6])
                 except ValueError: pass
     return rows
 
@@ -89,9 +89,10 @@ def main():
         n_holes = sum(len(b) for _, _, pts, _ in groups for b in pts.values())
         c = code.get(key, {})
         def g(m):
-            for k in (("measured", m), ("waived", m), ("merged", m)):
-                if k in c: return "%.1f%%" % c[k]
-            return "-"
+            me, wa = c.get(("measured", m)), c.get(("after_waivers", m))
+            if me is None: return "-"
+            if wa is not None and abs(wa - me) > 0.05: return "%.1f%% (%.1f%% after waivers)" % (me, wa)
+            return "%.1f%%" % me
         L.append("| %s | %s | %s | %s | %s | %d |" % (title, g("Block"), g("Expression"), g("Toggle"), g("Functional"), n_holes))
         body += ["", "## %s" % title, ""]
         if not groups:

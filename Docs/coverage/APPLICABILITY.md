@@ -8,18 +8,18 @@ A measure that **applies and does not exist is a GAP**. Nothing else is. Vendore
 
 | Measure | have | GAP | n/a (with reason) |
 |---|---|---|---|
-| Code coverage | 93 | 0 | 19 |
-| Functional coverage | 83 | 0 | 29 |
-| Assertions | 78 | 15 | 19 |
-| Formal properties | 26 | 43 | 43 |
+| Code coverage | 93 | 0 | 20 |
+| Functional coverage | 83 | 0 | 30 |
+| Assertions | 85 | 8 | 20 |
+| Formal properties | 26 | 43 | 44 |
 
-112 own RTL modules.
+113 own RTL modules.
 
 ## Gap list
 
 **Functional coverage: 0 modules.** 
 
-**Assertions: 15 modules.** core: ex_mem, id_ex, if_id; dsu: barrel_shifter, dsu_decoder, dsu_top, kogge_stone_49, mac_cluster, mult_16x16, operand_router, readback_mux, result_selector; soc: garuda_chip_core, garuda_chip_top, garuda_soc_top
+**Assertions: 8 modules.** core: ex_mem, id_ex, if_id; dsu: kogge_stone_49, mult_16x16; soc: garuda_chip_core, garuda_chip_top, garuda_soc_top
 
 **Formal properties: 43 modules.** clic: clic_apb, clic_select, clic_top; clk/rst: clk_div, reset_ctrl, reset_ctrl_apb; core: branch_predict, branch_unit, clic_ctrl, core_clk_gate, csr_file, csr_rw, d_port_ahb_master, decode_control, ex_stage, forward_unit, garuda_core_top, garuda_if_stage_top, garuda_iport_ahb_master, garuda_pc_gen, garuda_prefetch_buffer, hazard_forward_unit, id_stage, load_store_unit, mem_stage, trap_ctrl, wb_stage; dsu: barrel_shifter, dsu_decoder, dsu_stall, dsu_top; gpio: garuda_gpio_top; i2c: garuda_i2c_top; pwm: garuda_pwm_core, garuda_pwm_top; shim: garuda_apb_shim; soc: garuda_chip_core; spis: garuda_spis_core, garuda_spis_top; timers: mtime, timers_apb, timers_top, wdt
 
@@ -95,19 +95,20 @@ A measure that **applies and does not exist is a GAP**. Nothing else is. Vendore
 | `dma_engine` | dma | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dma_cov.sv (via dma_top) | **have** via dma_top: dma_top_sva in dma_sva.sv | **have** properties proved 80/93 (via dma_top): flow/formal/dma/dma_fpv.tcl |
 | `dma_top` | dma | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dma_cov.sv | **have** 21 bound: dma_top_sva in dma_sva.sv | **have** properties proved 80/93: flow/formal/dma/dma_fpv.tcl |
 | `dma_top_sva` | dma | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
-| `barrel_shifter` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **GAP** | **GAP** |
+| `barrel_shifter` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **have** via dsu_top: dsu_sva in dsu_sva.sv | **GAP** |
 | `csa_3to2` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 3 in csa_3to2_tb_final.sv | **have** 6 in bench csa_3to2_tb_final.sv (not bound) | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
-| `dsu_decoder` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **GAP** | **GAP** |
+| `dsu_decoder` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **have** via dsu_top: dsu_sva in dsu_sva.sv | **GAP** |
 | `dsu_stall` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in dsu_stall_tb_final.sv | **have** 6 in bench dsu_stall_tb_final.sv (not bound) | **GAP** |
-| `dsu_top` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv | **GAP** | **GAP** |
+| `dsu_sva` | dsu | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
+| `dsu_top` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv | **have** 20 bound: dsu_sva in dsu_sva.sv | **GAP** |
 | `kogge_stone_49` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: internal to mac_unit: operand corners (zero, maximum, sign flip, carry in) are sampled at mac_unit and dsu_top | **GAP** | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
-| `mac_cluster` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **GAP** | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
+| `mac_cluster` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **have** via dsu_top: dsu_sva in dsu_sva.sv | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
 | `mac_unit` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in mac_unit_tb_final.sv | **have** 6 in bench mac_unit_tb_final.sv (not bound) | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
 | `mult_16x16` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: internal to mac_unit: operand corners are sampled at mac_unit and dsu_top | **GAP** | n/a: wide arithmetic: a property proof times out on multipliers and adders of this width; the right tool is sequential equivalence against the Python model, and the DSU model comparison already does the data check |
-| `operand_router` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **GAP** | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `operand_router` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **have** via dsu_top: dsu_sva in dsu_sva.sv | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
 | `overflow_flag` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in overflow_flag_tb_final.sv | **have** 6 in bench overflow_flag_tb_final.sv (not bound) | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
-| `readback_mux` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **GAP** | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
-| `result_selector` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **GAP** | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `readback_mux` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **have** via dsu_top: dsu_sva in dsu_sva.sv | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
+| `result_selector` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 bound: dsu_cov.sv (via dsu_top) | **have** via dsu_top: dsu_sva in dsu_sva.sv | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
 | `saturation_unit` | dsu | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 2 in saturation_unit_tb_final.sv | **have** 8 in bench saturation_unit_tb_final.sv (not bound) | n/a: pure datapath of a small width with no state worth a property; covered by the instruction-level tests |
 | `garuda_gpio_top` | gpio | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 5 in gpio_env_pkg.sv | **have** 6 bound: gpio_sva in gpio_sva.sv | **GAP** waivers checked only (gpio_unr); no property proved |
 | `gpio_sva` | gpio | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |

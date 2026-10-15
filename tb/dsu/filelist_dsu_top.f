@@ -21,6 +21,7 @@ rtl/dsu/overflow_flag.v
 rtl/dsu/dsu_stall.v
 rtl/dsu/dsu_decoder.v
 rtl/dsu/dsu_top.v
+rtl/dsu/dsu_sva.sv
 
 -sv
 tb/dsu/dsu_cov.sv

@@ -87,7 +87,7 @@ BLOCKS = [
          uvm=("uvm_gpio", ["garuda_gpio_top"], "flow/cov/gpio_exclusions.tcl")),
     dict(key="UART", name="UART", plan="tb/uart/GARUDA_UART_vplan.csv", track="B",
          modules="garuda_uart_top apb_uart_sv uart_rx uart_tx uart_interrupt io_generic_fifo", sva="garuda_uart_sva",
-         uvm=("uvm_uart", ["garuda_uart_top"], "flow/cov/uart_exclusions.tcl")),
+         uvm=("uvm_uart", ["tb_uart_uvm.g_uart*.dut"], "flow/cov/uart_exclusions.tcl")),   # three instances: selected by path
     dict(key="I2C", name="I2C", plan="tb/i2c/GARUDA_I2C_vplan.csv", track="B",
          modules="garuda_i2c_top i2c_master_byte_ctrl i2c_master_bit_ctrl", sva="garuda_i2c_sva",
          uvm=("uvm_i2c", ["garuda_i2c_top"], "flow/cov/i2c_exclusions.tcl")),
