@@ -1,0 +1,97 @@
+Coverage report: block ahb2apb  (Verilator 5.052, merged per module definition)
+runs merged : 28 passing runs from 5 suite summaries
+      1  logs/ahb2apb/summary/bridge.cov.tsv
+      2  logs/ahb2apb/summary/probe.cov.tsv
+     20  logs/ahb2apb/summary/env.cov.tsv
+      2  logs/ahb2apb/summary/units.cov.tsv
+      3  logs/common/summary/b0.cov.tsv
+targets     : design code >= 95.0% per metric per module; design functional = 100.0% of bins (after reviewed waivers)
+
+== DESIGN CODE COVERAGE (sign-off) ==
+module                                  line            branch              expr            toggle               fsm   waived
+ahb2apb_apb_fsm                 9/9     100.0       7/7     100.0       9/9     100.0     386/386   100.0                  -   4
+ahb2apb_bridge                  9/9     100.0      12/12    100.0      29/29    100.0     638/638   100.0                  -   11
+ahb2apb_fabric                  2/2     100.0                  -     26/26    100.0     140/140   100.0                  -   0
+TOTAL                          20/20    100.0      19/19    100.0      64/64    100.0    1164/1164  100.0                  -   15
+RAW (before waivers)           20/21     95.2      19/20     95.0      64/65     98.5    1164/1176   99.0                  -
+
+== TESTBENCH CODE COVERAGE (reported, not sign-off) ==
+module                                  line            branch              expr            toggle               fsm   waived
+ahb2apb_cov                    26/28     92.9      31/40     77.5      46/58     79.3     144/242    59.5                  -   0
+ahb2apb_cov__Wz1               28/28    100.0      37/40     92.5      54/58     93.1     210/242    86.8                  -   0
+ahb2apb_cov__Wz1_Az2           26/28     92.9      32/40     80.0      51/58     87.9     164/242    67.8                  -   0
+ahb2apb_sva                     5/5     100.0      24/28     85.7      75/85     88.2     480/726    66.1                  -   0
+ahb2apb_sva__Wz1                5/5     100.0      25/28     89.3      83/85     97.6     696/726    95.9                  -   0
+ahb2apb_sva__Wz1_Az2            5/5     100.0      24/28     85.7      80/85     94.1     553/726    76.2                  -   0
+ahb_lite_master_bfm            10/16     62.5       7/8      87.5      18/24     75.0     331/1986   16.7                  -   0
+ahb_master_agent__I1            9/9     100.0      21/24     87.5      42/44     95.5     224/238    94.1                  -   0
+apb_checker                     6/6     100.0      41/68     60.3      60/66     90.9     224/376    59.6                  -   0
+apb_checker__E1                 6/6     100.0      42/68     61.8      60/66     90.9     222/376    59.0                  -   0
+apb_checker__E3                 2/6      33.3      28/68     41.2      51/66     77.3     166/376    44.1                  -   0
+apb_checker__E7                 2/6      33.3      29/68     42.6      51/66     77.3     178/376    47.3                  -   0
+apb_checker__MB4                5/6      83.3      37/68     54.4      61/66     92.4     204/376    54.3                  -   0
+apb_slave_model                 7/9      77.8      13/18     72.2      24/25     96.0     187/396    47.2                  -   0
+apb_target                     18/19     94.7      16/24     66.7      25/28     89.3     208/284    73.2                  -   0
+apb_target__W1                 19/19    100.0      17/24     70.8      26/28     92.9     220/284    77.5                  -   0
+apb_target__W2                 19/19    100.0      19/24     79.2      28/28    100.0     220/284    77.5                  -   0
+apb_target__W3                 19/19    100.0      17/24     70.8      26/28     92.9     242/284    85.2                  -   0
+apb_target__W4                 18/19     94.7      16/24     66.7      25/28     89.3     218/284    76.8                  -   0
+apb_target__W5                 19/19    100.0      17/24     70.8      26/28     92.9     226/284    79.6                  -   0
+apb_target__W6                 19/19    100.0      17/24     70.8      26/28     92.9     226/284    79.6                  -   0
+apb_target__W7                 19/19    100.0      17/24     70.8      26/28     92.9     228/284    80.3                  -   0
+apb_target__W8                 18/19     94.7      16/24     66.7      25/28     89.3     214/284    75.4                  -   0
+apb_target__W9                 19/19    100.0      17/24     70.8      26/28     92.9     216/284    76.1                  -   0
+apb_target__Wa                 19/19    100.0      17/24     70.8      26/28     92.9     212/284    74.6                  -   0
+apb_target__Wb                 19/19    100.0      17/24     70.8      26/28     92.9     226/284    79.6                  -   0
+dma_req_checker__Nz4            9/11     81.8       7/8      87.5       7/9      77.8       9/10     90.0                  -   0
+garuda_apb_bfm                  7/9      77.8                  -                 -     99/166    59.6                  -   0
+garuda_apb_shim                11/11    100.0      15/16     93.8      53/61     86.9     273/396    68.9                  -   0
+tb_ahb2apb                     31/32     96.9      17/24     70.8      56/113    49.6     257/420    61.2                  -   0
+tb_apb_checker_selftest        18/19     94.7       2/4      50.0       2/2     100.0      94/150    62.7                  -   0
+tb_apb_env                    137/140    97.9      64/102    62.7      49/70     70.0     458/482    95.0                  -   0
+tb_apb_probe                   23/25     92.0       6/10     60.0      26/43     60.5      92/408    22.5                  -   0
+tb_apb_shim                    35/36     97.2       6/8      75.0      30/53     56.6     244/1344   18.2                  -   0
+tb_apb_units                   24/25     96.0      17/24     70.8      20/43     46.5     495/496    99.8                  -   0
+tb_map_pkg                      9/9     100.0       5/10     50.0      12/36     33.3                  -                 -   0
+TOTAL                         671/708    94.8     733/1088   67.4    1322/1618   81.7    8660/14684  59.0                  -   0
+RAW (before waivers)          671/708    94.8     733/1088   67.4    1322/1618   81.7    8660/14684  59.0                  -
+
+== DESIGN FUNCTIONAL COVERAGE (covergroup bins) ==
+cg_b2b (ahb2apb_cov.sv)                           14/14     100.0%   waived 0
+cg_div (ahb2apb_cov.sv)                            7/7      100.0%   waived 0
+cg_end (ahb2apb_cov.sv)                            3/3      100.0%   waived 0
+cg_phase (ahb2apb_cov.sv)                          2/2      100.0%   waived 0
+cg_ready_at (ahb2apb_cov.sv)                       6/6      100.0%   waived 0
+cg_reject (ahb2apb_cov.sv)                        11/11     100.0%   waived 0
+cg_rst (ahb2apb_cov.sv)                            6/6      100.0%   waived 0
+cg_win (ahb2apb_cov.sv)                           50/50     100.0%   waived 0
+TOTAL                                             99/99     100.0%
+RAW (before waivers)                              99/99     100.0%   (0 waived bins; illegal/ignore bins declared in the source are never targets)
+
+== ILLEGAL / IGNORE BINS (declared in the source; not targets; illegal must stay 0) ==
+
+== WAIVERS (6) ==
+CL-HSTATE  [line/unreachable]  rtl/ahb2apb/ahb2apb_bridge.v  /^line:172 case/  -> 1 point(s)
+    reason  : The hclk FSM's 3-bit state uses six codes (H_IDLE..H_ERR2); the `default:` arm recovers the two unused codes, which no transition produces.
+    evidence: PROVEN fv_apb apb_prove + fv_apb_div div_prove a_hstate_legal (hstate <= 5), abc pdr, 2026-10-14   reviewer: pending: Sreyesh
+CB-WIN12  [branch/unreachable]  rtl/ahb2apb/ahb2apb_apb_fsm.v  /^line:53 cond_else/  -> 1 point(s)
+    reason  : win_i is the bridge's captured window, which only takes a present window 0..11; the guard (win_i < 12) protects the APB_DIV part-select and is never false.
+    evidence: PROVEN fv_apb apb_prove + fv_apb_div div_prove a_win_cap_legal (win_cap < 12 always), 2026-10-14   reviewer: pending: Sreyesh
+CE-WIN12  [expr/unreachable]  rtl/ahb2apb/ahb2apb_apb_fsm.v  /^line:53 \(\(win_i < 4'hc\)==0\)/  -> 1 point(s)
+    reason  : Same guard as CB-WIN12: (win_i < 12) is never false.
+    evidence: PROVEN a_win_cap_legal, as CB-WIN12   reviewer: pending: Sreyesh
+CT-SIZE2-ahb2apb_bridge  [toggle/constant]  rtl/ahb2apb/ahb2apb_bridge.v  /^(hsize_i\[2\]:0\->1|hsize_i\[2\]:1\->0)$/  -> 2 point(s)
+    reason  : The AHB is 32 bits wide: HSIZE <= word, so HSIZE[2] is 0 on the shared bus.
+    evidence: literal rtl/core/garuda_iport_ahb_master.v:89, rtl/core/load_store_unit.v:32, rtl/debug/sba_master.v:42, rtl/dma/dma_engine.v {1'b0, size}   reviewer: pending: Sreyesh
+CT-TOCNT-ahb2apb_apb_fsm  [toggle/constant]  rtl/ahb2apb/ahb2apb_apb_fsm.v  /^(to_cnt\[4\]:0\->1|to_cnt\[4\]:1\->0)$/  -> 2 point(s)
+    reason  : The 5-bit timeout counter stops at TIMEOUT-1 = 15, so bit 4 is never set.
+    evidence: PROVEN fv_apb / fv_apb_div a_to_cnt_max (rtl/ahb2apb/ahb2apb_sva.sv)   reviewer: pending: Sreyesh
+CT-WORDALIGN-ahb2apb_bridge  [toggle/constant]  rtl/ahb2apb/ahb2apb_bridge.v  /^(addr_cap\[0\]:0\->1|addr_cap\[0\]:1\->0|addr_cap\[1\]:0\->1|addr_cap\[1\]:1\->0|paddr_o\[0\]:0\->1|paddr_o\[0\]:1\->0|paddr_o\[1\]:0\->1|paddr_o\[1\]:1\->0)$/  -> 8 point(s)
+    reason  : Only word transfers reach APB (sub-word is rejected, a_subword_no_apb PROVEN) and an AHB-Lite word transfer is word-aligned, so the captured address and PADDR bits [1:0] are 0.
+    evidence: PROVEN fv_apb a_subword_no_apb; AHB-Lite alignment rule checked by ahb_lite_checker on every master port; GARUDA masters: BUS-E (a_iport_pc_aligned PROVEN), the LSU traps misaligned accesses   reviewer: pending: Sreyesh
+
+== DESIGN HOLES (uncovered, not waived) ==
+
+== FUNCTIONAL HOLES (bins never hit, not waived) ==
+
+verdict: PASS  (0 below target, 0 waiver/input error(s))

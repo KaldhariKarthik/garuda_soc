@@ -1,0 +1,5 @@
+# garuda-run 1 suite=ic.cov block=ahb date=2026-10-14T00:08:17+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+checker_selftest	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.02	20		logs/ahb/raw/ic.cov/cov/checker_selftest_s1.dat		logs/ahb/raw/ic.cov/sim_checker_selftest_s1.log
+ic	PASS	OK	0	yes	0	0	0	-	29	0	-	1	0.18	20		logs/ahb/raw/ic.cov/cov/ic_s1.dat		logs/ahb/raw/ic.cov/sim_ic_s1.log
+ic_wait	PASS	OK	0	yes	0	0	0	-	29	0	-	1	0.18	20		logs/ahb/raw/ic.cov/cov/ic_wait_s1.dat		logs/ahb/raw/ic.cov/sim_ic_wait_s1.log

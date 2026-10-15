@@ -1,0 +1,4 @@
+# garuda-run 1 suite=probe block=ahb2apb date=2026-10-15T21:51:03+05:30 design=167aa935078d4e9cecaa35e5186328b55cfc2ca6 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+probe_alias	FAIL	UNEXPECTED	0	yes	66	66	0	-	50	0	-	1	0.02	20			66 [FAIL] line(s); 66 assertion failure(s) | first: [55000] %Error: clk_div_sva.sv:83: Assertion failed in tb_apb_probe.u_clk.u_clk_div_sva.a_pclk_phase: [SVA-FAIL] a_pclk_phase	logs/ahb2apb/raw/probe/sim_probe_alias_s1.log
+probe_control	FAIL	UNEXPECTED	0	yes	58	58	0	-	50	0	-	1	0.02	20			58 [FAIL] line(s); 58 assertion failure(s) | first: [55000] %Error: clk_div_sva.sv:83: Assertion failed in tb_apb_probe.u_clk.u_clk_div_sva.a_pclk_phase: [SVA-FAIL] a_pclk_phase	logs/ahb2apb/raw/probe/sim_probe_control_s1.log

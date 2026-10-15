@@ -1,0 +1,107 @@
+Coverage report: block ahb  (Verilator 5.052, merged per module definition)
+runs merged : 23 passing runs from 3 suite summaries
+      3  logs/ahb/summary/ic.cov.tsv
+     14  logs/ahb/summary/env.cov.tsv
+      6  logs/ahb/summary/units.cov.tsv
+targets     : design code >= 95.0% per metric per module; design functional = 100.0% of bins (after reviewed waivers)
+
+== DESIGN CODE COVERAGE (sign-off) ==
+module                                  line            branch              expr            toggle               fsm   waived
+ahb_arbiter                     5/5     100.0      14/14    100.0      18/18    100.0      62/62    100.0                  -   0
+ahb_decoder                     6/6     100.0                  -                 -     74/74    100.0                  -   0
+ahb_default_slave               8/8     100.0       6/6     100.0       8/8     100.0      22/22    100.0                  -   65
+ahb_interconnect                           -                 -     12/12    100.0    1291/1291  100.0                  -   203
+ahb_master_mux                 11/11    100.0       2/2     100.0       3/3     100.0     738/738   100.0                  -   30
+ahb_master_port                 3/3     100.0      12/12    100.0      23/23    100.0     224/224   100.0                  -   0
+ahb_slave_mux                  16/16    100.0       6/6     100.0       6/6     100.0     436/436   100.0                  -   0
+TOTAL                          49/49    100.0      40/40    100.0      70/70    100.0    2847/2847  100.0                  -   298
+RAW (before waivers)           49/50     98.0      40/40    100.0      70/70    100.0    2847/3144   90.6                  -
+
+== TESTBENCH CODE COVERAGE (reported, not sign-off) ==
+module                                  line            branch              expr            toggle               fsm   waived
+ahb_cov                        24/24    100.0      39/40     97.5      54/54    100.0     424/440    96.4                  -   0
+ahb_interconnect_sva           17/17    100.0      30/30    100.0      84/88     95.5    2491/2886   86.3                  -   0
+ahb_lite_checker               11/20     55.0      39/98     39.8      37/59     62.7     425/518    82.0                  -   0
+ahb_lite_master_bfm             7/16     43.8       8/8     100.0      20/24     83.3     384/1986   19.3                  -   0
+ahb_lite_master_bfm__Hz1        7/16     43.8       8/8     100.0      20/24     83.3     134/1986    6.7                  -   0
+ahb_lite_master_bfm__Hz2        7/16     43.8       8/8     100.0      20/24     83.3     263/1986   13.2                  -   0
+ahb_lite_sram                  13/20     65.0      12/16     75.0      41/48     85.4     335/674    49.7                  -   0
+ahb_lite_sram__pi1              8/20     40.0      10/16     62.5      34/48     70.8     262/674    38.9                  -   0
+ahb_lite_sram__pi2             17/20     85.0      13/16     81.2      43/48     89.6     359/674    53.3                  -   0
+ahb_lite_sram__pi3              9/20     45.0      10/16     62.5      32/48     66.7     286/674    42.4                  -   0
+ahb_master_agent__Hz1           9/9     100.0      23/24     95.8      41/44     93.2     149/238    62.6                  -   0
+ahb_master_agent__I1            9/9     100.0      19/24     79.2      40/44     90.9     220/238    92.4                  -   0
+ahb_master_agent__I2            9/9     100.0      19/24     79.2      40/44     90.9     220/238    92.4                  -   0
+ahb_master_agent__I3            9/9     100.0      19/24     79.2      39/44     88.6     219/238    92.0                  -   0
+ahb_slave_mem__Iz2             36/46     78.3      27/40     67.5      46/58     79.3     336/950    35.4                  -   0
+tb_ahb_checker_selftest        17/18     94.4       2/4      50.0       2/2     100.0      18/150    12.0                  -   0
+tb_ahb_env                    125/138    90.6      54/76     71.1      76/105    72.4    1445/1914   75.5                  -   0
+tb_ahb_interconnect            40/45     88.9      43/56     76.8      60/87     69.0     859/2070   41.5                  -   0
+tb_ahb_units                   31/37     83.8      49/54     90.7      53/70     75.7    1425/1522   93.6                  -   0
+TOTAL                         405/509    79.6     432/582    74.2     782/963    81.2   10254/20056  51.1                  -   0
+RAW (before waivers)          405/509    79.6     432/582    74.2     782/963    81.2   10254/20056  51.1                  -
+
+== DESIGN FUNCTIONAL COVERAGE (covergroup bins) ==
+cg_arb (ahb_cov.sv)                               19/19     100.0%   waived 0
+cg_dec (ahb_cov.sv)                               86/86     100.0%   waived 0
+cg_err (ahb_cov.sv)                               19/19     100.0%   waived 0
+cg_hold (ahb_cov.sv)                               3/3      100.0%   waived 0
+cg_preempt_beat (ahb_cov.sv)                      19/19     100.0%   waived 0
+cg_rst (ahb_cov.sv)                                3/3      100.0%   waived 0
+cg_sba (ahb_cov.sv)                               15/15     100.0%   waived 0
+cg_wait (ahb_cov.sv)                              12/12     100.0%   waived 0
+cg_wait_preempt (ahb_cov.sv)                      17/17     100.0%   waived 0
+TOTAL                                            193/193    100.0%
+RAW (before waivers)                             193/193    100.0%   (0 waived bins; illegal/ignore bins declared in the source are never targets)
+
+== ILLEGAL / IGNORE BINS (declared in the source; not targets; illegal must stay 0) ==
+
+== WAIVERS (14) ==
+CL-DEF-STATE3  [line/unreachable]  rtl/ahb/ahb_default_slave.v  /^line:93 case/  -> 1 point(s)
+    reason  : The state register is 2 bits with three states (IDLE, ERR1, ERR2); the `default:` arm is the recovery for the unused encoding 2'd3, which no transition produces.
+    evidence: PROVEN fv_ahb ahb_prove a_def_state_legal (rtl/ahb/ahb_interconnect_sva.sv, def_state != 2'd3, abc pdr, unbounded), 2026-10-14   reviewer: pending: Sreyesh
+CT-BURST21-ahb_interconnect  [toggle/constant]  rtl/ahb/ahb_interconnect.v  /^(hburst_o\[1\]:0\->1|hburst_o\[1\]:1\->0|hburst_o\[2\]:0\->1|hburst_o\[2\]:1\->0|i_hburst_i\[1\]:0\->1|i_hburst_i\[1\]:1\->0|i_hburst_i\[2\]:0\->1|i_hburst_i\[2\]:1\->0)$/  -> 8 point(s)
+    reason  : Only SINGLE (000) and INCR (001) bursts exist on GARUDA's bus ([N-5.4]): HBURST[2:1] is 0 from every master.
+    evidence: literal rtl/core/garuda_iport_ahb_master.v:109 (3'b001); rtl/core/mem_stage.v:140, rtl/debug/sba_master.v:43, rtl/dma/dma_engine.v:87 (3'b000)   reviewer: pending: Sreyesh
+CT-BURST21-ahb_master_mux  [toggle/constant]  rtl/ahb/ahb_master_mux.v  /^(hburst_o\[1\]:0\->1|hburst_o\[1\]:1\->0|hburst_o\[2\]:0\->1|hburst_o\[2\]:1\->0|i_hburst_i\[1\]:0\->1|i_hburst_i\[1\]:1\->0|i_hburst_i\[2\]:0\->1|i_hburst_i\[2\]:1\->0)$/  -> 8 point(s)
+    reason  : Only SINGLE (000) and INCR (001) bursts exist on GARUDA's bus ([N-5.4]): HBURST[2:1] is 0 from every master.
+    evidence: literal rtl/core/garuda_iport_ahb_master.v:109 (3'b001); rtl/core/mem_stage.v:140, rtl/debug/sba_master.v:43, rtl/dma/dma_engine.v:87 (3'b000)   reviewer: pending: Sreyesh
+CT-DFRDATA-ahb_default_slave  [toggle/constant]  rtl/ahb/ahb_default_slave.v  /^(hrdata_o\[0\]:0\->1|hrdata_o\[0\]:1\->0|hrdata_o\[10\]:0\->1|hrdata_o\[10\]:1\->0|hrdata_o\[11\]:0\->1|hrdata_o\[11\]:1\->0|hrdata_o\[12\]:0\->1|hrdata_o\[12\]:1\->0|hrdata_o\[13\]:0\->1|hrdata_o\[13\]:1\->0|hrdata_o\[14\]:0\->1|hrdata_o\[14\]:1\->0|hrdata_o\[15\]:0\->1|hrdata_o\[15\]:1\->0|hrdata_o\[16\]:0\->1|hrdata_o\[16\]:1\->0|hrdata_o\[17\]:0\->1|hrdata_o\[17\]:1\->0|hrdata_o\[18\]:0\->1|hrdata_o\[18\]:1\->0|hrdata_o\[19\]:0\->1|hrdata_o\[19\]:1\->0|hrdata_o\[1\]:0\->1|hrdata_o\[1\]:1\->0|hrdata_o\[20\]:0\->1|hrdata_o\[20\]:1\->0|hrdata_o\[21\]:0\->1|hrdata_o\[21\]:1\->0|hrdata_o\[22\]:0\->1|hrdata_o\[22\]:1\->0|hrdata_o\[23\]:0\->1|hrdata_o\[23\]:1\->0|hrdata_o\[24\]:0\->1|hrdata_o\[24\]:1\->0|hrdata_o\[25\]:0\->1|hrdata_o\[25\]:1\->0|hrdata_o\[26\]:0\->1|hrdata_o\[26\]:1\->0|hrdata_o\[27\]:0\->1|hrdata_o\[27\]:1\->0|hrdata_o\[28\]:0\->1|hrdata_o\[28\]:1\->0|hrdata_o\[29\]:0\->1|hrdata_o\[29\]:1\->0|hrdata_o\[2\]:0\->1|hrdata_o\[2\]:1\->0|hrdata_o\[30\]:0\->1|hrdata_o\[30\]:1\->0|hrdata_o\[31\]:0\->1|hrdata_o\[31\]:1\->0|hrdata_o\[3\]:0\->1|hrdata_o\[3\]:1\->0|hrdata_o\[4\]:0\->1|hrdata_o\[4\]:1\->0|hrdata_o\[5\]:0\->1|hrdata_o\[5\]:1\->0|hrdata_o\[6\]:0\->1|hrdata_o\[6\]:1\->0|hrdata_o\[7\]:0\->1|hrdata_o\[7\]:1\->0|hrdata_o\[8\]:0\->1|hrdata_o\[8\]:1\->0|hrdata_o\[9\]:0\->1|hrdata_o\[9\]:1\->0)$/  -> 64 point(s)
+    reason  : The default slave returns no data: its HRDATA is the literal 0.
+    evidence: literal rtl/ahb/ahb_default_slave.v assign hrdata_o = 32'h0000_0000   reviewer: pending: Sreyesh
+CT-DFRDATA-ahb_interconnect  [toggle/constant]  rtl/ahb/ahb_interconnect.v  /^(hrdata_df\[0\]:0\->1|hrdata_df\[0\]:1\->0|hrdata_df\[10\]:0\->1|hrdata_df\[10\]:1\->0|hrdata_df\[11\]:0\->1|hrdata_df\[11\]:1\->0|hrdata_df\[12\]:0\->1|hrdata_df\[12\]:1\->0|hrdata_df\[13\]:0\->1|hrdata_df\[13\]:1\->0|hrdata_df\[14\]:0\->1|hrdata_df\[14\]:1\->0|hrdata_df\[15\]:0\->1|hrdata_df\[15\]:1\->0|hrdata_df\[16\]:0\->1|hrdata_df\[16\]:1\->0|hrdata_df\[17\]:0\->1|hrdata_df\[17\]:1\->0|hrdata_df\[18\]:0\->1|hrdata_df\[18\]:1\->0|hrdata_df\[19\]:0\->1|hrdata_df\[19\]:1\->0|hrdata_df\[1\]:0\->1|hrdata_df\[1\]:1\->0|hrdata_df\[20\]:0\->1|hrdata_df\[20\]:1\->0|hrdata_df\[21\]:0\->1|hrdata_df\[21\]:1\->0|hrdata_df\[22\]:0\->1|hrdata_df\[22\]:1\->0|hrdata_df\[23\]:0\->1|hrdata_df\[23\]:1\->0|hrdata_df\[24\]:0\->1|hrdata_df\[24\]:1\->0|hrdata_df\[25\]:0\->1|hrdata_df\[25\]:1\->0|hrdata_df\[26\]:0\->1|hrdata_df\[26\]:1\->0|hrdata_df\[27\]:0\->1|hrdata_df\[27\]:1\->0|hrdata_df\[28\]:0\->1|hrdata_df\[28\]:1\->0|hrdata_df\[29\]:0\->1|hrdata_df\[29\]:1\->0|hrdata_df\[2\]:0\->1|hrdata_df\[2\]:1\->0|hrdata_df\[30\]:0\->1|hrdata_df\[30\]:1\->0|hrdata_df\[31\]:0\->1|hrdata_df\[31\]:1\->0|hrdata_df\[3\]:0\->1|hrdata_df\[3\]:1\->0|hrdata_df\[4\]:0\->1|hrdata_df\[4\]:1\->0|hrdata_df\[5\]:0\->1|hrdata_df\[5\]:1\->0|hrdata_df\[6\]:0\->1|hrdata_df\[6\]:1\->0|hrdata_df\[7\]:0\->1|hrdata_df\[7\]:1\->0|hrdata_df\[8\]:0\->1|hrdata_df\[8\]:1\->0|hrdata_df\[9\]:0\->1|hrdata_df\[9\]:1\->0)$/  -> 64 point(s)
+    reason  : The default slave returns no data: its HRDATA is the literal 0.
+    evidence: literal rtl/ahb/ahb_default_slave.v assign hrdata_o = 32'h0000_0000   reviewer: pending: Sreyesh
+CT-DPROT-ahb_interconnect  [toggle/constant]  rtl/ahb/ahb_interconnect.v  /^(d_hprot_i\[0\]:1\->0|d_hprot_i\[1\]:1\->0|d_hprot_i\[2\]:0\->1|d_hprot_i\[2\]:1\->0|d_hprot_i\[3\]:0\->1|d_hprot_i\[3\]:1\->0)$/  -> 6 point(s)
+    reason  : The D-port's HPROT is the fixed data-access value 0011.
+    evidence: literal rtl/core/mem_stage.v:141 assign d_hprot_o = 4'b0011   reviewer: pending: Sreyesh
+CT-HPROTOUT-ahb_interconnect  [toggle/constant]  rtl/ahb/ahb_interconnect.v  /^(hprot_o\[1\]:1\->0|hprot_o\[2\]:0\->1|hprot_o\[2\]:1\->0|hprot_o\[3\]:0\->1|hprot_o\[3\]:1\->0)$/  -> 5 point(s)
+    reason  : HPROT on the shared bus is 0010 (I-port), 0011 (D-port) or the SBA/DMA substitution 0011 ([N-5.2]): bit 1 is always 1 and bits 3:2 always 0; bit 0 toggles.
+    evidence: literals above + rtl/ahb/ahb_defs.vh `AHB_HPROT_DMA / `AHB_HPROT_SBA 4'b0011; property a_hprot_const PROVEN (fv_ahb)   reviewer: pending: Sreyesh
+CT-IPORTALIGN-ahb_interconnect  [toggle/constant]  rtl/ahb/ahb_interconnect.v  /^(i_haddr_i\[0\]:0\->1|i_haddr_i\[0\]:1\->0|i_haddr_i\[1\]:0\->1|i_haddr_i\[1\]:1\->0)$/  -> 4 point(s)
+    reason  : Fetch addresses are word-aligned (no C extension; misaligned targets trap and are never fetched since BUS-E): I-port HADDR[1:0] = 0.
+    evidence: PROVEN fv_cov a_iport_pc_aligned (tb/core/formal/cov_const_sva.sv); literal (fetch_pc_i[1:0] == 2'b00) gate in rtl/core/garuda_iport_ahb_master.v:204   reviewer: pending: Sreyesh
+CT-IPORTLIT-ahb_interconnect  [toggle/constant]  rtl/ahb/ahb_interconnect.v  /^(i_hprot_i\[0\]:0\->1|i_hprot_i\[0\]:1\->0|i_hprot_i\[1\]:1\->0|i_hprot_i\[2\]:0\->1|i_hprot_i\[2\]:1\->0|i_hprot_i\[3\]:0\->1|i_hprot_i\[3\]:1\->0|i_hsize_i\[0\]:0\->1|i_hsize_i\[0\]:1\->0|i_hsize_i\[1\]:1\->0|i_hsize_i\[2\]:0\->1|i_hsize_i\[2\]:1\->0|i_hwdata_i\[0\]:0\->1|i_hwdata_i\[0\]:1\->0|i_hwdata_i\[10\]:0\->1|i_hwdata_i\[10\]:1\->0|i_hwdata_i\[11\]:0\->1|i_hwdata_i\[11\]:1\->0|i_hwdata_i\[12\]:0\->1|i_hwdata_i\[12\]:1\->0|i_hwdata_i\[13\]:0\->1|i_hwdata_i\[13\]:1\->0|i_hwdata_i\[14\]:0\->1|i_hwdata_i\[14\]:1\->0|i_hwdata_i\[15\]:0\->1|i_hwdata_i\[15\]:1\->0|i_hwdata_i\[16\]:0\->1|i_hwdata_i\[16\]:1\->0|i_hwdata_i\[17\]:0\->1|i_hwdata_i\[17\]:1\->0|i_hwdata_i\[18\]:0\->1|i_hwdata_i\[18\]:1\->0|i_hwdata_i\[19\]:0\->1|i_hwdata_i\[19\]:1\->0|i_hwdata_i\[1\]:0\->1|i_hwdata_i\[1\]:1\->0|i_hwdata_i\[20\]:0\->1|i_hwdata_i\[20\]:1\->0|i_hwdata_i\[21\]:0\->1|i_hwdata_i\[21\]:1\->0|i_hwdata_i\[22\]:0\->1|i_hwdata_i\[22\]:1\->0|i_hwdata_i\[23\]:0\->1|i_hwdata_i\[23\]:1\->0|i_hwdata_i\[24\]:0\->1|i_hwdata_i\[24\]:1\->0|i_hwdata_i\[25\]:0\->1|i_hwdata_i\[25\]:1\->0|i_hwdata_i\[26\]:0\->1|i_hwdata_i\[26\]:1\->0|i_hwdata_i\[27\]:0\->1|i_hwdata_i\[27\]:1\->0|i_hwdata_i\[28\]:0\->1|i_hwdata_i\[28\]:1\->0|i_hwdata_i\[29\]:0\->1|i_hwdata_i\[29\]:1\->0|i_hwdata_i\[2\]:0\->1|i_hwdata_i\[2\]:1\->0|i_hwdata_i\[30\]:0\->1|i_hwdata_i\[30\]:1\->0|i_hwdata_i\[31\]:0\->1|i_hwdata_i\[31\]:1\->0|i_hwdata_i\[3\]:0\->1|i_hwdata_i\[3\]:1\->0|i_hwdata_i\[4\]:0\->1|i_hwdata_i\[4\]:1\->0|i_hwdata_i\[5\]:0\->1|i_hwdata_i\[5\]:1\->0|i_hwdata_i\[6\]:0\->1|i_hwdata_i\[6\]:1\->0|i_hwdata_i\[7\]:0\->1|i_hwdata_i\[7\]:1\->0|i_hwdata_i\[8\]:0\->1|i_hwdata_i\[8\]:1\->0|i_hwdata_i\[9\]:0\->1|i_hwdata_i\[9\]:1\->0|i_hwrite_i:0\->1|i_hwrite_i:1\->0)$/  -> 78 point(s)
+    reason  : The I-port is a word-read-only fetch port with a fixed opcode-fetch HPROT: HSIZE = 010, HWRITE = 0, HWDATA = 0, HPROT = 0010.
+    evidence: literal rtl/core/garuda_iport_ahb_master.v:89-92   reviewer: pending: Sreyesh
+CT-NONSEQONLY-ahb_interconnect  [toggle/constant]  rtl/ahb/ahb_interconnect.v  /^(d_htrans_i\[0\]:0\->1|d_htrans_i\[0\]:1\->0|htrans_bus\[2\]:0\->1|htrans_bus\[2\]:1\->0|htrans_bus\[4\]:0\->1|htrans_bus\[4\]:1\->0|htrans_bus\[6\]:0\->1|htrans_bus\[6\]:1\->0|m_htrans_i\[0\]:0\->1|m_htrans_i\[0\]:1\->0|s_htrans_i\[0\]:0\->1|s_htrans_i\[0\]:1\->0)$/  -> 12 point(s)
+    reason  : A SINGLE-only master drives HTRANS IDLE (00) or NONSEQ (10), never SEQ/BUSY: bit 0 is 0 on the D-port, SBA and DMA ports (htrans_bus bits 2, 4, 6 are those bits; bit 0 of the I-port toggles with its SEQ beats).
+    evidence: literal rtl/core/d_port_ahb_master.v:101,106; rtl/debug/sba_master.v:58,62; rtl/dma/dma_engine.v:122,129,146,154   reviewer: pending: Sreyesh
+CT-SINGLEONLY-ahb_interconnect  [toggle/constant]  rtl/ahb/ahb_interconnect.v  /^(d_hburst_i\[0\]:0\->1|d_hburst_i\[0\]:1\->0|d_hburst_i\[1\]:0\->1|d_hburst_i\[1\]:1\->0|d_hburst_i\[2\]:0\->1|d_hburst_i\[2\]:1\->0|m_hburst_i\[0\]:0\->1|m_hburst_i\[0\]:1\->0|m_hburst_i\[1\]:0\->1|m_hburst_i\[1\]:1\->0|m_hburst_i\[2\]:0\->1|m_hburst_i\[2\]:1\->0|s_hburst_i\[0\]:0\->1|s_hburst_i\[0\]:1\->0|s_hburst_i\[1\]:0\->1|s_hburst_i\[1\]:1\->0|s_hburst_i\[2\]:0\->1|s_hburst_i\[2\]:1\->0)$/  -> 18 point(s)
+    reason  : The D-port, the SBA and the DMA issue SINGLE transfers only ([N-5.3]): HBURST = 000 on those ports.
+    evidence: literal rtl/core/mem_stage.v:140, rtl/debug/sba_master.v:43, rtl/dma/dma_engine.v:87 (3'b000)   reviewer: pending: Sreyesh
+CT-SINGLEONLY-ahb_master_mux  [toggle/constant]  rtl/ahb/ahb_master_mux.v  /^(d_hburst_i\[1\]:0\->1|d_hburst_i\[1\]:1\->0|d_hburst_i\[2\]:0\->1|d_hburst_i\[2\]:1\->0|m_hburst_i\[1\]:0\->1|m_hburst_i\[1\]:1\->0|m_hburst_i\[2\]:0\->1|m_hburst_i\[2\]:1\->0|s_hburst_i\[1\]:0\->1|s_hburst_i\[1\]:1\->0|s_hburst_i\[2\]:0\->1|s_hburst_i\[2\]:1\->0)$/  -> 12 point(s)
+    reason  : The D-port, the SBA and the DMA issue SINGLE transfers only ([N-5.3]): HBURST = 000 on those ports.
+    evidence: literal rtl/core/mem_stage.v:140, rtl/debug/sba_master.v:43, rtl/dma/dma_engine.v:87 (3'b000)   reviewer: pending: Sreyesh
+CT-SIZE2-ahb_interconnect  [toggle/constant]  rtl/ahb/ahb_interconnect.v  /^(d_hsize_i\[2\]:0\->1|d_hsize_i\[2\]:1\->0|hsize_o\[2\]:0\->1|hsize_o\[2\]:1\->0|m_hsize_i\[2\]:0\->1|m_hsize_i\[2\]:1\->0|s_hsize_i\[2\]:0\->1|s_hsize_i\[2\]:1\->0)$/  -> 8 point(s)
+    reason  : The AHB is 32 bits wide: HSIZE <= word (byte/half/word), so HSIZE[2] is 0 from every GARUDA master and on the shared bus.
+    evidence: literal rtl/core/garuda_iport_ahb_master.v:89 (3'b010); rtl/core/load_store_unit.v:32 {1'b0, size}; rtl/debug/sba_master.v:42 (3'b010); rtl/dma/dma_engine.v hsize_o <= {1'b0, size}   reviewer: pending: Sreyesh
+CT-SIZE2-ahb_master_mux  [toggle/constant]  rtl/ahb/ahb_master_mux.v  /^(d_hsize_i\[2\]:0\->1|d_hsize_i\[2\]:1\->0|hsize_o\[2\]:0\->1|hsize_o\[2\]:1\->0|i_hsize_i\[2\]:0\->1|i_hsize_i\[2\]:1\->0|m_hsize_i\[2\]:0\->1|m_hsize_i\[2\]:1\->0|s_hsize_i\[2\]:0\->1|s_hsize_i\[2\]:1\->0)$/  -> 10 point(s)
+    reason  : The AHB is 32 bits wide: HSIZE <= word (byte/half/word), so HSIZE[2] is 0 from every GARUDA master and on the shared bus.
+    evidence: literal rtl/core/garuda_iport_ahb_master.v:89 (3'b010); rtl/core/load_store_unit.v:32 {1'b0, size}; rtl/debug/sba_master.v:42 (3'b010); rtl/dma/dma_engine.v hsize_o <= {1'b0, size}   reviewer: pending: Sreyesh
+
+== DESIGN HOLES (uncovered, not waived) ==
+
+== FUNCTIONAL HOLES (bins never hit, not waived) ==
+
+verdict: PASS  (0 below target, 0 waiver/input error(s))

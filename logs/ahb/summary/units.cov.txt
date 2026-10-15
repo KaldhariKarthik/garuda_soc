@@ -1,0 +1,23 @@
+garuda-run 1  suite units.cov  block ahb  2026-10-14T00:15:45+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      unit_decoder              
+PASS    OK                      unit_arbiter              
+PASS    OK                      unit_master_port          
+PASS    OK                      unit_default_slave        
+PASS    OK                      unit_slave_mux            
+PASS    OK                      unit_master_mux           
+FAIL    XFAIL:PLANTED           negctl_decoder_a07        pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.11] decode 0x20000008 -> 10000 (want 00100) (t=73000)
+FAIL    XFAIL:PLANTED           negctl_arbiter_a05        pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 2 for requests 1101 (want 3, frozen=0) (t=9000)
+FAIL    XFAIL:PLANTED           negctl_arbiter_a09        pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.3] grant 3 for requests 1100 (want 0, frozen=1) (t=1161000)
+FAIL    XFAIL:PLANTED           negctl_master_port_a02    pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-8.2/AHB-2] HRDATA / HRESP returned to the master (t=21000)
+FAIL    XFAIL:PLANTED           negctl_master_port_a04    pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.20/AHB-4] HREADY seen by the master (t=37000)
+FAIL    XFAIL:PLANTED           negctl_default_slave_a12  pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.6] state 1: HREADYOUT 1 HRESP 1 (t=37000)
+FAIL    XFAIL:PLANTED           negctl_slave_mux_a14      pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.5] data-phase select register (t=17000)
+FAIL    XFAIL:PLANTED           negctl_master_mux_a01     pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-1] HWDATA from the data-phase owner (t=9000)
+FAIL    XFAIL:PLANTED           negctl_master_mux_a19     pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-3] SEQ -> NONSEQ only on seq_break (t=61000)
+
+PASS    6
+FAIL    9
+BLOCKED 0
+total   15

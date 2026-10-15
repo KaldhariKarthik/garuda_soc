@@ -1,0 +1,52 @@
+# The bridge's sub-modules on their own (Track A bus plan B2): tb/ahb2apb/units/tb_apb_units.sv.
+# The shim has Karthik's tb_apb_shim (tb/common/run/b0.toml). Each unit has negative controls.
+# Run: make -f flow/mk/track_a_run.mk apb_units
+[suite]
+block = "ahb2apb"
+name  = "units"
+kind  = "sim"
+xfail = "tb/ahb2apb/run/xfail.tsv"
+
+[defaults]
+flist   = "tb/ahb2apb/units/filelist_apb_units.f"
+top     = "tb_apb_units"
+marker  = '^RESULT: PASSED'
+timeout = 600
+
+[[test]]
+name     = "unit_fsm"
+plusargs = ["+UNIT=fsm", "+CYCLES=20000"]
+
+[[test]]
+name     = "unit_fabric"
+plusargs = ["+UNIT=fabric", "+CYCLES=5000"]
+
+[[test]]
+name        = "negctl_fsm_to15"
+plusargs    = ["+UNIT=fsm", "+CYCLES=20000"]
+replace     = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to15.v" }
+fail_reason = '^\[FAIL\] '
+
+[[test]]
+name        = "negctl_fsm_to17"
+plusargs    = ["+UNIT=fsm", "+CYCLES=20000"]
+replace     = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to17.v" }
+fail_reason = '^\[FAIL\] '
+
+[[test]]
+name        = "negctl_fsm_win"
+plusargs    = ["+UNIT=fsm", "+CYCLES=20000"]
+replace     = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_win.v" }
+fail_reason = '^\[FAIL\] '
+
+[[test]]
+name        = "negctl_fsm_nosetup"
+plusargs    = ["+UNIT=fsm", "+CYCLES=20000"]
+replace     = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_nosetup.v" }
+fail_reason = '^\[FAIL\] '
+
+[[test]]
+name        = "negctl_fabric_rdy"
+plusargs    = ["+UNIT=fabric", "+CYCLES=5000"]
+replace     = { "rtl/ahb2apb/ahb2apb_fabric.v" = "tb/ahb2apb/mut/ahb2apb_fabric_mut_rdy.v" }
+fail_reason = '^\[FAIL\] '

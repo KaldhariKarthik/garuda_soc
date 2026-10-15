@@ -1,0 +1,32 @@
+# Track A bus plan B0: fresh baseline of the AHB interconnect benches (Karthik's), strict runner.
+#   checker_selftest  tb/ahb/ahb_lite_checker.v reports each injected AHB violation
+#   ic                tb_ahb_interconnect T0-T17 (spec section 11 + AHB-1/2/3 errata), zero-wait
+#   ic_wait           same with random slave waits (+GRAND=1 +GWAIT=3); seeded by the runner (+SEED)
+# Run: make -f flow/mk/track_a_run.mk ahb_ic
+[suite]
+block = "ahb"
+name  = "ic"
+count = [['AHB IC TB: 802 checks, 0 failures', 1]]
+kind  = "sim"
+
+[defaults]
+marker  = '^RESULT: PASSED'
+timeout = 600
+
+[[test]]
+name  = "checker_selftest"
+count = [['checks=6 FAIL=0', 1]]
+flist = "tb/ahb/filelist_checker_selftest.f"
+top   = "tb_ahb_checker_selftest"
+
+[[test]]
+name  = "ic"
+flist = "tb/ahb/filelist_ahb_ic.f"
+top   = "tb_ahb_interconnect"
+
+[[test]]
+name     = "ic_wait"
+count = [['AHB IC TB: 802 checks, 0 failures', 1]]
+flist    = "tb/ahb/filelist_ahb_ic.f"
+top      = "tb_ahb_interconnect"
+plusargs = ["+GRAND=1", "+GWAIT=3"]

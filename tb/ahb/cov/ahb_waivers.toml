@@ -1,0 +1,151 @@
+# AHB interconnect coverage waivers (bus plan B1 A8). Every waiver needs evidence:
+# literal (a constant input), or PROVEN unreachable (tb/ahb/formal). Reviewer: pending Sreyesh.
+
+
+# =============================================================================
+# LINE: the default slave's unused state (hand-written; keep ABOVE the generated section)
+# =============================================================================
+[[waiver]]
+id       = "CL-DEF-STATE3"
+metric   = "line"
+file     = "rtl/ahb/ahb_default_slave.v"
+match    = "^line:93 case"
+category = "unreachable"
+reason   = "The state register is 2 bits with three states (IDLE, ERR1, ERR2); the `default:` arm is the recovery for the unused encoding 2'd3, which no transition produces."
+evidence = "PROVEN fv_ahb ahb_prove a_def_state_legal (rtl/ahb/ahb_ic_props_a.sv, def_state != 2'd3, abc pdr, unbounded), 2026-10-14"
+reviewer = "pending: Sreyesh"
+
+# =============================================================================
+# CODE: toggle (generated from a rule table by tools/cov/gen_toggle_waivers.py;
+# every hole below is explained by its rule's evidence)
+# =============================================================================
+[[waiver]]
+id       = "CT-BURST21-ahb_interconnect"
+metric   = "toggle"
+file     = "rtl/ahb/ahb_interconnect.v"
+match    = "^(hburst_o\\[1\\]:0\\->1|hburst_o\\[1\\]:1\\->0|hburst_o\\[2\\]:0\\->1|hburst_o\\[2\\]:1\\->0|i_hburst_i\\[1\\]:0\\->1|i_hburst_i\\[1\\]:1\\->0|i_hburst_i\\[2\\]:0\\->1|i_hburst_i\\[2\\]:1\\->0)$"
+category = "constant"
+reason   = "Only SINGLE (000) and INCR (001) bursts exist on GARUDA's bus ([N-5.4]): HBURST[2:1] is 0 from every master."
+evidence = "literal rtl/core/garuda_iport_ahb_master.v:109 (3'b001); rtl/core/mem_stage.v:140, rtl/debug/sba_master.v:43, rtl/dma/dma_engine.v:87 (3'b000)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-BURST21-ahb_master_mux"
+metric   = "toggle"
+file     = "rtl/ahb/ahb_master_mux.v"
+match    = "^(hburst_o\\[1\\]:0\\->1|hburst_o\\[1\\]:1\\->0|hburst_o\\[2\\]:0\\->1|hburst_o\\[2\\]:1\\->0|i_hburst_i\\[1\\]:0\\->1|i_hburst_i\\[1\\]:1\\->0|i_hburst_i\\[2\\]:0\\->1|i_hburst_i\\[2\\]:1\\->0)$"
+category = "constant"
+reason   = "Only SINGLE (000) and INCR (001) bursts exist on GARUDA's bus ([N-5.4]): HBURST[2:1] is 0 from every master."
+evidence = "literal rtl/core/garuda_iport_ahb_master.v:109 (3'b001); rtl/core/mem_stage.v:140, rtl/debug/sba_master.v:43, rtl/dma/dma_engine.v:87 (3'b000)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-DFRDATA-ahb_default_slave"
+metric   = "toggle"
+file     = "rtl/ahb/ahb_default_slave.v"
+match    = "^(hrdata_o\\[0\\]:0\\->1|hrdata_o\\[0\\]:1\\->0|hrdata_o\\[10\\]:0\\->1|hrdata_o\\[10\\]:1\\->0|hrdata_o\\[11\\]:0\\->1|hrdata_o\\[11\\]:1\\->0|hrdata_o\\[12\\]:0\\->1|hrdata_o\\[12\\]:1\\->0|hrdata_o\\[13\\]:0\\->1|hrdata_o\\[13\\]:1\\->0|hrdata_o\\[14\\]:0\\->1|hrdata_o\\[14\\]:1\\->0|hrdata_o\\[15\\]:0\\->1|hrdata_o\\[15\\]:1\\->0|hrdata_o\\[16\\]:0\\->1|hrdata_o\\[16\\]:1\\->0|hrdata_o\\[17\\]:0\\->1|hrdata_o\\[17\\]:1\\->0|hrdata_o\\[18\\]:0\\->1|hrdata_o\\[18\\]:1\\->0|hrdata_o\\[19\\]:0\\->1|hrdata_o\\[19\\]:1\\->0|hrdata_o\\[1\\]:0\\->1|hrdata_o\\[1\\]:1\\->0|hrdata_o\\[20\\]:0\\->1|hrdata_o\\[20\\]:1\\->0|hrdata_o\\[21\\]:0\\->1|hrdata_o\\[21\\]:1\\->0|hrdata_o\\[22\\]:0\\->1|hrdata_o\\[22\\]:1\\->0|hrdata_o\\[23\\]:0\\->1|hrdata_o\\[23\\]:1\\->0|hrdata_o\\[24\\]:0\\->1|hrdata_o\\[24\\]:1\\->0|hrdata_o\\[25\\]:0\\->1|hrdata_o\\[25\\]:1\\->0|hrdata_o\\[26\\]:0\\->1|hrdata_o\\[26\\]:1\\->0|hrdata_o\\[27\\]:0\\->1|hrdata_o\\[27\\]:1\\->0|hrdata_o\\[28\\]:0\\->1|hrdata_o\\[28\\]:1\\->0|hrdata_o\\[29\\]:0\\->1|hrdata_o\\[29\\]:1\\->0|hrdata_o\\[2\\]:0\\->1|hrdata_o\\[2\\]:1\\->0|hrdata_o\\[30\\]:0\\->1|hrdata_o\\[30\\]:1\\->0|hrdata_o\\[31\\]:0\\->1|hrdata_o\\[31\\]:1\\->0|hrdata_o\\[3\\]:0\\->1|hrdata_o\\[3\\]:1\\->0|hrdata_o\\[4\\]:0\\->1|hrdata_o\\[4\\]:1\\->0|hrdata_o\\[5\\]:0\\->1|hrdata_o\\[5\\]:1\\->0|hrdata_o\\[6\\]:0\\->1|hrdata_o\\[6\\]:1\\->0|hrdata_o\\[7\\]:0\\->1|hrdata_o\\[7\\]:1\\->0|hrdata_o\\[8\\]:0\\->1|hrdata_o\\[8\\]:1\\->0|hrdata_o\\[9\\]:0\\->1|hrdata_o\\[9\\]:1\\->0)$"
+category = "constant"
+reason   = "The default slave returns no data: its HRDATA is the literal 0."
+evidence = "literal rtl/ahb/ahb_default_slave.v assign hrdata_o = 32'h0000_0000"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-DFRDATA-ahb_interconnect"
+metric   = "toggle"
+file     = "rtl/ahb/ahb_interconnect.v"
+match    = "^(hrdata_df\\[0\\]:0\\->1|hrdata_df\\[0\\]:1\\->0|hrdata_df\\[10\\]:0\\->1|hrdata_df\\[10\\]:1\\->0|hrdata_df\\[11\\]:0\\->1|hrdata_df\\[11\\]:1\\->0|hrdata_df\\[12\\]:0\\->1|hrdata_df\\[12\\]:1\\->0|hrdata_df\\[13\\]:0\\->1|hrdata_df\\[13\\]:1\\->0|hrdata_df\\[14\\]:0\\->1|hrdata_df\\[14\\]:1\\->0|hrdata_df\\[15\\]:0\\->1|hrdata_df\\[15\\]:1\\->0|hrdata_df\\[16\\]:0\\->1|hrdata_df\\[16\\]:1\\->0|hrdata_df\\[17\\]:0\\->1|hrdata_df\\[17\\]:1\\->0|hrdata_df\\[18\\]:0\\->1|hrdata_df\\[18\\]:1\\->0|hrdata_df\\[19\\]:0\\->1|hrdata_df\\[19\\]:1\\->0|hrdata_df\\[1\\]:0\\->1|hrdata_df\\[1\\]:1\\->0|hrdata_df\\[20\\]:0\\->1|hrdata_df\\[20\\]:1\\->0|hrdata_df\\[21\\]:0\\->1|hrdata_df\\[21\\]:1\\->0|hrdata_df\\[22\\]:0\\->1|hrdata_df\\[22\\]:1\\->0|hrdata_df\\[23\\]:0\\->1|hrdata_df\\[23\\]:1\\->0|hrdata_df\\[24\\]:0\\->1|hrdata_df\\[24\\]:1\\->0|hrdata_df\\[25\\]:0\\->1|hrdata_df\\[25\\]:1\\->0|hrdata_df\\[26\\]:0\\->1|hrdata_df\\[26\\]:1\\->0|hrdata_df\\[27\\]:0\\->1|hrdata_df\\[27\\]:1\\->0|hrdata_df\\[28\\]:0\\->1|hrdata_df\\[28\\]:1\\->0|hrdata_df\\[29\\]:0\\->1|hrdata_df\\[29\\]:1\\->0|hrdata_df\\[2\\]:0\\->1|hrdata_df\\[2\\]:1\\->0|hrdata_df\\[30\\]:0\\->1|hrdata_df\\[30\\]:1\\->0|hrdata_df\\[31\\]:0\\->1|hrdata_df\\[31\\]:1\\->0|hrdata_df\\[3\\]:0\\->1|hrdata_df\\[3\\]:1\\->0|hrdata_df\\[4\\]:0\\->1|hrdata_df\\[4\\]:1\\->0|hrdata_df\\[5\\]:0\\->1|hrdata_df\\[5\\]:1\\->0|hrdata_df\\[6\\]:0\\->1|hrdata_df\\[6\\]:1\\->0|hrdata_df\\[7\\]:0\\->1|hrdata_df\\[7\\]:1\\->0|hrdata_df\\[8\\]:0\\->1|hrdata_df\\[8\\]:1\\->0|hrdata_df\\[9\\]:0\\->1|hrdata_df\\[9\\]:1\\->0)$"
+category = "constant"
+reason   = "The default slave returns no data: its HRDATA is the literal 0."
+evidence = "literal rtl/ahb/ahb_default_slave.v assign hrdata_o = 32'h0000_0000"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-DPROT-ahb_interconnect"
+metric   = "toggle"
+file     = "rtl/ahb/ahb_interconnect.v"
+match    = "^(d_hprot_i\\[0\\]:1\\->0|d_hprot_i\\[1\\]:1\\->0|d_hprot_i\\[2\\]:0\\->1|d_hprot_i\\[2\\]:1\\->0|d_hprot_i\\[3\\]:0\\->1|d_hprot_i\\[3\\]:1\\->0)$"
+category = "constant"
+reason   = "The D-port's HPROT is the fixed data-access value 0011."
+evidence = "literal rtl/core/mem_stage.v:141 assign d_hprot_o = 4'b0011"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-HPROTOUT-ahb_interconnect"
+metric   = "toggle"
+file     = "rtl/ahb/ahb_interconnect.v"
+match    = "^(hprot_o\\[1\\]:1\\->0|hprot_o\\[2\\]:0\\->1|hprot_o\\[2\\]:1\\->0|hprot_o\\[3\\]:0\\->1|hprot_o\\[3\\]:1\\->0)$"
+category = "constant"
+reason   = "HPROT on the shared bus is 0010 (I-port), 0011 (D-port) or the SBA/DMA substitution 0011 ([N-5.2]): bit 1 is always 1 and bits 3:2 always 0; bit 0 toggles."
+evidence = "literals above + rtl/ahb/ahb_defs.vh `AHB_HPROT_DMA / `AHB_HPROT_SBA 4'b0011; property a_hprot_const PROVEN (fv_ahb)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-IPORTALIGN-ahb_interconnect"
+metric   = "toggle"
+file     = "rtl/ahb/ahb_interconnect.v"
+match    = "^(i_haddr_i\\[0\\]:0\\->1|i_haddr_i\\[0\\]:1\\->0|i_haddr_i\\[1\\]:0\\->1|i_haddr_i\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "Fetch addresses are word-aligned (no C extension; misaligned targets trap and are never fetched since BUS-E): I-port HADDR[1:0] = 0."
+evidence = "PROVEN fv_cov a_iport_pc_aligned (tb/core/formal/cov_const_sva.sv); literal (fetch_pc_i[1:0] == 2'b00) gate in rtl/core/garuda_iport_ahb_master.v:204"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-IPORTLIT-ahb_interconnect"
+metric   = "toggle"
+file     = "rtl/ahb/ahb_interconnect.v"
+match    = "^(i_hprot_i\\[0\\]:0\\->1|i_hprot_i\\[0\\]:1\\->0|i_hprot_i\\[1\\]:1\\->0|i_hprot_i\\[2\\]:0\\->1|i_hprot_i\\[2\\]:1\\->0|i_hprot_i\\[3\\]:0\\->1|i_hprot_i\\[3\\]:1\\->0|i_hsize_i\\[0\\]:0\\->1|i_hsize_i\\[0\\]:1\\->0|i_hsize_i\\[1\\]:1\\->0|i_hsize_i\\[2\\]:0\\->1|i_hsize_i\\[2\\]:1\\->0|i_hwdata_i\\[0\\]:0\\->1|i_hwdata_i\\[0\\]:1\\->0|i_hwdata_i\\[10\\]:0\\->1|i_hwdata_i\\[10\\]:1\\->0|i_hwdata_i\\[11\\]:0\\->1|i_hwdata_i\\[11\\]:1\\->0|i_hwdata_i\\[12\\]:0\\->1|i_hwdata_i\\[12\\]:1\\->0|i_hwdata_i\\[13\\]:0\\->1|i_hwdata_i\\[13\\]:1\\->0|i_hwdata_i\\[14\\]:0\\->1|i_hwdata_i\\[14\\]:1\\->0|i_hwdata_i\\[15\\]:0\\->1|i_hwdata_i\\[15\\]:1\\->0|i_hwdata_i\\[16\\]:0\\->1|i_hwdata_i\\[16\\]:1\\->0|i_hwdata_i\\[17\\]:0\\->1|i_hwdata_i\\[17\\]:1\\->0|i_hwdata_i\\[18\\]:0\\->1|i_hwdata_i\\[18\\]:1\\->0|i_hwdata_i\\[19\\]:0\\->1|i_hwdata_i\\[19\\]:1\\->0|i_hwdata_i\\[1\\]:0\\->1|i_hwdata_i\\[1\\]:1\\->0|i_hwdata_i\\[20\\]:0\\->1|i_hwdata_i\\[20\\]:1\\->0|i_hwdata_i\\[21\\]:0\\->1|i_hwdata_i\\[21\\]:1\\->0|i_hwdata_i\\[22\\]:0\\->1|i_hwdata_i\\[22\\]:1\\->0|i_hwdata_i\\[23\\]:0\\->1|i_hwdata_i\\[23\\]:1\\->0|i_hwdata_i\\[24\\]:0\\->1|i_hwdata_i\\[24\\]:1\\->0|i_hwdata_i\\[25\\]:0\\->1|i_hwdata_i\\[25\\]:1\\->0|i_hwdata_i\\[26\\]:0\\->1|i_hwdata_i\\[26\\]:1\\->0|i_hwdata_i\\[27\\]:0\\->1|i_hwdata_i\\[27\\]:1\\->0|i_hwdata_i\\[28\\]:0\\->1|i_hwdata_i\\[28\\]:1\\->0|i_hwdata_i\\[29\\]:0\\->1|i_hwdata_i\\[29\\]:1\\->0|i_hwdata_i\\[2\\]:0\\->1|i_hwdata_i\\[2\\]:1\\->0|i_hwdata_i\\[30\\]:0\\->1|i_hwdata_i\\[30\\]:1\\->0|i_hwdata_i\\[31\\]:0\\->1|i_hwdata_i\\[31\\]:1\\->0|i_hwdata_i\\[3\\]:0\\->1|i_hwdata_i\\[3\\]:1\\->0|i_hwdata_i\\[4\\]:0\\->1|i_hwdata_i\\[4\\]:1\\->0|i_hwdata_i\\[5\\]:0\\->1|i_hwdata_i\\[5\\]:1\\->0|i_hwdata_i\\[6\\]:0\\->1|i_hwdata_i\\[6\\]:1\\->0|i_hwdata_i\\[7\\]:0\\->1|i_hwdata_i\\[7\\]:1\\->0|i_hwdata_i\\[8\\]:0\\->1|i_hwdata_i\\[8\\]:1\\->0|i_hwdata_i\\[9\\]:0\\->1|i_hwdata_i\\[9\\]:1\\->0|i_hwrite_i:0\\->1|i_hwrite_i:1\\->0)$"
+category = "constant"
+reason   = "The I-port is a word-read-only fetch port with a fixed opcode-fetch HPROT: HSIZE = 010, HWRITE = 0, HWDATA = 0, HPROT = 0010."
+evidence = "literal rtl/core/garuda_iport_ahb_master.v:89-92"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-NONSEQONLY-ahb_interconnect"
+metric   = "toggle"
+file     = "rtl/ahb/ahb_interconnect.v"
+match    = "^(d_htrans_i\\[0\\]:0\\->1|d_htrans_i\\[0\\]:1\\->0|htrans_bus\\[2\\]:0\\->1|htrans_bus\\[2\\]:1\\->0|htrans_bus\\[4\\]:0\\->1|htrans_bus\\[4\\]:1\\->0|htrans_bus\\[6\\]:0\\->1|htrans_bus\\[6\\]:1\\->0|m_htrans_i\\[0\\]:0\\->1|m_htrans_i\\[0\\]:1\\->0|s_htrans_i\\[0\\]:0\\->1|s_htrans_i\\[0\\]:1\\->0)$"
+category = "constant"
+reason   = "A SINGLE-only master drives HTRANS IDLE (00) or NONSEQ (10), never SEQ/BUSY: bit 0 is 0 on the D-port, SBA and DMA ports (htrans_bus bits 2, 4, 6 are those bits; bit 0 of the I-port toggles with its SEQ beats)."
+evidence = "literal rtl/core/d_port_ahb_master.v:101,106; rtl/debug/sba_master.v:58,62; rtl/dma/dma_engine.v:122,129,146,154"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-SINGLEONLY-ahb_interconnect"
+metric   = "toggle"
+file     = "rtl/ahb/ahb_interconnect.v"
+match    = "^(d_hburst_i\\[0\\]:0\\->1|d_hburst_i\\[0\\]:1\\->0|d_hburst_i\\[1\\]:0\\->1|d_hburst_i\\[1\\]:1\\->0|d_hburst_i\\[2\\]:0\\->1|d_hburst_i\\[2\\]:1\\->0|m_hburst_i\\[0\\]:0\\->1|m_hburst_i\\[0\\]:1\\->0|m_hburst_i\\[1\\]:0\\->1|m_hburst_i\\[1\\]:1\\->0|m_hburst_i\\[2\\]:0\\->1|m_hburst_i\\[2\\]:1\\->0|s_hburst_i\\[0\\]:0\\->1|s_hburst_i\\[0\\]:1\\->0|s_hburst_i\\[1\\]:0\\->1|s_hburst_i\\[1\\]:1\\->0|s_hburst_i\\[2\\]:0\\->1|s_hburst_i\\[2\\]:1\\->0)$"
+category = "constant"
+reason   = "The D-port, the SBA and the DMA issue SINGLE transfers only ([N-5.3]): HBURST = 000 on those ports."
+evidence = "literal rtl/core/mem_stage.v:140, rtl/debug/sba_master.v:43, rtl/dma/dma_engine.v:87 (3'b000)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-SINGLEONLY-ahb_master_mux"
+metric   = "toggle"
+file     = "rtl/ahb/ahb_master_mux.v"
+match    = "^(d_hburst_i\\[1\\]:0\\->1|d_hburst_i\\[1\\]:1\\->0|d_hburst_i\\[2\\]:0\\->1|d_hburst_i\\[2\\]:1\\->0|m_hburst_i\\[1\\]:0\\->1|m_hburst_i\\[1\\]:1\\->0|m_hburst_i\\[2\\]:0\\->1|m_hburst_i\\[2\\]:1\\->0|s_hburst_i\\[1\\]:0\\->1|s_hburst_i\\[1\\]:1\\->0|s_hburst_i\\[2\\]:0\\->1|s_hburst_i\\[2\\]:1\\->0)$"
+category = "constant"
+reason   = "The D-port, the SBA and the DMA issue SINGLE transfers only ([N-5.3]): HBURST = 000 on those ports."
+evidence = "literal rtl/core/mem_stage.v:140, rtl/debug/sba_master.v:43, rtl/dma/dma_engine.v:87 (3'b000)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-SIZE2-ahb_interconnect"
+metric   = "toggle"
+file     = "rtl/ahb/ahb_interconnect.v"
+match    = "^(d_hsize_i\\[2\\]:0\\->1|d_hsize_i\\[2\\]:1\\->0|hsize_o\\[2\\]:0\\->1|hsize_o\\[2\\]:1\\->0|m_hsize_i\\[2\\]:0\\->1|m_hsize_i\\[2\\]:1\\->0|s_hsize_i\\[2\\]:0\\->1|s_hsize_i\\[2\\]:1\\->0)$"
+category = "constant"
+reason   = "The AHB is 32 bits wide: HSIZE <= word (byte/half/word), so HSIZE[2] is 0 from every GARUDA master and on the shared bus."
+evidence = "literal rtl/core/garuda_iport_ahb_master.v:89 (3'b010); rtl/core/load_store_unit.v:32 {1'b0, size}; rtl/debug/sba_master.v:42 (3'b010); rtl/dma/dma_engine.v hsize_o <= {1'b0, size}"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id       = "CT-SIZE2-ahb_master_mux"
+metric   = "toggle"
+file     = "rtl/ahb/ahb_master_mux.v"
+match    = "^(d_hsize_i\\[2\\]:0\\->1|d_hsize_i\\[2\\]:1\\->0|hsize_o\\[2\\]:0\\->1|hsize_o\\[2\\]:1\\->0|i_hsize_i\\[2\\]:0\\->1|i_hsize_i\\[2\\]:1\\->0|m_hsize_i\\[2\\]:0\\->1|m_hsize_i\\[2\\]:1\\->0|s_hsize_i\\[2\\]:0\\->1|s_hsize_i\\[2\\]:1\\->0)$"
+category = "constant"
+reason   = "The AHB is 32 bits wide: HSIZE <= word (byte/half/word), so HSIZE[2] is 0 from every GARUDA master and on the shared bus."
+evidence = "literal rtl/core/garuda_iport_ahb_master.v:89 (3'b010); rtl/core/load_store_unit.v:32 {1'b0, size}; rtl/debug/sba_master.v:42 (3'b010); rtl/dma/dma_engine.v hsize_o <= {1'b0, size}"
+reviewer = "pending: Sreyesh"
+

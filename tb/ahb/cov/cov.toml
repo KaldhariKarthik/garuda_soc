@@ -1,0 +1,36 @@
+# AHB interconnect coverage configuration (Track A bus plan B1 A8; handbook H5). Used by
+# tools/cov/cov_report.py: design code (rtl/ahb, the eight silicon modules), design
+# functional (tb/ahb/env/ahb_cov.sv) and testbench code are reported separately.
+# Collect: make -f flow/mk/track_a_run.mk cov_ahb    Report: cov_ahb_report
+block = "ahb"
+target_code = 95.0
+target_functional = 100.0
+
+suites = [
+  "logs/ahb/summary/ic.cov.tsv",
+  "logs/ahb/summary/env.cov.tsv",
+  "logs/ahb/summary/units.cov.tsv",
+]
+
+# rtl/ahb/ahb_mem_slave.v is a verification model (its own header), not design
+design    = ["rtl/ahb/ahb_interconnect.v", "rtl/ahb/ahb_arbiter.v", "rtl/ahb/ahb_decoder.v",
+             "rtl/ahb/ahb_master_mux.v", "rtl/ahb/ahb_master_port.v", "rtl/ahb/ahb_slave_mux.v",
+             "rtl/ahb/ahb_default_slave.v"]
+testbench = ["tb/ahb/*", "tb/common/garuda_map_pkg.sv", "rtl/ahb/ahb_ic_props_a.sv"]
+
+functional_files = ["tb/ahb/env/ahb_cov.sv"]
+
+merge_variants = ["ahb_master_port", "ahb_ic_props_a", "ahb_cov"]
+
+waivers = "tb/ahb/cov/ahb_waivers.toml"
+
+imc_dut = "ahb_interconnect"
+
+[imc_instances]
+ahb_interconnect  = ["ahb_interconnect"]
+ahb_arbiter       = ["ahb_interconnect.u_arb"]
+ahb_decoder       = ["ahb_interconnect.u_dec"]
+ahb_master_mux    = ["ahb_interconnect.u_mmux"]
+ahb_master_port   = ["ahb_interconnect.u_mp_i", "ahb_interconnect.u_mp_d", "ahb_interconnect.u_mp_s", "ahb_interconnect.u_mp_m"]
+ahb_slave_mux     = ["ahb_interconnect.u_smux"]
+ahb_default_slave = ["ahb_interconnect.u_def"]
