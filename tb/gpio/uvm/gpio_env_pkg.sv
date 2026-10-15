@@ -218,10 +218,10 @@ package gpio_env_pkg;
             x_ip_hole_rw: cross cp_ip_hole, cp_rw;
         endgroup
 
-        covergroup cg_gpio_en with function sample(int pin, int use, bit en);
+        covergroup cg_gpio_en with function sample(int pin, int usage, bit en);
             option.per_instance = 1;
             cp_pin: coverpoint pin { bins p[] = {0, 1}; }
-            cp_use: coverpoint use { bins padin_read = {0}; bins pad_edge_with_inten = {1}; }
+            cp_use: coverpoint usage { bins padin_read = {0}; bins pad_edge_with_inten = {1}; }
             cp_en: coverpoint en;
             x_gpioen_use: cross cp_pin, cp_use, cp_en;
         endgroup

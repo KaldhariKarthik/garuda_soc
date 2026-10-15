@@ -24,7 +24,15 @@ def main():
     except RDLCompileError:
         sys.exit(1)
     UVMExporter().export(root, out)
-    print("wrote %s from %s" % (out, rdl))
+    # PeakRDL maps every block with UVM_NO_ENDIAN. UVM 1.1d/1.2 accept that for a
+    # register as wide as the bus; the IEEE 1800.2 library refuses every access
+    # (UVM/REG/MAPNOENDIANESS, BUGS TOOL-25). APB is little-endian.
+    with open(out) as fh:
+        text = fh.read()
+    n = text.count("UVM_NO_ENDIAN")
+    with open(out, "w") as fh:
+        fh.write(text.replace("UVM_NO_ENDIAN", "UVM_LITTLE_ENDIAN"))
+    print("wrote %s from %s (%d map(s) set little-endian)" % (out, rdl, n))
 
 if __name__ == "__main__":
     main()

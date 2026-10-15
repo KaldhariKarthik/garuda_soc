@@ -58,10 +58,25 @@ package garuda_apb_pkg;
                 `uvm_fatal("NOVIF", "apb_driver: no virtual interface")
         endfunction
 
+        // Outputs are driven with a delayed non-blocking assignment, 0.2 ns after
+        // the call - the clocking block's output skew - and the clocking block is
+        // used only to wait for edges and to sample. A clocking drive issued once
+        // the edge's time step has moved on is deferred to the NEXT edge
+        // (IEEE 1800-2017 14.16). Cadence's UVM returns from try_next_item before
+        // that, so the back-to-back SETUP below always landed; the IEEE UVM
+        // library returns after the NBA region, and under Verilator the SETUP
+        // drive was then deferred and overwritten by the ACCESS drive: PENABLE
+        // never fell between back-to-back accesses (BUGS TOOL-26). Driven at the
+        // edge, as under xrun, the timing is exactly the clocking block's.
+        localparam realtime SKEW = 0.2ns;
+        task put(logic psel, logic penable, logic pwrite);
+            vif.psel    <= #(SKEW) psel;
+            vif.penable <= #(SKEW) penable;
+            vif.pwrite  <= #(SKEW) pwrite;
+        endtask
+
         task idle_bus();
-            vif.drv_cb.psel    <= 1'b0;
-            vif.drv_cb.penable <= 1'b0;
-            vif.drv_cb.pwrite  <= 1'b0;
+            put(1'b0, 1'b0, 1'b0);
         endtask
 
         task run_phase(uvm_phase phase);
@@ -95,13 +110,11 @@ package garuda_apb_pkg;
                 seq_item_port.get_next_item(req);
                 @(vif.drv_cb);
                 forever begin
-                    vif.drv_cb.psel    <= 1'b1;                 // SETUP
-                    vif.drv_cb.penable <= 1'b0;
-                    vif.drv_cb.pwrite  <= req.write;
-                    vif.drv_cb.paddr   <= req.addr;
-                    vif.drv_cb.pwdata  <= req.wdata;
+                    put(1'b1, 1'b0, req.write);                // SETUP
+                    vif.paddr   <= #(SKEW) req.addr;
+                    vif.pwdata  <= #(SKEW) req.wdata;
                     @(vif.drv_cb);
-                    vif.drv_cb.penable <= 1'b1;                 // ACCESS
+                    vif.penable <= #(SKEW) 1'b1;               // ACCESS
                     req.waits = 0;
                     forever begin
                         @(vif.drv_cb);
@@ -117,8 +130,8 @@ package garuda_apb_pkg;
                     if (idle == 0) seq_item_port.try_next_item(req);
                     if (req == null) break;
                 end
-                vif.drv_cb.psel    <= 1'b0;
-                vif.drv_cb.penable <= 1'b0;
+                vif.psel    <= #(SKEW) 1'b0;
+                vif.penable <= #(SKEW) 1'b0;
                 repeat (idle) @(vif.drv_cb);
             end
         endtask
