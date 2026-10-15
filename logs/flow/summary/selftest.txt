@@ -1,0 +1,21 @@
+garuda-run 1  suite selftest  block flow  2026-10-15T22:10:45+05:30
+design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      pass             
+FAIL    XFAIL:PLANTED           fail_line        1 [FAIL] line(s) | first: [FAIL] planted check failure
+FAIL    XFAIL:PLANTED           assert_fail      1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion 
+FAIL    XFAIL:PLANTED           error            1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+FAIL    XFAIL:PLANTED           no_marker        pass marker missing
+FAIL    XFAIL:PLANTED           fatal            exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selft
+FAIL    XFAIL:PLANTED           hang             TIMEOUT after 5s; pass marker missing
+FAIL    XFAIL:PLANTED           require_missing  missing: /this line is never printed/
+FAIL    XFAIL:PLANTED           forbid_present   forbidden: /mode=pass/
+BLOCKED XBLOCK:PLANTED          build_broken     %Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+PASS    OK                      sva_liveness     
+PASS    OK                      known_exact      
+FAIL    XFAIL:PLANTED           known_stale      known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+
+PASS    3
+FAIL    9
+BLOCKED 1
+total   13

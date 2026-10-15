@@ -1,0 +1,2 @@
+# expected FAIL with a fail_reason that never appears: MUST be UNEXPECTED (suite rc 1)
+selftest_reason	wrong_reason	FAIL	PLANTED	wrong failure reason must not count as XFAIL

@@ -1,0 +1,2 @@
+# stale entry on purpose: `pass` passes, so the suite MUST exit 1 (XPASS)
+selftest_xpass	pass	FAIL	PLANTED	stale xfail must be an error

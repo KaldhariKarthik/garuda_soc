@@ -1,0 +1,11 @@
+date      2026-10-13T19:01:56+05:30
+uname     Linux tg-cadence 7.2.7-1.el8.elrepo.x86_64 #1 SMP PREEMPT_DYNAMIC Mon Sep 21 12:07:22 EDT 2026 x86_64 x86_64
+python    3.12.14
+verilator Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+iverilog  Icarus Verilog version 12.0 (stable) (v12_0)
+yosys     Yosys 0.69+190 (git sha1 0e8336b4e, Release, Clang /usr/bin/clang++ 21.1.8)
+sby       SBY v0.69
+xrun      (not on PATH)
+irun      (not on PATH)
+imc       (not on PATH)
+jg        (not on PATH)

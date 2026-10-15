@@ -1,0 +1,3 @@
+[selftest_xpass] block=flow tests=1 seed=1 design=167aa935078d DIRTY tool='Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a'
+  PASS    XPASS:PLANTED          pass                             
+[selftest_xpass] PASS=1 FAIL=0 BLOCKED=0 -> 1 unexpected  (logs/flow/summary/selftest_xpass.tsv)

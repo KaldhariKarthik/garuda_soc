@@ -1,0 +1,23 @@
+# Negative control for t_core_irq_nest: the same program on the core with the
+# T-12 fix reverted (tb/core/formal/mutants/csr_file_no_t12.v) must FAIL.
+[suite]
+block = "flow"
+name  = "negctl_t12"
+kind  = "prog"
+xfail = "tb/core/selftest/xfail.tsv"
+
+[bench]
+flist   = "tb/soc/filelist_boot.f"
+top     = "tb_boot"
+replace = { "rtl/core/csr_file.v" = "tb/core/formal/mutants/csr_file_no_t12.v" }
+
+[defaults]
+marker   = 'TOHOST=1 -> PASSED'
+timeout  = 120
+require  = ['AHB-PROTOCOL: iport=0 dport=0']
+
+[[test]]
+name = "t_core_irq_nest_no_t12"
+hex  = "sw/build/t_core_irq_nest.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET"]
+fail_reason = 'FAILED \(test 5,'    # level not restored after an inner handler returned

@@ -1,0 +1,15 @@
+# garuda-run 1 suite=selftest block=flow date=2026-10-15T22:10:45+05:30 design=167aa935078d4e9cecaa35e5186328b55cfc2ca6 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+pass	PASS	OK	0	yes	0	0	0	-	1	0	-	1	0.02	21				logs/flow/raw/selftest/sim_pass_s1.log
+fail_line	FAIL	XFAIL:PLANTED	0	yes	1	0	0	-	1	0	-	1	0.02	21			1 [FAIL] line(s) | first: [FAIL] planted check failure	logs/flow/raw/selftest/sim_fail_line_s1.log
+assert_fail	FAIL	XFAIL:PLANTED	0	yes	0	1	0	-	1	0	-	1	0.02	21			1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure	logs/flow/raw/selftest/sim_assert_fail_s1.log
+error	FAIL	XFAIL:PLANTED	0	yes	0	1	0	-	1	0	-	1	0.02	21			1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion	logs/flow/raw/selftest/sim_error_s1.log
+no_marker	FAIL	XFAIL:PLANTED	0	no	0	0	0	-	1	0	-	1	0.02	21			pass marker missing	logs/flow/raw/selftest/sim_no_marker_s1.log
+fatal	FAIL	XFAIL:PLANTED	1	no	0	1	1	-	1	0	-	1	0.02	21			exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal	logs/flow/raw/selftest/sim_fatal_s1.log
+hang	FAIL	XFAIL:PLANTED	TIMEOUT	no	0	0	0	-	1	0	-	1					TIMEOUT after 5s; pass marker missing	logs/flow/raw/selftest/sim_hang_s1.log
+require_missing	FAIL	XFAIL:PLANTED	0	yes	0	0	0	-	1	0	-	1	0.02	21			missing: /this line is never printed/	logs/flow/raw/selftest/sim_require_missing_s1.log
+forbid_present	FAIL	XFAIL:PLANTED	0	yes	0	0	0	-	1	0	-	1	0.02	21			forbidden: /mode=pass/	logs/flow/raw/selftest/sim_forbid_present_s1.log
+build_broken	BLOCKED	XBLOCK:PLANTED	-	-	-	-	-	-	0	0	-	1					%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'	logs/flow/raw/selftest/build_build_broken.log
+sva_liveness	PASS	OK	0	yes	0	8	0	-	11	0	-	1	0.02	21				logs/flow/raw/selftest/sim_sva_liveness_s1.log
+known_exact	PASS	OK	0	yes	0	0	0	-	1	0	-	1	0.02	21				logs/flow/raw/selftest/sim_known_exact_s1.log
+known_stale	FAIL	XFAIL:PLANTED	0	yes	0	0	0	-	1	0	-	1	0.02	21			known /planted check failure/ (PLANTED) occurred 0 time(s), want 1	logs/flow/raw/selftest/sim_known_stale_s1.log

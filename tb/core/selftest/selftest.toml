@@ -1,0 +1,88 @@
+# Runner qualification (Gate A). Every planted failure must be caught: each
+# planted row is listed in xfail.tsv as an expected FAIL/BLOCKED, so the suite
+# exits 0 only when every planted failure was reported AND `pass` passed.
+# selftest_xpass.toml checks the other direction (a stale xfail entry fails).
+# Run: make -f flow/mk/track_a_run.mk selftest_runners
+[suite]
+block = "flow"
+name  = "selftest"
+kind  = "sim"
+xfail = "tb/core/selftest/xfail.tsv"
+
+[defaults]
+top     = "runner_selftest"
+flist   = "tb/core/selftest/filelist_runner_selftest.f"
+marker  = 'ALL CHECKS PASSED'
+timeout = 20
+
+[[test]]
+name = "pass"
+plusargs = ["+MODE=pass"]
+[[test]]
+name = "fail_line"
+plusargs = ["+MODE=fail_line"]
+fail_reason = 'planted check failure'      # matching reason: must stay XFAIL
+[[test]]
+name = "assert_fail"
+plusargs = ["+MODE=assert_fail"]
+[[test]]
+name = "error"
+plusargs = ["+MODE=error"]
+[[test]]
+name = "no_marker"
+plusargs = ["+MODE=no_marker"]
+[[test]]
+name = "fatal"
+plusargs = ["+MODE=fatal"]
+[[test]]
+name = "hang"
+plusargs = ["+MODE=hang"]
+timeout = 5
+[[test]]
+name = "require_missing"
+plusargs = ["+MODE=pass"]
+require = ['this line is never printed']
+[[test]]
+name = "forbid_present"
+plusargs = ["+MODE=pass"]
+forbid = ['mode=pass']
+[[test]]
+name = "build_broken"
+flist = "tb/core/selftest/filelist_runner_selftest_broken.f"
+top = "runner_selftest_broken"
+
+# SVA liveness: every SVA form the repo uses must fire exactly as designed,
+# so that "0 assertion failures" from this simulator can be trusted at all.
+# Verilator 5.052 deviations are pinned here, so a tool change is noticed:
+#   p_async_disable fires once (disable iff is not asynchronous, IEEE 1800 16.12)
+#   p_isunknown never fires (2-state: X-related checks are XCELIUM-ONLY)
+[[test]]
+name = "sva_liveness"
+flist = "tb/core/selftest/filelist_sva_selftest.f"
+top = "sva_selftest"
+marker = 'SELFTEST DONE'
+allow_assert = true
+count = [
+  ['Assertion failed in [^:]*p_impl_noaction', 1],
+  ['SELFTEST-FIRE p_next_error', 1],
+  ['SELFTEST-FIRE p_past', 1],
+  ['SELFTEST-FIRE p_rose', 1],
+  ['SELFTEST-FIRE p_stable', 1],
+  ['SELFTEST-FIRE p_onehot', 1],
+  ['SELFTEST-FIRE p_bind', 1],
+  ['SELFTEST-FIRE p_disable_guard', 0],
+  ['SELFTEST-FIRE p_never_fails', 0],
+  ['SELFTEST-FIRE p_isunknown', 0],
+  ['SELFTEST-FIRE p_async_disable', 1],
+]
+
+# line-level known failures (`known`): an exact, cited failure line is exempt...
+[[test]]
+name = "known_exact"
+plusargs = ["+MODE=fail_line"]
+known = [['planted check failure', 1, "PLANTED"]]
+# ...but a known line that no longer occurs is stale and must FAIL
+[[test]]
+name = "known_stale"
+plusargs = ["+MODE=pass"]
+known = [['planted check failure', 1, "PLANTED"]]

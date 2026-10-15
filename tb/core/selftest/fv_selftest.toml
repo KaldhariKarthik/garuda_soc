@@ -1,0 +1,22 @@
+# Formal-runner qualification: a run whose model lacks the properties it is
+# supposed to check must be ERROR, never PROVEN/BOUNDED (the 2026-10-11 bug:
+# Yosys defines SYNTHESIS, an `ifndef SYNTHESIS guard dropped every property and
+# the run "passed" with 0 asserts). Listed as PLANTED in xfail.tsv.
+[suite]
+block = "flow"
+name  = "fv_selftest"
+xfail = "tb/core/selftest/xfail.tsv"
+
+[design]
+flist   = "rtl/core/filelist_core.f"
+top     = "garuda_core_top"
+exclude = ["rtl/core/pipe_ctrl_sva.sv"]
+replace = { "rtl/core/core_clk_gate.v" = "tb/core/formal/core_clk_gate_passthru.sv" }
+extra   = ["tb/core/formal/core_fv_env.sv"]
+
+[[task]]
+name   = "props_missing"
+mode   = "bmc"
+depth  = 2
+engine = "smtbmc yices"
+min_asserts = 1000

@@ -1,0 +1,22 @@
+# planted failures: every row MUST be reported as listed
+selftest	fail_line	FAIL	PLANTED	planted fail_line must be caught
+selftest	assert_fail	FAIL	PLANTED	planted assert_fail must be caught
+selftest	error	FAIL	PLANTED	planted error must be caught
+selftest	no_marker	FAIL	PLANTED	planted no_marker must be caught
+selftest	fatal	FAIL	PLANTED	planted fatal must be caught
+selftest	hang	FAIL	PLANTED	planted hang must be caught
+selftest	require_missing	FAIL	PLANTED	planted require_missing must be caught
+selftest	forbid_present	FAIL	PLANTED	planted forbid_present must be caught
+selftest	build_broken	BLOCKED	PLANTED	a source error must give BLOCKED
+negctl_prog	N1_add_to_sub	FAIL	PLANTED	corrupted image must fail
+fv_selftest	props_missing	ERROR	PLANTED	a model without the expected properties must be ERROR
+selftest	known_stale	FAIL	PLANTED	a known failure line that stopped occurring must fail as stale
+negctl_t12	t_core_irq_nest_no_t12	FAIL	PLANTED	the nesting program must fail with the T-12 fix reverted
+negctl_preempt	t_core_preempt_no_knob	FAIL	PLANTED	the preempt program must fail (test 3) with the PREEMPT_DIS knob ignored
+negctl_elem	E_clic_ctrl_no_preempt	FAIL	PLANTED	tb_clic_ctrl must catch a clic_ctrl that ignores PREEMPT_DIS
+negctl_cosim	N_rd	FAIL	PLANTED	the co-simulation must catch this corruption
+negctl_cosim	N_store	FAIL	PLANTED	the co-simulation must catch this corruption
+negctl_cosim	N_pc	FAIL	PLANTED	the co-simulation must catch this corruption
+negctl_cosim	N_trap	FAIL	PLANTED	the co-simulation must catch this corruption
+negctl_cosim	N_irq_drop	FAIL	PLANTED	the co-simulation must catch this corruption
+negctl_cosim	N_irq_extra	FAIL	PLANTED	the co-simulation must catch this corruption

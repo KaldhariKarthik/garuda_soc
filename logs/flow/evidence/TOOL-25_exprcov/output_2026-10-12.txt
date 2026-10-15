@@ -1,0 +1,14 @@
+== repro_fails.v
+   378 (e[n[2:0]+:1]==0) => 0
+   0 (e[n[2:0]+:1]==1 && (P[(32'sh3 * n)[4:0]+:3] > b)==1) => 1
+   0 (e[n[2:0]+:1]==1 && v==0) => 1
+   618 (v==1 && (P[(32'sh3 * n)[4:0]+:3] > b)==0) => 0
+== repro_ok_arbiter_no_begin.v
+   444 (eligible_i[n[2:0]+:1]==0) => 0
+   96 (eligible_i[n[2:0]+:1]==1 && (PRIO[(32'sh3 * n)[4:0]+:3] > best)==1) => 1
+   62 (eligible_i[n[2:0]+:1]==1 && grant_valid_o==0) => 1
+   582 (grant_valid_o==1 && (PRIO[(32'sh3 * n)[4:0]+:3] > best)==0) => 0
+== repro_ok_no_operand_rewrite.v
+   378 (e[n[2:0]+:1]==0) => 0
+   396 (e[n[2:0]+:1]==1 && v==0) => 1
+   0 (v==1) => 0

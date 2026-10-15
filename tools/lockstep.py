@@ -30,7 +30,7 @@ downstream of the same bug, so the tool stops describing after --max.
 STORES, CSRS AND TRAPS (commit log version 2)
 ---------------------------------------------
 A version 2 RTL log (first line "# garuda-commit-log 2") also carries MEM, CSR
-and TRAP records; see the header of tb/soc/tb_boot.v. Each kind is compared
+and TRAP records; see the header of tb/soc/tb_boot.sv. Each kind is compared
 with Spike as an ordered stream, after the instruction compare has passed:
 
   stores   (address, bytes, data) of every store, in program order
@@ -288,11 +288,24 @@ def main():
                     elif len(w) == 3 and w[0] != "CSR":
                         nrtl += 1
             cmd.insert(1, f"--instructions={nrtl + 5000 * (ntrap + 2)}")
-        with open(spike_log, "w") as f:
-            spike_rc = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=f,
-                                      timeout=600).returncode
-    else:
-        spike_rc = 0                          # a given log: no exit status to read
+        # TOOL-12: Spike's own verdict counts. It exits 0 at a normal end and
+        # when an --instructions bound stops it; anything else (bad ELF, a
+        # failing self-check in the golden model, a crash) means its log cannot
+        # be trusted as the reference, even if the commits it did write match.
+        try:
+            with open(spike_log, "w") as f:
+                sp = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=f, timeout=600)
+        except subprocess.TimeoutExpired:
+            print("SPIKE-ERROR: Spike did not finish within 600 s - its log is not a reference")
+            return 1
+        if sp.returncode != 0:
+            print(f"SPIKE-ERROR: Spike exited with status {sp.returncode} - its log is not a "
+                  f"reference (see {spike_log})")
+            return 1
+
+    # A non-zero Spike exit has already failed above (stricter than the check
+    # below, which stays as a guard); a given --spike-log has no exit status.
+    spike_rc = 0
 
     if not spike_log:
         sys.exit("lockstep: need --elf or --spike-log")
