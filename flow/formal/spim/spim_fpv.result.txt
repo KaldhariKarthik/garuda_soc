@@ -1,0 +1,10 @@
+top: garuda_spim_top
+children:
+script: flow/formal/spim/spim_fpv.tcl
+proved: 34/34
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+34 assertions proved with the vendored engine inside, under the firmware rules of SPIM-5 (no STATUS
+write in flight, CLKDIV >= 3 before a start, soft reset alone). Without them the free APB master found
+SPIM-3 and SPIM-4 (both fixed) and the three SPIM-5 cases. c_dma_req is unreachable in this model
+(not looked into). Planted defects (tools/mutate.py sim/lab/spim/mut_spec.py): 6 of 6; the bench 4.

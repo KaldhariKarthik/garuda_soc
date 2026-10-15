@@ -108,7 +108,7 @@ module garuda_i2c_sva (
     genvar e;
     generate for (e = 0; e < 4; e = e + 1) begin : g_evt
         a_set_beats_clear: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
-            evt[e] |=> irqstat[e])
+            (preset_n_i && evt[e]) |=> irqstat[e])     // preset_n_i as sampled: the flops were out of reset at that edge
             else $error("[SVA-FAIL] a_set_beats_clear: event %0d was lost", e);
     end endgenerate
     a_set_beats_clear_status: assert property (@(posedge pclk_i) disable iff (!preset_n_i)

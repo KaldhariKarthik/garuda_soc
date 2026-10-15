@@ -57,7 +57,7 @@ package uart_reg_pkg;
 
         virtual function void build();
             this.id = new("id");
-            this.id.configure(this, 4, 0, "RO", 1, 'h0, 0, 1, 0);
+            this.id.configure(this, 4, 0, "RO", 1, 'h1, 1, 1, 0);
             this.fifo = new("fifo");
             this.fifo.configure(this, 2, 6, "RO", 0, 'h3, 1, 1, 0);
         endfunction : build

@@ -8,6 +8,7 @@ The spec file defines:
   FILES   the block's RTL files (and its sva file), copied for every mutant
   BENCH   the bench file list, in which the block's own file list line is replaced
   FL_LINE the line of BENCH that pulls the block's file list in (e.g. "-f rtl/dma/filelist.f")
+  KEEP    lines of that file list to keep as they are (a vendored file list, a -sv), optional
   TOP     the bench top;  ARGS  extra simulator arguments (optional)
   MUTANTS [(name, file, old text, new text), ...]
 For every mutant the copy is simulated with assertions on; the table says which assertions fired
@@ -26,7 +27,7 @@ for mname, f, old, new in cfg["MUTANTS"]:
     if s.count(old) != 1:
         print("%-46s PATTERN FOUND %d TIMES, skipped" % (mname, s.count(old))); continue
     open(tgt, "w").write(s.replace(old, new))
-    inc = "".join("-incdir %s\n" % x for x in cfg.get("INCDIRS", []))
+    inc = "".join("-incdir %s\n" % x for x in cfg.get("INCDIRS", [])) + "".join(l + "\n" for l in cfg.get("KEEP", []))
     lst = inc + "\n".join(os.path.join(d, os.path.basename(p)) for p in files if p.endswith((".v", ".sv"))) + "\n"
     fl = open(cfg["BENCH"]).read().replace(cfg["FL_LINE"], lst)
     open(d + "/files.f", "w").write(fl)

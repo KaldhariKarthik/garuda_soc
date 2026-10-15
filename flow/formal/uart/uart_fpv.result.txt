@@ -1,0 +1,9 @@
+top: garuda_uart_top
+children:
+script: flow/formal/uart/uart_fpv.tcl
+proved: 38/38
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+38 assertions (the wrapper's and the shim's) proved with the vendored 16550 inside; 42 covers covered,
+2 unreachable: c_shim_hole (no register hole since IP_MAP 0xFF) and a reset precondition.
+UVM: make uvm_uart 22 of 22 pass. Planted defects (scripts/planted_defects.sh uart): 14 of 14 caught.

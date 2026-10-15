@@ -4,3 +4,4 @@
 rtl/common/garuda_apb_shim.v
 rtl/common/garuda_apb_shim_sva.sv
 rtl/uart/garuda_uart_top.v
+rtl/uart/garuda_uart_sva.sv

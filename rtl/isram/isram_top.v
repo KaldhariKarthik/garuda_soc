@@ -58,7 +58,12 @@ module isram_top (
 
 `ifndef SYNTHESIS
     task bd_write;     input [31:0] byte_addr; input [31:0] data;
-        u_array.bd_write(byte_addr[AW+1:2], data);
+        begin
+            u_array.bd_write(byte_addr[AW+1:2], data);
+`ifndef __ICARUS__
+            u_if.u_mem_sva.forget(byte_addr[AW+1:2]);   // the bus-side data model (rtl/mem/mem_sva.sv) did not see this write
+`endif
+        end
     endtask
     function [31:0] bd_read; input [31:0] byte_addr;
         bd_read = u_array.bd_read(byte_addr[AW+1:2]);

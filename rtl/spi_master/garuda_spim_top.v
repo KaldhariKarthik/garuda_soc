@@ -132,12 +132,16 @@ module garuda_spim_top #(
     wire        eff_penable = poll ? 1'b1    : ip_penable;
     wire        eff_pwrite  = poll ? 1'b0    : ip_pwrite;
     wire [11:0] eff_paddr   = poll ? 12'h000 : ip_paddr;
+    // SPIM-4: STATUS[2] and [3] start a quad read or write upstream. GARUDA has no quad
+    // pins, so a write to STATUS reaches the engine with those two bits cleared and the
+    // engine stays in single-bit mode whatever firmware writes ([N-7.5]).
+    wire [31:0] eff_pwdata  = (ip_pwrite && ip_paddr == 12'h000) ? (ip_pwdata & ~32'h0000_000C) : ip_pwdata;
 
     apb_spi_master #(
         .BUFFER_DEPTH(BUFFER_DEPTH), .APB_ADDR_WIDTH(12)
     ) u_spi (
         .HCLK(pclk_i), .HRESETn(preset_n_i),
-        .PADDR(eff_paddr), .PWDATA(ip_pwdata), .PWRITE(eff_pwrite),
+        .PADDR(eff_paddr), .PWDATA(eff_pwdata), .PWRITE(eff_pwrite),
         .PSEL(eff_psel), .PENABLE(eff_penable),
         .PRDATA(ip_prdata), .PREADY(ip_pready), .PSLVERR(),
         .events_o(events),
@@ -156,8 +160,12 @@ module garuda_spim_top #(
     // Pins. Upstream has four chip selects; GARUDA has two (PHYS [N-3.5]).
     // csn2/csn3 and sdo1..3 are deliberately unused - no pins exist for them.
     // =========================================================================
+    // SPIM-3: the two devices share MISO, so they are never selected together (R-3),
+    // whatever firmware writes to STATUS[9:8]. Upstream drives each chip select
+    // from its own register bit; with both bits set the flash keeps its select
+    // and the IMU's is held high.
     assign spim_cs_flash_n_o = csn0;
-    assign spim_cs_imu_n_o   = csn1;
+    assign spim_cs_imu_n_o   = csn1 | ~csn0;
     assign spim_mosi_o       = sdo0;
 
     wire _unused = |{csn2, csn3, sdo1, sdo2, sdo3, dmactl, status_q[0]};

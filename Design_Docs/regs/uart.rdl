@@ -44,7 +44,7 @@ addrmap uart {
           field { sw = rw; hw = r; reset = 8'h0; desc = "The 16550's own interrupt enables. Leave 0: GARUDA takes its interrupts from IRQSTAT ([N-7.5])"; } value[7:0];
     } IER @ 0x04;
     reg { name = "Interrupt identification of the 16550";
-          field { sw = r; hw = w; desc = "Interrupt identification; 1 = none pending"; } id[3:0];
+          field { sw = r; hw = w; reset = 4'h1; desc = "Interrupt identification; 1 = none pending"; } id[3:0];
           field { sw = r; hw = na; reset = 2'b11; desc = "FIFOs present: always 3"; } fifo[7:6];
     } IIR @ 0x08;
     reg { name = "FIFO control";

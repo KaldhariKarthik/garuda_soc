@@ -97,8 +97,14 @@ module ahb_interconnect_sva (
         htrans_o == SEQ |-> (last_v && last_owner == grant) )
         else $error("[SVA-FAIL] a_no_orphan_seq: a SEQ beat after a change of master");
     // AHB-1: the write data on the bus is the data of the master that owns the data phase
+    // checked in WRITE data phases only, and with ===: in a read data phase no master drives
+    // HWDATA (the core leaves it X), and X == X is not true in SystemVerilog
+    reg dph_write = 1'b0;
+    always @(posedge hclk_i or negedge hreset_n_i)
+        if (!hreset_n_i) dph_write <= 1'b0;
+        else if (hready_o) dph_write <= htrans_o[1] && hwrite_o;
     a_hwdata_owner: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        dph_valid |-> hwdata_o == (dph_master == M_M ? m_hwdata_i : dph_master == M_S ? s_hwdata_i :
+        (dph_valid && dph_write) |-> hwdata_o === (dph_master == M_M ? m_hwdata_i : dph_master == M_S ? s_hwdata_i :
                                    dph_master == M_D ? d_hwdata_i : i_hwdata_i) )
         else $error("[SVA-FAIL] a_hwdata_owner: HWDATA is not the data phase owner's");
     // [N-7.14] the SBA indication follows the grant

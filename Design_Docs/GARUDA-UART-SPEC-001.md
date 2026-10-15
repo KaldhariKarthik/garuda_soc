@@ -208,6 +208,14 @@ the head of the RX FIFO** and travel with it:
 | 5 | `THRE` | TX FIFO is empty — bytes can be written |
 | 6 | `TEMT` | TX FIFO **and** the shift register are empty — the line is idle |
 
+**[N-6.3c]** Bits 2 and 3 mean something **only while bit 0 is set**. With the
+FIFO empty the vendored block still shows two flag bits, those of the slot the
+next byte will be written to, left over from a byte sixteen bytes ago. Firmware
+ignores `PE` and `FE` unless `DR` is 1. The wrapper does the same for the
+line-error event: `IRQSTAT[2]` is raised only while a byte is waiting (bug
+entry UART-5, fixed 2026-10-14; before that the interrupt came with no byte and
+could not be cleared).
+
 **[N-6.3a]** Reading `LSR` has no effect on data. Upstream's read path asserts
 `clr_int` into `uart_interrupt` and nothing else — it does not pop a FIFO and
 does not alter `regs_q[LSR]`. This is what makes the wrapper's idle-cycle poll

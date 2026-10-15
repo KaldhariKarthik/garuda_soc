@@ -5,4 +5,5 @@
 tb/common/garuda_apb_bfm.sv
 tb/common/dma_req_checker.sv
 tb/models/spi_flash_model.sv
+tb/spi_master/spim_cov.sv
 tb/spi_master/tb_spim.sv

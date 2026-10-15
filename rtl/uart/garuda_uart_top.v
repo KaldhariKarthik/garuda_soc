@@ -105,7 +105,14 @@ module garuda_uart_top #(
     // One "line error" event covers both. Firmware reads LSR to tell them
     // apart - parity says noise, framing says the baud rate is wrong - but the
     // interrupt only has to say "the byte at the head of the FIFO is suspect".
-    wire lsr_err  = lsr_pe | lsr_fe;
+    //
+    // UART-5: only while a byte is there. The vendored LSR takes bits 2 and 3
+    // straight from the FIFO's output, and with the FIFO empty that output is
+    // the slot the next byte will go into, still holding the flags of the byte
+    // that was in it sixteen bytes ago (or of the byte just read, right after a
+    // FIFO clear). Without the gate the event was raised in every cycle with
+    // nothing in the FIFO, and firmware could not clear the interrupt.
+    wire lsr_err  = lsr_dr & (lsr_pe | lsr_fe);
 
     // =========================================================================
     // DLAB shadow ([N-6.2a])

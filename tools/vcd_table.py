@@ -43,6 +43,7 @@ def main():
                 rows.append([snap.get(x, "?") for x in codes])
             prev_ck = v
         cur[c] = v
+    rows.append([cur.get(x, "?") for x in codes])     # the values after the last edge: where a failure shows
     def fmt(v):
         if v in ("?",) or set(v) - set("01"): return v
         n = int(v, 2); return str(n) if n < 1024 else hex(n)

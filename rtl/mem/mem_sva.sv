@@ -95,6 +95,8 @@ module mem_sva #(
         lanes = {{8{be[3]}}, {8{be[2]}}, {8{be[1]}}, {8{be[0]}}};
     endfunction
 `ifdef FORMAL
+    function void forget(int w); endfunction
+    function void forget_all(); endfunction
     wire [AW-1:0] watch;                          // undriven: the tool chooses it
     assume_watch_fixed: assume property (@(posedge hclk_i) $stable(watch));
     reg [31:0] ref_data; reg [3:0] ref_known;
@@ -108,12 +110,15 @@ module mem_sva #(
         (rd_done && exp_word == watch) |-> ((hrdata_o & lanes(ref_known)) == (ref_data & lanes(ref_known))) )
         else $error("[SVA-FAIL] a_data_integrity: a read did not return what was written");
 `else
-    bit [31:0] model [int];
-    bit [3:0]  known [int];
+    // 4-state: an X the bus wrote (a register the core never initialised) must read back as X
+    logic [31:0] model [int];
+    bit   [3:0]  known [int];
     function void forget_all(); model.delete(); known.delete(); endfunction
+    // the memory's backdoor (bd_write) calls this for the word it overwrote behind the bus
+    function void forget(int w); if (known.exists(w)) begin known.delete(w); model.delete(w); end endfunction
     always @(posedge hclk_i) if (hreset_n_i) begin
         if (rd_done && known.exists(exp_word)) begin
-            a_data_integrity: assert ((hrdata_o & lanes(known[exp_word])) == (model[exp_word] & lanes(known[exp_word])))
+            a_data_integrity: assert ((hrdata_o & lanes(known[exp_word])) === (model[exp_word] & lanes(known[exp_word])))
                 else $error("[SVA-FAIL] a_data_integrity: word %0h read %h, expected %h on lanes %b",
                             exp_word, hrdata_o, model[exp_word], known[exp_word]);
         end

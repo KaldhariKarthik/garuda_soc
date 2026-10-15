@@ -70,12 +70,17 @@ module dsram_top (
 `ifndef SYNTHESIS
     // Byte-addressed backdoor; the testbench never sees the banking.
     task bd_write; input [31:0] byte_addr; input [31:0] data;
-        case (byte_addr[15:14])
-            2'd0: g_bank[0].u_array.bd_write(byte_addr[13:2], data);
-            2'd1: g_bank[1].u_array.bd_write(byte_addr[13:2], data);
-            2'd2: g_bank[2].u_array.bd_write(byte_addr[13:2], data);
-            default: g_bank[3].u_array.bd_write(byte_addr[13:2], data);
-        endcase
+        begin
+            case (byte_addr[15:14])
+                2'd0: g_bank[0].u_array.bd_write(byte_addr[13:2], data);
+                2'd1: g_bank[1].u_array.bd_write(byte_addr[13:2], data);
+                2'd2: g_bank[2].u_array.bd_write(byte_addr[13:2], data);
+                default: g_bank[3].u_array.bd_write(byte_addr[13:2], data);
+            endcase
+`ifndef __ICARUS__
+            u_if.u_mem_sva.forget(byte_addr[15:2]);   // the bus-side data model (rtl/mem/mem_sva.sv) did not see this write
+`endif
+        end
     endtask
     function [31:0] bd_read; input [31:0] byte_addr;
         case (byte_addr[15:14])

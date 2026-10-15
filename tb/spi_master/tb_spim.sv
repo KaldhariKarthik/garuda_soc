@@ -52,7 +52,10 @@ module tb_spim;
         .clk_i(pclk), .rst_n_i(preset_n), .req_i(dma_req), .ack_i(dma_ack));
 
     // contract monitors
-    int pready_viol = 0, cs_both = 0;
+    int pready_viol = 0, cs_both = 0, quad_cycles = 0;
+    // SPIM-4: the engine never leaves single-bit mode ([N-7.5]). en_quad is the vendored controller's own
+    // quad flag; its spi_mode output reads SPI_QUAD_RX whenever it is idle, so it cannot be used
+    always @(posedge pclk) if (preset_n && dut.u_spi.u_spictrl.en_quad !== 1'b0) quad_cycles++;
     always @(posedge pclk) begin
         if (preset_n && bfm.psel && !bfm.pready) pready_viol++;
         if (preset_n && !cs_flash_n && !cs_imu_n) cs_both++;
@@ -213,6 +216,33 @@ module tb_spim;
             integer nb;
             bfm.sweep_map(64'h77F, nb);
             check(nb == 0, $sformatf("[AUD-13] PSLVERR at every offset that is not a register, and at no register (0x00 to 0x18, 0x20, 0x24, 0x28 and the tail): %0d wrong", nb));
+        end
+
+        // ---- SPIM-3: a STATUS write that sets both chip-select bits must not select both devices ----
+        begin : both_cs
+            logic [31:0] d; bit e; int g; int n0;
+            n0 = cs_both;
+            bfm.wr(R_CMD, 32'h0300_0000);
+            bfm.wr(R_ADDR, 32'h0);
+            bfm.wr(R_LEN, (32 << 16) | (24 << 8) | 8);
+            bfm.wr(R_STATUS, CS_FLASH | CS_IMU | ST_RD);       // a firmware mistake: both bits
+            g = 0;
+            do begin bfm.read(R_STATUS, d, e); g++; end
+            while (d[20:16] == 0 && g < 4000);
+            drain_rx();
+            check(cs_both == n0, $sformatf("[R-3] SPIM-3: both chip-select bits written, the two pins still never low together (%0d cycles both low)", cs_both - n0));
+        end
+
+        // ---- SPIM-4: STATUS[2] and [3] would start a quad transfer upstream; GARUDA has no quad pins ----
+        begin : no_quad
+            int n0;
+            n0 = quad_cycles;
+            bfm.wr(R_STATUS, CS_FLASH | (1 << 2));               // quad read requested
+            repeat (200) @(posedge pclk);
+            bfm.wr(R_STATUS, CS_FLASH | (1 << 3));               // quad write requested
+            repeat (200) @(posedge pclk);
+            drain_rx();
+            check(quad_cycles == n0, $sformatf("[N-7.5] SPIM-4: a quad start bit written to STATUS leaves the engine in single-bit mode (%0d cycles in quad mode)", quad_cycles - n0));
         end
 
         check(pready_viol == 0, "[R-5] PREADY high in every cycle of every access");

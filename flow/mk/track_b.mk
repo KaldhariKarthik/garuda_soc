@@ -171,6 +171,9 @@ uvm_spis:                                        ## SPI slave UVM environment, w
 uvm_i2c:                                         ## I2C UVM environment, with coverage
 	$(call run_uvm,i2c,-covdut garuda_i2c_top,tb/i2c/uvm/filelist_i2c_uvm.f,tb_i2c_uvm,i2c)
 
+uvm_uart:                                        ## UART UVM environment, with coverage
+	$(call run_uvm,uart,-covfile flow/cov/uart_uvm_dut.ccf,tb/uart/uvm/filelist_uart_uvm.f,tb_uart_uvm,uart)
+
 uvm_gpio:                                        ## GPIO UVM environment, with coverage
 	$(call run_uvm,gpio,-covdut garuda_gpio_top,tb/gpio/uvm/filelist_gpio_uvm.f,tb_gpio_uvm,gpio)
 

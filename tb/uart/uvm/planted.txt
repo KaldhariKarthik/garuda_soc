@@ -1,0 +1,15 @@
+# <RTL file> @@ <sed -E expression> @@ <what the defect is>
+rtl/uart/garuda_uart_top.v @@ s/wire lsr_err  = lsr_dr \& \(lsr_pe \| lsr_fe\);/wire lsr_err  = lsr_pe | lsr_fe;/ @@ the line-error event is raised with no byte waiting (UART-5)
+rtl/uart/garuda_uart_top.v @@ s/assign dma_req_o = shim_dma_req \& ~dlab_q;/assign dma_req_o = shim_dma_req;/ @@ the DMA request is not held off while DLAB is set
+rtl/uart/garuda_uart_top.v @@ s/\.ADDR_SHIFT\(2\)/.ADDR_SHIFT(0)/ @@ word offsets are not turned into the 16550's byte offsets
+rtl/uart/garuda_uart_top.v @@ s/assign evt\[1\] = lsr_thre; /assign evt[1] = lsr_q[6]; / @@ the transmit-empty event follows TEMT instead of THRE
+rtl/uart/garuda_uart_top.v @@ s/\.rx_avail_i\(lsr_dr\),/.rx_avail_i(1'b0),/ @@ no DMA request for a received byte
+rtl/uart/garuda_uart_top.v @@ s/wire        eff_pwrite  = poll \? 1'b0  : ip_pwrite;/wire        eff_pwrite  = ip_pwrite;/ @@ the wrapper's poll is not forced to be a read
+rtl/uart/garuda_uart_top.v @@ s/IP_MAP   = 64'h0000_0000_0000_00FF;/IP_MAP   = 64'h0000_0000_0000_00EF;/ @@ MCR at 0x10 answers with PSLVERR
+rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv @@ s/if\(parity_bit != reg_rx_sync\[2\]\)/if(1'b0)/ @@ a parity error is never flagged
+rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv @@ s/parity_bit_next = parity_bit \^ reg_data\[0\];/parity_bit_next = ~(parity_bit ^ reg_data[0]);/ @@ the parity bit sent is wrong
+rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv @@ s/regs_n\[LSR\]\[3\] = fifo_rx_data\[9\];/regs_n[LSR][3] = 1'b0;/ @@ a framing error is never flagged (vendor patch 0001 lost)
+rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv @@ s/regs_n\[LSR\]\[5\] = ~ \(\|tx_elements\);/regs_n[LSR][5] = tx_ready;/ @@ THRE reports the shifter instead of the FIFO
+rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv @@ s/tx_fifo_clr_n   = PWDATA\[2\];/tx_fifo_clr_n   = PWDATA[1];/ @@ FCR bit 1 clears both FIFOs and bit 2 clears nothing
+rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv @@ s/assign full = \(elements == BUFFER_DEPTH\);/assign full = (elements == BUFFER_DEPTH - 1);/ @@ the FIFOs hold fifteen entries
+rtl/common/garuda_apb_shim.v @@ s/irqstat_q <= \(irqstat_q \& ~w1c\) \| evt_i;/irqstat_q <= (irqstat_q | evt_i) \& ~w1c;/ @@ an event in the cycle of its own clear is lost

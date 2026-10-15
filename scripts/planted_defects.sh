@@ -29,7 +29,11 @@ case $BLK in
 esac
 LIST=tb/$DIR/uvm/planted.txt
 [ -f "$LIST" ] || { echo "no $LIST"; exit 2; }
-IRUN=${IRUN152:-$(command -v irun)}
+# the same simulator as the make flow (flow/mk/common.mk IRUN152), not whichever irun is first on PATH:
+# Xcelium's irun is a wrapper for xrun and refuses modules without a timescale
+IRUN=${IRUN152:-/home/install/INCISIVE152/tools/bin/irun}
+# irun 15.2 finds its own elaborator and simulator on PATH, so its directory goes first (as in run_uvm)
+export PATH=$(dirname "$IRUN"):$PATH
 W=$ROOT/sim/planted/$BLK
 rm -rf "$W"; mkdir -p "$W"
 cp -r rtl tb "$W/"

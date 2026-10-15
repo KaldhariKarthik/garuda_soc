@@ -85,7 +85,8 @@ for p in glob.glob("tb/*/uvm/*_env_pkg.sv"):
 ENV_OF = {"clic_top": "tb/clic/uvm/clic_env_pkg.sv", "timers_top": "tb/timers/uvm/timers_env_pkg.sv",
           "clk_div": "tb/clk_div/uvm/crg_env_pkg.sv", "reset_ctrl": "tb/clk_div/uvm/crg_env_pkg.sv",
           "garuda_pwm_top": "tb/pwm/uvm/pwm_env_pkg.sv", "garuda_gpio_top": "tb/gpio/uvm/gpio_env_pkg.sv",
-          "garuda_i2c_top": "tb/i2c/uvm/i2c_env_pkg.sv", "garuda_spis_top": "tb/spi_slave/uvm/spis_env_pkg.sv"}
+          "garuda_i2c_top": "tb/i2c/uvm/i2c_env_pkg.sv", "garuda_spis_top": "tb/spi_slave/uvm/spis_env_pkg.sv",
+          "garuda_uart_top": "tb/uart/uvm/uart_env_pkg.sv"}
 # modules measured through their parent's environment
 CHILD_OF = {"clic_apb": "clic_top", "clic_select": "clic_top", "mtime": "timers_top", "timers_apb": "timers_top",
             "wdt": "timers_top", "reset_ctrl_apb": "reset_ctrl", "garuda_pwm_core": "garuda_pwm_top",

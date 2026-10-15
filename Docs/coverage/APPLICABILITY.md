@@ -8,20 +8,20 @@ A measure that **applies and does not exist is a GAP**. Nothing else is. Vendore
 
 | Measure | have | GAP | n/a (with reason) |
 |---|---|---|---|
-| Code coverage | 94 | 0 | 16 |
-| Functional coverage | 50 | 34 | 26 |
-| Assertions | 52 | 42 | 16 |
-| Formal properties | 24 | 46 | 40 |
+| Code coverage | 94 | 0 | 18 |
+| Functional coverage | 52 | 32 | 28 |
+| Assertions | 54 | 40 | 18 |
+| Formal properties | 26 | 44 | 42 |
 
-110 own RTL modules.
+112 own RTL modules.
 
 ## Gap list
 
-**Functional coverage: 34 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_master_port, ahb_mem_slave, ahb_slave_mux; core: clic_ctrl, core_clk_gate, csr_file, ex_stage, forward_unit, regfile, trap_ctrl, wb_stage; debug: debug_module, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine; dsu: barrel_shifter, dsu_decoder, dsu_top, mac_cluster, operand_router, readback_mux, result_selector; shim: garuda_apb_shim; soc: garuda_chip_core; spim: garuda_spim_top; uart: garuda_uart_top
+**Functional coverage: 32 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_master_port, ahb_mem_slave, ahb_slave_mux; core: clic_ctrl, core_clk_gate, csr_file, ex_stage, forward_unit, regfile, trap_ctrl, wb_stage; debug: debug_module, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine; dsu: barrel_shifter, dsu_decoder, dsu_top, mac_cluster, operand_router, readback_mux, result_selector; shim: garuda_apb_shim; soc: garuda_chip_core
 
-**Assertions: 42 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_master_mux, ahb_master_port, ahb_mem_slave, ahb_slave_mux; core: clic_ctrl, core_clk_gate, csr_file, ex_mem, ex_stage, forward_unit, id_ex, if_id, regfile, trap_ctrl, wb_stage; debug: debug_module, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine, dma_top; dsu: barrel_shifter, dsu_decoder, dsu_top, kogge_stone_49, mac_cluster, mult_16x16, operand_router, readback_mux, result_selector; soc: garuda_chip_core, garuda_chip_top, garuda_soc_top; spim: garuda_spim_top; uart: garuda_uart_top
+**Assertions: 40 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_master_mux, ahb_master_port, ahb_mem_slave, ahb_slave_mux; core: clic_ctrl, core_clk_gate, csr_file, ex_mem, ex_stage, forward_unit, id_ex, if_id, regfile, trap_ctrl, wb_stage; debug: debug_module, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine, dma_top; dsu: barrel_shifter, dsu_decoder, dsu_top, kogge_stone_49, mac_cluster, mult_16x16, operand_router, readback_mux, result_selector; soc: garuda_chip_core, garuda_chip_top, garuda_soc_top
 
-**Formal properties: 46 modules.** ahb: ahb_mem_slave; clic: clic_apb, clic_select, clic_top; clk/rst: clk_div, reset_ctrl, reset_ctrl_apb; core: branch_predict, branch_unit, clic_ctrl, core_clk_gate, csr_file, csr_rw, d_port_ahb_master, decode_control, ex_stage, forward_unit, garuda_core_top, garuda_if_stage_top, garuda_iport_ahb_master, garuda_pc_gen, garuda_prefetch_buffer, hazard_forward_unit, id_stage, load_store_unit, mem_stage, trap_ctrl, wb_stage; dsu: barrel_shifter, dsu_decoder, dsu_stall, dsu_top; gpio: garuda_gpio_top; i2c: garuda_i2c_top; pwm: garuda_pwm_core, garuda_pwm_top; shim: garuda_apb_shim; soc: garuda_chip_core; spim: garuda_spim_top; spis: garuda_spis_core, garuda_spis_top; timers: mtime, timers_apb, timers_top, wdt; uart: garuda_uart_top
+**Formal properties: 44 modules.** ahb: ahb_mem_slave; clic: clic_apb, clic_select, clic_top; clk/rst: clk_div, reset_ctrl, reset_ctrl_apb; core: branch_predict, branch_unit, clic_ctrl, core_clk_gate, csr_file, csr_rw, d_port_ahb_master, decode_control, ex_stage, forward_unit, garuda_core_top, garuda_if_stage_top, garuda_iport_ahb_master, garuda_pc_gen, garuda_prefetch_buffer, hazard_forward_unit, id_stage, load_store_unit, mem_stage, trap_ctrl, wb_stage; dsu: barrel_shifter, dsu_decoder, dsu_stall, dsu_top; gpio: garuda_gpio_top; i2c: garuda_i2c_top; pwm: garuda_pwm_core, garuda_pwm_top; shim: garuda_apb_shim; soc: garuda_chip_core; spis: garuda_spis_core, garuda_spis_top; timers: mtime, timers_apb, timers_top, wdt
 
 ## The matrix
 
@@ -127,7 +127,8 @@ A measure that **applies and does not exist is a GAP**. Nothing else is. Vendore
 | `garuda_chip_core` | soc | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
 | `garuda_chip_top` | soc | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made | **GAP** | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made |
 | `garuda_soc_top` | soc | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made | **GAP** | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made |
-| `garuda_spim_top` | spim | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `garuda_spim_sva` | spim | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
+| `garuda_spim_top` | spim | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 3 bound: spim_cov.sv | **have** 9 bound: garuda_spim_sva.sv | **have** properties proved 34/34: flow/formal/spim/spim_fpv.tcl |
 | `garuda_spis_core` | spis | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 8 in spis_env_pkg.sv (via garuda_spis_top) | **have** via garuda_spis_top: garuda_spis_sva.sv | **GAP** waivers checked only (spis_unr); no property proved |
 | `garuda_spis_sva` | spis | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
 | `garuda_spis_top` | spis | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 8 in spis_env_pkg.sv | **have** 11 bound: garuda_spis_sva.sv | **GAP** waivers checked only (spis_unr); no property proved |
@@ -136,7 +137,8 @@ A measure that **applies and does not exist is a GAP**. Nothing else is. Vendore
 | `timers_sva` | timers | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
 | `timers_top` | timers | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 6 in timers_env_pkg.sv | **have** 26 bound: timers_sva.sv | **GAP** waivers checked only (timers_unr); no property proved |
 | `wdt` | timers | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 6 in timers_env_pkg.sv (via timers_top) | **have** via timers_top: timers_sva.sv | **GAP** waivers checked only (timers_unr); no property proved |
-| `garuda_uart_top` | uart | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `garuda_uart_sva` | uart | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
+| `garuda_uart_top` | uart | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 10 in uart_env_pkg.sv | **have** 11 bound: garuda_uart_sva.sv | **have** properties proved 38/38: flow/formal/uart/uart_fpv.tcl |
 
 ## FPGA-only files (4, not in the ASIC build)
 
