@@ -24,7 +24,13 @@ file mkdir $OUT
 #    exec must not see the tool's own libraries: env -u LD_LIBRARY_PATH.
 #    +define+SYNTHESIS hides the simulation-only code (as for HAL).
 set FILES [split [string trim [exec env -u LD_LIBRARY_PATH python3 scripts/expand_filelist.py $FL]] "\n"]
-analyze -sv09 +define+SYNTHESIS +incdir+rtl/include +incdir+rtl/common {*}$FILES
+# include directories of the block's own file list (a `include of a header that lives in the
+# block's directory, such as rtl/mem/mem_defs.vh, is not found without them)
+set INCS {}
+foreach d [split [string trim [exec env -u LD_LIBRARY_PATH python3 scripts/expand_filelist.py $FL --incdirs]] " "] {
+    if {$d ne ""} { lappend INCS +incdir+[string range $d 2 end] }
+}
+analyze -sv09 +define+SYNTHESIS +incdir+rtl/include +incdir+rtl/common {*}$INCS {*}$FILES
 
 # 2. build the design from the top module
 elaborate -top $TOP
@@ -37,7 +43,8 @@ reset -expression [list "!$RST"]
 # 4. the Superlint app: set it up, extract its checks, let the formal engine decide them
 check_superlint -init
 check_superlint -extract
-prove -all
+# a time limit per run: a block whose checks do not settle is reported, not waited for
+prove -all -time_limit 300s
 
 # 5. the results
 check_superlint -report -file $OUT/superlint_report.txt -force
