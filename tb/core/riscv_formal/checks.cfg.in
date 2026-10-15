@@ -1,0 +1,41 @@
+# riscv-formal configuration for the GARUDA core (plan 5.6). Template: the
+# runner tools/run/rvformal.sh fills @ROOT@ and @FILES@ and runs genchecks.py.
+# DIV/REM are filtered out: GARUDA raises illegal instruction for them by
+# design (DN-ISA); riscv-formal's rv32im model expects them to execute.
+[options]
+isa rv32im
+solver boolector
+
+[depth]
+insn            30
+reg       20    30
+pc_fwd    10    16
+pc_bwd    15    30
+unique    1  15 30
+causal    15    30
+liveness  1  15 80
+cover     1     25
+
+[filter-checks]
+- insn_div.*
+- insn_rem.*
+
+[defines]
+`define RISCV_FORMAL_ALIGNED_MEM
+`define RISCV_FORMAL_ALTOPS
+`define GARUDA_RVFI
+
+[defines liveness]
+`define GARUDA_FAIRNESS
+
+[script-defines]
+verilog_defines -DGARUDA_RVFI
+verilog_defaults -add -I@ROOT@/rtl/common
+verilog_defaults -add -I@ROOT@/rtl/core
+
+[verilog-files]
+@basedir@/cores/@core@/wrapper.sv
+@FILES@
+
+[cover]
+always @* if (!reset) cover (channel[0].cnt_insns == 2);

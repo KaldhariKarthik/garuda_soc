@@ -1,0 +1,19 @@
+# command: python3.12 /home/tg/garuda_track_a/tools/lockstep.py --rtl /home/tg/garuda_track_a/logs/core/raw/isa/p-csr_readzero.commit.log --elf /home/tg/garuda_track_a/sw/riscv-tests/build/p-csr_readzero.elf --spike-log /home/tg/garuda_track_a/logs/core/raw/isa/p-csr_readzero.spike.log --spike /home/tg/tools/spike/bin/spike --max 3
+# exit: 1
+lockstep: spike=855 rtl=854 compared=854
+
+DIVERGE at instruction 837 of 854
+
+--- instruction 837 ---
+  ok   pc=1000116c  x6=00000000
+  ok   pc=10001170  (no gpr write)
+  ok   pc=10001174  x6=00000000
+  spike  pc=10001178  x6=00000345
+  rtl    pc=10001178  x6=00000353
+
+--- instruction 838 ---
+  ok   pc=10001170  (no gpr write)
+  ok   pc=10001174  x6=00000000
+  ok   pc=10001178  x6=00000345
+  spike  pc=1000117c  x6=00000346
+  rtl    pc=1000117c  x6=00000344

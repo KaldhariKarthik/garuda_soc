@@ -1,0 +1,17 @@
+# csr_file-level benches (Track A W2/W3/W5): the CSR contract at the module
+# that implements it. Run: make -f flow/mk/track_a_run.mk core_csr
+[suite]
+block = "core"
+name  = "csr"
+kind  = "sim"
+xfail = "tb/core/run/xfail.tsv"
+
+[defaults]
+marker  = 'ALL CHECKS PASSED'
+timeout = 120
+
+# T-12: the interrupt-level stack across nesting, exceptions and MTI
+[[test]]
+name  = "t12_level_stack"
+flist = "tb/core/filelist_csr_file_t12.f"
+top   = "tb_csr_file_t12"

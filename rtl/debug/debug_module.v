@@ -13,20 +13,35 @@
 //
 //   0x10 dmcontrol  [0] dmactive [1] ndmreset [29] hartreset
 //                   [30] resumereq (W1: clear hartreset) [31] haltreq (W1: set)
-//   0x11 dmstatus   version 2, authenticated, any/allhalted = hartreset,
-//                   any/allrunning = !hartreset, impebreak 0
+//   0x11 dmstatus   version 2, authenticated, any/allhalted = halt granted,
+//                   any/allrunning = !granted, impebreak 0  (RDC-1: the grant,
+//                   not the request -- see "Halt drain" below)
 //   0x16 abstractcs reads 0 -> datacount 0, progbufsize 0 ([N-6.3])
 //   0x38 sbcs  0x39 sbaddress0  0x3C sbdata0          ([N-6.5], [N-6.6])
 //   0x60..0x65 DSU accumulator taps, coherent lo/hi   ([N-6.8])
 //   0x66 dsuovf  [0] the core's sticky DSU overflow (D-18)
+//   0x70 haltinfo [0] haltforced: a halt was granted by the timeout, not by the
+//                     core reporting a safe point (sticky; write 1 to clear)
 //   everything else reads 0
+//
+// Halt drain (ERRATUM RDC-1, fixed 2026-10-11): dmcontrol.haltreq/hartreset is
+// the REQUEST. It raises halt_req_o; the core stops fetching and drains, and
+// reports halt_safe_i when neither bus port presents an address or owns a data
+// phase. The grant -- hartreset_o, to the core and to reset_ctrl -- follows on
+// halt_safe_i, or after HALT_TIMEOUT cycles if the core never gets there (a
+// slave holding HREADY low), which sets haltinfo.haltforced. Before, hartreset_o
+// followed the request directly and reset the core in the middle of a waited
+// store on a live bus (HWDATA changed under the slave). resumereq drops the
+// request and the grant together.
 //
 // Reset: dm_rst_n (external, watchdog, SWRST) - NOT ndmreset or hartreset, so
 // a debug-initiated reset never ends the session that issued it ([N-7.12],
 // D-9). While dmactive is 0 the DM holds its outputs inactive.
 // =============================================================================
 
-module debug_module (
+module debug_module #(
+    parameter integer HALT_TIMEOUT = 1024     // hclk cycles from halt request to a forced grant
+) (
     input  wire        hclk_i,
     input  wire        dm_rst_n_i,
 
@@ -41,6 +56,9 @@ module debug_module (
     // ---- to reset_ctrl -------------------------------------------------------------------
     output wire        ndmreset_o,
     output wire        hartreset_o,
+    // ---- halt drain with the core (RDC-1) -------------------------------------------------
+    output wire        halt_req_o,        // a halt is requested and not yet granted
+    input  wire        halt_safe_i,       // the core breaks no bus transfer if reset now
 
     // ---- DSU taps --------------------------------------------------------------------------
     input  wire [47:0] dsu_acc0_i,
@@ -62,7 +80,8 @@ module debug_module (
     localparam [6:0] A_DMCONTROL = 7'h10, A_DMSTATUS = 7'h11, A_ABSTRACTCS = 7'h16,
                      A_SBCS = 7'h38, A_SBADDR0 = 7'h39, A_SBDATA0 = 7'h3C,
                      A_ACC0L = 7'h60, A_ACC0H = 7'h61, A_ACC1L = 7'h62,
-                     A_ACC1H = 7'h63, A_ACC2L = 7'h64, A_ACC2H = 7'h65, A_OVF = 7'h66;
+                     A_ACC1H = 7'h63, A_ACC2L = 7'h64, A_ACC2H = 7'h65, A_OVF = 7'h66,
+                     A_HALTINFO = 7'h70;
 
     reg        dmactive, ndmreset, hartreset;
     reg        sbbusyerror, sbreadonaddr, sbautoinc, sbreadondata;
@@ -79,15 +98,43 @@ module debug_module (
     // busy until its result is in the registers.
     wire sbbusy = sba_busy_i | sba_start_o | sba_done_i;
 
+    // ---- RDC-1 halt drain: request -> drain -> grant ----------------------------------
+    reg        grant_q;                   // the core is (being) held in hartreset
+    reg        haltforced;                // sticky: a grant came from the timeout
+    reg [15:0] halt_cnt;
+    wire       halt_requested = dmactive & hartreset;
+
     wire [31:0] dmcontrol = {2'b00, hartreset, 27'd0, ndmreset, dmactive};
     wire [31:0] dmstatus  = {12'd0, 1'b0 /*impebreak*/, 2'b00, 1'b0, 1'b0, 2'b00,
-                             ~hartreset, ~hartreset, hartreset, hartreset,
+                             ~grant_q, ~grant_q, grant_q, grant_q,      // RDC-1: halted = granted
                              1'b1 /*authenticated*/, 3'b000, 4'd2};
     wire [31:0] sbcs      = {3'd1, 6'd0, sbbusyerror, sbbusy, sbreadonaddr, sbaccess,
                              sbautoinc, sbreadondata, sberror, 7'd32, 5'b00100};
 
     wire rd = req_i && op_i == 2'd1;
     wire wr = req_i && op_i == 2'd2;
+
+    always @(posedge hclk_i or negedge dm_rst_n_i) begin
+        if (!dm_rst_n_i) begin
+            grant_q <= 1'b0; haltforced <= 1'b0; halt_cnt <= 16'd0;
+        end else begin
+            if (wr && addr_i == A_HALTINFO && wdata_i[0])
+                haltforced <= 1'b0;                          // W1C (a new forced grant below wins)
+            if (!halt_requested) begin
+                grant_q  <= 1'b0;                            // resume: request and grant drop together
+                halt_cnt <= 16'd0;
+            end else if (!grant_q) begin
+                if (halt_safe_i)
+                    grant_q <= 1'b1;                         // the core reached a safe point
+                else if (halt_cnt == HALT_TIMEOUT - 1) begin
+                    grant_q    <= 1'b1;                      // bounded: never wait forever
+                    haltforced <= 1'b1;
+                end else
+                    halt_cnt <= halt_cnt + 16'd1;
+            end
+        end
+    end
+    assign halt_req_o = halt_requested & ~grant_q;
 
     // start an SBA access if nothing is wrong ([N-7.6])
     task automatic kick(input w);
@@ -198,6 +245,7 @@ module debug_module (
                     A_ACC2L: begin rdata_o <= dsu_acc2_i[31:0]; hold2 <= dsu_acc2_i; end
                     A_ACC2H:       rdata_o <= {16'd0, hold2[47:32]};
                     A_OVF:         rdata_o <= {31'd0, dsu_ovf_i};
+                    A_HALTINFO:    rdata_o <= {31'd0, haltforced};   // RDC-1
                     default:       rdata_o <= 32'd0;          // abstractcs, data0, progbuf ...
                 endcase
             end
@@ -205,7 +253,7 @@ module debug_module (
     end
 
     assign ndmreset_o  = dmactive & ndmreset;
-    assign hartreset_o = dmactive & hartreset;
+    assign hartreset_o = dmactive & grant_q;                 // RDC-1: the grant, never the raw request
     assign sba_addr_o  = sbaddr;
     assign sba_wdata_o = sbdata;
 

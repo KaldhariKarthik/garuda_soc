@@ -1,0 +1,93 @@
+garuda-run 1  suite riscv_dv  block core  2026-10-13T08:14:33+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      arith_s1         
+PASS    OK                      arith_s2         
+PASS    OK                      arith_s3         
+PASS    OK                      arith_s4         
+PASS    OK                      arith_s5         
+PASS    OK                      arith_s6         
+PASS    OK                      arith_s7         
+PASS    OK                      arith_s8         
+PASS    OK                      arith_s9         
+PASS    OK                      arith_s10        
+PASS    OK                      rand_instr_s1    
+PASS    OK                      rand_instr_s2    
+PASS    OK                      rand_instr_s3    
+PASS    OK                      rand_instr_s4    
+PASS    OK                      rand_instr_s5    
+PASS    OK                      rand_instr_s6    
+PASS    OK                      rand_instr_s7    
+PASS    OK                      rand_instr_s8    
+PASS    OK                      rand_instr_s9    
+PASS    OK                      rand_instr_s10   
+PASS    OK                      jump_stress_s1   
+PASS    OK                      jump_stress_s2   
+PASS    OK                      jump_stress_s3   
+PASS    OK                      jump_stress_s4   
+PASS    OK                      jump_stress_s5   
+PASS    OK                      jump_stress_s6   
+PASS    OK                      jump_stress_s7   
+PASS    OK                      jump_stress_s8   
+PASS    OK                      jump_stress_s9   
+PASS    OK                      jump_stress_s10  
+PASS    OK                      loop_s1          
+PASS    OK                      loop_s2          
+PASS    OK                      loop_s3          
+PASS    OK                      loop_s4          
+PASS    OK                      loop_s5          
+PASS    OK                      loop_s6          
+PASS    OK                      loop_s7          
+PASS    OK                      loop_s8          
+PASS    OK                      loop_s9          
+PASS    OK                      loop_s10         
+PASS    OK                      rand_jump_s1     
+PASS    OK                      rand_jump_s2     
+PASS    OK                      rand_jump_s3     
+PASS    OK                      rand_jump_s4     
+PASS    OK                      rand_jump_s6     
+PASS    OK                      rand_jump_s7     
+PASS    OK                      rand_jump_s8     
+PASS    OK                      rand_jump_s9     
+PASS    OK                      rand_jump_s10    
+PASS    OK                      mmu_stress_s1    
+PASS    OK                      mmu_stress_s7    
+PASS    OK                      no_fence_s1      
+PASS    OK                      no_fence_s2      
+PASS    OK                      no_fence_s3      
+PASS    OK                      no_fence_s4      
+PASS    OK                      no_fence_s5      
+PASS    OK                      no_fence_s6      
+PASS    OK                      no_fence_s7      
+PASS    OK                      no_fence_s8      
+PASS    OK                      no_fence_s9      
+PASS    OK                      no_fence_s10     
+PASS    OK                      illegal_s1       
+PASS    OK                      illegal_s2       
+PASS    OK                      illegal_s3       
+PASS    OK                      illegal_s4       
+PASS    OK                      illegal_s5       
+PASS    OK                      illegal_s6       
+PASS    OK                      illegal_s7       
+PASS    OK                      illegal_s8       
+PASS    OK                      illegal_s9       
+PASS    OK                      illegal_s10      
+PASS    OK                      ebreak_s1        
+PASS    OK                      ebreak_s2        
+PASS    OK                      ebreak_s3        
+PASS    OK                      ebreak_s4        
+PASS    OK                      ebreak_s5        
+PASS    OK                      ebreak_s6        
+PASS    OK                      ebreak_s7        
+PASS    OK                      ebreak_s8        
+PASS    OK                      ebreak_s9        
+PASS    OK                      ebreak_s10       
+PASS    OK                      unaligned_s1     
+PASS    OK                      unaligned_s7     
+PASS    OK                      unaligned_s8     
+PASS    OK                      unaligned_s10    
+
+PASS    85
+FAIL    0
+BLOCKED 0
+total   85

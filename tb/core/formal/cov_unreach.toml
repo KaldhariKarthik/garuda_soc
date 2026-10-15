@@ -1,0 +1,42 @@
+# Formal evidence for coverage exclusions (H5): every register / derived
+# constant that a waiver relies on is asserted in tb/core/formal/cov_const_sva.sv
+# and must be PROVEN here on the whole core (same model and environment as
+# core_trap.toml: free bus responses, instructions and interrupts; assumptions
+# in tb/core/formal/ASSUMPTIONS.md). A FAIL means the point is reachable: it
+# gets a test, not a waiver.
+# Run: make -f flow/mk/track_a_run.mk fv_cov_unreach
+[suite]
+block = "core"
+name  = "fv_cov"
+xfail = "tb/core/run/xfail.tsv"
+
+[design]
+flist   = "rtl/core/filelist_core.f"
+top     = "garuda_core_top"
+replace = { "rtl/core/core_clk_gate.v" = "tb/core/formal/core_clk_gate_passthru.sv" }
+extra   = ["tb/core/formal/core_fv_env.sv", "tb/core/formal/cov_const_sva.sv"]
+min_asserts = 18
+min_covers  = 21
+
+[[task]]
+name   = "cov_bmc"
+mode   = "bmc"
+depth  = 24
+engine = "smtbmc --keep-going yices"
+
+[[task]]
+name    = "cov_prove"
+mode    = "prove"
+engine  = "abc pdr"
+timeout = 3600
+# the pipe_ctrl properties have their own proof (core_trap.toml pipe_prove / pipe_bmc):
+# together with the rest PDR does not converge in an hour
+script  = ["chformal -assert -remove n:*u_pipe_sva*"]
+
+[[task]]
+name   = "cov_reach"
+mode   = "cover"
+depth  = 30
+engine = "smtbmc yices"
+# the H4 cells (pipe_ctrl_sva c_h4_*) are unreachable with the DSU stub (ASSUMPTIONS.md FA-3)
+script = ["chformal -cover -remove n:*c_h4_*"]

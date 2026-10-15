@@ -1,0 +1,98 @@
+# DSU against its cycle-accurate model (vPlan SOC.S4.DSU: 445 compared, 0 mismatches).
+# Vectors: tools/gen/DSU_gen.py --count 400 --seed 1 (made by the make target,
+# which also checks the generator's own DSUModel-vs-ArchDSU cross-check is CLEAN).
+# Run: make -f flow/mk/track_a_run.mk dsu_model
+[suite]
+block = "dsu"
+name  = "model"
+kind  = "sim"
+xfail = "tb/dsu/run/xfail.tsv"
+
+[[test]]
+name    = "tb_dsu_top"
+flist   = "tb/dsu/filelist_dsu_top.f"
+top     = "tb_dsu_top"
+marker  = 'RESULT *: PASSED'
+timeout = 600
+plusargs = ["+STIM=logs/dsu/raw/vec/dsu_stim.mem", "+EXP=logs/dsu/raw/vec/dsu_expected.mem"]
+cwd     = "root"
+require = ['tests compared *: *448\b', 'mismatches *: *0\b']
+
+# Same bench on Icarus (4-state): its end-of-stimulus test is an X sentinel
+# (`stim[...] !== 32'hxxxx_xxxx`), which can never be true under 2-state
+# Verilator, so the Verilator row above reads past the 445 records (TB-35).
+# This row is the authoritative DSU-model check until E7/D2 replace the bench.
+[[test]]
+name    = "tb_dsu_top_icarus"
+sim     = "icarus"
+# Icarus cannot read bind / assert property / covergroups: the properties and the
+# vPlan coverage run in the Verilator rows
+exclude = ["rtl/dsu/dsu_props_a.sv", "tb/dsu/dsu_cov_vplan.sv"]
+flist   = "tb/dsu/filelist_dsu_top.f"
+top     = "tb_dsu_top"
+marker  = 'RESULT *: PASSED'
+timeout = 600
+plusargs = ["+STIM=logs/dsu/raw/vec/dsu_stim.mem", "+EXP=logs/dsu/raw/vec/dsu_expected.mem"]
+cwd     = "root"
+require = ['tests compared *: *448\b', 'mismatches *: *0\b']
+
+# The clamp walk (DSU_gen.py --clamp-walk 600 --seed 2): 32768 maximal MACDOTs to
+# the top of the 48-bit accumulator range, then 600 random probes there. The only
+# stimulus that reaches the accumulator-overflow logic (Track A coverage, 2026-10-11).
+[[test]]
+name    = "tb_dsu_top_clamp"
+flist   = "tb/dsu/filelist_dsu_top.f"
+top     = "tb_dsu_top"
+marker  = 'RESULT *: PASSED'
+timeout = 1200
+plusargs = ["+STIM=logs/dsu/raw/vec_clamp/dsu_stim.mem", "+EXP=logs/dsu/raw/vec_clamp/dsu_expected.mem"]
+cwd     = "root"
+require = ['tests compared *: *33368\b', 'mismatches *: *0\b']
+
+# DSU vPlan F09.TC2: at least 10000 random operand pairs against the model
+# (DSU_gen.py --count 10000 --seed 7; Track A wrap-up 2026-10-12)
+[[test]]
+name    = "tb_dsu_top_10k"
+flist   = "tb/dsu/filelist_dsu_top.f"
+top     = "tb_dsu_top"
+marker  = 'RESULT *: PASSED'
+timeout = 1200
+plusargs = ["+STIM=logs/dsu/raw/vec10k/dsu_stim.mem", "+EXP=logs/dsu/raw/vec10k/dsu_expected.mem"]
+cwd     = "root"
+require = ['tests compared *: *10048\b', 'mismatches *: *0\b']
+
+# DSU vPlan F10.COV5: overflow of accumulator fx by MAC_SEL, MACSUB and MACDOT in both
+# directions (DSU_gen.py --ovf-walk 0: 65536-step ramp to the edge, then 6 crossings)
+[[test]]
+name    = "tb_dsu_top_ovf_fx"
+flist   = "tb/dsu/filelist_dsu_top.f"
+top     = "tb_dsu_top"
+marker  = 'RESULT *: PASSED'
+timeout = 1800
+plusargs = ["+STIM=logs/dsu/raw/vec_ovf0/dsu_stim.mem", "+EXP=logs/dsu/raw/vec_ovf0/dsu_expected.mem"]
+cwd     = "root"
+require = ['tests compared *: *65544\b', 'mismatches *: *0\b']
+
+# DSU vPlan F10.COV5: overflow of accumulator fy by MAC_SEL, MACSUB and MACDOT in both
+# directions (DSU_gen.py --ovf-walk 1: 65536-step ramp to the edge, then 6 crossings)
+[[test]]
+name    = "tb_dsu_top_ovf_fy"
+flist   = "tb/dsu/filelist_dsu_top.f"
+top     = "tb_dsu_top"
+marker  = 'RESULT *: PASSED'
+timeout = 1800
+plusargs = ["+STIM=logs/dsu/raw/vec_ovf1/dsu_stim.mem", "+EXP=logs/dsu/raw/vec_ovf1/dsu_expected.mem"]
+cwd     = "root"
+require = ['tests compared *: *65544\b', 'mismatches *: *0\b']
+
+# DSU vPlan F10.COV5: overflow of accumulator mag by MAC_SEL, MACSUB and MACDOT in both
+# directions (DSU_gen.py --ovf-walk 2: 65536-step ramp to the edge, then 6 crossings)
+[[test]]
+name    = "tb_dsu_top_ovf_mag"
+flist   = "tb/dsu/filelist_dsu_top.f"
+top     = "tb_dsu_top"
+marker  = 'RESULT *: PASSED'
+timeout = 1800
+plusargs = ["+STIM=logs/dsu/raw/vec_ovf2/dsu_stim.mem", "+EXP=logs/dsu/raw/vec_ovf2/dsu_expected.mem"]
+cwd     = "root"
+require = ['tests compared *: *65544\b', 'mismatches *: *0\b']

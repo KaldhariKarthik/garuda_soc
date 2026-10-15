@@ -1,0 +1,68 @@
+# Core element benches (14, garuda_tb_pkg scoreboard). Same filelists and tops
+# as Makefile run_tb_elem (Makefile:173-206).
+# Run: make -f flow/mk/track_a_run.mk core_elements
+[suite]
+block = "core"
+name  = "elements"
+kind  = "sim"
+xfail = "tb/core/run/xfail.tsv"
+
+[defaults]
+top    = "tb_top"
+marker = 'ALL CHECKS PASSED|^ RESULT: PASSED'
+timeout = 900
+
+# Declared Verilator-only deviation (applied to a generated copy, never to the
+# repo file; the copy must differ in exactly one line carrying the marker).
+# Verilator 5.052 segfaults in the front end on
+#     sb.summary(<handle>.get_coverage());
+# (bisected on tb_alu in the audit). Reading the value into a local first is
+# the same call, same value, same order. Removed when E7 rewrites the benches.
+[[shim]]
+id = "SHIM-SB-SUMMARY"
+glob = "tb/core/tb_*.sv"
+match = '^(\s*)sb\.summary\(([a-z_.0-9]+\.get_coverage\(\))\);'
+replace = '\1begin real shim_cov; shim_cov = \2; sb.summary(shim_cov); end  // shim:SHIM-SB-SUMMARY'
+lines = 1
+[[test]]
+name = "E_garuda_pc_gen"
+flist = "tb/core/filelist_garuda_pc_gen.f"
+[[test]]
+name = "E_garuda_prefetch_buffer"
+flist = "tb/core/filelist_garuda_prefetch_buffer.f"
+[[test]]
+name = "E_garuda_iport_ahb_master"
+flist = "tb/core/filelist_garuda_iport_ahb_master.f"
+[[test]]
+name = "E_garuda_if_stage_top"
+flist = "tb/core/filelist_garuda_if_stage_top.f"
+[[test]]
+name = "E_alu"
+flist = "tb/core/filelist_alu.f"
+[[test]]
+name = "E_mul32"
+flist = "tb/core/filelist_mul32.f"
+[[test]]
+name = "E_branch_unit"
+flist = "tb/core/filelist_branch_unit.f"
+[[test]]
+name = "E_csr_rw"
+flist = "tb/core/filelist_csr_rw.f"
+[[test]]
+name = "E_load_store_unit"
+flist = "tb/core/filelist_load_store_unit.f"
+[[test]]
+name = "E_load_formatter"
+flist = "tb/core/filelist_load_formatter.f"
+[[test]]
+name = "E_d_port_ahb_master"
+flist = "tb/core/filelist_d_port_ahb_master.f"
+[[test]]
+name = "E_mem_stage"
+flist = "tb/core/filelist_mem_stage.f"
+[[test]]
+name = "E_mem_wb_reg"
+flist = "tb/core/filelist_mem_wb_reg.f"
+[[test]]
+name = "E_clic_ctrl"
+flist = "tb/core/filelist_clic_ctrl.f"

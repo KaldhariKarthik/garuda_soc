@@ -1,0 +1,455 @@
+Coverage report: block core  (Verilator 5.052, merged per module definition)
+runs merged : 206 passing runs from 12 suite summaries
+      6  logs/core/summary/units.cov.tsv
+     14  logs/core/summary/elements.cov.tsv
+      7  logs/core/summary/smokes.cov.tsv
+     65  logs/core/summary/isa.cov.tsv
+     65  logs/core/summary/isa_rand.cov.tsv
+     14  logs/core/summary/sanity.cov.tsv
+      3  logs/core/summary/extra.cov.tsv
+     12  logs/core/summary/directed.cov.tsv
+      1  logs/core/summary/csr.cov.tsv
+      4  logs/core/summary/halt.cov.tsv
+      1  logs/core/summary/csr_map.cov.tsv
+     14  logs/core/summary/covtests.cov.tsv
+targets     : design code >= 95.0% per metric per module; design functional = 100.0% of bins (after reviewed waivers)
+
+== DESIGN CODE COVERAGE (sign-off) ==
+module                                  line            branch              expr            toggle               fsm   waived
+alu                            13/13    100.0                  -                 -    210/210   100.0                  -   0
+branch_predict                             -      4/4     100.0      10/10    100.0     442/442   100.0                  -   18
+branch_unit                     8/8     100.0       8/8     100.0      21/21    100.0     532/532   100.0                  -   10
+clic_ctrl                                  -                 -      7/7     100.0     218/218   100.0                  -   8
+core_clk_gate                   1/1     100.0       2/2     100.0       7/7     100.0       8/8     100.0                  -   3
+csr_file                       52/52    100.0       8/8     100.0      68/68    100.0    1361/1361  100.0                  -   411
+csr_rw                                     -      2/2     100.0       2/2     100.0     230/230   100.0                  -   0
+d_port_ahb_master               4/4     100.0       8/8     100.0      21/21    100.0     288/288   100.0                  -   10
+decode_control                 43/43    100.0      18/18    100.0      33/33    100.0     234/234   100.0                  -   2
+ex_mem                          5/5     100.0                  -      2/2     100.0     436/436   100.0                  -   8
+ex_stage                        7/7     100.0      18/18    100.0      28/28    100.0    1902/1902  100.0                  -   8
+forward_unit                               -      8/8     100.0      12/12    100.0      56/56    100.0                  -   0
+garuda_core_top                 1/1     100.0       6/6     100.0      37/37    100.0    3491/3491  100.0                  -   205
+garuda_if_stage_top                        -                 -      4/4     100.0     539/539   100.0                  -   99
+garuda_iport_ahb_master         8/8     100.0      10/10    100.0      56/56    100.0     509/509   100.0                  -   111
+garuda_pc_gen                   4/4     100.0       4/4     100.0       2/2     100.0     256/256   100.0                  -   10
+garuda_prefetch_buffer          8/8     100.0       4/4     100.0       4/4     100.0     792/792   100.0                  -   24
+hazard_forward_unit                        -                 -      5/5     100.0      34/34    100.0                  -   0
+id_ex                           6/6     100.0                  -      2/2     100.0     939/939   100.0                  -   5
+id_stage                                   -      2/2     100.0       2/2     100.0    1112/1112  100.0                  -   14
+if_id                           5/5     100.0                  -      2/2     100.0     264/264   100.0                  -   8
+imm_gen                         8/8     100.0                  -                 -    560/560   100.0                  -   86
+load_formatter                 11/11    100.0       4/4     100.0       4/4     100.0     192/192   100.0                  -   0
+load_store_unit                 4/4     100.0       4/4     100.0       2/2     100.0     212/212   100.0                  -   2
+mem_stage                                  -      6/6     100.0      29/29    100.0     786/786   100.0                  -   28
+mem_wb_reg                      4/4     100.0                  -      2/2     100.0     162/162   100.0                  -   0
+mul32                                      -      2/2     100.0      15/15    100.0     466/466   100.0                  -   0
+pipe_ctrl                                  -      4/4     100.0      62/62    100.0     313/313   100.0                  -   3
+regfile                         1/1     100.0      10/10    100.0      15/15    100.0     356/356   100.0                  -   0
+trap_ctrl                       3/3     100.0      44/44    100.0      94/94    100.0    1030/1030  100.0                  -   86
+wb_stage                                   -                 -                 -    152/152   100.0                  -   0
+TOTAL                         196/196   100.0     176/176   100.0     548/548   100.0   18082/18082 100.0                  -   1159
+RAW (before waivers)          196/199    98.5     176/176   100.0     548/554    98.9   18082/19232  94.0                  -
+
+== TESTBENCH CODE COVERAGE (reported, not sign-off) ==
+module                                  line            branch              expr            toggle               fsm   waived
+alu_cycle                       1/1     100.0                  -                 -                 -                 -   0
+alu_driver                      2/2     100.0                  -                 -                 -                 -   0
+alu_env                         4/4     100.0       2/4      50.0                  -                 -                 -   0
+alu_generator                  11/11    100.0                  -                 -                 -                 -   0
+alu_if                          0/6       0.0                  -                 -    202/202   100.0                  -   0
+alu_monitor                     2/2     100.0                  -                 -                 -                 -   0
+alu_ref_model                   2/14     14.3                  -                 -                 -                 -   0
+br_cycle                        1/1     100.0                  -                 -                 -                 -   0
+br_driver                       2/2     100.0                  -                 -                 -                 -   0
+br_env                          4/4     100.0       4/6      66.7                  -                 -                 -   0
+br_generator                    7/7     100.0                  -                 -                 -                 -   0
+br_monitor                      2/2     100.0                  -                 -                 -                 -   0
+br_ref_model                    9/9     100.0                  -     12/12    100.0                  -                 -   0
+br_result                       1/1     100.0                  -                 -                 -                 -   0
+branch_cycle                    2/2     100.0                  -                 -                 -                 -   0
+branch_driver                   2/2     100.0                  -                 -                 -                 -   0
+branch_env                      4/4     100.0       3/6      50.0                  -                 -                 -   0
+branch_generator                7/7     100.0       2/2     100.0                  -                 -                 -   0
+branch_if                       0/14      0.0                  -                 -    596/610    97.7                  -   0
+branch_monitor                  2/2     100.0                  -                 -                 -                 -   0
+branch_ref_model                3/3     100.0       2/4      50.0       8/8     100.0                  -                 -   0
+branch_result                   1/1     100.0                  -                 -                 -                 -   0
+branch_scoreboard               4/4     100.0       1/2      50.0                  -                 -                 -   0
+branch_test                     2/2     100.0                  -                 -                 -                 -   0
+core_ctl_sva                               -                 -                 -     38/38    100.0                  -   0
+core_vplan_sva                  5/5     100.0      11/12     91.7      21/21    100.0     126/136    92.6                  -   0
+csr_cycle                       2/2     100.0                  -                 -                 -                 -   0
+csr_driver                      2/2     100.0                  -                 -                 -                 -   0
+csr_env                         4/4     100.0       2/4      50.0                  -                 -                 -   0
+csr_file_sva                    1/1     100.0       2/2     100.0      17/21     81.0     348/452    77.0                  -   0
+csr_generator                  11/11    100.0                  -                 -                 -                 -   0
+csr_monitor                     2/2     100.0                  -                 -                 -                 -   0
+csr_ref_model                   2/2     100.0                  -      2/2     100.0                  -                 -   0
+csr_rw_if                       0/5       0.0                  -                 -    223/232    96.1                  -   0
+decode_cycle                    3/3     100.0                  -                 -                 -                 -   0
+decode_driver                   2/2     100.0                  -                 -                 -                 -   0
+decode_env                      4/4     100.0       3/6      50.0                  -                 -                 -   0
+decode_generator               12/12    100.0       2/2     100.0                  -                 -                 -   0
+decode_if                       0/7       0.0                  -                 -    160/164    97.6                  -   0
+decode_monitor                  2/2     100.0                  -                 -                 -                 -   0
+decode_ref_model               39/51     76.5      13/16     81.2      46/55     83.6                  -                 -   0
+decode_scoreboard               4/4     100.0       1/2      50.0                  -                 -                 -   0
+decode_test                     2/2     100.0                  -                 -                 -                 -   0
+dport_if                        0/7       0.0                  -                 -    277/292    94.9                  -   0
+fmt_cycle                       1/1     100.0                  -                 -                 -                 -   0
+fmt_driver                      2/2     100.0                  -                 -                 -                 -   0
+fmt_env                         4/4     100.0       2/4      50.0                  -                 -                 -   0
+fmt_generator                  11/11    100.0                  -                 -                 -                 -   0
+fmt_monitor                     2/2     100.0                  -                 -                 -                 -   0
+fmt_ref_model                   6/11     54.5                  -      2/2     100.0                  -                 -   0
+garuda_cov                      8/8     100.0       5/6      83.3       7/7     100.0     251/316    79.4                  -   0
+garuda_cov_ext                 12/12    100.0      18/18    100.0      15/15    100.0     280/334    83.8                  -   0
+garuda_cov_vplan               31/43     72.1      48/56     85.7     102/107    95.3     370/422    87.7                  -   0
+hazard_cycle                    2/2     100.0                  -                 -                 -                 -   0
+hazard_driver                   2/2     100.0                  -                 -                 -                 -   0
+hazard_env                      4/4     100.0       3/6      50.0                  -                 -                 -   0
+hazard_generator                8/8     100.0       2/2     100.0       2/2     100.0                  -                 -   0
+hazard_if                       0/6       0.0                  -                 -     36/36    100.0                  -   0
+hazard_monitor                  2/2     100.0                  -                 -                 -                 -   0
+hazard_ref_model                3/3     100.0       4/8      50.0       6/6     100.0                  -                 -   0
+hazard_scoreboard               4/4     100.0       1/2      50.0                  -                 -                 -   0
+hazard_test                     2/2     100.0                  -                 -                 -                 -   0
+id_cycle                        4/4     100.0                  -                 -                 -                 -   0
+id_driver                       2/2     100.0                  -                 -                 -                 -   0
+id_env                          4/4     100.0       3/6      50.0                  -                 -                 -   0
+id_expected                     0/1       0.0                  -                 -                 -                 -   0
+id_generator                    8/8     100.0       2/2     100.0                  -                 -                 -   0
+id_monitor                     12/12    100.0                  -     12/12    100.0                  -                 -   0
+id_result                       1/1     100.0                  -                 -                 -                 -   0
+id_scoreboard                   4/4     100.0       1/2      50.0      12/13     92.3                  -                 -   0
+id_stage_if                     0/7       0.0                  -                 -    683/696    98.1                  -   0
+id_stage_ref_model             45/60     75.0      19/26     73.1      42/51     82.4                  -                 -   0
+id_test                         2/2     100.0                  -                 -                 -                 -   0
+if_top_if                       0/5       0.0                  -      4/4     100.0     322/428    75.2                  -   0
+imm_cycle                       2/2     100.0                  -                 -                 -                 -   0
+imm_driver                      2/2     100.0                  -                 -                 -                 -   0
+imm_env                         4/4     100.0       3/6      50.0                  -                 -                 -   0
+imm_gen_if                      0/7       0.0                  -                 -    260/264    98.5                  -   0
+imm_generator                   8/8     100.0       2/2     100.0                  -                 -                 -   0
+imm_monitor                     2/2     100.0                  -                 -                 -                 -   0
+imm_ref_model                  16/16    100.0                  -      2/2     100.0                  -                 -   0
+imm_result                      1/1     100.0                  -                 -                 -                 -   0
+imm_scoreboard                  4/4     100.0       1/2      50.0                  -                 -                 -   0
+imm_test                        2/2     100.0                  -                 -                 -                 -   0
+iport_ctl_sva                              -                 -                 -     78/84     92.9                  -   0
+iport_if                        0/6       0.0                  -                 -    324/434    74.7                  -   0
+load_fmt_if                     0/7       0.0                  -                 -    140/140   100.0                  -   0
+lsu_cycle                       1/1     100.0                  -                 -                 -                 -   0
+lsu_driver                      2/2     100.0                  -                 -                 -                 -   0
+lsu_env                         4/4     100.0       2/4      50.0                  -                 -                 -   0
+lsu_generator                  14/14    100.0                  -                 -                 -                 -   0
+lsu_if                          0/6       0.0                  -                 -    208/210    99.0                  -   0
+lsu_monitor                     2/2     100.0                  -                 -                 -                 -   0
+lsu_ref_model                   8/9      88.9                  -      3/3     100.0                  -                 -   0
+mem_stage_if                    0/8       0.0                  -                 -    635/662    95.9                  -   0
+memwb_if                        0/5       0.0                  -                 -    238/238   100.0                  -   0
+mul32_if                        0/4       0.0                  -                 -    198/200    99.0                  -   0
+mul_cycle                       1/1     100.0                  -                 -                 -                 -   0
+mul_driver                      2/2     100.0                  -                 -                 -                 -   0
+mul_env                         4/4     100.0       2/4      50.0                  -                 -                 -   0
+mul_generator                  11/11    100.0                  -                 -                 -                 -   0
+mul_monitor                     2/2     100.0                  -                 -                 -                 -   0
+mul_ref_model                   3/3     100.0                  -      7/7     100.0                  -                 -   0
+pc_gen_if                       0/6       0.0                  -                 -    250/266    94.0                  -   0
+pfb_if                          0/6       0.0                  -                 -    273/282    96.8                  -   0
+pipe_ctrl_sva                  15/15    100.0      29/30     96.7      39/40     97.5     158/164    96.3                  -   0
+regfile_cycle                   3/3     100.0                  -                 -                 -                 -   0
+regfile_driver                  2/2     100.0                  -                 -                 -                 -   0
+regfile_env                     4/4     100.0       3/6      50.0                  -                 -                 -   0
+regfile_generator               8/8     100.0                  -      2/2     100.0                  -                 -   0
+regfile_if                      0/6       0.0                  -                 -    227/228    99.6                  -   0
+regfile_monitor                 7/7     100.0                  -      6/6     100.0                  -                 -   0
+regfile_ref_model               3/3     100.0       5/8      62.5      11/11    100.0                  -                 -   0
+regfile_result                  1/1     100.0                  -                 -                 -                 -   0
+regfile_scoreboard              4/4     100.0       1/2      50.0                  -                 -                 -   0
+regfile_test                    2/2     100.0                  -                 -                 -                 -   0
+scoreboard                      8/9      88.9       8/18     44.4                  -                 -                 -   0
+tb_boot                        55/57     96.5     120/150    80.0      91/106    85.8    1100/1806   60.9                  -   0
+tb_core_halt                   32/33     97.0      15/22     68.2      19/26     73.1     337/1294   26.0                  -   0
+tb_csr_file                     7/7     100.0       4/8      50.0       2/2     100.0     187/578    32.4                  -   0
+tb_csr_file_t12                12/12    100.0       4/6      66.7       4/4     100.0     149/798    18.7                  -   0
+tb_ex_smoke                     8/8     100.0       3/6      50.0       2/2     100.0     538/1190   45.2                  -   0
+tb_exmem_ifid                   6/6     100.0       3/6      50.0       2/2     100.0     199/704    28.3                  -   0
+tb_id_ex_fwd                    7/7     100.0       4/8      50.0       2/2     100.0     186/436    42.7                  -   0
+tb_pipe_ctrl                    4/4     100.0       3/6      50.0                  -     88/312    28.2                  -   0
+tb_top                        166/170    97.6     103/126    81.7     115/129    89.1     546/754    72.4                  -   0
+tb_trap_ctrl                    7/7     100.0       3/6      50.0       2/2     100.0     254/880    28.9                  -   0
+trap_ctrl_sva                   1/1     100.0       2/2     100.0      11/11    100.0     310/370    83.8                  -   0
+TOTAL                         815/999    81.6     476/634    75.1     630/695    90.6   10795/16652  64.8                  -   0
+RAW (before waivers)          815/999    81.6     476/634    75.1     630/695    90.6   10795/16652  64.8                  -
+
+== DESIGN FUNCTIONAL COVERAGE (covergroup bins) ==
+cg_ahb (garuda_cov.sv)                            27/27     100.0%   waived 0
+cg_alu (garuda_cov.sv)                            13/13     100.0%   waived 0
+cg_alu (tb_alu.sv)                                27/27     100.0%   waived 0
+cg_branch (garuda_cov_ext.sv)                      8/8      100.0%   waived 0
+cg_branch (tb_branch_predict.sv)                  14/14     100.0%   waived 0
+cg_branch (tb_branch_unit.sv)                     29/29     100.0%   waived 1
+cg_branch_k (garuda_cov_vplan.sv)                 34/34     100.0%   waived 0
+cg_bus_err (garuda_cov_ext.sv)                     5/5      100.0%   waived 0
+cg_clic (tb_clic_ctrl.sv)                         12/12     100.0%   waived 0
+cg_csr (garuda_cov_ext.sv)                        39/39     100.0%   waived 0
+cg_csr (tb_csr_rw.sv)                             29/29     100.0%   waived 0
+cg_csr_op (garuda_cov_vplan.sv)                   52/52     100.0%   waived 0
+cg_ctl (garuda_cov_ext.sv)                         4/4      100.0%   waived 0
+cg_decode (garuda_cov.sv)                         83/83     100.0%   waived 24
+cg_decode (tb_decode_control.sv)                  59/59     100.0%   waived 34
+cg_div (garuda_cov_vplan.sv)                       4/4      100.0%   waived 0
+cg_dport (tb_d_port_ahb_master.sv)                30/30     100.0%   waived 0
+cg_fmt (tb_load_formatter.sv)                     39/39     100.0%   waived 2
+cg_halt (garuda_cov_ext.sv)                        4/4      100.0%   waived 0
+cg_hazard (garuda_cov.sv)                         30/30     100.0%   waived 1
+cg_hazard (tb_hazard_forward_unit.sv)            105/105    100.0%   waived 1
+cg_hazard_lu (garuda_cov_vplan.sv)                 8/8      100.0%   waived 0
+cg_id_stage (tb_id_stage.sv)                     154/154    100.0%   waived 0
+cg_if (tb_garuda_if_stage_top.sv)                 22/22     100.0%   waived 0
+cg_illegal (garuda_cov_vplan.sv)                   5/5      100.0%   waived 0
+cg_imm_gen (tb_imm_gen.sv)                        23/23     100.0%   waived 6
+cg_iport (tb_garuda_iport_ahb_master.sv)          31/31     100.0%   waived 1
+cg_irq (garuda_cov_vplan.sv)                      11/11     100.0%   waived 0
+cg_irq_gate (garuda_cov_ext.sv)                    7/7      100.0%   waived 0
+cg_irq_take (garuda_cov_ext.sv)                   10/10     100.0%   waived 0
+cg_isa (garuda_cov_vplan.sv)                      36/36     100.0%   waived 0
+cg_ldst (garuda_cov.sv)                           39/39     100.0%   waived 0
+cg_lsu (tb_load_store_unit.sv)                    33/33     100.0%   waived 1
+cg_mem (tb_mem_stage.sv)                          60/60     100.0%   waived 0
+cg_memwb (tb_mem_wb_reg.sv)                       17/17     100.0%   waived 0
+cg_mul (garuda_cov_vplan.sv)                      24/24     100.0%   waived 0
+cg_mul (tb_mul32.sv)                              30/30     100.0%   waived 0
+cg_pc (tb_garuda_pc_gen.sv)                       14/14     100.0%   waived 0
+cg_pfb (tb_garuda_prefetch_buffer.sv)             30/30     100.0%   waived 4
+cg_pipe (garuda_cov_ext.sv)                       19/19     100.0%   waived 2
+cg_pipe_pair (garuda_cov_vplan.sv)                48/48     100.0%   waived 0
+cg_regfile (tb_reg_file.sv)                      102/102    100.0%   waived 0
+cg_sleep (garuda_cov_ext.sv)                       5/5      100.0%   waived 0
+cg_sys (garuda_cov_vplan.sv)                       7/7      100.0%   waived 0
+cg_trap (garuda_cov.sv)                           10/10     100.0%   waived 0
+cg_trap_ctx (garuda_cov_ext.sv)                    4/4      100.0%   waived 0
+cg_trap_x (garuda_cov_vplan.sv)                    6/6      100.0%   waived 0
+cg_wfi (garuda_cov_vplan.sv)                      11/11     100.0%   waived 0
+TOTAL                                           1413/1413   100.0%
+RAW (before waivers)                            1413/1490    94.8%   (77 waived bins; illegal/ignore bins declared in the source are never targets)
+
+== ILLEGAL / IGNORE BINS (declared in the source; not targets; illegal must stay 0) ==
+   illegal  cg_ahb.cp_i_burst.not_incr                                             hits 0
+   illegal  __vlAnonCG_cg_branch.cp_kind.overlapping                               hits 0
+   ignore   __vlAnonCG_cg_csr.cp_op.unused                                         hits 0
+   illegal  cg_dport.cp_htrans.seq_or_busy                                         hits 0
+   illegal  cg_dport.cp_hsize.other                                                hits 0
+   illegal  cg_dport.cp_completion.both                                            hits 0
+   illegal  cg_iport.cp_htrans.busy                                                hits 0
+   illegal  cg_mem.cp_access.both                                                  hits 0
+
+== WAIVERS (67) ==
+CW-001  [expr/not-connected]  rtl/core/core_clk_gate.v  /^line:37 \(test_en_i==1\) => 1/  -> 1 point(s)
+    reason  : test_en_i is the scan-mode clock enable; garuda_core_top ties it to 1'b0 until plan W8 (core test_en for the DFT clock-gate bypass, wired by Karthik). The term cannot be 1 before then.
+    evidence: rtl/core/garuda_core_top.v:167 .test_en_i(1'b0); plan W8 / 3.10. Remove this waiver when W8 lands.   reviewer: pending: Sreyesh
+CW-002  [toggle/not-connected]  rtl/core/core_clk_gate.v  /^test_en_i:/  -> 2 point(s)
+    reason  : Same tie-off as CW-001: test_en_i is constant 0 until W8.
+    evidence: rtl/core/garuda_core_top.v:167; plan W8.   reviewer: pending: Sreyesh
+CW-003  [line/unreachable]  rtl/core/d_port_ahb_master.v  /^line:140 /  -> 1 point(s)
+    reason  : Defensive `default:` of the D-port FSM case. state is a 2-bit register with two states (S_ADDR=0, S_DATA=1); every assignment writes 0 or 1, so the default arm cannot be entered.
+    evidence: PROVEN: tb/core/formal/cov_const_sva.sv a_dport_state_legal (state[1] == 0), fv_cov cov_prove.   reviewer: pending: Sreyesh
+CW-004  [expr/unreachable]  rtl/core/d_port_ahb_master.v  /^line:156 \(\(state == S_ADDR\)==0 && \(state == S_DATA\)==0\) => 0/  -> 1 point(s)
+    reason  : The term needs state outside {S_ADDR, S_DATA}; see CW-003.
+    evidence: PROVEN: a_dport_state_legal (fv_cov cov_prove).   reviewer: pending: Sreyesh
+CW-005  [toggle/constant]  rtl/core/d_port_ahb_master.v  /^state\[1\]:/  -> 2 point(s)
+    reason  : state[1] is always 0 (two-state FSM in a 2-bit register).
+    evidence: PROVEN: a_dport_state_legal (fv_cov cov_prove).   reviewer: pending: Sreyesh
+CW-006  [line/unreachable]  rtl/core/decode_control.v  /^line:(216|243) /  -> 2 point(s)
+    reason  : `default: illegal_instr_o = 1` of two case(funct3) statements that list all eight 3-bit values (OP-IMM, OP). It can only be reached by an X/Z funct3, which no instruction word carries.
+    evidence: Structural: rtl/core/decode_control.v case (funct3) at 196-217 and 234-244 enumerate 3'b000..3'b111.   reviewer: pending: Sreyesh
+CW-007  [expr/unreachable]  rtl/core/csr_file.v  /^line:115 \(\(csr_addr_i == MSTATUSH\)==0 && \(csr_addr_i == MCONFIGPTR\)==0 && \((csr_addr_i <= 12'hb1f\)==0 && \(csr_addr_i <= 12'hb9f\)==0 && \(csr_addr_i >= 12'h323\)==0|csr_addr_i <= 12'hb1f\)==0 && \(csr_addr_i >= 12'hb83\)==0 && \(csr_addr_i >= 12'h323\)==0|csr_addr_i >= 12'hb03\)==0 && \(csr_addr_i <= 12'hb9f\)==0 && \(csr_addr_i <= 12'h33f\)==0|csr_addr_i >= 12'hb03\)==0 && \(csr_addr_i <= 12'hb9f\)==0 && \(csr_addr_i >= 12'h323\)==0)\) => 0$/  -> 4 point(s)
+    reason  : Four expression-coverage rows of the C-16 read-zero range decode that need contradictory address bounds: (a) addr > 0xB9F and addr < 0x323; (b) addr > 0xB1F and addr < 0x323; (c) addr < 0xB03 and addr > 0xB9F; (d) addr < 0xB03 and addr > 0xB9F. Each pair of bounds has an empty intersection, so no 12-bit address satisfies the row.
+    evidence: Interval proof (above) on rtl/core/csr_file.v:112-116. The decode itself is fully exercised: core_csr_map sweeps all 4096 addresses and t_cov_csr reads every group.   reviewer: pending: Sreyesh
+CF-001  [covergroup/unreachable]  tb/cov/garuda_cov_ext.sv  /cg_pipe\.cp_(ifid|idex)\.hold_flush$/  -> 2 point(s)
+    reason  : IF/ID and ID/EX are never held and flushed in the same cycle in the integrated core; pipe_ctrl's 'flush beats hold' rule for these registers is defensive.
+    evidence: PROVEN: tb/core/formal/cov_const_sva.sv a_no_ifid_hold_flush, a_no_idex_hold_flush (fv_cov cov_prove); no cover reached them at depth 30.   reviewer: pending: Sreyesh
+CF-002  [covergroup/unreachable]  tb/cov/garuda_cov.sv  /cg_hazard\.x_fwd_under_stall\.exmem_x_auto_1$/  -> 1 point(s)
+    reason  : An EX/MEM forward is never selected while a D-port transfer waits (the instruction held in EX/MEM is the waiting load or store; a load result is not forwarded from EX/MEM).
+    evidence: PROVEN: a_no_fwd_exmem_stall (fv_cov cov_prove).   reviewer: pending: Sreyesh
+CF-101  [covergroup/ignore]  tb/cov/garuda_cov.sv  /cg_decode\.x_op_f3\.(lui|auipc|jal)_x_/  -> 24 point(s)
+    reason  : LUI, AUIPC and JAL have no funct3 field (bits 14:12 are immediate bits).
+    evidence: tb/cov/garuda_cov.sv:78 ignore_bins non_f3; Verilator COVERIGN (build log).   reviewer: pending: Sreyesh
+CF-102  [covergroup/ignore]  tb/core/tb_decode_control.sv  /cross_op_illegal\.op_(lui|auipc|jal|jalr|branch|load|store|imm|system|custom|reserved)_x_(bad_reg_funct7|div_family)$/  -> 22 point(s)
+    reason  : bad_reg_funct7 and div_family are OP (register-register) classifications only.
+    evidence: tb/core/tb_decode_control.sv:567 ignore_bins non_reg_causes; Verilator COVERIGN (build log).   reviewer: pending: Sreyesh
+CF-103  [covergroup/ignore]  tb/core/tb_decode_control.sv  /cross_op_illegal\.op_(lui|auipc|jal|jalr|branch|load|store|imm|reg|system|custom)_x_reserved_opcode$/  -> 11 point(s)
+    reason  : reserved_opcode is classified only for a reserved major opcode.
+    evidence: tb/core/tb_decode_control.sv:575 ignore_bins reserved_cause_needs_reserved_opcode; Verilator COVERIGN (build log).   reviewer: pending: Sreyesh
+CF-104  [covergroup/ignore]  tb/core/tb_decode_control.sv  /cross_op_illegal\.op_reserved_x_legal$/  -> 1 point(s)
+    reason  : A reserved major opcode is never legal.
+    evidence: tb/core/tb_decode_control.sv:580 ignore_bins reserved_opcode_is_never_legal; Verilator COVERIGN (build log).   reviewer: pending: Sreyesh
+CF-105  [covergroup/ignore]  tb/core/tb_branch_unit.sv  /cg_branch\.__cross\d+\.none__x_auto_1$/  -> 1 point(s)
+    reason  : A non-transfer (no branch/jump) cannot have a misaligned target (SVA A5).
+    evidence: tb/core/tb_branch_unit.sv:333 ignore_bins no_transfer_cannot_misalign; Verilator COVERIGN (build log).   reviewer: pending: Sreyesh
+CF-106  [covergroup/ignore]  tb/core/tb_load_formatter.sv  /cg_fmt\.__cross\d+\.(lbu|lhu)_x_auto_1$/  -> 2 point(s)
+    reason  : LBU/LHU zero-extend: the result's bit 31 is never 1.
+    evidence: tb/core/tb_load_formatter.sv:281 ignore_bins unsigned_forms_never_negative; Verilator COVERIGN (build log).   reviewer: pending: Sreyesh
+CF-107  [covergroup/ignore]  tb/core/tb_hazard_forward_unit.sv  /cg_hazard\.__cross\d+\.auto_1_x_auto_0$/  -> 1 point(s)
+    reason  : load_use_stall_o is defined as ex_mem_read_i && ...: a stall without mem_read is impossible.
+    evidence: tb/core/tb_hazard_forward_unit.sv:335 ignore_bins stall_without_mem_read_unreachable; Verilator COVERIGN (build log).   reviewer: pending: Sreyesh
+CF-108  [covergroup/ignore]  tb/core/tb_imm_gen.sv  /cg_imm_gen\.__cross\d+\.(csr_type|none_type|unassigned_encoding)_x_auto_[01]$/  -> 6 point(s)
+    reason  : cp_sign is not sampled for the CSR, NONE and unassigned immediate selects (no sign extension).
+    evidence: tb/core/tb_imm_gen.sv:406 ignore_bins sign_meaningless_for_non_sign_extending_types; Verilator COVERIGN (build log).   reviewer: pending: Sreyesh
+CF-109  [covergroup/ignore]  tb/core/tb_garuda_iport_ahb_master.sv  /cg_iport\.__cross\d+\.auto_1_x_auto_1$/  -> 1 point(s)
+    reason  : Nothing is delivered in a redirect cycle (SVA A4).
+    evidence: tb/core/tb_garuda_iport_ahb_master.sv:276 ignore_bins no_delivery_during_redirect; Verilator COVERIGN (build log).   reviewer: pending: Sreyesh
+CF-110  [covergroup/ignore]  tb/core/tb_load_store_unit.sv  /cg_lsu\.__cross\d+\.byte__x_auto_1$/  -> 1 point(s)
+    reason  : A byte access is never misaligned (SVA A2).
+    evidence: tb/core/tb_load_store_unit.sv:294 ignore_bins byte_cannot_misalign; Verilator COVERIGN (build log).   reviewer: pending: Sreyesh
+CF-111  [covergroup/ignore]  tb/core/tb_garuda_prefetch_buffer.sv  /cg_pfb\.__cross\d+\.(empty__x_read_only|empty__x_simultaneous|full__x_write_only|full__x_simultaneous)$/  -> 4 point(s)
+    reason  : Read at empty, write at full and write+read at full never occur in the core (outside the buffer's operating envelope).
+    evidence: tb/core/tb_garuda_prefetch_buffer.sv ignore_bins out_of_envelope, backed by PROVEN a_pfb_no_underflow / a_pfb_no_overflow / a_pfb_no_full_rw (fv_cov cov_prove); Verilator COVERIGN (build log).   reviewer: pending: Sreyesh
+CT-CAUSE-csr_file  [toggle/constant]  rtl/core/csr_file.v  /^(trap_cause_i\[10\]:0\->1|trap_cause_i\[10\]:1\->0|trap_cause_i\[11\]:0\->1|trap_cause_i\[11\]:1\->0|trap_cause_i\[12\]:0\->1|trap_cause_i\[12\]:1\->0|trap_cause_i\[13\]:0\->1|trap_cause_i\[13\]:1\->0|trap_cause_i\[14\]:0\->1|trap_cause_i\[14\]:1\->0|trap_cause_i\[15\]:0\->1|trap_cause_i\[15\]:1\->0|trap_cause_i\[16\]:0\->1|trap_cause_i\[16\]:1\->0|trap_cause_i\[17\]:0\->1|trap_cause_i\[17\]:1\->0|trap_cause_i\[18\]:0\->1|trap_cause_i\[18\]:1\->0|trap_cause_i\[19\]:0\->1|trap_cause_i\[19\]:1\->0|trap_cause_i\[20\]:0\->1|trap_cause_i\[20\]:1\->0|trap_cause_i\[21\]:0\->1|trap_cause_i\[21\]:1\->0|trap_cause_i\[22\]:0\->1|trap_cause_i\[22\]:1\->0|trap_cause_i\[23\]:0\->1|trap_cause_i\[23\]:1\->0|trap_cause_i\[24\]:0\->1|trap_cause_i\[24\]:1\->0|trap_cause_i\[25\]:0\->1|trap_cause_i\[25\]:1\->0|trap_cause_i\[26\]:0\->1|trap_cause_i\[26\]:1\->0|trap_cause_i\[27\]:0\->1|trap_cause_i\[27\]:1\->0|trap_cause_i\[28\]:0\->1|trap_cause_i\[28\]:1\->0|trap_cause_i\[29\]:0\->1|trap_cause_i\[29\]:1\->0|trap_cause_i\[30\]:0\->1|trap_cause_i\[30\]:1\->0|trap_cause_i\[5\]:0\->1|trap_cause_i\[5\]:1\->0|trap_cause_i\[6\]:0\->1|trap_cause_i\[6\]:1\->0|trap_cause_i\[7\]:0\->1|trap_cause_i\[7\]:1\->0|trap_cause_i\[8\]:0\->1|trap_cause_i\[8\]:1\->0|trap_cause_i\[9\]:0\->1|trap_cause_i\[9\]:1\->0)$/  -> 52 point(s)
+    reason  : Exception and interrupt codes are < 32 (5-bit CLIC id, cause <= 11); bits 30:5 are 0, bit 31 is the interrupt flag (T-12 puts mpil in mcause[23:16] in csr_file, not on this bus).
+    evidence: PROVEN a_cause_field (fv_cov)   reviewer: pending: Sreyesh
+CT-CAUSE-garuda_core_top  [toggle/constant]  rtl/core/garuda_core_top.v  /^(tr_cause\[10\]:0\->1|tr_cause\[10\]:1\->0|tr_cause\[11\]:0\->1|tr_cause\[11\]:1\->0|tr_cause\[12\]:0\->1|tr_cause\[12\]:1\->0|tr_cause\[13\]:0\->1|tr_cause\[13\]:1\->0|tr_cause\[14\]:0\->1|tr_cause\[14\]:1\->0|tr_cause\[15\]:0\->1|tr_cause\[15\]:1\->0|tr_cause\[16\]:0\->1|tr_cause\[16\]:1\->0|tr_cause\[17\]:0\->1|tr_cause\[17\]:1\->0|tr_cause\[18\]:0\->1|tr_cause\[18\]:1\->0|tr_cause\[19\]:0\->1|tr_cause\[19\]:1\->0|tr_cause\[20\]:0\->1|tr_cause\[20\]:1\->0|tr_cause\[21\]:0\->1|tr_cause\[21\]:1\->0|tr_cause\[22\]:0\->1|tr_cause\[22\]:1\->0|tr_cause\[23\]:0\->1|tr_cause\[23\]:1\->0|tr_cause\[24\]:0\->1|tr_cause\[24\]:1\->0|tr_cause\[25\]:0\->1|tr_cause\[25\]:1\->0|tr_cause\[26\]:0\->1|tr_cause\[26\]:1\->0|tr_cause\[27\]:0\->1|tr_cause\[27\]:1\->0|tr_cause\[28\]:0\->1|tr_cause\[28\]:1\->0|tr_cause\[29\]:0\->1|tr_cause\[29\]:1\->0|tr_cause\[30\]:0\->1|tr_cause\[30\]:1\->0|tr_cause\[5\]:0\->1|tr_cause\[5\]:1\->0|tr_cause\[6\]:0\->1|tr_cause\[6\]:1\->0|tr_cause\[7\]:0\->1|tr_cause\[7\]:1\->0|tr_cause\[8\]:0\->1|tr_cause\[8\]:1\->0|tr_cause\[9\]:0\->1|tr_cause\[9\]:1\->0)$/  -> 52 point(s)
+    reason  : Exception and interrupt codes are < 32 (5-bit CLIC id, cause <= 11); bits 30:5 are 0, bit 31 is the interrupt flag (T-12 puts mpil in mcause[23:16] in csr_file, not on this bus).
+    evidence: PROVEN a_cause_field (fv_cov)   reviewer: pending: Sreyesh
+CT-CAUSE-trap_ctrl  [toggle/constant]  rtl/core/trap_ctrl.v  /^(trap_cause_o\[10\]:0\->1|trap_cause_o\[10\]:1\->0|trap_cause_o\[11\]:0\->1|trap_cause_o\[11\]:1\->0|trap_cause_o\[12\]:0\->1|trap_cause_o\[12\]:1\->0|trap_cause_o\[13\]:0\->1|trap_cause_o\[13\]:1\->0|trap_cause_o\[14\]:0\->1|trap_cause_o\[14\]:1\->0|trap_cause_o\[15\]:0\->1|trap_cause_o\[15\]:1\->0|trap_cause_o\[16\]:0\->1|trap_cause_o\[16\]:1\->0|trap_cause_o\[17\]:0\->1|trap_cause_o\[17\]:1\->0|trap_cause_o\[18\]:0\->1|trap_cause_o\[18\]:1\->0|trap_cause_o\[19\]:0\->1|trap_cause_o\[19\]:1\->0|trap_cause_o\[20\]:0\->1|trap_cause_o\[20\]:1\->0|trap_cause_o\[21\]:0\->1|trap_cause_o\[21\]:1\->0|trap_cause_o\[22\]:0\->1|trap_cause_o\[22\]:1\->0|trap_cause_o\[23\]:0\->1|trap_cause_o\[23\]:1\->0|trap_cause_o\[24\]:0\->1|trap_cause_o\[24\]:1\->0|trap_cause_o\[25\]:0\->1|trap_cause_o\[25\]:1\->0|trap_cause_o\[26\]:0\->1|trap_cause_o\[26\]:1\->0|trap_cause_o\[27\]:0\->1|trap_cause_o\[27\]:1\->0|trap_cause_o\[28\]:0\->1|trap_cause_o\[28\]:1\->0|trap_cause_o\[29\]:0\->1|trap_cause_o\[29\]:1\->0|trap_cause_o\[30\]:0\->1|trap_cause_o\[30\]:1\->0|trap_cause_o\[5\]:0\->1|trap_cause_o\[5\]:1\->0|trap_cause_o\[6\]:0\->1|trap_cause_o\[6\]:1\->0|trap_cause_o\[7\]:0\->1|trap_cause_o\[7\]:1\->0|trap_cause_o\[8\]:0\->1|trap_cause_o\[8\]:1\->0|trap_cause_o\[9\]:0\->1|trap_cause_o\[9\]:1\->0)$/  -> 52 point(s)
+    reason  : Exception and interrupt codes are < 32 (5-bit CLIC id, cause <= 11); bits 30:5 are 0, bit 31 is the interrupt flag (T-12 puts mpil in mcause[23:16] in csr_file, not on this bus).
+    evidence: PROVEN a_cause_field (fv_cov)   reviewer: pending: Sreyesh
+CT-CSRLAYOUT-csr_file  [toggle/constant]  rtl/core/csr_file.v  /^(mintstatus_std_val\[0\]:0\->1|mintstatus_std_val\[0\]:1\->0|mintstatus_std_val\[10\]:0\->1|mintstatus_std_val\[10\]:1\->0|mintstatus_std_val\[11\]:0\->1|mintstatus_std_val\[11\]:1\->0|mintstatus_std_val\[12\]:0\->1|mintstatus_std_val\[12\]:1\->0|mintstatus_std_val\[13\]:0\->1|mintstatus_std_val\[13\]:1\->0|mintstatus_std_val\[14\]:0\->1|mintstatus_std_val\[14\]:1\->0|mintstatus_std_val\[15\]:0\->1|mintstatus_std_val\[15\]:1\->0|mintstatus_std_val\[16\]:0\->1|mintstatus_std_val\[16\]:1\->0|mintstatus_std_val\[17\]:0\->1|mintstatus_std_val\[17\]:1\->0|mintstatus_std_val\[18\]:0\->1|mintstatus_std_val\[18\]:1\->0|mintstatus_std_val\[19\]:0\->1|mintstatus_std_val\[19\]:1\->0|mintstatus_std_val\[1\]:0\->1|mintstatus_std_val\[1\]:1\->0|mintstatus_std_val\[20\]:0\->1|mintstatus_std_val\[20\]:1\->0|mintstatus_std_val\[21\]:0\->1|mintstatus_std_val\[21\]:1\->0|mintstatus_std_val\[22\]:0\->1|mintstatus_std_val\[22\]:1\->0|mintstatus_std_val\[23\]:0\->1|mintstatus_std_val\[23\]:1\->0|mintstatus_std_val\[2\]:0\->1|mintstatus_std_val\[2\]:1\->0|mintstatus_std_val\[3\]:0\->1|mintstatus_std_val\[3\]:1\->0|mintstatus_std_val\[4\]:0\->1|mintstatus_std_val\[4\]:1\->0|mintstatus_std_val\[5\]:0\->1|mintstatus_std_val\[5\]:1\->0|mintstatus_std_val\[6\]:0\->1|mintstatus_std_val\[6\]:1\->0|mintstatus_std_val\[7\]:0\->1|mintstatus_std_val\[7\]:1\->0|mintstatus_std_val\[8\]:0\->1|mintstatus_std_val\[8\]:1\->0|mintstatus_std_val\[9\]:0\->1|mintstatus_std_val\[9\]:1\->0|mintstatus_val\[10\]:0\->1|mintstatus_val\[10\]:1\->0|mintstatus_val\[11\]:0\->1|mintstatus_val\[11\]:1\->0|mintstatus_val\[12\]:0\->1|mintstatus_val\[12\]:1\->0|mintstatus_val\[13\]:0\->1|mintstatus_val\[13\]:1\->0|mintstatus_val\[14\]:0\->1|mintstatus_val\[14\]:1\->0|mintstatus_val\[15\]:0\->1|mintstatus_val\[15\]:1\->0|mintstatus_val\[16\]:0\->1|mintstatus_val\[16\]:1\->0|mintstatus_val\[17\]:0\->1|mintstatus_val\[17\]:1\->0|mintstatus_val\[18\]:0\->1|mintstatus_val\[18\]:1\->0|mintstatus_val\[19\]:0\->1|mintstatus_val\[19\]:1\->0|mintstatus_val\[20\]:0\->1|mintstatus_val\[20\]:1\->0|mintstatus_val\[21\]:0\->1|mintstatus_val\[21\]:1\->0|mintstatus_val\[22\]:0\->1|mintstatus_val\[22\]:1\->0|mintstatus_val\[23\]:0\->1|mintstatus_val\[23\]:1\->0|mintstatus_val\[24\]:0\->1|mintstatus_val\[24\]:1\->0|mintstatus_val\[25\]:0\->1|mintstatus_val\[25\]:1\->0|mintstatus_val\[26\]:0\->1|mintstatus_val\[26\]:1\->0|mintstatus_val\[27\]:0\->1|mintstatus_val\[27\]:1\->0|mintstatus_val\[28\]:0\->1|mintstatus_val\[28\]:1\->0|mintstatus_val\[29\]:0\->1|mintstatus_val\[29\]:1\->0|mintstatus_val\[30\]:0\->1|mintstatus_val\[30\]:1\->0|mintstatus_val\[31\]:0\->1|mintstatus_val\[31\]:1\->0|mintstatus_val\[8\]:0\->1|mintstatus_val\[8\]:1\->0|mintstatus_val\[9\]:0\->1|mintstatus_val\[9\]:1\->0|mip_val\[0\]:0\->1|mip_val\[0\]:1\->0|mip_val\[10\]:0\->1|mip_val\[10\]:1\->0|mip_val\[11\]:0\->1|mip_val\[11\]:1\->0|mip_val\[12\]:0\->1|mip_val\[12\]:1\->0|mip_val\[13\]:0\->1|mip_val\[13\]:1\->0|mip_val\[14\]:0\->1|mip_val\[14\]:1\->0|mip_val\[15\]:0\->1|mip_val\[15\]:1\->0|mip_val\[16\]:0\->1|mip_val\[16\]:1\->0|mip_val\[17\]:0\->1|mip_val\[17\]:1\->0|mip_val\[18\]:0\->1|mip_val\[18\]:1\->0|mip_val\[19\]:0\->1|mip_val\[19\]:1\->0|mip_val\[1\]:0\->1|mip_val\[1\]:1\->0|mip_val\[20\]:0\->1|mip_val\[20\]:1\->0|mip_val\[21\]:0\->1|mip_val\[21\]:1\->0|mip_val\[22\]:0\->1|mip_val\[22\]:1\->0|mip_val\[23\]:0\->1|mip_val\[23\]:1\->0|mip_val\[24\]:0\->1|mip_val\[24\]:1\->0|mip_val\[25\]:0\->1|mip_val\[25\]:1\->0|mip_val\[26\]:0\->1|mip_val\[26\]:1\->0|mip_val\[27\]:0\->1|mip_val\[27\]:1\->0|mip_val\[28\]:0\->1|mip_val\[28\]:1\->0|mip_val\[29\]:0\->1|mip_val\[29\]:1\->0|mip_val\[2\]:0\->1|mip_val\[2\]:1\->0|mip_val\[30\]:0\->1|mip_val\[30\]:1\->0|mip_val\[31\]:0\->1|mip_val\[31\]:1\->0|mip_val\[3\]:0\->1|mip_val\[3\]:1\->0|mip_val\[4\]:0\->1|mip_val\[4\]:1\->0|mip_val\[5\]:0\->1|mip_val\[5\]:1\->0|mip_val\[6\]:0\->1|mip_val\[6\]:1\->0|mip_val\[8\]:0\->1|mip_val\[8\]:1\->0|mip_val\[9\]:0\->1|mip_val\[9\]:1\->0|misa_val\[0\]:0\->1|misa_val\[0\]:1\->0|misa_val\[10\]:0\->1|misa_val\[10\]:1\->0|misa_val\[11\]:0\->1|misa_val\[11\]:1\->0|misa_val\[12\]:1\->0|misa_val\[13\]:0\->1|misa_val\[13\]:1\->0|misa_val\[14\]:0\->1|misa_val\[14\]:1\->0|misa_val\[15\]:0\->1|misa_val\[15\]:1\->0|misa_val\[16\]:0\->1|misa_val\[16\]:1\->0|misa_val\[17\]:0\->1|misa_val\[17\]:1\->0|misa_val\[18\]:0\->1|misa_val\[18\]:1\->0|misa_val\[19\]:0\->1|misa_val\[19\]:1\->0|misa_val\[1\]:0\->1|misa_val\[1\]:1\->0|misa_val\[20\]:0\->1|misa_val\[20\]:1\->0|misa_val\[21\]:0\->1|misa_val\[21\]:1\->0|misa_val\[22\]:0\->1|misa_val\[22\]:1\->0|misa_val\[23\]:0\->1|misa_val\[23\]:1\->0|misa_val\[24\]:0\->1|misa_val\[24\]:1\->0|misa_val\[25\]:0\->1|misa_val\[25\]:1\->0|misa_val\[26\]:0\->1|misa_val\[26\]:1\->0|misa_val\[27\]:0\->1|misa_val\[27\]:1\->0|misa_val\[28\]:0\->1|misa_val\[28\]:1\->0|misa_val\[29\]:0\->1|misa_val\[29\]:1\->0|misa_val\[2\]:0\->1|misa_val\[2\]:1\->0|misa_val\[30\]:1\->0|misa_val\[31\]:0\->1|misa_val\[31\]:1\->0|misa_val\[3\]:0\->1|misa_val\[3\]:1\->0|misa_val\[4\]:0\->1|misa_val\[4\]:1\->0|misa_val\[5\]:0\->1|misa_val\[5\]:1\->0|misa_val\[6\]:0\->1|misa_val\[6\]:1\->0|misa_val\[7\]:0\->1|misa_val\[7\]:1\->0|misa_val\[8\]:1\->0|misa_val\[9\]:0\->1|misa_val\[9\]:1\->0|mstatus_val\[0\]:0\->1|mstatus_val\[0\]:1\->0|mstatus_val\[10\]:0\->1|mstatus_val\[10\]:1\->0|mstatus_val\[11\]:1\->0|mstatus_val\[12\]:1\->0|mstatus_val\[13\]:0\->1|mstatus_val\[13\]:1\->0|mstatus_val\[14\]:0\->1|mstatus_val\[14\]:1\->0|mstatus_val\[15\]:0\->1|mstatus_val\[15\]:1\->0|mstatus_val\[16\]:0\->1|mstatus_val\[16\]:1\->0|mstatus_val\[17\]:0\->1|mstatus_val\[17\]:1\->0|mstatus_val\[18\]:0\->1|mstatus_val\[18\]:1\->0|mstatus_val\[19\]:0\->1|mstatus_val\[19\]:1\->0|mstatus_val\[1\]:0\->1|mstatus_val\[1\]:1\->0|mstatus_val\[20\]:0\->1|mstatus_val\[20\]:1\->0|mstatus_val\[21\]:0\->1|mstatus_val\[21\]:1\->0|mstatus_val\[22\]:0\->1|mstatus_val\[22\]:1\->0|mstatus_val\[23\]:0\->1|mstatus_val\[23\]:1\->0|mstatus_val\[24\]:0\->1|mstatus_val\[24\]:1\->0|mstatus_val\[25\]:0\->1|mstatus_val\[25\]:1\->0|mstatus_val\[26\]:0\->1|mstatus_val\[26\]:1\->0|mstatus_val\[27\]:0\->1|mstatus_val\[27\]:1\->0|mstatus_val\[28\]:0\->1|mstatus_val\[28\]:1\->0|mstatus_val\[29\]:0\->1|mstatus_val\[29\]:1\->0|mstatus_val\[2\]:0\->1|mstatus_val\[2\]:1\->0|mstatus_val\[30\]:0\->1|mstatus_val\[30\]:1\->0|mstatus_val\[31\]:0\->1|mstatus_val\[31\]:1\->0|mstatus_val\[4\]:0\->1|mstatus_val\[4\]:1\->0|mstatus_val\[5\]:0\->1|mstatus_val\[5\]:1\->0|mstatus_val\[6\]:0\->1|mstatus_val\[6\]:1\->0|mstatus_val\[8\]:0\->1|mstatus_val\[8\]:1\->0|mstatus_val\[9\]:0\->1|mstatus_val\[9\]:1\->0)$/  -> 277 point(s)
+    reason  : Read-value layouts with fixed fields: mstatus (only MIE, MPIE stored; MPP = 11), misa constant, mintstatus {24'b0, mil}, mintstatus_std {mil, 24'b0}, mip {24'b0, MTIP, 7'b0}.
+    evidence: literal rtl/core/csr_file.v:144-156   reviewer: pending: Sreyesh
+CT-DBUS-d_port_ahb_master  [toggle/constant]  rtl/core/d_port_ahb_master.v  /^(d_hsize_o\[2\]:0\->1|d_hsize_o\[2\]:1\->0|d_htrans_o\[0\]:0\->1|d_htrans_o\[0\]:1\->0|hsize_i\[2\]:0\->1|hsize_i\[2\]:1\->0)$/  -> 6 point(s)
+    reason  : D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize[2] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0).
+    evidence: literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; d_port_ahb_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE   reviewer: pending: Sreyesh
+CT-DBUS-garuda_core_top  [toggle/constant]  rtl/core/garuda_core_top.v  /^(d_hburst_o\[0\]:0\->1|d_hburst_o\[0\]:1\->0|d_hburst_o\[1\]:0\->1|d_hburst_o\[1\]:1\->0|d_hburst_o\[2\]:0\->1|d_hburst_o\[2\]:1\->0|d_hprot_o\[0\]:1\->0|d_hprot_o\[1\]:1\->0|d_hprot_o\[2\]:0\->1|d_hprot_o\[2\]:1\->0|d_hprot_o\[3\]:0\->1|d_hprot_o\[3\]:1\->0|d_hsize_o\[2\]:0\->1|d_hsize_o\[2\]:1\->0|d_htrans_o\[0\]:0\->1|d_htrans_o\[0\]:1\->0)$/  -> 16 point(s)
+    reason  : D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize[2] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0).
+    evidence: literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; d_port_ahb_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE   reviewer: pending: Sreyesh
+CT-DBUS-load_store_unit  [toggle/constant]  rtl/core/load_store_unit.v  /^(hsize_o\[2\]:0\->1|hsize_o\[2\]:1\->0)$/  -> 2 point(s)
+    reason  : D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize[2] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0).
+    evidence: literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; d_port_ahb_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE   reviewer: pending: Sreyesh
+CT-DBUS-mem_stage  [toggle/constant]  rtl/core/mem_stage.v  /^(d_hburst_o\[0\]:0\->1|d_hburst_o\[0\]:1\->0|d_hburst_o\[1\]:0\->1|d_hburst_o\[1\]:1\->0|d_hburst_o\[2\]:0\->1|d_hburst_o\[2\]:1\->0|d_hprot_o\[0\]:1\->0|d_hprot_o\[1\]:1\->0|d_hprot_o\[2\]:0\->1|d_hprot_o\[2\]:1\->0|d_hprot_o\[3\]:0\->1|d_hprot_o\[3\]:1\->0|d_hsize_o\[2\]:0\->1|d_hsize_o\[2\]:1\->0|d_htrans_o\[0\]:0\->1|d_htrans_o\[0\]:1\->0|hsize_w\[2\]:0\->1|hsize_w\[2\]:1\->0)$/  -> 18 point(s)
+    reason  : D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize[2] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0).
+    evidence: literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; d_port_ahb_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE   reviewer: pending: Sreyesh
+CT-FENCEI-branch_predict  [toggle/constant]  rtl/core/branch_predict.v  /^(fencei_target\[0\]:0\->1|fencei_target\[0\]:1\->0|fencei_target\[1\]:0\->1|fencei_target\[1\]:1\->0)$/  -> 4 point(s)
+    reason  : fencei_target = pc + 4 of a word-aligned PC.
+    evidence: rtl/core/branch_predict.v:54 + PROVEN a_pc_aligned   reviewer: pending: Sreyesh
+CT-IBUS-garuda_core_top  [toggle/constant]  rtl/core/garuda_core_top.v  /^(i_hburst_o\[0\]:1\->0|i_hburst_o\[1\]:0\->1|i_hburst_o\[1\]:1\->0|i_hburst_o\[2\]:0\->1|i_hburst_o\[2\]:1\->0|i_hprot_o\[0\]:0\->1|i_hprot_o\[0\]:1\->0|i_hprot_o\[1\]:1\->0|i_hprot_o\[2\]:0\->1|i_hprot_o\[2\]:1\->0|i_hprot_o\[3\]:0\->1|i_hprot_o\[3\]:1\->0|i_hsize_o\[0\]:0\->1|i_hsize_o\[0\]:1\->0|i_hsize_o\[1\]:1\->0|i_hsize_o\[2\]:0\->1|i_hsize_o\[2\]:1\->0|i_hwdata_o\[0\]:0\->1|i_hwdata_o\[0\]:1\->0|i_hwdata_o\[10\]:0\->1|i_hwdata_o\[10\]:1\->0|i_hwdata_o\[11\]:0\->1|i_hwdata_o\[11\]:1\->0|i_hwdata_o\[12\]:0\->1|i_hwdata_o\[12\]:1\->0|i_hwdata_o\[13\]:0\->1|i_hwdata_o\[13\]:1\->0|i_hwdata_o\[14\]:0\->1|i_hwdata_o\[14\]:1\->0|i_hwdata_o\[15\]:0\->1|i_hwdata_o\[15\]:1\->0|i_hwdata_o\[16\]:0\->1|i_hwdata_o\[16\]:1\->0|i_hwdata_o\[17\]:0\->1|i_hwdata_o\[17\]:1\->0|i_hwdata_o\[18\]:0\->1|i_hwdata_o\[18\]:1\->0|i_hwdata_o\[19\]:0\->1|i_hwdata_o\[19\]:1\->0|i_hwdata_o\[1\]:0\->1|i_hwdata_o\[1\]:1\->0|i_hwdata_o\[20\]:0\->1|i_hwdata_o\[20\]:1\->0|i_hwdata_o\[21\]:0\->1|i_hwdata_o\[21\]:1\->0|i_hwdata_o\[22\]:0\->1|i_hwdata_o\[22\]:1\->0|i_hwdata_o\[23\]:0\->1|i_hwdata_o\[23\]:1\->0|i_hwdata_o\[24\]:0\->1|i_hwdata_o\[24\]:1\->0|i_hwdata_o\[25\]:0\->1|i_hwdata_o\[25\]:1\->0|i_hwdata_o\[26\]:0\->1|i_hwdata_o\[26\]:1\->0|i_hwdata_o\[27\]:0\->1|i_hwdata_o\[27\]:1\->0|i_hwdata_o\[28\]:0\->1|i_hwdata_o\[28\]:1\->0|i_hwdata_o\[29\]:0\->1|i_hwdata_o\[29\]:1\->0|i_hwdata_o\[2\]:0\->1|i_hwdata_o\[2\]:1\->0|i_hwdata_o\[30\]:0\->1|i_hwdata_o\[30\]:1\->0|i_hwdata_o\[31\]:0\->1|i_hwdata_o\[31\]:1\->0|i_hwdata_o\[3\]:0\->1|i_hwdata_o\[3\]:1\->0|i_hwdata_o\[4\]:0\->1|i_hwdata_o\[4\]:1\->0|i_hwdata_o\[5\]:0\->1|i_hwdata_o\[5\]:1\->0|i_hwdata_o\[6\]:0\->1|i_hwdata_o\[6\]:1\->0|i_hwdata_o\[7\]:0\->1|i_hwdata_o\[7\]:1\->0|i_hwdata_o\[8\]:0\->1|i_hwdata_o\[8\]:1\->0|i_hwdata_o\[9\]:0\->1|i_hwdata_o\[9\]:1\->0|i_hwrite_o:0\->1|i_hwrite_o:1\->0)$/  -> 83 point(s)
+    reason  : I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only.
+    evidence: literal rtl/core/garuda_iport_ahb_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)   reviewer: pending: Sreyesh
+CT-IBUS-garuda_if_stage_top  [toggle/constant]  rtl/core/garuda_if_stage_top.v  /^(i_hburst_o\[0\]:1\->0|i_hburst_o\[1\]:0\->1|i_hburst_o\[1\]:1\->0|i_hburst_o\[2\]:0\->1|i_hburst_o\[2\]:1\->0|i_hprot_o\[0\]:0\->1|i_hprot_o\[0\]:1\->0|i_hprot_o\[1\]:1\->0|i_hprot_o\[2\]:0\->1|i_hprot_o\[2\]:1\->0|i_hprot_o\[3\]:0\->1|i_hprot_o\[3\]:1\->0|i_hsize_o\[0\]:0\->1|i_hsize_o\[0\]:1\->0|i_hsize_o\[1\]:1\->0|i_hsize_o\[2\]:0\->1|i_hsize_o\[2\]:1\->0|i_hwdata_o\[0\]:0\->1|i_hwdata_o\[0\]:1\->0|i_hwdata_o\[10\]:0\->1|i_hwdata_o\[10\]:1\->0|i_hwdata_o\[11\]:0\->1|i_hwdata_o\[11\]:1\->0|i_hwdata_o\[12\]:0\->1|i_hwdata_o\[12\]:1\->0|i_hwdata_o\[13\]:0\->1|i_hwdata_o\[13\]:1\->0|i_hwdata_o\[14\]:0\->1|i_hwdata_o\[14\]:1\->0|i_hwdata_o\[15\]:0\->1|i_hwdata_o\[15\]:1\->0|i_hwdata_o\[16\]:0\->1|i_hwdata_o\[16\]:1\->0|i_hwdata_o\[17\]:0\->1|i_hwdata_o\[17\]:1\->0|i_hwdata_o\[18\]:0\->1|i_hwdata_o\[18\]:1\->0|i_hwdata_o\[19\]:0\->1|i_hwdata_o\[19\]:1\->0|i_hwdata_o\[1\]:0\->1|i_hwdata_o\[1\]:1\->0|i_hwdata_o\[20\]:0\->1|i_hwdata_o\[20\]:1\->0|i_hwdata_o\[21\]:0\->1|i_hwdata_o\[21\]:1\->0|i_hwdata_o\[22\]:0\->1|i_hwdata_o\[22\]:1\->0|i_hwdata_o\[23\]:0\->1|i_hwdata_o\[23\]:1\->0|i_hwdata_o\[24\]:0\->1|i_hwdata_o\[24\]:1\->0|i_hwdata_o\[25\]:0\->1|i_hwdata_o\[25\]:1\->0|i_hwdata_o\[26\]:0\->1|i_hwdata_o\[26\]:1\->0|i_hwdata_o\[27\]:0\->1|i_hwdata_o\[27\]:1\->0|i_hwdata_o\[28\]:0\->1|i_hwdata_o\[28\]:1\->0|i_hwdata_o\[29\]:0\->1|i_hwdata_o\[29\]:1\->0|i_hwdata_o\[2\]:0\->1|i_hwdata_o\[2\]:1\->0|i_hwdata_o\[30\]:0\->1|i_hwdata_o\[30\]:1\->0|i_hwdata_o\[31\]:0\->1|i_hwdata_o\[31\]:1\->0|i_hwdata_o\[3\]:0\->1|i_hwdata_o\[3\]:1\->0|i_hwdata_o\[4\]:0\->1|i_hwdata_o\[4\]:1\->0|i_hwdata_o\[5\]:0\->1|i_hwdata_o\[5\]:1\->0|i_hwdata_o\[6\]:0\->1|i_hwdata_o\[6\]:1\->0|i_hwdata_o\[7\]:0\->1|i_hwdata_o\[7\]:1\->0|i_hwdata_o\[8\]:0\->1|i_hwdata_o\[8\]:1\->0|i_hwdata_o\[9\]:0\->1|i_hwdata_o\[9\]:1\->0|i_hwrite_o:0\->1|i_hwrite_o:1\->0)$/  -> 83 point(s)
+    reason  : I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only.
+    evidence: literal rtl/core/garuda_iport_ahb_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)   reviewer: pending: Sreyesh
+CT-IBUS-garuda_iport_ahb_master  [toggle/constant]  rtl/core/garuda_iport_ahb_master.v  /^(i_hburst_o\[0\]:1\->0|i_hburst_o\[1\]:0\->1|i_hburst_o\[1\]:1\->0|i_hburst_o\[2\]:0\->1|i_hburst_o\[2\]:1\->0|i_hprot_o\[0\]:0\->1|i_hprot_o\[0\]:1\->0|i_hprot_o\[1\]:1\->0|i_hprot_o\[2\]:0\->1|i_hprot_o\[2\]:1\->0|i_hprot_o\[3\]:0\->1|i_hprot_o\[3\]:1\->0|i_hsize_o\[0\]:0\->1|i_hsize_o\[0\]:1\->0|i_hsize_o\[1\]:1\->0|i_hsize_o\[2\]:0\->1|i_hsize_o\[2\]:1\->0|i_hwdata_o\[0\]:0\->1|i_hwdata_o\[0\]:1\->0|i_hwdata_o\[10\]:0\->1|i_hwdata_o\[10\]:1\->0|i_hwdata_o\[11\]:0\->1|i_hwdata_o\[11\]:1\->0|i_hwdata_o\[12\]:0\->1|i_hwdata_o\[12\]:1\->0|i_hwdata_o\[13\]:0\->1|i_hwdata_o\[13\]:1\->0|i_hwdata_o\[14\]:0\->1|i_hwdata_o\[14\]:1\->0|i_hwdata_o\[15\]:0\->1|i_hwdata_o\[15\]:1\->0|i_hwdata_o\[16\]:0\->1|i_hwdata_o\[16\]:1\->0|i_hwdata_o\[17\]:0\->1|i_hwdata_o\[17\]:1\->0|i_hwdata_o\[18\]:0\->1|i_hwdata_o\[18\]:1\->0|i_hwdata_o\[19\]:0\->1|i_hwdata_o\[19\]:1\->0|i_hwdata_o\[1\]:0\->1|i_hwdata_o\[1\]:1\->0|i_hwdata_o\[20\]:0\->1|i_hwdata_o\[20\]:1\->0|i_hwdata_o\[21\]:0\->1|i_hwdata_o\[21\]:1\->0|i_hwdata_o\[22\]:0\->1|i_hwdata_o\[22\]:1\->0|i_hwdata_o\[23\]:0\->1|i_hwdata_o\[23\]:1\->0|i_hwdata_o\[24\]:0\->1|i_hwdata_o\[24\]:1\->0|i_hwdata_o\[25\]:0\->1|i_hwdata_o\[25\]:1\->0|i_hwdata_o\[26\]:0\->1|i_hwdata_o\[26\]:1\->0|i_hwdata_o\[27\]:0\->1|i_hwdata_o\[27\]:1\->0|i_hwdata_o\[28\]:0\->1|i_hwdata_o\[28\]:1\->0|i_hwdata_o\[29\]:0\->1|i_hwdata_o\[29\]:1\->0|i_hwdata_o\[2\]:0\->1|i_hwdata_o\[2\]:1\->0|i_hwdata_o\[30\]:0\->1|i_hwdata_o\[30\]:1\->0|i_hwdata_o\[31\]:0\->1|i_hwdata_o\[31\]:1\->0|i_hwdata_o\[3\]:0\->1|i_hwdata_o\[3\]:1\->0|i_hwdata_o\[4\]:0\->1|i_hwdata_o\[4\]:1\->0|i_hwdata_o\[5\]:0\->1|i_hwdata_o\[5\]:1\->0|i_hwdata_o\[6\]:0\->1|i_hwdata_o\[6\]:1\->0|i_hwdata_o\[7\]:0\->1|i_hwdata_o\[7\]:1\->0|i_hwdata_o\[8\]:0\->1|i_hwdata_o\[8\]:1\->0|i_hwdata_o\[9\]:0\->1|i_hwdata_o\[9\]:1\->0|i_hwrite_o:0\->1|i_hwrite_o:1\->0)$/  -> 83 point(s)
+    reason  : I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only.
+    evidence: literal rtl/core/garuda_iport_ahb_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)   reviewer: pending: Sreyesh
+CT-IMMENC-imm_gen  [toggle/constant]  rtl/core/imm_gen.v  /^(imm_csr_f\[10\]:0\->1|imm_csr_f\[10\]:1\->0|imm_csr_f\[11\]:0\->1|imm_csr_f\[11\]:1\->0|imm_csr_f\[12\]:0\->1|imm_csr_f\[12\]:1\->0|imm_csr_f\[13\]:0\->1|imm_csr_f\[13\]:1\->0|imm_csr_f\[14\]:0\->1|imm_csr_f\[14\]:1\->0|imm_csr_f\[15\]:0\->1|imm_csr_f\[15\]:1\->0|imm_csr_f\[16\]:0\->1|imm_csr_f\[16\]:1\->0|imm_csr_f\[17\]:0\->1|imm_csr_f\[17\]:1\->0|imm_csr_f\[18\]:0\->1|imm_csr_f\[18\]:1\->0|imm_csr_f\[19\]:0\->1|imm_csr_f\[19\]:1\->0|imm_csr_f\[20\]:0\->1|imm_csr_f\[20\]:1\->0|imm_csr_f\[21\]:0\->1|imm_csr_f\[21\]:1\->0|imm_csr_f\[22\]:0\->1|imm_csr_f\[22\]:1\->0|imm_csr_f\[23\]:0\->1|imm_csr_f\[23\]:1\->0|imm_csr_f\[24\]:0\->1|imm_csr_f\[24\]:1\->0|imm_csr_f\[25\]:0\->1|imm_csr_f\[25\]:1\->0|imm_csr_f\[26\]:0\->1|imm_csr_f\[26\]:1\->0|imm_csr_f\[27\]:0\->1|imm_csr_f\[27\]:1\->0|imm_csr_f\[28\]:0\->1|imm_csr_f\[28\]:1\->0|imm_csr_f\[29\]:0\->1|imm_csr_f\[29\]:1\->0|imm_csr_f\[30\]:0\->1|imm_csr_f\[30\]:1\->0|imm_csr_f\[31\]:0\->1|imm_csr_f\[31\]:1\->0|imm_csr_f\[5\]:0\->1|imm_csr_f\[5\]:1\->0|imm_csr_f\[6\]:0\->1|imm_csr_f\[6\]:1\->0|imm_csr_f\[7\]:0\->1|imm_csr_f\[7\]:1\->0|imm_csr_f\[8\]:0\->1|imm_csr_f\[8\]:1\->0|imm_csr_f\[9\]:0\->1|imm_csr_f\[9\]:1\->0|imm_u_f\[0\]:0\->1|imm_u_f\[0\]:1\->0|imm_u_f\[10\]:0\->1|imm_u_f\[10\]:1\->0|imm_u_f\[11\]:0\->1|imm_u_f\[11\]:1\->0|imm_u_f\[1\]:0\->1|imm_u_f\[1\]:1\->0|imm_u_f\[2\]:0\->1|imm_u_f\[2\]:1\->0|imm_u_f\[3\]:0\->1|imm_u_f\[3\]:1\->0|imm_u_f\[4\]:0\->1|imm_u_f\[4\]:1\->0|imm_u_f\[5\]:0\->1|imm_u_f\[5\]:1\->0|imm_u_f\[6\]:0\->1|imm_u_f\[6\]:1\->0|imm_u_f\[7\]:0\->1|imm_u_f\[7\]:1\->0|imm_u_f\[8\]:0\->1|imm_u_f\[8\]:1\->0|imm_u_f\[9\]:0\->1|imm_u_f\[9\]:1\->0)$/  -> 78 point(s)
+    reason  : U-immediate bits 11:0 and the zero-extended CSR immediate bits 31:5 are literal 0.
+    evidence: literal rtl/core/imm_gen.v:35 {.., 12'b0}, :38 {27'b0, ..}   reviewer: pending: Sreyesh
+CT-IPCOUNT-garuda_iport_ahb_master  [toggle/constant]  rtl/core/garuda_iport_ahb_master.v  /^(inflight\[2\]:0\->1|inflight\[2\]:1\->0|inflight\[3\]:0\->1|inflight\[3\]:1\->0|occ_after_pop\[3\]:0\->1|occ_after_pop\[3\]:1\->0|occ_plus_landing\[3\]:0\->1|occ_plus_landing\[3\]:1\->0|projected_occ\[3\]:0\->1|projected_occ\[3\]:1\->0)$/  -> 10 point(s)
+    reason  : At most 2 transfers are in flight and occupancy + in flight <= 6: the top bits of these 4-bit sums never set.
+    evidence: PROVEN a_inflight_le2, a_occ_pop_lt8, a_occ_land_lt8, a_proj_occ_lt8 (fv_cov)   reviewer: pending: Sreyesh
+CT-MEMCAUSE-garuda_core_top  [toggle/constant]  rtl/core/garuda_core_top.v  /^(mem_exc_cause\[3\]:0\->1|mem_exc_cause\[3\]:1\->0)$/  -> 2 point(s)
+    reason  : MEM-stage causes are 5 and 7 only (4-bit field, bit 3 = 0).
+    evidence: literal rtl/core/mem_stage.v:184 (4'd5 / 4'd7 / 0); PROVEN a_mexc_cause_bit3   reviewer: pending: Sreyesh
+CT-MEMCAUSE-mem_stage  [toggle/constant]  rtl/core/mem_stage.v  /^(mem_exception_cause_o\[3\]:0\->1|mem_exception_cause_o\[3\]:1\->0)$/  -> 2 point(s)
+    reason  : MEM-stage causes are 5 and 7 only (4-bit field, bit 3 = 0).
+    evidence: literal rtl/core/mem_stage.v:184 (4'd5 / 4'd7 / 0); PROVEN a_mexc_cause_bit3   reviewer: pending: Sreyesh
+CT-MEMCAUSE-trap_ctrl  [toggle/constant]  rtl/core/trap_ctrl.v  /^(mem_exc_cause_i\[3\]:0\->1|mem_exc_cause_i\[3\]:1\->0)$/  -> 2 point(s)
+    reason  : MEM-stage causes are 5 and 7 only (4-bit field, bit 3 = 0).
+    evidence: literal rtl/core/mem_stage.v:184 (4'd5 / 4'd7 / 0); PROVEN a_mexc_cause_bit3   reviewer: pending: Sreyesh
+CT-MIEWARL-csr_file  [toggle/constant]  rtl/core/csr_file.v  /^(mie_r\[0\]:0\->1|mie_r\[0\]:1\->0|mie_r\[10\]:0\->1|mie_r\[10\]:1\->0|mie_r\[11\]:0\->1|mie_r\[11\]:1\->0|mie_r\[12\]:0\->1|mie_r\[12\]:1\->0|mie_r\[13\]:0\->1|mie_r\[13\]:1\->0|mie_r\[14\]:0\->1|mie_r\[14\]:1\->0|mie_r\[15\]:0\->1|mie_r\[15\]:1\->0|mie_r\[16\]:0\->1|mie_r\[16\]:1\->0|mie_r\[17\]:0\->1|mie_r\[17\]:1\->0|mie_r\[18\]:0\->1|mie_r\[18\]:1\->0|mie_r\[19\]:0\->1|mie_r\[19\]:1\->0|mie_r\[1\]:0\->1|mie_r\[1\]:1\->0|mie_r\[20\]:0\->1|mie_r\[20\]:1\->0|mie_r\[21\]:0\->1|mie_r\[21\]:1\->0|mie_r\[22\]:0\->1|mie_r\[22\]:1\->0|mie_r\[23\]:0\->1|mie_r\[23\]:1\->0|mie_r\[24\]:0\->1|mie_r\[24\]:1\->0|mie_r\[25\]:0\->1|mie_r\[25\]:1\->0|mie_r\[26\]:0\->1|mie_r\[26\]:1\->0|mie_r\[27\]:0\->1|mie_r\[27\]:1\->0|mie_r\[28\]:0\->1|mie_r\[28\]:1\->0|mie_r\[29\]:0\->1|mie_r\[29\]:1\->0|mie_r\[2\]:0\->1|mie_r\[2\]:1\->0|mie_r\[30\]:0\->1|mie_r\[30\]:1\->0|mie_r\[31\]:0\->1|mie_r\[31\]:1\->0|mie_r\[3\]:0\->1|mie_r\[3\]:1\->0|mie_r\[4\]:0\->1|mie_r\[4\]:1\->0|mie_r\[5\]:0\->1|mie_r\[5\]:1\->0|mie_r\[6\]:0\->1|mie_r\[6\]:1\->0|mie_r\[8\]:0\->1|mie_r\[8\]:1\->0|mie_r\[9\]:0\->1|mie_r\[9\]:1\->0)$/  -> 62 point(s)
+    reason  : mie is WARL: only MTIE (bit 7) is stored.
+    evidence: PROVEN a_mie_only_mtie (fv_cov); csr_file.v:303 & 32'h0000_0080   reviewer: pending: Sreyesh
+CT-MTVECBASE-clic_ctrl  [toggle/constant]  rtl/core/clic_ctrl.v  /^(mtvec_i\[0\]:0\->1|mtvec_i\[0\]:1\->0|mtvec_i\[1\]:0\->1|mtvec_i\[1\]:1\->0|vector_target_o\[0\]:0\->1|vector_target_o\[0\]:1\->0|vector_target_o\[1\]:0\->1|vector_target_o\[1\]:1\->0)$/  -> 8 point(s)
+    reason  : The trap vector is mtvec BASE = {mtvec[31:2], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned.
+    evidence: literal rtl/core/csr_file.v mtvec_o = {mtvec_r[31:2], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)   reviewer: pending: Sreyesh
+CT-MTVECBASE-csr_file  [toggle/constant]  rtl/core/csr_file.v  /^(mtvec_o\[0\]:0\->1|mtvec_o\[0\]:1\->0|mtvec_o\[1\]:0\->1|mtvec_o\[1\]:1\->0)$/  -> 4 point(s)
+    reason  : The trap vector is mtvec BASE = {mtvec[31:2], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned.
+    evidence: literal rtl/core/csr_file.v mtvec_o = {mtvec_r[31:2], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)   reviewer: pending: Sreyesh
+CT-MTVECBASE-garuda_core_top  [toggle/constant]  rtl/core/garuda_core_top.v  /^(clic_vec_target\[0\]:0\->1|clic_vec_target\[0\]:1\->0|clic_vec_target\[1\]:0\->1|clic_vec_target\[1\]:1\->0|csr_mtvec\[0\]:0\->1|csr_mtvec\[0\]:1\->0|csr_mtvec\[1\]:0\->1|csr_mtvec\[1\]:1\->0|tr_redir_t\[0\]:0\->1|tr_redir_t\[0\]:1\->0|tr_redir_t\[1\]:0\->1|tr_redir_t\[1\]:1\->0)$/  -> 12 point(s)
+    reason  : The trap vector is mtvec BASE = {mtvec[31:2], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned.
+    evidence: literal rtl/core/csr_file.v mtvec_o = {mtvec_r[31:2], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)   reviewer: pending: Sreyesh
+CT-MTVECBASE-pipe_ctrl  [toggle/constant]  rtl/core/pipe_ctrl.v  /^(trap_redirect_target_i\[0\]:1\->0|trap_redirect_target_i\[1\]:1\->0)$/  -> 2 point(s)
+    reason  : The trap vector is mtvec BASE = {mtvec[31:2], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned.
+    evidence: literal rtl/core/csr_file.v mtvec_o = {mtvec_r[31:2], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)   reviewer: pending: Sreyesh
+CT-MTVECBASE-trap_ctrl  [toggle/constant]  rtl/core/trap_ctrl.v  /^(clic_vector_target_i\[0\]:0\->1|clic_vector_target_i\[0\]:1\->0|clic_vector_target_i\[1\]:0\->1|clic_vector_target_i\[1\]:1\->0|mtvec_base\[0\]:0\->1|mtvec_base\[0\]:1\->0|mtvec_base\[1\]:0\->1|mtvec_base\[1\]:1\->0|mtvec_i\[0\]:0\->1|mtvec_i\[0\]:1\->0|mtvec_i\[1\]:0\->1|mtvec_i\[1\]:1\->0|trap_redirect_target_o\[0\]:0\->1|trap_redirect_target_o\[0\]:1\->0|trap_redirect_target_o\[1\]:0\->1|trap_redirect_target_o\[1\]:1\->0)$/  -> 16 point(s)
+    reason  : The trap vector is mtvec BASE = {mtvec[31:2], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned.
+    evidence: literal rtl/core/csr_file.v mtvec_o = {mtvec_r[31:2], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)   reviewer: pending: Sreyesh
+CT-PCALIGN-branch_predict  [toggle/constant]  rtl/core/branch_predict.v  /^(pc_i\[0\]:0\->1|pc_i\[0\]:1\->0|pc_i\[1\]:0\->1|pc_i\[1\]:1\->0)$/  -> 4 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-branch_unit  [toggle/constant]  rtl/core/branch_unit.v  /^(fallthrough\[0\]:0\->1|fallthrough\[0\]:1\->0|fallthrough\[1\]:0\->1|fallthrough\[1\]:1\->0|pc\[0\]:0\->1|pc\[0\]:1\->0|pc\[1\]:0\->1|pc\[1\]:1\->0)$/  -> 8 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-csr_file  [toggle/constant]  rtl/core/csr_file.v  /^(mepc_o\[0\]:0\->1|mepc_o\[0\]:1\->0|mepc_o\[1\]:0\->1|mepc_o\[1\]:1\->0|mepc_r\[0\]:0\->1|mepc_r\[0\]:1\->0|mepc_r\[1\]:0\->1|mepc_r\[1\]:1\->0|trap_pc_i\[0\]:0\->1|trap_pc_i\[0\]:1\->0|trap_pc_i\[1\]:0\->1|trap_pc_i\[1\]:1\->0)$/  -> 12 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-ex_mem  [toggle/constant]  rtl/core/ex_mem.v  /^(pc_i\[0\]:0\->1|pc_i\[0\]:1\->0|pc_i\[1\]:0\->1|pc_i\[1\]:1\->0|pc_o\[0\]:0\->1|pc_o\[0\]:1\->0|pc_o\[1\]:0\->1|pc_o\[1\]:1\->0)$/  -> 8 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-ex_stage  [toggle/constant]  rtl/core/ex_stage.v  /^(link\[0\]:0\->1|link\[0\]:1\->0|link\[1\]:0\->1|link\[1\]:1\->0|pc\[0\]:0\->1|pc\[0\]:1\->0|pc\[1\]:0\->1|pc\[1\]:1\->0)$/  -> 8 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-garuda_core_top  [toggle/constant]  rtl/core/garuda_core_top.v  /^(csr_mepc\[0\]:0\->1|csr_mepc\[0\]:1\->0|csr_mepc\[1\]:0\->1|csr_mepc\[1\]:1\->0|em_pc\[0\]:0\->1|em_pc\[0\]:1\->0|em_pc\[1\]:0\->1|em_pc\[1\]:1\->0|fd_pc\[0\]:0\->1|fd_pc\[0\]:1\->0|fd_pc\[1\]:0\->1|fd_pc\[1\]:1\->0|i_haddr_o\[0\]:0\->1|i_haddr_o\[0\]:1\->0|i_haddr_o\[1\]:0\->1|i_haddr_o\[1\]:1\->0|id_pc\[0\]:0\->1|id_pc\[0\]:1\->0|id_pc\[1\]:0\->1|id_pc\[1\]:1\->0|if_pc\[0\]:0\->1|if_pc\[0\]:1\->0|if_pc\[1\]:0\->1|if_pc\[1\]:1\->0|mem_exc_pc\[0\]:0\->1|mem_exc_pc\[0\]:1\->0|mem_exc_pc\[1\]:0\->1|mem_exc_pc\[1\]:1\->0|tr_pc\[0\]:0\->1|tr_pc\[0\]:1\->0|tr_pc\[1\]:0\->1|tr_pc\[1\]:1\->0|xe_pc\[0\]:0\->1|xe_pc\[0\]:1\->0|xe_pc\[1\]:0\->1|xe_pc\[1\]:1\->0)$/  -> 36 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-garuda_if_stage_top  [toggle/constant]  rtl/core/garuda_if_stage_top.v  /^(data_pc\[0\]:0\->1|data_pc\[0\]:1\->0|data_pc\[1\]:0\->1|data_pc\[1\]:1\->0|i_haddr_o\[0\]:0\->1|i_haddr_o\[0\]:1\->0|i_haddr_o\[1\]:0\->1|i_haddr_o\[1\]:1\->0|instr_pc_o\[0\]:0\->1|instr_pc_o\[0\]:1\->0|instr_pc_o\[1\]:0\->1|instr_pc_o\[1\]:1\->0)$/  -> 12 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-garuda_iport_ahb_master  [toggle/constant]  rtl/core/garuda_iport_ahb_master.v  /^(addr_pc\[0\]:0\->1|addr_pc\[0\]:1\->0|addr_pc\[1\]:0\->1|addr_pc\[1\]:1\->0|data_pc_o\[0\]:0\->1|data_pc_o\[0\]:1\->0|data_pc_o\[1\]:0\->1|data_pc_o\[1\]:1\->0|i_haddr_o\[0\]:0\->1|i_haddr_o\[0\]:1\->0|i_haddr_o\[1\]:0\->1|i_haddr_o\[1\]:1\->0|outstanding_pc\[0\]:0\->1|outstanding_pc\[0\]:1\->0|outstanding_pc\[1\]:0\->1|outstanding_pc\[1\]:1\->0)$/  -> 16 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-garuda_pc_gen  [toggle/constant]  rtl/core/garuda_pc_gen.v  /^(commit_pc_i\[0\]:0\->1|commit_pc_i\[0\]:1\->0|commit_pc_i\[1\]:0\->1|commit_pc_i\[1\]:1\->0|pc_o\[0\]:0\->1|pc_o\[0\]:1\->0)$/  -> 6 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-garuda_prefetch_buffer  [toggle/constant]  rtl/core/garuda_prefetch_buffer.v  /^(fifo_pc\[0\]\[0\]:0\->1|fifo_pc\[0\]\[0\]:1\->0|fifo_pc\[0\]\[1\]:0\->1|fifo_pc\[0\]\[1\]:1\->0|fifo_pc\[1\]\[0\]:0\->1|fifo_pc\[1\]\[0\]:1\->0|fifo_pc\[1\]\[1\]:0\->1|fifo_pc\[1\]\[1\]:1\->0|fifo_pc\[2\]\[0\]:0\->1|fifo_pc\[2\]\[0\]:1\->0|fifo_pc\[2\]\[1\]:0\->1|fifo_pc\[2\]\[1\]:1\->0|fifo_pc\[3\]\[0\]:0\->1|fifo_pc\[3\]\[0\]:1\->0|fifo_pc\[3\]\[1\]:0\->1|fifo_pc\[3\]\[1\]:1\->0|instr_pc_o\[0\]:0\->1|instr_pc_o\[0\]:1\->0|instr_pc_o\[1\]:0\->1|instr_pc_o\[1\]:1\->0|wr_pc_i\[0\]:0\->1|wr_pc_i\[0\]:1\->0|wr_pc_i\[1\]:0\->1|wr_pc_i\[1\]:1\->0)$/  -> 24 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-id_ex  [toggle/constant]  rtl/core/id_ex.v  /^(pc_i\[0\]:0\->1|pc_i\[0\]:1\->0|pc_i\[1\]:1\->0|pc_o\[0\]:0\->1|pc_o\[0\]:1\->0)$/  -> 5 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-id_stage  [toggle/constant]  rtl/core/id_stage.v  /^(if_id_pc_i\[0\]:0\->1|if_id_pc_i\[0\]:1\->0|if_id_pc_i\[1\]:0\->1|if_id_pc_i\[1\]:1\->0|pc_o\[0\]:0\->1|pc_o\[0\]:1\->0|pc_o\[1\]:0\->1|pc_o\[1\]:1\->0)$/  -> 8 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-if_id  [toggle/constant]  rtl/core/if_id.v  /^(pc_i\[0\]:0\->1|pc_i\[0\]:1\->0|pc_i\[1\]:0\->1|pc_i\[1\]:1\->0|pc_o\[0\]:0\->1|pc_o\[0\]:1\->0|pc_o\[1\]:0\->1|pc_o\[1\]:1\->0)$/  -> 8 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-mem_stage  [toggle/constant]  rtl/core/mem_stage.v  /^(mem_exception_pc_o\[0\]:0\->1|mem_exception_pc_o\[0\]:1\->0|mem_exception_pc_o\[1\]:0\->1|mem_exception_pc_o\[1\]:1\->0|pc_i\[0\]:0\->1|pc_i\[0\]:1\->0|pc_i\[1\]:0\->1|pc_i\[1\]:1\->0)$/  -> 8 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCALIGN-trap_ctrl  [toggle/constant]  rtl/core/trap_ctrl.v  /^(idex_pc_i\[0\]:0\->1|idex_pc_i\[0\]:1\->0|idex_pc_i\[1\]:0\->1|idex_pc_i\[1\]:1\->0|mem_exc_pc_i\[0\]:0\->1|mem_exc_pc_i\[0\]:1\->0|mem_exc_pc_i\[1\]:0\->1|mem_exc_pc_i\[1\]:1\->0|mepc_i\[0\]:0\->1|mepc_i\[0\]:1\->0|mepc_i\[1\]:0\->1|mepc_i\[1\]:1\->0|trap_pc_o\[0\]:0\->1|trap_pc_o\[0\]:1\->0|trap_pc_o\[1\]:0\->1|trap_pc_o\[1\]:1\->0)$/  -> 16 point(s)
+    reason  : Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.
+    evidence: PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix   reviewer: pending: Sreyesh
+CT-PCBIT0-branch_predict  [toggle/constant]  rtl/core/branch_predict.v  /^(branch_target\[0\]:0\->1|branch_target\[0\]:1\->0|id_redirect_target_o\[0\]:0\->1|id_redirect_target_o\[0\]:1\->0|imm_b_i\[0\]:0\->1|imm_b_i\[0\]:1\->0|imm_j_i\[0\]:0\->1|imm_j_i\[0\]:1\->0|jal_target\[0\]:0\->1|jal_target\[0\]:1\->0)$/  -> 10 point(s)
+    reason  : Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)
+    evidence: PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37   reviewer: pending: Sreyesh
+CT-PCBIT0-branch_unit  [toggle/constant]  rtl/core/branch_unit.v  /^(jalr_target\[0\]:0\->1|jalr_target\[0\]:1\->0)$/  -> 2 point(s)
+    reason  : Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)
+    evidence: PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37   reviewer: pending: Sreyesh
+CT-PCBIT0-garuda_core_top  [toggle/constant]  rtl/core/garuda_core_top.v  /^(id_redir_t\[0\]:0\->1|id_redir_t\[0\]:1\->0|pc_if_redir_pc\[0\]:0\->1|pc_if_redir_pc\[0\]:1\->0)$/  -> 4 point(s)
+    reason  : Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)
+    evidence: PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37   reviewer: pending: Sreyesh
+CT-PCBIT0-garuda_if_stage_top  [toggle/constant]  rtl/core/garuda_if_stage_top.v  /^(fetch_pc\[0\]:0\->1|fetch_pc\[0\]:1\->0|redirect_pc_i\[0\]:0\->1|redirect_pc_i\[0\]:1\->0)$/  -> 4 point(s)
+    reason  : Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)
+    evidence: PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37   reviewer: pending: Sreyesh
+CT-PCBIT0-garuda_iport_ahb_master  [toggle/constant]  rtl/core/garuda_iport_ahb_master.v  /^(fetch_pc_i\[0\]:0\->1|fetch_pc_i\[0\]:1\->0)$/  -> 2 point(s)
+    reason  : Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)
+    evidence: PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37   reviewer: pending: Sreyesh
+CT-PCBIT0-garuda_pc_gen  [toggle/constant]  rtl/core/garuda_pc_gen.v  /^(fetch_pc_o\[0\]:0\->1|fetch_pc_o\[0\]:1\->0|redirect_pc_i\[0\]:0\->1|redirect_pc_i\[0\]:1\->0)$/  -> 4 point(s)
+    reason  : Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)
+    evidence: PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37   reviewer: pending: Sreyesh
+CT-PCBIT0-id_stage  [toggle/constant]  rtl/core/id_stage.v  /^(id_redirect_target_o\[0\]:0\->1|id_redirect_target_o\[0\]:1\->0|imm_b_w\[0\]:0\->1|imm_b_w\[0\]:1\->0|imm_j_w\[0\]:0\->1|imm_j_w\[0\]:1\->0)$/  -> 6 point(s)
+    reason  : Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)
+    evidence: PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37   reviewer: pending: Sreyesh
+CT-PCBIT0-imm_gen  [toggle/constant]  rtl/core/imm_gen.v  /^(imm_b_f\[0\]:0\->1|imm_b_f\[0\]:1\->0|imm_b_o\[0\]:0\->1|imm_b_o\[0\]:1\->0|imm_j_f\[0\]:0\->1|imm_j_f\[0\]:1\->0|imm_j_o\[0\]:0\->1|imm_j_o\[0\]:1\->0)$/  -> 8 point(s)
+    reason  : Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)
+    evidence: PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37   reviewer: pending: Sreyesh
+CT-PCBIT0-pipe_ctrl  [toggle/constant]  rtl/core/pipe_ctrl.v  /^(id_redirect_target_i\[0\]:1\->0)$/  -> 1 point(s)
+    reason  : Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)
+    evidence: PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37   reviewer: pending: Sreyesh
+
+== DESIGN HOLES (uncovered, not waived) ==
+
+== FUNCTIONAL HOLES (bins never hit, not waived) ==
+
+verdict: PASS  (0 below target, 0 waiver/input error(s))

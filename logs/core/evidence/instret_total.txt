@@ -1,0 +1,7 @@
+Co-simulation-checked instructions (plan 5.12, sign-off row 12)
+suites: endurance cosim stress riscv_dv; passing co-simulated runs: 2092
+TOTAL: 1,084,831,114 instructions, each compared with Spike (target 1e9: MET)
+  endurance    1,050,737,400
+  stress          33,287,333
+  cosim              664,712
+  riscv_dv           141,669

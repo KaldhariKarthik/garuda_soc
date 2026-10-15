@@ -1,0 +1,25 @@
+T-12 at program level: t_core_irq_nest on tb_boot with the P0.8 test device
+date      : 2026-10-11T09:49:09+05:30
+design    : b90b481d8f91 + working tree (a/p0-infra, uncommitted W1-W5 + P0.8)
+tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+
+== after the fix: core/directed (full suite run) ==
+t_core_irq_nest	PASS	OK	yes
+t_core_irq_nest_w2	PASS	OK	yes
+-- t_core_irq_nest
+*** TOHOST=1 -> PASSED (573 instructions retired, 0 cycles clock-gated) ***
+AHB-PROTOCOL: iport=0 dport=0 violations
+-- t_core_irq_nest_w2
+*** TOHOST=1 -> PASSED (573 instructions retired, 0 cycles clock-gated) ***
+AHB-PROTOCOL: iport=0 dport=0 violations
+
+== negative control: same program, csr_file.v replaced by the T-12-reverted mutant ==
+t_core_irq_nest_no_t12	FAIL	XFAIL:PLANTED
+# shims     : REPLACED:rtl/core/csr_file.v->tb/core/formal/mutants/csr_file_no_t12.v(0)
+[533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil: [SVA-FAIL] T-12: a trap did not save the level it left in mcause[23:16]
+[898000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil: [SVA-FAIL] T-12: a trap did not save the level it left in mcause[23:16]
+*** TOHOST=0000000b -> FAILED (test 5, 161 retired) ***
+# verdict   : FAIL  exit 1; pass marker missing; 2 [FAIL] line(s); 3 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_sva.sv:61: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_mpil: [SVA-FAIL] T-12: a trap did not sav
+
+fail_reason 'FAILED (test 5,' = the level was not restored after an inner handler
+returned (phase A, depth 3). The runner counts this as XFAIL only with that reason.

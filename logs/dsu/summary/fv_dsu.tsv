@@ -1,0 +1,9 @@
+# garuda-fv 1 suite=fv_dsu block=dsu date=2026-10-13T08:16:08+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+dsu_bmc	bmc	BOUNDED(16)	OK	3	[18 asserts, 6 covers in model] 	logs/dsu/raw/fv_dsu/fv_dsu_bmc.log
+dsu_prove	prove	PROVEN	OK	1	[18 asserts, 6 covers in model] 	logs/dsu/raw/fv_dsu/fv_dsu_prove.log
+dsu_cover	cover	COVERED	OK	27	[18 asserts, 6 covers in model] 	logs/dsu/raw/fv_dsu/fv_dsu_cover.log
+dsu_no_dsu9	bmc	FAIL	XFAIL:PLANTED	0	[18 asserts, 6 covers in model] props: u_dsu_sva.a_interlock_per_acc	logs/dsu/raw/fv_dsu/fv_dsu_no_dsu9.log
+dsu_mut_no_interlock	bmc	FAIL	XFAIL:PLANTED	0	[16 asserts, 6 covers in model] props: u_dsu_sva.a_interlock_fires	logs/dsu/raw/fv_dsu/fv_dsu_mut_no_interlock.log
+dsu_mut_ovf_not_sticky	bmc	FAIL	XFAIL:PLANTED	38	[18 asserts, 6 covers in model] props: u_dsu_sva.a_ovf_sticky	logs/dsu/raw/fv_dsu/fv_dsu_mut_ovf_not_sticky.log
+dsu_mut_ovf_clear_drops_set	bmc	FAIL	XFAIL:PLANTED	28	[18 asserts, 6 covers in model] props: u_dsu_sva.a_ovf_set_beats_clear	logs/dsu/raw/fv_dsu/fv_dsu_mut_ovf_clear_drops_set.log

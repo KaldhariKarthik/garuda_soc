@@ -1,0 +1,22 @@
+CORE-4 W5 (b): mgarudactl.PREEMPT_DIS with deterministic test-device interrupts (t_core_preempt)
+date      : 2026-10-11T09:49:09+05:30
+design    : b90b481d8f91 + working tree (a/p0-infra, uncommitted)
+tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+
+PREEMPT_DIS=1: a level-200 request raised inside the level-40 handler (MIE on) is held
+until the level-40 handler returns. PREEMPT_DIS=0: it preempts. DN-CTL allows only this
+architectural difference.
+
+== fixed RTL: core/directed ==
+t_core_preempt	PASS	OK
+t_core_preempt_w2	PASS	OK
+
+== negative control: clic_ctrl.v replaced by clic_ctrl_no_preempt.v (knob ignored) ==
+t_core_preempt_no_knob	FAIL	XFAIL:PLANTED
+# shims     : REPLACED:rtl/core/clic_ctrl.v->tb/core/formal/mutants/clic_ctrl_no_preempt.v(0)
+[383000] %Error: core_ctl_sva.sv:39: Assertion failed in tb_boot.dut.u_ctl_sva.a_ctl_preempt: [SVA-FAIL] CORE-4: PREEMPT_DIS set but a CLIC interrupt preempted level 40
+*** TOHOST=00000007 -> FAILED (test 3, 115 retired) ***
+# verdict   : FAIL  exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [383000] %Error: core_ctl_sva.sv:39: Assertion failed in tb_boot.dut.u_ctl_sva.a_ctl_preempt: [SVA-FAIL] CORE-4: PREEMPT_DIS set but a CLIC 
+
+Two independent checkers catch the mutant: the a_ctl_preempt assertion (cycle level)
+and the program's own architectural check (test 3).

@@ -1,0 +1,134 @@
+# Plan 5.1 acceptance: the core's RVFI port (GARUDA_RVFI) produces the same
+# commit log as tb_boot's probe on every ISA, directed and coverage program
+# (tools/rvfi_check.py as the post-check). GENERATED from isa / directed /
+# covtests manifests by hand-run snippet; regenerate when they change.
+# Run: make -f flow/mk/track_a_run.mk core_rvfi
+[suite]
+block = "core"
+name  = "rvfi"
+kind  = "prog"
+xfail = "tb/core/run/xfail.tsv"
+
+[bench]
+flist = "tb/soc/filelist_boot_rvfi.f"
+top   = "tb_boot"
+
+[defaults]
+marker   = 'TOHOST=1 -> PASSED'
+timeout  = 600
+require  = ['AHB-PROTOCOL: iport=0 dport=0']
+post     = ["python3", "{root}/tools/rvfi_check.py", "{commit}", "{raw}/{name}.rvfi.log"]
+
+[[programs]]
+glob = "sw/riscv-tests/build/*.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_core_mret_buserr"
+hex  = "sw/build/t_core_mret_buserr.hex"
+plusargs = ["+MAXCYC=20000", "+QUIET", "+ERR_EN=1", "+ERR_BASE=10020000", "+ERR_SIZE=1000", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_core_mret_buserr_w2"
+hex  = "sw/build/t_core_mret_buserr.hex"
+plusargs = ["+MAXCYC=20000", "+QUIET", "+ERR_EN=1", "+ERR_BASE=10020000", "+ERR_SIZE=1000", "+DWAIT=2", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_core_wfi_buserr"
+hex  = "sw/build/t_core_wfi_buserr.hex"
+plusargs = ["+MAXCYC=20000", "+QUIET", "+ERR_EN=1", "+ERR_BASE=10020000", "+ERR_SIZE=1000", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_core_wfi_buserr_w2"
+hex  = "sw/build/t_core_wfi_buserr.hex"
+plusargs = ["+MAXCYC=20000", "+QUIET", "+ERR_EN=1", "+ERR_BASE=10020000", "+ERR_SIZE=1000", "+DWAIT=2", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_core_ctl"
+hex  = "sw/build/t_core_ctl.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_core_ctl_w3"
+hex  = "sw/build/t_core_ctl_arch.hex"
+plusargs = ["+MAXCYC=400000", "+QUIET", "+IWAIT=3", "+DWAIT=3", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_core_irq_nest"
+hex  = "sw/build/t_core_irq_nest.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_core_irq_nest_w2"
+hex  = "sw/build/t_core_irq_nest.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IWAIT=2", "+DWAIT=2", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_core_preempt"
+hex  = "sw/build/t_core_preempt.hex"
+plusargs = ["+MAXCYC=50000", "+QUIET", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_core_preempt_w2"
+hex  = "sw/build/t_core_preempt.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET", "+IWAIT=2", "+DWAIT=2", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_cov_fault"
+hex  = "sw/build/t_cov_fault.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_cov_fault_w3"
+hex  = "sw/build/t_cov_fault.hex"
+plusargs = ["+MAXCYC=400000", "+QUIET", "+IWAIT=3", "+DWAIT=3", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_cov_csr"
+hex  = "sw/build/t_cov_csr.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_cov_illegal"
+hex  = "sw/build/t_cov_illegal.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_cov_dsu"
+hex  = "sw/build/t_cov_dsu.hex"
+plusargs = ["+MAXCYC=8000000", "+QUIET", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_cov_rereset"
+hex  = "sw/build/t_cov_rereset.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+RERESET_AT=3000", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_cov_rereset_w2"
+hex  = "sw/build/t_cov_rereset.hex"
+plusargs = ["+MAXCYC=400000", "+QUIET", "+RERESET_AT=7001", "+IWAIT=2", "+DWAIT=2", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_cov_irq"
+hex  = "sw/build/t_cov_irq.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_cov_irq_w2"
+hex  = "sw/build/t_cov_irq.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IWAIT=2", "+DWAIT=2", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_cov_misfetch"
+hex  = "sw/build/t_cov_misfetch.hex"
+plusargs = ["+MAXCYC=50000", "+QUIET", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_cov_misfetch_w2"
+hex  = "sw/build/t_cov_misfetch.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET", "+IWAIT=2", "+DWAIT=2", "+RVFI_LOG={raw}/{name}.rvfi.log"]
+
+[[test]]
+name = "rv_t_cov_misfetch_d3"
+hex  = "sw/build/t_cov_misfetch.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET", "+DWAIT=3", "+RVFI_LOG={raw}/{name}.rvfi.log"]

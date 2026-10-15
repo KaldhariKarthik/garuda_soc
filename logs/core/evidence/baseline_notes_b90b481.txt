@@ -1,0 +1,31 @@
+Differences against the audit reference aae00a2 (same tools: Verilator 5.052, Icarus 12, Spike 609dbe0)
+------------------------------------------------------------------------------------------------------
+Core/DSU RTL diff aae00a2..b90b481: rtl/core/csr_file.v only (+9/-1, 4b4ca55: T-15, mepc bit 1 masked).
+Flow diff: 919ae7a (VER-3) lockstep also compares stores, traps and CSR values; 4b4ca55 adds
+sw/riscv-tests/local/csr_warl.S.
+
+suite        audit (aae00a2)                 baseline (b90b481)              explained by
+units        5/6, id_stage FAIL              5/6, id_stage XFAIL TB-33       identical
+elements     10/13 shimmed + clic_ctrl PASS  11/14 (same 3 fail, classified) identical (SHIM-SB-SUMMARY = audit shim)
+smokes       7/7                             7/7                             identical
+isa          63/63, 57 MATCH + 6 n/a         64/64, 58 MATCH + 6 n/a         +p-csr_warl (4b4ca55); MATCH now incl. stores/traps/CSRs (VER-3)
+isa_rand     63/63 (seed 3)                  64/64 (seed 3)                  +p-csr_warl
+sanity       12/12                           12/12                           identical
+extra        3/3                             3/3                             identical
+dsu          445/0 on Icarus                 445/0 on Icarus; Verilator      identical; TB-35 = audit F-09, now a
+                                             row XFAIL TB-35                 classified row instead of a note
+
+Oracle qualification on this baseline (logs/flow/summary/lockstep_negctl.txt):
+  N0 match; N2 flipped value DIVERGE; N3 short RTL log MISMATCH; N4 short Spike log MISMATCH
+  (the audit's N4 hole is closed by VER-3); N5 Spike exit 1 after a full log: NOT caught on
+  b90b481 (TOOL-12, evidence logs/flow/evidence/TOOL-12_before_lockstep_negctl.txt), caught
+  after the Track A fix in tools/lockstep.py; N1 add->sub image FAILs its self-check.
+Runner qualification (logs/flow/summary/selftest.tsv): 8 planted FAILs + 1 planted BLOCKED all
+caught, a stale xfail entry fails the suite, SVA liveness counts exact (Verilator deviations pinned:
+async disable iff fires once; $isunknown never fires).
+
+New Verilator fact found while qualifying (2026-10-11): a process keeps executing after $finish
+until it yields, so a bench must not rely on an earlier $finish to skip its pass line.
+
+XCELIUM-ONLY (never claimed from these runs): X-propagation, reset-X, $isunknown checks, IMC
+code coverage. Karthik's Xcelium cross-run of the same suites completes Gate A.

@@ -48,56 +48,10 @@
 // -------------------------------------------------------------
 // 1. DUT: imm_gen.v (pasted verbatim, `include line substituted per above)
 // -------------------------------------------------------------
-`ifndef GARUDA_REAL_RTL
-// -----------------------------------------------------------------------------
-// INLINED DUT COPY -- guarded (added 2026-08-02).
-//
-// This file carries its own copy of the DUT so it can be compiled standalone
-// under VCS. That copy is a SNAPSHOT and had already drifted from rtl/core/*.v
-// (it predates the SLLI/SRLI/SRAI funct7 check and the FENCE decode), so a
-// green run against it proves nothing about the RTL that actually ships.
-//
-// Defining GARUDA_REAL_RTL skips this copy so the testbench binds to the real
-// rtl/core sources -- that is what tb/core/filelist_*.f does. Compiling this
-// file standalone with no define behaves exactly as before.
-// -----------------------------------------------------------------------------
-module imm_gen (
-    input  wire [31:0] instr_i,
-    input  wire [2:0]  imm_sel_i,
-
-    output reg  [31:0] imm_o,
-    output wire [31:0] imm_b_o,
-    output wire [31:0] imm_j_o
-);
-
-    wire [31:0] imm_i_f, imm_s_f, imm_b_f, imm_u_f, imm_j_f, imm_csr_f;
-
-    assign imm_i_f   = {{20{instr_i[31]}}, instr_i[31:20]};
-    assign imm_s_f   = {{20{instr_i[31]}}, instr_i[31:25], instr_i[11:7]};
-    assign imm_b_f   = {{19{instr_i[31]}}, instr_i[31], instr_i[7],
-                         instr_i[30:25], instr_i[11:8], 1'b0};
-    assign imm_u_f   = {instr_i[31:12], 12'b0};
-    assign imm_j_f   = {{11{instr_i[31]}}, instr_i[31], instr_i[19:12],
-                         instr_i[20], instr_i[30:21], 1'b0};
-    assign imm_csr_f = {27'b0, instr_i[19:15]};
-
-    assign imm_b_o = imm_b_f;
-    assign imm_j_o = imm_j_f;
-
-    always @(*) begin
-        case (imm_sel_i)
-            `IMM_I:   imm_o = imm_i_f;
-            `IMM_S:   imm_o = imm_s_f;
-            `IMM_B:   imm_o = imm_b_f;
-            `IMM_U:   imm_o = imm_u_f;
-            `IMM_J:   imm_o = imm_j_f;
-            `IMM_CSR: imm_o = imm_csr_f;
-            default:  imm_o = 32'b0;
-        endcase
-    end
-
-endmodule
-`endif // GARUDA_REAL_RTL -- inlined DUT copy ends; verification env follows
+// (W6, 2026-10-11) The inlined DUT copy that stood here under `ifndef
+// GARUDA_REAL_RTL is removed: no flow compiled it (every filelist defines the
+// macro), it had drifted from rtl/core, and a build without the define would
+// have verified the stale copy. The bench binds the real rtl/core sources only.
 
 
 

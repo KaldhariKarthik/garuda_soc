@@ -1,7 +1,26 @@
 `timescale 1ns/1ps
 `default_nettype none
+// -----------------------------------------------------------------------------
+// Track A P0.8 changes (behaviour of every existing plusarg unchanged):
+//  * exit status: a failing verdict (TOHOST fail, TIMEOUT, AHB violation) ends
+//    with $fatal(1), so the simulator's exit code tells the truth (TOOL-13);
+//  * $shm_open/$shm_probe compiled only for Cadence (no shim needed elsewhere);
+//  * TEST DEVICE: software-driven interrupt and timer events, so interrupt
+//    tests are deterministic and need no per-test plusargs. Completed D-port
+//    word writes to (all inside the scratch area next to TOHOST):
+//      0x1000_F200 IRQ_SET   [4:0] id, [15:8] level: raise a CLIC request, held
+//                            until software clears it (a real peripheral)
+//      0x1000_F204 IRQ_CLR   drop the request
+//      0x1000_F208 MTIP      [0]: machine-timer interrupt pending (set/clear)
+//      0x1000_F20C IRQ_ARM   N: raise the STAGED request after N more retired
+//                            instructions (deterministic timing)
+//      0x1000_F210 IRQ_STAGE [4:0] id, [15:8] level of the staged request
+//      0x1000_F214 IRQ_ARMC  N: raise the STAGED request N cycles from now
+//                            (for wake-from-WFI tests: nothing retires while asleep)
+//    The device ORs with the plusarg-driven sources (+IRQ_AT, +MTIP_AT ...).
+// -----------------------------------------------------------------------------
 // =============================================================================
-// GARUDA SoC - tb_boot.v
+// GARUDA SoC - tb_boot.sv  (SystemVerilog since 2026-10-11, Track A P0.8; was tb_boot.v)
 // Minimal boot testbench: core + dual-ported AHB memory model.
 //
 // This is the first testbench in the project that runs REAL INSTRUCTIONS
@@ -53,7 +72,11 @@ module tb_boot;
 
     // ---------------- parameters / plusargs ----------------
     localparam [31:0] BASE_ADDR  = 32'h1000_0000;
+`ifdef GARUDA_TB_MEM2M
+    localparam integer SIZE_B    = 32'h0020_0000;   // 2 MiB: riscv-arch-test (jal-01 alone is 1.7 MiB)
+`else
     localparam integer SIZE_B    = 32'h0004_0000;   // 256 KB
+`endif
 
     reg [4095:0] hexfile;
     reg [4095:0] commitfile;
@@ -167,12 +190,53 @@ module tb_boot;
         else if (d_htrans[1] && d_hwrite && d_hready && d_haddr == 32'h1000_F100) mtip <= 1'b0;
         else if (mtip_at > 0 && cyc == mtip_at) mtip <= 1'b1;
     end
+    // ---- TEST DEVICE (P0.8): see the header -----------------------------------
+    localparam [31:0] DEV_IRQ_SET = 32'h1000_F200, DEV_IRQ_CLR = 32'h1000_F204,
+                      DEV_MTIP    = 32'h1000_F208, DEV_IRQ_ARM = 32'h1000_F20C,
+                      DEV_IRQ_STG = 32'h1000_F210, DEV_IRQ_ARMC = 32'h1000_F214;
+    reg        dev_irq_req, dev_mtip, dev_armed, dev_armed_c;
+    integer    dev_arm_cyc;
+    reg [4:0]  dev_irq_id, dev_stg_id;
+    reg [7:0]  dev_irq_lvl, dev_stg_lvl;
+    integer    dev_arm_at;
+    wire       dev_wr = rst_n && u_mem.b_dv && u_mem.b_dw && u_mem.d_hready_o;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            dev_irq_req <= 1'b0; dev_mtip <= 1'b0; dev_armed <= 1'b0; dev_armed_c <= 1'b0; dev_arm_cyc <= 0;
+            dev_irq_id <= 5'd0; dev_irq_lvl <= 8'd0; dev_stg_id <= 5'd0; dev_stg_lvl <= 8'd0;
+            dev_arm_at <= 0;
+        end else begin
+            if (dev_armed && ninstr >= dev_arm_at) begin
+                dev_irq_req <= 1'b1; dev_irq_id <= dev_stg_id; dev_irq_lvl <= dev_stg_lvl;
+                dev_armed   <= 1'b0;
+            end
+            // IRQ_ARMC: the same, counted in CYCLES (retirement stops while the
+            // core sleeps in WFI, so a wake-up test cannot use IRQ_ARM)
+            if (dev_armed_c && cyc >= dev_arm_cyc) begin
+                dev_irq_req <= 1'b1; dev_irq_id <= dev_stg_id; dev_irq_lvl <= dev_stg_lvl;
+                dev_armed_c <= 1'b0;
+            end
+            if (dev_wr) begin
+                case (u_mem.b_da)
+                    DEV_IRQ_SET: begin dev_irq_req <= 1'b1; dev_irq_id <= d_hwdata[4:0]; dev_irq_lvl <= d_hwdata[15:8]; end
+                    DEV_IRQ_CLR: dev_irq_req <= 1'b0;
+                    DEV_MTIP:    dev_mtip    <= d_hwdata[0];
+                    DEV_IRQ_STG: begin dev_stg_id <= d_hwdata[4:0]; dev_stg_lvl <= d_hwdata[15:8]; end
+                    DEV_IRQ_ARM: begin dev_armed <= 1'b1; dev_arm_at <= ninstr + d_hwdata; end
+                    DEV_IRQ_ARMC: begin dev_armed_c <= 1'b1; dev_arm_cyc <= cyc + d_hwdata; end
+                    default: ;
+                endcase
+            end
+        end
+    end
+
     integer sleep_cycles;
     always @(posedge clk or negedge rst_n)
         if (!rst_n) sleep_cycles <= 0; else if (core_sleep) sleep_cycles <= sleep_cycles + 1;
 
     garuda_core_top #(.RESET_VECTOR(BASE_ADDR)) dut (
         .clk_i(clk), .core_rst_n_i(rst_n), .hartreset_n_i(1'b1),
+        .halt_req_i(1'b0), .halt_safe_o(),             // no debugger here (RDC-1 ports)
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize),
         .i_hburst_o(i_hburst), .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite),
         .i_hwdata_o(i_hwdata), .i_hrdata_i(i_hrdata), .i_hready_i(i_hready),
@@ -181,9 +245,10 @@ module tb_boot;
         .d_hburst_o(d_hburst), .d_hprot_o(d_hprot), .d_hwrite_o(d_hwrite),
         .d_hwdata_o(d_hwdata), .d_hrdata_i(d_hrdata), .d_hready_i(d_hready),
         .d_hresp_i(d_hresp),
-        .clic_irq_valid_i(irq_req), .clic_irq_id_i(irq_id_eff),
-        .clic_irq_level_i(irq_lvl_eff),
-        .mtip_i(mtip),
+        .clic_irq_valid_i(irq_req | dev_irq_req),
+        .clic_irq_id_i(dev_irq_req ? dev_irq_id : irq_id_eff),
+        .clic_irq_level_i(dev_irq_req ? dev_irq_lvl : irq_lvl_eff),
+        .mtip_i(mtip | dev_mtip),
         .dbg_acc_0_o(dbg_acc0), .dbg_acc_1_o(dbg_acc1), .dbg_acc_2_o(dbg_acc2),
         .dsu_ovf_o(), .core_sleep_o(core_sleep)
     );
@@ -288,6 +353,92 @@ module tb_boot;
         end
     end
 
+`ifdef GARUDA_COSIM
+    // =========================================================================
+    // Spike co-simulation (plan 5.2 / 5.3, tools/cosim/garuda_cosim.cc): one
+    // DPI step per RVFI record; interrupts the RTL takes are queued and applied
+    // to Spike from the spec when the handler's first instruction arrives.
+    // =========================================================================
+    import "DPI-C" function int  garuda_cosim_init(input string hexfile, input int base, input int size,
+                                                    input int err_en, input int err_base, input int err_size);
+    import "DPI-C" function void garuda_cosim_reset();
+    import "DPI-C" function void garuda_cosim_interrupt(input int cause, input int level, input int thresh);
+    import "DPI-C" function int  garuda_cosim_step(input int pc, input int insn, input int trap, input int intr,
+                                                    input int npc, input int rd, input int rd_wdata,
+                                                    input int mem_addr, input int mem_wmask, input int mem_wdata);
+    import "DPI-C" function void garuda_cosim_report();
+    import "DPI-C" function int  garuda_cosim_mismatches();
+    // +COSIM_NEGCTL=<kind>: negative controls (plan: the co-simulation must
+    // catch each of these): rd, store, pc, trap, irq_drop, irq_extra. One
+    // corruption, on the first record / event it applies to.
+    reg [8*16-1:0] negctl;
+    reg            neg_done;
+    initial begin
+        if (!$value$plusargs("COSIM_NEGCTL=%s", negctl)) negctl = "";
+        neg_done = 1'b0;
+    end
+    reg [31:0] cs_rdw, cs_wd, cs_pc;
+    reg        cs_trap;
+    always @(posedge clk)
+        if (rst_n && dut.tr_enter && dut.tr_is_int) begin
+            if (negctl == "irq_drop" && !neg_done) neg_done = 1'b1;              // the RTL's interrupt is lost
+            else begin
+                garuda_cosim_interrupt(dut.tr_cause, {24'd0, dut.tr_level}, {24'd0, dut.csr_mintthresh});
+                if (negctl == "irq_extra" && !neg_done) begin                 // a spurious second one
+                    garuda_cosim_interrupt(dut.tr_cause, {24'd0, dut.tr_level}, {24'd0, dut.csr_mintthresh});
+                    neg_done = 1'b1;
+                end
+            end
+        end
+    always @(posedge clk)
+        if (rst_n && dut.rvfi_valid) begin
+            cs_rdw = dut.rvfi_rd_wdata; cs_wd = dut.rvfi_mem_wdata; cs_pc = dut.rvfi_pc_rdata;
+            cs_trap = dut.rvfi_trap;
+            if (!neg_done) begin
+                if (negctl == "rd" && dut.rvfi_rd_addr != 5'd0) begin cs_rdw = cs_rdw ^ 32'h1; neg_done = 1'b1; end
+                if (negctl == "store" && dut.rvfi_mem_wmask != 4'd0) begin cs_wd = cs_wd ^ 32'h0101_0101; neg_done = 1'b1; end
+                if (negctl == "pc" && dut.rvfi_order > 64'd20) begin cs_pc = cs_pc + 32'd4; neg_done = 1'b1; end
+                if (negctl == "trap" && dut.rvfi_order > 64'd20 && !dut.rvfi_trap) begin cs_trap = 1'b1; neg_done = 1'b1; end
+            end
+            void'(garuda_cosim_step(cs_pc, dut.rvfi_insn, {31'd0, cs_trap},
+                                    {31'd0, dut.rvfi_intr}, dut.rvfi_pc_wdata, {27'd0, dut.rvfi_rd_addr},
+                                    cs_rdw, dut.rvfi_mem_addr, {28'd0, dut.rvfi_mem_wmask}, cs_wd));
+        end
+`endif
+
+`ifdef GARUDA_RVFI
+    // =========================================================================
+    // RVFI log (plan 5.1): the same commit-log format, written from the core's
+    // RVFI port instead of the probe above. tools/rvfi_check.py requires the
+    // two logs to agree line for line (retirements and stores) and the trap
+    // records to match the TRAP lines.
+    // =========================================================================
+    integer    fh_rvfi;
+    reg [1023:0] rvfifile;
+    initial begin
+        if (!$value$plusargs("RVFI_LOG=%s", rvfifile)) rvfifile = "rvfi.log";
+        fh_rvfi = $fopen(rvfifile, "w");
+        $fwrite(fh_rvfi, "# garuda-rvfi-log 1\n");
+    end
+    integer    rv_b, rv_n;
+    reg [31:0] rv_a, rv_d;
+    always @(posedge clk)
+        if (rst_n && dut.rvfi_valid) begin
+            if (dut.rvfi_trap)
+                $fwrite(fh_rvfi, "TRAPREC %08x %08x\n", dut.rvfi_pc_rdata, dut.rvfi_insn);
+            else begin
+                if (dut.rvfi_mem_wmask != 4'd0) begin
+                    rv_b = dut.rvfi_mem_wmask[0] ? 0 : dut.rvfi_mem_wmask[1] ? 1 : dut.rvfi_mem_wmask[2] ? 2 : 3;
+                    rv_n = dut.rvfi_mem_wmask[0] + dut.rvfi_mem_wmask[1] + dut.rvfi_mem_wmask[2] + dut.rvfi_mem_wmask[3];
+                    rv_a = dut.rvfi_mem_addr + rv_b;
+                    rv_d = dut.rvfi_mem_wdata >> (rv_b * 8);
+                    $fwrite(fh_rvfi, "MEM %08x %0d %08x\n", rv_a, rv_n, rv_d);
+                end
+                $fwrite(fh_rvfi, "%08x %02d %08x\n", dut.rvfi_pc_rdata, dut.rvfi_rd_addr, dut.rvfi_rd_wdata);
+            end
+        end
+`endif
+
     // =========================================================================
     // Store, CSR and trap records (see the header)
     // =========================================================================
@@ -353,6 +504,7 @@ module tb_boot;
             tohost_val = d_hwdata;
             if (tohost_val == 32'h1) begin
                 $display("\n*** TOHOST=1 -> PASSED (%0d instructions retired, %0d cycles clock-gated) ***", ninstr, sleep_cycles);
+                $display("RUN-STATS: retired=%0d cycles=%0d", ninstr, cyc);   // throughput (P0.11)
                 finish_sim(0);
             end else begin
                 $display("\n*** TOHOST=%08x -> FAILED (test %0d, %0d retired) ***",
@@ -362,6 +514,9 @@ module tb_boot;
         end
     end
 
+    reg [4095:0] sigfile;
+    reg [31:0]   sig_b, sig_e, sig_a;
+    integer      fh_sig;
     task finish_sim;
         input integer code;
         begin
@@ -389,6 +544,15 @@ module tb_boot;
                 $display("\n*** AHB PROTOCOL VIOLATIONS -> FAILED (use +NO_AHBCHK_FATAL to demote) ***");
                 code = 3;
             end
+`ifdef GARUDA_COSIM
+            // ---- Spike co-simulation verdict (plan 5.2 / 5.3) -----------------
+            garuda_cosim_report();
+            if ((garuda_cosim_mismatches() != 0) && (code == 0)) begin
+                $display("[FAIL] COSIM: %0d mismatch(es) against Spike", garuda_cosim_mismatches());
+                $display("\n*** COSIM MISMATCH -> FAILED ***");
+                code = 5;
+            end
+`endif
 
             // Functional coverage self-report, if the covergroups are bound in
             // (filelist_boot_cov.f). Guarded so the plain filelist still runs.
@@ -397,7 +561,22 @@ module tb_boot;
 `endif
             $fflush(fh_commit);
             $fclose(fh_commit);
+            // +SIGFILE / +SIGBEGIN / +SIGEND: riscv-arch-test signature (plan 5.4),
+            // one 32-bit word per line, the format of spike +signature-granularity=4
+            if ($value$plusargs("SIGFILE=%s", sigfile) && $value$plusargs("SIGBEGIN=%h", sig_b) &&
+                $value$plusargs("SIGEND=%h", sig_e)) begin
+                fh_sig = $fopen(sigfile, "w");
+                for (sig_a = sig_b; sig_a < sig_e; sig_a = sig_a + 4)
+                    $fwrite(fh_sig, "%08x\n", u_mem.mem[(sig_a - BASE_ADDR) >> 2]);
+                $fclose(fh_sig);
+            end
+`ifdef GARUDA_RVFI
+            $fflush(fh_rvfi);
+            $fclose(fh_rvfi);
+`endif
             exit_code = code;
+            // P0.8 / TOOL-13: the exit status carries the verdict
+            if (code != 0) $fatal(1, "tb_boot: FAILED (code %0d)", code);
             $finish;
         end
     endtask
@@ -438,20 +617,44 @@ module tb_boot;
         if (!$value$plusargs("COMMIT=%s", commitfile)) commitfile = "commit.log";
         fh_commit = $fopen(commitfile, "w");
         if (fh_commit == 0) begin
-            $display("FATAL: cannot open commit log"); $finish;
+            $fatal(1, "tb_boot: cannot open commit log");
         end
         $fwrite(fh_commit, "# garuda-commit-log 2\n");
 
         if (!$value$plusargs("HEX=%s", hexfile)) begin
-            $display("FATAL: tb_boot requires +HEX=<image>"); $finish;
+            $fatal(1, "tb_boot: requires +HEX=<image>");
         end
         $readmemh(hexfile, u_mem.mem);
         $display("tb_boot: image=%0s  reset=%08x  tohost=%08x", hexfile, BASE_ADDR, tohost_addr);
+`ifdef GARUDA_COSIM
+        if (garuda_cosim_init($sformatf("%0s", hexfile), BASE_ADDR, SIZE_B, err_en, err_base, err_size) != 0)
+            $fatal(1, "tb_boot: cosim init failed");
+`endif
 
         rst_n = 1'b0;
         repeat (5) @(posedge clk);
         rst_n = 1'b1;
         $display("tb_boot: reset released, fetching from %08x", BASE_ADDR);
+    end
+
+    // +RERESET_AT=<cycle>: a warm system reset in the middle of the run (core,
+    // bus logic, test device and checkers together, 5 cycles; the memory
+    // CONTENTS survive, as an SRAM's do). The program sees a second boot from
+    // the reset vector. Track A coverage closure: core_rst_n_i never fell after
+    // power-up in any suite, so no reset-during-operation path was exercised.
+    integer rereset_at;
+    initial begin
+        if ($value$plusargs("RERESET_AT=%d", rereset_at)) begin
+            wait (cyc >= rereset_at);
+            @(negedge clk);
+            rst_n = 1'b0;
+            $display("tb_boot: warm reset at cycle %0d (%0d retired so far)", cyc, ninstr);
+`ifdef GARUDA_COSIM
+            garuda_cosim_reset();
+`endif
+            repeat (5) @(posedge clk);
+            rst_n = 1'b1;
+        end
     end
 
     always @(posedge clk) begin
@@ -512,17 +715,21 @@ module tb_boot;
     end
 
     // $shm_open and $shm_probe are Cadence system tasks; other simulators do
-    // not have them, so +WAVES is an Xcelium and irun option only.
-`ifndef VERILATOR
-`ifndef __ICARUS__
+    // not have them, so they are compiled for Cadence only; Verilator dumps VCD.
     initial begin
         if ($test$plusargs("WAVES")) begin
-            $shm_open("waves.shm");
+`ifndef VERILATOR
+`ifndef __ICARUS__
+            $shm_open("waves.shm");          // Cadence SimVision database
             $shm_probe(tb_boot, "AS");
+`endif
+`endif
+`ifdef VERILATOR
+            $dumpfile("waves.vcd");          // open tools: VCD (needs --trace)
+            $dumpvars(0, tb_boot);
+`endif
         end
     end
-`endif
-`endif
 
 endmodule
 

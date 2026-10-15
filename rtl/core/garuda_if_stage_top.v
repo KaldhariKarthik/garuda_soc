@@ -48,7 +48,9 @@ module garuda_if_stage_top #(
     // ----------------------------------------------------------------
     input  wire        stall_i,
     input  wire        redirect_i,
-    input  wire [31:0] redirect_pc_i
+    input  wire [31:0] redirect_pc_i,
+    input  wire        fetch_stop_i,      // RDC-1: start no new fetch (debugger halt requested)
+    input  wire        pf_dis_i           // CORE-4: mgarudactl.PF_DIS (prefetch depth 1)
 );
 
     // Inter-block wiring
@@ -89,6 +91,8 @@ module garuda_if_stage_top #(
         .fetch_pc_i    (fetch_pc),
         .fifo_occupancy_i (fifo_occupancy),
         .fifo_rd_en_i  (fifo_rd_en),
+        .stop_i        (fetch_stop_i),        // RDC-1: halt requested
+        .pf_dis_i      (pf_dis_i),            // CORE-4: mgarudactl.PF_DIS
 
         .i_haddr_o     (i_haddr_o),
         .i_htrans_o    (i_htrans_o),

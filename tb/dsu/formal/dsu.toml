@@ -1,0 +1,61 @@
+# DSU formal (Karthik's plan 5.11 / recipe R6): the bound properties of
+# rtl/dsu/dsu_props_a.sv proven on dsu_top with free inputs (tb/dsu/formal/dsu_fv_env.sv).
+# Run: make -f flow/mk/track_a_run.mk fv_dsu
+[suite]
+block = "dsu"
+name  = "fv_dsu"
+xfail = "tb/dsu/run/xfail.tsv"
+
+[design]
+flist   = "rtl/dsu/filelist.f"
+top     = "dsu_top"
+extra   = ["tb/dsu/formal/dsu_fv_env.sv"]
+min_asserts = 12
+min_covers  = 5
+
+[[task]]
+name   = "dsu_bmc"
+mode   = "bmc"
+depth  = 16
+engine = "smtbmc --keep-going yices"
+
+[[task]]
+name    = "dsu_prove"
+mode    = "prove"
+engine  = "abc pdr"
+timeout = 3600
+
+[[task]]
+name   = "dsu_cover"
+mode   = "cover"
+depth  = 16
+engine = "smtbmc yices"
+
+# negative control: the DSU-9 fix reverted (the interlock not gated by dsu_en)
+[[task]]
+name    = "dsu_no_dsu9"
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+replace = { "rtl/dsu/dsu_top.v" = "tb/dsu/formal/mutants/dsu_top_no_dsu9.v" }
+
+# Planted defects (tools/gen/gen_dsu_mutants.py, plan 5.11 / D7): the timing and
+# flag defects tb_dsu_top cannot see (TB-42) must each break a proven property.
+[[task]]
+name    = "dsu_mut_no_interlock"
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+replace = { "rtl/dsu/dsu_stall.v" = "tb/dsu/mut/dsu_stall_mut_no_interlock.v" }
+[[task]]
+name    = "dsu_mut_ovf_not_sticky"
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+replace = { "rtl/dsu/overflow_flag.v" = "tb/dsu/mut/overflow_flag_mut_ovf_not_sticky.v" }
+[[task]]
+name    = "dsu_mut_ovf_clear_drops_set"
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+replace = { "rtl/dsu/overflow_flag.v" = "tb/dsu/mut/overflow_flag_mut_ovf_clear_drops_set.v" }

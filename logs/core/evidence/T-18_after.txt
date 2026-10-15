@@ -1,0 +1,24 @@
+T-18 after the fix (branch_unit.v: a JAL takes branch_target unconditionally), 2026-10-11
+
+[covtests] block=core tests=3 seed=1 design=b90b481d8f91 DIRTY tool='Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a'
+[covtests] building tb_boot ...
+  PASS    OK                     t_cov_misfetch                   
+  PASS    OK                     t_cov_misfetch_w2                
+  PASS    OK                     t_cov_misfetch_d3                
+[covtests] PASS=3 FAIL=0 BLOCKED=0 -> OK  (logs/core/summary/covtests.partial.tsv)
+[archtest] block=core tests=1 seed=1 design=b90b481d8f91 DIRTY tool='Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a'
+[archtest] building tb_boot ...
+  FAIL    UNEXPECTED             privilege-misalign-jal-01        post-check failed: SIGNATURE MISMATCH: 4 of 69 words differ; first at word 3: dut 00000893 spike 000008d3
+[archtest] PASS=0 FAIL=1 BLOCKED=0 -> 1 unexpected  (logs/core/summary/archtest.partial.tsv)
+
+privilege-misalign-jal-01: the mtval word (w10, dut 000000b4 vs spike 000002da before) now matches;
+the 4 remaining differences are the trap-signature header words (CLIC mtvec MODE=3, see tools/archtest/sigcheck.py).
+
+formal (tb/core/formal/core_trap.toml, 2026-10-11):
+[fv_trap] block=core tasks=5 design=b90b481d8f91 DIRTY
+  PROVEN         OK                   trap_prove                     2s  [27 asserts, 21 covers in model] 
+  COVERED        OK                   trap_cover                    19s  [27 asserts, 21 covers in model] 
+  FAIL           XFAIL:PLANTED        t17_no_fix                     1s  [27 asserts, 21 covers in model] props: u_trap.u_trap_sva.a_ex_exc_needs_instr
+  FAIL           XFAIL:PLANTED        t18_no_fix                     1s  [27 asserts, 21 covers in model] props: u_trap.u_trap_sva.a_misfetch_tval_misaligned
+  FAIL           XFAIL:PLANTED        buse_no_fix                    1s  [27 asserts, 21 covers in model] props: u_if.u_iport_master.u_ctl_sva.a_ihaddr_aligned
+[fv_trap] 5 task(s) -> OK  (logs/core/summary/fv_trap.partial.tsv)

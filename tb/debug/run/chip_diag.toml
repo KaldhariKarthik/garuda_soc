@@ -1,0 +1,84 @@
+# DIAGNOSTIC twin of chip.toml: the same tests with the audit's reset-edge
+# workaround (SHIM-RSTEDGE: reset starts high and falls at 0.5 ns, so async
+# resets see a real edge in 2-state), to show the chip and the debug path work
+# once TB-30 is out of the way. Every test must PASS here.
+#
+# Chip-level integration check of the debug path (Track A W4 changed
+# rtl/debug/debug_top.v and the two RDC-1 nets in rtl/soc/garuda_soc_top.v).
+# tb/soc/tb_chip.sv is Karthik's bench; run here as the integration evidence for
+# the debug change. Known bench issues are classified, not hidden:
+#   TB-30  no reset falling edge in 2-state: RSTREASON reads 0 (basic, wdt, flash)
+#          (timers a_mtimecmp_reset at 51 ns, TB-38: fixed on main by TB-B1, 2026-10-15)
+#   TB-37  2-state image sizing: jtag streams 64 KB, so it needs a 60 ms budget
+# Run: make -f flow/mk/track_a_run.mk debug_chip_diag
+[suite]
+block = "debug"
+name  = "chip_diag"
+kind  = "prog"
+xfail = "tb/debug/run/xfail.tsv"
+
+[bench]
+flist = "tb/soc/filelist_chip.f"
+top   = "tb_chip"
+# Declared exclusion (TOOL-21): Verilator 5.052 cannot elaborate pwm_sva.sv
+# ($past of an unpacked-array element inside a generate loop, line 44). The PWM
+# properties are not the subject here; they run in Karthik's uvm_pwm (Xcelium).
+exclude = ["rtl/pwm/pwm_sva.sv"]
+
+[defaults]
+marker  = '^RESULT: PASSED'
+timeout = 1800
+cwd     = "root"
+# known lines (each exactly once per run, see tools/run/garuda_run.py `known`):
+#   timers a_mtimecmp_reset at 51 ns: TB-38 (2-state). (The clk_div
+#   a_pclk_subset_hclk artifact of SHIM-RSTEDGE is gone since Karthik's fix of his
+#   TB-34, 6aa73bb, rebased 2026-10-14.)
+known = []
+
+# Declared Verilator-only deviation (audit shim): Verilator 5.052 rejects
+# strength-qualified pullup/pulldown; the default pull strength is equivalent
+# here (every opposing driver is strong or open-drain strong-0).
+[[shim]]
+id = "SHIM-PULL"
+glob = "tb/soc/tb_chip.sv"
+match = '^(\s*)(pullup|pulldown) +\((weak|pull|strong)[01]\) +([^;]*;)(.*)$'
+replace = '\1\2 \4\5  // shim:SHIM-PULL strength dropped (Verilator 5.052)'
+lines = 4
+
+[[shim]]
+id = "SHIM-RSTEDGE"
+glob = "tb/soc/tb_chip.sv"
+match = '^(\s*)reg refclk = 0, ext_rst_n = 0, boot_sel = 1;\s*$'
+replace = '\1reg refclk = 0, ext_rst_n = 1, boot_sel = 1; initial #0.5 ext_rst_n = 0;  // shim:SHIM-RSTEDGE diagnostic (TB-30)\n'
+lines = 1
+
+[[test]]
+name = "t_chip_jtag"
+plusargs = ["+MODE=jtag", "+TEST=sw/build/t_chip_jtag.hex", "+MAXUS=60000"]
+[[test]]
+name = "t_chip_irq"
+plusargs = ["+MODE=irq", "+TEST=sw/build/t_chip_irq.hex"]
+[[test]]
+name = "t_chip_uart"
+plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_uart.hex"]
+[[test]]
+name = "t_chip_periph"
+plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_periph.hex", "+MAXUS=1200"]
+[[test]]
+name = "t_chip_integ"
+plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_integ.hex", "+MAXUS=4000"]
+[[test]]
+name = "t_chip_basic"
+plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_basic.hex"]
+# TB-38 (timers a_mtimecmp_reset at 51 ns) is fixed on main by Karthik's TB-B1 (timers_sva);
+# its known entry was removed on 2026-10-15 (a/track-a on 167aa93).
+known = [
+  # dma_sva (bound 2026-10-12): step 12 refuses DAR 0x8000 (ISRAM) after reading the source
+  ['a_no_read_before_refusal', 1, "DMA-10"],
+]
+[[test]]
+name = "t_chip_wdt"
+plusargs = ["+MODE=wdt", "+TEST=sw/build/t_chip_wdt.hex"]
+[[test]]
+name = "t_chip_flash"
+plusargs = ["+MODE=flash", "+TEST=sw/build/flash.hex", "+MAXUS=3000"]

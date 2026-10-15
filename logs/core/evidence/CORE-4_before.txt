@@ -1,0 +1,7 @@
+CORE-4 (mgarudactl) -- BEFORE (design b90b481d8f91 + W1-W4, no 0x7C0), 2026-10-11T09:24:23+05:30
+sw/tests/t_core_ctl.S on tb_boot (suite core/directed):
+  t_core_ctl: *** TOHOST=00000017 -> FAILED (test 11, 13 retired) ***
+# verdict   : FAIL  pass marker missing | first: *** TOHOST=00000017 -> FAILED (test 11, 13 retired) ***
+  t_core_ctl_w3: *** TOHOST=00000017 -> FAILED (test 11, 13 retired) ***
+# verdict   : FAIL  pass marker missing | first: *** TOHOST=00000017 -> FAILED (test 11, 13 retired) ***
+  (fail code 11 = a trap: csrw 0x7C0 is an illegal instruction without the register)

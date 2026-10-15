@@ -1,0 +1,67 @@
+garuda-run 1  suite archtest  block core  2026-10-13T08:07:57+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      I-add-01                     
+PASS    OK                      I-addi-01                    
+PASS    OK                      I-and-01                     
+PASS    OK                      I-andi-01                    
+PASS    OK                      I-auipc-01                   
+PASS    OK                      I-beq-01                     
+PASS    OK                      I-bge-01                     
+PASS    OK                      I-bgeu-01                    
+PASS    OK                      I-blt-01                     
+PASS    OK                      I-bltu-01                    
+PASS    OK                      I-bne-01                     
+PASS    OK                      I-fence-01                   
+PASS    OK                      I-jal-01                     
+PASS    OK                      I-jalr-01                    
+PASS    OK                      I-lb-align-01                
+PASS    OK                      I-lbu-align-01               
+PASS    OK                      I-lh-align-01                
+PASS    OK                      I-lhu-align-01               
+PASS    OK                      I-lui-01                     
+PASS    OK                      I-lw-align-01                
+PASS    OK                      I-misalign1-jalr-01          
+PASS    OK                      I-or-01                      
+PASS    OK                      I-ori-01                     
+PASS    OK                      I-sb-align-01                
+PASS    OK                      I-sh-align-01                
+PASS    OK                      I-sll-01                     
+PASS    OK                      I-slli-01                    
+PASS    OK                      I-slt-01                     
+PASS    OK                      I-slti-01                    
+PASS    OK                      I-sltiu-01                   
+PASS    OK                      I-sltu-01                    
+PASS    OK                      I-sra-01                     
+PASS    OK                      I-srai-01                    
+PASS    OK                      I-srl-01                     
+PASS    OK                      I-srli-01                    
+PASS    OK                      I-sub-01                     
+PASS    OK                      I-sw-align-01                
+PASS    OK                      I-xor-01                     
+PASS    OK                      I-xori-01                    
+PASS    OK                      M-mul-01                     
+PASS    OK                      M-mulh-01                    
+PASS    OK                      M-mulhsu-01                  
+PASS    OK                      M-mulhu-01                   
+PASS    OK                      Zifencei-Fencei              
+PASS    OK                      privilege-ebreak             
+PASS    OK                      privilege-ecall              
+PASS    OK                      privilege-misalign-beq-01    
+PASS    OK                      privilege-misalign-bge-01    
+PASS    OK                      privilege-misalign-bgeu-01   
+PASS    OK                      privilege-misalign-blt-01    
+PASS    OK                      privilege-misalign-bltu-01   
+PASS    OK                      privilege-misalign-bne-01    
+PASS    OK                      privilege-misalign-jal-01    
+PASS    OK                      privilege-misalign-lh-01     
+PASS    OK                      privilege-misalign-lhu-01    
+PASS    OK                      privilege-misalign-lw-01     
+PASS    OK                      privilege-misalign-sh-01     
+PASS    OK                      privilege-misalign-sw-01     
+PASS    OK                      privilege-misalign2-jalr-01  
+
+PASS    59
+FAIL    0
+BLOCKED 0
+total   59

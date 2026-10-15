@@ -1,0 +1,6 @@
+# garuda-run 1 suite=perf block=core date=2026-10-11T15:12:56+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+perf_nowait	PASS	OK	0	yes	0	0	0	n/a	35	0	-	1	2.38	20				logs/core/raw/perf/sim_perf_nowait_s1.log
+perf_w2	PASS	OK	0	yes	0	0	0	n/a	35	0	-	1	4.93	20				logs/core/raw/perf/sim_perf_w2_s1.log
+perf_rand	PASS	OK	0	yes	0	0	0	n/a	35	0	-	1	8.23	20				logs/core/raw/perf/sim_perf_rand_s1.log
+perf_lockstep	PASS	OK	0	yes	0	0	0	MATCH	35	0	-	1	2.43	20	8.09			logs/core/raw/perf/sim_perf_lockstep_s1.log

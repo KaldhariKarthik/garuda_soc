@@ -18,6 +18,7 @@
 |---|---|---|
 | 1.0–2.1 | Initial through the 27-erratum fix set. RTL implemented and verified: 63/63 lockstep against Spike | — |
 | 3.0 | `mtime`/`mtimecmp` 64-bit ports replaced by a single `mtip_i`. `hartreset_n_i` added for debug. WFI root clock gate added. Orphan `clic_mintthresh_o` removed. The hold/flush composition made a single authoritative table (§7.6). Frequency target and timing-closure fallback stated. | ADR-0010, 0012, 0001, 0009 |
+| 3.0a | Implementation-detail text aligned with the RTL (Track A W7 / AUD-12 sweep, 2026-10-11; no architectural change): the static branch predictor described ([N-7.1], [N-7.2], §13); `mtvec` reset value ([N-7.34]); `quiescent` terms and the gate enable with `CLK_GATE` and `mgarudactl.CG_DIS` ([N-7.28], [N-9.3], `a_gate_enable_is_quiescent`); `core_sleep_o` port. Architectural items (misa M vs Zmmul, CLIC `mpil`, DSU overflow) are rulings in `DECISIONS.md`, not edits here. | AUD-12, CORE-4 |
 
 ## 0.3 Normative references
 
@@ -151,6 +152,7 @@ instruction, precisely so that it cannot become a fifth.
 | `clic_irq_valid_i` | in | 1 | hclk | — | | |
 | `dsu_acc_o` | out | 48×3 | hclk | 0 | Live accumulator taps for Debug. | |
 | `dsu_ovf_o` | out | 3 | hclk | 0 | Sticky overflow taps. | |
+| `core_sleep_o` | out | 1 | hclk | 0 | `quiescent`: the core clock is gated (observability). | |
 | I-port (M0) | — | — | hclk | — | AHB-Lite, read only, INCR permitted. | |
 | D-port (M1) | — | — | hclk | — | AHB-Lite, read/write, SINGLE. | |
 
@@ -215,12 +217,16 @@ of ADR-0012: the debug subsystem is System Bus Access only and needs none of the
 
 ### 7.1 Pipeline
 
-**[N-7.1]** IF → ID → EX → MEM → WB, in-order, single issue, no branch prediction.
+**[N-7.1]** IF → ID → EX → MEM → WB, in-order, single issue, static branch prediction ([N-7.2]).
 
-**[N-7.2]** Branches and jumps resolve in EX and flush IF and ID: a 2-cycle penalty on a
-taken branch. No predictor. At 250,000 cycles per loop iteration against a few thousand
-branches, a predictor would save well under 1% of the budget for a significant area and
-verification cost.
+**[N-7.2]** Static backward-taken / forward-not-taken prediction in ID (`branch_predict.v`):
+a JAL, and a conditional branch with a negative offset, redirect fetch from ID (one bubble);
+a forward branch is predicted not taken. Every conditional branch resolves in EX; a
+misprediction flushes IF and ID and redirects from EX (two bubbles). JALR always resolves and
+redirects in EX (two bubbles). `mgarudactl.BP_DIS` (CSR 0x7C0 bit 0) predicts every
+conditional branch not taken; JAL still redirects from ID. No dynamic predictor: at 250,000
+cycles per loop iteration against a few thousand branches it would save well under 1% of the
+budget for significant area and verification cost.
 
 **[N-7.3]** The prefetch buffer holds up to 4 instructions and issues undefined-length INCR
 bursts on the I-port. It absorbs arbitration latency, which is why the I-port is the
@@ -381,7 +387,9 @@ inverted.
 at the instruction after WFI without taking a trap.
 
 **[N-7.28]** `pipe_ctrl` exports a single `quiescent` signal, asserted when the pipeline is
-held by `H5` and no bus transfer is outstanding. `core_clk_gate` uses exactly this signal,
+held by `H5` (WFI) with the WFI settled, both bus ports idle, the DSU not busy and no D-port
+data phase stalling MEM (`quiescent = wfi_hold & wfi_settled & bus_idle & ~dsu_busy &
+~mem_stall`), so the gate can never freeze a DSU accumulate or a transfer part-way. `core_clk_gate` uses exactly this signal,
 through a standard ICG, to gate `hclk` to the core and DSU.
 
 **[N-7.29]** **The gate's enable is `quiescent` from `pipe_ctrl`, not a separate decode of the
@@ -410,9 +418,9 @@ measurement ([N-6.2]) and is not asserted here.
 core and DSU reset.
 
 **[N-7.34]** On reset the PC is `BOOTROM_BASE` (`0x1000_0000`), from the generated header.
-The prefetch buffer is empty, all CSRs take their reset values, and `mtvec` is
-**uninitialised** — which is why the bootloader installs a trap handler before touching the
-SPI (`GARUDA-MEM-SPEC-001` §8.6).
+The prefetch buffer is empty and all CSRs take their reset values; `mtvec` resets to base 0
+(reads `0x0000_0003`, MODE = 3), which is not code — which is why the bootloader installs a
+trap handler before touching the SPI (`GARUDA-MEM-SPEC-001` §8.6).
 
 **[N-7.35]** `hartreset` does not reset the bus, memories or peripherals, so the Debug
 Module's SBA keeps working while the core is held. Resume is release of `hartreset`, and the
@@ -509,7 +517,10 @@ mtip_i    ───────────────────────�
 
 **[N-9.2]** Two reset inputs, ORed internally ([N-7.33]).
 
-**[N-9.3]** Clock gating: one root gate on core + DSU, enabled by `quiescent` (§7.7). No
+**[N-9.3]** Clock gating: one root gate on core + DSU, enabled by `quiescent` (§7.7):
+`en = ~quiescent | (CLK_GATE == 0) | mgarudactl.CG_DIS`. The `garuda_core_top` parameter
+`CLK_GATE` (default 1) builds the core without the gate (`CLK_GATE = 0`, the formal model's
+pass-through); `mgarudactl.CG_DIS` (CSR 0x7C0 bit 3) keeps it open at run time. No
 other gating in the core — finer-grained gating would need per-stage idle conditions derived
 from the same pipeline state, which is the duplication [N-7.29] forbids.
 
@@ -537,7 +548,7 @@ a_hartreset_resets: assert property (
 
 // --- THE Rev 3.0 property: the clock gate uses pipe_ctrl's quiescent, nothing else
 a_gate_enable_is_quiescent: assert property (
-  @(posedge hclk_i) core_clk_en == !quiescent);
+  @(posedge hclk_i) core_clk_en == (!quiescent || CLK_GATE == 0 || mgarudactl_cg_dis));
 
 // --- the core is never gated with a bus transfer outstanding
 a_no_gate_with_bus: assert property (
@@ -661,7 +672,7 @@ and a gate that opens a cycle late or produces a runt pulse is a silicon-only fa
 | Hardware divider | §7.7: a few thousand cycles of 250,000, against area plus a new stall condition in the most erratum-prone logic. |
 | C, A, F, D extensions | No compressed code pressure, no atomics needed on one hart, EKF is fixed-point. F would change the whole datapath. |
 | U mode, S mode, PMP | M-mode only. **The honest cost: no memory protection, so a wild pointer can write any peripheral register including PWM.** The ISRAM lock (ADR-0006) covers instruction memory only. This is the weakest safety property in the chip. |
-| Branch prediction | §7.2: under 1% of the cycle budget. |
+| Dynamic branch prediction | §7.2: the static predictor is enough; a dynamic one would save under 1% of the cycle budget. |
 | Instruction or data cache | All memory is single-cycle on-chip SRAM. |
 | `mnxti` | Interrupt tail-chaining, a throughput optimisation for high interrupt rates this workload does not have. Reads 0. |
 | Debug CSRs, program buffer, breakpoints, single-step | ADR-0012, `GARUDA-DEBUG-SPEC-001` §1.3. **v2 path:** add `dcsr`/`dpc`/`dscratch0/1` and a halt-drain sequence to `pipe_ctrl` as a fifth hold source, extending the §7.23 matrix. SBA remains the firmware-load path. |

@@ -23,7 +23,9 @@ rtl/dsu/dsu_decoder.v
 rtl/dsu/dsu_top.v
 rtl/dsu/dsu_sva.sv
 rtl/dsu/dsu_arith_sva.sv
+rtl/dsu/dsu_props_a.sv
 
 -sv
 tb/dsu/dsu_cov.sv
+tb/dsu/dsu_cov_vplan.sv
 tb/dsu/tb_dsu_top.sv

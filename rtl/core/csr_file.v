@@ -63,7 +63,10 @@ module csr_file (
     // NOT gated by mstatus.MIE: trap_ctrl applies the global enable for taking the
     // trap, and uses this ungated form for the MIE-independent WFI wake (Sec.14.5),
     // mirroring the clic_ctrl take_cond / wake_cond split.
-    output wire        mti_pending_o
+    output wire        mti_pending_o,
+
+    // ERRATUM CORE-4: feature-disable bits to the core (mgarudactl)
+    output wire [3:0]  mgarudactl_o
 );
     // ---------------- addresses (Sec. 13.2) ----------------
     localparam MISA=12'h301, MVENDORID=12'hF11, MARCHID=12'hF12, MIMPID=12'hF13,
@@ -85,13 +88,57 @@ module csr_file (
                // is defined as the memory-mapped mtime, not a copy of mcycle,
                // and pretending otherwise would be wrong.
                CYCLE=12'hC00, INSTRET=12'hC02,
-               CYCLEH=12'hC80, INSTRETH=12'hC82;
+               CYCLEH=12'hC80, INSTRETH=12'hC82,
+               MSTATUSH=12'h310, MCONFIGPTR=12'hF15,
+               // ERRATUM CORE-4: feature-disable register, custom M-mode RW
+               // (0x7C0-0x7FF). [0] BP_DIS [1] PF_DIS [2] PREEMPT_DIS [3] CG_DIS;
+               // reset 0 = every feature on; bits [31:4] read 0 (WARL).
+               MGARUDACTL=12'h7C0;
+
+    // ---------------------------------------------------------------------------
+    // ERRATUM C-16 (2026-10-05, found by tools/csr_map.py; fixed 2026-10-11)
+    // ---------------------------------------------------------------------------
+    // The privileged specification the core spec cites (v1.12) defines these on
+    // every RV32 M-mode hart; each may read zero, but an access must not trap.
+    // GARUDA trapped on all 89 addresses, so software that probes them (an RTOS
+    // reading mhpmcounters, a boot loader reading mconfigptr) took an
+    // illegal-instruction trap. They are now read-zero: they read 0, writes are
+    // ignored, and mconfigptr, read-only by its address (0xF15), traps on a write.
+    //   mstatush 0x310 (no MBE/SBE), mconfigptr 0xF15, mhpmcounter3..31 0xB03-0xB1F,
+    //   mhpmcounter3h..31h 0xB83-0xB9F, mhpmevent3..31 0x323-0x33F.
+    // Contract: Design_Docs/regs/core_csr.yaml (kind: read-zero). Tests:
+    // sw/riscv-tests/local/csr_readzero.S (lockstep), make core_csr_map.
+    // Property: a_readzero_csrs (rtl/core/csr_file_props_a.sv).
+    // ---------------------------------------------------------------------------
+    wire is_readzero = (csr_addr_i == MSTATUSH) || (csr_addr_i == MCONFIGPTR) ||
+                       (csr_addr_i >= 12'hB03 && csr_addr_i <= 12'hB1F) ||
+                       (csr_addr_i >= 12'hB83 && csr_addr_i <= 12'hB9F) ||
+                       (csr_addr_i >= 12'h323 && csr_addr_i <= 12'h33F);
 
     // ---------------- state ----------------
     reg        mstatus_mie, mstatus_mpie;   // MPP fixed 2'b11 (M-only)
     reg [31:0] mtvec_r, mie_r, mepc_r, mcause_r, mtval_r, mscratch_r;
     reg [7:0]  mintthresh_r;
-    reg [7:0]  mil_r, mpil_r;            // mintstatus: current / previous interrupt level
+    // ---------------------------------------------------------------------------
+    // ERRATUM T-12 (found writing the CLIC feature plan, 2026-10-04; fixed 2026-10-11)
+    // ---------------------------------------------------------------------------
+    // The previous interrupt level was ONE hidden register (mpil_r): pushed only
+    // by an interrupt, popped by every mret, and not writable by software.
+    // (a) Nested interrupts 80 -> 200: after both handlers returned the level
+    //     stayed 80, blocking every interrupt at level 80 or below until reset.
+    // (b) An exception inside a handler did not push but its mret popped, so
+    //     the level dropped to 0 while still inside the level-80 handler.
+    // Now (CLIC standard mcause.mpil, DN-T12): every trap saves the level it
+    // leaves in mcause[23:16]; a CLIC interrupt then sets mil to its own level
+    // (always >= 1, the take requires level > mil), an exception or the machine
+    // timer leaves mil alone (R1); mret restores mil from mcause[23:16]. The
+    // stack lives in mcause, which software saves/restores in any handler that
+    // re-enables interrupts or can trap (TRM firmware rule). mpp/mpie are not
+    // mirrored into mcause, so mcause outside handlers is the plain cause.
+    // Test: tb/core/tb_csr_file_t12.sv. Properties: rtl/core/csr_file_props_a.sv.
+    // ---------------------------------------------------------------------------
+    reg [7:0]  mil_r;                    // mintstatus.mil: current interrupt level
+    reg [3:0]  ctl_r;                    // mgarudactl (CORE-4)
     reg [63:0] mcycle_r, minstret_r;
 
     wire [31:0] mstatus_val = {19'd0, 2'b11 /*MPP*/, 3'd0, mstatus_mpie, 3'd0, mstatus_mie, 3'd0};
@@ -99,7 +146,10 @@ module csr_file (
     // DSU's Custom-0 space is a non-standard extension but misa.X is optional
     // and the spec value is normative.
     wire [31:0] misa_val    = {2'b01 /*MXL=32*/, 4'd0, 26'h0001100 /*I+M*/};
-    wire [31:0] mintstatus_val = {16'd0, mpil_r, mil_r};   // [15:8]=mpil [7:0]=mil
+    // T-12 (R2/R3): 0x346, GARUDA's address, holds mil in [7:0]; 0xFB1, the
+    // ratified Smclic address, uses the ratified layout (mil in [31:24]).
+    wire [31:0] mintstatus_val     = {24'd0, mil_r};
+    wire [31:0] mintstatus_std_val = {mil_r, 24'd0};
 
     // mip is read-only hardware state: MTIP[7] only (CORE §6.1, [N-6.1]). CLIC
     // interrupts do not appear in mip/mie in CLIC mode.
@@ -127,7 +177,7 @@ module csr_file (
             MTVAL:     rdata = mtval_r;
             MSCRATCH:  rdata = mscratch_r;
             MINTSTATUS:rdata = mintstatus_val;
-            MINTSTATUS_STD: rdata = mintstatus_val;
+            MINTSTATUS_STD: rdata = mintstatus_std_val;
             MNXTI:     rdata = 32'd0;                     // not implemented, reads 0 (§13)
             MINTTHRESH:rdata = {24'd0, mintthresh_r};
             MCYCLE:    rdata = mcycle_r[31:0];
@@ -135,11 +185,12 @@ module csr_file (
             MINSTRET:  rdata = minstret_r[31:0];
             MINSTRETH: rdata = minstret_r[63:32];
             DSU_OVF:   rdata = {31'd0, dsu_overflow_i};
+            MGARUDACTL:rdata = {28'd0, ctl_r};                // CORE-4
             CYCLE:     rdata = mcycle_r[31:0];       // Zicntr read-only aliases
             CYCLEH:    rdata = mcycle_r[63:32];
             INSTRET:   rdata = minstret_r[31:0];
             INSTRETH:  rdata = minstret_r[63:32];
-            default:   begin rdata = 32'd0; implemented = 1'b0; end
+            default:   begin rdata = 32'd0; implemented = is_readzero; end   // C-16
         endcase
         csr_rdata_o = rdata;
     end
@@ -166,7 +217,9 @@ module csr_file (
                  // Zicntr shadows are read-only by architecture: writes go to
                  // the machine counters, never through these addresses.
                  (csr_addr_i==CYCLE)||(csr_addr_i==CYCLEH)||
-                 (csr_addr_i==INSTRET)||(csr_addr_i==INSTRETH);
+                 (csr_addr_i==INSTRET)||(csr_addr_i==INSTRETH)||
+                 // C-16: mconfigptr is read-only by its address (0xC00-0xFFF)
+                 (csr_addr_i==MCONFIGPTR);
     wire access      = csr_en_i && (csr_op_i != 2'b00);
     wire is_write    = access && (csr_op_i == `CSR_RW ||
                                   ((csr_op_i==`CSR_RS||csr_op_i==`CSR_RC) && (csr_wdata_i!=32'd0)));
@@ -206,6 +259,7 @@ module csr_file (
     assign mepc_o        = mepc_r;
     assign mintthresh_o    = mintthresh_r;
     assign mintstatus_mil_o= mil_r;
+    assign mgarudactl_o    = ctl_r;          // CORE-4
 
     always @(posedge clk_i or negedge rst_n_i) begin
         if (!rst_n_i) begin
@@ -213,7 +267,7 @@ module csr_file (
             mtvec_r<=32'd0; mie_r<=32'd0; mepc_r<=32'd0;
             mcause_r<=32'd0; mtval_r<=32'd0; mscratch_r<=32'd0; mintthresh_r<=8'd0;
             mcycle_r<=64'd0; minstret_r<=64'd0;
-            mil_r<=8'd0; mpil_r<=8'd0;
+            mil_r<=8'd0; ctl_r<=4'd0;
         end else begin
             // Counters. mcycle/minstret are RW (CORE §6.1): a CSR write
             // replaces the half it targets and wins over the increment.
@@ -227,18 +281,19 @@ module csr_file (
             // Trap entry/exit take precedence over CSR-instruction writes.
             if (trap_enter_i) begin
                 mepc_r      <= trap_pc_i;
-                mcause_r    <= trap_cause_i;
+                // T-12: every trap pushes the level it leaves into mcause.mpil
+                mcause_r    <= {trap_cause_i[31:24], mil_r, trap_cause_i[15:0]};
                 mtval_r     <= trap_tval_i;
                 mstatus_mpie<= mstatus_mie;
                 mstatus_mie <= 1'b0;
-                if (is_interrupt_i) begin        // push interrupt level (Sec.14.3/14.4)
-                    mpil_r <= mil_r;
+                // a CLIC interrupt (level >= 1) enters at its level; an
+                // exception or the machine timer (level 0) keeps it (R1)
+                if (is_interrupt_i && (clic_level_i != 8'd0))
                     mil_r  <= clic_level_i;
-                end
             end else if (mret_i) begin
                 mstatus_mie <= mstatus_mpie;
                 mstatus_mpie<= 1'b1;
-                mil_r       <= mpil_r;           // restore interrupt level (Sec.14.4)
+                mil_r       <= mcause_r[23:16];  // T-12: restore from mcause.mpil
             end else if (wr_ok) begin
                 case (csr_addr_i)
                     MSTATUS:  begin mstatus_mie <= mstatus_next[3];
@@ -259,6 +314,7 @@ module csr_file (
                     MTVAL:    mtval_r    <= nextv(mtval_r,    csr_wdata_i, csr_op_i);
                     MSCRATCH: mscratch_r <= nextv(mscratch_r, csr_wdata_i, csr_op_i);
                     MINTTHRESH: mintthresh_r <= mintthresh_next[7:0];
+                    MGARUDACTL: ctl_r <= nextv({28'd0, ctl_r}, csr_wdata_i, csr_op_i) & 32'hF; // CORE-4
                     default: ; // counters/RO handled elsewhere or ignored
                 endcase
             end

@@ -1,0 +1,23 @@
+P0.11 throughput: tb_boot on t_perf_mix (Verilator, --jobs 1)
+date      : 2026-10-11T15:13:55+05:30
+machine   : 13th Gen Intel(R) Core(TM) i9-13905H, 20 logical CPUs
+
+run                build     verdict   retired     cycles   CPI  wall s  kinstr/s   kcyc/s  RSS MB lockstep s
+-------------------------------------------------------------------------------------------------------------
+# # garuda-run 1 suite=perf block=core date=2026-10-11T15:12:56+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+perf_nowait        normal    PASS       912524    1525051  1.67    2.38     383.4    640.8      20          -
+perf_w2            normal    PASS       912524    3400102  3.73    4.93     185.1    689.7      20          -
+perf_rand          normal    PASS       912524    5544908  6.08    8.23     110.9    673.7      20          -
+perf_lockstep      normal    PASS       912524    1525051  1.67    2.43     375.5    627.6      20       8.09
+# # garuda-run 1 suite=perf_cov block=core date=2026-10-11T15:13:55+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+perf_cov_nowait    coverage  PASS       912524    1525051  1.67    9.44      96.7    161.6      32          -
+perf_cov_w2        coverage  PASS       912524    3400102  3.73   18.30      49.9    185.8      32          -
+perf_cov_rand      coverage  PASS       912524    5544908  6.08   27.43      33.3    202.1      32          -
+
+coverage cost, nowait: 3.97x slower (383.4 -> 96.7 kinstr/s)
+coverage cost, w2    : 3.71x slower (185.1 -> 49.9 kinstr/s)
+coverage cost, rand  : 3.33x slower (110.9 -> 33.3 kinstr/s)
+
+Budget arithmetic (H9) uses the 'normal' and 'coverage' kinstr/s above:
+  seconds per test ~= retired instructions / (kinstr/s * 1000) + build time;
+  one Verilator tb_boot build is measured in logs/core/raw/build_tb_boot.log.

@@ -2,6 +2,7 @@
 // filelist_core_dsu.f -- core + REAL DSU (integration / SoC build)
 //
 // Identical to filelist_core.f except the last entry: the real rtl/dsu/dsu_top.v
+rtl/dsu/dsu_sva.sv
 // and its submodules replace tb/stub/dsu_top_stub.v. Never include both -- they
 // define the same module name.
 //
@@ -60,9 +61,14 @@ rtl/core/core_units2_sva.sv
 rtl/core/trap_ctrl_sva.sv
 rtl/core/core_units3_sva.sv
 rtl/core/decode_control_sva.sv
+rtl/core/trap_ctrl_props_a.sv
+rtl/core/csr_file_props_a.sv
+rtl/core/core_ctl_sva.sv
+rtl/core/core_vplan_sva.sv
 rtl/core/core_clk_gate.v
 
 // core top
+rtl/core/garuda_rvfi.v
 rtl/core/garuda_core_top.v
 
 // DSU (real) -- leaf-first

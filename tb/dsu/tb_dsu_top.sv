@@ -49,7 +49,7 @@ module tb_dsu_top;
     // the vector set that exercises the overflow logic at all is an order of
     // magnitude longer than the functional suite. The end-of-stimulus X marker
     // means a short file still runs in a short time.
-    localparam integer MAX_TESTS = 40960;
+    localparam integer MAX_TESTS = 81920;      // the overflow walks are 65544 (Track A wrap-up)
     localparam integer STIM_W    = 4;
     localparam integer EXP_W     = 8;
 
@@ -177,7 +177,6 @@ module tb_dsu_top;
         if (!$value$plusargs("STIM=%s", stimfile)) stimfile = "sim/dsu/dsu_stim.mem";
         if (!$value$plusargs("EXP=%s",  expfile))  expfile  = "sim/dsu/dsu_expected.mem";
 
-        for (i = 0; i < MAX_TESTS*STIM_W; i = i + 1) stim[i] = 32'hxxxx_xxxx;
         $readmemh(stimfile, stim);
         $readmemh(expfile,  exp);
 

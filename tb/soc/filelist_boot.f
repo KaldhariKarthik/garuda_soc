@@ -19,4 +19,4 @@ rtl/ahb/ahb_mem_slave.v
 // xrun 22.09 and irun 15.20.
 tb/ahb/ahb_lite_checker.v
 
-tb/soc/tb_boot.v
+tb/soc/tb_boot.sv

@@ -1,0 +1,67 @@
+# garuda-run 1 suite=isa block=core date=2026-10-15T21:41:22+05:30 design=167aa935078d4e9cecaa35e5186328b55cfc2ca6 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+add	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.11			logs/core/raw/isa/sim_add_s1.log
+addi	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.15			logs/core/raw/isa/sim_addi_s1.log
+and	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.12			logs/core/raw/isa/sim_and_s1.log
+andi	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.10			logs/core/raw/isa/sim_andi_s1.log
+auipc	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.13			logs/core/raw/isa/sim_auipc_s1.log
+beq	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.11			logs/core/raw/isa/sim_beq_s1.log
+bge	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.10			logs/core/raw/isa/sim_bge_s1.log
+bgeu	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.10			logs/core/raw/isa/sim_bgeu_s1.log
+blt	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.13			logs/core/raw/isa/sim_blt_s1.log
+bltu	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.13			logs/core/raw/isa/sim_bltu_s1.log
+bne	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.10			logs/core/raw/isa/sim_bne_s1.log
+fence_i	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.13			logs/core/raw/isa/sim_fence_i_s1.log
+jal	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_jal_s1.log
+jalr	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_jalr_s1.log
+lb	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.10			logs/core/raw/isa/sim_lb_s1.log
+lbu	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.08			logs/core/raw/isa/sim_lbu_s1.log
+ld_st	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.08			logs/core/raw/isa/sim_ld_st_s1.log
+lh	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.09			logs/core/raw/isa/sim_lh_s1.log
+lhu	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.08			logs/core/raw/isa/sim_lhu_s1.log
+lui	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_lui_s1.log
+lw	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.06			logs/core/raw/isa/sim_lw_s1.log
+mul	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_mul_s1.log
+mulh	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_mulh_s1.log
+mulhsu	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.06			logs/core/raw/isa/sim_mulhsu_s1.log
+mulhu	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_mulhu_s1.log
+or	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_or_s1.log
+ori	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_ori_s1.log
+p-csr	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.09			logs/core/raw/isa/sim_p-csr_s1.log
+p-csr_readzero	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.10			logs/core/raw/isa/sim_p-csr_readzero_s1.log
+p-csr_warl	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.08			logs/core/raw/isa/sim_p-csr_warl_s1.log
+p-div	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.02	20				logs/core/raw/isa/sim_p-div_s1.log
+p-divu	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.04	20				logs/core/raw/isa/sim_p-divu_s1.log
+p-illegal	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.08			logs/core/raw/isa/sim_p-illegal_s1.log
+p-lh-misaligned	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_p-lh-misaligned_s1.log
+p-lw-misaligned	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_p-lw-misaligned_s1.log
+p-ma_addr	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.06			logs/core/raw/isa/sim_p-ma_addr_s1.log
+p-ma_data	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.06	20	0.24			logs/core/raw/isa/sim_p-ma_data_s1.log
+p-ma_fetch	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.10			logs/core/raw/isa/sim_p-ma_fetch_s1.log
+p-mcsr	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.02	20				logs/core/raw/isa/sim_p-mcsr_s1.log
+p-rem	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.04	20				logs/core/raw/isa/sim_p-rem_s1.log
+p-remu	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.04	20				logs/core/raw/isa/sim_p-remu_s1.log
+p-sbreak	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.02	20				logs/core/raw/isa/sim_p-sbreak_s1.log
+p-scall	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.12			logs/core/raw/isa/sim_p-scall_s1.log
+p-sh-misaligned	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.12			logs/core/raw/isa/sim_p-sh-misaligned_s1.log
+p-shamt	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.06			logs/core/raw/isa/sim_p-shamt_s1.log
+p-sw-misaligned	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_p-sw-misaligned_s1.log
+p-zicntr	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_p-zicntr_s1.log
+sb	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.09			logs/core/raw/isa/sim_sb_s1.log
+sh	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.06			logs/core/raw/isa/sim_sh_s1.log
+simple	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_simple_s1.log
+sll	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.08			logs/core/raw/isa/sim_sll_s1.log
+slli	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.09			logs/core/raw/isa/sim_slli_s1.log
+slt	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_slt_s1.log
+slti	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_slti_s1.log
+sltiu	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_sltiu_s1.log
+sltu	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_sltu_s1.log
+sra	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.09			logs/core/raw/isa/sim_sra_s1.log
+srai	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_srai_s1.log
+srl	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.06			logs/core/raw/isa/sim_srl_s1.log
+srli	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.11			logs/core/raw/isa/sim_srli_s1.log
+st_ld	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.08			logs/core/raw/isa/sim_st_ld_s1.log
+sub	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_sub_s1.log
+sw	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.10			logs/core/raw/isa/sim_sw_s1.log
+xor	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.06			logs/core/raw/isa/sim_xor_s1.log
+xori	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/isa/sim_xori_s1.log
