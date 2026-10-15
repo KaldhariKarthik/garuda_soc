@@ -97,14 +97,31 @@ module tb_mem_subsystem;
     integer buf_ovf = 0;
 
     // ---- shadow model -------------------------------------------------------------
-    reg [7:0] shadow [bit [31:0]];
+    // The soak only addresses the first 16 KiB of D-SRAM, so the model is a
+    // fixed array over that window, not an associative array (Icarus has
+    // none). A byte outside the window, or one never written, reads as X,
+    // which the soak compare skips.
+    localparam [31:0] SH_BASE = 32'h2000_0000;
+    localparam int    SH_SIZE = 16384;
+    reg [7:0] shadow   [0:SH_SIZE-1];
+    bit       sh_valid [0:SH_SIZE-1];
+    function automatic bit sh_in(input [31:0] a);
+        return (a >= SH_BASE) && (a - SH_BASE < SH_SIZE);
+    endfunction
     function automatic [31:0] sh_rd(input [31:0] a);
-        for (int k = 0; k < 4; k++)
-            sh_rd[8*k +: 8] = shadow.exists((a & ~3) + k) ? shadow[(a & ~3) + k] : 8'hxx;
+        reg [31:0] b;
+        for (int k = 0; k < 4; k++) begin
+            b = (a & ~32'd3) + k;
+            sh_rd[8*k +: 8] = (sh_in(b) && sh_valid[b - SH_BASE]) ? shadow[b - SH_BASE] : 8'hxx;
+        end
     endfunction
     task automatic sh_wr(input [31:0] a, input [31:0] d, input [2:0] sz);
         int n = (sz == B) ? 1 : (sz == H) ? 2 : 4;
-        for (int k = 0; k < n; k++) shadow[a + k] = d[8*((a + k) % 4) +: 8];
+        for (int k = 0; k < n; k++)
+            if (sh_in(a + k)) begin
+                shadow[a + k - SH_BASE]   = d[8*((a + k) % 4) +: 8];
+                sh_valid[a + k - SH_BASE] = 1;
+            end
     endtask
 
     int i, n, e;
@@ -193,7 +210,7 @@ module tb_mem_subsystem;
               "[N-7.2] addresses alias inside the region");
 
         // ---- random soak vs shadow model ----------------------------------------------------
-        for (i = 0; i < 16384; i++) shadow[32'h2000_0000 + i] = 8'h00;
+        for (i = 0; i < SH_SIZE; i++) begin shadow[i] = 8'h00; sh_valid[i] = 1; end
         for (i = 0; i < 4096; i++) u_dsram.bd_write(32'h2000_0000 + 4*i, 32'h0);
         clr();
         n = 0;
