@@ -1,0 +1,77 @@
+// =============================================================================
+// dma.rdl - register description of block 9, the DMA controller (APB window 5).
+//
+// Source: GARUDA-DMA-SPEC-001 section 6 (Rev 3.0) and rtl/dma/dma_apb_slave.v.
+// The UVM register model tb/dma/uvm/dma_reg_pkg.sv is generated from this
+// file:   python3 tools/gen/gen_ral.py Design_Docs/regs/dma.rdl tb/dma/uvm/dma_reg_pkg.sv
+//
+// Fields that hardware updates are hw = w or rw, so the model marks them
+// volatile: EN, STAT and GSTAT. SAR and DAR also advance in hardware, but are
+// described as software-owned so that the register test's bit bash compares
+// every bit of them (UVM does not compare volatile fields); that test moves no
+// data, and during transfers the scoreboard checks SAR and DAR against the
+// reference model, not against the register model.
+// =============================================================================
+addrmap dma {
+    name = "DMA";
+    desc = "Six-channel DMA controller, APB window 5 (0x4000_5000)";
+    default regwidth    = 32;
+    default accesswidth = 32;
+
+    regfile {
+        reg {
+            name = "Channel control";
+            field { sw = rw; hw = rw; we; reset = 1'b0; desc = "Channel enable; cleared by hardware on completion or error ([N-7.3], [N-7.13])"; } en[0:0];
+            field { sw = rw; hw = r;  reset = 2'd0; desc = "0 P2M, 1 M2P, 2 M2M; a write of 3 leaves MODE unchanged ([N-6.1])"; } mode[2:1];
+            field { sw = rw; hw = r;  reset = 1'b0; desc = "Increment SAR after each beat"; } sinc[3:3];
+            field { sw = rw; hw = r;  reset = 1'b0; desc = "Increment DAR after each beat"; } dinc[4:4];
+            field { sw = rw; hw = r;  reset = 2'd2; desc = "0 byte, 1 halfword, 2 word; a write of 3 leaves SIZE unchanged"; } size[6:5];
+            field { sw = rw; hw = r;  reset = 1'b0; desc = "Completion interrupt enable"; } ie_comp[7:7];
+            field { sw = rw; hw = r;  reset = 1'b0; desc = "Error interrupt enable"; } ie_err[8:8];
+            field { sw = r;  hw = na; reset = 23'd0; desc = "Reserved, reads 0"; } rsvd[31:9];
+        } CR @ 0x00;
+
+        reg {
+            name = "Source address";
+            field { sw = rw; hw = r; reset = 32'd0; desc = "Advances by the beat size after each successful beat when SINC is set (not marked volatile: see the header)"; } addr[31:0];
+        } SAR @ 0x04;
+
+        reg {
+            name = "Destination address";
+            field { sw = rw; hw = r; reset = 32'd0; desc = "Advances by the beat size after each successful beat when DINC is set (not marked volatile: see the header)"; } addr[31:0];
+        } DAR @ 0x08;
+
+        reg {
+            name = "Transfer count in beats";
+            field { sw = rw; hw = r;  reset = 16'd0; desc = "Beats to move; loaded into REMAINING when EN goes 0 to 1"; } cnt[15:0];
+            field { sw = r;  hw = na; reset = 16'd0; desc = "Reserved, reads 0"; } rsvd[31:16];
+        } CNT @ 0x0C;
+
+        reg {
+            name = "Channel status (read-only; a write raises PSLVERR)";
+            field { sw = r; hw = w; reset = 16'd0; desc = "Beats not yet transferred"; } remaining[15:0];
+            field { sw = r; hw = w; reset = 1'b0;  desc = "EN set and REMAINING not 0"; } active[16:16];
+            field { sw = r; hw = w; reset = 1'b0;  desc = "All beats transferred; sticky until ICLR"; } complete[17:17];
+            field { sw = r; hw = w; reset = 1'b0;  desc = "AHB ERROR; sticky until ICLR"; } error[18:18];
+            field { sw = r; hw = w; reset = 3'd0;  desc = "0 none, 1 read, 2 write"; } errphase[21:19];
+            field { sw = r; hw = na; reset = 10'd0; desc = "Reserved, reads 0"; } rsvd[31:22];
+        } STAT @ 0x10;
+
+        reg {
+            name = "Interrupt clear (write 1 to clear; reads 0)";
+            field { sw = w; hw = r; reset = 1'b0; desc = "Clear COMPLETE"; } clr_complete[0:0];
+            field { sw = w; hw = r; reset = 1'b0; desc = "Clear ERROR and ERRPHASE"; } clr_error[1:1];
+            field { sw = r; hw = na; reset = 30'd0; desc = "Reads 0"; } rsvd[31:2];
+        } ICLR @ 0x14;
+    } CH[6] @ 0x000 += 0x20;
+
+    reg {
+        name = "Global status (read-only; a write raises PSLVERR)";
+        field { sw = r; hw = w;  reset = 6'd0; desc = "ACTIVE of channels 0 to 5"; } active[5:0];
+        field { sw = r; hw = na; reset = 2'd0; desc = "Reads 0"; } rsvd0[7:6];
+        field { sw = r; hw = w;  reset = 6'd0; desc = "COMPLETE of channels 0 to 5"; } complete[13:8];
+        field { sw = r; hw = na; reset = 2'd0; desc = "Reads 0"; } rsvd1[15:14];
+        field { sw = r; hw = w;  reset = 6'd0; desc = "ERROR of channels 0 to 5"; } error[21:16];
+        field { sw = r; hw = na; reset = 10'd0; desc = "Reads 0"; } rsvd2[31:22];
+    } GSTAT @ 0x100;
+};
