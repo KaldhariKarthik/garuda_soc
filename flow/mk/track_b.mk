@@ -111,7 +111,18 @@ static_lint:
 	   else new=$$((new+1)); echo "  NOT WAIVED: $$r $$fl"; fi; \
 	 done; \
 	 echo "static_lint   HAL errors=$$n  not waived=$$new  (log: $(SIM_DIR)/static/hal.log)"; \
-	 [ $$new -eq 0 ] && grep -q 'Analysis complete' $(SIM_DIR)/static/hal.log
+	 python3 tools/hal_baseline.py --check $(SIM_DIR)/static/hal.log; b=$$?; \
+	 [ $$new -eq 0 ] && grep -q 'Analysis complete' $(SIM_DIR)/static/hal.log && [ $$b -eq 0 ]
+
+# make static_lint_selfcheck: does the baseline gate fail when a count rises? It lowers one
+# number of a COPY of the baseline by one and expects tools/hal_baseline.py to refuse.
+.PHONY: static_lint_selfcheck
+static_lint_selfcheck:
+	@cp flow/2_static/hal_baseline.txt $(SIM_DIR)/hal_baseline.planted; \
+	 awk 'BEGIN{d=0} /^W TIELOG /{ $$3=$$3-1; d=1 } {print}' $(SIM_DIR)/hal_baseline.planted > $(SIM_DIR)/hal_baseline.planted2; \
+	 HAL_BASELINE=$(SIM_DIR)/hal_baseline.planted2 python3 tools/hal_baseline.py --check $(SIM_DIR)/static/hal.log > $(SIM_DIR)/hal_selfcheck.out 2>&1; \
+	 if [ $$? -ne 0 ] && grep -q "RISEN" $(SIM_DIR)/hal_selfcheck.out; then echo "static_lint_selfcheck: ok, a rise of one finding fails the check"; \
+	 else echo "static_lint_selfcheck: WRONG, the check did not fail on a rise"; exit 1; fi
 
 static_cdc:
 	@mkdir -p $(SIM_DIR)/static_cdc_debug
