@@ -1,0 +1,153 @@
+# DMA formal, main harness (Track A, DMA plan D2; Karthik's plan recipe R9,
+# open-tool part): the bound properties of rtl/dma/dma_props_a.sv on dma_top under the
+# SINGLE-CLOCK environment tb/dma/formal/dma_fv_env.sv (assumptions S1-S3 and the
+# over-approximation argument in tb/dma/formal/ASSUMPTIONS.md). One step is one
+# hclk cycle; one APB write is two. a_ack_one_pclk_edge needs a real pclk and runs
+# in tb/dma/formal/dma_2clk.toml.
+# Each task picks its properties with `chformal` (no ifdefs in dma_props_a.sv): the
+# proof tasks leave out the open-bug detectors; each *_find task keeps ONLY one
+# defect's detectors and must FAIL, so the solver finds that defect by itself.
+# Every counterexample is replayed with real timing before it is filed (H6).
+# Run: make -f flow/mk/track_a_run.mk fv_dma
+[suite]
+block = "dma"
+name  = "fv_dma"
+xfail = "tb/dma/run/xfail.tsv"
+
+[design]
+flist   = "rtl/dma/filelist.f"
+top     = "dma_top"
+extra   = ["tb/dma/formal/dma_fv_env.sv"]
+min_asserts = 80
+min_covers  = 70
+
+# the environment allows real traffic: covers reached (H6: nothing vacuous). Three
+# covers are left out, each for a written reason (2026-10-12):
+#   c_apb_access2       unreachable by construction here (an APB access lasts one cycle
+#                       in the single-clock harness); reached in dma_2clk.toml pclk_cover
+#   g_prio[0].c_contest unreachable by design: channel 0 has the top priority in the
+#                       shipped map, so it never loses a contest (arb.toml checks all maps)
+#   c_all_eligible      needs 12 register writes (~26 steps); a simulation item (DMA plan D5)
+[[task]]
+name    = "dma_cover"
+mode    = "cover"
+depth   = 24
+engine  = "smtbmc yices"
+script  = ["chformal -assert -remove n:u_dma_props_a.*a_no_read_before_refusal* n:u_dma_props_a.*a_beat_belongs_to_arm* n:u_dma_props_a.*a_no_rem_underflow* n:u_dma_props_a.*a_remaining_complete_consistent* n:u_dma_props_a.*a_haddr_aligned* n:u_dma_props_a.*a_ack_one_pclk_edge* n:u_dma_props_a.*a_write_data* n:u_dma_props_a.*a_beat_size_atomic* %u %u %u %u %u %u %u", "chformal -cover -remove n:u_dma_props_a.c_apb_access2 n:u_dma_props_a.g_prio*0*.c_contest n:u_dma_props_a.c_all_eligible %u %u"]
+timeout = 3600
+
+# every property except the open-bug detectors (a_write_data belongs to DMA-14 and DMA-13:
+# it fails when a beat changes size or reads an unaligned lane)
+[[task]]
+name    = "dma_bmc"
+mode    = "bmc"
+depth   = 32
+engine  = "smtbmc yices"
+script  = ["chformal -assert -remove n:u_dma_props_a.*a_no_read_before_refusal* n:u_dma_props_a.*a_beat_belongs_to_arm* n:u_dma_props_a.*a_no_rem_underflow* n:u_dma_props_a.*a_remaining_complete_consistent* n:u_dma_props_a.*a_haddr_aligned* n:u_dma_props_a.*a_ack_one_pclk_edge* n:u_dma_props_a.*a_write_data* n:u_dma_props_a.*a_beat_size_atomic* %u %u %u %u %u %u %u"]
+timeout = 3600
+
+# abc pdr needs an AIGER model with no x bits: the out-of-range part-selects for
+# channel numbers 6 and 7 (3-bit channel index, six channels; in dma_engine and in
+# dma_sva) become free values: techmap first (that is where the x-filled $shiftx
+# logic appears), then setundef -anyseq (an over-approximation).
+[[task]]
+name    = "dma_prove"
+mode    = "prove"
+engine  = "abc pdr"
+script  = ["prep -top dma_top", "techmap", "opt -fast", "setundef -anyseq", "chformal -assert -remove n:u_dma_props_a.*a_no_read_before_refusal* n:u_dma_props_a.*a_beat_belongs_to_arm* n:u_dma_props_a.*a_no_rem_underflow* n:u_dma_props_a.*a_remaining_complete_consistent* n:u_dma_props_a.*a_haddr_aligned* n:u_dma_props_a.*a_ack_one_pclk_edge* n:u_dma_props_a.*a_write_data* n:u_dma_props_a.*a_beat_size_atomic* %u %u %u %u %u %u %u"]
+timeout = 3600
+
+# the solver finds each open defect on its own (expected FAIL, xfail with the bug ID)
+[[task]]
+name    = "dma10_find"
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_no_read_before_refusal* %d"]
+timeout = 3600
+min_asserts = 1
+
+[[task]]
+name    = "dma11_find"
+mode    = "bmc"
+depth   = 32
+engine  = "smtbmc yices"
+script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_beat_belongs_to_arm* n:u_dma_props_a.*a_no_rem_underflow* n:u_dma_props_a.*a_remaining_complete_consistent* %u %u %d"]
+timeout = 3600
+min_asserts = 18
+
+[[task]]
+name    = "dma13_find"
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_haddr_aligned* %d"]
+timeout = 3600
+min_asserts = 1
+
+[[task]]
+name    = "dma14_find"
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_beat_size_atomic* %d"]
+timeout = 3600
+min_asserts = 1
+
+# Negative controls (H6): each re-planted defect must fail its named property, which
+# is the only property kept in the task (so a FAIL cannot come from another one).
+
+# ENG-1 guard removed: a beat is taken in the cycle a result is reported
+[[task]]
+name    = "mut_eng1"
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_engine.v" = "tb/dma/formal/mutants/dma_engine_mut_eng1.v" }
+script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_no_grant_while_reporting* %d"]
+timeout = 3600
+min_asserts = 1
+
+# D-2 reverted: a software CR write beats the hardware EN clear
+[[task]]
+name    = "mut_d2"
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_chan.v" = "tb/dma/formal/mutants/dma_chan_mut_d2.v" }
+script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_hw_wins_en* %d"]
+timeout = 3600
+min_asserts = 6
+
+# DMA-8 reverted: a failed beat marks the request as taken
+[[task]]
+name    = "mut_dma8"
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_chan.v" = "tb/dma/formal/mutants/dma_chan_mut_dma8.v" }
+script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_failed_beat_keeps_request* %d"]
+timeout = 3600
+min_asserts = 6
+
+# set-beats-clear reverted: an ICLR in the cycle COMPLETE sets clears it
+[[task]]
+name    = "mut_iclr_wins"
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_chan.v" = "tb/dma/formal/mutants/dma_chan_mut_iclr_wins.v" }
+script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_set_beats_clear_complete* %d"]
+timeout = 3600
+min_asserts = 6
+
+# AUD-13 reverted: PSLVERR on a write to read-only STAT/GSTAT
+[[task]]
+name    = "mut_aud13"
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_apb_slave.v" = "tb/dma/formal/mutants/dma_apb_slave_mut_aud13.v" }
+script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_pslverr_rule* %d"]
+timeout = 3600
+min_asserts = 1

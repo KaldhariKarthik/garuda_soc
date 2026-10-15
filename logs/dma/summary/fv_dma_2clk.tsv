@@ -1,0 +1,4 @@
+# garuda-fv 1 suite=fv_dma_2clk block=dma date=2026-10-15T22:10:12+05:30 design=167aa935078d4e9cecaa35e5186328b55cfc2ca6 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+pclk_prove	prove	PROVEN	OK	11	[10 asserts, 303 covers in model] 	logs/dma/raw/fv_dma_2clk/fv_pclk_prove.log
+pclk_cover	cover	COVERED	OK	16	[381 asserts, 3 covers in model] 	logs/dma/raw/fv_dma_2clk/fv_pclk_cover.log

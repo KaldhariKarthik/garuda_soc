@@ -1,0 +1,41 @@
+DMA formal results, Track A DMA plan D2 (2026-10-12): one clean run of make -f flow/mk/track_a.mk fv_dma
+tool      : tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+harnesses : tb/dma/formal/{dma,dma_2clk,arb}.toml; assumptions tb/dma/formal/ASSUMPTIONS.md (FD-1..FD-9)
+classes   : PROVEN (unbounded) / BOUNDED(depth) / COVERED / FAIL; never counted together (H6)
+
+== fv_dma ==
+  dma_cover        cover    COVERED        OK               [353 asserts, 300 covers in model] 
+  dma_bmc          bmc      BOUNDED(32)    OK               [353 asserts, 303 covers in model] 
+  dma_prove        prove    PROVEN         OK               [347 asserts, 303 covers in model] 
+  dma10_find       bmc      FAIL           XFAIL:DMA-10     [1 asserts, 303 covers in model] props: u_dma_sva.a_no_read_before_refusal
+  dma11_find       bmc      FAIL           XFAIL:DMA-11     [18 asserts, 303 covers in model] props: u_dma_sva.g_ch[2].a_beat_belongs_to_arm
+  dma13_find       bmc      FAIL           XFAIL:DMA-13     [1 asserts, 303 covers in model] props: u_dma_sva.a_haddr_aligned
+  dma14_find       bmc      FAIL           XFAIL:DMA-14     [1 asserts, 303 covers in model] props: u_dma_sva.a_beat_size_atomic
+  mut_eng1         bmc      FAIL           XFAIL:PLANTED    [1 asserts, 303 covers in model] props: u_dma_sva.a_no_grant_while_reporting
+  mut_d2           bmc      FAIL           XFAIL:PLANTED    [6 asserts, 303 covers in model] props: u_dma_sva.g_ch[5].a_hw_wins_en
+  mut_dma8         bmc      FAIL           XFAIL:PLANTED    [6 asserts, 303 covers in model] props: u_dma_sva.g_ch[0].a_failed_beat_keeps_request
+  mut_iclr_wins    bmc      FAIL           XFAIL:PLANTED    [6 asserts, 303 covers in model] props: u_dma_sva.g_ch[2].a_set_beats_clear_complete
+  mut_aud13        bmc      FAIL           XFAIL:PLANTED    [1 asserts, 303 covers in model] props: u_dma_sva.a_pslverr_rule
+
+== fv_dma_2clk ==
+  pclk_prove       prove    PROVEN         OK               [10 asserts, 303 covers in model] 
+  pclk_cover       cover    COVERED        OK               [381 asserts, 3 covers in model] 
+
+== fv_dma_arb ==
+  arb_prove        prove    PROVEN         OK               [10 asserts, 3 covers in model] 
+  arb_cover        cover    COVERED        OK               [10 asserts, 3 covers in model] 
+  arb_mut_tie_high bmc      FAIL           XFAIL:PLANTED    [10 asserts, 3 covers in model] props: u_equal.a_grant, u_pairs.a_grant
+
+== what the proof set leaves out, and why ==
+  open-bug detectors (FAIL by design; each has its own *_find task): DMA-10 a_no_read_before_refusal; DMA-11 a_beat_belongs_to_arm,
+  a_no_rem_underflow, a_remaining_complete_consistent; DMA-13 a_haddr_aligned; DMA-14 a_beat_size_atomic and a_write_data
+  (a_write_data fails only through DMA-14 and DMA-13). a_ack_one_pclk_edge needs a real pclk: proven in fv_dma_2clk.
+  a_prdata_stable is vacuous in the single-clock harness (cover c_apb_access2 unreachable there): proven in fv_dma_2clk.
+
+== covers left out of dma_cover (written reasons) ==
+  c_apb_access2 (single-clock: an access lasts one cycle; reached in fv_dma_2clk pclk_cover); g_prio[0].c_contest (unreachable
+  by design: channel 0 has the top priority); c_all_eligible (12 register writes deep; a simulation item, DMA plan D5).
+
+== not evidence ==
+  An earlier two-clock BOUNDED(40) (18.7 min) covered only ~10 hclk cycles (the gclk time base is >= 2 formal steps per tick,
+  measured afterwards) and is superseded by fv_dma_2clk pclk_prove (PDR).

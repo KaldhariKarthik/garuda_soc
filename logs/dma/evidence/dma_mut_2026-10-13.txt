@@ -1,0 +1,55 @@
+DMA planted-defect run (DMA plan D8, recipe R10), 2026-10-13
+source: logs/dma/summary/dma_mut.tsv; generator tools/gen/gen_dma_mutants.py; kill = a named check (^\[FAIL\] |\[SVA-FAIL\] (?!a_no_read_before_refusal\b))
+
+M01  KILLED-BY-CHECK  env   dma_chan.v       D-2 reverted: a software CR write beats the hardware EN clear
+     first check: [283418000] %Error: dma_sva.sv:347: Assertion failed in tb_dma_env.dut.u_dma_sva.g_ch[1].a_en_cleared_by_hw: [SVA-FAIL] a_en_cleared_by_hw[1] (F19, F2
+M02  KILLED-BY-CHECK  env   dma_chan.v       DMA-8 reverted: a failed beat consumes the request
+     first check: [45566000] %Error: dma_sva.sv:505: Assertion failed in tb_dma_env.dut.u_dma_sva.g_ch[2].a_failed_beat_keeps_request: [SVA-FAIL] a_failed_beat_keeps_re
+M03  KILLED-BY-CHECK  env   dma_chan.v       one beat per request lost: a request still high gives another beat
+     first check: [2034000] %Error: dma_sva.sv:502: Assertion failed in tb_dma_env.dut.u_dma_sva.g_ch[2].a_one_beat_per_req: [SVA-FAIL] a_one_beat_per_req[2]: a second 
+M04  KILLED-BY-CHECK  env   dma_chan.v       set-beats-clear reverted: ICLR beats a same-cycle COMPLETE set (completion lost)
+     first check: [167450000] %Error: dma_sva.sv:442: Assertion failed in tb_dma_env.dut.u_dma_sva.g_ch[1].a_set_beats_clear_complete: [SVA-FAIL] a_set_beats_clear_comp
+M05  KILLED-BY-CHECK  env   dma_chan.v       halfword address step 1 instead of 2
+     first check: [1410000] %Error: dma_sva.sv:369: Assertion failed in tb_dma_env.dut.u_dma_sva.g_ch[1].a_sar_step: [SVA-FAIL] a_sar_step[1] (F04)
+M06  KILLED-BY-CHECK  regs  dma_chan.v       MODE = 3 accepted
+     first check: [8922000] %Error: dma_sva.sv:314: Assertion failed in tb_dma_regs.dut.u_dma_sva.g_ch[0].a_mode_legal: [SVA-FAIL] a_mode_legal[0] (F02)
+M07  KILLED-BY-CHECK  env   dma_chan.v       error interrupt gated by IE_COMP instead of IE_ERR
+     first check: [47326000] %Error: dma_sva.sv:479: Assertion failed in tb_dma_env.dut.u_dma_sva.g_ch[5].a_irq_level: [SVA-FAIL] a_irq_level[5]: complete=0 error=0 (F3
+M08  KILLED-BY-CHECK  env   dma_chan.v       ICLR ERROR leaves ERRPHASE set
+     first check: [3506000] %Error: dma_sva.sv:439: Assertion failed in tb_dma_env.dut.u_dma_sva.g_ch[4].a_iclr_error: [SVA-FAIL] a_iclr_error[4]: ERROR or ERRPHASE sur
+M09  KILLED-BY-CHECK  env   dma_chan.v       COMPLETE one beat early (D-1 shape)
+     first check: [238000] %Error: dma_sva.sv:465: Assertion failed in tb_dma_env.dut.u_dma_sva.g_ch[0].a_remaining_complete_consistent: [SVA-FAIL] a_remaining_complete
+M10  KILLED-BY-CHECK  env   dma_chan.v       SAR advances on a failed beat (no freeze, [N-7.15])
+     first check: [3234000] %Error: dma_sva.sv:372: Assertion failed in tb_dma_env.dut.u_dma_sva.g_ch[4].a_sar_holds: [SVA-FAIL] a_sar_holds[4]: SAR moved with no beat 
+M11  KILLED-BY-CHECK  env   dma_arbiter.v    priority inverted: the lowest priority wins
+     first check: [394278000] %Error: dma_sva.sv:560: Assertion failed in tb_dma_env.dut.u_dma_sva.g_prio[0].a_priority: [SVA-FAIL] a_priority: granted ch5 over eligibl
+M13  KILLED-BY-CHECK  block dma_engine.v     R-9 DAR check removed: writes to ISRAM / Boot ROM
+     first check: [3146000] %Error: dma_sva.sv:638: Assertion failed in tb_dma_top.dut.u_dma_sva.a_refuse_dar: [SVA-FAIL] a_refuse_dar (R-9, F32)
+M14  KILLED-BY-CHECK  env   dma_engine.v     DMA-7 reverted: dma_ack one hclk wide
+     first check: [158000] %Error: dma_sva.sv:515: Assertion failed in tb_dma_env.dut.u_dma_sva.g_ch[0].a_ack_width: [SVA-FAIL] a_ack_width[0]: dma_ack was 1 hclk wide,
+M15  KILLED-BY-CHECK  env   dma_engine.v     ENG-1 reverted: regrant before the channel has counted the beat
+     first check: [158000] %Error: dma_sva.sv:575: Assertion failed in tb_dma_env.dut.u_dma_sva.a_no_grant_while_reporting: [SVA-FAIL] a_no_grant_while_reporting: a bea
+M16  KILLED-BY-CHECK  env   dma_engine.v     write ERROR reported as ERRPHASE = read
+     first check: [45562000] %Error: dma_sva.sv:630: Assertion failed in tb_dma_env.dut.u_dma_sva.a_errphase_write: [SVA-FAIL] a_errphase_write (F29)
+M17  KILLED-BY-CHECK  env   dma_engine.v     byte beats always take lane 0
+     first check: [766000] %Error: dma_sva.sv:605: Assertion failed in tb_dma_env.dut.u_dma_sva.a_write_data: [SVA-FAIL] a_write_data: wrote 11111111 (lane 1), read 443
+M18  KILLED-BY-CHECK  env   dma_engine.v     read ERROR ignored: the beat writes garbage
+     first check: [3230000] %Error: dma_sva.sv:627: Assertion failed in tb_dma_env.dut.u_dma_sva.a_errphase_read: [SVA-FAIL] a_errphase_read (F29)
+M19  KILLED-BY-CHECK  env   dma_engine.v     read address dropped while HREADY is low (AHB violation)
+     first check: [4326000] %Error: dma_sva.sv:598: Assertion failed in tb_dma_env.dut.u_dma_sva.a_addr_hold_in_wait: [SVA-FAIL] a_addr_hold_in_wait: address phase chan
+M20  KILLED-BY-CHECK  regs  dma_apb_slave.v  every APB write applied twice (two strobes)
+     first check: [930000] %Error: dma_sva.sv:283: Assertion failed in tb_dma_regs.dut.u_dma_sva.a_strobe_once: [SVA-FAIL] a_strobe_once: a second strobe in the same AP
+M21  KILLED-BY-CHECK  regs  dma_apb_slave.v  AUD-13 reverted: a write to read-only STAT / GSTAT answers PSLVERR
+     first check: [54618000] %Error: dma_sva.sv:268: Assertion failed in tb_dma_regs.dut.u_dma_sva.a_pslverr_rule: [SVA-FAIL] a_pslverr_rule: paddr=010 write=1 pslverr=
+M22  KILLED-BY-CHECK  regs  dma_apb_slave.v  GSTAT COMPLETE bits show ERROR
+     first check: [52882000] %Error: dma_sva.sv:273: Assertion failed in tb_dma_regs.dut.u_dma_sva.a_read_data: [SVA-FAIL] a_read_data: paddr=100 prdata=00000000 (F10)
+M23  KILLED-BY-CHECK  regs  dma_apb_slave.v  channel 5 registers not decoded
+     first check: [762000] %Error: dma_sva.sv:268: Assertion failed in tb_dma_regs.dut.u_dma_sva.a_pslverr_rule: [SVA-FAIL] a_pslverr_rule: paddr=0a0 write=0 pslverr=1 
+M24  KILLED-BY-CHECK  regs  dma_apb_slave.v  a DAR write also lands in CNT; CNT never writable
+     first check: [4022000] %Error: dma_sva.sv:308: Assertion failed in tb_dma_regs.dut.u_dma_sva.g_ch[0].a_decode_cnt: [SVA-FAIL] a_decode_cnt[0]: paddr=008 (F11)
+M25  KILLED-BY-CHECK  env   dma_top.v        completion and error interrupt lines swapped
+     first check: [274000] %Error: dma_sva.sv:479: Assertion failed in tb_dma_env.dut.u_dma_sva.g_ch[0].a_irq_level: [SVA-FAIL] a_irq_level[0]: complete=0 error=1 (F33)
+M12  EQUIVALENT       -     dma_arbiter.v: PRIO[3*n +: 3] > best -> >= best (a tie goes to the higher index)
+     No two channels share a priority in the shipped map (dma_top.v:20: 5, 3, 1, 2, 4, 0), so > and >= pick the same channel for every eligible set. Proven: fv_dma_arb arb_mut_tie_high_shipped (the mutant, shipped-map a_grant only) passes at depth 2 = all 64 eligible values of the combinational arbiter. Killed under maps with ties: arb_mut_tie_high FAILS u_equal.a_grant and u_pairs.a_grant (XFAIL PLANTED).
+
+totals: EQUIVALENT 1, KILLED-BY-CHECK 24

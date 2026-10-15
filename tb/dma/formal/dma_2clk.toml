@@ -1,0 +1,37 @@
+# DMA formal, TWO-CLOCK harness (Track A, DMA plan D2): the properties whose meaning
+# depends on real pclk timing, under the D-5 environment tb/dma/formal/dma_fv_env_2clk.sv
+# (assumptions E1-E4, ASSUMPTIONS.md). In the single-clock harness an APB access lasts
+# one cycle, so a_prdata_stable is vacuous there and a_ack_one_pclk_edge is false by
+# construction: both are proven here. One hclk cycle is four formal steps here
+# (see the environment header), so bounded depths are larger than in dma.toml.
+# Run: make -f flow/mk/track_a_run.mk fv_dma
+[suite]
+block = "dma"
+name  = "fv_dma_2clk"
+xfail = "tb/dma/run/xfail.tsv"
+
+[design]
+flist   = "rtl/dma/filelist.f"
+top     = "dma_top"
+extra   = ["tb/dma/formal/dma_fv_env_2clk.sv"]
+options = ["multiclock on"]
+min_asserts = 8
+min_covers  = 3
+
+# PDR (AIGER): techmap, then free values for the out-of-range channel part-selects
+[[task]]
+name    = "pclk_prove"
+mode    = "prove"
+engine  = "abc pdr"
+script  = ["prep -top dma_top", "techmap", "opt -fast", "setundef -anyseq",
+           "chformal -assert -remove t:$check n:u_dma_props_a.*a_pready* n:u_dma_props_a.*a_pslverr_rule* n:u_dma_props_a.*a_read_data* n:u_dma_props_a.*a_prdata_stable* n:u_dma_props_a.*a_ack_one_pclk_edge* %u %u %u %u %d"]
+timeout = 3600
+
+# the pclk-timing antecedents are reachable here (not vacuous)
+[[task]]
+name    = "pclk_cover"
+mode    = "cover"
+depth   = 40
+engine  = "smtbmc yices"
+script  = ["chformal -cover -remove t:$check n:u_dma_props_a.c_apb_access2 n:u_dma_props_a.c_apb_read n:u_dma_props_a.c_apb_write %u %u %d"]
+timeout = 3600

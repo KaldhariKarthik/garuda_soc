@@ -1,0 +1,17 @@
+DMA environment compiled and elaborated on Xcelium (Track A DMA plan D4, portability), 2026-10-12
+route     : NCLaunch scripted mode (nclaunch -nokey -directory <scratch> -cdslib <scratch>/cds.lib -work worklib -input elab_dma_env.tcl),
+            environment from ~/cadence/cshrc, VPN cvrc2s up; the licence allows compile/elaborate, simulation is -39
+command   : xrun -elaborate -sv -timescale 1ns/1ps -f tb/dma/env/filelist_dma_env.f -top tb_dma_env -access +r
+design    : b90b481d8f91 + working tree (a/p0-infra)
+
+Assertions:                 697     168
+Covergroup Instances:         0      13
+errors: 0, warnings: 0
+errors: 0, warnings: 1
+Modules:                     23      13
+SV Class declarations:        2       2
+TOOL:	xrun(64)	22.09-s003: Exiting on Oct 12, 2026 at 05:06:34 IST  (total: 00:00:01)
+TOOL:	xrun(64)	22.09-s003: Started on Oct 12, 2026 at 05:06:33 IST
+Writing initial simulation snapshot: worklib.tb_dma_env:sv
+
+warnings  : *W,VARIST (a static local with an initializer in tb_dma_env; made automatic afterwards), *W,DSEMEL (informational: IEEE 1800-2009 semantics)

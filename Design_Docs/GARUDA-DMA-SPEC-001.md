@@ -18,6 +18,7 @@
 |---|---|---|
 | 1.0–2.2 | Initial through six channels, with CDC primitives on the config port and a channel assignment contradicting two other documents | — |
 | 3.0 | All CDC logic deleted — the `hclk`/`pclk` boundary is synchronous. Channel assignment regenerated from `GARUDA-SYS-001`; no channel is shared. The ISRAM path and the boot-time role are removed. Block and CLIC numbering corrected. | ADR-0002, 0008, 0015, 0011 |
+| 3.0a | Text aligned with the RTL and the yaml (Track A, 2026-10-12; tasks 0.5 and 0.7): `CR` reset `0x0000_0040` and `SIZE` = 3 refused (AUD-12 item 7); error interrupts at CLIC IDs 8–13, ID 7 reserved (INT-2); channel 4 = `spi_slave`, wired (yaml `dma.assignment`, [N-6.4]); new [N-6.6] PSLVERR rule: a write to `STAT`/`GSTAT` is ignored without an error (AUD-13, ruled in the two-track plan); [N-7.8] ack is 2 `hclk` wide (D-16); [N-7.20] reach: the fabric is unrestricted and the DMA refuses (AUD-12 item 1, D-16); §10 `a_one_beat_per_req` in a sound form, `a_ch4_tied` removed. Open, pending rulings: DMA-9 to DMA-14 (§14), the per-channel clock gate of [N-9.3] (AUD-12 item 2). | AUD-12, AUD-13, INT-2 |
 
 ## 0.3 Normative references
 
@@ -180,7 +181,7 @@ Per channel *n* (0–5), base offset `0x20 × n`:
 
 | Offset | Name | Access | Reset | Description |
 |---|---|---|---|---|
-| +0x00 | `CR` | RW | 0 | Control. |
+| +0x00 | `CR` | RW | `0x0000_0040` | Control. `SIZE` resets to 2 (word); every other field resets to 0 (§6.1). |
 | +0x04 | `SAR` | RW | 0 | Source address. |
 | +0x08 | `DAR` | RW | 0 | Destination address. |
 | +0x0C | `CNT` | RW | 0 | Transfer count in beats. |
@@ -201,7 +202,7 @@ Global, at `0x100`:
 | 2:1 | `MODE` | RW | 0 | 0 = P2M, 1 = M2P, 2 = M2M, 3 reserved. |
 | 3 | `SINC` | RW | 0 | Increment `SAR` after each beat. |
 | 4 | `DINC` | RW | 0 | Increment `DAR` after each beat. |
-| 6:5 | `SIZE` | RW | 2 | 0 = byte, 1 = halfword, 2 = word. |
+| 6:5 | `SIZE` | RW | 2 | 0 = byte, 1 = halfword, 2 = word, 3 reserved: a write of 3 leaves `SIZE` unchanged, as for `MODE` ([N-6.1]). |
 | 7 | `IE_COMP` | RW | 0 | Completion interrupt enable. |
 | 8 | `IE_ERR` | RW | 0 | Error interrupt enable. |
 | 31:9 | reserved | — | 0 | |
@@ -256,6 +257,15 @@ control loop's hard-real-time input and is highest. The console is lowest becaus
 depends on it — dropping a debug character is free. GPS at 115200 baud is one beat every
 ~21,700 `hclk` cycles, so its low priority costs nothing.
 
+### 6.4 Register-port errors
+
+**[N-6.6]** `PSLVERR` is raised only for an offset that is not a register: channels 6 and 7
+(`0xC0`–`0xFC`), `+0x18` and `+0x1C` in each channel, `0x104` and above, and unaligned
+offsets. A write to a read-only register (`STAT`, `GSTAT`) is ignored and raises no error;
+`ICLR` reads 0. This is the single rule of `GARUDA-AHB2APB-SPEC-001` [N-7.20] (AUD-13, ruled
+in the two-track plan, 2026-10-11). Until 2026-10-12 the DMA answered `PSLVERR` to a write
+to `STAT` or `GSTAT`.
+
 ---
 
 ## 7 Functional description
@@ -298,7 +308,9 @@ nothing over the P2M/M2P datapath.
 **[N-7.7]** `dma_req_i[n]` is level: the peripheral asserts it while it has data (P2M) or
 space (M2P), and deasserts when the beat has been taken.
 
-**[N-7.8]** `dma_ack_o[n]` is a single-cycle pulse asserted when the beat completes.
+**[N-7.8]** `dma_ack_o[n]` is a pulse two `hclk` cycles wide (one `pclk` period; D-16,
+erratum DMA-7), asserted when a beat completes successfully. The `pclk`-domain peripheral
+sees it high at exactly one `pclk` edge, whichever `hclk` phase the beat ends on.
 
 **[N-7.9]** All six peripherals' request lines are in the `pclk` domain and cross to `hclk`.
 This crossing is synchronous (`GARUDA-AHB2APB-SPEC-001` §7.2) and requires no
@@ -356,8 +368,13 @@ rather than a fix for one bit is what prevents the next instance.
 
 ### 7.7 Reachability
 
-**[N-7.20]** The DMA reaches DSRAM and the APB region. It has no path to ISRAM or Boot ROM
-(R-9, `GARUDA-SYS-001` `ahb.master_reachability`).
+**[N-7.20]** The DMA reaches DSRAM and the APB region, and never ISRAM or Boot ROM (R-9).
+The interconnect is unrestricted (ADR-0005): `GARUDA-SYS-001` `ahb.master_reachability` and
+`GARUDA-AHB-SPEC-001` let master M3 address every region. R-9 is therefore enforced inside
+the DMA (DECISIONS D-16): the engine refuses a beat whose `SAR` or `DAR` lies in ISRAM
+(`0x0xxx_xxxx`) or Boot ROM (`0x1xxx_xxxx`) with `ERROR` and `ERRPHASE` = read or write,
+and issues no AHB transfer to the forbidden address. *(Reworded 2026-10-12, AUD-12 item 1.
+Open: a bad `DAR` is refused only after the source read, DMA-10.)*
 
 **[N-7.21]** The ISRAM path existed in Rev 2.2 only to support the DMA boot copy. With the
 polled-PIO bootloader (ADR-0015) nothing needs it, and removing it means a DMA channel
@@ -467,6 +484,10 @@ from the arbiter's combinational logic.
 is an explicit, single-bit, already-registered idle condition, unlike the core's WFI
 condition which has to be derived from pipeline state.
 
+*(Open, AUD-12 item 2: `rtl/dma` contains no clock gate, so [N-9.3] and [N-9.4] describe a
+gate that was not built. Ruling pending (Track A DMA plan D5; recommended: this revision has
+no per-channel gate). vPlan F41.)*
+
 ---
 
 ## 10 Assertions
@@ -506,10 +527,14 @@ a_one_channel: assert property (
   @(posedge hclk_i) disable iff (!hreset_n_i)
   (xfer_state != IDLE) |-> $onehot(ch_granted));
 
-// --- one beat per request assertion (N-7.10)
+// --- one beat per request assertion (N-7.10). need_low[n] is a checker flop:
+// --- set by a successful beat on n while dma_req_i[n] is high, cleared while
+// --- dma_req_i[n] is low. (Rev 3.0 wrote "$rose(ack) |-> !ack throughout
+// --- req[*1:$]", which is false in its own first cycle because ack has just
+// --- risen; corrected 2026-10-12.)
 a_one_beat_per_req: assert property (
   @(posedge hclk_i) disable iff (!hreset_n_i)
-  $rose(dma_ack_o[n]) |-> !dma_ack_o[n] throughout (dma_req_i[n])[*1:$]);
+  (need_low[n] && ch_mode[n] != M2M) |-> !ch_eligible[n]);
 
 // --- error aborts only the affected channel (R-8)
 a_error_isolated: assert property (
@@ -607,6 +632,15 @@ directed, cycle-accurate trigger.
 
 ## 14 Open items
 
+- **DMA-9 to DMA-14** (2026-10-12, `Docs/bugs/dma.md`): restart after a software stop
+  reloads REMAINING from CNT; a bad `DAR` is refused after the source read; a beat still in
+  flight lands in a re-armed transfer; `ACK_CYCLES` is unguarded; an unaligned halfword or
+  word `SAR`/`DAR` puts a misaligned transfer on the bus (vPlan F17); a `CR` write during a
+  beat (such as the stop `CR` = 0) changes that beat's size (vPlan F45). Rulings pending
+  (Track A DMA plan). Until then this specification does not describe the restart, re-arm,
+  unaligned and write-during-a-beat behaviour.
+- **AUD-12 item 2** (2026-10-12): the per-channel clock gate of [N-9.3] does not exist in
+  `rtl/dma`; ruling pending (DMA plan D5).
 
 - **OPEN-D1** — *closed 2026-09-26.* The APB side now runs on `pclk`, with the
   registers still on `hclk` as ADR-0002 Rev 2 asks. PRDATA is **registered on

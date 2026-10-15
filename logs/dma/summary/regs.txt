@@ -1,0 +1,10 @@
+garuda-run 1  suite regs  block dma  2026-10-15T21:57:11+05:30
+design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    UNEXPECTED              tb_dma_regs        7 [FAIL] line(s); 7 assertion failure(s) | first: [54618000] %Error: dma_sva.sv:119: Assertion failed in tb_dma_regs.dut.u_dma_sva.a_apb_stat_ro: [SVA
+FAIL    XFAIL:PLANTED           negctl_size_reset  pass marker missing; 13 [FAIL] line(s); 7 assertion failure(s) | first: [FAIL] [F01] [F11] reset: ch0 CR = 00000000 (want 00000040) (t=42000)
+
+PASS    0
+FAIL    2
+BLOCKED 0
+total   2
