@@ -1,0 +1,16 @@
+top: ahb_mem_slave_if
+children: sram_wrapper isram_top bootrom_top
+script: flow/formal/mem/mem_fpv.tcl
+proved: 13/13
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+Harness flow/formal/mem/mem_fv_top.sv: the RTL front end and sram_wrapper, 16 words. With FORMAL the
+data check tracks one word the tool chooses, which proves read-returns-last-write for every word.
+RAM (WRITABLE=1): 13 of 13 proved; the 2 unreachable covers are the ROM-only properties' triggers.
+ROM (WRITABLE=0): 13 of 13 proved; the 5 unreachable covers are the write paths a ROM does not have.
+Planted defects (tools/mutate.py sim/lab/mem/mut_spec.py): simulation catches 6 of 8. M2 (read bypass
+takes every lane of a parked sub-word write) needs a read straight after a sub-word write over known
+data, which the bench never does; formal gives a counterexample on a_data_integrity. M8 (DSRAM read
+bank also updated by writes) is equivalent by reasoning, not proved: the extra update lands after
+the read data is used. The DSRAM's four banks are not in the harness (its formal would need 4 x 4096
+words); its bank selection is checked by a_data_integrity in simulation only.

@@ -195,6 +195,9 @@ module tb_mem_subsystem;
         // ---- random soak vs shadow model ----------------------------------------------------
         for (i = 0; i < 16384; i++) shadow[32'h2000_0000 + i] = 8'h00;
         for (i = 0; i < 4096; i++) u_dsram.bd_write(32'h2000_0000 + 4*i, 32'h0);
+`ifndef __ICARUS__
+        u_dsram.u_if.u_mem_sva.forget_all();   // the backdoor fill is invisible to the bus-side model
+`endif
         clr();
         n = 0;
         for (i = 0; i < 900; i++) begin

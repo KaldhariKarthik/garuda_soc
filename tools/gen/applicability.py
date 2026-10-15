@@ -90,7 +90,10 @@ ENV_OF = {"clic_top": "tb/clic/uvm/clic_env_pkg.sv", "timers_top": "tb/timers/uv
 CHILD_OF = {"clic_apb": "clic_top", "clic_select": "clic_top", "mtime": "timers_top", "timers_apb": "timers_top",
             "wdt": "timers_top", "reset_ctrl_apb": "reset_ctrl", "garuda_pwm_core": "garuda_pwm_top",
             "garuda_spis_core": "garuda_spis_top",
-            "ahb2apb_apb_fsm": "ahb2apb_bridge", "ahb2apb_fabric": "ahb2apb_bridge"}
+            "ahb2apb_apb_fsm": "ahb2apb_bridge", "ahb2apb_fabric": "ahb2apb_bridge",
+            # the memories: the checkers are bound to the shared front end inside each top
+            "isram_top": "ahb_mem_slave_if", "dsram_top": "ahb_mem_slave_if", "bootrom_top": "ahb_mem_slave_if",
+            "sram_wrapper": "ahb_mem_slave_if"}
 
 def formal_facts():
     d = {}
@@ -129,7 +132,7 @@ ASSERT_N = {m: CHK for m in CHECKERS}
 FORMAL_N = {
  "mul32": ARITH, "mult_16x16": ARITH, "kogge_stone_49": ARITH, "mac_unit": ARITH, "mac_cluster": ARITH,
  "csa_3to2": SERIAL, "barrel_shifter": None,
- "sram_wrapper": ARRAY, "isram_top": ARRAY, "dsram_top": ARRAY, "bootrom_top": ARRAY,
+ "dsram_top": "four 4096-word banks: the shared front end and the array are proved on a 16-word harness (flow/formal/mem); the bank selection is checked end to end by a_data_integrity in simulation",
  "regfile": ARRAY,
  "imm_gen": SERIAL, "load_formatter": SERIAL, "alu": SERIAL, "saturation_unit": SERIAL,
  "overflow_flag": SERIAL, "result_selector": SERIAL, "readback_mux": SERIAL, "operand_router": SERIAL,

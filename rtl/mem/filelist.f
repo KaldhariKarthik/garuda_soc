@@ -11,3 +11,4 @@ rtl/mem/ahb_mem_slave_if.v
 rtl/isram/isram_top.v
 rtl/dsram/dsram_top.v
 rtl/brom/bootrom_top.v
+rtl/mem/mem_sva.sv
