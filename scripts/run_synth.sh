@@ -109,8 +109,18 @@ if [ $RC -ne 0 ]; then
     exit $RC
 fi
 
-sed -n '/=== design hierarchy ===/,/^$/p' "$OUT/yosys.log" | head -40
-grep -E "Number of cells|Number of wires|Number of memories" "$OUT/yosys.log" | tail -5
+# The hierarchy table. Yosys before 0.4x ended its header at the first blank
+# line; 0.68 puts a blank line straight after the header and prints the table
+# below it, so skip blank lines until the table starts, then stop at the
+# first blank line after it.
+awk '/=== design hierarchy ===/ { on = 1; print; next }
+     on && /^[[:space:]]*$/ { if (seen) exit; next }
+     on { seen = 1; print }' "$OUT/yosys.log" | head -40
+# The whole-design totals are the last of each count in the log:
+# "Number of cells: N" in the old format, "N cells" in 0.68.
+for k in wires cells; do
+    grep -E "Number of $k|^ +[0-9]+ +$k$" "$OUT/yosys.log" | tail -1
+done
 
 # ---- the latch gate ---------------------------------------------------------
 # Read the count from the object list yosys wrote, never from the log text.
