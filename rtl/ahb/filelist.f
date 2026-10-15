@@ -25,3 +25,4 @@ rtl/ahb/ahb_default_slave.v
 
 // Block boundary
 rtl/ahb/ahb_interconnect.v
+rtl/ahb/ahb_interconnect_sva.sv

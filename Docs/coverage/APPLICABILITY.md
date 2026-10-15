@@ -8,33 +8,34 @@ A measure that **applies and does not exist is a GAP**. Nothing else is. Vendore
 
 | Measure | have | GAP | n/a (with reason) |
 |---|---|---|---|
-| Code coverage | 94 | 0 | 11 |
-| Functional coverage | 42 | 42 | 21 |
-| Assertions | 45 | 49 | 11 |
-| Formal properties | 3 | 64 | 38 |
+| Code coverage | 94 | 0 | 12 |
+| Functional coverage | 42 | 42 | 22 |
+| Assertions | 46 | 48 | 12 |
+| Formal properties | 9 | 58 | 39 |
 
-105 own RTL modules.
+106 own RTL modules.
 
 ## Gap list
 
 **Functional coverage: 42 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_interconnect, ahb_master_port, ahb_mem_slave, ahb_slave_mux; core: clic_ctrl, core_clk_gate, csr_file, ex_stage, forward_unit, regfile, trap_ctrl, wb_stage; debug: debug_module, debug_top, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine, dma_top; dsu: barrel_shifter, dsu_decoder, dsu_top, mac_cluster, operand_router, readback_mux, result_selector; mem: ahb_mem_slave_if, bootrom_top, dsram_top, isram_top, sram_wrapper; shim: garuda_apb_shim; soc: garuda_chip_core; spim: garuda_spim_top; uart: garuda_uart_top
 
-**Assertions: 49 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_interconnect, ahb_master_mux, ahb_master_port, ahb_mem_slave, ahb_slave_mux; core: clic_ctrl, core_clk_gate, csr_file, ex_mem, ex_stage, forward_unit, id_ex, if_id, regfile, trap_ctrl, wb_stage; debug: debug_module, debug_top, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine, dma_top; dsu: barrel_shifter, dsu_decoder, dsu_top, kogge_stone_49, mac_cluster, mult_16x16, operand_router, readback_mux, result_selector; mem: ahb_mem_slave_if, bootrom_top, dsram_top, isram_top, sram_wrapper; soc: garuda_chip_core, garuda_chip_top, garuda_soc_top; spim: garuda_spim_top; uart: garuda_uart_top
+**Assertions: 48 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_master_mux, ahb_master_port, ahb_mem_slave, ahb_slave_mux; core: clic_ctrl, core_clk_gate, csr_file, ex_mem, ex_stage, forward_unit, id_ex, if_id, regfile, trap_ctrl, wb_stage; debug: debug_module, debug_top, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine, dma_top; dsu: barrel_shifter, dsu_decoder, dsu_top, kogge_stone_49, mac_cluster, mult_16x16, operand_router, readback_mux, result_selector; mem: ahb_mem_slave_if, bootrom_top, dsram_top, isram_top, sram_wrapper; soc: garuda_chip_core, garuda_chip_top, garuda_soc_top; spim: garuda_spim_top; uart: garuda_uart_top
 
-**Formal properties: 64 modules.** ahb: ahb_arbiter, ahb_decoder, ahb_default_slave, ahb_interconnect, ahb_master_port, ahb_mem_slave, ahb_slave_mux; clic: clic_apb, clic_select, clic_top; clk/rst: clk_div, reset_ctrl, reset_ctrl_apb; core: branch_predict, branch_unit, clic_ctrl, core_clk_gate, csr_file, csr_rw, d_port_ahb_master, decode_control, ex_stage, forward_unit, garuda_core_top, garuda_if_stage_top, garuda_iport_ahb_master, garuda_pc_gen, garuda_prefetch_buffer, hazard_forward_unit, id_stage, load_store_unit, mem_stage, trap_ctrl, wb_stage; debug: debug_module, debug_top, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine, dma_top; dsu: barrel_shifter, dsu_decoder, dsu_stall, dsu_top; gpio: garuda_gpio_top; i2c: garuda_i2c_top; mem: ahb_mem_slave_if; pwm: garuda_pwm_core, garuda_pwm_top; shim: garuda_apb_shim; soc: garuda_chip_core; spim: garuda_spim_top; spis: garuda_spis_core, garuda_spis_top; timers: mtime, timers_apb, timers_top, wdt; uart: garuda_uart_top
+**Formal properties: 58 modules.** ahb: ahb_mem_slave; clic: clic_apb, clic_select, clic_top; clk/rst: clk_div, reset_ctrl, reset_ctrl_apb; core: branch_predict, branch_unit, clic_ctrl, core_clk_gate, csr_file, csr_rw, d_port_ahb_master, decode_control, ex_stage, forward_unit, garuda_core_top, garuda_if_stage_top, garuda_iport_ahb_master, garuda_pc_gen, garuda_prefetch_buffer, hazard_forward_unit, id_stage, load_store_unit, mem_stage, trap_ctrl, wb_stage; debug: debug_module, debug_top, dmi_cdc, dtm, jtag_tap, sba_master; dma: dma_apb_slave, dma_arbiter, dma_chan, dma_engine, dma_top; dsu: barrel_shifter, dsu_decoder, dsu_stall, dsu_top; gpio: garuda_gpio_top; i2c: garuda_i2c_top; mem: ahb_mem_slave_if; pwm: garuda_pwm_core, garuda_pwm_top; shim: garuda_apb_shim; soc: garuda_chip_core; spim: garuda_spim_top; spis: garuda_spis_core, garuda_spis_top; timers: mtime, timers_apb, timers_top, wdt; uart: garuda_uart_top
 
 ## The matrix
 
 | Module | Block | Code coverage | Functional coverage | Assertions | Formal |
 |---|---|---|---|---|---|
-| `ahb_arbiter` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
-| `ahb_decoder` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
-| `ahb_default_slave` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
-| `ahb_interconnect` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `ahb_arbiter` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **have** properties proved 20/20 (via ahb_interconnect): flow/formal/ahb/ahb_fpv.tcl |
+| `ahb_decoder` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **have** properties proved 20/20 (via ahb_interconnect): flow/formal/ahb/ahb_fpv.tcl |
+| `ahb_default_slave` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **have** properties proved 20/20 (via ahb_interconnect): flow/formal/ahb/ahb_fpv.tcl |
+| `ahb_interconnect` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **have** 17 bound: ahb_interconnect_sva.sv | **have** properties proved 20/20: flow/formal/ahb/ahb_fpv.tcl |
+| `ahb_interconnect_sva` | ahb | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |
 | `ahb_master_mux` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made | **GAP** | n/a: wiring only: the behaviour belongs to the instances; it is sampled where the decision is made |
-| `ahb_master_port` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `ahb_master_port` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **have** properties proved 20/20 (via ahb_interconnect): flow/formal/ahb/ahb_fpv.tcl |
 | `ahb_mem_slave` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
-| `ahb_slave_mux` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **GAP** |
+| `ahb_slave_mux` | ahb | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **GAP** | **GAP** | **have** properties proved 20/20 (via ahb_interconnect): flow/formal/ahb/ahb_fpv.tcl |
 | `ahb2apb_apb_fsm` | bridge | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 1 bound: ahb2apb_bridge_cov.sv (via ahb2apb_bridge) | **have** via ahb2apb_bridge: ahb2apb_bridge_sva.sv | **have** properties proved 17/17 (via ahb2apb_bridge): flow/formal/ahb2apb/bridge_fpv.tcl |
 | `ahb2apb_bridge` | bridge | **have** block chart (Docs/coverage/COVERAGE_BY_BLOCK.md) | **have** 1 bound: ahb2apb_bridge_cov.sv | **have** 17 bound: ahb2apb_bridge_sva.sv | **have** properties proved 17/17: flow/formal/ahb2apb/bridge_fpv.tcl |
 | `ahb2apb_bridge_sva` | bridge | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it | n/a: a checker, not hardware: nothing to measure on it |

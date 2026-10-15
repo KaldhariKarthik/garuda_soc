@@ -1,0 +1,12 @@
+top: ahb_interconnect
+children: ahb_arbiter ahb_decoder ahb_default_slave ahb_master_mux ahb_master_port ahb_slave_mux
+script: flow/formal/ahb/ahb_fpv.tcl
+proved: 20/20
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+20 assertions proved, 34 covers all covered (every precondition reachable: no vacuous proof).
+Assumptions: each master holds its address phase until accepted; each slave's ERROR is two cycles.
+Simulation of eight planted defects (zero-wait and random-wait bench): assertions caught 7 of 8 at first
+(a_no_orphan_seq was a tautology, rewritten with a shadow owner and then catches M4); the bench missed
+M8 (hrdata to a non-owner), which only the assertion a_quiet catches. Mutants through formal: not run
+(the loop failed on a path; rerun with FL=<mutant list>).
