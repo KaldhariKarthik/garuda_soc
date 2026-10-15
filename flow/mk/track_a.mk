@@ -10,7 +10,7 @@
 .PHONY: help_a elab_core elab_core_dsu \
         test_ex test_ex_dsu test_idex test_exmem test_pipe test_csr test_trap \
         test_core isa_tests test_boot test_c regress regress_wait test_flag2 \
-        test_sanity regress_rand coverage test_dsu test_units test_decode_control \
+        test_sanity regress_rand coverage test_dsu test_dsu_stream test_units test_decode_control \
         test_imm_gen test_reg_file test_branch_predict test_hazard_forward_unit \
         test_id_stage test_elements test_alu test_mul32 test_branch_unit \
         test_csr_rw test_clic_ctrl test_lsu test_load_fmt test_memwb \
@@ -33,6 +33,7 @@ help_a:
 	@echo "  make test_c          -- first C test (crt0 + stack + .bss + M-ext)"
 	@echo "  make test_flag2      -- DSU FLAG-2 compute->read ordering probe (closed: DSU-3/DSU-4)"
 	@echo "  make test_dsu        -- DSU unit TB vs DSUModel (regenerates vectors)"
+	@echo "  make test_dsu_stream -- the same, instructions back to back (SIM=icarus: no licence)"
 	@echo "  make test_sanity     -- Core Sanity TB: IRQ, bus error, WFI, flush, DSU"
 	@echo "  make regress         -- full ISA regression + Spike lockstep"
 	@echo "  make regress_wait    -- same, with AHB wait states injected"
@@ -227,6 +228,26 @@ test_dsu:
 	   > /dev/null 2>&1; rc=$$?; \
 	 grep -E "tests compared|mismatches|RESULT" $(SIM_DIR)/dsu/run.log 2> /dev/null; \
 	 $(call judge,$(SIM_DIR)/dsu/run.log,RESULT +: PASSED)
+
+# The same bench with instructions back to back (+STREAM, BUGS TB-42): the only
+# protocol that exercises the interlock and the overflow flag's history.
+# SIM=icarus runs it without a licence.
+test_dsu_stream:
+	@mkdir -p $(SIM_DIR)/dsu_stream
+	@python3 tools/gen/DSU_gen.py --stream --count $(DSU_TESTS) --seed $(DSU_SEED) \
+	   --outdir $(SIM_DIR)/dsu_stream | head -1
+	@d=$(SIM_DIR)/dsu_stream; rm -f $$d/run.log; \
+	 args="+STREAM +STIM=$$d/dsu_stim.mem +EXP=$$d/dsu_expected.mem"; \
+	 if [ "$(SIM)" = icarus ]; then \
+	   ex="python3 scripts/expand_filelist.py tb/dsu/filelist_dsu_top.f"; \
+	   iverilog -g2012 -s tb_dsu_top $$($$ex --incdirs) -o $$d/tb.vvp $$($$ex) > $$d/run.log 2>&1 \
+	     && vvp $$d/tb.vvp $$args >> $$d/run.log 2>&1; rc=$$?; \
+	 else \
+	   $(XRUN) -64bit -f tb/dsu/filelist_dsu_top.f -top tb_dsu_top \
+	     -xmlibdirname $$d/xcelium.d -l $$d/run.log $$args > /dev/null 2>&1; rc=$$?; \
+	 fi; \
+	 grep -E "tests compared|mismatches|interlock held|RESULT" $$d/run.log 2> /dev/null; \
+	 $(call judge,$(SIM_DIR)/dsu_stream/run.log,RESULT +: PASSED)
 
 coverage: sw isa_tests
 	@./scripts/run_coverage.sh

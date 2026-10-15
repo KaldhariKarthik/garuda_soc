@@ -29,6 +29,14 @@
 //      "settle" op was needed to force the commit.
 //   4. compare the accumulators.
 //
+// +STREAM (BUGS TB-42): no idle cycle. The next instruction is driven on the
+// cycle after the previous one completes, and the accumulators are sampled
+// with the other outputs in the completing cycle. This is the only protocol
+// under which one instruction meets the next, so the only one that sees the
+// interlock (dsu_busy) and the overflow flag's history. Vectors:
+//   python3 tools/gen/DSU_gen.py --stream --outdir sim/dsu_stream
+//   make test_dsu_stream
+//
 // Run:  make test_dsu        (regenerates vectors, then runs this)
 // =============================================================================
 `timescale 1ns/1ps
@@ -110,6 +118,9 @@ module tb_dsu_top;
     reg [31:0] s_rd_data;
     reg        s_rd_valid, s_illegal, s_overflow;
     reg [4:0]  s_rd_addr;
+    reg [47:0] s_acc0, s_acc1, s_acc2;
+    reg        stream;
+    integer    n_stalls;                 // cycles dsu_busy held an instruction
 
     task automatic report_mismatch(input integer idx, input [1023:0] what,
                                    input [47:0] got, input [47:0] want);
@@ -160,7 +171,8 @@ module tb_dsu_top;
     integer nstim, nexp;
 
     initial begin
-        errors = 0; checked = 0;
+        errors = 0; checked = 0; n_stalls = 0;
+        stream = $test$plusargs("STREAM");
         if (!$value$plusargs("MAXREPORT=%d", max_report)) max_report = 10;
         if (!$value$plusargs("STIM=%s", stimfile)) stimfile = "sim/dsu/dsu_stim.mem";
         if (!$value$plusargs("EXP=%s",  expfile))  expfile  = "sim/dsu/dsu_expected.mem";
@@ -182,7 +194,8 @@ module tb_dsu_top;
             $finish;
         end
         ntests = nstim / STIM_W;
-        $display("tb_dsu_top: %0d tests from %0s", ntests, stimfile);
+        $display("tb_dsu_top: %0d tests from %0s%0s", ntests, stimfile,
+                 stream ? "  (STREAM: back to back, no idle cycle)" : "");
 
         // ---- reset ----
         rst_n = 1'b0; flush = 1'b0; dsu_en = 1'b0;
@@ -209,6 +222,7 @@ module tb_dsu_top;
                 @(posedge clk);
                 #1;
                 guard = guard + 1;
+                n_stalls = n_stalls + 1;
             end
             if (guard >= 8) begin
                 $display("[FAIL] test %0d: dsu_busy stuck - interlock is not a one-shot", i);
@@ -221,6 +235,9 @@ module tb_dsu_top;
             s_rd_addr  = dsu_rd_addr;
             s_illegal  = illegal_instr;
             s_overflow = dsu_overflow;
+            s_acc0     = dbg_acc_0;
+            s_acc1     = dbg_acc_1;
+            s_acc2     = dbg_acc_2;
 
             @(posedge clk);
             // Drive AWAY from the edge. Assigning at the posedge races the
@@ -231,10 +248,17 @@ module tb_dsu_top;
             #1;
 
             // ---- 3. one idle cycle so stage 2 commits (ERRATUM DSU-4) ----
-            dsu_en = 1'b0;
-            instr  = 32'b0; rs1 = 32'b0; rs2 = 32'b0; csr_clear_overflow = 1'b0;
-            @(posedge clk);
-            #1;
+            // Not in stream mode: there the next instruction follows at once
+            // and the accumulators were sampled in the completing cycle.
+            if (!stream) begin
+                dsu_en = 1'b0;
+                instr  = 32'b0; rs1 = 32'b0; rs2 = 32'b0; csr_clear_overflow = 1'b0;
+                @(posedge clk);
+                #1;
+                s_acc0 = dbg_acc_0;
+                s_acc1 = dbg_acc_1;
+                s_acc2 = dbg_acc_2;
+            end
 
             // ---- 4. compare ----
             e_acc0 = {exp[i*EXP_W+2][15:0], exp[i*EXP_W+1]};
@@ -248,14 +272,14 @@ module tb_dsu_top;
                          i, stim[i*STIM_W+0], stim[i*STIM_W+3][0],
                          s_overflow, dsu_overflow, flags[0]);
 
-            if (dbg_acc_0 !== e_acc0) begin
-                errors = errors + 1; report_mismatch(i, "acc_FX",  dbg_acc_0, e_acc0);
+            if (s_acc0 !== e_acc0) begin
+                errors = errors + 1; report_mismatch(i, "acc_FX",  s_acc0, e_acc0);
             end
-            if (dbg_acc_1 !== e_acc1) begin
-                errors = errors + 1; report_mismatch(i, "acc_FY",  dbg_acc_1, e_acc1);
+            if (s_acc1 !== e_acc1) begin
+                errors = errors + 1; report_mismatch(i, "acc_FY",  s_acc1, e_acc1);
             end
-            if (dbg_acc_2 !== e_acc2) begin
-                errors = errors + 1; report_mismatch(i, "acc_MAG", dbg_acc_2, e_acc2);
+            if (s_acc2 !== e_acc2) begin
+                errors = errors + 1; report_mismatch(i, "acc_MAG", s_acc2, e_acc2);
             end
             // rd_data only has meaning when the op actually returns one
             if (flags[1] && (s_rd_data !== exp[i*EXP_W+0])) begin
@@ -279,6 +303,12 @@ module tb_dsu_top;
         $display("\n============ DSU_TOP vs DSUModel ============");
         $display("  tests compared : %0d", checked);
         $display("  mismatches     : %0d", errors);
+        $display("  interlock held : %0d cycle(s)", n_stalls);
+        // A stream that never stalled has not tested what it exists to test.
+        if (stream && n_stalls == 0) begin
+            $display("[FAIL] STREAM run with no dsu_busy cycle: the interlock was never exercised");
+            errors = errors + 1;
+        end
         if (errors == 0) $display("  RESULT         : PASSED");
         else             $display("  RESULT         : %0d FAILURES", errors);
         $display("=============================================");

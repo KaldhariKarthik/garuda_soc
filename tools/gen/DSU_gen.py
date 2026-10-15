@@ -179,6 +179,78 @@ def clamp_walk_tests(rng, n_probe, ramp=32768):
     return out
 
 
+def stream_tests(rng, n_rand):
+    """Back-to-back program for --stream (BUGS TB-42).
+
+    The per-test protocol puts an idle cycle after every instruction, so the
+    bench never sees one instruction meet the next: the interlock, and the
+    overflow flag's history from one cycle to the next, are invisible to it.
+    Mutants that remove the interlock or make the flag non-sticky survived the
+    block bench. In stream mode nothing separates two instructions, and this
+    program is built to make those cases happen:
+
+      1. hazards: every 2-cycle producer followed at once by every reader of
+         the accumulator, on the same accumulator (must interlock) and on
+         another one (must not);
+      2. overflow episodes: an accumulator loaded past +-2^31 and saturated,
+         so MACSAT raises the overflow; then ordinary instructions (the flag
+         must stay set), a clear on its own (it must drop), and a clear in
+         the very cycle of a new overflow (it must stay set: DSU-8);
+      3. random instructions, back to back, with a clear on one in twenty
+         and dsu_en low on one in fifty.
+    """
+    out = []
+    producers = [MAC_SEL, MACSUB, MACABS, MACDOT, MACRD_LO, MACRD_HI, MACSAT]
+    names = {MAC_SEL: "MAC_SEL", MACSUB: "MACSUB", MACABS: "MACABS", MACDOT: "MACDOT",
+             MACRD_LO: "MACRD_LO", MACRD_HI: "MACRD_HI", MACSAT: "MACSAT"}
+
+    def reader(kind, sel, rd):
+        if kind == "shift":
+            return asm_shift(sel, amt=rng.randint(0, 47), left=rng.randint(0, 1), rd=rd)
+        return asm(kind, acc_sel=sel, rd=rd)
+
+    # ---- 1. producer -> reader hazards --------------------------------------
+    for p in producers:
+        for r in (MACRD_LO, MACRD_HI, MACSAT, "shift"):
+            for same in (True, False):
+                a = rng.randint(0, 2)
+                b = a if same else (a + rng.randint(1, 2)) % 3
+                out.append((asm(MACLOAD, acc_sel=a), rand_word(rng), 0, 0, f"stream seed acc{a}"))
+                out.append((asm(p, acc_sel=a, rd=rng.randint(1, 31)), rand_word(rng),
+                            rand_word(rng), 0, f"stream producer {names[p]} acc{a}"))
+                out.append((reader(r, b, rng.randint(1, 31)), 0, 0, 0,
+                            f"stream reader {r if r == 'shift' else names[r]} acc{b}"
+                            f" ({'same' if same else 'other'} acc)"))
+
+    # ---- 2. overflow history --------------------------------------------------
+    for a in range(3):
+        for clear_with_ovf in (0, 1):
+            big = [(asm(MACLOAD, acc_sel=a), 0x7FFFFFFF, 0, 0, f"ovf load acc{a}"),
+                   (asm(MACDOT, acc_sel=a), 0x7FFF7FFF, 0x7FFF7FFF, 0, f"ovf push acc{a} past 2^31")]
+            out += big
+            out.append((asm(MACSAT, acc_sel=a), 0, 0, clear_with_ovf,
+                        f"ovf MACSAT acc{a}" + (" with clear in the same cycle" if clear_with_ovf else "")))
+            out.append((asm(MAC_SEL, acc_sel=a), 1, 1, 0, "ovf flag must stay set"))
+            out.append((asm(MACRD_LO, acc_sel=a, rd=5), 0, 0, 0, "ovf flag must stay set"))
+            out.append((asm(MAC_SEL, acc_sel=(a + 1) % 3), 2, 3, 0, "ovf flag must stay set"))
+            out.append((asm(MAC_SEL, acc_sel=a), 0, 0, 1, "ovf clear on its own"))
+            out.append((asm(MAC_SEL, acc_sel=a), 0, 0, 0, "ovf flag must stay clear"))
+            # a second overflow arriving while the flag is already set
+            out += big
+            out.append((asm(MACSAT, acc_sel=a), 0, 0, 0, "ovf again"))
+            out += big
+            out.append((asm(MACSAT, acc_sel=a), 0, 0, 0, "ovf while set"))
+            out.append((asm(MACCLEAR, acc_sel=a), 0, 0, 1, "ovf clear, then idle"))
+
+    # ---- 3. random, back to back ---------------------------------------------------
+    for instr, rs1, rs2, _clr, note in random_tests(rng, n_rand):
+        ctrl = 1 if rng.random() < 0.05 else 0
+        if rng.random() < 0.02:
+            ctrl |= DSU_EN_N
+        out.append((instr, rs1, rs2, ctrl, "stream " + note))
+    return out
+
+
 def w(x):                       # 32-bit value -> 8-digit hex line
     return f"{x & MASK32:08x}"
 
@@ -271,10 +343,21 @@ def main():
                          "logic at all -- see clamp_walk_tests().")
     ap.add_argument("--ramp", type=int, default=32768,
                     help="ramp length for --clamp-walk (32768 reaches 2^46)")
+    ap.add_argument("--stream", action="store_true",
+                    help="back-to-back program with no idle cycle between "
+                         "instructions; every expected record is sampled in "
+                         "the cycle its instruction completes (tb_dsu_top "
+                         "+STREAM; BUGS TB-42). Implies --no-drain.")
     args = ap.parse_args()
+    if args.stream:
+        args.no_drain = True
 
     rng = random.Random(args.seed)
-    if args.clamp_walk:
+    if args.stream:
+        directed = []
+        n_rand = args.count if args.count else 300
+        program = stream_tests(rng, n_rand)
+    elif args.clamp_walk:
         directed = []
         n_rand = args.clamp_walk
         program = clamp_walk_tests(rng, args.clamp_walk, ramp=args.ramp)
@@ -331,9 +414,13 @@ def main():
         if not args.no_drain:
             dsu.tick(0, 0, 0, dsu_en=0)          # idle drain cycle
 
+        # Stream mode samples the accumulators in the completing cycle
+        # itself (r["acc"], the values before that cycle's edge); the
+        # per-test protocol samples them after the idle drain cycle.
         res = {"rd_data": r["dsu_rd_data"], "rd_valid": r["dsu_rd_valid"],
                "rd_addr": r["dsu_rd_addr"], "illegal": r["illegal_instr"],
-               "overflow": r["dsu_overflow"], "acc": dsu.acc}
+               "overflow": r["dsu_overflow"],
+               "acc": r["acc"] if args.stream else dsu.acc}
 
         # ---- independent-oracle cross-check --------------------------------
         # Only meaningful with the drain cycle on: without it DSUModel is
@@ -363,7 +450,8 @@ def main():
         f.write(hdr); f.write("\n".join(exp) + "\n")
 
     print(f"wrote {count} tests  ({len(directed)} directed + {n_rand} random"
-          f"), drain={'off' if args.no_drain else 'on'}")
+          f"), drain={'off' if args.no_drain else 'on'}"
+          + (", STREAM (back to back)" if args.stream else ""))
     print(f"  dsu_stim.mem      : {len(stim)} lines (4 words/test)")
     print(f"  dsu_expected.mem  : {len(exp)} lines (8 words/test)")
     print(f"  seed={args.seed}  drain={'off' if args.no_drain else 'on'}")

@@ -334,8 +334,14 @@ class DSUModel:
             sat_result = 0xFFFF80000000
         else:
             sat_result = 0x00007FFFFFFF
-        sat_writeback_en = d.sat_op
-        sat_overflow = 1 if (d.sat_op and not in_range) else 0
+        # ERRATUM DSU-12: the saturate waits for ~dsu_busy, as dsu_top.v gates
+        # sat_op. In the held cycle of MACSAT-behind-a-MAC the pending product
+        # commits instead, and MACSAT runs on the following cycle. This model
+        # missed that fix until 2026-10-15 (BUGS TB-49): it saturated in the
+        # held cycle and threw the product away, and the per-test protocol of
+        # tb_dsu_top never stalls, so nothing compared the two.
+        sat_writeback_en = d.sat_op and not stall_now
+        sat_overflow = 1 if (sat_writeback_en and not in_range) else 0
 
         # ---- per-MAC evaluation (mac_cluster.v one-hot enables) ----------
         mac_overflow = 0
@@ -356,21 +362,30 @@ class DSUModel:
             adder_result = result_ext & MASK48
             accum_ovf = ((result_ext >> 48) & 1) ^ ((result_ext >> 47) & 1)
 
-            # acc_next priority, mirrors mac_unit.v exactly
-            if sat_we_i:
+            # acc_next priority, mirrors mac_unit.v exactly.
+            # ERRATUM DSU-11: `load` and `clear` are cluster-wide decodes;
+            # only THIS unit's own (my_load / my_clear: load & en) may replace
+            # its accumulator. Ported to this model 2026-10-15 (BUGS TB-49):
+            # until then a MACLOAD aimed elsewhere (or at the illegal acc_sel
+            # 3) overwrote an accumulator that had a product pending.
+            my_sat = bool(sat_we_i and not flush)
+            my_load = bool(d.load and en_i and not flush)
+            my_clear = bool(d.clear and en_i and not flush)
+            if my_sat:
                 acc_next = sat_result
-            elif d.load:
+            elif my_load:
                 acc_next = sext(rs1, 32, 48)
-            elif d.clear:
+            elif my_clear:
                 acc_next = 0
             else:
                 acc_next = adder_result
 
-            is_accum = not (d.load or d.clear or sat_we_i)
+            is_accum = not (my_load or my_clear or my_sat)
             # Overflow is a property of the COMMIT (DSU-4), not of an
             # instruction arriving: the fold that overflows may happen on a
-            # cycle with no instruction at all.
-            if accum_ovf and (self.pending[i] and not flush) and is_accum:
+            # cycle with no instruction at all. ERRATUM DSU-13: no ~flush -
+            # the fold belongs to the older MAC, which has already left EX.
+            if accum_ovf and self.pending[i] and is_accum:
                 mac_overflow = 1
 
             # ERRATUM DSU-2 (FLAG-A): only a genuine multiply may latch a new
@@ -384,13 +399,18 @@ class DSUModel:
             # commits this cycle whether or not a new instruction arrived;
             # previously acc moved only when write_en was asserted, so the last
             # product of a sequence was stranded indefinitely.
-            acc_we_i = bool((sat_we_i or ((d.load or d.clear) and en_i)
-                             or self.pending[i]) and not flush)
+            # ERRATUM DSU-13: a product already pending commits on schedule
+            # even under flush (mac_unit.v: acc_we = my_sat | my_load |
+            # my_clear | pending, and only the new product is gated by flush).
+            acc_we_i = bool(my_sat or my_load or my_clear or self.pending[i])
 
             if flush:
                 # FLAG-B: flush clears the PENDING product only. `acc` keeps
                 # its committed value -- a trap must not destroy accumulator
                 # state. DSU_Verification_Plan row 31 disagrees; it is wrong.
+                # DSU-13: a product pending from the previous cycle still folds in.
+                if acc_we_i:
+                    next_acc[i] = acc_next & MASK48
                 next_sum[i] = 0
                 next_carry[i] = 0
                 next_pending[i] = 0
