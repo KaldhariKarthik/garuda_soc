@@ -97,7 +97,7 @@ tb_chip|tb/soc/filelist_chip.f|tb_chip_local
 # them, so this back-end has nothing to say about them either way. Xcelium is
 # the signoff simulator and it supports all of these constructs.
 #
-# The entries are measured, each with the message that produced it. Three are
+# The entries are measured, each with the message that produced it. All three are
 # in vendored third-party PULP RTL that the project does not own.
 #
 # IMPORTANT: a listed testbench is still BUILT AND RUN on every regression. If
@@ -106,7 +106,6 @@ tb_chip|tb/soc/filelist_chip.f|tb_chip_local
 # which is this project's own recurring defect (TOOL-4, TB-11, TOOL-5).
 # -----------------------------------------------------------------------------
 TB_SKIP="
-tb_mem_subsystem|assoc array keyed by a packed type (tb line 100): 'Type names are not valid expressions here'
 tb_uart|third-party pulp/apb_uart_sv uart_rx.sv:171 'This assignment requires an explicit cast'
 tb_gpio|third-party pulp/apb_gpio apb_gpio.sv:131 variable index in a constant expression
 tb_spim|third-party pulp/axi_spi_master: compiles, but 12x 'sorry: constant selects in always_* not fully supported' mis-models tx/rx and the run hangs with no time advance
@@ -177,6 +176,16 @@ run_one() {
     srcs=$($PY scripts/expand_filelist.py "$flist") || { echo "FILELIST FAIL"; return 1; }
     incs=$($PY scripts/expand_filelist.py "$flist" --incdirs) || return 1
     defs=$($PY scripts/expand_filelist.py "$flist" --defines) || return 1   # TOOL-15
+
+    # tb_dsu_top reads generated vectors from sim/dsu (its default +STIM/+EXP).
+    # Make them here as make test_dsu does, with the same defaults, so the
+    # bench does not fail on a clean tree for want of a file.
+    if [ "$top" = tb_dsu_top ]; then
+        mkdir -p sim/dsu
+        $PY tools/gen/DSU_gen.py --count "${DSU_TESTS:-400}" --seed "${DSU_SEED:-1}" \
+            --outdir sim/dsu > "$out/dsu_gen.log" 2>&1 \
+            || { echo "DSU VECTOR GENERATION FAILED (see $out/dsu_gen.log)"; return 1; }
+    fi
 
     if [ "$SIM" = verilator ]; then
         # -Wno-fatal: lint warnings are local_lint's job, not a reason to skip
