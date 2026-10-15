@@ -54,6 +54,12 @@ rtl/core/pipe_ctrl.v
 // the rest of this filelist is Verilog-2001.
 -sv
 rtl/core/pipe_ctrl_sva.sv
+rtl/core/pipe_regs_sva.sv
+rtl/core/core_units_sva.sv
+rtl/core/core_units2_sva.sv
+rtl/core/trap_ctrl_sva.sv
+rtl/core/core_units3_sva.sv
+rtl/core/decode_control_sva.sv
 rtl/core/core_clk_gate.v
 
 // core top
@@ -75,3 +81,4 @@ rtl/dsu/dsu_stall.v
 rtl/dsu/dsu_decoder.v
 rtl/dsu/dsu_top.v
 rtl/dsu/dsu_sva.sv
+rtl/dsu/dsu_arith_sva.sv

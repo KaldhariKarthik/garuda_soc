@@ -1,0 +1,11 @@
+top: garuda_chip_core
+children: garuda_soc_top
+script: flow/formal/conn/chip_conn.tcl (JasperGold Connectivity, map flow/formal/conn/chip_conn.csv)
+proved: 32/32
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+32 connections, written from GARUDA-TRM-001 and DMA [N-6.4], not from the RTL's macros:
+  14 interrupt lines to their CLIC IDs (SPI master 15, I2C 16, UART0-2 17-19, GPIO 20, PWM 21,
+     SPI slave 14, DMA complete 1-6, DMA error 8-13), 6 DMA requests and 6 acknowledges.
+All 32 proved. Planted defect (UART0 and UART1 interrupt lines swapped in a copy of the chip top,
+FL=sim/lab/chip/rtl.f): 30 proved, the two swapped connections fail.

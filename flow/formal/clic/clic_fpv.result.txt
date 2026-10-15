@@ -1,0 +1,32 @@
+top: clic_top
+children: clic_apb clic_select
+script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh clic)
+proved: 76/76
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+clocks: hclk_i pclk_i:2    resets: hreset_n_i preset_n_i 
+covers: 78, not covered: 24
+  cover unreachable: clic_top.u_clic_sva.g_n[0].a_winner_max_level:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[7].a_winner_max_level:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[23].a_winner_max_level:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[24].a_winner_max_level:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[25].a_winner_max_level:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[26].a_winner_max_level:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[27].a_winner_max_level:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[28].a_winner_max_level:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[29].a_winner_max_level:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[30].a_winner_max_level:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[31].a_winner_max_level:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[0].a_tiebreak_lowest_id:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[7].a_tiebreak_lowest_id:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[23].a_tiebreak_lowest_id:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[24].a_tiebreak_lowest_id:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[25].a_tiebreak_lowest_id:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[26].a_tiebreak_lowest_id:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[27].a_tiebreak_lowest_id:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[28].a_tiebreak_lowest_id:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[29].a_tiebreak_lowest_id:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[30].a_tiebreak_lowest_id:precondition1
+  cover unreachable: clic_top.u_clic_sva.g_n[31].a_tiebreak_lowest_id:precondition1
+  cover unreachable: clic_top.u_clic_sva.a_reset_disabled:precondition1
+  cover unreachable: clic_top.u_clic_sva.c_reset

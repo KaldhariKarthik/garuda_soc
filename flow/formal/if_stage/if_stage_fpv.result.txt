@@ -1,0 +1,9 @@
+top: garuda_if_stage_top
+children: garuda_pc_gen garuda_iport_ahb_master garuda_prefetch_buffer
+script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh if_stage)
+proved: 15/15
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+clocks: clk_i    resets: rst_n_i 
+covers: 18, not covered: 1
+  cover unreachable: garuda_if_stage_top.u_prefetch_buffer.u_pfb_sva.c_pfb_wr_rd_full

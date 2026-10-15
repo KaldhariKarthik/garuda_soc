@@ -82,6 +82,8 @@ module reset_ctrl_sva #(
             else $error("[SVA-FAIL] a_async_assert: h=%b p=%b core=%b dm=%b ext_h=%b", hreset_n_o, preset_n_o, core_rst_n_o, dm_rst_n_o, ext_hrst_n_o);
     end
     // ---- F23: release is on a clock edge of the domain -------------------------------------
+`ifndef FORMAL
+    // release on a clock edge, measured in time: simulation only (a proof engine has no real time)
     realtime t_h = 0, t_p = 0;
     always @(posedge hclk_i) t_h = $realtime;
     always @(posedge pclk_i) t_p = $realtime;
@@ -93,6 +95,7 @@ module reset_ctrl_sva #(
         else $error("[SVA-FAIL] a_sync_release_dm");
     always @(posedge preset_n_o)   a_sync_release_pclk: assert ($realtime == t_p)
         else $error("[SVA-FAIL] a_sync_release_pclk: preset_n rose at %0t, last pclk rise %0t", $realtime, t_p);
+`endif
 
     // ---- F01, F02: the cause register --------------------------------------------------------
     a_reason_ext: assert property (@(posedge aon_clk_i) !ext_rst_n_i |-> (reason_q == 4'b0001))

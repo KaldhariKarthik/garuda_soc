@@ -43,7 +43,7 @@ def count(pat, path):
     try: return len(re.findall(pat, open(path, errors="replace").read(), re.M))
     except OSError: return 0
 
-ASSERT = r"assert\s+property|^\s*assert\s*\("
+ASSERT = r"assert\s+property|\bassert\s*(?:#0\s*)?\("   # concurrent, immediate and deferred (#0)
 def bound_asserts():
     """module -> [(checker file, n asserts)] from bind statements in rtl/ and tb/"""
     out = collections.defaultdict(list)
@@ -111,6 +111,7 @@ CHILD_OF = {"clic_apb": "clic_top", "clic_select": "clic_top", "mtime": "timers_
             "ahb_arbiter": "ahb_interconnect", "ahb_decoder": "ahb_interconnect", "ahb_default_slave": "ahb_interconnect",
             "ahb_master_port": "ahb_interconnect", "ahb_slave_mux": "ahb_interconnect", "ahb_master_mux": "ahb_interconnect",
             "dma_apb_slave": "dma_top", "dma_arbiter": "dma_top", "dma_chan": "dma_top", "dma_engine": "dma_top",
+            "garuda_soc_top": "garuda_chip_core",     # its interrupt map is checked by chip_sva
             "debug_module": "debug_top", "dmi_cdc": "debug_top", "dtm": "debug_top", "jtag_tap": "debug_top", "sba_master": "debug_top"}
 
 def formal_facts():
@@ -150,6 +151,9 @@ CHECKERS = {"clic_sva","clk_div_sva","garuda_apb_shim_sva","gpio_sva","garuda_i2
 ASSERT_N = {m: CHK for m in CHECKERS}
 ASSERT_N["ahb_mem_slave"] = "a verification model kept in rtl/ (the memory of tb_boot), not silicon: rtl/ahb/filelist.f says so"
 FORMAL_N = {
+ "wb_stage": "three assigns passing the write-back to the register file; the register file and the pipeline around it are proved (regfile, pipe_ctrl)",
+ "core_clk_gate": "behavioural model of the library clock-gate cell (replaced by the cell in the physical flow, P1, GARUDA_ICG_CELL); when the gate may close is proved on pipe_ctrl's quiescent rule",
+ "clk_div": "its properties are about time (half-period widths, two edges at the same instant: clk_div_sva.sv uses $realtime); a proof engine has no time, so they are checked in every simulation",
  "ahb_mem_slave": "a verification model kept in rtl/ (the memory of tb_boot), not silicon: rtl/ahb/filelist.f says so",
  "mul32": ARITH, "mult_16x16": ARITH, "kogge_stone_49": ARITH, "mac_unit": ARITH, "mac_cluster": ARITH,
  "csa_3to2": SERIAL, "barrel_shifter": None,

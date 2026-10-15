@@ -1,0 +1,10 @@
+top: garuda_apb_shim
+children: 
+script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh shim)
+proved: 30/30
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+clocks: pclk_i          resets: preset_n_i 
+covers: 38, not covered: 2
+  cover unreachable: garuda_apb_shim.u_shim_sva.c_shim_hole
+  cover unreachable: garuda_apb_shim.u_shim_sva.a_shim_reset:precondition1

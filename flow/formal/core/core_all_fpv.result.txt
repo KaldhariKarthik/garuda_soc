@@ -1,0 +1,18 @@
+top: garuda_core_top
+children: ex_stage id_stage mem_stage
+script: flow/formal/core/pipe_ctrl_core.tcl (whole core, ahb environment, file list rtl/core/filelist_core.f)
+proved: 69/70
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+Every property bound in the core (pipe_ctrl, the three pipeline registers, CLIC controller, D-port,
+CSR file, register file, branch unit, forwarding, load-use, load/store unit, PC unit, prefetch buffer,
+trap controller) proved together on the whole core, 20 minutes per property: 69 proved, 1 undetermined
+(a_pfb_order, proved at the IF stage: flow/formal/if_stage). 74 covers covered, 7 unreachable:
+  c_h4_ifid, c_h4_idex, c_h4_vs_redirect   the DSU stub of filelist_core.f never stalls (H4)
+  c_ifid_flush_and_stall                   a flush and a stall never reach IF/ID together
+  c_pfb_wr_rd_full                         the port never writes a full buffer (a_ip_no_overflow)
+  a_dport_addr_stable:precondition1        with one slave the D-port's address phase never waits;
+                                           the property is vacuous here and proved at unit level with
+                                           a free HREADY (flow/formal/d_port), the case the interconnect makes
+The properties written after this run started (instruction port, predictor, CSR field split, decoder)
+are proved in their own runs (if_stage, branch_predict, csr_rw, decode).

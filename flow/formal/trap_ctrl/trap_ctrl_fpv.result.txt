@@ -1,0 +1,8 @@
+top: trap_ctrl
+children: 
+script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh trap_ctrl)
+proved: 9/9
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+clocks: clk_i    resets: rst_n_i 
+covers: 12, not covered: 0

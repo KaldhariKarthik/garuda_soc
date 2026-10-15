@@ -17,3 +17,4 @@ rtl/dsu/saturation_unit.v
 rtl/dsu/dsu_stall.v
 rtl/dsu/dsu_top.v
 rtl/dsu/dsu_sva.sv
+rtl/dsu/dsu_arith_sva.sv

@@ -1,0 +1,8 @@
+top: decode_control
+children: 
+script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh decode)
+proved: 12/12
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+clocks: c    resets: r 
+covers: 0, not covered: 0

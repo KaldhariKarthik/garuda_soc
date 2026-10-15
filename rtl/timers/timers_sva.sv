@@ -83,7 +83,9 @@ module timers_sva (
         else $error("[SVA-FAIL] a_shadow_holds");
 
     // ---- F02, F16: MTIME_HI returns the shadow, never the live high word -------
-    a_hi_returns_shadow: assert property (@(posedge hclk_i) disable iff (!hreset_n_i || !preset_n_i)
+    // sampled on pclk: an APB read is a pclk event (on hclk the property also looked at the
+    // middle of a pclk period, where the bus is not yet defined)
+    a_hi_returns_shadow: assert property (@(posedge pclk_i) disable iff (!hreset_n_i || !preset_n_i)
         (psel_i && penable_i && !pwrite_i && paddr_i == 12'h004) |-> (prdata_o == shadow_q))
         else $error("[SVA-FAIL] a_hi_returns_shadow: prdata=%h shadow=%h", prdata_o, shadow_q);
 

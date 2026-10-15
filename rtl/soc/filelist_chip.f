@@ -13,3 +13,5 @@
 -f rtl/spi_slave/filelist.f
 
 rtl/soc/garuda_chip_top.v
+rtl/soc/chip_sva.sv
+rtl/soc/chip_pads_sva.sv

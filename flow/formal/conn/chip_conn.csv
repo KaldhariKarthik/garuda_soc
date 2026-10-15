@@ -1,0 +1,35 @@
+#,Name,Source Instance,Source Signal,Destination Instance,Destination Signal
+# GARUDA chip connectivity, written from GARUDA-TRM-001 (interrupt IDs, CLIC [N-6.3]) and
+# GARUDA-DMA-SPEC-001 [N-6.4] (DMA channels). Proved by flow/formal/conn/chip_conn.tcl.
+CONNECTION,irq_spim,u_spim,irq_o,u_soc.u_clic,irq_src_i[15]
+CONNECTION,irq_i2c,u_i2c,irq_o,u_soc.u_clic,irq_src_i[16]
+CONNECTION,irq_uart0,g_uart[0].u_uart,irq_o,u_soc.u_clic,irq_src_i[17]
+CONNECTION,irq_uart1,g_uart[1].u_uart,irq_o,u_soc.u_clic,irq_src_i[18]
+CONNECTION,irq_uart2,g_uart[2].u_uart,irq_o,u_soc.u_clic,irq_src_i[19]
+CONNECTION,irq_gpio,u_gpio,irq_o,u_soc.u_clic,irq_src_i[20]
+CONNECTION,irq_pwm,u_pwm,irq_o,u_soc.u_clic,irq_src_i[21]
+CONNECTION,irq_spis,g_spis.u_spis,irq_o,u_soc.u_clic,irq_src_i[14]
+CONNECTION,irq_dma_done_0,u_soc.u_dma,dma_complete_o[0],u_soc.u_clic,irq_src_i[1]
+CONNECTION,irq_dma_err_0,u_soc.u_dma,dma_error_o[0],u_soc.u_clic,irq_src_i[8]
+CONNECTION,irq_dma_done_1,u_soc.u_dma,dma_complete_o[1],u_soc.u_clic,irq_src_i[2]
+CONNECTION,irq_dma_err_1,u_soc.u_dma,dma_error_o[1],u_soc.u_clic,irq_src_i[9]
+CONNECTION,irq_dma_done_2,u_soc.u_dma,dma_complete_o[2],u_soc.u_clic,irq_src_i[3]
+CONNECTION,irq_dma_err_2,u_soc.u_dma,dma_error_o[2],u_soc.u_clic,irq_src_i[10]
+CONNECTION,irq_dma_done_3,u_soc.u_dma,dma_complete_o[3],u_soc.u_clic,irq_src_i[4]
+CONNECTION,irq_dma_err_3,u_soc.u_dma,dma_error_o[3],u_soc.u_clic,irq_src_i[11]
+CONNECTION,irq_dma_done_4,u_soc.u_dma,dma_complete_o[4],u_soc.u_clic,irq_src_i[5]
+CONNECTION,irq_dma_err_4,u_soc.u_dma,dma_error_o[4],u_soc.u_clic,irq_src_i[12]
+CONNECTION,irq_dma_done_5,u_soc.u_dma,dma_complete_o[5],u_soc.u_clic,irq_src_i[6]
+CONNECTION,irq_dma_err_5,u_soc.u_dma,dma_error_o[5],u_soc.u_clic,irq_src_i[13]
+CONNECTION,dma_req_0,u_spim,dma_req_o,u_soc.u_dma,dma_req_i[0]
+CONNECTION,dma_ack_0,u_soc.u_dma,dma_ack_o[0],u_spim,dma_ack_i
+CONNECTION,dma_req_1,u_i2c,dma_req_o,u_soc.u_dma,dma_req_i[1]
+CONNECTION,dma_ack_1,u_soc.u_dma,dma_ack_o[1],u_i2c,dma_ack_i
+CONNECTION,dma_req_2,g_uart[0].u_uart,dma_req_o,u_soc.u_dma,dma_req_i[2]
+CONNECTION,dma_ack_2,u_soc.u_dma,dma_ack_o[2],g_uart[0].u_uart,dma_ack_i
+CONNECTION,dma_req_3,g_uart[1].u_uart,dma_req_o,u_soc.u_dma,dma_req_i[3]
+CONNECTION,dma_ack_3,u_soc.u_dma,dma_ack_o[3],g_uart[1].u_uart,dma_ack_i
+CONNECTION,dma_req_4,g_spis.u_spis,dma_req_o,u_soc.u_dma,dma_req_i[4]
+CONNECTION,dma_ack_4,u_soc.u_dma,dma_ack_o[4],g_spis.u_spis,dma_ack_i
+CONNECTION,dma_req_5,g_uart[2].u_uart,dma_req_o,u_soc.u_dma,dma_req_i[5]
+CONNECTION,dma_ack_5,u_soc.u_dma,dma_ack_o[5],g_uart[2].u_uart,dma_ack_i

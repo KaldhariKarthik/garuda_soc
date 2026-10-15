@@ -1,0 +1,8 @@
+top: ex_mem
+children: 
+script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh ex_mem)
+proved: 3/3
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+clocks: clk_i      resets: rst_n_i 
+covers: 3, not covered: 0

@@ -1,0 +1,1 @@
+redirect_i |-> redirect_pc_i[1:0] == 2'b00

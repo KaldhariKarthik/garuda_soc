@@ -1,0 +1,8 @@
+top: dsu_top
+children: dsu_decoder dsu_stall overflow_flag mac_cluster operand_router readback_mux result_selector barrel_shifter
+script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh dsu)
+proved: 20/20
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+clocks: clk                resets: rst_n 
+covers: 25, not covered: 0

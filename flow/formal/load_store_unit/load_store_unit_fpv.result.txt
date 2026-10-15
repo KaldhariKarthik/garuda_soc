@@ -1,0 +1,8 @@
+top: load_store_unit
+children: 
+script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh load_store_unit)
+proved: 3/3
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+clocks: c    resets: r 
+covers: 0, not covered: 0

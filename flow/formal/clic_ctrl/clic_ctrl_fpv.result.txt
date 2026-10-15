@@ -1,0 +1,8 @@
+top: clic_ctrl
+children: 
+script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh clic_ctrl)
+proved: 3/3
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+clocks: clk_dummy    resets: rst_dummy 
+covers: 0, not covered: 0

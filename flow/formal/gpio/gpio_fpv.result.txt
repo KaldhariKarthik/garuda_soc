@@ -1,0 +1,13 @@
+top: garuda_gpio_top
+children: 
+script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh gpio)
+proved: 25/25
+tool: JasperGold Apps 2022.09p002, 2026-10-15
+
+clocks: pclk_i             resets: preset_n_i 
+covers: 33, not covered: 5
+  cover unreachable: garuda_gpio_top.u_shim.u_shim_sva.a_shim_dma_gate:precondition1
+  cover unreachable: garuda_gpio_top.u_shim.u_shim_sva.a_shim_dma_holdoff:precondition1
+  cover unreachable: garuda_gpio_top.u_shim.u_shim_sva.a_shim_reset:precondition1
+  cover unreachable: garuda_gpio_top.u_gpio_sva.g_pin[0].a_oe_reset:precondition1
+  cover unreachable: garuda_gpio_top.u_gpio_sva.g_pin[1].a_oe_reset:precondition1
