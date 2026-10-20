@@ -258,7 +258,7 @@ cov_runs: sw isa_tests
 cov_report:
 	@python3 tools/gen/cov_chart.py collect && python3 tools/gen/cov_chart.py report
 
-cov_chart: cov_runs uvm_b cov_report
+cov_chart: cov_runs uvm_b uvm_dma cov_report
 
 # =============================================================================
 # make check_tree: nothing that must stay out of a public repository is tracked

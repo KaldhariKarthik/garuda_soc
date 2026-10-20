@@ -140,6 +140,22 @@ def collect():
         sys.exit("no passing coverage run under sim/run_test - run `make cov_runs` first")
     if len(passed) != len(runs):
         print("cov_chart: %d of %d runs passed; only those are merged" % (len(passed), len(runs)))
+    # The DMA's UVM runs (make uvm_dma) join the merge: the DMA is measured per
+    # module type, "what any test at any level did to it", and its UVM
+    # environment binds the same covergroups (tb/dma/dma_cov.sv) as its block
+    # bench. On Verilator the two together hit cg_beat 131/131 and cg_ctrl 26/27,
+    # against 97/134 and 25/27 on the directed runs alone (tools/cov_local.py).
+    # COV_NO_UVM_DMA=1 leaves them out.
+    if os.environ.get("COV_NO_UVM_DMA") != "1":
+        udma = []
+        for s in sorted(sh("ls -d sim/uvm_dma/cov_work/scope/*/").stdout.split()):
+            t = s.rstrip("/").split("/")[-1]
+            log = os.path.join(ROOT, "sim/uvm_dma/%s.log" % t)
+            if t != "all" and os.path.exists(log) and "RESULT: PASSED" in open(log, errors="replace").read():
+                udma.append(s)
+        if udma:
+            print("cov_chart: %d passing DMA UVM run(s) of sim/uvm_dma added to the merge" % len(udma))
+            passed += udma
     with open(os.path.join(ROOT, ALL, "runs.txt"), "w") as fh:
         fh.write("\n".join(passed) + "\n")
 
