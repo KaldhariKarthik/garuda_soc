@@ -19,6 +19,7 @@
 | 1.0–2.x | Shared single-layer, 3 masters, 4 slaves. **This is what the RTL implements and what passes regression.** | — |
 | 3.0–3.1 | Proposed six-layer multi-layer matrix with structural master-to-slave reachability restrictions. Never implemented. | — |
 | 4.0 | Returns to the shared single layer, adds Debug SBA as a fourth master, and makes universal reachability normative. The Rev 3.x restrictions are withdrawn — they broke boot, `.rodata` and JTAG load. | ADR-0004, 0005, 0006, 0012 |
+| 4.0a | Note under §2: the DMA's R-9 restriction lives in the DMA, not in the fabric (Track A task 0.7, 2026-10-12; no change to the interconnect). | AUD-12 |
 
 ## 0.3 Normative references
 
@@ -84,6 +85,10 @@ stated as a normative property of the interconnect rather than left implicit.
 | R-7 | The interconnect shall report to the ISRAM slave when the granted master is SBA. | ADR-0006 |
 | R-8 | Zero wait states inserted by the interconnect itself. | System |
 | R-9 | A master's burst shall not be corrupted by losing arbitration mid-burst. | Protocol |
+
+*(Note, 2026-10-12, AUD-12 item 1: R-4 lets the DMA (M3) address ISRAM and Boot ROM through the
+fabric. The DMA itself refuses such addresses (`GARUDA-DMA-SPEC-001` R-9 and [N-7.20],
+DECISIONS D-16), so the restriction lives in the master, not in the interconnect.)*
 
 ---
 
@@ -169,7 +174,7 @@ the ISRAM lock or the ROM slave. Relying on it would be the Rev 3.1 mistake in m
 |---|---|---|---|
 | `hsel_o` | out | 1 | Region select. |
 | `haddr_o`, `htrans_o`, `hwrite_o`, `hsize_o`, `hburst_o`, `hwdata_o` | out | — | Shared bus. |
-| `hmaster_is_sba_o` | out | 1 | To ISRAM only. See [N-7.10]. |
+| `hmaster_is_sba_o` | out | 1 | To ISRAM only. See [N-7.14]. |
 | `hrdata_i` | in | 32 | |
 | `hreadyout_i` | in | 1 | |
 | `hresp_i` | in | 1 | |
@@ -258,10 +263,12 @@ wire so a master cannot address a slave — are forbidden.** They save a multipl
 they cannot be relaxed without an RTL change, and their effects are invisible to the
 documents that depend on them. See §1.3.
 
-**[N-7.10]** M3 (DMA) has no Boot ROM path because nothing requires it: the bootloader is
-polled PIO (ADR-0015) and no runtime function reads the ROM. This is an omission of an
-unused path, not an access-control mechanism, and it is recorded in `GARUDA-SYS-001` so any
-future need for it is a one-line change there rather than a discovery during bring-up.
+**[N-7.10]** M3 (DMA) does not address the Boot ROM because nothing requires it: the
+bootloader is polled PIO (ADR-0015) and no runtime function reads the ROM. The fabric path
+exists (one shared layer, [N-7.9]); the DMA's own address check (GARUDA-DMA-SPEC-001 R-9)
+refuses region 0x1, and `GARUDA-SYS-001` lists the DMA without `bootrom`. Any future need is
+a change there. *(AHB-6, 2026-10-14: this paragraph said "no Boot ROM path", which read as a
+missing wire. Whether the DMA may reach ISRAM is open: DMA-17.)*
 
 ### 7.4 Address decode
 
@@ -285,9 +292,13 @@ the reasoning.
 
 ### 7.5 SBA indication
 
-**[N-7.14]** `hmaster_is_sba_o` is asserted whenever the granted master is M2, and is
-routed to the ISRAM slave only. It carries the grant, registered into the data phase
-alongside the transfer, so the slave evaluates it in the same cycle as the write.
+**[N-7.14]** `hmaster_is_sba_o` is asserted while the address phase on the shared bus
+belongs to M2 (the address-phase grant), and is routed to the ISRAM slave only. The ISRAM
+slave samples it together with the other address-phase signals (HWRITE, HADDR) when it
+accepts the transfer, and registers the lock decision into its data phase.
+*(AHB-6, 2026-10-14: this paragraph said the indication is "registered into the data
+phase"; the RTL drives it from the address-phase grant and `ahb_mem_slave_if.v` uses it in
+the address phase, consistently. Checked by property a_sba_ind.)*
 
 **[N-7.15]** Its sole purpose is the ISRAM lock bypass of `GARUDA-MEM-SPEC-001` [N-7.9]. It
 is not a general privilege signal and no other slave receives it.

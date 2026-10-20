@@ -24,44 +24,10 @@
 // -------------------------------------------------------------
 // 1. DUT: branch_predict.v (pasted verbatim, self-contained file)
 // -------------------------------------------------------------
-`ifndef GARUDA_REAL_RTL
-// -----------------------------------------------------------------------------
-// INLINED DUT COPY -- guarded (added 2026-08-02).
-//
-// This file carries its own copy of the DUT so it can be compiled standalone
-// under VCS. That copy is a SNAPSHOT and had already drifted from rtl/core/*.v
-// (it predates the SLLI/SRLI/SRAI funct7 check and the FENCE decode), so a
-// green run against it proves nothing about the RTL that actually ships.
-//
-// Defining GARUDA_REAL_RTL skips this copy so the testbench binds to the real
-// rtl/core sources -- that is what tb/core/filelist_*.f does. Compiling this
-// file standalone with no define behaves exactly as before.
-// -----------------------------------------------------------------------------
-module branch_predict (
-    input  wire [31:0] pc_i,
-    input  wire [31:0] imm_b_i,
-    input  wire [31:0] imm_j_i,
-    input  wire         branch_i,   // ctrl.branch from Decode/Control
-    input  wire         jal_i,      // ctrl.jal from Decode/Control
-
-    output wire         predict_taken_o,
-    output wire         id_redirect_valid_o,
-    output wire [31:0] id_redirect_target_o
-);
-
-    wire [31:0] branch_target;
-    wire [31:0] jal_target;
-
-    assign branch_target = pc_i + imm_b_i;
-    assign jal_target    = pc_i + imm_j_i;
-
-    assign predict_taken_o = branch_i & imm_b_i[31];
-
-    assign id_redirect_valid_o  = jal_i | predict_taken_o;
-    assign id_redirect_target_o = jal_i ? jal_target : branch_target;
-
-endmodule
-`endif // GARUDA_REAL_RTL -- inlined DUT copy ends; verification env follows
+// (W6, 2026-10-11) The inlined DUT copy that stood here under `ifndef
+// GARUDA_REAL_RTL is removed: no flow compiled it (every filelist defines the
+// macro), it had drifted from rtl/core, and a build without the define would
+// have verified the stale copy. The bench binds the real rtl/core sources only.
 
 
 
@@ -519,6 +485,7 @@ module tb_top;
     branch_if vif(clk);
 
     branch_predict dut (
+        .bp_dis_i             (1'b0),            // CORE-4 (mgarudactl): predictor on
         .pc_i                 (vif.pc),
         .imm_b_i              (vif.imm_b),
         .imm_j_i              (vif.imm_j),

@@ -1,0 +1,43 @@
+# Negative controls for the Spike co-simulation (plan 5.2 / 5.3): each run
+# corrupts ONE thing the RTL reports (+COSIM_NEGCTL) and must FAIL with a
+# co-simulation mismatch (fail_reason), or the comparison proves nothing.
+[suite]
+block = "flow"
+name  = "negctl_cosim"
+kind  = "prog"
+xfail = "tb/core/selftest/xfail.tsv"
+
+[bench]
+flist = "tb/soc/filelist_boot_cosim.f"
+top   = "tb_boot"
+vl_flags = ["-CFLAGS", "-I$GARUDA_TOOLS/spike/include", "-LDFLAGS", "-L$GARUDA_TOOLS/spike/lib -lriscv -Wl,-rpath,$GARUDA_TOOLS/spike/lib"]
+
+[defaults]
+marker   = 'TOHOST=1 -> PASSED'
+timeout  = 300
+fail_reason = 'COSIM-MISMATCH|COSIM: [0-9]+ mismatch'
+
+[[test]]
+name = "N_rd"
+hex  = "sw/riscv-tests/build/add.hex"
+plusargs = ["+MAXCYC=400000", "+QUIET", "+COSIM_NEGCTL=rd"]
+[[test]]
+name = "N_store"
+hex  = "sw/build/t_mem.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+COSIM_NEGCTL=store"]
+[[test]]
+name = "N_pc"
+hex  = "sw/riscv-tests/build/add.hex"
+plusargs = ["+MAXCYC=400000", "+QUIET", "+COSIM_NEGCTL=pc"]
+[[test]]
+name = "N_trap"
+hex  = "sw/riscv-tests/build/add.hex"
+plusargs = ["+MAXCYC=400000", "+QUIET", "+COSIM_NEGCTL=trap"]
+[[test]]
+name = "N_irq_drop"
+hex  = "sw/build/t_irq.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IRQ_AT=300", "+COSIM_NEGCTL=irq_drop"]
+[[test]]
+name = "N_irq_extra"
+hex  = "sw/build/t_irq.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IRQ_AT=300", "+COSIM_NEGCTL=irq_extra"]

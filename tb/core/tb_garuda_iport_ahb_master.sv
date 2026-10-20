@@ -122,6 +122,8 @@ module tb_top;
     garuda_iport_ahb_master #(.FIFO_DEPTH(4)) dut (
         .clk_i            (clk),
         .rst_n_i          (rst_n),
+        .stop_i           (1'b0),        // RDC-1 halt drain: not exercised here
+        .pf_dis_i         (1'b0),        // CORE-4 (mgarudactl): full prefetch
         .redirect_i       (vif.redirect),
         .fetch_pc_i       (vif.fetch_pc),
         .fifo_occupancy_i (vif.fifo_occupancy),

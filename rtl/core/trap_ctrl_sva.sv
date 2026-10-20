@@ -22,10 +22,13 @@ module trap_ctrl_sva #(parameter ID_W = 5) (
     wire ebreak = idex_is_system_i && idex_instr_i == 32'h0010_0073;
     wire mret   = idex_is_system_i && idex_instr_i == 32'h3020_0073;
     wire illegal = idex_illegal_dec_i || ex_dsu_illegal_i || ex_csr_illegal_i;
-    wire any_ex = idex_fault_i || illegal || ex_fetch_misalign_i || ebreak || ex_load_misalign_i || ex_store_misalign_i || ecall;
+    // T-17 (track A 2026-10-15): a bubble carries no exception, so the fetch fault counts only on a
+    // valid instruction (the same rule as a_int_on_instr for interrupts)
+    wire fault  = idex_fault_i && idex_valid_i;
+    wire any_ex = fault || illegal || ex_fetch_misalign_i || ebreak || ex_load_misalign_i || ex_store_misalign_i || ecall;
     // CORE 14.1: 1 (instruction access fault) > 2 (illegal) > 0 (target misaligned, T-1) > 3 (EBREAK)
     //            > 4 (load misaligned) > 6 (store misaligned) > 11 (ECALL)
-    wire [31:0] spec_cause = idex_fault_i ? 32'd1 : illegal ? 32'd2 : ex_fetch_misalign_i ? 32'd0 : ebreak ? 32'd3 :
+    wire [31:0] spec_cause = fault ? 32'd1 : illegal ? 32'd2 : ex_fetch_misalign_i ? 32'd0 : ebreak ? 32'd3 :
                              ex_load_misalign_i ? 32'd4 : ex_store_misalign_i ? 32'd6 : 32'd11;
 
     // ---- exceptions ---------------------------------------------------------------------------

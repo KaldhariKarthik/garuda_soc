@@ -1,0 +1,25 @@
+# garuda-run 1
+# date      : 2026-10-12T19:57:34+05:30
+# block     : dsu   suite: units_spec   test: tb_dsu_top_ovf_b2b   kind: sim
+# design    : b90b481d8f91d5d8d1cd3887c3856c38033d87f7 (rtl/ DIRTY; 164 uncommitted path(s) in tree)  branch a/p0-infra
+# tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+# seed      : 1
+# shims     : none
+# command   : logs/dsu/raw/units_spec/build/tb_dsu_top_ovf_b2b/obj/Vtb_dsu_top_ovf_b2b +verilator+assert+lock +verilator+error+limit+1000 +verilator+seed+1
+# reproduce : source tools/run/env.sh && python3.12 tools/run/garuda_run.py suite tb/dsu/run/units_spec.toml --only tb_dsu_top_ovf_b2b --seed 1
+# ---- tool output ----
+[PASS] case 0 (            MAC overflow, idle): overflow flag 1, ACC_FX 800000000000
+[PASS] case 1 (             MAC overflow, MAC): overflow flag 1, ACC_FX 800000000001
+[FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+[FAIL] case 3 ( MAC overflow, MACLOAD at once): overflow flag 0, ACC_FX 000000000005
+tb_dsu_top_ovf_b2b: checks=4 FAIL=2
+RESULT: FAILED
+- tb/dsu/units_spec/tb_dsu_top_ovf_b2b.sv:58: Verilog $finish
+- S i m u l a t i o n   R e p o r t: Verilator 5.052 2026-09-05
+- Verilator: $finish at 3ms; walltime 0.156 s; speed 16.856 ms/s
+- Verilator: cpu 0.155 s on 1 threads; allocated 3 MB
+
+# ---- footer ----
+# exit code : 0
+# counts    : marker=no fail_lines=2 assert_fail=0 errors=0 lockstep=- wall_s=0.16 rss_mb=17
+# verdict   : FAIL  pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000

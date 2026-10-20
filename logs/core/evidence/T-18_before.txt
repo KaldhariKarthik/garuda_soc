@@ -1,0 +1,34 @@
+T-18 before the fix: design b90b481 + Track A working tree (DIRTY), branch_unit.v unfixed, 2026-10-11
+tool: Verilator 5.052; property a_misfetch_tval_misaligned (rtl/core/trap_ctrl_sva.sv)
+
+[covtests] block=core tests=3 seed=1 design=b90b481d8f91 DIRTY tool='Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a'
+[covtests] building tb_boot ...
+  FAIL    UNEXPECTED             t_cov_misfetch                   exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [483000] %Err
+  FAIL    UNEXPECTED             t_cov_misfetch_w2                exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [1188000] %Er
+  FAIL    UNEXPECTED             t_cov_misfetch_d3                exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [528000] %Err
+[covtests] PASS=0 FAIL=3 BLOCKED=0 -> 3 unexpected  (logs/core/summary/covtests.partial.tsv)
+[archtest] block=core tests=1 seed=1 design=b90b481d8f91 DIRTY tool='Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a'
+[archtest] building tb_boot ...
+  FAIL    UNEXPECTED             privilege-misalign-jal-01        1 [FAIL] line(s); 1 assertion failure(s) | first: [1913000] %Error: trap_ctrl_sva.sv:123: Assertion failed in 
+[archtest] PASS=0 FAIL=1 BLOCKED=0 -> 1 unexpected  (logs/core/summary/archtest.partial.tsv)
+
+== logs/core/raw/covtests/sim_t_cov_misfetch_s1.log
+[483000] %Error: trap_ctrl_sva.sv:123: Assertion failed in tb_boot.dut.u_trap.u_trap_sva.a_misfetch_tval_misaligned: [SVA-FAIL] T-18: instruction-address-misaligned trap with an aligned mtval 10000098
+*** TOHOST=0000000f -> FAILED (test 7, 78 retired) ***
+# verdict   : FAIL  exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [483000] %Error: trap_ctrl_sva.sv:123: Assertion failed in tb_boot.dut.u_trap.u_trap_sva.a_misfetch_tval_misaligned: [SVA-FAIL] T-18: instru
+
+== logs/core/raw/covtests/sim_t_cov_misfetch_w2_s1.log
+[1188000] %Error: trap_ctrl_sva.sv:123: Assertion failed in tb_boot.dut.u_trap.u_trap_sva.a_misfetch_tval_misaligned: [SVA-FAIL] T-18: instruction-address-misaligned trap with an aligned mtval 10000098
+*** TOHOST=0000000f -> FAILED (test 7, 78 retired) ***
+# verdict   : FAIL  exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [1188000] %Error: trap_ctrl_sva.sv:123: Assertion failed in tb_boot.dut.u_trap.u_trap_sva.a_misfetch_tval_misaligned: [SVA-FAIL] T-18: instr
+
+== logs/core/raw/covtests/sim_t_cov_misfetch_d3_s1.log
+[528000] %Error: trap_ctrl_sva.sv:123: Assertion failed in tb_boot.dut.u_trap.u_trap_sva.a_misfetch_tval_misaligned: [SVA-FAIL] T-18: instruction-address-misaligned trap with an aligned mtval 10000098
+*** TOHOST=0000000f -> FAILED (test 7, 78 retired) ***
+# verdict   : FAIL  exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [528000] %Error: trap_ctrl_sva.sv:123: Assertion failed in tb_boot.dut.u_trap.u_trap_sva.a_misfetch_tval_misaligned: [SVA-FAIL] T-18: instru
+
+== logs/core/raw/archtest/sim_privilege-misalign-jal-01_s1.log
+# command   : logs/core/raw/archtest/build/tb_boot/obj/Vtb_boot +verilator+assert+lock +verilator+error+limit+1000 +verilator+seed+1 +HEX=/home/tg/garuda_track_a/logs/core/raw/archtest_build/privilege-misalign-jal-01.hex +COMMIT=/home/tg/garuda_track_a/logs/core/raw/archtest/privilege-misalign-jal-01.commit.log +MAXCYC=3000000 +QUIET +TOHOST=101ff000 +SIGFILE=/home/tg/garuda_track_a/logs/core/raw/archtest/privilege-misalign-jal-01.signature +SIGBEGIN=10002104 +SIGEND=10002218
+[1913000] %Error: trap_ctrl_sva.sv:123: Assertion failed in tb_boot.dut.u_trap.u_trap_sva.a_misfetch_tval_misaligned: [SVA-FAIL] T-18: instruction-address-misaligned trap with an aligned mtval 100002e0
+*** TOHOST=1 -> PASSED (757 instructions retired, 0 cycles clock-gated) ***
+# verdict   : FAIL  1 [FAIL] line(s); 1 assertion failure(s) | first: [1913000] %Error: trap_ctrl_sva.sv:123: Assertion failed in tb_boot.dut.u_trap.u_trap_sva.a_misfetch_tval_misaligned: [SVA-FAIL] T-18: instr

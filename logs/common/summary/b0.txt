@@ -1,0 +1,12 @@
+garuda-run 1  suite b0  block common  2026-10-15T21:51:13+05:30
+design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      map_pkg               
+FAIL    XFAIL:PLANTED           map_pkg_negctl        pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [negctl] DMA prio ch0 compared against a wrong constant (4)
+PASS    OK                      apb_checker_selftest  
+FAIL    UNEXPECTED              apb_shim              count /checks=25  FAIL=0/ = 0, want 1
+
+PASS    2
+FAIL    2
+BLOCKED 0
+total   4

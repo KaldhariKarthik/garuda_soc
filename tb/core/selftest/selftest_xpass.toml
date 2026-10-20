@@ -1,0 +1,20 @@
+# Runner qualification (Gate A). Every planted failure must be caught: each
+# planted row is listed in xfail.tsv as an expected FAIL/BLOCKED, so the suite
+# exits 0 only when every planted failure was reported AND `pass` passed.
+# selftest_xpass.toml checks the other direction (a stale xfail entry fails).
+# Run: make -f flow/mk/track_a_run.mk selftest_runners
+[suite]
+block = "flow"
+name  = "selftest_xpass"
+kind  = "sim"
+xfail = "tb/core/selftest/xfail_xpass.tsv"
+
+[defaults]
+top     = "runner_selftest"
+flist   = "tb/core/selftest/filelist_runner_selftest.f"
+marker  = 'ALL CHECKS PASSED'
+timeout = 20
+
+[[test]]
+name = "pass"
+plusargs = ["+MODE=pass"]

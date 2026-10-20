@@ -1,0 +1,5 @@
+# garuda-fv 1 suite=fv_dma_cov block=dma date=2026-10-15T22:10:25+05:30 design=167aa935078d4e9cecaa35e5186328b55cfc2ca6 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+cov_prove	prove	PROVEN	OK	6	[6 asserts, 307 covers in model] 	logs/dma/raw/fv_dma_cov/fv_cov_prove.log
+cov_reach	cover	COVERED	OK	4	[0 asserts, 4 covers in model] 	logs/dma/raw/fv_dma_cov/fv_cov_reach.log
+mut_cov_prio_inv	bmc	FAIL	XFAIL:PLANTED	2	[1 asserts, 307 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone	logs/dma/raw/fv_dma_cov/fv_mut_cov_prio_inv.log

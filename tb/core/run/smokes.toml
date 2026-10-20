@@ -1,0 +1,41 @@
+# Core directed smokes (Verilog-2001 benches; Makefile run_test, :107-160).
+# Run: make -f flow/mk/track_a_run.mk core_smokes
+[suite]
+block = "core"
+name  = "smokes"
+kind  = "sim"
+xfail = "tb/core/run/xfail.tsv"
+
+[defaults]
+marker = 'ALL CHECKS PASSED|^ RESULT: PASSED'
+timeout = 900
+forbid = ['^FAIL ']
+
+[[test]]
+name = "S_ex_smoke"
+flist = "tb/core/filelist_ex_smoke.f"
+top = "tb_ex_smoke"
+[[test]]
+name = "S_ex_smoke_dsu"
+flist = "tb/core/filelist_ex_smoke_dsu.f"
+top = "tb_ex_smoke"
+[[test]]
+name = "S_idex_fwd"
+flist = "tb/core/filelist_idex_fwd.f"
+top = "tb_id_ex_fwd"
+[[test]]
+name = "S_exmem_ifid"
+flist = "tb/core/filelist_exmem_ifid.f"
+top = "tb_exmem_ifid"
+[[test]]
+name = "S_pipe_ctrl"
+flist = "tb/core/filelist_pipe_ctrl.f"
+top = "tb_pipe_ctrl"
+[[test]]
+name = "S_csr_file"
+flist = "tb/core/filelist_csr_file.f"
+top = "tb_csr_file"
+[[test]]
+name = "S_trap_ctrl"
+flist = "tb/core/filelist_trap_ctrl.f"
+top = "tb_trap_ctrl"

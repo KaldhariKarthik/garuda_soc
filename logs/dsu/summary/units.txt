@@ -1,0 +1,21 @@
+garuda-run 1  suite units  block dsu  2026-10-13T08:15:18+05:30
+design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    XFAIL:TB-43             tb_dsu_barrel_shifter   pass marker missing; 315 [FAIL] line(s) | first: [FAIL] dir_arith_right_past48_neg cluster_out=ffffffffffff shift_amt=48 shift_dir=0 -> got=ffffffff e
+PASS    OK                      tb_dsu_csa_3to2         
+FAIL    XFAIL:TB-43             tb_dsu_decoder          pass marker missing; 355 [FAIL] line(s) | first: [FAIL] EXH_f54_f31_ic01_acc0          instr=2000100b dsu_en=1 flush=0 -> got(ctrl=0       acc=0  sat=
+PASS    OK                      tb_dsu_kogge_stone_49   
+FAIL    XFAIL:TB-43             tb_dsu_mac_cluster      pass marker missing; 1501 [FAIL] line(s) | first: [FAIL] dir_idle2            rs1=00000000 rs2=00000000 control=0000000 acc_sel=00 sat_en=0 rst_n=1 ->
+FAIL    XFAIL:TB-43             tb_dsu_mac_unit         pass marker missing; 1158 [FAIL] line(s) | first: [FAIL] #3 dir_settle2              rs1=00000000 rs2=00000000 en=0 add_sub=0 clear=0 load=0 abs=0 dot
+PASS    OK                      tb_dsu_mult_16x16       
+PASS    OK                      tb_dsu_operand_router   
+FAIL    XFAIL:TB-43             tb_dsu_overflow_flag    pass marker missing; 355 [FAIL] line(s); 118 assertion failure(s) | first: [FAIL] dir_settle_after_priority    mac_ovf=000 sat_ovf=0 clr=0 rst_n=1 -> 
+PASS    OK                      tb_dsu_readback_mux     
+PASS    OK                      tb_dsu_result_selector  
+PASS    OK                      tb_dsu_saturation_unit  
+FAIL    XFAIL:TB-43             tb_dsu_stall            pass marker missing; 105 [FAIL] line(s) | first: [FAIL] seq=FINDING1_compute_0_then_read_same_acc  cyc=1 op=OP_RD_LO       acc_sel=1 flush=0 rst_n=1 -
+
+PASS    7
+FAIL    6
+BLOCKED 0
+total   13

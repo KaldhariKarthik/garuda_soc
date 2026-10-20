@@ -1,0 +1,17 @@
+# bring-up of the co-simulation on a few programs (not a regression suite)
+[suite]
+block = "core"
+name  = "cosim_smoke"
+kind  = "prog"
+[bench]
+flist = "tb/soc/filelist_boot_cosim.f"
+top   = "tb_boot"
+vl_flags = ["-CFLAGS", "-I$GARUDA_TOOLS/spike/include", "-LDFLAGS", "-L$GARUDA_TOOLS/spike/lib -lriscv -Wl,-rpath,$GARUDA_TOOLS/spike/lib"]
+[defaults]
+marker   = 'TOHOST=1 -> PASSED'
+timeout  = 300
+require  = ['AHB-PROTOCOL: iport=0 dport=0', 'COSIM: .* 0 mismatches']
+[[test]]
+name = "add"
+hex  = "sw/riscv-tests/build/add.hex"
+plusargs = ["+MAXCYC=400000", "+QUIET"]

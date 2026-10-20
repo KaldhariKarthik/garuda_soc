@@ -1,0 +1,22 @@
+# TB-47 evidence, 2026-10-13 (bus plan B1). tb_ahb_interconnect +GRAND=1 +GWAIT=3 (suite ahb/ic, test ic_wait).
+## BEFORE: Karthik's ahb_lite_sram.v (hresp_o = dp_err: ERROR driven through the wait states)
+      4 tb_ahb_interconnect.u_ic.u_ahb_sva.a_slave_err_shape
+      2 tb_ahb_interconnect.u_ic.u_ahb_sva.g_resp[0].a_master_err_shape
+      2 tb_ahb_interconnect.u_ic.u_ahb_sva.g_resp[1].a_master_err_shape
+AHB IC TB: 802 checks, 0 failures
+
+## CHANGE
+125c125,128
+<     assign hresp_o     = dp_err;
+---
+>     // TB-47: ERROR only in the two ERROR cycles (after the wait states). HRESP was
+>     // dp_err for the whole data phase, i.e. ERROR with HREADY low during the waits,
+>     // which AHB-Lite reads as an ERROR first cycle that lasts several cycles.
+>     assign hresp_o     = dp_err && (wcnt == 8'd0);
+
+## AFTER
+# garuda-run 1 suite=ic block=ahb date=2026-10-13T20:02:49+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err
+checker_selftest	PASS	OK	0	yes	0	0	0
+ic	PASS	OK	0	yes	0	0	0
+ic_wait	PASS	OK	0	yes	0	0	0

@@ -1,0 +1,27 @@
+DMA-11 reachability at chip level: sw/chip/t_chip_dma_rearm.c on Karthik's tb_chip (garuda_chip_top), dma_sva bound
+date      : 2026-10-12T01:01:30+05:30
+tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a
+design    : b90b481d8f91 + working tree (a/p0-infra); rtl/dma unchanged except AUD-13
+run       : source tools/run/env.sh && python3.12 tools/run/garuda_run.py suite tb/dma/run/chip.toml
+
+method: start an M2M transfer on ch2 (CNT 8), wait d delay steps (d = 0..47), then stop and re-arm as fast as the core stores:
+  B  zero-length re-arm, 2 back-to-back stores (CR = stop, CR = EN; CNT = 0 written while the old transfer runs)
+  C  re-arm with a new buffer, 5 stores (stop, SAR, DAR, CNT, EN)
+  each with fast beats (DSRAM source) and slow beats (APB source MTIME_LO through the bridge): 192 attempts
+
+== result ==
+[tb_chip] tohost = 0x00031dab at 1058100000: 78336 retired, 0 hclk cycles clock-gated, 0 system resets
+[tb_chip] AHB checker violations: I=0 D=0 SBA=0 DMA=0 (slave bus 0, expected >0 only for deliberate faults)
+[FAIL] program reported step 102101
+RESULT: FAILED
+  (code 102101 = verdict + 1000*h1 + 1000000*h0: verdict 101 = pattern B reached the defect, pattern C did not;
+   h0 = 0 -> B, DSRAM-source beats, d = 0; h1 = 102 -> B, APB-source beats, d = 2)
+
+== dma_sva detectors (count; first time) ==
+  a_beat_belongs_to_arm[2]: 3 (first at 7679000 ps)
+  a_no_rem_underflow[2]: 2 (first at 7679000 ps)
+  a_remaining_complete_consistent[2]: 1826 (first at 7683000 ps)
+  a_beat_belongs_to_arm fired twice: B with DSRAM beats at d = 0, and B with APB-source beats at d = 2 (positions from the program's code)
+  a_remaining_complete_consistent fires on every cycle COMPLETE is set with REMAINING = 0xFFFF until the next attempt clears the channel
+
+conclusion: DMA-11 is reachable from firmware at chip level. A channel stopped and re-armed straight after it was started (two stores) re-arms while a beat is still in flight; that beat then decrements the new REMAINING to 0xFFFF (COMPLETE with REMAINING 0xFFFF, R-6 broken). Hits: 2 of 96 two-store attempts (DSRAM beats at d = 0, APB-source beats at d = 2); none of 96 five-store re-arms.

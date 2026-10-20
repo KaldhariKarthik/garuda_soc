@@ -1,0 +1,33 @@
+# xfail list for AHB2APB suites.
+# suite	test	expect(FAIL|BLOCKED)	bug	reason
+fv_apb	mut_brg1	FAIL	PLANTED	negative control: planted defect brg1 must fail a_one_to_one a_resp a_subword_no_apb
+fv_apb	mut_apb2	FAIL	PLANTED	negative control: planted defect apb2 must fail a_subword_no_apb a_resp
+fv_apb	mut_subword	FAIL	PLANTED	negative control: planted defect subword must fail a_subword_no_apb a_resp
+fv_apb	mut_to15	FAIL	PLANTED	negative control: planted defect to15 must fail a_apb_div
+fv_apb	mut_to17	FAIL	PLANTED	negative control: planted defect to17 must fail a_timeout_at_16 a_access_ends
+fv_apb	mut_win	FAIL	PLANTED	negative control: planted defect win must fail a_unmapped a_rdata a_resp
+fv_apb	mut_nosetup	FAIL	PLANTED	negative control: planted defect nosetup must fail a_apb_setup_first
+env	negctl_sb_drop	FAIL	PLANTED	scoreboard negative control: an injected drop fault must be reported
+env	negctl_sb_rdata	FAIL	PLANTED	scoreboard negative control: an injected rdata fault must be reported
+env	negctl_sb_dup	FAIL	PLANTED	scoreboard negative control: an injected dup fault must be reported
+units	negctl_fsm_to15	FAIL	PLANTED	unit negative control: timeout one sample early
+units	negctl_fsm_to17	FAIL	PLANTED	unit negative control: timeout one sample late
+units	negctl_fsm_win	FAIL	PLANTED	unit negative control: PSEL on the neighbouring window
+units	negctl_fsm_nosetup	FAIL	PLANTED	unit negative control: PENABLE with PSEL, no SETUP
+units	negctl_fabric_rdy	FAIL	PLANTED	unit negative control: PREADY from the neighbouring window
+apb_mut	mut_p01	FAIL	PLANTED	BRG-1 reverted: a new transfer is accepted only from H_IDLE
+apb_mut	mut_p02	FAIL	PLANTED	APB-2 reverted: no aperture check
+apb_mut	mut_p03	FAIL	PLANTED	sub-word accesses passed to APB
+apb_mut	mut_p04	FAIL	PLANTED	timeout one sample early (15)
+apb_mut	mut_p05	FAIL	PLANTED	timeout one sample late (17)
+apb_mut	mut_p06	FAIL	PLANTED	PSEL on the neighbouring window
+apb_mut	mut_p07	FAIL	PLANTED	PENABLE with PSEL (no SETUP cycle)
+apb_mut	mut_p08	FAIL	PLANTED	[N-9.2] gate removed: HREADYOUT while PRESET is asserted
+apb_mut	mut_p09	FAIL	PLANTED	one-cycle ERROR (no second cycle)
+apb_mut	mut_p10	FAIL	PLANTED	read data not returned
+apb_mut	mut_p11	FAIL	PLANTED	write data not captured (the previous write's data goes out)
+apb_mut	mut_p12	FAIL	PLANTED	APB_DIV ignored: every window /1
+apb_mut	mut_p13	FAIL	PLANTED	PSLVERR ignored: an erroring target answers OKAY
+apb_mut	mut_p14	FAIL	PLANTED	fabric: PSLVERR from any window, not the selected one
+apb_mut	mut_p15	FAIL	PLANTED	a second acknowledge toggle after DONE (one request, two responses)
+apb_mut	mut_p16	FAIL	PLANTED	absent / out-of-aperture windows passed to APB (only sub-word rejected)

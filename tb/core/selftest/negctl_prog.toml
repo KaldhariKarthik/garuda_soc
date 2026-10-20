@@ -1,0 +1,25 @@
+# N1 negative control: tb_boot runs an image of riscv-test `add` with one
+# add turned into sub, while Spike runs the real ELF. Must FAIL (self-check
+# and/or lockstep). Image made by lockstep_negctl.py.
+[suite]
+block = "flow"
+name  = "negctl_prog"
+kind  = "prog"
+xfail = "tb/core/selftest/xfail.tsv"
+
+[bench]
+flist = "tb/soc/filelist_boot.f"
+top   = "tb_boot"
+
+[defaults]
+marker   = 'TOHOST=1 -> PASSED'
+timeout  = 120
+require  = ['AHB-PROTOCOL: iport=0 dport=0']
+plusargs = ["+MAXCYC=100000", "+QUIET"]
+
+
+[[test]]
+name = "N1_add_to_sub"
+hex = "logs/flow/raw/negctl/n1_add_to_sub.hex"
+elf = "logs/flow/raw/negctl/n1_add_to_sub.elf"
+lockstep = true

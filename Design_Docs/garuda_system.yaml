@@ -251,7 +251,7 @@ dma:
   arbitration: {policy: fixed_priority, granularity: per_beat}
   modes: [P2M, M2P, M2M]
   clock: hclk                       # DMA data engine is an hclk AHB master (M3)
-  cfg_clock: pclk                   # ADR-0002 Rev 2: config port (APB window 4) on pclk, like every APB window
+  cfg_clock: pclk                   # ADR-0002 Rev 2: config port (APB window 5, dma_cfg) on pclk, like every APB window
   cdc: none                         # pclk rising edges are a subset of hclk edges - synchronous, no crossing
   assignment:
     - {ch: 0, peripheral: spi_master, function: IMU,          priority: 5}

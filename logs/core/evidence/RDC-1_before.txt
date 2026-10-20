@@ -1,0 +1,16 @@
+RDC-1 -- BEFORE the fix (design b90b481d8f91, rtl/debug and the core halt path unchanged), 2026-10-11T09:06:10+05:30
+tb/core/tb_core_halt.sv (suite core/halt): core + real DSU + AHB memory (bus reset only) + 2 AHB-Lite checkers
++ the REAL debug_module via DMI: 60 x {run random time; haltreq; wait allhalted; resumereq}, program t_mem
+
+t_core_hartreset_s1: halts 60, halts landing on a waited store 7, AHB violations i=0 d=6, TOHOST=00000001
+    AHB-VIOLATION 66525000 tb_core_halt.u_dchk.viol: HWDATA changed during a wait state of its own write data phase
+    AHB-VIOLATION 172075000 tb_core_halt.u_dchk.viol: HWDATA changed during a wait state of its own write data phase
+    AHB-VIOLATION 185415000 tb_core_halt.u_dchk.viol: HWDATA changed during a wait state of its own write data phase
+t_core_hartreset_s2: halts 60, halts landing on a waited store 11, AHB violations i=0 d=12, TOHOST=00000001
+    AHB-VIOLATION 17835000 tb_core_halt.u_dchk.viol: HWDATA changed during a wait state of its own write data phase
+    AHB-VIOLATION 39885000 tb_core_halt.u_dchk.viol: HWDATA changed during a wait state of its own write data phase
+    AHB-VIOLATION 83995000 tb_core_halt.u_dchk.viol: HWDATA changed during a wait state of its own write data phase
+t_core_hartreset_s3: halts 60, halts landing on a waited store 7, AHB violations i=0 d=9, TOHOST=00000001
+    AHB-VIOLATION 2775000 tb_core_halt.u_dchk.viol: HWDATA changed during a wait state of its own write data phase
+    AHB-VIOLATION 29705000 tb_core_halt.u_dchk.viol: HWDATA changed during a wait state of its own write data phase
+    AHB-VIOLATION 30965000 tb_core_halt.u_dchk.viol: HWDATA changed during a wait state of its own write data phase

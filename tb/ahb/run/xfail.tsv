@@ -1,0 +1,44 @@
+# xfail list for AHB interconnect suites.
+# suite	test	expect(FAIL|BLOCKED)	bug	reason
+fv_ahb	ahb7_find	FAIL	AHB-7	the response hold captures an ERROR when the grant moves during the first ERROR cycle; a_held_resp_okay / a_master_err_shape must fail
+fv_ahb	mut_ahb1	FAIL	PLANTED	negative control: planted defect ahb1 must fail a_hwdata_data_phase
+fv_ahb	mut_ahb2	FAIL	PLANTED	negative control: planted defect ahb2 must fail a_complete_has_response|a_rdata_value|a_resp_value
+fv_ahb	mut_ahb3	FAIL	PLANTED	negative control: planted defect ahb3 must fail a_burst_restart_nonseq
+fv_ahb	mut_ahb4	FAIL	PLANTED	negative control: planted defect ahb4 must fail a_idle_not_gated|a_reset_state
+fv_ahb	mut_prio	FAIL	PLANTED	negative control: planted defect prio must fail a_priority
+fv_ahb	mut_decode	FAIL	PLANTED	negative control: planted defect decode must fail a_decode
+fv_ahb	mut_nofreeze	FAIL	PLANTED	negative control: planted defect nofreeze must fail a_grant_stable_in_data_phase|a_slave_addr_stable
+env	env_ahb7	FAIL	AHB-7	I-port-shaped M0 keeps presenting through its ERROR while the DMA takes the grant: the response hold captures the ERROR (a_held_resp_okay)
+env	negctl_sb_drop	FAIL	PLANTED	scoreboard negative control: an injected drop fault must be reported
+env	negctl_sb_wdata	FAIL	PLANTED	scoreboard negative control: an injected wdata fault must be reported
+env	negctl_sb_rdata	FAIL	PLANTED	scoreboard negative control: an injected rdata fault must be reported
+env	negctl_sb_dup	FAIL	PLANTED	scoreboard negative control: an injected dup fault must be reported
+ahb_mut	mut_a01	FAIL	PLANTED	AHB-1 reverted: HWDATA follows the address-phase grant
+ahb_mut	mut_a02	FAIL	PLANTED	AHB-2 reverted: no response hold for a preempted master
+ahb_mut	mut_a03	FAIL	PLANTED	AHB-3 reverted: an interrupted SEQ is not re-opened as NONSEQ
+ahb_mut	mut_a04	FAIL	PLANTED	AHB-4 reverted: the hold rule gates an idle master too
+ahb_mut	mut_a05	FAIL	PLANTED	priority: SBA above DMA
+ahb_mut	mut_a06	FAIL	PLANTED	priority: D-port above SBA
+ahb_mut	mut_a07	FAIL	PLANTED	decode: DSRAM decoded at nibble 3
+ahb_mut	mut_a08	FAIL	PLANTED	decode: the bridge decoded at nibble 5
+ahb_mut	mut_a09	FAIL	PLANTED	grant freeze removed: the grant moves under a waited address phase
+ahb_mut	mut_a11	FAIL	PLANTED	data-phase tracker updated in wait states
+ahb_mut	mut_a12	FAIL	PLANTED	default slave: one-cycle ERROR
+ahb_mut	mut_a13	FAIL	PLANTED	default slave: an undecoded access answers OKAY
+ahb_mut	mut_a14	FAIL	PLANTED	slave mux: the data-phase select moves in a wait state
+ahb_mut	mut_a15	FAIL	PLANTED	HRESP broadcast to every master
+ahb_mut	mut_a17	FAIL	PLANTED	a presenting data-phase owner sees HREADY: its next address phase is wrongly accepted
+ahb_mut	mut_a18	FAIL	PLANTED	a held response is never released (replayed forever)
+ahb_mut	mut_a19	FAIL	PLANTED	AHB-3 rewrite inverted: a NONSEQ after an owner change becomes NONSEQ->NONSEQ, a SEQ passes
+ahb_mut	mut_a20	FAIL	PLANTED	SBA indication marks the DMA (ISRAM lock bypassed for the wrong master)
+ahb_mut	mut_a21	FAIL	PLANTED	DMA HPROT substitution wrong
+ahb_mut	mut_a22	FAIL	PLANTED	SBA address phase carries the D-port's address
+units	negctl_decoder_a07	FAIL	PLANTED	unit negative control: DSRAM decoded at nibble 3 must fail the decoder unit
+units	negctl_arbiter_a05	FAIL	PLANTED	unit negative control: SBA above DMA must fail the arbiter unit
+units	negctl_arbiter_a09	FAIL	PLANTED	unit negative control: grant freeze removed must fail the arbiter unit
+units	negctl_master_port_a02	FAIL	PLANTED	unit negative control: AHB-2 revert: no response hold must fail the master_port unit
+units	negctl_master_port_a04	FAIL	PLANTED	unit negative control: AHB-4 revert: idle master gated must fail the master_port unit
+units	negctl_default_slave_a12	FAIL	PLANTED	unit negative control: one-cycle ERROR must fail the default_slave unit
+units	negctl_slave_mux_a14	FAIL	PLANTED	unit negative control: select moves in a wait state must fail the slave_mux unit
+units	negctl_master_mux_a01	FAIL	PLANTED	unit negative control: AHB-1 revert: HWDATA from the grant must fail the master_mux unit
+units	negctl_master_mux_a19	FAIL	PLANTED	unit negative control: AHB-3 rewrite inverted must fail the master_mux unit

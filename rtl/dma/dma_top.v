@@ -11,8 +11,9 @@
 // ([N-4.1]); registers follow §6 (CR/SAR/DAR/CNT/STAT/ICLR per channel at
 // 0x20*n, GSTAT at 0x100); channel priorities are fixed by the system
 // definition; completion and error are separate level interrupts to CLIC IDs
-// 1-6 and 7-12. APB is on pclk, everything else on hclk; pclk is a synchronous
-// divide of hclk, so no synchroniser exists anywhere in the block.
+// 1-6 and 8-13 (ID 7 reserved, INT-2). APB is on pclk, everything else on hclk;
+// pclk is a synchronous divide of hclk, so no synchroniser exists anywhere in
+// the block.
 // =============================================================================
 
 module dma_top #(
@@ -51,7 +52,7 @@ module dma_top #(
 
     // ---- interrupts ------------------------------------------------------------------------
     output wire [5:0]  dma_complete_o,       // CLIC IDs 1..6
-    output wire [5:0]  dma_error_o           // CLIC IDs 7..12
+    output wire [5:0]  dma_error_o           // CLIC IDs 8..13 (ID 7 reserved, INT-2)
 );
 
     wire [5:0]  wr_cr, wr_sar, wr_dar, wr_cnt, wr_iclr;

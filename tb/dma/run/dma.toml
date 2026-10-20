@@ -1,0 +1,25 @@
+# DMA block suite (Track A, plan 6A.4 / DMA plan D1): the team's directed bench
+# tb/dma/tb_dma_top.sv (Karthik, 2026-10-04) on the real rtl/dma, AHB SRAM
+# slaves and the AHB-Lite protocol checker on M3. The check count is pinned so a
+# check that silently stops running fails the suite. The bench is directed (no
+# randomness): seeds do not vary it.
+# Run: make -f flow/mk/track_a_run.mk dma_block
+[suite]
+block = "dma"
+name  = "block"
+kind  = "sim"
+xfail = "tb/dma/run/xfail.tsv"
+
+[[test]]
+name    = "tb_dma_top"
+flist   = "tb/dma/filelist_dma_top.f"
+top     = "tb_dma_top"
+marker  = '^RESULT: PASSED'
+timeout = 900
+require = ['tb_dma_top: checks=64 +FAIL=0']
+# 64 = 63 + the second AUD-13 check (GSTAT), 2026-10-12.
+# dma_sva (bound, 2026-10-12): the DMA-10 detector fires once per bad-DAR refusal,
+# because today's engine reads the source first. 31 = 1 (step 5, DAR in ISRAM)
+# + 6 (step 10, DAR in Boot ROM/ISRAM on every channel) + 24 (step 13, the
+# ICLR-vs-ERROR sweep, which uses the late refusal to time its error).
+known = [['a_no_read_before_refusal', 31, 'DMA-10']]

@@ -1,0 +1,80 @@
+# vPlan trace configuration for the core (tools/run/vplan_trace.py core; Track A
+# wrap-up 2026-10-12). [alias]: vPlan NAMEs -> what was built, keyed by element_id.
+# [rule]: external suites (riscv-tests, arch-test, riscv-dv, riscv-formal, Spike
+# co-simulation), checkers, Karthik's static / PD items.
+vplan = "tb/core/GARUDA_CORE_vplan.csv"
+sva_files = ["rtl/core/pipe_ctrl_sva.sv", "rtl/core/trap_ctrl_props_a.sv", "rtl/core/csr_file_props_a.sv",
+             "rtl/core/core_ctl_sva.sv", "rtl/core/core_vplan_sva.sv", "tb/core/formal/cov_const_sva.sv"]
+cov_files = ["tb/cov/garuda_cov.sv", "tb/cov/garuda_cov_ext.sv", "tb/cov/garuda_cov_vplan.sv"]
+cov_report = "logs/core/summary/cov_core.txt"
+formal_manifests = ["tb/core/formal/core_trap.toml", "tb/core/formal/csr_file.toml", "tb/core/formal/rdc1.toml",
+                    "tb/core/formal/cov_unreach.toml"]
+formal_summaries = ["logs/core/summary/fv_trap.tsv", "logs/core/summary/fv_csr.tsv", "logs/core/summary/fv_rdc1.tsv",
+                    "logs/core/summary/fv_cov.tsv"]
+suite_summaries = ["logs/core/summary/isa.tsv", "logs/core/summary/csr.tsv", "logs/core/summary/csr_map.tsv",
+                   "logs/core/summary/directed.tsv", "logs/core/summary/sanity.tsv", "logs/core/summary/extra.tsv",
+                   "logs/core/summary/halt.tsv", "logs/core/summary/covtests.tsv", "logs/core/summary/smokes.tsv"]
+
+[alias]
+"CORE.F03.TC1"  = ["p-div", "p-divu", "p-rem", "p-remu"]        # Zmmul: DIV/REM must trap illegal
+"CORE.F03.COV2" = "cg_div.cp_op_illegal"
+"CORE.F04.TC1"  = ["riscv-dv", "t_cov_illegal"]                  # pygen cannot randomise illegal words: directed t_cov_illegal
+"CORE.F05.CHK1" = "riscv-formal"                                 # the riscv-formal `ill` check
+"CORE.F08.TC1"  = "csr_sweep"
+"CORE.F08.COV2" = "cg_csr_op.x_addr_op"
+"CORE.F08.TC2"  = "p-csr_warl"
+"CORE.F09.COV1" = ["cg_csr.cp_illegal", "cg_illegal.cp_class"]
+"CORE.F10.CHK1" = "lockstep"                                     # every CSR write compared with Spike
+"CORE.F11.TC1"  = "p-csr_warl"
+"CORE.F12.CHK1" = ["lockstep", "p-zicntr"]
+"CORE.F12.COV2" = "cg_csr_op.cp_counter_write"
+"CORE.F14.COV2" = "cg_trap_x.cp_x_cause_younger"
+"CORE.F16.COV1" = "cg_trap_x.cp_fetch_err_flushed"
+"CORE.F17.COV1" = "cg_trap_x.cp_back_to_back"
+"CORE.F18.CHK2" = "lockstep"                                     # interrupts applied to Spike from the spec (5.3)
+"CORE.F19.TC1"  = "stress"
+"CORE.F21.TC1"  = "t_core_irq_nest"
+"CORE.F22.COV1" = "cg_irq_gate.cp_gate"
+"CORE.F25.COV1" = "cg_hazard_lu.cp_load_use_consumer"
+"CORE.F27.COV1" = "cg_pipe.cp_redir_waited"
+"CORE.F28.COV1" = "cg_branch_k.x_kind_dir_outcome"
+"CORE.F29.CHK1" = ["a_flush_beats_hold_if_id", "a_flush_beats_hold_id_ex", "a_flush_beats_hold_ex_mem"]
+"CORE.F29.COV5" = ["c_h1_vs_redirect", "c_h2_vs_redirect", "c_h4_vs_redirect", "c_h5_vs_trap"]
+"CORE.F30.COV1" = "cg_pipe_pair.x_class_pair"
+"CORE.F37.TC1"  = ["t_core_hartreset_s1", "t_core_hartreset_s2", "t_core_hartreset_s3"]
+
+[rule.riscv-tests]
+what   = "riscv-tests (sw/riscv-tests), each program co-simulated with Spike"
+suites = ["logs/core/summary/isa.tsv", "logs/core/summary/isa_rand.tsv"]
+[rule.riscv-arch-test]
+what   = "riscv-arch-test 3.10.0 against Spike (59/59; ARCH-DEV-1 header rule)"
+suites = ["logs/core/summary/archtest.tsv"]
+evidence = ["logs/core/evidence/archtest_2026-10-11.txt"]
+[rule.riscv-dv]
+what   = "riscv-dv (pygen, open flow) in co-simulation; the full SV generator list is Karthik's xrun flow"
+suites = ["logs/core/summary/riscv_dv.tsv"]
+evidence = ["logs/core/evidence/riscv_dv_2026-10-11.txt"]
+[rule.riscv-formal]
+what   = "riscv-formal on the RVFI port: 48/48 (insn, reg, pc_fwd BOUNDED(16)/bwd, causal, unique, ill, cover, csrs, liveness)"
+evidence = ["logs/core/evidence/riscv_formal_2026-10-11.txt"]
+suites = ["logs/core/summary/rvfi.tsv"]
+[rule.lockstep]
+what   = "Spike co-simulation per retired instruction (registers, stores, PC, traps, interrupts from the spec) + its negative controls"
+suites = ["logs/core/summary/cosim.tsv", "logs/core/summary/cosim_smoke.tsv", "logs/flow/summary/negctl_cosim.tsv"]
+[rule.stress]
+what   = "1000-seed stress: interrupt / WFI / bus-error / reset programs under random waits, co-simulated (riscv-dv pygen has no interrupt stream)"
+suites = ["logs/core/summary/stress.tsv", "logs/core/summary/stress_halt.tsv"]
+[rule.ahb_checker]
+what   = "tb/ahb/ahb_lite_checker.v on the I- and D-ports in tb_boot"
+suites = ["logs/core/summary/isa.tsv"]
+[rule.chip]
+what   = "chip programs on tb_chip (diagnostic shim until TB-30 is fixed)"
+suites = ["logs/debug/summary/chip_diag.tsv"]
+[rule.review]
+what   = "review item (Karthik's review record, plan 5.13)"
+[rule.hal_lint]
+what   = "HAL lint: Karthik's flow/2_static"
+[rule.sta]
+what   = "static timing: stage 7 (PD, after the PDK)"
+[rule.t_chip_control_loop]
+what   = "LATER (stage 5 scenario): the real estimator / controller firmware on the core with the DSU against the Python model; the firmware does not exist yet (Karthik's software stage)"

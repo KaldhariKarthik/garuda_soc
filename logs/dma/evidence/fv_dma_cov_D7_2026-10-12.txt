@@ -1,0 +1,6 @@
+Formal evidence for the DMA coverage waivers (make fv_dma_cov), 2026-10-12
+# garuda-fv 1 suite=fv_dma_cov block=dma date=2026-10-12T06:06:21+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+cov_prove	prove	PROVEN	OK	3	[6 asserts, 307 covers in model] 	logs/dma/raw/fv_dma_cov/fv_cov_prove.log
+cov_reach	cover	COVERED	OK	2	[0 asserts, 4 covers in model] 	logs/dma/raw/fv_dma_cov/fv_cov_reach.log
+mut_cov_prio_inv	bmc	FAIL	XFAIL:PLANTED	1	[1 asserts, 307 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone	logs/dma/raw/fv_dma_cov/fv_mut_cov_prio_inv.log

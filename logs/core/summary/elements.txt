@@ -1,0 +1,22 @@
+garuda-run 1  suite elements  block core  2026-10-15T21:41:02+05:30
+design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      E_garuda_pc_gen            
+PASS    OK                      E_garuda_prefetch_buffer   
+PASS    OK                      E_garuda_iport_ahb_master  
+PASS    OK                      E_garuda_if_stage_top      
+PASS    OK                      E_alu                      
+PASS    OK                      E_mul32                    
+PASS    OK                      E_branch_unit              
+PASS    OK                      E_csr_rw                   
+PASS    OK                      E_load_store_unit          
+PASS    OK                      E_load_formatter           
+PASS    OK                      E_d_port_ahb_master        
+PASS    OK                      E_mem_stage                
+PASS    OK                      E_mem_wb_reg               
+PASS    OK                      E_clic_ctrl                
+
+PASS    14
+FAIL    0
+BLOCKED 0
+total   14

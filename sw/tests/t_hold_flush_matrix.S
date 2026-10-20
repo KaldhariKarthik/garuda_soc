@@ -194,13 +194,16 @@ b3m:
 
 # ---------------------------------------------------------------------------
 # bit 4 : H2 x F2 -- unimplemented CSR behind a store
+# (0x7B0 = dcsr, which CORE [N-6.3] requires to trap. This used 0x7C0 until
+#  2026-10-11; 0x7C0 is now mgarudactl, ERRATUM CORE-4, and the csrrw below
+#  would have switched core features off in the middle of the matrix.)
 # ---------------------------------------------------------------------------
     li      x21, 0
     mv      x8, x20
     li      x9, 0x55
     sw      x11, 16(x10)
 b4c:
-    csrrw   x9, 0x7c0, x11
+    csrrw   x9, 0x7b0, x11
     lla     x5, b4c
     li      x6, 2
     CHK     x21, x6, 4

@@ -1,0 +1,33 @@
+# P0.11 throughput, coverage build: the same runs as perf.toml on a tb_boot built
+# with every Verilator 5.052 coverage kind (the E9 configuration), to price coverage.
+# Run: make -f flow/mk/track_a_run.mk throughput_a
+[suite]
+block = "core"
+name  = "perf_cov"
+kind  = "prog"
+xfail = "tb/core/run/xfail.tsv"
+
+[bench]
+flist = "tb/soc/filelist_boot.f"
+cov_flist = "tb/soc/filelist_boot_cov.f"   # --coverage: + bound covergroups (tb/cov/garuda_cov.sv)
+top   = "tb_boot"
+vl_flags = ["--coverage-line", "--coverage-toggle", "--coverage-expr", "--coverage-fsm",
+            "--coverage-user", "--coverage-per-instance"]
+
+[defaults]
+marker   = 'TOHOST=1 -> PASSED'
+timeout  = 1800
+require  = ['AHB-PROTOCOL: iport=0 dport=0']
+
+[[test]]
+name = "perf_cov_nowait"
+hex  = "sw/build/t_perf_mix.hex"
+plusargs = ["+MAXCYC=20000000", "+QUIET"]
+[[test]]
+name = "perf_cov_w2"
+hex  = "sw/build/t_perf_mix.hex"
+plusargs = ["+MAXCYC=40000000", "+QUIET", "+IWAIT=2", "+DWAIT=2"]
+[[test]]
+name = "perf_cov_rand"
+hex  = "sw/build/t_perf_mix.hex"
+plusargs = ["+MAXCYC=80000000", "+QUIET", "+IWAIT=8", "+DWAIT=8", "+IRAND=1", "+DRAND=1", "+SEED=3"]

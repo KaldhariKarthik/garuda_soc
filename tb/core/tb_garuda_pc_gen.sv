@@ -171,12 +171,15 @@ module tb_top;
         sb = new("PC_GEN");
         cg = new();
 
-        rst_n = 0;
         vif.redirect = 0; vif.redirect_pc = 0;
         vif.fetch_issue = 0; vif.commit = 0; vif.commit_pc = 0;
 
         // ---- reset vector (Sec. 2.1 / 17, test C28) --------------------
-        #3;
+        // TB-32: a falling edge at 1 ns, so the asynchronous reset is what sets
+        // the vector checked at 3 ns (before the first clock edge). Before, the
+        // check relied on the simulator making an edge at time zero.
+        #1; rst_n = 0;
+        #2;
         sb.chk("reset", "pc = boot ROM",       vif.pc,       RESET_VECTOR);
         sb.chk("reset", "fetch_pc = boot ROM", vif.fetch_pc, RESET_VECTOR);
         @(negedge clk); rst_n = 1;
@@ -257,7 +260,11 @@ module tb_top;
         rst_n = 0; vif.redirect = 0; vif.fetch_issue = 0; vif.commit = 0; #1;
         sb.chk("re_reset", "pc",       vif.pc,       RESET_VECTOR);
         sb.chk("re_reset", "fetch_pc", vif.fetch_pc, RESET_VECTOR);
-        @(negedge clk); rst_n = 1;
+        // TB-39: hold the reset across a clock edge. A sub-cycle pulse relies on
+        // `disable iff` cancelling the a_fetch_step attempt started at the last
+        // edge asynchronously (IEEE 1800 16.12); Verilator 5.052 samples it at
+        // the clock only, so that attempt survived and failed at the next edge.
+        @(negedge clk); @(negedge clk); rst_n = 1;
 
         // ---- randomised soak: SVA is the checker -----------------------
         // Random mixes of redirect / commit / issue, including all eight

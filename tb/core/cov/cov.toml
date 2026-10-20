@@ -1,0 +1,37 @@
+# Core coverage configuration (plan E8/E9, H5). Used by tools/cov/cov_report.py.
+# Collect:  make -f flow/mk/track_a_run.mk cov_core     (all core suites with --coverage)
+# Report:   make -f flow/mk/track_a_run.mk cov_core_report
+block = "core"
+target_code = 95.0         # % per metric (line/branch/expr/toggle/fsm) per RTL module, after waivers
+target_functional = 100.0  # % of covergroup bins, after waivers
+
+# Coverage summaries written by `garuda_run.py suite <manifest> --coverage`; only OK runs count.
+suites = [
+  "logs/core/summary/units.cov.tsv",
+  "logs/core/summary/elements.cov.tsv",
+  "logs/core/summary/smokes.cov.tsv",
+  "logs/core/summary/isa.cov.tsv",
+  "logs/core/summary/isa_rand.cov.tsv",
+  "logs/core/summary/sanity.cov.tsv",
+  "logs/core/summary/extra.cov.tsv",
+  "logs/core/summary/directed.cov.tsv",
+  "logs/core/summary/csr.cov.tsv",
+  "logs/core/summary/halt.cov.tsv",
+  "logs/core/summary/csr_map.cov.tsv",
+  "logs/core/summary/covtests.cov.tsv",
+]
+
+# Design = the core RTL that ships. Bound SVA (*_sva.sv) is checker code and counts
+# as testbench (H5), as do the benches and the bus/memory models.
+design    = ["rtl/core/*.v"]
+testbench = ["tb/core/*", "tb/soc/*", "tb/cov/*", "rtl/core/*_sva.sv", "tb/uvm/*"]
+
+# Covergroups that sample the DUT (design-behaviour functional coverage):
+# the core-level model bound into garuda_core_top, and the unit/element benches'
+# covergroups on their DUT ports. cg_dsu is reported with the DSU.
+functional_files = ["tb/cov/garuda_cov.sv::^cg_(?!dsu)", "tb/cov/garuda_cov_ext.sv", "tb/cov/garuda_cov_vplan.sv", "tb/core/*.sv"]
+
+# DUT top for the IMC instance paths (tools/cov/gen_imc_exclusions.py)
+imc_dut = "garuda_core_top"
+
+waivers = "tb/core/cov/core_waivers.toml"

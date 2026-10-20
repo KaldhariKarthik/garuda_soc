@@ -1,0 +1,35 @@
+# vPlan trace configuration for the DSU (tools/run/vplan_trace.py dsu; Track A
+# wrap-up 2026-10-12). [alias]: vPlan NAMEs -> what was built, keyed by element_id.
+vplan = "tb/dsu/GARUDA_DSU_vplan.csv"
+sva_files = ["rtl/dsu/dsu_props_a.sv"]
+cov_files = ["tb/cov/garuda_cov.sv", "tb/dsu/dsu_cov_vplan.sv"]
+cov_report = "logs/dsu/summary/cov_dsu.txt"
+formal_manifests = ["tb/dsu/formal/dsu.toml"]
+formal_summaries = ["logs/dsu/summary/fv_dsu.tsv"]
+suite_summaries = ["logs/dsu/summary/model.tsv", "logs/dsu/summary/units.tsv", "logs/dsu/summary/dsu_mut.tsv",
+                   "logs/core/summary/sanity.tsv", "logs/core/summary/extra.tsv", "logs/core/summary/covtests.tsv"]
+
+[alias]
+"DSU.F06.CHK1" = "t_dsu_macsat_rd"                 # DSU-15: MACSAT as specified (xfail until the ruling)
+"DSU.F09.CHK1" = "model"                           # the product added sign-extended: DSUModel + ArchDSU maths, 10048 random + clamp walk
+"DSU.F09.TC2"  = "tb_dsu_top_10k"
+"DSU.F10.CHK1" = "ruling-D0"
+"DSU.F10.CHK2" = "ruling-D0"
+"DSU.F10.CHK3" = "ruling-D0"
+"DSU.F22.TC1"  = "stress"
+
+[rule.model]
+what   = "tb_dsu_top against the cycle-accurate DSUModel, generator cross-checked against ArchDSU (448 + 33368 clamp walk + 10048 random); note: both models defer to the RTL by their own rule (TB-45)"
+tests  = ["tb_dsu_top", "tb_dsu_top_icarus", "tb_dsu_top_clamp", "tb_dsu_top_10k"]
+[rule.ruling-D0]
+what   = "WAITS FOR RULING D0 (saturate vs wrap): the vPlan rows say saturate; the RTL and both oracles wrap and set the sticky flag (a_ovf_from_49, a_ovf_sticky PROVEN)"
+[rule.stress]
+what   = "1000-seed stress and the 1e9-instruction endurance run include t_cov_dsu / DSU programs under interrupts, compared with Spike + ArchDSU"
+suites = ["logs/core/summary/stress.tsv"]
+evidence = ["logs/core/evidence/stress_1000_2026-10-11.txt", "logs/core/evidence/instret_total.txt"]
+[rule.review]
+what   = "review item (Karthik's review record)"
+[rule.t_dsu_apf]
+what   = "LATER (stage 5): the potential-field loop firmware against a Python reference; the firmware does not exist yet"
+[rule.t_dsu_ekf_scope]
+what   = "LATER (stage 5): the estimator prediction / residual firmware against a floating-point reference; not written yet"

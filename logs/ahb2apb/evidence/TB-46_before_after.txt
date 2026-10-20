@@ -1,0 +1,23 @@
+# TB-46 evidence 2026-10-13 (bus plan B0)
+## BEFORE (tb_ahb2apb as in Karthik's tree; strict runner make apb_bridge, 18:59)
+  FAIL    UNEXPECTED   bridge   1 [FAIL] line(s); 1 assertion failure(s)
+  [0] %Error: clk_div_sva.sv:54: Assertion failed in tb_ahb2apb.u_clk.u_clk_div_sva.a_pclk_subset_hclk: [SVA-FAIL] a_pclk_subset_hclk: pclk changed at 0, the last hclk rise was at 0
+  tb_ahb2apb: checks=22  FAIL=0 / RESULT: PASSED   <- the bench's own line ignores the assertion
+
+## CHANGE
+15c15,18
+<     reg refclk = 0, ext_rst_n = 1;
+---
+>     // TB-46: ext_rst_n starts X, not 1. X->0 at #0 is still a negedge (TB-22), and
+>     // clk_div_sva's a_pclk_subset_hclk (guarded by raw_rst_n === 1) no longer
+>     // fires at time 0 while pclk leaves X -- a start-up artefact, not the design.
+>     reg refclk = 0, ext_rst_n;
+
+## AFTER
+# garuda-run 1 suite=bridge block=ahb2apb date=2026-10-13T19:00:51+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+bridge	PASS	OK	0	yes	0	0	0	-	5	0	-	1	0.02	20				logs/ahb2apb/raw/bridge/sim_bridge_s1.log
+tb_ahb2apb: checks=22  FAIL=0
+RESULT: PASSED
+# counts    : marker=yes fail_lines=0 assert_fail=0 errors=0 lockstep=- wall_s=0.02 rss_mb=20
+# verdict   : PASS

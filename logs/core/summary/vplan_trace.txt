@@ -1,0 +1,144 @@
+vPlan trace: tb/core/GARUDA_CORE_vplan.csv (tools/run/vplan_trace.py core)
+totals: CHK mapped 27, COV mapped 26, TC UNMAPPED 1, TC mapped 15
+
+CORE.F01.TC1     TC   riscv-tests rv32ui
+                      riscv-tests (sw/riscv-tests), each program co-simulated with Spike [isa.tsv: OK 65, isa_rand.tsv: OK 65]
+CORE.F01.TC2     TC   riscv-arch-test rv32i
+                      riscv-arch-test 3.10.0 against Spike (59/59; ARCH-DEV-1 header rule) [archtest.tsv: OK 59, logs/core/evidence/archtest_2026-10-11.txt: present]
+CORE.F01.TC3     TC   riscv-dv random programs
+                      riscv-dv (pygen, open flow) in co-simulation; the full SV generator list is Karthik's xrun flow [riscv_dv.tsv: OK 85, logs/core/evidence/riscv_dv_2026-10-11.txt: present]
+CORE.F01.CHK4    CHK  riscv-formal insn checks
+                      riscv-formal on the RVFI port: 48/48 (insn, reg, pc_fwd BOUNDED(16)/bwd, causal, unique, ill, cover, csrs, liveness) [rvfi.tsv: OK 87, logs/core/evidence/riscv_formal_2026-10-11.txt: present]
+CORE.F01.COV5    COV  cg_decode.x_op_f3
+                      cg_decode (tb_decode_control.sv)                  59/59     100.0%   waived 34
+CORE.F01.COV6    COV  cg_isa.cp_operand_corner
+                      cg_isa (not in report)
+CORE.F02.COV1    COV  cg_mul.x_op_signs
+                      cg_mul (tb_mul32.sv)                              30/30     100.0%   waived 0
+CORE.F02.CHK2    CHK  lockstep
+                      Spike co-simulation per retired instruction (registers, stores, PC, traps, interrupts from the spec) + its negative controls [cosim.tsv: OK 102, cosim_smoke.tsv: OK 1, negctl_cosim.tsv: XFAIL 6]
+CORE.F03.TC1     TC   riscv-tests rv32um div rem -> p-div, p-divu, p-rem, p-remu
+                      test p-div: OK (isa.tsv) | test p-divu: OK (isa.tsv) | test p-rem: OK (isa.tsv) | test p-remu: OK (isa.tsv)
+CORE.F03.COV2    COV  cg_div.x_op_corner -> cg_div.cp_op_illegal
+                      cg_div (not in report)
+CORE.F04.TC1     TC   riscv-dv illegal instruction stream -> riscv-dv, t_cov_illegal
+                      riscv-dv (pygen, open flow) in co-simulation; the full SV generator list is Karthik's xrun flow [riscv_dv.tsv: OK 85, logs/core/evidence/riscv_dv_2026-10-11.txt: present] | test t_cov_illegal: OK (covtests.tsv)
+CORE.F04.COV2    COV  cg_illegal.cp_class
+                      cg_illegal (not in report)
+CORE.F05.CHK1    CHK  a_illegal_inert -> riscv-formal
+                      riscv-formal on the RVFI port: 48/48 (insn, reg, pc_fwd BOUNDED(16)/bwd, causal, unique, ill, cover, csrs, liveness) [rvfi.tsv: OK 87, logs/core/evidence/riscv_formal_2026-10-11.txt: present]
+CORE.F06.CHK1    CHK  riscv-formal reg check
+                      riscv-formal on the RVFI port: 48/48 (insn, reg, pc_fwd BOUNDED(16)/bwd, causal, unique, ill, cover, csrs, liveness) [rvfi.tsv: OK 87, logs/core/evidence/riscv_formal_2026-10-11.txt: present]
+CORE.F07.COV1    COV  cg_sys.cp_insn
+                      cg_sys (not in report)
+CORE.F07.CHK2    CHK  lockstep
+                      Spike co-simulation per retired instruction (registers, stores, PC, traps, interrupts from the spec) + its negative controls [cosim.tsv: OK 102, cosim_smoke.tsv: OK 1, negctl_cosim.tsv: XFAIL 6]
+CORE.F08.TC1     TC   csr_sweep
+                      test csr_sweep: OK (csr_map.tsv)
+CORE.F08.COV2    COV  cg_csr.x_addr_op -> cg_csr_op.x_addr_op
+                      cg_csr_op (not in report)
+CORE.F08.TC2     TC   p-csr_warl
+                      test p-csr_warl: OK (isa.tsv)
+CORE.F09.COV1    COV  cg_csr.cp_illegal_kind -> cg_csr.cp_illegal, cg_illegal.cp_class
+                      cg_csr (tb_csr_rw.sv)                             29/29     100.0%   waived 0 | cg_illegal (not in report)
+CORE.F09.CHK2    CHK  lockstep
+                      Spike co-simulation per retired instruction (registers, stores, PC, traps, interrupts from the spec) + its negative controls [cosim.tsv: OK 102, cosim_smoke.tsv: OK 1, negctl_cosim.tsv: XFAIL 6]
+CORE.F10.CHK1    CHK  a_csr_write_once -> lockstep
+                      Spike co-simulation per retired instruction (registers, stores, PC, traps, interrupts from the spec) + its negative controls [cosim.tsv: OK 102, cosim_smoke.tsv: OK 1, negctl_cosim.tsv: XFAIL 6]
+CORE.F11.TC1     TC   p-csr_warl
+                      test p-csr_warl: OK (isa.tsv)
+CORE.F12.CHK1    CHK  sb_minstret -> lockstep, p-zicntr
+                      Spike co-simulation per retired instruction (registers, stores, PC, traps, interrupts from the spec) + its negative controls [cosim.tsv: OK 102, cosim_smoke.tsv: OK 1, negctl_cosim.tsv: XFAIL 6] | test p-zicntr: OK (isa.tsv)
+CORE.F12.COV2    COV  cg_csr.cp_counter_write -> cg_csr_op.cp_counter_write
+                      cg_csr_op (not in report)
+CORE.F13.COV1    COV  cg_trap.cp_cause
+                      cg_trap (garuda_cov.sv)                           10/10     100.0%   waived 0
+CORE.F13.CHK2    CHK  lockstep
+                      Spike co-simulation per retired instruction (registers, stores, PC, traps, interrupts from the spec) + its negative controls [cosim.tsv: OK 102, cosim_smoke.tsv: OK 1, negctl_cosim.tsv: XFAIL 6]
+CORE.F14.CHK1    CHK  riscv-formal causal and pc checks
+                      riscv-formal on the RVFI port: 48/48 (insn, reg, pc_fwd BOUNDED(16)/bwd, causal, unique, ill, cover, csrs, liveness) [rvfi.tsv: OK 87, logs/core/evidence/riscv_formal_2026-10-11.txt: present]
+CORE.F14.COV2    COV  cg_trap.x_cause_younger -> cg_trap_x.cp_x_cause_younger
+                      cg_trap_x (not in report)
+CORE.F15.TC1     TC   t_exc_priority
+                      UNMAPPED
+CORE.F16.COV1    COV  cg_trap.cp_fetch_err_flushed -> cg_trap_x.cp_fetch_err_flushed
+                      cg_trap_x (not in report)
+CORE.F17.COV1    COV  cg_trap.cp_back_to_back -> cg_trap_x.cp_back_to_back
+                      cg_trap_x (not in report)
+CORE.F17.CHK2    CHK  lockstep
+                      Spike co-simulation per retired instruction (registers, stores, PC, traps, interrupts from the spec) + its negative controls [cosim.tsv: OK 102, cosim_smoke.tsv: OK 1, negctl_cosim.tsv: XFAIL 6]
+CORE.F18.COV1    COV  cg_irq.x_insn_class
+                      cg_irq (not in report)
+CORE.F18.CHK2    CHK  sb_irq_replay -> lockstep
+                      Spike co-simulation per retired instruction (registers, stores, PC, traps, interrupts from the spec) + its negative controls [cosim.tsv: OK 102, cosim_smoke.tsv: OK 1, negctl_cosim.tsv: XFAIL 6]
+CORE.F19.TC1     TC   riscv-dv with interrupts -> stress
+                      1000-seed stress: interrupt / WFI / bus-error / reset programs under random waits, co-simulated (riscv-dv pygen has no interrupt stream) [stress.tsv: OK 690, stress_halt.tsv: OK 310]
+CORE.F20.COV1    COV  cg_irq.cp_mti_with_clic
+                      cg_irq (not in report)
+CORE.F21.TC1     TC   t_irq_nest -> t_core_irq_nest
+                      test t_core_irq_nest: OK (directed.tsv)
+CORE.F22.COV1    COV  cg_core_take.x_level_thresh -> cg_irq_gate.cp_gate
+                      cg_irq_gate (garuda_cov_ext.sv)                    7/7      100.0%   waived 0
+CORE.F23.COV1    COV  cg_irq.cp_with_exception
+                      cg_irq (not in report)
+CORE.F24.COV1    COV  cg_hazard.x_fwd
+                      cg_hazard (tb_hazard_forward_unit.sv)            105/105    100.0%   waived 1
+CORE.F24.CHK2    CHK  lockstep
+                      Spike co-simulation per retired instruction (registers, stores, PC, traps, interrupts from the spec) + its negative controls [cosim.tsv: OK 102, cosim_smoke.tsv: OK 1, negctl_cosim.tsv: XFAIL 6]
+CORE.F25.COV1    COV  cg_hazard.cp_load_use_consumer -> cg_hazard_lu.cp_load_use_consumer
+                      cg_hazard_lu (not in report)
+CORE.F26.COV1    COV  cg_ldst.x_size_off
+                      cg_ldst (garuda_cov.sv)                           39/39     100.0%   waived 0
+CORE.F26.CHK2    CHK  ahb_checker
+                      tb/ahb/ahb_lite_checker.v on the I- and D-ports in tb_boot [isa.tsv: OK 65]
+CORE.F27.COV1    COV  cg_fetch.x_inflight_redirect -> cg_pipe.cp_redir_waited
+                      cg_pipe (garuda_cov_ext.sv)                       19/19     100.0%   waived 2
+CORE.F27.CHK2    CHK  ahb_checker
+                      tb/ahb/ahb_lite_checker.v on the I- and D-ports in tb_boot [isa.tsv: OK 65]
+CORE.F28.COV1    COV  cg_branch.x_kind_dir_outcome -> cg_branch_k.x_kind_dir_outcome
+                      cg_branch_k (not in report)
+CORE.F28.CHK2    CHK  review
+                      review item (Karthik's review record, plan 5.13)
+CORE.F29.CHK1    CHK  a_flush_beats_hold -> a_flush_beats_hold_if_id, a_flush_beats_hold_id_ex, a_flush_beats_hold_ex_mem
+                      assert a_flush_beats_hold_if_id: sim bound; formal: none (simulation only) | assert a_flush_beats_hold_id_ex: sim bound; formal: none (simulation only) | assert a_flush_beats_hold_ex_mem: sim bound; formal: none (simulation only)
+CORE.F29.CHK2    CHK  a_h2_defers_flush
+                      assert a_h2_defers_flush: sim bound; formal: none (simulation only)
+CORE.F29.CHK3    CHK  a_trap_beats_branch
+                      assert a_trap_beats_branch: sim bound; formal: none (simulation only)
+CORE.F29.CHK4    CHK  a_mem_completes
+                      assert a_mem_completes: sim bound; formal: trap_bmc BOUNDED(20) OK; trap_prove PROVEN OK; rdc1_bmc BOUNDED(30) OK; rdc1_prove PROVEN OK; cov_bmc BOUNDED(24) OK; cov_prove PROVEN OK
+CORE.F29.COV5    COV  c_h_vs_f cover points -> c_h1_vs_redirect, c_h2_vs_redirect, c_h4_vs_redirect, c_h5_vs_trap
+                      cover c_h1_vs_redirect: sim bound; formal: none (simulation only) | cover c_h2_vs_redirect: sim bound; formal: none (simulation only) | cover c_h4_vs_redirect: sim bound; formal: none (simulation only) | cover c_h5_vs_trap: sim bound; formal: none (simulation only)
+CORE.F29.TC6     TC   t_hold_flush_matrix
+                      test t_hold_flush_matrix: OK (sanity.tsv)
+CORE.F30.COV1    COV  cg_pipe.x_class_pair -> cg_pipe_pair.x_class_pair
+                      cg_pipe_pair (not in report)
+CORE.F31.COV1    COV  cg_wfi.x_wake_mie
+                      cg_wfi (not in report)
+CORE.F32.CHK1    CHK  a_no_gate_with_bus
+                      assert a_no_gate_with_bus: sim bound; formal: none (simulation only)
+CORE.F32.CHK2    CHK  a_no_gate_mid_work
+                      assert a_no_gate_mid_work: sim bound; formal: none (simulation only)
+CORE.F32.CHK3    CHK  a_no_gate_with_flush
+                      assert a_no_gate_with_flush: sim bound; formal: none (simulation only)
+CORE.F33.TC1     TC   t_hold_flush_matrix
+                      test t_hold_flush_matrix: OK (sanity.tsv)
+CORE.F34.COV1    COV  cg_wfi.cp_wake_timing
+                      cg_wfi (not in report)
+CORE.F35.CHK1    CHK  a_wake_latency
+                      assert a_wake_latency: sim bound; formal: trap_bmc BOUNDED(20) OK; trap_prove PROVEN OK; rdc1_bmc BOUNDED(30) OK; rdc1_prove PROVEN OK; cov_bmc BOUNDED(24) OK; cov_prove PROVEN OK
+CORE.F36.CHK1    CHK  a_reset_pc
+                      assert a_reset_pc: sim bound; formal: trap_bmc BOUNDED(20) OK; trap_prove PROVEN OK; rdc1_bmc BOUNDED(30) OK; rdc1_prove PROVEN OK; cov_bmc BOUNDED(24) OK; cov_prove PROVEN OK
+CORE.F37.TC1     TC   t_core_hartreset -> t_core_hartreset_s1, t_core_hartreset_s2, t_core_hartreset_s3
+                      test t_core_hartreset_s1: OK (halt.tsv) | test t_core_hartreset_s2: OK (halt.tsv) | test t_core_hartreset_s3: OK (halt.tsv)
+CORE.F38.TC1     TC   chip tests
+                      chip programs on tb_chip (diagnostic shim until TB-30 is fixed) [chip_diag.tsv: OK 8]
+CORE.F39.TC1     TC   t_chip_control_loop
+                      LATER (stage 5 scenario): the real estimator / controller firmware on the core with the DSU against the Python model; the firmware does not exist yet (Karthik's software stage)
+CORE.F40.CHK1    CHK  hal_lint
+                      HAL lint: Karthik's flow/2_static
+CORE.F41.CHK1    CHK  sta
+                      static timing: stage 7 (PD, after the PDK)
+
+UNMAPPED (1): need an alias, an implementation or a decision
+  CORE.F15.TC1 t_exc_priority

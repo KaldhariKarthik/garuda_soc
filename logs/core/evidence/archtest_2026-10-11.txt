@@ -1,0 +1,130 @@
+Plan 5.4 riscv-arch-test 3.10.0 on GARUDA, signatures against Spike -- 2026-10-11
+command: make -f flow/mk/track_a.mk core_archtest   (tb/core/run/archtest.toml, 59 tests)
+isa: rv32i_zmmul_zicsr_zifencei_zicntr (DN-ISA); suites I, M-mul (Zmmul), Zifencei, privilege
+
+[archtest] block=core tests=59 seed=1 design=b90b481d8f91 DIRTY tool='Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a'
+[archtest] building tb_boot ...
+  PASS    OK                     I-add-01                         
+  PASS    OK                     I-addi-01                        
+  PASS    OK                     I-and-01                         
+  PASS    OK                     I-andi-01                        
+  PASS    OK                     I-auipc-01                       
+  PASS    OK                     I-beq-01                         
+  PASS    OK                     I-bge-01                         
+  PASS    OK                     I-bgeu-01                        
+  PASS    OK                     I-blt-01                         
+  PASS    OK                     I-bltu-01                        
+  PASS    OK                     I-bne-01                         
+  PASS    OK                     I-fence-01                       
+  PASS    OK                     I-jal-01                         
+  PASS    OK                     I-jalr-01                        
+  PASS    OK                     I-lb-align-01                    
+  PASS    OK                     I-lbu-align-01                   
+  PASS    OK                     I-lh-align-01                    
+  PASS    OK                     I-lhu-align-01                   
+  PASS    OK                     I-lui-01                         
+  PASS    OK                     I-lw-align-01                    
+  PASS    OK                     I-misalign1-jalr-01              
+  PASS    OK                     I-or-01                          
+  PASS    OK                     I-ori-01                         
+  PASS    OK                     I-sb-align-01                    
+  PASS    OK                     I-sh-align-01                    
+  PASS    OK                     I-sll-01                         
+  PASS    OK                     I-slli-01                        
+  PASS    OK                     I-slt-01                         
+  PASS    OK                     I-slti-01                        
+  PASS    OK                     I-sltiu-01                       
+  PASS    OK                     I-sltu-01                        
+  PASS    OK                     I-sra-01                         
+  PASS    OK                     I-srai-01                        
+  PASS    OK                     I-srl-01                         
+  PASS    OK                     I-srli-01                        
+  PASS    OK                     I-sub-01                         
+  PASS    OK                     I-sw-align-01                    
+  PASS    OK                     I-xor-01                         
+  PASS    OK                     I-xori-01                        
+  PASS    OK                     M-mul-01                         
+  PASS    OK                     M-mulh-01                        
+  PASS    OK                     M-mulhsu-01                      
+  PASS    OK                     M-mulhu-01                       
+  PASS    OK                     Zifencei-Fencei                  
+  PASS    OK                     privilege-ebreak                 
+  PASS    OK                     privilege-ecall                  
+  PASS    OK                     privilege-misalign-beq-01        
+  PASS    OK                     privilege-misalign-bge-01        
+  PASS    OK                     privilege-misalign-bgeu-01       
+  PASS    OK                     privilege-misalign-blt-01        
+  PASS    OK                     privilege-misalign-bltu-01       
+  PASS    OK                     privilege-misalign-bne-01        
+  PASS    OK                     privilege-misalign-jal-01        
+  PASS    OK                     privilege-misalign-lh-01         
+  PASS    OK                     privilege-misalign-lhu-01        
+  PASS    OK                     privilege-misalign-lw-01         
+  PASS    OK                     privilege-misalign-sh-01         
+  PASS    OK                     privilege-misalign-sw-01         
+  PASS    OK                     privilege-misalign2-jalr-01      
+[archtest] PASS=59 FAIL=0 BLOCKED=0 -> OK  (logs/core/summary/archtest.tsv)
+
+post-check lines (sigcheck.py) per test:
+  I-add-01: # post: SIGNATURE MATCH: 590 words identical to Spike
+  I-addi-01: # post: SIGNATURE MATCH: 563 words identical to Spike
+  I-and-01: # post: SIGNATURE MATCH: 586 words identical to Spike
+  I-andi-01: # post: SIGNATURE MATCH: 564 words identical to Spike
+  I-auipc-01: # post: SIGNATURE MATCH: 66 words identical to Spike
+  I-beq-01: # post: SIGNATURE MATCH: 585 words identical to Spike
+  I-bge-01: # post: SIGNATURE MATCH: 592 words identical to Spike
+  I-bgeu-01: # post: SIGNATURE MATCH: 728 words identical to Spike
+  I-blt-01: # post: SIGNATURE MATCH: 582 words identical to Spike
+  I-bltu-01: # post: SIGNATURE MATCH: 728 words identical to Spike
+  I-bne-01: # post: SIGNATURE MATCH: 586 words identical to Spike
+  I-fence-01: # post: SIGNATURE MATCH: 3 words identical to Spike
+  I-jal-01: # post: SIGNATURE MATCH: 34 words identical to Spike
+  I-jalr-01: # post: SIGNATURE MATCH: 35 words identical to Spike
+  I-lb-align-01: # post: SIGNATURE MATCH: 35 words identical to Spike
+  I-lbu-align-01: # post: SIGNATURE MATCH: 34 words identical to Spike
+  I-lh-align-01: # post: SIGNATURE MATCH: 34 words identical to Spike
+  I-lhu-align-01: # post: SIGNATURE MATCH: 34 words identical to Spike
+  I-lui-01: # post: SIGNATURE MATCH: 65 words identical to Spike
+  I-lw-align-01: # post: SIGNATURE MATCH: 34 words identical to Spike
+  I-misalign1-jalr-01: # post: SIGNATURE MATCH: 3 words identical to Spike
+  I-or-01: # post: SIGNATURE MATCH: 589 words identical to Spike
+  I-ori-01: # post: SIGNATURE MATCH: 562 words identical to Spike
+  I-sb-align-01: # post: SIGNATURE MATCH: 72 words identical to Spike
+  I-sh-align-01: # post: SIGNATURE MATCH: 73 words identical to Spike
+  I-sll-01: # post: SIGNATURE MATCH: 91 words identical to Spike
+  I-slli-01: # post: SIGNATURE MATCH: 90 words identical to Spike
+  I-slt-01: # post: SIGNATURE MATCH: 586 words identical to Spike
+  I-slti-01: # post: SIGNATURE MATCH: 562 words identical to Spike
+  I-sltiu-01: # post: SIGNATURE MATCH: 701 words identical to Spike
+  I-sltu-01: # post: SIGNATURE MATCH: 724 words identical to Spike
+  I-sra-01: # post: SIGNATURE MATCH: 92 words identical to Spike
+  I-srai-01: # post: SIGNATURE MATCH: 89 words identical to Spike
+  I-srl-01: # post: SIGNATURE MATCH: 94 words identical to Spike
+  I-srli-01: # post: SIGNATURE MATCH: 92 words identical to Spike
+  I-sub-01: # post: SIGNATURE MATCH: 594 words identical to Spike
+  I-sw-align-01: # post: SIGNATURE MATCH: 70 words identical to Spike
+  I-xor-01: # post: SIGNATURE MATCH: 590 words identical to Spike
+  I-xori-01: # post: SIGNATURE MATCH: 568 words identical to Spike
+  M-mul-01: # post: SIGNATURE MATCH: 616 words identical to Spike
+  M-mulh-01: # post: SIGNATURE MATCH: 616 words identical to Spike
+  M-mulhsu-01: # post: SIGNATURE MATCH: 680 words identical to Spike
+  M-mulhu-01: # post: SIGNATURE MATCH: 754 words identical to Spike
+  privilege-ebreak: # post: SIGNATURE MATCH: 8 words; 7 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+  privilege-ecall: # post: SIGNATURE MATCH: 8 words; 7 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+  privilege-misalign2-jalr-01: # post: SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+  privilege-misalign-beq-01: # post: SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+  privilege-misalign-bge-01: # post: SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+  privilege-misalign-bgeu-01: # post: SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+  privilege-misalign-blt-01: # post: SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+  privilege-misalign-bltu-01: # post: SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+  privilege-misalign-bne-01: # post: SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+  privilege-misalign-jal-01: # post: SIGNATURE MATCH: 69 words; 65 identical to Spike, 4 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3, w7 00000893/000008d3, w11 00000893/000008d3, w15 00000893/000008d3
+  privilege-misalign-lh-01: # post: SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+  privilege-misalign-lhu-01: # post: SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+  privilege-misalign-lw-01: # post: SIGNATURE MATCH: 71 words; 68 identical to Spike, 3 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w5 00000893/000008d3, w9 00000893/000008d3, w13 00000893/000008d3
+  privilege-misalign-sh-01: # post: SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+  privilege-misalign-sw-01: # post: SIGNATURE MATCH: 71 words; 68 identical to Spike, 3 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w5 00000893/000008d3, w9 00000893/000008d3, w13 00000893/000008d3
+  Zifencei-Fencei: # post: SIGNATURE MATCH: 6 words identical to Spike
+
+ARCH-DEV-1: see tools/archtest/sigcheck.py docstring (GARUDA mtvec MODE hardwired 3, CLIC).
+T-18 (misaligned JAL mtval) found by privilege-misalign-jal-01, fixed: logs/core/evidence/T-18_before.txt, T-18_after.txt

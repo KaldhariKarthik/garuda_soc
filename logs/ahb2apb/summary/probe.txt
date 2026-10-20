@@ -1,0 +1,10 @@
+garuda-run 1  suite probe  block ahb2apb  2026-10-15T21:51:03+05:30
+design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    UNEXPECTED              probe_alias    66 [FAIL] line(s); 66 assertion failure(s) | first: [55000] %Error: clk_div_sva.sv:83: Assertion failed in tb_apb_probe.u_clk.u_clk_div_sva.a_pclk_pha
+FAIL    UNEXPECTED              probe_control  58 [FAIL] line(s); 58 assertion failure(s) | first: [55000] %Error: clk_div_sva.sv:83: Assertion failed in tb_apb_probe.u_clk.u_clk_div_sva.a_pclk_pha
+
+PASS    0
+FAIL    2
+BLOCKED 0
+total   2

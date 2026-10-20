@@ -1,0 +1,98 @@
+# DSU sub-unit benches written from the specification (Track A wrap-up 2026-10-12).
+# For the six sub-units whose ported dsu-verification benches disagree with the
+# current RTL (TB-43, kept as XFAIL in units.toml), each bench here checks the
+# behaviour the specification and the recorded decisions define, with a reference
+# written from them (not from the RTL). Ruling-dependent points are named in each
+# bench and counted, not asserted.
+# Run: make -f flow/mk/track_a_run.mk dsu_units_spec
+[suite]
+block = "dsu"
+name  = "units_spec"
+kind  = "sim"
+xfail = "tb/dsu/run/xfail.tsv"
+
+[defaults]
+marker  = '^RESULT: PASSED'
+timeout = 600
+cwd     = "root"
+
+[[test]]
+name  = "tb_dsu_overflow_flag_spec"
+flist = "tb/dsu/units_spec/tb_dsu_overflow_flag_spec.f"
+top   = "tb_dsu_overflow_flag_spec"
+
+[[test]]
+name  = "tb_dsu_barrel_shifter_spec"
+flist = "tb/dsu/units_spec/tb_dsu_barrel_shifter_spec.f"
+top   = "tb_dsu_barrel_shifter_spec"
+
+[[test]]
+name  = "tb_dsu_decoder_spec"
+flist = "tb/dsu/units_spec/tb_dsu_decoder_spec.f"
+top   = "tb_dsu_decoder_spec"
+
+[[test]]
+name  = "tb_dsu_stall_spec"
+flist = "tb/dsu/units_spec/tb_dsu_stall_spec.f"
+top   = "tb_dsu_stall_spec"
+
+[[test]]
+name  = "tb_dsu_mac_unit_spec"
+flist = "tb/dsu/units_spec/tb_dsu_mac_unit_spec.f"
+top   = "tb_dsu_mac_unit_spec"
+
+[[test]]
+name  = "tb_dsu_mac_cluster_spec"
+flist = "tb/dsu/units_spec/tb_dsu_mac_cluster_spec.f"
+top   = "tb_dsu_mac_cluster_spec"
+
+# DSU-18 reproducer (open, P3): an overflowing accumulate followed at once by MACCLEAR /
+# MACLOAD of the same accumulator loses its overflow; cases 2 and 3 fail
+[[test]]
+name  = "tb_dsu_top_ovf_b2b"
+flist = "tb/dsu/units_spec/tb_dsu_top_ovf_b2b.f"
+top   = "tb_dsu_top_ovf_b2b"
+fail_reason = '^\[FAIL\] case 2 .*overflow flag 0'
+
+# negative controls: each spec bench must catch a planted defect in its unit (XFAIL PLANTED)
+[[test]]
+name    = "negctl_overflow_flag_clear_wins"
+flist   = "tb/dsu/units_spec/tb_dsu_overflow_flag_spec.f"
+top     = "tb_dsu_overflow_flag_spec"
+replace = { "rtl/dsu/overflow_flag.v" = "tb/dsu/mut/overflow_flag_mut_ovf_clear_drops_set.v" }
+fail_reason = '^\[FAIL\] set\+clear same cycle'
+
+[[test]]
+name    = "negctl_barrel_shifter_logical"
+flist   = "tb/dsu/units_spec/tb_dsu_barrel_shifter_spec.f"
+top     = "tb_dsu_barrel_shifter_spec"
+replace = { "rtl/dsu/barrel_shifter.v" = "tb/dsu/mut/barrel_shifter_mut_shift_logical.v" }
+fail_reason = '^\[FAIL\] acc=.* dir=0 '
+
+[[test]]
+name    = "negctl_decoder_sel3_legal"
+flist   = "tb/dsu/units_spec/tb_dsu_decoder_spec.f"
+top     = "tb_dsu_decoder_spec"
+replace = { "rtl/dsu/dsu_decoder.v" = "tb/dsu/mut/dsu_decoder_mut_sel3_legal.v" }
+fail_reason = '^\[FAIL\] instr=.*: illegal'
+
+[[test]]
+name    = "negctl_stall_no_interlock"
+flist   = "tb/dsu/units_spec/tb_dsu_stall_spec.f"
+top     = "tb_dsu_stall_spec"
+replace = { "rtl/dsu/dsu_stall.v" = "tb/dsu/mut/dsu_stall_mut_no_interlock.v" }
+fail_reason = '^\[FAIL\] read of acc.* after an accumulate: held 0'
+
+[[test]]
+name    = "negctl_mac_unit_no_fold"
+flist   = "tb/dsu/units_spec/tb_dsu_mac_unit_spec.f"
+top     = "tb_dsu_mac_unit_spec"
+replace = { "rtl/dsu/mac_unit.v" = "tb/dsu/mut/mac_unit_mut_no_fold.v" }
+fail_reason = '^\[FAIL\] burst .*: mac_out='
+
+[[test]]
+name    = "negctl_mac_cluster_no_fold"
+flist   = "tb/dsu/units_spec/tb_dsu_mac_cluster_spec.f"
+top     = "tb_dsu_mac_cluster_spec"
+replace = { "rtl/dsu/mac_unit.v" = "tb/dsu/mut/mac_unit_mut_no_fold.v" }
+fail_reason = '^\[FAIL\] burst .*: acc '

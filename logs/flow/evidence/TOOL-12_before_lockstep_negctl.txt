@@ -1,0 +1,17 @@
+lockstep negative controls  2026-10-11T02:49:46+05:30
+reference: logs/core/raw/isa/add.commit.log
+
+N0  OK          rc=0   want=MATCH  untouched evidence
+      MATCH: 427 instructions identical; 0 stores, 0 traps, 0 CSR instructions (0 with a value) identical
+N2  CAUGHT      rc=1   want=fail   flipped wdata bit (line 23)
+      DIVERGE at instruction 22 of 427
+N3  CAUGHT      rc=1   want=fail   RTL log cut to half
+      MISMATCH: RTL log ends 215 instructions early (last common pc=100002bc) - core stopped retiring
+N4  CAUGHT      rc=1   want=fail   Spike log cut after 213 of 427 RTL commits
+      MISMATCH: Spike's log ends 214 instructions before the RTL's (last common pc=100002bc) - 214 RTL instructions not compared
+N5  NOT CAUGHT  rc=0   want=fail   Spike exits 1 after a full log (TOOL-12)
+      MATCH: 427 instructions identical; 0 stores, 0 traps, 0 CSR instructions (0 with a value) identical
+N1  -           rc=-   want=fail   add->sub at word 3: judged by negctl_prog suite
+      prepared
+
+verdict: FAIL

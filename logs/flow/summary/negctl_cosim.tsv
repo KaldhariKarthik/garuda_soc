@@ -1,0 +1,8 @@
+# garuda-run 1 suite=negctl_cosim block=flow date=2026-10-15T22:11:25+05:30 design=167aa935078d4e9cecaa35e5186328b55cfc2ca6 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+N_rd	FAIL	XFAIL:PLANTED	1	yes	1	1	1	n/a	128	0	-	1	0.02	20			exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike	logs/flow/raw/negctl_cosim/sim_N_rd_s1.log
+N_store	FAIL	XFAIL:PLANTED	1	yes	1	1	1	n/a	128	0	-	1	0.02	20			exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike	logs/flow/raw/negctl_cosim/sim_N_store_s1.log
+N_pc	FAIL	XFAIL:PLANTED	1	yes	1	1	1	n/a	128	0	-	1	0.02	20			exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike	logs/flow/raw/negctl_cosim/sim_N_pc_s1.log
+N_trap	FAIL	XFAIL:PLANTED	1	yes	1	1	1	n/a	128	0	-	1	0.02	21			exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike	logs/flow/raw/negctl_cosim/sim_N_trap_s1.log
+N_irq_drop	FAIL	XFAIL:PLANTED	1	yes	1	1	1	n/a	128	0	-	1	0.02	21			exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike	logs/flow/raw/negctl_cosim/sim_N_irq_drop_s1.log
+N_irq_extra	FAIL	XFAIL:PLANTED	1	yes	1	1	1	n/a	128	0	-	1	0.02	21			exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike	logs/flow/raw/negctl_cosim/sim_N_irq_extra_s1.log

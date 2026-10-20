@@ -1,0 +1,169 @@
+vPlan trace: tb/dma/GARUDA_DMA_vplan.csv (tools/run/vplan_trace.py dma)
+totals: CHK mapped 54, COV mapped 24, TC mapped 4
+
+DMA.F01.CHK1     CHK  ral_access CR
+                      register tests from the RDL-generated package (tb/dma/tb_dma_regs.sv) [tb_dma_regs: OK (regs.tsv), negctl_size_reset: XFAIL:PLANTED (regs.tsv)]
+DMA.F01.COV2     COV  cg_dma_cr.x_fields -> cg_dma_cr.x_mode_size, cg_dma_cr.x_inc
+                      cg_dma_cr (dma_cov.sv)                            73/73     100.0%   waived 0 | cg_dma_cr (dma_cov.sv)                            73/73     100.0%   waived 0
+DMA.F02.CHK1     CHK  a_mode3_rejected
+                      assert a_mode3_rejected: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F03.CHK1     CHK  a_hsize_legal
+                      assert a_hsize_legal: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F03.COV2     COV  cg_dma_cr.cp_size3 -> cg_dma_cr3.x_s
+                      cg_dma_cr3 (dma_cov.sv)                            8/8      100.0%   waived 0
+DMA.F04.CHK1     CHK  sb_addr
+                      reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv) [env_smoke: OK (env.tsv), env_qual: OK (env.tsv), env_matrix: OK (env.tsv), env_edge: OK (env.tsv), env_coll: OK (env.tsv), env_rand: OK (env.tsv), negctl_sb_wdata: XFAIL:PLANTED (env.tsv), negctl_sb_drop: XFAIL:PLANTED (env.tsv), negctl_sb_stat: XFAIL:PLANTED (env.tsv), negctl_beatchk_lane0: XFAIL:PLANTED (env.tsv)]
+DMA.F05.CHK1     CHK  ral_access CNT
+                      register tests from the RDL-generated package (tb/dma/tb_dma_regs.sv) [tb_dma_regs: OK (regs.tsv), negctl_size_reset: XFAIL:PLANTED (regs.tsv)]
+DMA.F05.COV2     COV  cg_dma_cnt.cp_cnt
+                      cg_dma_cnt (dma_cov.sv)                            7/7      100.0%   waived 0
+DMA.F06.CHK1     CHK  a_remaining_complete_consistent
+                      assert a_remaining_complete_consistent: sim bound; formal: dma11_find FAIL XFAIL:DMA-11
+DMA.F06.CHK2     CHK  a_active_implies_remaining -> a_active_def
+                      assert a_active_def: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F06.CHK3     CHK  sb_stat
+                      reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv) [env_smoke: OK (env.tsv), env_qual: OK (env.tsv), env_matrix: OK (env.tsv), env_edge: OK (env.tsv), env_coll: OK (env.tsv), env_rand: OK (env.tsv), negctl_sb_wdata: XFAIL:PLANTED (env.tsv), negctl_sb_drop: XFAIL:PLANTED (env.tsv), negctl_sb_stat: XFAIL:PLANTED (env.tsv), negctl_beatchk_lane0: XFAIL:PLANTED (env.tsv)]
+DMA.F07.CHK1     CHK  a_set_beats_clear -> a_set_beats_clear_complete, a_set_beats_clear_error
+                      assert a_set_beats_clear_complete: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK | assert a_set_beats_clear_error: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F07.COV2     COV  cg_dma_iclr.x_bit_when -> cg_dma_iclr.x_bw
+                      cg_dma_iclr (dma_cov.sv)                          11/11     100.0%   waived 0
+DMA.F08.CHK1     CHK  sb_gstat
+                      reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv) [env_smoke: OK (env.tsv), env_qual: OK (env.tsv), env_matrix: OK (env.tsv), env_edge: OK (env.tsv), env_coll: OK (env.tsv), env_rand: OK (env.tsv), negctl_sb_wdata: XFAIL:PLANTED (env.tsv), negctl_sb_drop: XFAIL:PLANTED (env.tsv), negctl_sb_stat: XFAIL:PLANTED (env.tsv), negctl_beatchk_lane0: XFAIL:PLANTED (env.tsv)]
+DMA.F09.CHK1     CHK  sb_pslverr
+                      reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv) [env_smoke: OK (env.tsv), env_qual: OK (env.tsv), env_matrix: OK (env.tsv), env_edge: OK (env.tsv), env_coll: OK (env.tsv), env_rand: OK (env.tsv), negctl_sb_wdata: XFAIL:PLANTED (env.tsv), negctl_sb_drop: XFAIL:PLANTED (env.tsv), negctl_sb_stat: XFAIL:PLANTED (env.tsv), negctl_beatchk_lane0: XFAIL:PLANTED (env.tsv)]
+DMA.F09.COV2     COV  cg_dma_apb.x_unmapped_rw -> cg_dma_apb.x_rw
+                      cg_dma_apb (dma_cov.sv)                           26/26     100.0%   waived 0
+DMA.F09.CHK3     CHK  a_pslverr_rule
+                      assert a_pslverr_rule: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK; pclk_prove PROVEN OK
+DMA.F10.CHK1     CHK  a_no_cdc_latency -> a_strobe_first_cycle
+                      assert a_strobe_first_cycle: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F10.CHK2     CHK  a_one_strobe_per_write -> a_strobe_once
+                      assert a_strobe_once: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F10.CHK3     CHK  a_pready
+                      assert a_pready: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK; pclk_prove PROVEN OK
+DMA.F11.CHK1     CHK  ral_aliasing
+                      register tests from the RDL-generated package (tb/dma/tb_dma_regs.sv) [tb_dma_regs: OK (regs.tsv), negctl_size_reset: XFAIL:PLANTED (regs.tsv)]
+DMA.F11.CHK2     CHK  a_reset_disabled -> a_reset_state
+                      assert a_reset_state: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F12.COV1     COV  cg_dma_live.cp_write_while_active -> cg_dma_live.cp_kind
+                      cg_dma_live (dma_cov.sv)                           7/7      100.0%   waived 0
+DMA.F13.CHK1     CHK  sb_data
+                      reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv) [env_smoke: OK (env.tsv), env_qual: OK (env.tsv), env_matrix: OK (env.tsv), env_edge: OK (env.tsv), env_coll: OK (env.tsv), env_rand: OK (env.tsv), negctl_sb_wdata: XFAIL:PLANTED (env.tsv), negctl_sb_drop: XFAIL:PLANTED (env.tsv), negctl_sb_stat: XFAIL:PLANTED (env.tsv), negctl_beatchk_lane0: XFAIL:PLANTED (env.tsv)]
+DMA.F14.CHK1     CHK  sb_data
+                      reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv) [env_smoke: OK (env.tsv), env_qual: OK (env.tsv), env_matrix: OK (env.tsv), env_edge: OK (env.tsv), env_coll: OK (env.tsv), env_rand: OK (env.tsv), negctl_sb_wdata: XFAIL:PLANTED (env.tsv), negctl_sb_drop: XFAIL:PLANTED (env.tsv), negctl_sb_stat: XFAIL:PLANTED (env.tsv), negctl_beatchk_lane0: XFAIL:PLANTED (env.tsv)]
+DMA.F15.CHK1     CHK  sb_data
+                      reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv) [env_smoke: OK (env.tsv), env_qual: OK (env.tsv), env_matrix: OK (env.tsv), env_edge: OK (env.tsv), env_coll: OK (env.tsv), env_rand: OK (env.tsv), negctl_sb_wdata: XFAIL:PLANTED (env.tsv), negctl_sb_drop: XFAIL:PLANTED (env.tsv), negctl_sb_stat: XFAIL:PLANTED (env.tsv), negctl_beatchk_lane0: XFAIL:PLANTED (env.tsv)]
+DMA.F15.COV2     COV  cg_dma_xfer.x_mode_size_ch
+                      cg_dma_xfer (dma_cov.sv)                          74/74     100.0%   waived 0
+DMA.F16.CHK1     CHK  a_single_only
+                      assert a_single_only: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F16.CHK2     CHK  ahb_checker
+                      tb/ahb/ahb_lite_checker.v on M3, in the block bench and the environment [tb_dma_top: OK (block.tsv), env_smoke: OK (env.tsv), env_rand: OK (env.tsv)]
+DMA.F17.COV1     COV  cg_dma_xfer.x_size_offset -> cg_dma_lanes.x_byte_dir, cg_dma_lanes.x_half_dir
+                      cg_dma_lanes (dma_cov.sv)                         20/20     100.0%   waived 0 | cg_dma_lanes (dma_cov.sv)                         20/20     100.0%   waived 0
+DMA.F17.CHK2     CHK  sb_data
+                      reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv) [env_smoke: OK (env.tsv), env_qual: OK (env.tsv), env_matrix: OK (env.tsv), env_edge: OK (env.tsv), env_coll: OK (env.tsv), env_rand: OK (env.tsv), negctl_sb_wdata: XFAIL:PLANTED (env.tsv), negctl_sb_drop: XFAIL:PLANTED (env.tsv), negctl_sb_stat: XFAIL:PLANTED (env.tsv), negctl_beatchk_lane0: XFAIL:PLANTED (env.tsv)]
+DMA.F17.CHK3     CHK  a_haddr_aligned
+                      assert a_haddr_aligned: sim bound; formal: dma13_find FAIL XFAIL:DMA-13
+DMA.F18.CHK1     CHK  sb_beats
+                      reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv) [env_smoke: OK (env.tsv), env_qual: OK (env.tsv), env_matrix: OK (env.tsv), env_edge: OK (env.tsv), env_coll: OK (env.tsv), env_rand: OK (env.tsv), negctl_sb_wdata: XFAIL:PLANTED (env.tsv), negctl_sb_drop: XFAIL:PLANTED (env.tsv), negctl_sb_stat: XFAIL:PLANTED (env.tsv), negctl_beatchk_lane0: XFAIL:PLANTED (env.tsv)]
+DMA.F19.CHK1     CHK  a_remaining_complete_consistent
+                      assert a_remaining_complete_consistent: sim bound; formal: dma11_find FAIL XFAIL:DMA-11
+DMA.F20.COV1     COV  cg_dma_live.cp_stop_phase -> cg_dma_coll.x_ks
+                      cg_dma_coll (dma_cov.sv)                          34/34     100.0%   waived 0
+DMA.F20.CHK2     CHK  sb_data
+                      reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv) [env_smoke: OK (env.tsv), env_qual: OK (env.tsv), env_matrix: OK (env.tsv), env_edge: OK (env.tsv), env_coll: OK (env.tsv), env_rand: OK (env.tsv), negctl_sb_wdata: XFAIL:PLANTED (env.tsv), negctl_sb_drop: XFAIL:PLANTED (env.tsv), negctl_sb_stat: XFAIL:PLANTED (env.tsv), negctl_beatchk_lane0: XFAIL:PLANTED (env.tsv)]
+DMA.F21.CHK1     CHK  a_one_beat_per_req
+                      assert a_one_beat_per_req: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F21.COV2     COV  cg_dma_req.cp_req_width
+                      cg_dma_req (dma_cov.sv)                           12/12     100.0%   waived 0
+DMA.F22.CHK1     CHK  a_ack_width
+                      assert a_ack_width: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F23.COV1     COV  cg_dma_req.cp_withdrawn
+                      cg_dma_req (dma_cov.sv)                           12/12     100.0%   waived 0
+DMA.F23.CHK2     CHK  sb_beats
+                      reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv) [env_smoke: OK (env.tsv), env_qual: OK (env.tsv), env_matrix: OK (env.tsv), env_edge: OK (env.tsv), env_coll: OK (env.tsv), env_rand: OK (env.tsv), negctl_sb_wdata: XFAIL:PLANTED (env.tsv), negctl_sb_drop: XFAIL:PLANTED (env.tsv), negctl_sb_stat: XFAIL:PLANTED (env.tsv), negctl_beatchk_lane0: XFAIL:PLANTED (env.tsv)]
+DMA.F24.CHK1     CHK  sb_beats
+                      reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv) [env_smoke: OK (env.tsv), env_qual: OK (env.tsv), env_matrix: OK (env.tsv), env_edge: OK (env.tsv), env_coll: OK (env.tsv), env_rand: OK (env.tsv), negctl_sb_wdata: XFAIL:PLANTED (env.tsv), negctl_sb_drop: XFAIL:PLANTED (env.tsv), negctl_sb_stat: XFAIL:PLANTED (env.tsv), negctl_beatchk_lane0: XFAIL:PLANTED (env.tsv)]
+DMA.F25.COV1     COV  cg_dma_req.cp_req_vs_en
+                      cg_dma_req (dma_cov.sv)                           12/12     100.0%   waived 0
+DMA.F26.CHK1     CHK  a_priority
+                      assert a_priority: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F26.COV2     COV  cg_dma_arb.cp_pair -> cg_dma_arb.x_nw
+                      cg_dma_arb (dma_cov.sv)                           24/24     100.0%   waived 3
+DMA.F27.CHK1     CHK  a_beat_atomic
+                      assert a_beat_atomic: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F27.CHK2     CHK  a_one_channel -> a_one_result, a_takes_grant
+                      assert a_one_result: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK | assert a_takes_grant: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F28.COV1     COV  cg_dma_arb.cp_starved_cycles -> cg_dma_starve.x_ch_starved
+                      cg_dma_starve (dma_cov.sv)                        34/34     100.0%   waived 0
+DMA.F29.CHK1     CHK  a_errphase -> a_errphase_read, a_errphase_write
+                      assert a_errphase_read: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK | assert a_errphase_write: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F29.CHK2     CHK  a_freeze_on_error
+                      assert a_freeze_on_error: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F29.COV3     COV  cg_dma_err.x_phase_mode_beat -> cg_dma_err.x_ph_mode, cg_dma_err.x_ph_pos
+                      cg_dma_err (dma_cov.sv)                           38/38     100.0%   waived 0 | cg_dma_err (dma_cov.sv)                           38/38     100.0%   waived 0
+DMA.F30.CHK1     CHK  a_error_isolated
+                      assert a_error_isolated: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F30.COV2     COV  cg_dma_err.cp_error_ch -> cg_dma_err.x_ph_ch
+                      cg_dma_err (dma_cov.sv)                           38/38     100.0%   waived 0
+DMA.F31.CHK1     CHK  a_no_retry -> a_no_write_after_read_error, a_freeze_on_error
+                      assert a_no_write_after_read_error: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK | assert a_freeze_on_error: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F32.CHK1     CHK  a_no_isram
+                      assert a_no_isram: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F33.CHK1     CHK  a_irq_level
+                      assert a_irq_level: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F33.COV2     COV  cg_dma_irq.x_ch_kind_ie -> cg_dma_irq.x_all
+                      cg_dma_irq (dma_cov.sv)                           34/34     100.0%   waived 0
+DMA.F34.CHK1     CHK  a_hw_wins_en
+                      assert a_hw_wins_en: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F34.CHK2     CHK  a_sw_write_lands
+                      assert a_sw_write_lands: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F35.COV1     COV  cg_dma_coll.cp_bit -> cg_dma_coll.x_ks
+                      cg_dma_coll (dma_cov.sv)                          34/34     100.0%   waived 0
+DMA.F36.CHK1     CHK  conn_dma_req
+                      connectivity: Karthik's task 7.2 (formal, out of Track A); exercised end to end by the chip programs [t_chip_dma_traffic: OK (chip.tsv), t_chip_dma_uart: OK (chip.tsv)]
+DMA.F37.CHK1     CHK  conn_irq_map
+                      connectivity: Karthik's task 7.2 (formal, out of Track A); exercised end to end by the chip programs [t_chip_dma_traffic: OK (chip.tsv), t_chip_dma_uart: OK (chip.tsv)]
+DMA.F38.TC1      TC   t_chip_dma_traffic
+                      test t_chip_dma_traffic: OK (chip.tsv)
+DMA.F39.TC1      TC   t_chip_uart -> t_chip_dma_uart
+                      test t_chip_dma_uart: OK (chip.tsv)
+DMA.F40.CHK1     CHK  hal_cdc
+                      static CDC check: Karthik's flow/2_static (HAL), waived boundary
+DMA.F41.CHK1     CHK  review
+                      review item: F41 waits for ruling D5 ([N-9.3]), F49 for the DMA-12 fix (D6)
+DMA.F42.CHK1     CHK  sb_restart -> probe_dma9
+                      test probe_dma9: XFAIL:DMA-9 (probe.tsv)
+DMA.F42.COV2     COV  cg_dma_live.cp_restart -> c_restart_after_stop
+                      cover c_restart_after_stop: sim bound; formal: dma_cover COVERED
+DMA.F43.CHK1     CHK  a_no_read_before_refusal
+                      assert a_no_read_before_refusal: sim bound; formal: dma10_find FAIL XFAIL:DMA-10
+DMA.F43.COV2     COV  cg_dma_err.x_r9_side_mode -> cg_dma_r9.x_r9_side_mode
+                      cg_dma_r9 (dma_cov.sv)                            11/11     100.0%   waived 0
+DMA.F44.CHK1     CHK  a_remaining_complete_consistent
+                      assert a_remaining_complete_consistent: sim bound; formal: dma11_find FAIL XFAIL:DMA-11
+DMA.F44.COV2     COV  cg_dma_live.cp_rearm_in_flight -> c_rearm_in_flight
+                      cover c_rearm_in_flight: sim bound; formal: dma_cover COVERED
+DMA.F44.TC3      TC   t_chip_dma_rearm
+                      test t_chip_dma_rearm: XFAIL:DMA-11 (chip.tsv)
+DMA.F45.COV1     COV  cg_dma_live.cp_cr_while_active -> cg_dma_live.cp_kind
+                      cg_dma_live (dma_cov.sv)                           7/7      100.0%   waived 0
+DMA.F46.CHK1     CHK  sb_addr
+                      reference model + scoreboard (tb/dma/env/dma_env_pkg.sv dma_model) and the pin-level beat checker (tb/dma/env/dma_beat_check.sv) [env_smoke: OK (env.tsv), env_qual: OK (env.tsv), env_matrix: OK (env.tsv), env_edge: OK (env.tsv), env_coll: OK (env.tsv), env_rand: OK (env.tsv), negctl_sb_wdata: XFAIL:PLANTED (env.tsv), negctl_sb_drop: XFAIL:PLANTED (env.tsv), negctl_sb_stat: XFAIL:PLANTED (env.tsv), negctl_beatchk_lane0: XFAIL:PLANTED (env.tsv)]
+DMA.F47.CHK1     CHK  a_reset_disabled -> a_reset_state
+                      assert a_reset_state: sim bound; formal: dma_bmc BOUNDED(32) OK; dma_prove PROVEN OK
+DMA.F47.COV2     COV  cg_dma_reset.x_phase_wait -> cg_dma_reset.x_phase_other
+                      cg_dma_reset (dma_cov.sv)                         17/17     100.0%   waived 0
+DMA.F48.CHK1     CHK  ahb_checker
+                      tb/ahb/ahb_lite_checker.v on M3, in the block bench and the environment [tb_dma_top: OK (block.tsv), env_smoke: OK (env.tsv), env_rand: OK (env.tsv)]
+DMA.F48.COV2     COV  cg_dma_err.x_phase_wait -> cg_dma_wait.x_dw, cg_dma_err.x_ph_mode
+                      cg_dma_wait (dma_cov.sv)                          12/12     100.0%   waived 0 | cg_dma_err (dma_cov.sv)                           38/38     100.0%   waived 0
+DMA.F49.CHK1     CHK  review
+                      review item: F41 waits for ruling D5 ([N-9.3]), F49 for the DMA-12 fix (D6)
+DMA.F50.CHK1     CHK  dma_req_checker
+                      tb/common/dma_req_checker.sv x6 in the environment; negative control: a held request [env_req: OK (env.tsv), negctl_held_request: XFAIL:PLANTED (env.tsv)]
+DMA.F51.TC1      TC   t_chip_dma_subword
+                      test t_chip_dma_subword: OK (chip.tsv)
+
+UNMAPPED (0): need an alias, an implementation or a decision

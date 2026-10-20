@@ -78,3 +78,24 @@ hal.design_facts
 
 # settings of one machine (licence server address)
 scripts/local_env.sh
+
+# ---- Track A open-tool flow (Docs/handbook/H2_running.md, "Log convention") ----
+# Per-run logs, builds, waves and coverage databases stay local; summaries,
+# history and cited evidence are committed. *.log is ignored above, so the
+# committed evidence logs are re-included explicitly.
+logs/**/raw/
+!logs/**/evidence/*.log
+.garuda_bin/
+obj_dir/
+*.vvp
+
+# NCLaunch state written in the design directory (flow/cov/<blk>_ncl*.tcl runs)
+
+# Cadence tool state written into the repo root by NCLaunch / JasperGold runs
+/hdl.var
+/nclaunch.key
+/.nclaunch.dd*
+/jgproject/
+# runner summaries of partial (--only) runs; the full-suite summaries are the record
+logs/*/summary/*.partial.tsv
+logs/*/summary/*.partial.txt

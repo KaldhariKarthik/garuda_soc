@@ -1,0 +1,22 @@
+C-16 -- BEFORE the fix (design b90b481d8f91, csr_file.v unchanged), 2026-10-11T08:51:54+05:30
+1) make -f flow/mk/track_a.mk core_csr_map (all 4096 addresses; RTL on tb_boot/Verilator vs Design_Docs/regs/core_csr.yaml vs Spike 609dbe0):
+   RTL against Design_Docs/regs/core_csr.yaml:
+     contract says it EXISTS, the RTL traps:
+     contract says it TRAPS, the RTL has it:
+       none
+     115 addresses must exist; RTL has 26; 89 mismatch(es)
+   
+   csr_map: GARUDA has 26 CSR addresses, Spike has 119, 21 in common
+   
+   On both:
+   
+   Only on GARUDA:
+   
+   Only on Spike:
+   
+   csr_map: RTL vs contract 89 mismatch(es); RTL vs Spike 89 unexplained difference(s) -> FAIL
+   (address list: logs/core/summary/csr_map_diff.txt at the time of this run)
+
+2) sw/riscv-tests/local/csr_readzero.S (p-csr_readzero, lockstep with Spike):
+   *** TOHOST=00000539 -> FAILED (test 668, 110 retired) ***
+   # verdict   : FAIL  pass marker missing | first: *** TOHOST=00000539 -> FAILED (test 668, 110 retired) ***

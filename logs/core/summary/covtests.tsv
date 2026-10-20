@@ -1,0 +1,18 @@
+# garuda-run 1 suite=covtests block=core date=2026-10-15T21:42:21+05:30 design=167aa935078d4e9cecaa35e5186328b55cfc2ca6 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+t_cov_fault	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.04	20				logs/core/raw/covtests/sim_t_cov_fault_s1.log
+t_cov_fault_w3	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.04	20				logs/core/raw/covtests/sim_t_cov_fault_w3_s1.log
+t_cov_csr	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_csr_s1.log
+t_cov_illegal	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_illegal_s1.log
+t_cov_dsu	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	3.15	20				logs/core/raw/covtests/sim_t_cov_dsu_s1.log
+t_dsu_ovf_raw	FAIL	XFAIL:DSU-14	1	no	0	1	1	n/a	128	0	-	1	1.07	20			exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=00000013 -> FAILED (test 9, 197100 retired) ***	logs/core/raw/covtests/sim_t_dsu_ovf_raw_s1.log
+t_cov_rereset	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_rereset_s1.log
+t_cov_rereset_w2	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_rereset_w2_s1.log
+t_cov_irq	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_irq_s1.log
+t_cov_irq_w2	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_irq_w2_s1.log
+t_cov_misfetch	PASS	OK	0	yes	0	0	0	MATCH	128	0	-	1	0.02	20	0.07			logs/core/raw/covtests/sim_t_cov_misfetch_s1.log
+t_cov_misfetch_w2	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_misfetch_w2_s1.log
+t_cov_misfetch_d3	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_misfetch_d3_s1.log
+t_dsu_macsat_rd	FAIL	XFAIL:DSU-15	1	no	0	1	1	n/a	128	0	-	1	0.02	20			exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000000f -> FAILED (test 7, 55 retired) ***	logs/core/raw/covtests/sim_t_dsu_macsat_rd_s1.log
+t_cov_vplan	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_vplan_s1.log
+t_cov_vplan_w2	PASS	OK	0	yes	0	0	0	n/a	128	0	-	1	0.02	20				logs/core/raw/covtests/sim_t_cov_vplan_w2_s1.log

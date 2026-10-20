@@ -1,0 +1,38 @@
+# APB-2 evidence, 2026-10-13. Bench tb/ahb2apb/tb_apb_probe.sv (real clk_div + ahb2apb_bridge, MASK 0x0FFF).
+# design b90b481 + Track A tree (rtl/ahb2apb unchanged). Verilator 5.052.
+
+## BEFORE: today's RTL (make -f flow/mk/track_a.mk apb_probe)
+# garuda-run 1 suite=probe block=ahb2apb date=2026-10-13T18:50:41+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+probe_alias	FAIL	XFAIL:APB-2	0	no	6	0	0	-	5	0	-	1	0.02	20			pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [APB-2] [R-8] above the aperture 0x40015000 write -> AHB ERROR (t=211000)	logs/ahb2apb/raw/probe/sim_probe_alias_s1.log
+probe_control	PASS	OK	0	yes	0	0	0	-	5	0	-	1	0.02	20				logs/ahb2apb/raw/probe/sim_probe_control_s1.log
+[FAIL] [APB-2] [R-8] above the aperture 0x40015000 write -> AHB ERROR (t=211000)
+[FAIL] [APB-2] [R-8] above the aperture 0x40015000 write -> no PSEL (window 5 count 1) (t=211000)
+[FAIL] [APB-2] [R-8] above the aperture 0x40015000  read -> AHB ERROR (t=299000)
+[FAIL] [APB-2] [R-8] above the aperture 0x40015000  read -> no PSEL (window 5 count 2) (t=299000)
+[FAIL] [APB-2] [R-8] top of region 4 0x4fff5000 write -> AHB ERROR (t=387000)
+[FAIL] [APB-2] [R-8] top of region 4 0x4fff5000 write -> no PSEL (window 5 count 3) (t=387000)
+CHECKS: 6  FAILS: 6
+RESULT: FAILED
+
+## AFTER: proposed one-line fix, applied to a scratch copy only (NOT in rtl/)
+103c103
+<     wire       win_ok  = WINDOW_MASK[win];
+---
+>     wire       win_ok  = WINDOW_MASK[win] && (haddr_i[27:16] == 12'h000);
+-- +CASE=alias
+[PASS] [APB-2] [R-8] above the aperture 0x40015000 write -> AHB ERROR
+[PASS] [APB-2] [R-8] above the aperture 0x40015000 write -> no PSEL (window 5 count 0)
+[PASS] [APB-2] [R-8] above the aperture 0x40015000  read -> AHB ERROR
+[PASS] [APB-2] [R-8] above the aperture 0x40015000  read -> no PSEL (window 5 count 0)
+[PASS] [APB-2] [R-8] top of region 4 0x4fff5000 write -> AHB ERROR
+[PASS] [APB-2] [R-8] top of region 4 0x4fff5000 write -> no PSEL (window 5 count 0)
+CHECKS: 6  FAILS: 0
+RESULT: PASSED
+-- +CASE=control
+[PASS] [control] 0x40005000 write -> OKAY
+[PASS] [control] exactly one PSEL[5] transfer
+[PASS] [control] [R-8] window 12 unmapped 0x4000c000 write -> AHB ERROR
+[PASS] [control] [R-8] window 12 unmapped 0x4000c000 write -> no PSEL (window 5 count 1)
+CHECKS: 4  FAILS: 0
+RESULT: PASSED

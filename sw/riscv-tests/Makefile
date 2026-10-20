@@ -5,10 +5,11 @@
 # same link, so RTL and golden model always execute an identical image.
 # =============================================================================
 
-RISCV_TESTS ?= /home/kkarthik/external/riscv-tests
-RISCV_BIN   ?= /home/vivado/2025.2/Vitis/gnu/riscv/linux_toolchain/lin64/bin
-CC          = $(RISCV_BIN)/riscv64-amd-linux-gnu-gcc
-OBJCOPY     = $(RISCV_BIN)/riscv64-amd-linux-gnu-objcopy
+include ../toolchain.mk
+# riscv-tests sources: the lab path, else the pinned Track A checkout
+RISCV_TESTS ?= $(firstword $(wildcard /home/kkarthik/external/riscv-tests \
+                                      $(GARUDA_TOOLS)/src/riscv-tests) \
+                           /home/kkarthik/external/riscv-tests)
 
 BUILD  = build
 
@@ -61,7 +62,7 @@ UI = $(notdir $(UI_SRCS:.S=))
 UM = $(notdir $(UM_SRCS:.S=))
 TESTS = $(UI) $(UM)
 
-CFLAGS = -march=rv32im_zifencei -mabi=ilp32 -mno-relax -fno-pic -nostdlib -nostartfiles \
+CFLAGS = -march=rv32im_zicsr_zifencei -mabi=ilp32 -mno-relax -fno-pic -nostdlib -nostartfiles \
          -Wa,--no-warn \
          -I env -I $(RISCV_TESTS)/isa/macros/scalar -I $(RISCV_TESTS)/env
 LDFLAGS = -T ../common/link.ld -no-pie -static -Wl,--no-warn-rwx-segments

@@ -1,0 +1,23 @@
+T-17 after the fix (trap_ctrl.v: e1 = idex_fault_i & idex_valid_i)
+date      : 2026-10-11T14:12:52+05:30
+design    : b90b481d8f91 + working tree (a/p0-infra)
+tool      : Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a; SBY via tools/run/garuda_fv.py
+
+== simulation: core/covtests (xfail rows removed) ==
+t_cov_fault	PASS	OK
+t_cov_fault_w3	PASS	OK
+t_cov_csr	PASS	OK
+t_cov_illegal	PASS	OK
+t_cov_dsu	PASS	OK
+t_cov_fault: 12 fetch faults (one per address pattern), each handler entered and resumed;
+every load/store fault checked (mcause, mtval) by the program; TOHOST=1.
+
+== formal: tb/core/formal/core_trap.toml (whole core, free bus/IRQ/instructions) ==
+trap_bmc	bmc	BOUNDED(20)	[25 asserts, 20 covers in model] 
+trap_prove	prove	PROVEN	[25 asserts, 20 covers in model] 
+trap_cover	cover	COVERED	[25 asserts, 20 covers in model] 
+t17_no_fix	bmc	FAIL	[25 asserts, 20 covers in model] props: u_trap.u_trap_sva.a_ex_exc_needs_instr
+
+a_ex_exc_needs_instr (rtl/core/trap_ctrl_sva.sv): an EX-point exception needs idex_valid.
+PROVEN unbounded on the fixed RTL; c_fetch_fault COVERED (non-vacuous); the pre-fix
+trap_ctrl (tb/core/formal/mutants/trap_ctrl_no_t17.v) FAILS exactly this property.

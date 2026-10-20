@@ -1,0 +1,22 @@
+DSU-14 before (no fix; ruling needed) -- 2026-10-11
+test: sw/tests/t_dsu_ovf_raw.S (tools/gen/gen_t_cov_dsu.py --ovf-raw), covtests row t_dsu_ovf_raw, xfail DSU-14
+
+  FAIL    XFAIL:DSU-14           t_dsu_ovf_raw                    exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=00000013 -> FAILED (
+
+program: 65535 x MACDOT MAG in a loop, then
+451:    .insn r 0x0b, 0, 14, zero, a1, a2      # MACDOT MAG: the overflowing one
+452-    csrr    t0, 0xBC0                   # dsu_ovf (read clears)
+453-    li      t6, 0x00000001
+454-    li      a0, 9
+455-    bne     t0, t6, fail
+456-    csrr    t0, 0xBC0                   # dsu_ovf (read clears)
+457-    li      t6, 0x00000000
+458-    li      a0, 9
+
+commit log (logs/core/raw/covtests/t_dsu_ovf_raw.commit.log), the csrr at 0x100007a0 wrote t0 = 0 (architectural 1):
+197097:10000798 00 00000000
+197099:1000079c 00 00000000
+197100:100007a0 05 00000000
+197101:100007a4 31 00000001
+197102:100007a8 10 00000009
+197103:100007ac 00 00000000

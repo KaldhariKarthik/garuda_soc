@@ -22,7 +22,8 @@
 //          lands and its bit is added to APB_WINDOW_MASK.
 //
 //   CLIC ID map (yaml clic.map, ADR-0009)
-//     0 sentinel (tied 0)  1-6 DMA complete  7-12 DMA error  13,14 reserved
+//     0 sentinel (tied 0)  1-6 DMA complete  7 reserved (mcause 7 = MTI)  8-13 DMA error
+//     14 SPI slave  (AUD-14: this line said 7-12 DMA error, 13,14 reserved; INT-2 moved them)
 //     15-21 peripheral IRQs (periph_irq_i[6:0])  22 watchdog warning
 //   mtip goes straight to the core, not through the CLIC (ADR-0010).
 //
@@ -118,12 +119,14 @@ module garuda_soc_top #(
     wire        mtip, wdt_warn;
     wire [47:0] acc0, acc1, acc2;  wire dsu_ovf;
     wire        dm_hartreset;
+    wire        dm_halt_req, core_halt_safe;     // RDC-1 halt drain (core <-> Debug Module)
 
     // =========================================================================
     // Block 1 (+2): core with DSU
     // =========================================================================
     garuda_core_top #(.RESET_VECTOR(RESET_VECTOR), .CLK_GATE(CORE_CLK_GATE)) u_core (
         .clk_i(hclk_i), .core_rst_n_i(core_rst_n_i), .hartreset_n_i(~dm_hartreset),
+        .halt_req_i(dm_halt_req), .halt_safe_o(core_halt_safe),
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize), .i_hburst_o(i_hburst),
         .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite), .i_hwdata_o(i_hwdata),
         .i_hrdata_i(i_hrdata), .i_hready_i(i_hready), .i_hresp_i(i_hresp),
@@ -143,6 +146,7 @@ module garuda_soc_top #(
         .por_n_i(por_n_i),
         .hclk_i(hclk_i), .dm_rst_n_i(dm_rst_n_i),
         .ndmreset_o(ndmreset_o), .hartreset_o(dm_hartreset),
+        .halt_req_o(dm_halt_req), .halt_safe_i(core_halt_safe),
         .dsu_acc0_i(acc0), .dsu_acc1_i(acc1), .dsu_acc2_i(acc2), .dsu_ovf_i(dsu_ovf),
         .haddr_o(s_haddr), .htrans_o(s_htrans), .hwrite_o(s_hwrite), .hsize_o(s_hsize),
         .hburst_o(s_hburst), .hwdata_o(s_hwdata), .hrdata_i(s_hrdata),

@@ -1,0 +1,9 @@
+# garuda-run 1 suite=smokes.cov block=core date=2026-10-13T07:49:30+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+S_ex_smoke	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.04	21		logs/core/raw/smokes.cov/cov/S_ex_smoke_s1.dat		logs/core/raw/smokes.cov/sim_S_ex_smoke_s1.log
+S_ex_smoke_dsu	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.12	21		logs/core/raw/smokes.cov/cov/S_ex_smoke_dsu_s1.dat		logs/core/raw/smokes.cov/sim_S_ex_smoke_dsu_s1.log
+S_idex_fwd	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.02	21		logs/core/raw/smokes.cov/cov/S_idex_fwd_s1.dat		logs/core/raw/smokes.cov/sim_S_idex_fwd_s1.log
+S_exmem_ifid	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.02	21		logs/core/raw/smokes.cov/cov/S_exmem_ifid_s1.dat		logs/core/raw/smokes.cov/sim_S_exmem_ifid_s1.log
+S_pipe_ctrl	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.02	21		logs/core/raw/smokes.cov/cov/S_pipe_ctrl_s1.dat		logs/core/raw/smokes.cov/sim_S_pipe_ctrl_s1.log
+S_csr_file	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.02	21		logs/core/raw/smokes.cov/cov/S_csr_file_s1.dat		logs/core/raw/smokes.cov/sim_S_csr_file_s1.log
+S_trap_ctrl	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.02	21		logs/core/raw/smokes.cov/cov/S_trap_ctrl_s1.dat		logs/core/raw/smokes.cov/sim_S_trap_ctrl_s1.log

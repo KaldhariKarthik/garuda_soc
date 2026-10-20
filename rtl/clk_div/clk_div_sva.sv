@@ -78,8 +78,16 @@ module clk_div_sva (
         raw_rst_n_i |=> (pclk_o != $past(pclk_o)))
         else $error("[SVA-FAIL] a_pclk_ratio");
     // ---- F12: pclk_phase is 1 exactly in the hclk cycle that ends with a pclk rise --
-    a_pclk_phase: assert property (@(posedge hclk_o) disable iff (!raw_rst_n_i)
-        raw_rst_n_i |=> (pclk_o == $past(pclk_phase_o)))
+    // Checked at the hclk FALLING edge (track A, 2026-10-15, for track B's OK): since SIM-1
+    // pclk changes by a blocking assignment on the hclk rise itself, and Verilator 5.052
+    // may evaluate a property clocked on that rise after the update (no preponed sampling
+    // of a value written in the same step): the former form
+    //     @(posedge hclk_o) raw_rst_n_i |=> (pclk_o == $past(pclk_phase_o))
+    // failed on every cycle in tb_apb_env, tb_apb_probe and tb_ahb2apb (not in tb_chip).
+    // Between edges pclk_phase is ~pclk (see clk_div.v), which is the same statement: the
+    // cycle with pclk low is the one that ends with a pclk rise. Nothing changes on a fall.
+    a_pclk_phase: assert property (@(negedge hclk_o) disable iff (!raw_rst_n_i)
+        pclk_phase_o == !pclk_o)
         else $error("[SVA-FAIL] a_pclk_phase");
     // ---- F14: a requested ratio is in effect within one full count of the dividers,
     //      and DIVBUSY is up until then ---------------------------------------------

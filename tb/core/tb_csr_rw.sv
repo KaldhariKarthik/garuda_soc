@@ -255,7 +255,9 @@ class csr_monitor;
         }
         cp_op: coverpoint vif.csr_op {
             bins rw = {`CSR_RW}; bins rs = {`CSR_RS}; bins rc = {`CSR_RC};
-            bins unused = {2'b00};
+            // 2'b00 is not a CSR op encoding (funct3[1:0] of a CSR instruction
+            // is never 00): not a coverage target
+            ignore_bins unused = {2'b00};
         }
         cp_imm: coverpoint vif.csr_imm;
         cp_en:  coverpoint vif.csr_en;

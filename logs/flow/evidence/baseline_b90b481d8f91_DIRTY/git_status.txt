@@ -1,0 +1,175 @@
+ M .gitignore
+ M Design_Docs/GARUDA-AHB-SPEC-001.docx
+ M Design_Docs/GARUDA-AHB-SPEC-001.md
+ M Design_Docs/GARUDA-AHB2APB-SPEC-001.docx
+ M Design_Docs/GARUDA-AHB2APB-SPEC-001.md
+ M Design_Docs/GARUDA-CORE-SPEC-001.docx
+ M Design_Docs/GARUDA-CORE-SPEC-001.md
+ M Design_Docs/GARUDA-DMA-SPEC-001.docx
+ M Design_Docs/GARUDA-DMA-SPEC-001.md
+ M Docs/BUGS.md
+ M Docs/CORE_ELEMENT_VERIFICATION.md
+ M rtl/core/branch_predict.v
+ M rtl/core/branch_unit.v
+ M rtl/core/clic_ctrl.v
+ M rtl/core/csr_file.v
+ M rtl/core/filelist_core.f
+ M rtl/core/filelist_core_dsu.f
+ M rtl/core/garuda_core_top.v
+ M rtl/core/garuda_if_stage_top.v
+ M rtl/core/garuda_iport_ahb_master.v
+ M rtl/core/id_stage.v
+ M rtl/core/pipe_ctrl_sva.sv
+ M rtl/core/trap_ctrl.v
+ M rtl/debug/debug_module.v
+ M rtl/debug/debug_top.v
+ M rtl/dma/dma_apb_slave.v
+ M rtl/dma/dma_top.v
+ M rtl/dma/filelist.f
+ M rtl/dsu/filelist.f
+ M rtl/soc/garuda_soc_top.v
+ M sw/Makefile
+ M sw/riscv-tests/Makefile
+ M sw/tests/t_hold_flush_matrix.S
+ M tb/ahb2apb/tb_ahb2apb.sv
+ M tb/core/filelist_branch_predict.f
+ M tb/core/filelist_decode_control.f
+ M tb/core/filelist_hazard_forward_unit.f
+ M tb/core/filelist_id_stage.f
+ M tb/core/filelist_imm_gen.f
+ M tb/core/filelist_reg_file.f
+ M tb/core/tb_branch_predict.sv
+ M tb/core/tb_clic_ctrl.sv
+ M tb/core/tb_csr_rw.sv
+ M tb/core/tb_d_port_ahb_master.sv
+ M tb/core/tb_decode_control.sv
+ M tb/core/tb_garuda_if_stage_top.sv
+ M tb/core/tb_garuda_iport_ahb_master.sv
+ M tb/core/tb_garuda_pc_gen.sv
+ M tb/core/tb_garuda_prefetch_buffer.sv
+ M tb/core/tb_hazard_forward_unit.sv
+ M tb/core/tb_id_stage.sv
+ M tb/core/tb_imm_gen.sv
+ M tb/core/tb_mem_wb_reg.sv
+ M tb/core/tb_reg_file.sv
+ M tb/cov/garuda_cov.sv
+ M tb/debug/tb_debug.sv
+ M tb/dma/GARUDA_DMA_vplan.csv
+ M tb/dma/filelist_dma_top.f
+ M tb/dma/tb_dma_top.sv
+ M tb/dsu/filelist_dsu_top.f
+ M tb/dsu/tb_dsu_top.sv
+ M tb/soc/filelist_boot.f
+ M tb/soc/filelist_boot_cov.f
+ D tb/soc/tb_boot.v
+ M tools/csr_map.py
+ M tools/gen/DSU_gen.py
+ M tools/lockstep.py
+?? Design_Docs/regs/core_csr.yaml
+?? Design_Docs/regs/dma.rdl
+?? Docs/bugs/
+?? Docs/handbook/
+?? flow/cov/dma_exclusions.tcl
+?? flow/mk/
+?? logs/
+?? rtl/core/core_ctl_sva.sv
+?? rtl/core/core_vplan_sva.sv
+?? rtl/core/csr_file_sva.sv
+?? rtl/core/garuda_rvfi.v
+?? rtl/core/trap_ctrl_sva.sv
+?? rtl/dma/dma_sva.sv
+?? rtl/dsu/dsu_sva.sv
+?? sw/chip/t_chip_dma_rearm.c
+?? sw/chip/t_chip_dma_subword.c
+?? sw/chip/t_chip_dma_traffic.c
+?? sw/chip/t_chip_dma_uart.c
+?? sw/riscv-tests/local/csr_readzero.S
+?? sw/tests/t_core_ctl.S
+?? sw/tests/t_core_ctl_arch.S
+?? sw/tests/t_core_irq_nest.S
+?? sw/tests/t_core_mret_buserr.S
+?? sw/tests/t_core_preempt.S
+?? sw/tests/t_core_wfi_buserr.S
+?? sw/tests/t_cov_csr.S
+?? sw/tests/t_cov_dsu.S
+?? sw/tests/t_cov_fault.S
+?? sw/tests/t_cov_illegal.S
+?? sw/tests/t_cov_irq.S
+?? sw/tests/t_cov_misfetch.S
+?? sw/tests/t_cov_rereset.S
+?? sw/tests/t_cov_vplan.S
+?? sw/tests/t_cov_wfi_mti.S
+?? sw/tests/t_dsu_gate.S
+?? sw/tests/t_dsu_macsat_rd.S
+?? sw/tests/t_dsu_ovf_raw.S
+?? sw/tests/t_exc_priority.S
+?? sw/tests/t_perf_mix.S
+?? sw/toolchain.mk
+?? tb/ahb/agent/
+?? tb/ahb/run/
+?? tb/ahb2apb/filelist_apb_probe.f
+?? tb/ahb2apb/run/
+?? tb/ahb2apb/tb_apb_probe.sv
+?? tb/common/filelist_map_pkg.f
+?? tb/common/garuda_map_pkg.sv
+?? tb/common/run/
+?? tb/common/tb_map_pkg.sv
+?? tb/core/archtest/
+?? tb/core/cov/
+?? tb/core/filelist_core_halt.f
+?? tb/core/filelist_core_halt_cov.f
+?? tb/core/filelist_csr_file_t12.f
+?? tb/core/formal/
+?? tb/core/riscv_dv/pygen_overlay/
+?? tb/core/riscv_formal/
+?? tb/core/run/
+?? tb/core/selftest/
+?? tb/core/tb_core_halt.sv
+?? tb/core/tb_csr_file_t12.sv
+?? tb/core/vplan_trace.toml
+?? tb/cov/garuda_cov_ext.sv
+?? tb/cov/garuda_cov_vplan.sv
+?? tb/debug/run/
+?? tb/dma/README.md
+?? tb/dma/cov/
+?? tb/dma/env/
+?? tb/dma/filelist_dma_probe.f
+?? tb/dma/filelist_dma_regs.f
+?? tb/dma/formal/
+?? tb/dma/mut/
+?? tb/dma/run/
+?? tb/dma/tb_dma_probe.sv
+?? tb/dma/tb_dma_regs.sv
+?? tb/dma/units/
+?? tb/dma/vplan_trace.toml
+?? tb/dsu/cov/
+?? tb/dsu/dsu_cov_vplan.sv
+?? tb/dsu/formal/
+?? tb/dsu/mut/
+?? tb/dsu/run/
+?? tb/dsu/units/
+?? tb/dsu/units_spec/
+?? tb/dsu/vplan_trace.toml
+?? tb/soc/filelist_boot_cosim.f
+?? tb/soc/filelist_boot_mem2m.f
+?? tb/soc/filelist_boot_rvfi.f
+?? tb/soc/tb_boot.sv
+?? tools/archtest/
+?? tools/bugs/
+?? tools/cosim/
+?? tools/cov/
+?? tools/gen/build_riscv_dv.py
+?? tools/gen/garuda_dv_gen.py
+?? tools/gen/garuda_dv_gen_list.py
+?? tools/gen/gen_cosim_manifest.py
+?? tools/gen/gen_dma_mutants.py
+?? tools/gen/gen_dma_seeds_manifest.py
+?? tools/gen/gen_dsu_mutants.py
+?? tools/gen/gen_endurance_manifest.py
+?? tools/gen/gen_map_pkg.py
+?? tools/gen/gen_regs_sv.py
+?? tools/gen/gen_stress_manifest.py
+?? tools/gen/gen_t_cov_dsu.py
+?? tools/gen/port_dsu_benches.py
+?? tools/run/
+?? tools/rvfi_check.py

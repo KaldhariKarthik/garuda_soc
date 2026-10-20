@@ -1,0 +1,8 @@
+# garuda-run 1 suite=units block=core date=2026-10-15T21:40:27+05:30 design=167aa935078d4e9cecaa35e5186328b55cfc2ca6 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+U_decode_control	PASS	OK	0	yes	0	0	0	-	7	14	-	1	13.11	20				logs/core/raw/units/sim_U_decode_control_s1.log
+U_imm_gen	PASS	OK	0	yes	0	0	0	-	7	4	-	1	13.77	20				logs/core/raw/units/sim_U_imm_gen_s1.log
+U_reg_file	PASS	OK	0	yes	0	0	0	-	6	0	-	1	12.22	20				logs/core/raw/units/sim_U_reg_file_s1.log
+U_branch_predict	PASS	OK	0	yes	0	0	0	-	7	0	-	1	16.53	20				logs/core/raw/units/sim_U_branch_predict_s1.log
+U_hazard_forward_unit	PASS	OK	0	yes	0	0	0	-	6	6	-	1	12.94	20				logs/core/raw/units/sim_U_hazard_forward_unit_s1.log
+U_id_stage	PASS	OK	0	yes	0	0	0	-	7	0	-	1	22.99	39				logs/core/raw/units/sim_U_id_stage_s1.log

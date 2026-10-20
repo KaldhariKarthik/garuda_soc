@@ -1,0 +1,29 @@
+# AHB-7 evidence, 2026-10-13 (bus plan B1 A2). make -f flow/mk/track_a.mk fv_ahb, task ahb7_find (free masters, no FA-4).
+# SBY finds it at depth 6 on master 0 (I-port). Trace: AHB-7_ahb7_find_trace.vcd (copied from logs/ahb/raw/fv_ahb/ahb7_find).
+
+t   hready_o htrans_o grant i_htrans_i i_haddr_i d_htrans_i m_htrans_i i_hready_o i_hresp_o dv_q do_q sl_resp
+0 1 00 00 00 0x0 00 00 1 0 0 00 0
+5 1 00 00 00 0x0 00 00 1 0 0 00 0
+10 1 00 00 00 0x80000000 00 00 1 0 0 00 0
+15 1 00 00 00 0x80000000 00 00 1 0 0 00 0
+20 1 10 00 10 0x0 00 00 1 0 0 00 0
+25 1 10 00 10 0x0 00 00 1 0 0 00 0
+30 0 10 11 10 0x10000000 10 10 0 1 1 00 1
+35 0 10 11 10 0x10000000 10 10 0 1 1 00 1
+40 1 10 11 10 0x10000000 10 10 0 1 1 00 1
+45 1 10 11 10 0x10000000 10 10 0 1 1 00 1
+50 1 10 01 00 0x10000000 10 00 1 1 1 11 0
+55 1 10 01 00 0x10000000 10 00 1 1 1 11 0
+60 1 10 01 00 0x10000000 10 00 1 1 1 11 0
+
+t20 I-port fetch accepted (ISRAM); t30 ISRAM ERROR cycle 1, DMA + D-port request, grant -> DMA (hold_r = 0: the previous cycle accepted);
+t40 ERROR cycle 2: I-port presenting, not granted -> u_mp_i captures the ERROR; the I-port sees HREADY low + ERROR for a 2nd cycle;
+t50 the held ERROR is replayed (HREADY high, ERROR). Detectors a_held_resp_okay[0] and a_master_err_shape[0] fail.
+
+## Same environment with FA-4 (a master cancels after its own ERROR first cycle): every property PROVEN
+# garuda-fv 1 suite=fv_ahb block=ahb date=2026-10-13T19:14:06+05:30 design=b90b481d8f91d5d8d1cd3887c3856c38033d87f7 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+ahb_bmc	bmc	BOUNDED(24)	OK	170	[56 asserts, 47 covers in model] 	logs/ahb/raw/fv_ahb/fv_ahb_bmc.log
+ahb_prove	prove	PROVEN	OK	9	[56 asserts, 47 covers in model] 	logs/ahb/raw/fv_ahb/fv_ahb_prove.log
+ahb_cover	cover	COVERED	OK	4	[56 asserts, 47 covers in model] 	logs/ahb/raw/fv_ahb/fv_ahb_cover.log
+ahb7_find	bmc	FAIL	XFAIL:AHB-7	0	[8 asserts, 47 covers in model] props: u_ahb_sva.g_resp[0].a_held_resp_okay, u_ahb_sva.g_resp[0].a_master_err_shape	logs/ahb/raw/fv_ahb/fv_ahb7_find.log

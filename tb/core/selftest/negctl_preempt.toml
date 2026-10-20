@@ -1,0 +1,24 @@
+# Negative control for t_core_preempt: the same program on the core with the
+# PREEMPT_DIS knob ignored (tb/core/formal/mutants/clic_ctrl_no_preempt.v) must
+# FAIL with test 3 (the level-200 interrupt preempted although disabled).
+[suite]
+block = "flow"
+name  = "negctl_preempt"
+kind  = "prog"
+xfail = "tb/core/selftest/xfail.tsv"
+
+[bench]
+flist   = "tb/soc/filelist_boot.f"
+top     = "tb_boot"
+replace = { "rtl/core/clic_ctrl.v" = "tb/core/formal/mutants/clic_ctrl_no_preempt.v" }
+
+[defaults]
+marker   = 'TOHOST=1 -> PASSED'
+timeout  = 120
+require  = ['AHB-PROTOCOL: iport=0 dport=0']
+
+[[test]]
+name = "t_core_preempt_no_knob"
+hex  = "sw/build/t_core_preempt.hex"
+plusargs = ["+MAXCYC=50000", "+QUIET"]
+fail_reason = 'FAILED \(test 3,'

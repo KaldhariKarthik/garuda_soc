@@ -1,0 +1,9 @@
+garuda-run 1  suite negctl_prog  block flow  2026-10-15T22:10:58+05:30
+design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    XFAIL:PLANTED           N1_add_to_sub  exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+
+PASS    0
+FAIL    1
+BLOCKED 0
+total   1

@@ -120,8 +120,11 @@ module dma_apb_slave (
     assign prdata_o = prdata_q;
 
     assign pready_o  = 1'b1;
-    // STAT is read-only: a write to it is refused like an unmapped offset
-    assign pslverr_o = psel_i & penable_i & (~hit | (pwrite_i & (gstat | (chan_rgn & reg_ == 3'd4))));
+    // ERRATUM AUD-13 (2026-10-12, Karthik's plan task 0.5): PSLVERR only for an
+    // offset that is not a register. A write to a read-only register (STAT, GSTAT)
+    // is ignored without an error: no write strobe exists for it, so nothing
+    // changes. Until this fix such a write answered PSLVERR like an unmapped offset.
+    assign pslverr_o = psel_i & penable_i & ~hit;
 
 endmodule
 

@@ -1,0 +1,9 @@
+# garuda-run 1 suite=model block=dsu date=2026-10-15T21:43:36+05:30 design=167aa935078d4e9cecaa35e5186328b55cfc2ca6 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+tb_dsu_top	PASS	OK	0	yes	0	0	0	-	33	0	-	1	0.02	21				logs/dsu/raw/model/sim_tb_dsu_top_s1.log
+tb_dsu_top_icarus	PASS	OK	0	yes	0	0	0	-	20	0	EXCLUDED;EXCLUDED	1	0.08	44				logs/dsu/raw/model/sim_tb_dsu_top_icarus_s1.log
+tb_dsu_top_clamp	PASS	OK	0	yes	0	0	0	-	33	0	-	1	0.18	21				logs/dsu/raw/model/sim_tb_dsu_top_clamp_s1.log
+tb_dsu_top_10k	PASS	OK	0	yes	0	0	0	-	33	0	-	1	0.08	21				logs/dsu/raw/model/sim_tb_dsu_top_10k_s1.log
+tb_dsu_top_ovf_fx	PASS	OK	0	yes	0	0	0	-	33	0	-	1	0.34	21				logs/dsu/raw/model/sim_tb_dsu_top_ovf_fx_s1.log
+tb_dsu_top_ovf_fy	PASS	OK	0	yes	0	0	0	-	33	0	-	1	0.36	21				logs/dsu/raw/model/sim_tb_dsu_top_ovf_fy_s1.log
+tb_dsu_top_ovf_mag	PASS	OK	0	yes	0	0	0	-	33	0	-	1	0.36	21				logs/dsu/raw/model/sim_tb_dsu_top_ovf_mag_s1.log

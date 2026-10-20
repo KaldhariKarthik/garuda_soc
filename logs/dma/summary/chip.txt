@@ -1,0 +1,12 @@
+garuda-run 1  suite chip  block dma  2026-10-15T22:07:09+05:30
+design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    XFAIL:DMA-11            t_chip_dma_rearm    pass marker missing; 3759 [FAIL] line(s); 3758 assertion failure(s) | first: [8067000] %Error: dma_sva.sv:159: Assertion failed in tb_chip.dut.u_core.
+PASS    OK                      t_chip_dma_traffic  
+PASS    OK                      t_chip_dma_subword  
+PASS    OK                      t_chip_dma_uart     
+
+PASS    3
+FAIL    1
+BLOCKED 0
+total   4
