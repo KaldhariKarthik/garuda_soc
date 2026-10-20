@@ -7,11 +7,12 @@
 //   cg_beat  one sample per finished beat: channel, mode, size, alignment,
 //            increment, outcome, how many channels wanted the bus
 //   cg_ctrl  firmware actions on a channel and the cycles they collide with
-// Not for synthesis, not under Icarus or Verilator.
+// Not for synthesis, not under Icarus. Under Verilator from 5.053: 5.052 reported
+// 0.0 % for every covergroup (Docs/bugs/track_a.md TOOL-A2), which is why this was
+// once kept away from Verilator; 5.053 gives the same bins as IMC, hole for hole.
 // =============================================================================
 `ifndef SYNTHESIS
 `ifndef __ICARUS__
-`ifndef VERILATOR
 module dma_cov (
     input wire        hclk_i, hreset_n_i,
     input wire [2:0]  st, ch,
@@ -56,7 +57,14 @@ module dma_cov (
             ignore_bins half_odd = binsof(cp_size.half) && (binsof(cp_src_lane) intersect {1,3} || binsof(cp_dst_lane) intersect {1,3});
         }
         x_inc: cross cp_sinc, cp_dinc, cp_mode;
-        x_channel_contended: cross cp_channel, cp_contenders;
+        // TB-A6: contenders are counted at the grant, which goes to the highest
+        // priority (ch0 5, ch4 4, ch1 3, ch3 2, ch2 1, ch5 0): channel 5 wins only
+        // alone and channel 2 only beside channel 5, so these bins cannot be hit.
+        x_channel_contended: cross cp_channel, cp_contenders {
+            ignore_bins ch5_never_contended = binsof(cp_channel) intersect {5} &&
+                                              (binsof(cp_contenders.two) || binsof(cp_contenders.more));
+            ignore_bins ch2_at_most_two     = binsof(cp_channel) intersect {2} && binsof(cp_contenders.more);
+        }
     endgroup
 
     // firmware actions, per channel, and the collisions of [N-7.17] to [N-7.19]
@@ -89,6 +97,5 @@ bind dma_top dma_cov u_dma_cov (
     .eligible(eligible), .beat_done(beat_done), .beat_err(beat_err), .err_phase(err_phase),
     .cr(cr), .sar(sar), .dar(dar), .stat(stat), .wr_cr(wr_cr), .wr_iclr(wr_iclr), .wr_cnt(wr_cnt),
     .dma_req_i(dma_req_i), .wdata(wdata), .hready_i(hready_i));
-`endif
 `endif
 `endif

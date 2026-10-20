@@ -225,17 +225,36 @@ class dma_directed_test extends dma_base_test;
         prog(4, M2M, 2, 1, 1, 32'h1000_0000, 32'h0000_0000, 2, 0, 0); cycles(40); rd_(ra(4, 4)); rd_(12'h100);
         wr(ra(4, 0), 32'd0); wr(ra(4, 5), 32'h3);
 
+        // ---- cg_beat.x_inc: every SINC / DINC pair in the two peripheral modes
+        for (int mode = 0; mode < 2; mode++)
+            for (int si = 0; si < 2; si++)
+                for (int di = 0; di < 2; di++) begin
+                    bit [31:0] s = (mode == P2M) ? per(1) : src(1);
+                    bit [31:0] d = (mode == P2M) ? dst(1) : per(1) + 32'h80;
+                    prog(1, mode, 2, si, di, s, d, 2); reqs(1, 2);
+                    wait_done(1, st); env.reqs.drv.stop(1); wr(ra(1, 5), 32'h3);
+                end
+        // ---- cg_beat.x_channel_outcome: a refused source and a refused destination on every channel
+        for (int ch = 0; ch < NCH; ch++) begin
+            prog(ch, M2M, 2, 1, 1, 32'h0000_0200, dst(ch), 1); wait_done(ch, st); wr(ra(ch, 5), 32'h3);
+            prog(ch, M2M, 2, 1, 1, src(ch), 32'h1000_0200, 1); wait_done(ch, st); wr(ra(ch, 5), 32'h3);
+        end
+
         // ---- F20: EN cleared in the middle of a transfer, then set again
         prog(5, M2M, 2, 1, 1, src(5), dst(5), 40);
         cycles(30); wr(ra(5, 0), cr(M2M, 2, 1, 1, 1, 1, 0));
         rd_(ra(5, 4)); rd_(ra(5, 1)); rd_(ra(5, 2)); cycles(20); rd_(ra(5, 4));
         wr(ra(5, 0), cr(M2M, 2, 1, 1, 1, 1, 1)); wait_done(5, st); wr(ra(5, 5), 32'h3);
 
-        // ---- F12: SAR, DAR and CNT written while the channel runs
-        prog(5, M2M, 2, 1, 1, src(5), dst(5), 30);
-        cycles(20); wr(ra(5, 1), src(5) + 32'h400); cycles(12); wr(ra(5, 2), dst(5) + 32'h400);
-        cycles(12); wr(ra(5, 3), 3);
-        wait_done(5, st); wr(ra(5, 5), 32'h3);
+        // ---- F12: SAR, DAR and CNT written while the channel is ACTIVE. A P2M channel
+        // between two requests: active, and no beat of it on the bus. (A write landing
+        // in the cycle of a beat of the same channel is software-wins ([N-7.19]) at the
+        // DUT's write strobe, a few ns before the model sees the APB access end; what the
+        // transfer then does is not specified, F12. Not driven here.)
+        prog(5, P2M, 2, 0, 1, per(5), dst(5), 6);
+        reqs(5, 2, 0, 1); env.reqs.drv.wait_idle(5); cycles(8); rd_(ra(5, 4));
+        wr(ra(5, 1), per(5) + 32'h10); wr(ra(5, 2), dst(5) + 32'h400); wr(ra(5, 3), 3);
+        rd_(ra(5, 4)); reqs(5, 4, 0, 1); wait_done(5, st); env.reqs.drv.stop(5); wr(ra(5, 5), 32'h3);
 
         // ---- F26, F27, F28: fixed priority; every pair together, then all six
         for (int i = 0; i < NCH; i++)

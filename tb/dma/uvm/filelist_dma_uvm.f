@@ -9,4 +9,5 @@ tb/uvm/apb/garuda_apb_pkg.sv
 tb/dma/uvm/dma_reg_pkg.sv
 tb/dma/uvm/dma_if.sv
 tb/dma/uvm/dma_env_pkg.sv
+tb/dma/dma_cov.sv
 tb/dma/uvm/tb_dma_uvm.sv
