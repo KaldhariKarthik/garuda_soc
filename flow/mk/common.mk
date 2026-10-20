@@ -34,7 +34,7 @@ SPIKE         ?= $(HOME)/external/spike-inst/bin/spike
 
 # -----------------------------------------------------------------------------
 # One verdict for every simulation the macros below run: scripts/sim_verdict.sh
-# (Docs/BUGS.md TOOL-13). A run has passed only if all three hold:
+# (Docs/bugs/archive/BUGS_HISTORY.md TOOL-13). A run has passed only if all three hold:
 #   the simulator's exit status is 0     a failed assertion gives 1, $fatal 2,
 #                                        a compile error 1
 #   the log holds the bench's pass line  a bench that stops early prints none
@@ -117,7 +117,7 @@ endef
 #
 # Unlike run_tb_top this keeps the log's RESULT and coverage lines, which is
 # what actually tells you WHICH check failed rather than only how many did.
-# See Docs/CORE_ELEMENT_VERIFICATION.md for the element -> spec section ->
+# See Docs/guides/CORE_ELEMENT_VERIFICATION.md for the element -> spec section ->
 # C-test mapping. The pass line is any "RESULT: ... PASSED": thirteen benches
 # print "RESULT: ALL CHECKS PASSED" and tb_clic_ctrl prints "RESULT: PASSED (n
 # checks, 0 failed)".
@@ -188,7 +188,7 @@ sw:
 
 # =============================================================================
 # make selfcheck_runners: does every runner fail when its test fails?
-# (Docs/BUGS.md TOOL-13, TOOL-14; task 1.1 of the pre-PDK plan.)
+# (Docs/bugs/archive/BUGS_HISTORY.md TOOL-13, TOOL-14; task 1.1 of the pre-PDK plan.)
 #
 # The Icarus runner is tried too when iverilog is on PATH. The coverage script
 # and the Genus script take minutes per run and are not planted here; their

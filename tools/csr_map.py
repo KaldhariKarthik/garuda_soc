@@ -51,8 +51,8 @@ for a in (0x7A0, 0x7A1, 0x7A2, 0x7A3, 0x7A4, 0x7A8):
 for a in (0xC01, 0xC81):
     EXPECTED[a] = ("Spike", "GARUDA's timer is memory mapped (block 11); a read of time traps, which the privileged spec allows")
 # Open: the privileged specification the core spec cites (v1.12) says these exist,
-# though each may read zero. GARUDA traps on them. Docs/BUGS.md C-16.
-OPEN = "OPEN, BUGS.md C-16: privileged 1.12 says it exists (it may read 0); GARUDA traps"
+# though each may read zero. GARUDA traps on them. Docs/bugs/archive/BUGS_HISTORY.md C-16.
+OPEN = "OPEN, BUGS_HISTORY.md C-16: privileged 1.12 says it exists (it may read 0); GARUDA traps"
 for a in [0x310, 0xF15] + list(range(0x323, 0x340)) + list(range(0xB03, 0xB20)) + list(range(0xB83, 0xBA0)):
     EXPECTED[a] = ("Spike", OPEN)
 

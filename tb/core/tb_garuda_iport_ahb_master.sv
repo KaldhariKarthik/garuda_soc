@@ -66,7 +66,7 @@ interface iport_if (input bit clk, input bit rst_n);
     // A2: HBURST is INCR for the whole burst, the NONSEQ first beat included.
     //     AMBA requires HBURST constant across a burst; this property used to
     //     demand SINGLE on every beat that was not SEQ, which is the behaviour
-    //     rtl ERRATUM BUS-A removed (BUGS.md ELEM-3). HBURST during IDLE is a
+    //     rtl ERRATUM BUS-A removed (BUGS_HISTORY.md ELEM-3). HBURST during IDLE is a
     //     don't-care on the bus and the RTL holds INCR there too.
     property p_hburst_is_incr;
         @(posedge clk) (i_hburst == 3'b001);
@@ -377,7 +377,7 @@ module tb_top;
         // The fault for the C12 check below is armed HERE, before the redirect
         // that starts the stream: the fetch runs a word per cycle, so arming it
         // after the checks in between let the stream pass 0x3000_0020 first and
-        // the fault never happened (BUGS.md ELEM-3).
+        // the fault never happened (BUGS_HISTORY.md ELEM-3).
         saw_tagged_fault = 0;
         err_addr = 32'h3000_0020; err_arm = 1;
         expect_no_delivery = 1;

@@ -6,7 +6,7 @@ drift apart.
     python3 flow/constraints/asap7/gen_modes.py      # writes garuda_div{2,4,8,16}.sdc
 
 ASAP7 time unit = 1 ps. Object names and ports are those of the ORFS/Yosys
-netlist of garuda_chip_core, run synth_r2 (P1-P3 applied; Docs/PD_LOG_*.md); re-check them after any
+netlist of garuda_chip_core, run synth_r2 (P1-P3 applied; Docs/logs/pd/PD_LOG_*.md); re-check them after any
 resynthesis. NOT the 28 nm constraint file (that is flow/constraints/garuda.sdc).
 """
 import pathlib
@@ -56,7 +56,7 @@ set_clock_uncertainty -setup 150 [get_clocks refclk] ;# PHYS 5.2: 0.15 ns
 #      Why -edges (2026-10-13, late): a plain -divide_by on QN, and -invert,
 #      each put aon_clk half a period (2000 ps) out of phase with hclk. That was
 #      pessimistic for setup but OPTIMISTIC by 2 ns for hold on hclk<->aon
-#      paths (Docs/PD_LOG_2026-10-13.md §7).
+#      paths (Docs/logs/pd/PD_LOG_2026-10-13.md §7).
 #      aon_clk = t1 (D-14): reset_ctrl stretch/requests/RSTREASON, sel_req_q, and
 #      the negedge sel_act_q (clocked by the QN net directly).
 create_generated_clock -name aon_clk -source [get_ports refclk] -edges {{3 5 7}} \

@@ -15,7 +15,7 @@ module tb_dma_uvm;
     import dma_env_pkg::*;
 
     // hclk and pclk = hclk/2 from one process with blocking assignments, so both
-    // edges are in the same simulator step (see BUGS.md SIM-1)
+    // edges are in the same simulator step (see BUGS_HISTORY.md SIM-1)
     logic hclk = 0, pclk = 0;
     initial forever begin
         #2 hclk = 1'b1; pclk = ~pclk;

@@ -25,7 +25,7 @@
 //     offset 4n is a register. Before 2026-10-13 everything below IP_LIMIT was
 //     passed on, so a hole in the vendored register file (GPIO 0x20, 0x2C to
 //     0x7C; SPI master 0x1C, 0x2C to 0xFC; I2C 0x1C) and every offset that is
-//     not word aligned answered without an error (Docs/BUGS.md AUD-13, GPIO-2).
+//     not word aligned answered without an error (Docs/bugs/archive/BUGS_HISTORY.md AUD-13, GPIO-2).
 //     The rule of the chip is one: PSLVERR exactly where there is no register.
 //  2. PREADY is driven high, always. The bridge abandons a transfer after 16
 //     pclk ([N-7.15]), so a peripheral must never stall; ip_pready_i is

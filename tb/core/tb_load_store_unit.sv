@@ -122,7 +122,7 @@ class lsu_cycle;
     // unchanged; the stimulus distribution is unchanged.
     constraint c_alignment {
         // written as one implication each: a nested `->` inside parentheses
-        // does not parse as a constraint (BUGS.md ELEM-4)
+        // does not parse as a constraint (BUGS_HISTORY.md ELEM-4)
         ((kind == LK_ALIGNED) && (f3[1:0] == 2'b10)) -> (addr[1:0] == 2'b00);
         ((kind == LK_ALIGNED) && (f3[1:0] == 2'b01)) -> (addr[0]   == 1'b0);
         (kind == LK_MISALIGNED) -> (f3[1:0] inside {2'b01, 2'b10});

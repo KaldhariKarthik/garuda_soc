@@ -188,9 +188,9 @@ whose state is not yet initialised.
 
 **[N-6.3]** Bit 7 and bits 31:23 are hardwired to zero and ignore writes. ID 7 is
 reserved because the core reports a CLIC interrupt as `mcause = 0x8000_0000 | ID`, and
-`0x8000_0007` is the machine-timer cause (`Docs/BUGS.md` INT-2). IDs 23–31 have no source.
+`0x8000_0007` is the machine-timer cause (`Docs/bugs/archive/BUGS_HISTORY.md` INT-2). IDs 23–31 have no source.
 The enable mask is generated from the ID map (`GARUDA_CLIC_ID_MASK` = `0x007F_FF7E`,
-`Docs/BUGS.md` INT-3). Reserved-and-unwritable rather than merely unassigned,
+`Docs/bugs/archive/BUGS_HISTORY.md` INT-3). Reserved-and-unwritable rather than merely unassigned,
 so an enable of an ID with no source cannot produce a permanently-clear pending bit that a
 debugging engineer then spends an afternoon on.
 
@@ -544,7 +544,7 @@ the interleavings someone thought of.
 | IDs assigned once in `GARUDA-SYS-001`; level-triggered fixed in hardware; ID 0 sentinel | ADR-0009 |
 | `mtip` does not consume a CLIC ID; ID 13 freed | ADR-0010 |
 | ID 14 restored to the SPI slave | ADR-0020 Rev 2 |
-| ID 7 reserved; DMA errors on IDs 8–13 | `Docs/BUGS.md` INT-2 |
+| ID 7 reserved; DMA errors on IDs 8–13 | `Docs/bugs/archive/BUGS_HISTORY.md` INT-2 |
 | Take decision stays in `clic_ctrl` inside the core; no `mintthresh` port on this block | ADR-0009, §5.1 |
 
 ---

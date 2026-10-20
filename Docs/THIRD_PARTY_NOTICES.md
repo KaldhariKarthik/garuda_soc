@@ -44,7 +44,7 @@ they were changed. **One IP is modified:**
 - **`apb_uart_sv`** — `src/uart_rx.sv` and `src/apb_uart.sv` are changed by
   `rtl/third_party/pulp/apb_uart_sv/patches/0001-error-reporting-and-latch-fix.patch`,
   for two reasons: so the receiver reports parity and framing errors
-  (GARUDA-UART-SPEC-001 R-7, which upstream cannot meet — `Docs/BUGS.md`
+  (GARUDA-UART-SPEC-001 R-7, which upstream cannot meet — `Docs/bugs/archive/BUGS_HISTORY.md`
   ERR-U2), and to give `fifo_tx_data` a default so it no longer infers a latch
   (ERR-U3). Every changed
   line carries a `GARUDA patch 0001` marker in the source, the file as vendored

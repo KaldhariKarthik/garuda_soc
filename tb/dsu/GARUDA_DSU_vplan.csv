@@ -70,7 +70,7 @@ a_taps_live,3,CHK,DSU.F23.CHK1,The tap outputs equal the accumulators in every c
 F24 The accumulators keep their values while the clock is gated,2,SECTION,DSU.F24,Across a WFI sleep.,Method: sim. Today: only t_hold_flush_matrix bit 15,Karthik,P1
 t_dsu_gate,3,TC,DSU.F24.TC1,All three accumulators and flags read before and after a sleep.,sw/tests. Planned.,Karthik,
 F25 The second clock gate,2,SECTION,DSU.F25,The specification says the unit is also gated by its own idle signal. There is no gate in rtl/dsu. One of the two has to change.,Method: review. Today: no check.,Karthik,P2
-review,3,CHK,DSU.F25.CHK1,Spec section 5 against rtl/dsu.,To be logged in Docs/BUGS.md.,Karthik,
+review,3,CHK,DSU.F25.CHK1,Spec section 5 against rtl/dsu.,To be logged in Docs/bugs/archive/BUGS_HISTORY.md.,Karthik,
 F The workloads it exists for,1,SECTION,DSU.F,"Spec 7.4, 7.5. Stage 5 scenarios.",,,
 F26 The potential-field loop,2,SECTION,DSU.F26,"Ten neighbours, result against a floating-point reference within a stated error bound. Spec [N-7.10] to [N-7.12].",Method: sim at chip level (scenario). Today: no test,Karthik,P1
 t_dsu_apf,3,TC,DSU.F26.TC1,"The loop on the core, compared with a reference computed in Python.",sw/tests + tools. Planned.,Karthik,

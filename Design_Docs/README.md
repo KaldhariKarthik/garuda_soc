@@ -32,7 +32,7 @@ Rulings that resolve a conflict between documents are in `Docs/DECISIONS.md`.
 ## Why the rule exists
 
 The `.docx` files were first made by hand, with no generator. Two hand-kept copies drift.
-That drift caused AUD-2 (`Docs/BUGS.md` §1d): one table numbered the APB windows from 0 while
+That drift caused AUD-2 (`Docs/bugs/archive/BUGS_HISTORY.md` §1d): one table numbered the APB windows from 0 while
 the hardware numbers them from 1, and four specifications copied the error.
 
 ## Current state (2026-10-14)

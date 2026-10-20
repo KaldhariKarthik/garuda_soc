@@ -280,7 +280,7 @@ xrun -R -xmlibdirname sim/dsuclamp/xcelium.d -snapshot dsuclamp \
 
 ## The claim that has to change
 
-`Docs/COVERAGE.md` and `Docs/MEETING_CHEATSHEET.md` present "645/645 against a
+`Docs/COVERAGE.md` and `Docs/guides/MEETING_CHEATSHEET.md` present "645/645 against a
 cycle-accurate model" as a strong result. It is a real result — the DSU's
 *timing and values* are checked hard, and 9 DSU bugs were found that way — but
 it does not mean what it sounds like, because until now the model and the design

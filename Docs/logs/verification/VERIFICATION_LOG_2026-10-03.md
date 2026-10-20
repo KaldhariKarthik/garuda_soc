@@ -271,7 +271,7 @@ rule at all. Widened to 96.
 
 ## 6b. The APB protocol checker
 
-`Docs/HANDOFF.md` section 11 step 3 said to write this before the bridge. The
+`Docs/handoff/HANDOFF.md` section 11 step 3 said to write this before the bridge. The
 bridge, the shim and all seven peripherals shipped without it; the nearest thing
 that existed was one rule inside `tb/ahb2apb/apb_slave_model.v`, which lives in
 a **responder** and so was checking the bus it was also driving.
@@ -354,7 +354,7 @@ either way, and measured at exactly 1 cycle as predicted.
   `tb_clic_ctrl`, is also the only one with no SVA. Verilator parses them and
   then **segfaults** on 13 of 14 (exit 139), so its "0 errors" cannot be trusted
   either. `ELEM-1..6` is therefore **not locally verifiable** — see `ELEM-4` in
-  `BUGS.md` for what was changed by inspection and what still needs xrun.
+  `BUGS_HISTORY.md` for what was changed by inspection and what still needs xrun.
 - **No gate-level simulation**, and no formal for `AUD-8`.
 
 ---

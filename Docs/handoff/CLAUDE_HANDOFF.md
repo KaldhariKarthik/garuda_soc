@@ -3,14 +3,14 @@
 **Status at 2026-10-14.** `main` at `b8b0f5a` plus the documentation sync of 2026-10-14.
 
 This file records the state of the Linux (WSL 2) environment and of the Claude Code work on it.
-It does not replace `Docs/HANDOFF.md`, which is the verification handoff for the lab machine.
+It does not replace `Docs/handoff/HANDOFF.md`, which is the verification handoff for the lab machine.
 
 - Tool versions, install commands and removal: `flow/pd/TOOLS.md`.
-- Physical-design runs: `Docs/PD_LOG_<date>.md`.
-- Defects: `Docs/BUGS.md` (physical design: §1l, IDs PD-n and TOOL-n).
+- Physical-design runs: `Docs/logs/pd/PD_LOG_<date>.md`.
+- Defects: `Docs/bugs/archive/BUGS_HISTORY.md` (physical design: §1l, IDs PD-n and TOOL-n).
 - Owner rulings: `Docs/DECISIONS.md` (D-26 and later for physical design).
 
-Keep this file, `flow/pd/TOOLS.md`, `BUGS.md` and `DECISIONS.md` in step. Record a finding or a
+Keep this file, `flow/pd/TOOLS.md`, `BUGS_HISTORY.md` and `DECISIONS.md` in step. Record a finding or a
 ruling in its home file in the same session that finds it.
 
 ---
@@ -52,9 +52,9 @@ owner to create it again, then run `wsl --shutdown`. Peak use in pnr_r7 was 8.65
 
 | Phase | Status |
 |---|---|
-| B1 — toolchain | **Done.** ORFS `3451ca1` built locally (no Docker). The ASAP7 `gcd` gate passed as a toolchain check (2026-10-12). z3 installed; the `pipe_ctrl` SymbiYosys proof passes 6/6 (`Docs/VERIFICATION_LOG_2026-10-12.md`) |
+| B1 — toolchain | **Done.** ORFS `3451ca1` built locally (no Docker). The ASAP7 `gcd` gate passed as a toolchain check (2026-10-12). z3 installed; the `pipe_ctrl` SymbiYosys proof passes 6/6 (`Docs/logs/verification/VERIFICATION_LOG_2026-10-12.md`) |
 | B2 — clocks, SDC, RTL hooks | **Done.** `flow/constraints/garuda.sdc` (28 nm draft, rev 2) and `flow/constraints/asap7/` (four DIVSEL scenarios). P1, P2, P3 applied and committed (D-28) |
-| B3 — first exploratory P&R | **Done to GDS.** Reference result: pnr_r7 (`Docs/PD_LOG_2026-10-14.md`) |
+| B3 — first exploratory P&R | **Done to GDS.** Reference result: pnr_r7 (`Docs/logs/pd/PD_LOG_2026-10-14.md`) |
 | Simulation toolchain on Linux | **Not installed** (§5) |
 
 ### 3.1 B3 reference result (pnr_r7, ASAP7, exploratory)
@@ -105,6 +105,6 @@ regression, and TB-33 and ELEM-8. The full xrun regression runs at the lab only.
 
 ## 6. Document inconsistencies
 
-Fixed on 2026-10-14 (`Docs/BUGS.md` DOC-1): the PHYS §5.2 SDC sketch, the yaml stretch clock
+Fixed on 2026-10-14 (`Docs/bugs/archive/BUGS_HISTORY.md` DOC-1): the PHYS §5.2 SDC sketch, the yaml stretch clock
 and pclk ratios (PD-5), the CLIC ID map after INT-2, the APB window numbering, and the
 clock/reset description after D-14.

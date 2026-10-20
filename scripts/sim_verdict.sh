@@ -2,7 +2,7 @@
 # =============================================================================
 # sim_verdict.sh <log> <simulator exit status> [<pass regex>]
 #
-# One verdict for the Makefile's simulation macros (Docs/BUGS.md TOOL-13).
+# One verdict for the Makefile's simulation macros (Docs/bugs/archive/BUGS_HISTORY.md TOOL-13).
 # Each of run_test, run_tb_top, run_tb_elem and run_blk used to run xrun and
 # then end in a printf or a grep, so the target exited 0 whatever xrun
 # returned and whatever the log said. A run passes here only if ALL hold:

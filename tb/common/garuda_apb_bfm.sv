@@ -34,7 +34,7 @@ interface garuda_apb_bfm (input logic pclk, input logic preset_n);
     endtask
     // Every one of the 4096 offsets of a peripheral window, read once: PSLVERR
     // must be raised exactly where there is no register (the one rule of the
-    // chip, Docs/BUGS.md AUD-13). A register is a word-aligned offset below
+    // chip, Docs/bugs/archive/BUGS_HISTORY.md AUD-13). A register is a word-aligned offset below
     // 0x100 whose bit is set in ip_map (bit n is offset 4n), or one of the four
     // tail registers 0xFE0 to 0xFEC. Offsets that are not word aligned are
     // included: the bridge never sends one, but the rule does not depend on it.

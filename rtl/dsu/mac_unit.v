@@ -60,7 +60,7 @@ module mac_unit(
     mult_16x16 U_mult_b (.a (a1),  .b (b1), .p (product_b));
     
     // -----------------------------------------------------------------------
-    // ERRATUM OVF-1 (Docs/ORACLES.md; closes OPEN-9) -- overflow flag wrong
+    // ERRATUM OVF-1 (Docs/guides/ORACLES.md; closes OPEN-9) -- overflow flag wrong
     // for |acc| >= 2^46
     // -----------------------------------------------------------------------
     // The carry-save path was 48 bits wide and the 49-bit adder was fed

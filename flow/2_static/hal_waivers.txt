@@ -18,7 +18,7 @@ ERRORS (5)
           needs them to move in opposite directions in the same cycle, and its
           only effect would be a runt release while reset is being asserted.
 
-CLOCK DOMAIN (run on debug_top, see BUGS.md CDC-1)
+CLOCK DOMAIN (run on debug_top, see BUGS_HISTORY.md CDC-1)
   CLKDMN  u_dm.sbdata, u_dm.hartreset, u_dm.rdata_o
           DMI payload, held stable by the request/acknowledge toggle handshake
           in dmi_cdc (DEBUG [N-7.16]).
@@ -32,7 +32,7 @@ CLOCK DOMAIN, ONLY WHEN A BLOCK IS LINTED ON ITS OWN (dma_top, timers_top, ahb2a
           DMA R-3). The chip-level run does not report them. Evidence that the
           clocks are aligned: tb_crg t_pclk_div2. Not yet held by an assertion:
           a_pclk_on_hclk and a_capture_stable_at_phase are specified but not
-          written (BUGS.md AUD-11).
+          written (BUGS_HISTORY.md AUD-11).
 
 WARNING CLASSES REVIEWED AND ACCEPTED
   LATINF/LATBAS   core_clk_gate: the behavioural ICG latch, replaced by the

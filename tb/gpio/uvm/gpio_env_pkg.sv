@@ -13,7 +13,7 @@
 //                    DECISIONS.md D-21, stepped once per pclk. Where the
 //                    specification is silent or the vendored block differs
 //                    from it, the model follows the block and the line says
-//                    which finding records it (Docs/BUGS.md GPIO-2).
+//                    which finding records it (Docs/bugs/archive/BUGS_HISTORY.md GPIO-2).
 //   gpio_scoreboard  every cycle the outputs and the interrupt (sb_pins,
 //                    sb_irq); every access (sb_padin, sb_padout, sb_intstatus,
 //                    sb_reg, sb_pslverr, sb_pready); and two checks that use

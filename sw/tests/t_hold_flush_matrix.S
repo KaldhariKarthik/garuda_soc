@@ -1,6 +1,6 @@
 # =============================================================================
 # t_hold_flush_matrix.S -- CORE-SPEC [N-11.2] / [N-7.23]: every hold cause
-# against every flush cause, constructed deliberately (Docs/BUGS.md AUD-8).
+# against every flush cause, constructed deliberately (Docs/bugs/archive/BUGS_HISTORY.md AUD-8).
 #
 #   holds  : H1 load-use, H2 D-port wait, H4 dsu_busy, H5 WFI
 #   flushes: F1 branch/JALR redirect, F2 trap (exception or interrupt),

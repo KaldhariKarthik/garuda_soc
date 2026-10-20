@@ -201,7 +201,7 @@ def main():
         elif sha256(os.path.join(ROOT, p)) != recorded[p]:
             print("MODIFIED: %s" % p)
             print("   upstream files are never edited - put the delta in a wrapper,")
-            print("   or in <ip>/patches/ with a Docs/BUGS.md entry (D-22)")
+            print("   or in <ip>/patches/ with a Docs/bugs/archive/BUGS_HISTORY.md entry (D-22)")
             bad += 1
     for p in recorded:
         if not os.path.exists(os.path.join(ROOT, p)):
@@ -222,7 +222,7 @@ def main():
         if make_diff(ip["dir"]) != stored_diff(ip["dir"]):
             print("PATCH DRIFT: %s" % ip["name"])
             print("   the working files no longer match patches/orig/ + patches/*.patch.")
-            print("   Run --update if the change was deliberate, and update Docs/BUGS.md.")
+            print("   Run --update if the change was deliberate, and update Docs/bugs/archive/BUGS_HISTORY.md.")
             bad += 1
 
     if bad or missing:

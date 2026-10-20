@@ -38,10 +38,13 @@ The core-to-DSU interface is frozen: `dsu_top.v` takes the 32-bit instruction an
 1. **When the RTL and a document disagree, the RTL wins,** and the document is corrected on
    the record. Rulings are in `Docs/DECISIONS.md`. Do not leave a difference silent.
 2. **The yaml is normative for cross-block facts.** A spec that disagrees with it is stale.
-3. **Every defect goes in `Docs/BUGS.md`,** with the mechanism that found it. A FIXED entry
-   has a test that fails without the fix.
+3. **Every defect goes in its track register,** `Docs/bugs/track_a.md` or `Docs/bugs/track_b.md`,
+   with the mechanism that found it. A FIXED entry has a test that fails without the fix.
+   `Docs/bugs/archive/BUGS_HISTORY.md` is the old register. It is history. Do not add to it.
 4. **Third-party RTL is never edited.** Changes go in the GARUDA wrapper, or in a recorded
    patch (`rtl/third_party/README.md`, D-22).
+5. **Write documents to `Docs/DOC_STANDARD.md`** (a simplified-English standard based on ASD-STE100).
+   `Docs/README.md` shows where each kind of document goes.
 
 ---
 
@@ -49,7 +52,7 @@ The core-to-DSU interface is frozen: `dsu_top.v` takes the 32-bit instruction an
 
 ### Verification
 
-The full flow ran on Cadence tools on 2026-10-04. Details: `Docs/HANDOFF.md`.
+The full flow ran on Cadence tools on 2026-10-04. Details: `Docs/handoff/HANDOFF.md`.
 
 | Area | Result |
 |---|---|
@@ -60,10 +63,10 @@ The full flow ran on Cadence tools on 2026-10-04. Details: `Docs/HANDOFF.md`.
 | Formal | `pipe_ctrl` proved in SymbiYosys (8 of 9 properties; the 9th needs the whole core) |
 | Static | HAL lint: 5 errors, each waived with a reason. Clock-domain and reset-domain reviews done |
 | Coverage | Collected on the whole SoC (`Docs/COVERAGE.md`). Not closed |
-| FPGA | Ran on a KV260 on 2026-09-29 (`Docs/FPGA_BRINGUP_LOG.md`). That bitstream predates the RTL fixes of 2026-10-04 |
+| FPGA | Ran on a KV260 on 2026-09-29 (`Docs/logs/fpga/FPGA_BRINGUP_LOG.md`). That bitstream predates the RTL fixes of 2026-10-04 |
 
 Changes made after 2026-10-04 (T-13, T-14, UART vendor patches, the P1–P3 physical-design
-hooks) are checked on free tools and wait for the lab xrun run (`Docs/HANDOFF.md` §2).
+hooks) are checked on free tools and wait for the lab xrun run (`Docs/handoff/HANDOFF.md` §2).
 
 ### Physical design
 
@@ -71,12 +74,12 @@ hooks) are checked on free tools and wait for the lab xrun run (`Docs/HANDOFF.md
 |---|---|
 | Constraints | `flow/constraints/garuda.sdc`: 28 nm draft, four DIVSEL scenarios. `flow/constraints/asap7/`: validated on ASAP7 |
 | RTL hooks | Library ICG (P1), pin-level top over a core without tri-states (P2), named memory macros (P3). Applied, D-28 |
-| Exploratory flow | OpenROAD-flow-scripts on ASAP7, mock memories, 320 × 300 µm die: to GDS with DRC 0, LEC identical, setup and hold met in all four modes (`Docs/PD_LOG_2026-10-14.md`) |
+| Exploratory flow | OpenROAD-flow-scripts on ASAP7, mock memories, 320 × 300 µm die: to GDS with DRC 0, LEC identical, setup and hold met in all four modes (`Docs/logs/pd/PD_LOG_2026-10-14.md`) |
 | 28 nm | No library and no memory compiler yet. No ASAP7 figure is a 28 nm figure (D-26) |
 
 ### Not done
 
-- Owner decisions on open defects, T-12 (P1) first (`Docs/HANDOFF.md` §3).
+- Owner decisions on open defects, T-12 (P1) first (`Docs/handoff/HANDOFF.md` §3).
 - Coverage closure; the 27 planned tests that do not exist (AUD-11).
 - 28 nm synthesis, memories, pad ring and STA at 250 MHz.
 - DFT. No document defines it yet.
@@ -95,9 +98,9 @@ hooks) are checked on free tools and wait for the lab xrun run (`Docs/HANDOFF.md
 | `flow/` | Sign-off criteria, static checks, coverage, regression, constraints, physical design |
 | `fpga/kv260/` | KV260 FPGA prototype |
 | `Design_Docs/` | Specifications. The `.md` is normative (`Design_Docs/README.md`) |
-| `Docs/` | Handoffs, bug register, decision record, dated logs |
+| `Docs/` | Bug registers, decision record, handoffs, guides, dated logs (`Docs/README.md`) |
 
-To run anything, read `Docs/HOWTO_RUN.md`.
+To run anything, read `Docs/guides/HOWTO_RUN.md`.
 
 ---
 

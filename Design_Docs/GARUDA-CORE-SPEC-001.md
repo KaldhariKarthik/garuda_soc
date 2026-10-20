@@ -622,7 +622,7 @@ P-1, P-2 and P-3 came from. They may be unreachable by construction
 (`load_use_stall` and `ex_redirect` both key off the instruction in ID/EX, and
 one instruction cannot be both a load and a branch). Simulation cannot separate
 "unreachable" from "untested"; formal can, which makes [N-11.3] the next step
-rather than the directed test. See `Docs/BUGS.md` AUD-8.
+rather than the directed test. See `Docs/bugs/archive/BUGS_HISTORY.md` AUD-8.
 
 **[N-11.2]** **`t_core_hold_flush_matrix` is the most valuable new test in this project.**
 Four errata came from this cross product and all four were found by someone thinking of the

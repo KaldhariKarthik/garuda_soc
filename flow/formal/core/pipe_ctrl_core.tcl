@@ -1,7 +1,7 @@
 # =============================================================================
 # JasperGold: the pipe_ctrl properties (CORE [N-11.3]) on the WHOLE core.
 #
-# What SymbiYosys could not answer on pipe_ctrl alone (Docs/BUGS.md FV-2, AUD-8):
+# What SymbiYosys could not answer on pipe_ctrl alone (Docs/bugs/archive/BUGS_HISTORY.md FV-2, AUD-8):
 #   - a_no_gate_with_flush is a property of the core, not of pipe_ctrl: each of
 #     its disjuncts fails when pipe_ctrl's inputs are free;
 #   - whether the four hold-against-flush cells (c_h1_vs_redirect,

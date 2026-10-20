@@ -56,7 +56,7 @@ export SDC_FILE = $(GARUDA_ROOT)/flow/constraints/asap7/garuda_div2.sdc
 
 # Floorplan (EXPLORATORY; approved 2026-10-13: 320 x 300 um start, up to
 # 380 x 340 um if channels, the power grid or congestion need it; every
-# change is recorded in Docs/PD_LOG_<date>.md).
+# change is recorded in Docs/logs/pd/PD_LOG_<date>.md).
 export DIE_AREA  ?= 0 0 320 300
 export CORE_AREA ?= 5 5 315 295
 export MACRO_PLACEMENT_TCL = $(GARUDA_ROOT)/flow/pd/asap7/macro_place.tcl

@@ -20,7 +20,7 @@ safe-idle requirement that is cheaper to prove on a counter-compare.
 
 1. **No edits upstream.** If you think you need one, you need a wrapper change.
 2. If a change is genuinely unavoidable (a missing port, say), it goes in
-   `<ip>/patches/*.patch` with a `Docs/BUGS.md` entry saying why. An empty
+   `<ip>/patches/*.patch` with a `Docs/bugs/archive/BUGS_HISTORY.md` entry saying why. An empty
    `patches/` directory is the goal state.
 3. `MANIFEST.yaml` records where each IP came from and at which commit.
    `HASHES.txt` records what we vendored. Run:

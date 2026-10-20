@@ -1,7 +1,7 @@
 # GARUDA — B1.7 reruns on Linux (WSL 2), 2026-10-12
 
 **What this is.** The record of Phase B1.7: the Phase A checks that Windows blocked
-(`Docs/VERIFICATION_LOG_2026-10-11.md` §6), rerun on the Linux toolchain in `flow/pd/TOOLS.md`.
+(`Docs/logs/verification/VERIFICATION_LOG_2026-10-11.md` §6), rerun on the Linux toolchain in `flow/pd/TOOLS.md`.
 The rerun was limited to tools already installed. Icarus, Verilator, a RISC-V GCC, Spike and every
 SMT solver were deferred by decision and are not installed, so most of the list is still blocked.
 
@@ -35,7 +35,7 @@ Repo `main` at `e43672f` (clean before the run). RTL, scripts and file modes unc
 - Remaining warnings: memory-to-register conversions (prefetch buffer, CLIC, FIFOs, PWM, SPI
   slave), legacy `full_case`/`parallel_case` hot comments, limited tri-state support at
   `garuda_chip_top.v:256`, and the expected `core_clk_gate` latch.
-- **Not comparable** to the Genus figure in `Docs/HANDOFF.md` (67,460 cells, 7,909 flops): different
+- **Not comparable** to the Genus figure in `Docs/handoff/HANDOFF.md` (67,460 cells, 7,909 flops): different
   tool, generic cells versus a mapped library, older RTL.
 - **Script observation, unchanged:** `run_synth.sh` prints an empty "design hierarchy" block and no
   cell summary under Yosys 0.68, because its `sed`/`grep` patterns don't match this Yosys's

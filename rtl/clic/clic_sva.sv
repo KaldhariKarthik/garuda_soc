@@ -4,7 +4,7 @@
 // clic_sva.sv
 //
 // Spec: GARUDA-CLIC-SPEC-001 section 10, as amended by the interrupt map of
-// garuda_system.yaml (BUGS.md INT-2, INT-3). Plan: tb/clic/GARUDA_CLIC_vplan.csv;
+// garuda_system.yaml (BUGS_HISTORY.md INT-2, INT-3). Plan: tb/clic/GARUDA_CLIC_vplan.csv;
 // each property below carries the feature it belongs to.
 //
 // Bound to clic_top, so the properties run in the block bench, in the UVM

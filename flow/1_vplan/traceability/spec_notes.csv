@@ -13,7 +13,7 @@ spi slave sck - pclk,3,CHK,S2.CDC.SPIS,Shift register to register layer in garud
 dma_cdc_pulse,3,CHK,S2.CDC.DMA,Event pulses between the DMA engine and its APB side (DMA-5).,"hal CDC checks, clocks declared in flow/2_static",,
 asynchronous pads,3,CHK,S2.CDC.PADS,"UART rx, I2C, GPIO and SPI inputs pass a synchroniser with a defined reset level.","hal CDC checks, clocks declared in flow/2_static",,
 reset synchronisers,3,CHK,S2.CDC.RESET,"Asynchronous assert, synchronous release in reset_ctrl.","hal CDC checks, clocks declared in flow/2_static",,
-Formal (IFV) on pipe_ctrl,2,SECTION,S2.FV,CORE [N-11.2] hold-versus-flush matrix; BUGS.md AUD-8.,,,
+Formal (IFV) on pipe_ctrl,2,SECTION,S2.FV,CORE [N-11.2] hold-versus-flush matrix; BUGS_HISTORY.md AUD-8.,,,
 a_flush_beats_hold_if_id,3,CHK,S2.FV.a_flush_beats_hold_if_id,assert property in rtl/core/pipe_ctrl_sva.sv,"ifv, flow/2_static/fv_pipe_ctrl",,
 a_flush_beats_hold_id_ex,3,CHK,S2.FV.a_flush_beats_hold_id_ex,assert property in rtl/core/pipe_ctrl_sva.sv,"ifv, flow/2_static/fv_pipe_ctrl",,
 a_flush_beats_hold_ex_mem,3,CHK,S2.FV.a_flush_beats_hold_ex_mem,assert property in rtl/core/pipe_ctrl_sva.sv,"ifv, flow/2_static/fv_pipe_ctrl",,

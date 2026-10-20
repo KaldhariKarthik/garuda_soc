@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Reports which cells of the CORE-SPEC [N-11.2] hold x flush matrix any test
-# actually reaches. See Docs/BUGS.md AUD-8.
+# actually reaches. See Docs/bugs/archive/BUGS_HISTORY.md AUD-8.
 set -u
 D=sim/pipe_matrix; mkdir -p "$D"
 xrun -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname "$D/xcelium.d" \

@@ -3,7 +3,7 @@
 **What this is.** The pinned, open-source Linux toolchain for GARUDA physical-design work: what was
 installed, from which commit, by which command, how to check it, and how to remove it. Every version
 and hash below was captured from command output on 2026-10-12; none is typed from memory.
-Session history and decisions are in `Docs/CLAUDE_HANDOFF.md`.
+Session history and decisions are in `Docs/handoff/CLAUDE_HANDOFF.md`.
 
 **Status words.**
 - **validated**: installed, and passed the check named in the row.
@@ -72,7 +72,7 @@ These are in `~/tools/OpenROAD-flow-scripts/dependencies`:
 | clang | `Ubuntu clang version 14.0.0-1ubuntu1.1` | installed |
 | python3 | `Python 3.10.12` | installed (Ubuntu) |
 | libc6 | `2.35-0ubuntu3.15` | upgraded by the install, from 3.13 |
-| z3 | `Z3 version 4.8.12 - 64 bit` (dpkg `4.8.12-1`), installed 2026-10-12 with `apt-get install -y --no-install-recommends z3` (1 new package, 0 upgraded, 0 removed) | **validated**: `pipe_ctrl.sby` 6/6 PASS (`Docs/VERIFICATION_LOG_2026-10-12.md`) |
+| z3 | `Z3 version 4.8.12 - 64 bit` (dpkg `4.8.12-1`), installed 2026-10-12 with `apt-get install -y --no-install-recommends z3` (1 new package, 0 upgraded, 0 removed) | **validated**: `pipe_ctrl.sby` 6/6 PASS (`Docs/logs/verification/VERIFICATION_LOG_2026-10-12.md`) |
 
 ### 2d. Proposed, not installed
 

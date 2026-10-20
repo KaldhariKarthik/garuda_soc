@@ -97,7 +97,7 @@ for t in $TESTS; do
     rc=$?
 
     # PASS needs the bench's pass line, a clean exit status and no tool error or
-    # failed assertion in the log (Docs/BUGS.md TOOL-13).
+    # failed assertion in the log (Docs/bugs/archive/BUGS_HISTORY.md TOOL-13).
     if   grep -q "NOLICN" "$rlog" 2>/dev/null; then th="NOLICENSE"
     elif [ ! -s "$rlog" ];                     then th="NORESULT"
     elif grep -q "FAILED" "$rlog";             then th="FAIL$(grep -oP 'test \K[0-9]+' "$rlog" | head -1)"

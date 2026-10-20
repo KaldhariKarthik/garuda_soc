@@ -38,7 +38,7 @@ F13 Every master reaches every slave it is allowed,2,SECTION,AHB.F13,"No wire is
 cg_reach.x_master_slave,3,COV,AHB.F13.COV1,"Each master to each slave it may address, read and write.",Covergroup in the UVM environment. Planned.,Karthik,
 sb_xfer,3,CHK,AHB.F13.CHK2,Model compare.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,
 F14 What the DMA may reach,2,SECTION,AHB.F14,The system description and this specification allow the DMA to reach ISRAM; the DMA specification (R-9) and the DMA RTL refuse ISRAM and boot ROM addresses. The three have to be made to agree.,Method: review. Today: tb_dma_top [R-9] checks the refusal,Karthik,P2
-review,3,CHK,AHB.F14.CHK1,garuda_system.yaml ahb.master_reachability against DMA R-9.,To be logged in Docs/BUGS.md.,Karthik,
+review,3,CHK,AHB.F14.CHK1,garuda_system.yaml ahb.master_reachability against DMA R-9.,To be logged in Docs/bugs/archive/BUGS_HISTORY.md.,Karthik,
 D Errors,1,SECTION,AHB.D,Spec 7.6. Requirement R-6.,,,
 F15 An undecoded address gives a two-cycle ERROR and never a hang,2,SECTION,AHB.F15,"From any master, read or write, and the bus is usable in the next cycle. Spec [N-7.16], [N-7.18].","Method: formal + sim. Today: tb_ahb_interconnect T3, T3b",Karthik,P1
 a_error_two_cycle,3,CHK,AHB.F15.CHK1,"ERROR is HRESP high with HREADY low, then HRESP high with HREADY high.","SVA in rtl/ahb/ahb_interconnect_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,

@@ -1,7 +1,7 @@
 # GARUDA verification — engineering log
 
 Complete record: what was done, in what order, every bug found, how it was found, and
-how it was fixed. Companion to `Docs/HANDOFF.md` (reference) and `Docs/HOWTO_RUN.md`
+how it was fixed. Companion to `Docs/handoff/HANDOFF.md` (reference) and `Docs/guides/HOWTO_RUN.md`
 (command reference).
 
 ---
@@ -749,8 +749,8 @@ says nothing about the chip.
 
 Work began on the AHB-Lite fabric and APB subsystem. The first thing done was **not**
 fabric RTL; it was closing **BUS-A/B/C/D**, the four AHB-Lite protocol errata the checker
-had found and reported but which had been left open (see `Docs/ORACLES.md` §Oracle 1, and
-`Docs/HANDOFF.md` §11).
+had found and reported but which had been left open (see `Docs/guides/ORACLES.md` §Oracle 1, and
+`Docs/handoff/HANDOFF.md` §11).
 
 The sequencing argument is worth recording, because the tempting order is the wrong one.
 The interconnect is the **first consumer in this project that actually reads HBURST** —

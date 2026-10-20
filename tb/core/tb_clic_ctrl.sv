@@ -15,7 +15,7 @@
 // vectors against the reference expression. [PASS]/[FAIL] per check and a
 // RESULT line, as the Makefile's run_tb_elem expects.
 //
-// Evidence that strict > was exercised (Docs/BUGS.md ELEM-7): covergroup
+// Evidence that strict > was exercised (Docs/bugs/archive/BUGS_HISTORY.md ELEM-7): covergroup
 // cg_lvl bins each compare as below / equal / above, crossed with take, for
 // the coverage report; the same bins are also counted in plain code (Icarus
 // has no covergroups) and the run FAILS if a discriminating case -- level

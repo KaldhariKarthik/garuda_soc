@@ -6,7 +6,7 @@ superseded by `Design_Docs/GARUDA-CORE-SPEC-001.md`) and the RTL in `rtl/core/`.
 
 > **Status at 2026-10-14.** All 14 testbenches ran under Xcelium on 2026-10-04 and pass,
 > with 0 assertion failures. Each first-run failure was a testbench defect, not an RTL
-> defect: TB-27 (soak stimulus not random) and ELEM-1..ELEM-6 (`Docs/BUGS.md` §1h).
+> defect: TB-27 (soak stimulus not random) and ELEM-1..ELEM-6 (`Docs/bugs/archive/BUGS_HISTORY.md` §1h).
 > Open: ELEM-8 (`tb_d_port_ahb_master` withdraws a waited transfer at teardown, seed 1).
 > TB-32 (`tb_garuda_pc_gen` reset edge) is fixed and waits for the lab xrun run.
 > `make regress_all` runs `test_elements`; `make test_core` does not.
@@ -153,7 +153,7 @@ directly, so re-measure after running them:
   actually exercised rather than assumed. The same bins are counted in plain
   code for Icarus, printed as `coverage:` lines, and the run fails if a level
   equal to one bound, with everything else allowing the take, was never
-  applied (Docs/BUGS.md ELEM-7).
+  applied (Docs/bugs/archive/BUGS_HISTORY.md ELEM-7).
 - The wide-bus toggle shortfall the same doc describes is attacked here by
   driving complementary patterns (`0000_0000` / `FFFF_FFFF` / `8081_8283` /
   `AAAA_5555`) and full-range addresses through the datapath elements, rather

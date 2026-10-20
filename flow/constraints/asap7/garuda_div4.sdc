@@ -28,7 +28,7 @@ set_clock_uncertainty -setup 150 [get_clocks refclk] ;# PHYS 5.2: 0.15 ns
 #      Why -edges (2026-10-13, late): a plain -divide_by on QN, and -invert,
 #      each put aon_clk half a period (2000 ps) out of phase with hclk. That was
 #      pessimistic for setup but OPTIMISTIC by 2 ns for hold on hclk<->aon
-#      paths (Docs/PD_LOG_2026-10-13.md §7).
+#      paths (Docs/logs/pd/PD_LOG_2026-10-13.md §7).
 #      aon_clk = t1 (D-14): reset_ctrl stretch/requests/RSTREASON, sel_req_q, and
 #      the negedge sel_act_q (clocked by the QN net directly).
 create_generated_clock -name aon_clk -source [get_ports refclk] -edges {3 5 7} \

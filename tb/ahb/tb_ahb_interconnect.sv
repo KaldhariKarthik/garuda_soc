@@ -335,7 +335,7 @@ module tb_ahb_interconnect;
     function integer n_rsp2; begin n_rsp2 = (u_m2.r_tail - u_m2.r_head + 256) % 256; end endfunction
 
     // -----------------------------------------------------------------------
-    // xorshift PRNG (never $random - see TOOL-4 in Docs/DMA_RTL_LOG.md)
+    // xorshift PRNG (never $random - see TOOL-4 in Docs/logs/rtl/DMA_RTL_LOG.md)
     // -----------------------------------------------------------------------
     reg [31:0] rng;
     function [31:0] rnd;

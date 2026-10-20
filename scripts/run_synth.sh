@@ -16,7 +16,7 @@
 #     every functional test, and is found at STA or, worse, at silicon.
 #   - does the hierarchy actually elaborate with the real leaf cells wired up?
 #
-# CORE-1 in Docs/BUGS.md is exactly the class of defect this catches: RTL that
+# CORE-1 in Docs/bugs/archive/BUGS_HISTORY.md is exactly the class of defect this catches: RTL that
 # means one thing to a simulator and something else to a synthesiser, which had
 # been in the tree for the life of the project.
 #
@@ -52,7 +52,7 @@ mkdir -p "$OUT"
 if ! command -v yosys > /dev/null 2>&1; then
     echo "ERROR: yosys is not on PATH."
     echo "  This machine has no simulator or synthesis tool installed; see"
-    echo "  Docs/RTL_LOG_2026-09-16.md for what has and has not been run."
+    echo "  Docs/logs/rtl/RTL_LOG_2026-09-16.md for what has and has not been run."
     echo "  Install with:  choco install yosys   (or use the oss-cad-suite build)"
     exit 127
 fi
@@ -92,7 +92,7 @@ stat
 # to find. The previous gate grepped the log and printed "No latches
 # inferred" while the netlist contained one: the pattern never matched the
 # text yosys actually writes. A gate that cannot fail is not a gate -- see
-# TOOL-4, TOOL-5 and TB-11 in Docs/BUGS.md for the same defect three times.
+# TOOL-4, TOOL-5 and TB-11 in Docs/bugs/archive/BUGS_HISTORY.md for the same defect three times.
 tee -q -o __LATCHFILE__ select -list t:\$dlatch t:\$_DLATCH_* %u
 EOF
 sed -i "s|__LATCHFILE__|$OUT/latches.txt|" "$OUT/synth.ys"

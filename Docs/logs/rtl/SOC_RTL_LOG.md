@@ -3,9 +3,9 @@
 **Running log for SoC-level RTL: what was built, why it was built that way, and
 what is still unproven.**
 
-This is the counterpart to `Docs/DMA_RTL_LOG.md` (Block 9) and the place where
+This is the counterpart to `Docs/logs/rtl/DMA_RTL_LOG.md` (Block 9) and the place where
 Blocks 3/4/5/6/7/8 and the SoC top will be recorded as they are written. Bugs go
-in `Docs/BUGS.md`, not here — this file is the *reasoning*, that one is the
+in `Docs/bugs/archive/BUGS_HISTORY.md`, not here — this file is the *reasoning*, that one is the
 *register*.
 
 ---
@@ -41,8 +41,8 @@ precisely what is and is not proven.
 | Do the AHB RTL | `rtl/ahb/` — 8 files, 1,212 lines, top `ahb_interconnect`. |
 | Verify the DMA has no bugs **before** wiring | Full DMA regression re-run (72 runs, 49,020 checks, 0 failures) plus a line-by-line review of all 11 DMA RTL files. One new open finding (**DMA-3**). |
 | Wire DMA + DSU + core with AHB | `rtl/soc/garuda_soc_top.v`, and a SoC testbench that runs a real program through all three masters. |
-| A log for the DMA work | `Docs/DMA_RTL_LOG.md` §16 (this session's addendum). |
-| A bugs file for everyone, old and new | `Docs/BUGS.md`. |
+| A log for the DMA work | `Docs/logs/rtl/DMA_RTL_LOG.md` §16 (this session's addendum). |
+| A bugs file for everyone, old and new | `Docs/bugs/archive/BUGS_HISTORY.md`. |
 | A log for the AHB/SoC work | This file. |
 
 ### 2. Files created
@@ -93,7 +93,7 @@ edited** — see §11.
 
 ### 3. The three specification defects, and why each one matters
 
-Full detail is in `Docs/BUGS.md` §2. The short version, because these are the
+Full detail is in `Docs/bugs/archive/BUGS_HISTORY.md` §2. The short version, because these are the
 design content of this block:
 
 **AHB-1 — HWDATA is a data-phase signal.** Spec §3.1 lists HWDATA among the
@@ -308,7 +308,7 @@ state (2), plus the response-hold flops inside each `ahb_master_port`. That is
 consistent with spec §13.2's "~30 gates" claim for the arbiter itself.
 
 **Whole SoC:** was blocked by two **pre-existing** defects in the core and DSU
-(`CORE-1` and `DSU-10` in `Docs/BUGS.md`) — not by anything written this
+(`CORE-1` and `DSU-10` in `Docs/bugs/archive/BUGS_HISTORY.md`) — not by anything written this
 session. Both are now fixed, and `garuda_soc_top` synthesises:
 
 ```
@@ -411,7 +411,7 @@ transcribed from `rtl/dsu/dsu_decoder.v` and commented in the `.S`.
 | **Bus error reaching the CPU as a precise fault** | The default slave's ERROR is verified at the fabric boundary; that it lands as a correct `mepc`/`mcause` in the core has not been tested at SoC level. | Medium |
 | **INCR bursts crossing a region boundary** | The I-Port enforces the 1 KB rule itself (ERRATUM BUS-D) and the decoder is per-transfer, so this should be safe by construction. Not directly tested. | Low |
 | **More than 3 masters / 4 slaves** | The arbiter and muxes are hand-written for exactly this configuration. | Low |
-| **The `v_retract` checker false positive** | `TB-15` in `Docs/BUGS.md`: the protocol checker will flag the DMA's AMBA-legal error cancel the first time a SoC test injects a bus error into a DMA read. | Low |
+| **The `v_retract` checker false positive** | `TB-15` in `Docs/bugs/archive/BUGS_HISTORY.md`: the protocol checker will flag the DMA's AMBA-legal error cancel the first time a SoC test injects a bus error into a DMA read. | Low |
 
 ### 11. Recommended next steps
 
@@ -488,6 +488,6 @@ SoC now synthesises end to end with zero latches.
 **What this is not:** a verified SoC. It has never been compiled by the team's
 simulator, has zero coverage, has no timing constraints, runs against modelled
 memories and a modelled bridge, has never delivered an interrupt, and has never
-moved a byte to or from a real peripheral. And as `TB-11` in `Docs/BUGS.md`
+moved a byte to or from a real peripheral. And as `TB-11` in `Docs/bugs/archive/BUGS_HISTORY.md`
 records — a seed sweep in *this session* that silently was not varying anything —
 a green regression is only as trustworthy as the infrastructure underneath it.

@@ -209,7 +209,7 @@ synth:                                           ## whole chip
 #   make local         all three, in that order
 #
 # Install: unpack the YosysHQ oss-cad-suite and put BOTH lib/ and bin/ on PATH,
-# lib FIRST, and export VERILATOR_ROOT (Docs/BUGS.md TOOL-2, TOOL-3).
+# lib FIRST, and export VERILATOR_ROOT (Docs/bugs/archive/BUGS_HISTORY.md TOOL-2, TOOL-3).
 local_sim:                                       ## all block TBs under Icarus
 	@./scripts/run_sim.sh all
 
@@ -217,7 +217,7 @@ local_synth:                                     ## Yosys + latch gate
 	@./scripts/run_synth.sh garuda_chip_top
 
 # Verilator needs +incdir+, NOT -I with a space: given "-I path" it parses the
-# sources that follow as top-module names (Docs/BUGS.md TOOL-2).
+# sources that follow as top-module names (Docs/bugs/archive/BUGS_HISTORY.md TOOL-2).
 local_lint:                                      ## whole-chip Verilator lint
 	@set -e; \
 	 inc=$$(python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --incdirs \

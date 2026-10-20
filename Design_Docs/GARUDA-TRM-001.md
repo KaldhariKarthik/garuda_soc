@@ -197,7 +197,7 @@ Decode on `HADDR[31:28]`. Sizes in KiB = 1024 bytes.
 | 11 | `0x4000_B000` | 11 | `timers_cfg` |
 
 Window *n* is at `0x4000_0000 + 0x1000 × n` and is decoded from `haddr[15:12]`
-(`Docs/BUGS.md` AUD-2).
+(`Docs/bugs/archive/BUGS_HISTORY.md` AUD-2).
 
 ### 3.4 AHB masters
 
@@ -232,7 +232,7 @@ contradicted each other on where LoRa lived, and both contradicted the DMA spec.
 |---|---|
 | 0 | permanently unassigned sentinel |
 | 1–6 | DMA channel 0–5 complete |
-| 7 | reserved: `mcause` `0x8000_0007` is the machine timer (`Docs/BUGS.md` INT-2) |
+| 7 | reserved: `mcause` `0x8000_0007` is the machine timer (`Docs/bugs/archive/BUGS_HISTORY.md` INT-2) |
 | 8–13 | DMA channel 0–5 error |
 | 14 | `spi_slave` |
 | 15–21 | `spi_master`, `i2c`, `uart0`, `uart1`, `uart2`, `gpio`, `pwm` fault |

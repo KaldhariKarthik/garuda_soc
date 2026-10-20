@@ -158,7 +158,7 @@ now polled PIO (ADR-0015), so the DMA has no boot-time role and no ISRAM path.
 | `dma_req_i` | in | 6 | hclk | — | One per channel, from its peripheral. |
 | `dma_ack_o` | out | 6 | hclk | 0 | One per channel. |
 | `dma_complete_o` | out | 6 | hclk | 0 | To CLIC IDs 1–6. |
-| `dma_error_o` | out | 6 | hclk | 0 | To CLIC IDs 8–13 (ID 7 is reserved, `Docs/BUGS.md` INT-2). |
+| `dma_error_o` | out | 6 | hclk | 0 | To CLIC IDs 8–13 (ID 7 is reserved, `Docs/bugs/archive/BUGS_HISTORY.md` INT-2). |
 | AHB M3 | — | — | hclk | — | Per `GARUDA-AHB-SPEC-001` §5.1. |
 | APB slave | — | — | pclk | — | Window 5. |
 
@@ -248,7 +248,7 @@ Generated from `GARUDA-SYS-001` `dma.assignment`:
 **[N-6.4]** Channel 4 serves the SPI slave (ESP32 / ESP-NOW mesh), **restored and required
 per ADR-0020 Rev 2** (APF's neighbour-position source). Its registers, interrupts and
 arbiter position work, and `rtl/spi_slave/` drives `dma_req_i[4]` (built 2026-09-26,
-`Docs/BUGS.md` §1e). The final pin outcome is gated on OPEN-2 (ADR-0020 Rev 2); with
+`Docs/bugs/archive/BUGS_HISTORY.md` §1e). The final pin outcome is gated on OPEN-2 (ADR-0020 Rev 2); with
 `WITH_SPI_SLAVE = 0` the request is tied low.
 
 **[N-6.5]** The priority order is by consequence of not being serviced. The IMU is the

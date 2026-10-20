@@ -169,7 +169,7 @@ def build(list_unchecked):
     ]:
         rows.append(row(name, 3, "CHK", eid, det, "hal CDC checks, clocks declared in flow/2_static"))
     rows.append(row("Formal (IFV) on pipe_ctrl", 2, eid="S2.FV",
-                    details="CORE [N-11.2] hold-versus-flush matrix; BUGS.md AUD-8."))
+                    details="CORE [N-11.2] hold-versus-flush matrix; BUGS_HISTORY.md AUD-8."))
     for name, kind in sva_names():
         rows.append(row(name, 3, "CHK" if kind == "assert" else "COV", "S2.FV." + name,
                         "%s property in rtl/core/pipe_ctrl_sva.sv" % kind, "ifv, flow/2_static/fv_pipe_ctrl"))

@@ -89,7 +89,7 @@ module tb_clic;
         // The enable mask follows the ID map in garuda_system.yaml (GARUDA_CLIC_ID_MASK).
         // It was 0x007F_9FFE - IDs 13 and 14 masked - from when the SPI slave had
         // been removed; block 14 is back on ID 14 (ADR-0020 Rev 2), the DMA error
-        // lines are on 8..13 and ID 7 is reserved (BUGS.md INT-2, INT-3).
+        // lines are on 8..13 and ID 7 is reserved (BUGS_HISTORY.md INT-2, INT-3).
         check(d == 32'h007F_FF7E, "[N-6.2]/[N-6.3]: IE bits 0, 7, 23-31 hardwired 0");
 
         src = 32'h0000_0402; #1;

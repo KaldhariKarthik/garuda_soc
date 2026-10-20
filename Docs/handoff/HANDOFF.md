@@ -2,8 +2,8 @@
 
 **Status at 2026-10-14.** This file tells the next engineer at the lab machine what passes,
 what waits for a run, and what waits for a decision. The history of the earlier rounds is in
-`Docs/ENGINEERING_LOG.md`, the dated logs and git history. The Linux (WSL) environment and
-physical design are in `Docs/CLAUDE_HANDOFF.md`.
+`Docs/logs/ENGINEERING_LOG.md`, the dated logs and git history. The Linux (WSL) environment and
+physical design are in `Docs/handoff/CLAUDE_HANDOFF.md`.
 
 ---
 
@@ -27,7 +27,7 @@ All results below are from that run unless a row says otherwise.
 ## 2. Run first: changes not yet run on xrun
 
 These changes were made after 2026-10-04 on free tools. Each one is checked by the method
-named in `Docs/BUGS.md` §1k or §1l. None has passed the lab regression yet.
+named in `Docs/bugs/archive/BUGS_HISTORY.md` §1k or §1l. None has passed the lab regression yet.
 
 | Change | Files | Run this |
 |---|---|---|
@@ -54,7 +54,7 @@ Each run must end in `TOHOST=1 -> PASSED`.
 
 ## 3. Decisions the owner must make
 
-Each item is open in `Docs/BUGS.md`. None is an RTL change that a verification engineer can
+Each item is open in `Docs/bugs/archive/BUGS_HISTORY.md`. None is an RTL change that a verification engineer can
 make alone.
 
 | ID | Priority | Decision |
@@ -113,7 +113,7 @@ The vManager flow with coverage is in `flow/COMMANDS.md` ("Stages 3 to 6").
 4. **IMC 15.20 cannot read an Xcelium 22.09 database.** Collect coverage with `irun`. Merge
    with `-initial_model union_all`. Read covergroups with `report -detail -metrics covergroup`.
 5. **Suspect the testbench.** Most first-run failures in this project were testbench
-   defects (`Docs/BUGS.md` §6 and §1h). When the RTL and a model disagree, examine both.
+   defects (`Docs/bugs/archive/BUGS_HISTORY.md` §6 and §1h). When the RTL and a model disagree, examine both.
 
 ## 7. Debug a failing test
 

@@ -326,7 +326,7 @@ computes with `==` rather than `>=`, so it is missed unless the occupancy is
 sampled at exactly the trigger value, and `CTI_i` (character timeout) is tied
 to zero, so a part-full FIFO below the trigger level never raises anything.
 
-Recorded as **ERR-U1** in §15 and in `Docs/BUGS.md`. Deriving our own events
+Recorded as **ERR-U1** in §15 and in `Docs/bugs/archive/BUGS_HISTORY.md`. Deriving our own events
 from `LSR` costs about fifteen lines in the wrapper, needs no patch to
 third-party RTL, and gives firmware the same interrupt model as every other
 GARUDA peripheral. That is the trade D-22 exists to make.
@@ -540,7 +540,7 @@ path cannot reliably signal received data at all.
 
 **Not fixed in the vendored file** (D-22: upstream is never edited). GARUDA
 does not use `uart_interrupt`; the wrapper derives all three events from `LSR`
-([N-7.5]). Firmware must leave `IER` at 0. Recorded in `Docs/BUGS.md`.
+([N-7.5]). Firmware must leave `IER` at 0. Recorded in `Docs/bugs/archive/BUGS_HISTORY.md`.
 
 If this block is ever re-vendored from a newer upstream, **re-check this**: if
 upstream has fixed it, the wrapper still works unchanged, because it does not

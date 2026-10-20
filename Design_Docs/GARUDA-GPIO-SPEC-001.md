@@ -318,7 +318,7 @@ GPIO owns no DMA channel in the Rev 4.0 map. Writing it does nothing.
 
 - **OPEN-G1** ([N-9.3]) — `dft_cg_enable_i` is tied low. Scan insertion must
   drive it from the test-mode signal, which does not exist yet. Part of the DFT
-  gap already recorded in `Docs/HANDOFF.md`.
+  gap already recorded in `Docs/handoff/HANDOFF.md`.
 
 ---
 

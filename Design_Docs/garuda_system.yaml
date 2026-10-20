@@ -215,7 +215,7 @@ apb:
   windows:
     # window 0 is the SPI slave (block 14). It answers only when the chip is built
     # with WITH_SPI_SLAVE = 1; the bonding decision is OPEN-2. Listed here so the
-    # generated map carries its base and index (BUGS.md INT-1).
+    # generated map carries its base and index (BUGS_HISTORY.md INT-1).
     - {index: 0,  base: 0x40000000, block: 14, name: spi_slave}
     - {index: 1,  base: 0x40001000, block: 13, name: spi_master}
     - {index: 2,  base: 0x40002000, block: 15, name: i2c}
@@ -274,7 +274,7 @@ clic:
   map:
     - {id: 0,          source: reserved_sentinel, note: "never assigned; an ID-0 request is a bug indicator"}
     - {id: "1..6",     source: dma_complete_ch0_5, block: 9}
-    # ID 7 is never assigned (BUGS.md INT-2). The core reports a CLIC interrupt as
+    # ID 7 is never assigned (BUGS_HISTORY.md INT-2). The core reports a CLIC interrupt as
     # mcause = 0x8000_0000 | ID and the machine timer as 0x8000_0007, so a source
     # on ID 7 is indistinguishable from the timer in a handler. The DMA error IDs
     # were 7..12; they are 8..13, which also uses the ID that mtip vacated (ADR-0010).

@@ -10,7 +10,7 @@ that meets all of them except formal is "closed for simulation" and says so.
 | 2 | Functional coverage of the vPlan's coverage items | 100% | IMC, covergroup report |
 | 3 | Code coverage on the block's own RTL: block, expression, FSM | at least 95%, and every hole below 100% waived in writing | IMC; waivers in `flow/cov/<blk>_exclusions.tcl`, one reason per line |
 | 4 | Assertions bound to the RTL | every property in the vPlan, 0 failures, each one seen to trigger at least once | simulator assertion summary |
-| 5 | Open bugs against the block | zero P1, zero P2 | `Docs/BUGS.md` |
+| 5 | Open bugs against the block | zero P1, zero P2 | `Docs/bugs/archive/BUGS_HISTORY.md` |
 | 6 | Regression | every test passing over at least 20 seeds, no new failure in the last full run | vManager session |
 | 7 | Lint and clock-domain checks | 0 errors, or each one waived in writing | HAL; `flow/2_static/hal_waivers.txt` |
 | 8 | Register model | reset value, access policy and aliasing tests pass on every register | UVM register tests |

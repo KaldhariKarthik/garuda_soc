@@ -23,7 +23,7 @@
 //      available input to the wrong flag:
 //          .RDA_i ( regs_n[LSR][5] )   <- THRE, the TRANSMIT fifo empty bit
 //      where regs_n[LSR][0] (DR) belongs. Every event this block reports is
-//      derived here from LSR instead ([N-7.5], errata ERR-U1, Docs/BUGS.md).
+//      derived here from LSR instead ([N-7.5], errata ERR-U1, Docs/bugs/archive/BUGS_HISTORY.md).
 //
 //   3. FIFO state as a level. tx_elements/rx_elements are internal signals,
 //      not ports, so - exactly as garuda_spim_top does with the SPI STATUS

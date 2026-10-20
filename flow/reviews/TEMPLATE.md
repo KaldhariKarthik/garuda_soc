@@ -30,6 +30,7 @@ Tick each one that was read in full, and write the path. Anything not read is sa
 | The RTL diff | `git diff <base>..<commit> -- rtl/<blk>` | |
 | The test that fails before the fix (for a fix) | | |
 | Bug entries | `Docs/bugs/track_<x>.md` | |
+| New or changed documents, against the checklist of `Docs/DOC_STANDARD.md` section 6 | | |
 
 ## 2. What was run by the reviewer
 

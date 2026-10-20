@@ -15,7 +15,7 @@
 // foundry stage (ROM compiler fed from the BROM INIT_FILE).
 //
 // The physical size of each block is forced in its ORFS config to the approved
-// dimensions (Docs/PD_LOG_2026-10-13.md §8). Area and timing are EXPLORATORY
+// dimensions (Docs/logs/pd/PD_LOG_2026-10-13.md §8). Area and timing are EXPLORATORY
 // ASSUMPTIONS, not SRAM estimates.
 // =============================================================================
 

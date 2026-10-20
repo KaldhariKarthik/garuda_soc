@@ -132,7 +132,7 @@ module garuda_i2c_top #(
     // the CRG-2 rule. It used to be `preset_n_i & en_q & ~(|abort_q)`: flops
     // behind it, but an AND and a 3-input OR in the reset path, and abort_q is a
     // down-counter whose 4->3 and 2->1 steps move bits in opposite directions,
-    // so the OR could glitch and release the reset mid-abort (HAL GLTASR, BUGS.md
+    // so the OR could glitch and release the reset mid-abort (HAL GLTASR, BUGS_HISTORY.md
     // I2C-5). The flop is loaded from the NEXT values of en_q and abort_q, so it
     // changes in the same cycle the old expression did.
     wire       abort_req = (wr_hit & (ip_paddr == A_CTRL) & pwdata_i[1]) | to_pulse;

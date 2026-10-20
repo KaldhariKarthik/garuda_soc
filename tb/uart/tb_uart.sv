@@ -440,7 +440,7 @@ module tb_uart;
         // test above. The divisor must not be changed under it: the vendored
         // baud counter compares for EQUALITY, so a smaller divisor written
         // mid-frame leaves it counting to the 16-bit wrap - the line stalls for
-        // up to 65 536 pclk and TEMT stays low (BUGS.md UART-3). Firmware has
+        // up to 65 536 pclk and TEMT stays low (BUGS_HISTORY.md UART-3). Firmware has
         // the same obligation: wait for TEMT before touching DLL/DLM.
         wait_temt();
         set_frame(DIV_FAST, 8'h03);

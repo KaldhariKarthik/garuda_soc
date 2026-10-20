@@ -5,7 +5,7 @@
 //
 // Spec: GARUDA-CORE-SPEC-001 [N-11.3], which names these five properties and
 // says: "If there is time for formal on exactly one block, it is this one."
-// They did not exist until now (Docs/BUGS.md AUD-8).
+// They did not exist until now (Docs/bugs/archive/BUGS_HISTORY.md AUD-8).
 //
 // -----------------------------------------------------------------------------
 // WHY A BIND FILE AND NOT ASSERTIONS INSIDE pipe_ctrl.v
@@ -128,7 +128,7 @@ module pipe_ctrl_sva (
     // pipe_ctrl drives it from wfi_hold itself, to bubble EX/MEM while H5 holds
     // ID/EX (ERRATUM P-3), so it is high in every quiescent cycle by
     // construction and wfi_settled has already let that bubble latch. Listing
-    // it made this property fail on every WFI sleep (BUGS.md SVA-1); a trap
+    // it made this property fail on every WFI sleep (BUGS_HISTORY.md SVA-1); a trap
     // squash of EX/MEM is still caught, through trap_redir_v. The raw ex_redir
     // request is not listed either: a JALR parked in EX behind the WFI asks for
     // its redirect all through the sleep and is deferred to the wake (P-5);

@@ -68,7 +68,7 @@ decode 87.5%, dsu 82.0%, alu 100%. The SoC blocks have no covergroups in this ru
 environments added covergroups for CLIC, timers, PWM, GPIO and clock/reset after it.
 
 The SoC-level run was made before the fixes of 2026-10-11 and before the P2 top split. Collect
-it again after the lab run in `Docs/HANDOFF.md` §2.
+it again after the lab run in `Docs/handoff/HANDOFF.md` §2.
 
 ---
 

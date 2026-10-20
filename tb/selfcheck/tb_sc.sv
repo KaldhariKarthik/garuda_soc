@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 // =============================================================================
-// tb_sc.sv - the planted bench of `make selfcheck_runners` (Docs/BUGS.md TOOL-13)
+// tb_sc.sv - the planted bench of `make selfcheck_runners` (Docs/bugs/archive/BUGS_HISTORY.md TOOL-13)
 //
 // A runner that cannot fail is not a check. This bench fails on purpose, in one
 // way per +SC= mode, and `make selfcheck_runners` runs it through every

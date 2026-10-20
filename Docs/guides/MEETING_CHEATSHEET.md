@@ -1,6 +1,6 @@
 # Meeting cheat sheet — one page
 
-**Status at 2026-10-14.** Check each number against `Docs/HANDOFF.md` before a meeting.
+**Status at 2026-10-14.** Check each number against `Docs/handoff/HANDOFF.md` before a meeting.
 
 ## Before you start
 
@@ -10,7 +10,7 @@ source scripts/setup_env.sh      # first, in each new terminal
 make regress                     # run once before the meeting (about 8 min)
 ```
 
-Keep `Docs/BUGS.md` and `Docs/HANDOFF.md` open.
+Keep `Docs/bugs/archive/BUGS_HISTORY.md` and `Docs/handoff/HANDOFF.md` open.
 
 ---
 
@@ -65,10 +65,10 @@ To show the evidence, not only PASS: `head -6 sim/regress/add.commit.log`.
 | Block testbenches | 15, all pass | `make test_blocks` |
 | Chip programs from the pins | 8, all pass, 0 AHB violations | `make test_chip` |
 | UVM planted defects caught | CLIC 5/5, timers 22/23, PWM 20/21, GPIO 18/18, clock/reset 19/21 | BUGS VER-1..VER-6 |
-| Yosys whole chip (2026-10-12) | 72,809 generic cells, 7,032 flops, 1 latch (the ICG) | `Docs/VERIFICATION_LOG_2026-10-12.md` |
-| ASAP7 exploratory P&R (pnr_r7) | 320 × 300 µm, DRC 0, setup and hold met in 4 modes | `Docs/PD_LOG_2026-10-14.md` |
+| Yosys whole chip (2026-10-12) | 72,809 generic cells, 7,032 flops, 1 latch (the ICG) | `Docs/logs/verification/VERIFICATION_LOG_2026-10-12.md` |
+| ASAP7 exploratory P&R (pnr_r7) | 320 × 300 µm, DRC 0, setup and hold met in 4 modes | `Docs/logs/pd/PD_LOG_2026-10-14.md` |
 
-Every planted defect that was not caught has a stated reason in BUGS.md (for example, a
+Every planted defect that was not caught has a stated reason in BUGS_HISTORY.md (for example, a
 one-flop synchroniser that no RTL simulation can see).
 
 ---
@@ -76,7 +76,7 @@ one-flop synchroniser that no RTL simulation can see).
 ## Say these before someone else finds them
 
 - **Some fixes are not yet run on xrun.** T-13, T-14, two UART vendor patches and the
-  physical-design top split were checked on free tools only (`Docs/HANDOFF.md` §2).
+  physical-design top split were checked on free tools only (`Docs/handoff/HANDOFF.md` §2).
 - **One P1 is open: T-12.** A second trap inside an interrupt handler leaves the interrupt
   level wrong. The fix changes what handlers read in `mcause`, so it is the owner's call.
 - **Coverage is collected, not closed.** CLIC, the IF stage, the CSR file and GPIO are the
@@ -92,7 +92,7 @@ one-flop synchroniser that no RTL simulation can see).
 ## Hard questions
 
 **"How do you know the tests test anything?"** Each UVM environment was run against planted
-defects, and the results are in BUGS.md. The Spike lockstep has negative controls.
+defects, and the results are in BUGS_HISTORY.md. The Spike lockstep has negative controls.
 
 **"Why are so many first-run failures testbench defects?"** The same team wrote the tests and
 the RTL from the same reading of the specs. That is why we use independent oracles: Spike,

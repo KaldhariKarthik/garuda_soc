@@ -146,7 +146,7 @@ else
     command -v iverilog > /dev/null 2>&1 || {
         echo "ERROR: iverilog is not on PATH."
         echo "  Portable toolchain: unpack YosysHQ oss-cad-suite and put BOTH"
-        echo "  lib/ and bin/ on PATH, lib FIRST (see Docs/BUGS.md TOOL-3)."
+        echo "  lib/ and bin/ on PATH, lib FIRST (see Docs/bugs/archive/BUGS_HISTORY.md TOOL-3)."
         exit 127
     }
 fi

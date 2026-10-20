@@ -57,7 +57,7 @@ rc=$?
 grep -E "^GENUS_(LATCHES|CELLS|FLOPS)" "$OUT/stdout.log"
 
 # -----------------------------------------------------------------------------
-# Verdict (Docs/BUGS.md TOOL-13). The last command here used to be a grep whose
+# Verdict (Docs/bugs/archive/BUGS_HISTORY.md TOOL-13). The last command here used to be a grep whose
 # pattern also matches the heading "Unresolved References" of the report, so
 # the script returned 0 whatever Genus had found. Now each thing is counted:
 #   Genus ended normally and printed no Error

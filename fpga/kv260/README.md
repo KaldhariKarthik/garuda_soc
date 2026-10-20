@@ -1,6 +1,6 @@
 # GARUDA on KV260 — FPGA prototype
 
-> **Status at 2026-10-14.** The bitstream that ran on 2026-09-29 (`Docs/FPGA_BRINGUP_LOG.md`)
+> **Status at 2026-10-14.** The bitstream that ran on 2026-09-29 (`Docs/logs/fpga/FPGA_BRINGUP_LOG.md`)
 > predates the RTL fixes of 2026-10-04 and later, and the P2 top split (`garuda_chip_top` is
 > now a pin wrapper over `garuda_chip_core`). Build the bitstream again before an FPGA run.
 > `build.tcl` has not been run since the split.

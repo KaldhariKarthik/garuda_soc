@@ -1,7 +1,7 @@
 # =============================================================================
 # Shared settings for the GARUDA mock-memory blocks (ORFS hierarchical BLOCKS).
 # EXPLORATORY. Included by each <block>/config.mk, which sets BLOCK_W/BLOCK_H.
-# Dimensions approved 2026-10-13 (Docs/PD_LOG_2026-10-13.md §8).
+# Dimensions approved 2026-10-13 (Docs/logs/pd/PD_LOG_2026-10-13.md §8).
 # =============================================================================
 export PLATFORM     = asap7
 export VERILOG_FILES = $(GARUDA_ROOT)/flow/pd/asap7/mock/garuda_mock_srams.v

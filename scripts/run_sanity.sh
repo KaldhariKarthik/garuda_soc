@@ -66,7 +66,7 @@ for entry in "${SANITY_TESTS[@]}"; do
 
     # PASS needs the bench's own pass line, a clean exit status, no tool error
     # or failed assertion in the log, and no AHB protocol violation on either
-    # port (Docs/BUGS.md TOOL-13). The log is removed first so that a run that
+    # port (Docs/bugs/archive/BUGS_HISTORY.md TOOL-13). The log is removed first so that a run that
     # never started is not judged on the previous one.
     if   [ ! -s "$RUNDIR/$t.log" ];                      then r=NO-RUN
     elif grep -q "TIMEOUT"            "$RUNDIR/$t.log"; then r=TIMEOUT

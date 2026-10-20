@@ -12,7 +12,7 @@
 # wrote it; the next ORFS stage reads the repaired database.
 #
 # pnr_r7: 15 hold endpoints across the four scenes, 175 buffers inserted,
-# worst hold -261.88 -> +0.07 ps, setup unchanged (Docs/PD_LOG_2026-10-14.md).
+# worst hold -261.88 -> +0.07 ps, setup unchanged (Docs/logs/pd/PD_LOG_2026-10-14.md).
 # =============================================================================
 source $::env(PD_SCRIPTS)/pd_common.tcl
 

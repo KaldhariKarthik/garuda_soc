@@ -19,7 +19,7 @@ module tb_timers_uvm;
     // edges are in the same simulator step and a pclk flop samples an hclk flop's
     // value from BEFORE the shared edge, as it does on silicon with a balanced
     // clock tree. (A divider written "pclk <= ~pclk" puts the pclk edge one delta
-    // after the hclk flops have updated; see BUGS.md SIM-1.)
+    // after the hclk flops have updated; see BUGS_HISTORY.md SIM-1.)
     logic hclk = 0, pclk = 0;
     initial forever begin
         #2 hclk = 1'b1; pclk = ~pclk;

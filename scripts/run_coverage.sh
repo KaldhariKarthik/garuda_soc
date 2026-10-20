@@ -29,7 +29,7 @@
 # use `report -detail -metrics covergroup`, which this script does.
 #
 # A run that fails is reported, NOT merged, and makes the script exit 1, as
-# does an IMC error (Docs/BUGS.md TOOL-14): coverage from a failing run is
+# does an IMC error (Docs/bugs/archive/BUGS_HISTORY.md TOOL-14): coverage from a failing run is
 # coverage of behaviour nobody checked. "Failing" is scripts/sim_verdict.sh's
 # rule - exit status, *E/*F messages, failure lines and the pass marker.
 #

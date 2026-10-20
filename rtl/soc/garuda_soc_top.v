@@ -270,7 +270,7 @@ module garuda_soc_top #(
     // ID 7 is never a CLIC source: mcause 0x8000_0007 is the machine timer, which
     // reaches the core directly (ADR-0010), and a CLIC interrupt reports
     // 0x8000_0000 | ID. The DMA error lines sat on 7-12, so a channel-0 error was
-    // indistinguishable from a timer tick (BUGS.md INT-2). They are 8-13.
+    // indistinguishable from a timer tick (BUGS_HISTORY.md INT-2). They are 8-13.
     assign irq_src[7]     = 1'b0;
     assign irq_src[`GARUDA_CLIC_ID_DMA_ERROR_CH0_5_FIRST +: 6] = dma_error;   // IDs 8-13
     // ID 14 is block 14, the SPI slave (ADR-0020 Rev 2).
@@ -281,7 +281,7 @@ module garuda_soc_top #(
 
     // The enable mask comes from the map. The block's own default still excluded
     // IDs 13 and 14 from when the SPI slave had been removed, so the SPI slave's
-    // interrupt could be wired, pending, and impossible to enable (BUGS.md INT-3).
+    // interrupt could be wired, pending, and impossible to enable (BUGS_HISTORY.md INT-3).
     clic_top #(.IE_MASK(`GARUDA_CLIC_ID_MASK)) u_clic (
         .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .pclk_i(pclk_i), .preset_n_i(preset_n_i),
         .psel_i(psel[`GARUDA_APB_WIN_CLIC_CFG]), .penable_i(penable), .pwrite_i(pwrite),

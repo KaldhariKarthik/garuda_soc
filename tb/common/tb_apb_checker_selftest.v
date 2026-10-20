@@ -2,7 +2,7 @@
 // =============================================================================
 // tb_apb_checker_selftest -- negative control for apb_checker.
 //
-// Docs/ORACLES.md: "A clean report from a checker that has not been shown to
+// Docs/guides/ORACLES.md: "A clean report from a checker that has not been shown to
 // fail is worth nothing." This file exists so that every clean APB report in
 // this project means something.
 //

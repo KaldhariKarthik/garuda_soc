@@ -3,7 +3,7 @@
 **What this is.** A record of the open items closed on 2026-10-11 with free tools on one Windows laptop
 (no Cadence licence), what was run to check each one, and what could **not** be run. Every RTL and
 testbench change listed here still needs the xrun regression at the lab before it counts as closed.
-Read with `Docs/BUGS.md` §1k.
+Read with `Docs/bugs/archive/BUGS_HISTORY.md` §1k.
 
 **What it is not.** Signoff. Nothing here replaces Xcelium, Incisive coverage or Genus.
 

@@ -34,7 +34,7 @@ interaction. A feature row carries its check method (sim, formal, static, chip
 level), an owner and a priority; under it are the named checks, coverage items
 and tests, and what checks it today. The criteria a block has to meet are in
 `flow/0_signoff_criteria.md`. Where a specification is silent or disagrees with
-the RTL the row says so (`Docs/BUGS.md` AUD-12).
+the RTL the row says so (`Docs/bugs/archive/BUGS_HISTORY.md` AUD-12).
 
 A note-by-note traceability list (every `[N-x.y]` in every spec against the check
 that cites it) is in `flow/1_vplan/traceability/spec_notes.csv`:
@@ -171,7 +171,7 @@ grep -E 'RESULT|UVM_ERROR :|clic_scoreboard|APB protocol' $D/random_s7.log
 Look for `RESULT: PASSED`, `UVM_ERROR : 0`, the scoreboard line with 0
 mismatches and `APB protocol checker: 0 violations`. irun prints one tool
 error on every UVM run, `ncsim: *E,IMPDLL`; it does not affect the simulation
-(`Docs/BUGS.md` TOOL-16). The whole regression, 22 runs: `make uvm_clic`
+(`Docs/bugs/archive/BUGS_HISTORY.md` TOOL-16). The whole regression, 22 runs: `make uvm_clic`
 (`SEEDS=50` for more seeds).
 
 Coverage, with the waivers and their reasons:
@@ -212,7 +212,7 @@ The scoreboard line also counts "frames and pulses measured". Those are the
 high time and the length of every undisturbed frame, counted on the four pins
 and compared with DUTY x (PRESCALE + 1) and PERIOD x (PRESCALE + 1) straight
 from the registers. That check does not use the model's counter, and it is the
-one that found the stalled prescaler (`Docs/BUGS.md` PWM-4). The directed test
+one that found the stalled prescaler (`Docs/bugs/archive/BUGS_HISTORY.md` PWM-4). The directed test
 is long (1.7 million cycles) because it runs whole frames at PERIOD 0xFFFF and
 at PRESCALE 0xFFFF. All 22 runs: `make uvm_pwm`.
 
@@ -245,7 +245,7 @@ for the pad cells (they are at the chip top). The scoreboard line ends with
 what was checked "from the pads alone": settled pad levels against PADIN reads,
 and pad edges against the interrupt line, with no model of the synchroniser in
 between. The vendored block and the specification disagree in five places
-(`Docs/BUGS.md` GPIO-2); the model follows the block and each place is marked
+(`Docs/bugs/archive/BUGS_HISTORY.md` GPIO-2); the model follows the block and each place is marked
 in `tb/gpio/uvm/gpio_env_pkg.sv`. All 22 runs: `make uvm_gpio`.
 
 ### The same for the clock divider and the reset controller
@@ -309,7 +309,7 @@ tests let the watchdog expire on purpose. All 22 runs: `make uvm_timers`.
 
 Two things in this bench are worth reading. `tb_timers_uvm.sv` makes hclk and
 pclk in one `initial` block with blocking assignments; a divider written
-`pclk <= ~pclk` gives a different `WDTVAL` read by one count (`Docs/BUGS.md`
+`pclk <= ~pclk` gives a different `WDTVAL` read by one count (`Docs/bugs/archive/BUGS_HISTORY.md`
 SIM-1; the chip's own divider is written that way since 2026-10-14, CLKRST
 [N-7.3a]). And the reset controller is replaced by a ten-line stand-in, because a
 watchdog expiry resets the block under test in the middle of a run.
@@ -551,7 +551,7 @@ Change `+UVM_TESTNAME` for another test (the names are the files in
 `garuda_spim_top`, in `tb/spi_master/uvm_mirafra/hdl_top.sv`. Results of all 51
 tests are in `sim/uvm_spim/all_tests.txt`: 16 clean, 35 flagged by the environment's
 write-path-only scoreboard, identical to the same run on Mirafra's own RTL
-(`Docs/BUGS.md` VIP-1).
+(`Docs/bugs/archive/BUGS_HISTORY.md` VIP-1).
 
 Waveforms for one test in SimVision (Xcelium):
 
@@ -602,7 +602,7 @@ make local_lint                                  # whole-chip Verilator lint
 ```
 
 A bench that ends NO-VERDICT has not run (on Windows, check whether Smart App
-Control refused the binary). Results of 2026-10-11: `Docs/VERIFICATION_LOG_2026-10-11.md`.
+Control refused the binary). Results of 2026-10-11: `Docs/logs/verification/VERIFICATION_LOG_2026-10-11.md`.
 
 ---
 
@@ -668,6 +668,6 @@ It prints and writes `flow/formal/gpio_unr.result.txt`: each waiver CONFIRMED, R
 
 ## Where the results are written down
 
-- `Docs/BUGS.md` section 1h: every defect found on 2026-10-04, the tool or test
+- `Docs/bugs/archive/BUGS_HISTORY.md` section 1h: every defect found on 2026-10-04, the tool or test
   that found it, and its status.
 - `flow/2_static/hal_waivers.txt`: the lint and clock-domain items accepted.

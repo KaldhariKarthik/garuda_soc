@@ -207,7 +207,7 @@ class crg_directed_test extends crg_base_test;
         expect_rd(12'h004, 32'h200, "DIVSEL survives a software reset");
         expect_rd(12'h008, 32'h102, "the ratio in effect survives a software reset");
         // a software reset written with other DIVSEL bits: the write is cut short by the reset
-        // it causes, so the ratio does not change (BUGS.md CRG-3)
+        // it causes, so the ratio does not change (BUGS_HISTORY.md CRG-3)
         wr(12'h004, 32'h001); wait_reset();
         expect_rd(12'h004, 32'h200, "DIVSEL after a reset written with DIVSEL bits 00");
         wr(12'h000, 32'h8);

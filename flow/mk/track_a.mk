@@ -191,7 +191,7 @@ BOOT_ARGS = -f tb/soc/filelist_boot.f -top tb_boot
 
 # boot_run <log name> <hex> <commit log name> <plusargs> <lines to show>
 # One program on tb_boot. Passes only on the bench's own "TOHOST=1 -> PASSED"
-# with a clean exit and no error line (Docs/BUGS.md TOOL-13): the grep that shows
+# with a clean exit and no error line (Docs/bugs/archive/BUGS_HISTORY.md TOOL-13): the grep that shows
 # the result used to be the recipe's exit status, and it matches FAILED as well.
 define boot_run
 	@mkdir -p $(SIM_DIR)/tb_boot && rm -f $(SIM_DIR)/tb_boot/$(1).log; \

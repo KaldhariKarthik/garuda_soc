@@ -1,29 +1,29 @@
 # GARUDA SoC: bug register, track A
 
-Core, DSU, AHB interconnect, AHB2APB bridge, DMA, debug and memories. Kept by the owner
-of track A. `Docs/BUGS.md` is the register up to 2026-10-05 and is history: it gets no new
+Core, DSU, AHB interconnect, AHB2APB bridge, DMA, debug, memories and physical design.
+Kept by the owner of track A. Write each entry to `Docs/DOC_STANDARD.md`. `Docs/bugs/archive/BUGS_HISTORY.md` is the register up to 2026-10-05 and is history: it gets no new
 entries. Track B's entries are in `Docs/bugs/track_b.md`.
 
 ## How entries are numbered
 
 | Kind of entry | ID | Next free on 2026-10-11 |
 |---|---|---|
-| A block of this track | the block's own prefix, continuing the numbers of `Docs/BUGS.md` | T-16, C-17, CORE-4, DSU-14, AHB-6, BRG-2, APB-2, DMA-9, DBG-4, RDC-2; MEM-1 is new |
+| A block of this track | the block's own prefix, continuing the numbers of `Docs/bugs/archive/BUGS_HISTORY.md` | T-16, C-17, CORE-4, DSU-14, AHB-6, BRG-2, APB-2, DMA-9, DBG-4, RDC-2; MEM-1 is new |
 | Anything that is not one block (tools, benches, audits, lint, simulation, verification runs) | the old prefix with the track letter | TOOL-A1, TB-A1, ELEM-A1, AUD-A1, VER-A1, FV-A1 (TOOL-17, TB-34, TB-35 and FV-2 of section 1k were the last without a track letter) |
 
 A block prefix belongs to the block's track, and a prefix that is not a block carries the
 track letter, so the two tracks cannot take the same ID. An ID is never reused or
 renumbered. `make check_tree` fails when an ID is defined twice.
 
-Status words are those of `Docs/BUGS.md`: `OPEN`, `FIXED`, `WAIVED`, `SPEC`, `DONE`.
+Status words are those of `Docs/bugs/archive/BUGS_HISTORY.md`: `OPEN`, `FIXED`, `WAIVED`, `SPEC`, `DONE`.
 Priority: P1 wrong behaviour in the field, P2 wrong behaviour that needs an unusual
 condition or a verification hole that could hide one, P3 everything else.
 An entry marked FIXED names the test that fails without the fix.
 
-## Carried over from `Docs/BUGS.md`
+## Carried over from `Docs/bugs/archive/BUGS_HISTORY.md`
 
 Entries of this track that were open when the register was split. The full text of each
-is in `Docs/BUGS.md` under its ID; this table says what was decided and what was done.
+is in `Docs/bugs/archive/BUGS_HISTORY.md` under its ID; this table says what was decided and what was done.
 Task numbers are those of the plan of 2026-10-10.
 
 | ID | Subject | Ruling | Task | State | What was done |
@@ -49,13 +49,15 @@ Task numbers are those of the plan of 2026-10-10.
 | AUD-9 | DSU port names diverge from the specification | To be dispositioned | 0.15 | OPEN | |
 | AUD-11 (track A rows) | Planned tests and assertions of the specifications not all written; DEBUG R-8 against D-18 | Closed block by block as each reaches the bar | 0.15, WP5, 6A | OPEN | |
 | CORE-2 | Unused parameter in `garuda_core_top` and `csr_file` | To be dispositioned | 0.15 | OPEN | |
-| ELEM-7 | `Docs/CORE_ELEMENT_VERIFICATION.md` cites covergroups that do not exist | To be dispositioned | 0.15 | OPEN | |
+| ELEM-7 | `Docs/guides/CORE_ELEMENT_VERIFICATION.md` cites covergroups that do not exist | To be dispositioned | 0.15 | OPEN | |
 | FV-1 | IFV run not possible (no licence) | Superseded by JasperGold, run on K's machine | 5.7 | DONE 2026-10-14 in JasperGold (the IFV run stays impossible: no licence) | See AUD-8 above: the run that entry waited for, in JasperGold in place of IFV. `flow/2_static/fv_pipe_ctrl/prove.tcl` and `files.f` are the IFV setup and are superseded by `flow/formal/core/`. |
 | TOOL-12 | Lockstep does not read Spike's exit status | Exit status read | 1.1 | FIXED 2026-10-11 (`c22c00e`) | `tools/lockstep.py` reads Spike's exit status. Used in the 64-test run above: 58 MATCH. |
+| PD-1 | The `GARUDA_SRAM_BLACKBOX` branch of `rtl/mem/sram_wrapper.v` is a constant-0 register, not a black box | Not given yet. Proposed: a real `(* blackbox *)` module, or remove the branch (RTL change, needs approval) | none yet | OPEN (carried over 2026-10-21) | Not fixed. A synthesis that defines `GARUDA_SRAM_BLACKBOX` folds every fetch and load to 0 and can remove large parts of the core. `scripts/run_genus.sh` defines it, so its cell and flop counts can be too low. The ORFS flow does not use it: it uses the named macros of P3. |
+| TOOL-18 | OpenROAD `26Q4-110-g91e5f5ff2f` stops with Signal 11 in CTS-stage hold repair | Tool defect. Report it upstream | none yet | OPEN (tool; carried over 2026-10-21) | Not reported upstream. It occurred in pnr_r1 and pnr_r3, with approximately 1,700 hold violations. With the CTS fix of PD-7 it did not occur again (pnr_r4 to pnr_r7). Two crash dumps (1.6 GB each, 2026-10-14) are in the Windows folder `%LOCALAPPDATA%\Temp\wsl-crashes`; keep them only if the defect is reported. |
 
-### Carried over from section 1m of `Docs/BUGS.md` (2026-10-14)
+### Carried over from section 1m of `Docs/bugs/archive/BUGS_HISTORY.md` (2026-10-14)
 
-Defined in `Docs/BUGS.md` section 1m (pushed 2026-10-14, `868118a`); the state as of 2026-10-15.
+Defined in `Docs/bugs/archive/BUGS_HISTORY.md` section 1m (pushed 2026-10-14, `868118a`); the state as of 2026-10-15.
 
 | ID | Subject | Ruling | Task | State | What was done |
 |---|---|---|---|---|---|

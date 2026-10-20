@@ -16,12 +16,15 @@ The repository is public. It fails, naming each file and line, on:
      not tracked (copy scripts/local_env.sh.example). Logs and hand-off notes
      that quote it as history are listed in HISTORY below.
   3. a bug ID defined twice. A definition is a table row whose first cell is the
-     ID, or a heading that starts with it, in Docs/BUGS.md; in the two track
+     ID, or a heading that starts with it, in Docs/bugs/archive/BUGS_HISTORY.md; in the two track
      files, Docs/bugs/track_a.md and track_b.md, only the rows with the ID in
-     bold are definitions (the plain rows there carry over entries of BUGS.md).
-     Six IDs were defined twice in Docs/BUGS.md before the register was split
+     bold are definitions (the plain rows there carry over entries of BUGS_HISTORY.md).
+     Six IDs were defined twice in Docs/bugs/archive/BUGS_HISTORY.md before the register was split
      into tracks; they are history and are listed in OLD_DUPLICATES. The section
-     "1. Open items" of Docs/BUGS.md is an index of IDs and is not read.
+     "1. Open items" of Docs/bugs/archive/BUGS_HISTORY.md is an index of IDs and is not read.
+  4. a file in the Docs/ root that is not in DOCS_ROOT. New documents go in the folders
+     of Docs/README.md; new defects go in the track registers, not in the archive
+     (Docs/DOC_STANDARD.md section 1).
 """
 import re
 import subprocess
@@ -33,10 +36,13 @@ BAD_EXT = (".lib", ".db", ".lef", ".tlef", ".gds", ".gds2", ".oas", ".tf", ".ndm
            ".ict", ".qrctechfile", ".lic")
 BAD_NAME = ("license.dat",)
 # files that quote the licence address as a record of what was done on a date
-HISTORY = ("Docs/HANDOFF.md", "Docs/VERIFICATION_LOG_2026-07-29.md", "tools/check_tree.py")
+HISTORY = ("Docs/handoff/HANDOFF.md", "Docs/logs/verification/VERIFICATION_LOG_2026-07-29.md", "tools/check_tree.py")
 ADDR = re.compile(r"\b\d{3,5}@(?:\d{1,3}\.){3}\d{1,3}\b")
 OLD_DUPLICATES = ("AUD-8", "ELEM-4", "TB-15", "TB-16", "TOOL-5", "TOOL-6")
 ID = r"[A-Z][A-Z0-9]{0,5}-[A-Z]?\d+[a-z]?"
+# the only files allowed directly in Docs/ (Docs/README.md, "Folder map")
+DOCS_ROOT = ("Docs/README.md", "Docs/DOC_STANDARD.md", "Docs/DECISIONS.md", "Docs/COVERAGE.md",
+             "Docs/THIRD_PARTY_NOTICES.md")
 
 
 def main():
@@ -60,15 +66,19 @@ def main():
             if ADDR.search(line):
                 bad.append("licence server address in %s:%d (it belongs in scripts/local_env.sh, untracked)" % (f, n))
 
+    for f in files:
+        if f.startswith("Docs/") and f.count("/") == 1 and f not in DOCS_ROOT:
+            bad.append("file in the Docs/ root: %s (put it in a folder of Docs/README.md)" % f)
+
     seen = {}
-    for f, bold_only in (("Docs/BUGS.md", False), ("Docs/bugs/track_a.md", True), ("Docs/bugs/track_b.md", True)):
+    for f, bold_only in (("Docs/bugs/archive/BUGS_HISTORY.md", False), ("Docs/bugs/track_a.md", True), ("Docs/bugs/track_b.md", True)):
         p = os.path.join(ROOT, f)
         if not os.path.exists(p):
             continue
         index = False
         for n, line in enumerate(open(p).read().split("\n"), 1):
             # a summary table that lists open entries by ID (the "Open items" section of
-            # Docs/BUGS.md, added 2026-10-14) refers to entries; it does not define them
+            # Docs/bugs/archive/BUGS_HISTORY.md, added 2026-10-14) refers to entries; it does not define them
             if line.startswith("## "):
                 index = line.lower().startswith("## 1. open items")
             if index:

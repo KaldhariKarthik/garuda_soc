@@ -216,7 +216,7 @@ module tb_top;
     // guard = 1 also raises expect_no_pop, in the same half-cycle as the
     // redirect itself. Callers used to raise it before calling, which in the
     // soak loop was a full cycle early - a legitimate pop of the old stream,
-    // BEFORE the redirect, was reported as stale (BUGS.md ELEM-5).
+    // BEFORE the redirect, was reported as stale (BUGS_HISTORY.md ELEM-5).
     task automatic do_redirect(bit [31:0] tgt, bit guard = 1'b0);
         @(negedge clk);
         vif.redirect    = 1'b1;
@@ -260,7 +260,7 @@ module tb_top;
         @(negedge clk); vif.stall = 1; #1;
         begin
             // assigned, not initialised: an initialiser on a static variable
-            // runs once at time 0, when popped is still 0 (BUGS.md ELEM-5)
+            // runs once at time 0, when popped is still 0 (BUGS_HISTORY.md ELEM-5)
             int popped_before;
             popped_before = popped;
             repeat (6) tick();

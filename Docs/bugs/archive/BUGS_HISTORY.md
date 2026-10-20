@@ -1,4 +1,12 @@
-# GARUDA SoC — bug register
+# GARUDA SoC — bug register (ARCHIVE, closed 2026-10-21)
+
+> **ARCHIVE. Do not add entries to this file.** It was `Docs/BUGS.md`. It is the history of
+> the project up to its last entry (TOOL-28, 2026-10-16). New entries go in
+> `Docs/bugs/track_a.md` (core, DSU, AHB, bridge, DMA, debug, memories, physical design) or
+> `Docs/bugs/track_b.md` (peripherals, clocks and resets, chip top, software, FPGA, flow).
+> Every entry of this file that was not closed on 2026-10-21 is listed under "Carried over"
+> in its track register, with its current state. The IDs in this file stay valid: other
+> files refer to them, and an ID is never reused or renumbered.
 
 **Every bug, erratum and specification defect found in this project, in one place.**
 Not per-block: a bug that crosses a boundary belongs in one list, and the
@@ -16,8 +24,8 @@ cross-block ones are the expensive ones.
 Last updated: 2026-10-14 (§1l physical design; DOC-1 documentation sync). Covers every
 block of `Design_Docs/garuda_system.yaml`, the testbenches, the tools and physical design.
 
-Related: `Docs/DECISIONS.md` (rulings), `Docs/HANDOFF.md` (what to run next),
-`Docs/SOC_RTL_LOG.md` and `Docs/DMA_RTL_LOG.md` (narratives of the early blocks).
+Related: `Docs/DECISIONS.md` (rulings), `Docs/handoff/HANDOFF.md` (what to run next),
+`Docs/logs/rtl/SOC_RTL_LOG.md` and `Docs/logs/rtl/DMA_RTL_LOG.md` (narratives of the early blocks).
 
 ---
 
@@ -67,7 +75,7 @@ every entry that is not closed.
 
 **Track A (§1m, 2026-10-14):** more open core and DSU entries (T-16..T-18, BUS-E, C-17, CORE-4, DSU-14..18, TB-39..TB-48). T-12, RDC-1 and C-16 have fixes in progress on branch `a/core-dsu`, not yet merged to main.
 
-**Waiting for the lab xrun run** (fixed on free tools, `Docs/HANDOFF.md` §2): T-13, T-14,
+**Waiting for the lab xrun run** (fixed on free tools, `Docs/handoff/HANDOFF.md` §2): T-13, T-14,
 UART-3, UART-4, PWM-3, TB-30, TB-32, TB-35, and chip-level simulation of P2 (PD-3).
 
 **The four most instructive entries, if you read nothing else:**
@@ -93,7 +101,7 @@ marked *proved* were re-run against the reverted RTL to show it.
 
 | ID | Block | Status | Severity | Summary | Found by | Test |
 |---|---|---|---|---|---|---|
-| **OVF-1** | 2 DSU | FIXED | high (wrong overflow flag, top quarter of range) | 48-bit carry-save path dropped `maj[47]`; the adder's bit 48 carried no sign. Path widened to 49 bits, operands sign-extended before compression; `DSUModel` updated. Was open since `Docs/ORACLES.md` found it and missing from this register. Closes OPEN-9. | ArchDSU oracle sweep | `test_dsu` + clamp walk 33 168/0; oracle sweep 0/2000 at every magnitude (was 845–1023/2000) |
+| **OVF-1** | 2 DSU | FIXED | high (wrong overflow flag, top quarter of range) | 48-bit carry-save path dropped `maj[47]`; the adder's bit 48 carried no sign. Path widened to 49 bits, operands sign-extended before compression; `DSUModel` updated. Was open since `Docs/guides/ORACLES.md` found it and missing from this register. Closes OPEN-9. | ArchDSU oracle sweep | `test_dsu` + clamp walk 33 168/0; oracle sweep 0/2000 at every magnitude (was 845–1023/2000) |
 | **T-8** | 1 core | FIXED, *proved* | medium (core sleeps forever) | `wfi_active` cleared only on a CLIC wake while `wfi_hold` released on CLIC **or** timer: after a timer-only WFI wake, clearing MTIP re-froze the pipeline. | RTL audit | `t_mtip` (sanity); fails with the old term |
 | **C-5** | 1 core | FIXED | medium (undefined bus traffic) | Reserved funct3 of JALR/BRANCH/LOAD/STORE, SYSTEM funct3=100 and non-architectural funct3=000 SYSTEM words decoded as legal: silent NOPs, not-taken branches, HSIZE=64-bit on AHB. Now illegal-instruction, as Spike. | RTL audit | `test_decode_control`, `test_id_stage` (models updated), ISA 63/63 |
 | **CORE-3** | 1 core | FIXED | low | `RESET_VECTOR` parameter ignored (`garuda_pc_gen` hard-coded it). | RTL audit | chip tests boot from the parameter |
@@ -105,7 +113,7 @@ marked *proved* were re-run against the reverted RTL to show it.
 | DMA-4/5/6 | 9 DMA | MOOT | — | All three were properties of the deleted CDC / Rev 2.x register bank. | — | — |
 | ELEM-1..6 | TB | **FIXED 2026-10-04, all six were testbench defects (§1h)** | low | First-ever run of the 14 per-element TBs (Sep 2): 8 pass. `pc_gen` scoreboard samples one cycle late (its own SVA on the RTL passes); `prefetch_buffer` stimulus overfills the FIFO, violating the I-port slot-reservation contract; `iport` SVA encodes the pre-BUS-A HBURST; `load_store_unit` TB has a SystemVerilog syntax error (line 114); `if_stage_top`, `mem_stage` not yet triaged. The RTL they target is covered by ISA 63/63 lockstep incl. random waits. | `make test_elements` | owner: element-TB author |
 | **ELEM-4** | TB | **FIXED: changed by inspection 2026-10-03, verified under Xcelium 2026-10-04 (§1h, ELEM-4)** | low | The nested implications in `tb_load_store_unit.sv`'s `constraint c_alignment` are rewritten as flat implications with a conjunction on the left: `A -> (B -> C)` and `(A && B) -> C` are the same proposition, so semantics and the stimulus distribution are unchanged, and there is no nesting left to parse. Done this way because **the tools disagree about the spelling**: Verilator accepts the parenthesised form and rejects the braced `constraint_set` form, xrun the other way round. **This is not locally verifiable and must be confirmed under xrun** — Icarus cannot parse the file at all (no concurrent-assertion support, which blocks **13 of the 14** element TBs), and Verilator parses it and then **segfaults** on 13 of 14, so its "0 errors" is not evidence either. What *is* evidence: at the parse stage Verilator reports 5 errors for the braced form and 0 for this one. | xrun; re-checked with Verilator | `make test_elements` |
-| **ELEM-7** | docs, `tb/core/tb_clic_ctrl.sv` | **FIXED** (2026-10-15: the covergroup is written; the doc now describes it) | low | `Docs/CORE_ELEMENT_VERIFICATION.md:157` cites covergroups `cp_lvl_vs_thresh` / `cp_lvl_vs_active` in `tb_clic_ctrl.sv` as the evidence that the strictly-greater-than threshold (test C24) was *"actually exercised rather than assumed"*. **That file is 74 lines and contains no covergroup and no SVA at all** — 9 directed vectors plus 5000 `$urandom` applications. The documented evidence does not exist. (It is also, not coincidentally, the only one of the 14 element TBs Icarus can compile, precisely because it has no SVA.) | reading the file against the doc | Covergroup `cg_lvl` added (`cp_lvl_vs_thresh`, `cp_lvl_vs_active`, their 3x3 cross), with the same bins counted in plain code so Icarus checks them too; the run fails if either equality case is never applied. The same change fixes a `[PASS]` line that was printed after every vector, failed or not (`c_ok()` always returned 1). Icarus and Verilator: 20044 checks pass, `cg_lvl` 100 %; a `>=` mutant fails. |
+| **ELEM-7** | docs, `tb/core/tb_clic_ctrl.sv` | **FIXED** (2026-10-15: the covergroup is written; the doc now describes it) | low | `Docs/guides/CORE_ELEMENT_VERIFICATION.md:157` cites covergroups `cp_lvl_vs_thresh` / `cp_lvl_vs_active` in `tb_clic_ctrl.sv` as the evidence that the strictly-greater-than threshold (test C24) was *"actually exercised rather than assumed"*. **That file is 74 lines and contains no covergroup and no SVA at all** — 9 directed vectors plus 5000 `$urandom` applications. The documented evidence does not exist. (It is also, not coincidentally, the only one of the 14 element TBs Icarus can compile, precisely because it has no SVA.) | reading the file against the doc | Covergroup `cg_lvl` added (`cp_lvl_vs_thresh`, `cp_lvl_vs_active`, their 3x3 cross), with the same bins counted in plain code so Icarus checks them too; the run fails if either equality case is never applied. The same change fixes a `[PASS]` line that was printed after every vector, failed or not (`c_ok()` always returned 1). Icarus and Verilator: 20044 checks pass, `cg_lvl` 100 %; a `>=` mutant fails. |
 
 Spec defects resolved by ruling rather than RTL are D-5..D-20 in `Docs/DECISIONS.md`.
 
@@ -210,7 +218,7 @@ with no generator behind them. Everything the toolchain touches was correct.
 
 Found while extending `scripts/run_sim.sh` from 5 of the 15 block testbenches to
 all of them, and getting whole-chip Verilator lint and Yosys synthesis to run.
-Full results and tool versions: `Docs/VERIFICATION_LOG_2026-10-03.md`.
+Full results and tool versions: `Docs/logs/verification/VERIFICATION_LOG_2026-10-03.md`.
 
 **Every entry here is a check that was reporting a result it had not measured.**
 That is this register's own recurring defect — `TOOL-4`, `TB-11` and the static
@@ -244,7 +252,7 @@ where `.gitignore` does **not** cover them.
 
 ## 1g. The APB protocol checker — 2026-10-03
 
-`Docs/HANDOFF.md` section 11, step 3, written before any of this hardware
+`Docs/handoff/HANDOFF.md` section 11, step 3, written before any of this hardware
 existed: *"Write the APB protocol checker BEFORE the bridge ... A bridge built
 before its oracle is a bridge nobody is looking at."* The bridge was built, so
 were the shim and all seven peripherals, and the checker was not. The nearest
@@ -381,7 +389,7 @@ alongside this section. The section 1 summary counts have not been updated for t
 | **ELEM-8** | `tb/core/tb_d_port_ahb_master.sv` | OPEN (testbench) | **The soak's teardown withdraws a transfer still waiting in its address phase.** The loop re-rolls the request only while `mem_stall` is low (lines 361-367), but line 372 drops `start` at the next negedge after the 600th iteration without waiting for the access to finish. With Verilator 5.052's default seed the last access is a NONSEQ to `0xE4590028` held by HREADY low at 6255 and 6265 ns; `start` falls at 6270 ns, HTRANS returns to IDLE and `a_addr_stable` fails at 6275 ns, yet the bench prints 67 of 67 checks passed. Of seeds 1 to 12 (1 is the default) only seed 1 fails. Lines 368-369 also draw HREADY and HRESP independently, so all 17 soak ERROR responses in that run last one cycle, which AHB-Lite does not allow. HTRANS follows `start_i` combinationally, relying on the pipeline hold; no confirmed RTL defect. Found by: a Verilator run of the element bench, traced with a bound SV monitor. |
 | **TOOL-12** | `tools/lockstep.py` | **FIXED 2026-10-11** (§1k) | **The Spike lockstep says MATCH when Spike's log is the one that ends early.** It compares the first `min(len(gold), len(rtl))` commits (line 159) and fails only an RTL log more than 3 short (168-172); when it runs Spike it does not read Spike's exit status (146), and only an empty Spike log is rejected (154). Negative control: the `add` Spike log cut to its first 213 commits (full log 428, RTL 427) prints `MATCH: 213 instructions identical` and exits 0. `scripts/run_regression.sh` and `flow/regress/run_test.sh` treat that line as a pass, so a Spike run that died part-way would leave the rest of the test checked only by its tohost self-check. Also failing when `len(rtl) - len(gold) > 3` closes it. By design only (pc, rd, value) is compared; CSR side effects and store data are not (lines 17-25). Found by: negative control N4 (truncated Spike log). |
 | **TOOL-13** | `Makefile`, `scripts/run_sim.sh` | **FIXED 2026-10-11** (§1k) | **The Makefile's simulation macros and the Icarus runner never use the simulator's exit status.** Under `SIM=xrun`, `run_test` (lines 42-49), `run_tb_top` (119-128), `run_tb_elem` (173-184) and `run_blk` (215-223) run `$(XRUN) ...;` and then grep or printf the log; each recipe ends in printf, a grep with an echo fallback or a grep piped into head, so the target exits 0 whatever xrun returned. TOOL-11's SVA_FAIL count is printed, not returned. In `scripts/run_sim.sh`, `run_one` checks vvp's status only for the timeout code 124 (line 158) and returns 0; `verdict_of` (172-186) uses the last PASSED, FAILED or TIMEOUT word and the `[FAIL]` count. Exit status alone is not enough either: Verilator 5.052 with `+verilator+error+limit+1000` exited 0 after 8 assertion failures. A sound verdict needs exit status, pass marker and failure counts together. Found by: code reading during the independent audit; the Verilator figure comes from an SVA self-test. |
-| **TOOL-14** | `scripts/run_coverage.sh` | **FIXED 2026-10-11** (§1k) | **The older coverage script cannot fail because a test failed.** `scripts/run_coverage.sh` sets only `set -u` (line 33), discards each `irun -R` run's console output without reading its exit status (88-91) and judges the run only by grepping its log for the TOHOST pass marker (93-95), so a run with assertion failures can still read PASS; a FAIL or TIMEOUT run's scope is merged anyway (97). The six unit benches are judged by `[FAIL]` lines only (134), without the `*E,ASRTST` count TOOL-11 added to the Makefile, and are merged regardless (136). IMC errors are only printed (159) and the script ends on an `echo` (168), so it exits 0 unless elaboration fails or no scope exists (57-59, 140). `make coverage`, `Docs/COVERAGE.md:49` and `Docs/HANDOFF.md:403` still point to it; the vManager flow (`flow/regress/run_test.sh:94-97`) fails a run on any `*E`. Found by: reading the script after TOOL-11. |
+| **TOOL-14** | `scripts/run_coverage.sh` | **FIXED 2026-10-11** (§1k) | **The older coverage script cannot fail because a test failed.** `scripts/run_coverage.sh` sets only `set -u` (line 33), discards each `irun -R` run's console output without reading its exit status (88-91) and judges the run only by grepping its log for the TOHOST pass marker (93-95), so a run with assertion failures can still read PASS; a FAIL or TIMEOUT run's scope is merged anyway (97). The six unit benches are judged by `[FAIL]` lines only (134), without the `*E,ASRTST` count TOOL-11 added to the Makefile, and are merged regardless (136). IMC errors are only printed (159) and the script ends on an `echo` (168), so it exits 0 unless elaboration fails or no scope exists (57-59, 140). `make coverage`, `Docs/COVERAGE.md:49` and `Docs/handoff/HANDOFF.md:403` still point to it; the vManager flow (`flow/regress/run_test.sh:94-97`) fails a run on any `*E`. Found by: reading the script after TOOL-11. |
 | **TOOL-15** | `scripts/expand_filelist.py` | **FIXED 2026-10-11** (§1k) | **The filelist expander silently drops `-define` lines.** `scripts/expand_filelist.py:59-62` skips every line beginning with `-` other than `-f` and `-incdir`, and still exits 0. Seven filelists carry a define: `tb/core/filelist_{decode_control,imm_gen,reg_file,branch_predict,hazard_forward_unit,id_stage}.f` (`GARUDA_REAL_RTL`, which removes each bench's inlined DUT snapshot) and `tb/soc/filelist_boot_cov.f` (`GARUDA_COV`, which enables `tb_boot`'s coverage self-report). Expanded by this script, a unit bench gets the real RTL and a snapshot module of the same name (for example `rtl/core/decode_control.v:21` and `tb/core/tb_decode_control.sv:59`), so it cannot be built as xrun builds it. Latent today: `run_sim.sh`, `make local_lint` and `run_synth.sh` read none of the seven, although `run_sim.sh`'s header promises the same source list as xrun. Found by: building the unit benches under Verilator, where a replacement expander had to restore the defines. |
 
 ---
@@ -417,7 +425,7 @@ then a UVM environment per block. Entries here are found on that pass. Three ent
 ## 1k. Fixes on free tools — 2026-10-11
 
 Open items closed on a Windows laptop with free tools (Verilator, Yosys, SymbiYosys); the evidence for
-each is in `Docs/VERIFICATION_LOG_2026-10-11.md`, and one commit per item carries the same. **Every
+each is in `Docs/logs/verification/VERIFICATION_LOG_2026-10-11.md`, and one commit per item carries the same. **Every
 RTL and testbench change here still needs the xrun regression at the lab**: "FIXED" means the defect
 is shown on the old code and gone on the new by the checks named, not that the lab flow has passed.
 Windows Smart App Control blocked Icarus, the RISC-V toolchain and some simulation binaries, so the
@@ -446,7 +454,7 @@ entry waiting for an owner ruling (T-12, RDC-1, PWM-2, APB-1, GPIO-2, CRG-3, SIM
 
 Found while taking GARUDA through the open-source flow (OpenROAD-flow-scripts, ASAP7 as an
 exploratory platform; the target is TSMC 28 nm, D-26). Evidence and commands:
-`Docs/PD_LOG_2026-10-13.md`, `Docs/PD_LOG_2026-10-14.md`. **PD-n** is a new series for
+`Docs/logs/pd/PD_LOG_2026-10-13.md`, `Docs/logs/pd/PD_LOG_2026-10-14.md`. **PD-n** is a new series for
 physical-design findings. The RTL fixes below (P1–P3, D-28) leave simulation behaviour unchanged,
 but chip-level simulation of P2 is **pending** (lab xrun `make test_chip`).
 
@@ -618,7 +626,7 @@ HREADY logic. Full derivation is in the header of `rtl/ahb/ahb_master_port.v`.
 
 Specifications: `GARUDA-BRG-SPEC-001` Rev 2.0, `GARUDA-CRG-SPEC-001` Rev 2.0.
 RTL: `rtl/ahb2apb/`, `rtl/clk_div/`, `rtl/reset_ctrl/`.
-Narrative: `Docs/RTL_LOG_2026-09-16.md`.
+Narrative: `Docs/logs/rtl/RTL_LOG_2026-09-16.md`.
 
 BRG-1 and CRG-1 are defects in the **specification**, found by implementing it.
 The RTL as written does not contain them, and both have a passing test that
@@ -712,7 +720,7 @@ RTL defect in the new blocks found by a tool rather than by reading.
 ## 3. Block 9 — DMA controller
 
 Specification: GARUDA-DMA-SPEC-001 Rev 2.0. RTL: `rtl/dma/`.
-Full narrative in `Docs/DMA_RTL_LOG.md`.
+Full narrative in `Docs/logs/rtl/DMA_RTL_LOG.md`.
 
 ### DMA-1 — inconsistent SR snapshot across the clock-domain crossing  ·  `FIXED` · **Severity: high**
 
@@ -844,7 +852,7 @@ simulation**. Still open as a verification gap rather than a known defect.
 ### DMA spec defects — SPEC-1 … SPEC-12
 
 Twelve contradictions, gaps and errata in GARUDA-DMA-SPEC-001 Rev 2.0, each
-resolved on the record in `Docs/DMA_RTL_LOG.md` §9.4. Summarised here because
+resolved on the record in `Docs/logs/rtl/DMA_RTL_LOG.md` §9.4. Summarised here because
 four of them were latent failure modes the spec never addressed:
 
 | ID | Class | One-line |
@@ -978,7 +986,7 @@ exemption that silently swallows traffic is indistinguishable from one that is
 swallowing a real defect.
 
 Verified by `tb/ahb/tb_ahb_checker_selftest.sv`, a new negative control for the
-checker — which had none, against `Docs/ORACLES.md`'s own rule that *a clean
+checker — which had none, against `Docs/guides/ORACLES.md`'s own rule that *a clean
 report from a checker that has not been shown to fail is worth nothing*. It
 drives the monitor's taps directly, so the corner is hit deterministically
 instead of being waited for, and the two scenarios differ in exactly one bit of
@@ -1015,7 +1023,7 @@ one of the three.
 ### Earlier testbench bugs — TB-1 … TB-8
 
 Eight defects from the DMA block-level bring-up, detailed in
-`Docs/DMA_RTL_LOG.md` §9.2. **Six of the eight are the same shape**: *the
+`Docs/logs/rtl/DMA_RTL_LOG.md` §9.2. **Six of the eight are the same shape**: *the
 testbench observing a fast hardware event through a slow APB read*. In a design
 with a 200 MHz core domain and a 100 MHz config port, any check of the form
 "poll a status register, then sample a counter" is racing the DUT by tens of

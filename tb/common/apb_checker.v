@@ -4,7 +4,7 @@
 //
 // WHY THIS FILE EXISTS
 // --------------------
-// Docs/HANDOFF.md section 11, step 3, written before any of this hardware
+// Docs/handoff/HANDOFF.md section 11, step 3, written before any of this hardware
 // existed:
 //
 //     "Write the APB protocol checker BEFORE the bridge ... A bridge built
@@ -89,7 +89,7 @@
 //
 // PROVING IT CAN FAIL
 // -------------------
-// Docs/ORACLES.md: "A clean report from a checker that has not been shown to
+// Docs/guides/ORACLES.md: "A clean report from a checker that has not been shown to
 // fail is worth nothing." tb/common/tb_apb_checker_selftest.v drives these taps
 // directly and fires every rule above one at a time, then runs legal traffic
 // and requires a zero count. Run it before trusting any clean report from here.

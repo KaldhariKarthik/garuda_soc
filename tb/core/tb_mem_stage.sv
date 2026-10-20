@@ -292,7 +292,7 @@ module tb_top;
         sb.chk1("sb", "retires",          vif.retire,      1'b1);
         sb.chk1("sb", "no reg_write",     vif.reg_write_o, 1'b0);
 
-        // Back-to-back stores (BUGS.md ELEM-6). The previous store is still in
+        // Back-to-back stores (BUGS_HISTORY.md ELEM-6). The previous store is still in
         // its data phase when the next one is presented, so the first edge only
         // ends that data phase: HSIZE belongs to the address phase that follows
         // it and HWDATA to the edge after. This used to check HWDATA one edge

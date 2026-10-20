@@ -112,4 +112,4 @@ H Clock reset and power,1,SECTION,DMA.H,Spec section 9.,,,
 F40 Two clocks and no synchroniser,2,SECTION,DMA.F40,The register file on pclk is read by hclk logic on shared edges. Spec [N-9.1].,Method: static + sim. Today: HAL reports the boundary when the block is linted alone; waived in flow/2_static/hal_waivers.txt,Karthik,P2
 hal_cdc,3,CHK,DMA.F40.CHK1,No crossing reported at chip level.,flow/2_static.,Karthik,
 F41 Per-channel clock gating,2,SECTION,DMA.F41,The specification says a disabled channel receives no clock [N-9.3]. The RTL has no clock gate in rtl/dma. One of the two has to change; logged for the owner.,Method: review. Today: no check.,Karthik,P2
-review,3,CHK,DMA.F41.CHK1,Spec against RTL.,To be logged in Docs/BUGS.md.,Karthik,
+review,3,CHK,DMA.F41.CHK1,Spec against RTL.,To be logged in Docs/bugs/archive/BUGS_HISTORY.md.,Karthik,

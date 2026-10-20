@@ -149,7 +149,7 @@ module timers_apb (
     assign prdata_o  = prdata_q;
     assign pready_o  = 1'b1;
     // PSLVERR only for an offset that is not a register (the rule for the whole
-    // chip, Docs/BUGS.md AUD-13). A write to the read-only WDTVAL (word 6) has
+    // chip, Docs/bugs/archive/BUGS_HISTORY.md AUD-13). A write to the read-only WDTVAL (word 6) has
     // no write strobe above, so it is ignored, and it raises no error.
     assign pslverr_o = psel_i & penable_i & ~hit;
 

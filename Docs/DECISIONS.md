@@ -3,11 +3,11 @@
 **Decisions that resolve a contradiction between two documents, or that close an
 open item a specification left for the architecture owner.**
 
-This file exists because `Docs/BUGS.md` is the register for defects *found*, and
+This file exists because the bug registers (`Docs/bugs/`) are the record of defects *found*, and
 a defect that spans two released documents needs a recorded *ruling* as well as an
 entry. One decision per section. Never renumber — other files reference these by ID.
 
-Related: `Docs/BUGS.md` (defect register), `Docs/SOC_RTL_LOG.md` (interconnect and
+Related: `Docs/bugs/track_a.md` and `Docs/bugs/track_b.md` (defect registers; `Docs/bugs/archive/BUGS_HISTORY.md` is the old register), `Docs/logs/rtl/SOC_RTL_LOG.md` (interconnect and
 SoC reasoning), `Design_Docs/` (the specifications themselves).
 
 Last updated 2026-10-14. D-1 to D-3 refer to the Rev 2.0/3.0 documents, now in
@@ -125,7 +125,7 @@ specification.
 
 ## D-3 — Bridge §9.1 is the authoritative peripheral-access latency
 
-**Decided 2026-09-16 · Closes** `AHB-5` in `Docs/BUGS.md`
+**Decided 2026-09-16 · Closes** `AHB-5` in `Docs/bugs/archive/BUGS_HISTORY.md`
 
 `GARUDA-BRG-SPEC-001` Rev 2.0 §9.1 is the single authoritative figure for the
 cost of a peripheral access, superseding the TRM's loose "~3-4 cycles":
@@ -397,7 +397,7 @@ layer sits on top. Provenance a tapeout can stand behind matters more than the
 
 Policy: upstream files live under `rtl/third_party/` and are **never edited** —
 every delta belongs in the GARUDA wrapper. An unavoidable change goes in
-`<ip>/patches/*.patch` with a `Docs/BUGS.md` entry; an empty `patches/` is the
+`<ip>/patches/*.patch` with a `Docs/bugs/archive/BUGS_HISTORY.md` entry; an empty `patches/` is the
 preferred state, but **not at the cost of a requirement** — see D-24, which
 governs when to reach for it and what it costs. `rtl/third_party/MANIFEST.yaml` records url, commit and licence;
 `HASHES.txt` records what was vendored; `tools/vendor_sync.py --check` fails if
@@ -479,7 +479,7 @@ It is:
 - `tools/vendor_sync.py --check` extended to verify that the working files are
   still exactly `orig/` + the recorded patch, so an unrecorded edit fails CI —
   the mechanism existed only as a comment before this;
-- a `Docs/BUGS.md` entry and a `THIRD_PARTY_NOTICES.md` modification notice,
+- a `Docs/bugs/archive/BUGS_HISTORY.md` entry and a `THIRD_PARTY_NOTICES.md` modification notice,
   which Solderpad 0.51 requires of a modified file, plus a marker on every
   changed line;
 - **tests for what the patch changes, not just for what it fixes.** Moving the
@@ -581,7 +581,7 @@ falling back to 6 if memory gets tight. It goes through finish and GDS.
 
 *Follow-up, 2026-10-14 (owner):* after pnr_r7 the owner deleted the `.wslconfig`; WSL is back
 on its defaults (16 CPUs, 7.4 GiB, 2 GiB swap). Create the file again (`memory=12GB`,
-`swap=8GB`, `processors=8`) before the next full place-and-route run (`Docs/CLAUDE_HANDOFF.md` §2).
+`swap=8GB`, `processors=8`) before the next full place-and-route run (`Docs/handoff/CLAUDE_HANDOFF.md` §2).
 
 ---
 

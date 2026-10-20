@@ -82,7 +82,7 @@ marker is missing (`scripts/sim_verdict.sh`).
    ${RISCV_PREFIX}objdump -d sw/riscv-tests/build/<test>.elf | less
    ```
 
-3. Run the test with a probe. The probes are listed in `Docs/HANDOFF.md` §7.
+3. Run the test with a probe. The probes are listed in `Docs/handoff/HANDOFF.md` §7.
 
    ```bash
    xrun -f tb/soc/filelist_boot.f -top tb_boot \
@@ -122,7 +122,7 @@ writes `tohost`.
 ## 6. Without a Cadence licence
 
 These targets use Icarus, Verilator and Yosys. Put the oss-cad-suite `lib/` and `bin/` on
-`PATH`, `lib/` first, and set `VERILATOR_ROOT` (`Docs/BUGS.md` TOOL-2, TOOL-3).
+`PATH`, `lib/` first, and set `VERILATOR_ROOT` (`Docs/bugs/archive/BUGS_HISTORY.md` TOOL-2, TOOL-3).
 
 ```bash
 make local_sim      # every block testbench that Icarus can build

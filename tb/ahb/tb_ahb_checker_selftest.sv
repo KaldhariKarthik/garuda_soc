@@ -3,7 +3,7 @@
 //
 // WHY THIS EXISTS
 // ---------------
-// Docs/ORACLES.md: "A clean report from a checker that has not been shown to
+// Docs/guides/ORACLES.md: "A clean report from a checker that has not been shown to
 // fail is worth nothing."  ahb_lite_checker is the oracle that found BUS-A/B/C/D
 // and it is fatal by default, so it is now load-bearing -- and until this file
 // there was nothing that drove it with KNOWN-BAD traffic to confirm it still
