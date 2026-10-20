@@ -6,6 +6,10 @@
 #   ./scripts/run_uvm_local.sh clic timers    some of them
 #   ./scripts/run_uvm_local.sh list
 #   SEEDS=5 SEED0=100 ./scripts/run_uvm_local.sh clic
+#   COV=1 ./scripts/run_uvm_local.sh dma      also functional coverage, per test in
+#                                            sim/uvm_local/<env>/cov/*.dat, summed by
+#                                            tools/cov_local.py (compare with the IMC
+#                                            record: tools/cov_local.py compare DMA ...)
 #
 # The same tests as `make uvm_<env>` (flow/mk/common.mk run_uvm): the register
 # test and the directed test at seed 1, then the random test at SEEDS seeds,
@@ -43,6 +47,7 @@ SIM_TIMEOUT=${SIM_TIMEOUT:-900}
 UVM_JOBS=${UVM_JOBS:-2}
 MIN_START_MIB=${MIN_START_MIB:-4000}
 MIN_AVAIL_MIB=${MIN_AVAIL_MIB:-1500}
+COV=${COV:-0}
 PY=${PY:-python3}
 
 # env | filelist | top | test prefix -- as the uvm_* targets of track_b.mk (dma: track_a.mk)
@@ -77,7 +82,8 @@ build() {   # build <env> <filelist> <top> -> sim/uvm_local/<env>/obj/sim
     # setsid: its own process group, so the watchdog stops every g++ at once.
     # shellcheck disable=SC2086
     setsid nice -n 19 ionice -c 3 \
-        verilator --binary -j "$UVM_JOBS" --timing --assert -Wno-fatal -Wno-lint -Wno-style \
+        verilator --binary -j "$UVM_JOBS" --timing --assert $([ "$COV" = 1 ] && echo --coverage-user) \
+        -Wno-fatal -Wno-lint -Wno-style \
         -Wno-SYMRSVDWORD -Wno-CONSTRAINTIGN +define+UVM_NO_DPI \
         +incdir+"$UVM_HOME" $incs $defs "$UVM_HOME/uvm_pkg.sv" $srcs \
         --top-module "$top" --Mdir "$d/obj" -o sim > "$d/build.log" 2>&1 &
@@ -125,8 +131,9 @@ run_env() {   # run_env <env> <filelist> <top> <prefix>
     echo "ok ($(grep -o "peak memory.*" "$d/build.log"))"
     one() {   # one <test> <seed> <tag>
         local log=$d/$3.log
+        mkdir -p "$d/cov"
         timeout -k 5 "$SIM_TIMEOUT" "$d/obj/sim" +UVM_TESTNAME="$1" +verilator+seed+"$2" \
-            > "$log" 2>&1
+            +verilator+coverage+file+"$d/cov/$3.dat" > "$log" 2>&1
         if judge "$log"; then printf "  %-7s %-12s PASS\n" "$env" "$3"
         else printf "  %-7s %-12s FAIL (%s)\n" "$env" "$3" "$log"; fail=1; fi
     }
@@ -136,6 +143,10 @@ run_env() {   # run_env <env> <filelist> <top> <prefix>
     while [ "$s" -le "$SEEDS" ]; do
         n=$((s + SEED0)); one "${pfx}_random_test" "$n" "random_s$n"; s=$((s + 1))
     done
+    if [ "$COV" = 1 ] && ls "$d"/cov/*.dat > /dev/null 2>&1; then
+        echo "  $env functional coverage, all tests summed (tools/cov_local.py):"
+        $PY tools/cov_local.py report "$d"/cov/*.dat | grep -v '^   ' | sed 's/^/    /'
+    fi
     return $fail
 }
 

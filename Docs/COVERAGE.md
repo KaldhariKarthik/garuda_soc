@@ -89,3 +89,33 @@ it again after the lab run in `Docs/HANDOFF.md` §2.
 These are verification constructs, not silicon. Keep them out of the design metric:
 `ahb_mem_slave` (the flat memory model in `tb_boot`), the testbench tops, `garuda_cov`, and
 the SystemVerilog interfaces of the unit testbenches.
+
+## 4. Functional coverage without IMC (Verilator), and how it compares
+
+The sign-off figures stay IMC's (`make cov_chart`, on the lab machine). Functional coverage can
+also be measured anywhere with Verilator 5.053 (`source scripts/setup_open_tools.sh`) and read
+with `tools/cov_local.py`, which sums the `coverage.dat` files of several runs and sets them
+next to the block's latest IMC record in `Docs/coverage/FINDINGS.md`:
+
+```
+COV=1 ./scripts/run_uvm_local.sh dma                        # UVM tests, one coverage.dat per test
+python3 tools/cov_local.py report  sim/uvm_local/dma/cov/*.dat
+python3 tools/cov_local.py compare DMA sim/uvm_local/dma/cov/*.dat --only cg_beat,cg_ctrl
+```
+
+A bench is built for it with `--coverage-user` and run with `+verilator+coverage+file+<path>`.
+
+- **Comparable:** covergroup bins. On the same covergroups and tests the two tools agree bin for
+  bin: the DMA block bench gives `cg_beat` 97/134 and `cg_ctrl` 25/27 under both, with the same
+  holes by name (2026-10-21). Use it to find which stimulus closes which hole before a lab run.
+- **Not comparable:** Verilator's line and toggle counts are not IMC's block and toggle counts,
+  and Verilator has no FSM or assertion coverage. Those stay IMC-only.
+- **The "0 % on Verilator" of the DMA was the tool, not the design:** Verilator 5.052 returned 0.0 %
+  from `get_coverage()` for every covergroup (`Docs/bugs/track_a.md` TOOL-A2), so `dma_cov.sv`
+  was kept away from Verilator. 5.053 is correct and `dma_cov.sv` now runs under it.
+- **DMA after the UVM environment** (2026-10-21, Verilator, block bench plus the UVM register,
+  directed and three random runs): `cg_beat` 131/131 (three bins that no test can reach are now
+  `ignore_bins`, TB-A6), `cg_ctrl` 26/27; DMA functional 157/158, against 122/161 (75.8 %) on the
+  IMC record. The open bin is a re-arm inside the channel's own beat, which is DMA-9 and waits for
+  its ruling. `make cov_chart` now merges the `uvm_dma` runs, so the IMC chart should show the
+  same once run on the lab machine.
