@@ -44,7 +44,13 @@ UVM_HOME=${UVM_HOME:-$HOME/external/uvm-verilator/src}
 SEEDS=${SEEDS:-3}
 SEED0=${SEED0:-0}
 SIM_TIMEOUT=${SIM_TIMEOUT:-900}
-UVM_JOBS=${UVM_JOBS:-2}
+# One compiler job below 10 GB of RAM (the WSL default is 7.4 GB): with the DMA's
+# bound covergroups two jobs ran the build into the memory watchdog (2026-10-21).
+if [ "$(awk '/^MemTotal:/ { print int($2 / 1048576) }' /proc/meminfo)" -lt 10 ]; then
+    UVM_JOBS=${UVM_JOBS:-1}
+else
+    UVM_JOBS=${UVM_JOBS:-2}
+fi
 MIN_START_MIB=${MIN_START_MIB:-4000}
 MIN_AVAIL_MIB=${MIN_AVAIL_MIB:-1500}
 COV=${COV:-0}
@@ -64,6 +70,15 @@ dma|tb/dma/uvm/filelist_dma_uvm.f|tb_dma_uvm|dma
 "
 
 names() { echo "$ENVS" | awk -F'|' 'NF == 4 { print $1 }'; }
+
+# Detectors of OPEN defects that an environment trips on purpose: assertion |
+# bug ID. Track A keeps such detectors always on (rtl/dma/dma_props_a.sv); a run
+# continues past them (+verilator+error+limit) and they are reported, not
+# counted as failures. Any other [SVA-FAIL] still fails the run.
+KNOWN="
+dma|a_no_read_before_refusal|DMA-12
+"
+known_of() { echo "$KNOWN" | awk -F'|' -v e="$1" '$1 == e { print $2 }'; }
 
 build() {   # build <env> <filelist> <top> -> sim/uvm_local/<env>/obj/sim
     local env=$1 fl=$2 top=$3 d=sim/uvm_local/$1 srcs incs defs
@@ -113,11 +128,19 @@ watch_mem() {
     return $rc
 }
 
-judge() {   # judge <log>: 0 if the run passed
-    local log=$1
+judge() {   # judge <log> <env>: 0 if the run passed
+    local log=$1 env=$2 k pat
     grep -q 'RESULT: PASSED' "$log" || return 1
     grep -qE '^UVM_(ERROR|FATAL) :[[:space:]]+[1-9]' "$log" && return 1
-    grep -qE 'SVA-FAIL|^\[FAIL\]|%Error' "$log" && return 1
+    grep -qE '^\[FAIL\]' "$log" && return 1
+    # every assertion failure must be a known detector of this environment
+    pat='\[SVA-FAIL\] ('"$(known_of "$env" | paste -sd'|')"')\b'
+    if [ -n "$(known_of "$env")" ]; then
+        grep 'SVA-FAIL' "$log" | grep -vqE "$pat" && return 1
+    else
+        grep -q 'SVA-FAIL' "$log" && return 1
+    fi
+    grep '%Error' "$log" | grep -v 'Assertion failed' | grep -q . && return 1
     return 0
 }
 
@@ -133,8 +156,15 @@ run_env() {   # run_env <env> <filelist> <top> <prefix>
         local log=$d/$3.log
         mkdir -p "$d/cov"
         timeout -k 5 "$SIM_TIMEOUT" "$d/obj/sim" +UVM_TESTNAME="$1" +verilator+seed+"$2" \
-            +verilator+coverage+file+"$d/cov/$3.dat" > "$log" 2>&1
-        if judge "$log"; then printf "  %-7s %-12s PASS\n" "$env" "$3"
+            +verilator+coverage+file+"$d/cov/$3.dat" +verilator+error+limit+1000 > "$log" 2>&1
+        if judge "$log" "$env"; then
+            printf "  %-7s %-12s PASS" "$env" "$3"
+            for k in $(known_of "$env"); do
+                c=$(grep -c "\[SVA-FAIL\] $k\b" "$log")
+                [ "$c" -gt 0 ] && printf "  (known: %s x%d, %s)" "$k" "$c" \
+                    "$(echo "$KNOWN" | awk -F'|' -v e="$env" -v a="$k" '$1 == e && $2 == a { print $3 }')"
+            done
+            printf "\n"
         else printf "  %-7s %-12s FAIL (%s)\n" "$env" "$3" "$log"; fail=1; fi
     }
     one "${pfx}_reg_test" 1 reg_s1

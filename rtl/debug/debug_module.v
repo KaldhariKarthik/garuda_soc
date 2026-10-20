@@ -102,12 +102,19 @@ module debug_module #(
     reg        grant_q;                   // the core is (being) held in hartreset
     reg        haltforced;                // sticky: a grant came from the timeout
     reg [15:0] halt_cnt;
+    localparam integer HALT_LAST_I = HALT_TIMEOUT - 1;
+    localparam [15:0]  HALT_LAST   = HALT_LAST_I[15:0];   // the counter is 16 bits
     wire       halt_requested = dmactive & hartreset;
 
     wire [31:0] dmcontrol = {2'b00, hartreset, 27'd0, ndmreset, dmactive};
-    wire [31:0] dmstatus  = {12'd0, 1'b0 /*impebreak*/, 2'b00, 1'b0, 1'b0, 2'b00,
+    // dmstatus, RISC-V External Debug Support 0.13 layout, 32 bits. The fields
+    // above bit 11 are all 0; this used to be a 31-bit concatenation (impebreak
+    // at bit 18), the same value, and a lint waiver.
+    wire [31:0] dmstatus  = {9'd0, 1'b0 /*impebreak*/, 2'b00,
+                             2'b00 /*all,anyhavereset*/, 2'b00 /*all,anyresumeack*/,
+                             2'b00 /*all,anynonexistent*/, 2'b00 /*all,anyunavail*/,
                              ~grant_q, ~grant_q, grant_q, grant_q,      // RDC-1: halted = granted
-                             1'b1 /*authenticated*/, 3'b000, 4'd2};
+                             1'b1 /*authenticated*/, 3'b000, 4'd2 /*version 0.13*/};
     wire [31:0] sbcs      = {3'd1, 6'd0, sbbusyerror, sbbusy, sbreadonaddr, sbaccess,
                              sbautoinc, sbreadondata, sberror, 7'd32, 5'b00100};
 
@@ -126,7 +133,7 @@ module debug_module #(
             end else if (!grant_q) begin
                 if (halt_safe_i)
                     grant_q <= 1'b1;                         // the core reached a safe point
-                else if (halt_cnt == HALT_TIMEOUT - 1) begin
+                else if (halt_cnt == HALT_LAST) begin
                     grant_q    <= 1'b1;                      // bounded: never wait forever
                     haltforced <= 1'b1;
                 end else

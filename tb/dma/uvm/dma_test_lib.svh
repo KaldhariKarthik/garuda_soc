@@ -111,8 +111,8 @@ class dma_reg_test extends dma_base_test;
         rst_seq.model = env.regmodel;
         rst_seq.start(null);
         // bit bash: SAR, DAR and CNT. Not CR (EN starts a transfer; MODE and SIZE
-        // refuse 3, checked in the directed test), not STAT / GSTAT (a write is
-        // refused with PSLVERR) and not ICLR (write-only strobes).
+        // refuse 3, checked in the directed test), not STAT / GSTAT (hardware-owned;
+        // a write is ignored, AUD-13) and not ICLR (write-only strobes).
         foreach (env.regmodel.CH[n]) begin
             uvm_resource_db #(bit)::set({"REG::", env.regmodel.CH[n].CR.get_full_name()},   "NO_REG_BIT_BASH_TEST", 1);
             uvm_resource_db #(bit)::set({"REG::", env.regmodel.CH[n].STAT.get_full_name()}, "NO_REG_BIT_BASH_TEST", 1);

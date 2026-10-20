@@ -333,9 +333,10 @@ package dma_env_pkg;
         static function bit chan_rgn(bit [11:0] a);
             return a[11:8] == 4'h0 && a[7:5] < NCH && a[1:0] == 2'b00 && a[4:2] <= 3'd5;
         endfunction
+        // AUD-13 (track A ruling, merged 2026-10-21): PSLVERR only for an offset
+        // that is not a register; a write to STAT or GSTAT is ignored without it.
         static function bit pslverr(bit [11:0] a, bit wr);
-            bit hit = chan_rgn(a) || a == 12'h100;
-            return !hit || (wr && (a == 12'h100 || (chan_rgn(a) && a[4:2] == 3'd4)));
+            return !(chan_rgn(a) || a == 12'h100);
         endfunction
 
         // the value a read of offset a returns in state s

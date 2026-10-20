@@ -113,10 +113,13 @@ module dma_top_sva #(
     a_apb_no_ch67: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
         (psel_i && penable_i && paddr_i[11:8] == 4'h0 && paddr_i[7:5] >= 3'd6) |-> pslverr_o )
         else $error("[SVA-FAIL] a_apb_no_ch67: an access to channel 6 or 7 was accepted");
+    // AUD-13 (track A ruling, merged 2026-10-21): a write to a read-only register
+    // (STAT, GSTAT) is ignored without PSLVERR. This property required PSLVERR
+    // until then and contradicted the merged RTL (dma_apb_slave.v ERRATUM AUD-13).
     a_apb_stat_ro: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
         (psel_i && penable_i && pwrite_i && (paddr_i == 12'h100 ||
-         (paddr_i[11:8] == 4'h0 && paddr_i[7:5] < 3'd6 && paddr_i[4:2] == 3'd4))) |-> pslverr_o )
-        else $error("[SVA-FAIL] a_apb_stat_ro: a write to STAT or GSTAT was accepted");
+         (paddr_i[11:8] == 4'h0 && paddr_i[7:5] < 3'd6 && paddr_i[4:2] == 3'd4))) |-> !pslverr_o )
+        else $error("[SVA-FAIL] a_apb_stat_ro: a write to STAT or GSTAT raised PSLVERR (AUD-13)");
     a_apb_err_only_access: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
         pslverr_o |-> (psel_i && penable_i) )
         else $error("[SVA-FAIL] a_apb_err_only_access: PSLVERR outside an access phase");

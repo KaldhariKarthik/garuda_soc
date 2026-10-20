@@ -28,7 +28,6 @@ lint_off -rule LATCH          -file "*rtl/core/core_clk_gate.v" -lines 45
 // ---- track A, OPEN: to be fixed in the RTL by its owner, then removed from here
 // (asked in the status sheet on 2026-10-14). Each is a width mismatch that gives
 // the right value today.
-lint_off -rule WIDTHEXPAND    -file "*rtl/debug/debug_module.v"       -lines 83
 lint_off -rule WIDTHEXPAND    -file "*rtl/ahb2apb/ahb2apb_apb_fsm.v"  -lines 97
 lint_off -rule WIDTHTRUNC     -file "*rtl/dma/dma_engine.v"           -lines 78
 lint_off -rule WIDTHTRUNC     -file "*rtl/dma/dma_engine.v"           -lines 163
@@ -37,4 +36,5 @@ lint_off -rule WIDTHTRUNC     -file "*rtl/dma/dma_engine.v"           -lines 163
 // synthesised (`ifndef SYNTHESIS) and compares counters and indices against integer
 // constants and an associative model indexed by int. Width extension is the intent there.
 lint_off -rule WIDTHEXPAND    -file "*rtl/*_sva.sv"
+lint_off -rule WIDTHEXPAND    -file "*rtl/*_props_a.sv"
 lint_off -rule UNSIGNED       -file "*rtl/dma/dma_sva.sv"

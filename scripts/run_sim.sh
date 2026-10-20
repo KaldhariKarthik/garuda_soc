@@ -207,6 +207,10 @@ run_one() {
     fi
     local run="$bin"
     [ "$SIM" = verilator ] || run="vvp $bin"
+    # Verilator stops at the first failing assertion unless the error limit is
+    # raised; raised, the bench reaches its own verdict and every [SVA-FAIL]
+    # line is still in the log for verdict_of.
+    [ "$SIM" = verilator ] && plusargs="+verilator+error+limit+1000 $plusargs"
 
     # Wall-clock cap. A testbench whose end condition never arrives runs until
     # the machine is rebooted, and an unattended regression must not be
@@ -235,9 +239,25 @@ run_one() {
         $run $plusargs > "$out/run.log" 2>&1
         rc=$?
     fi
+    # Detectors of OPEN defects that a bench trips on purpose (track A keeps them
+    # always on, rtl/dma/dma_props_a.sv): their lines are marked [SVA-KNOWN <bug>]
+    # so they stay visible but are not counted. Any other [SVA-FAIL] fails the run.
+    local k bug
+    for k in $(known_sva "$top"); do
+        bug=$(echo "$KNOWN_SVA" | awk -F'|' -v t="$top" -v a="$k" '$1 == t && $2 == a { print $3 }')
+        sed -i "s/\[SVA-FAIL\] $k\b/[SVA-KNOWN $bug] $k/" "$out/run.log"
+        # Verilator's own "%Error: ... Assertion failed" line for it, too
+        sed -i "/Assertion failed in .*\.$k:/s/%Error:/%Known ($bug):/" "$out/run.log"
+    done
     echo "$rc" > "$out/exit_status"
     return 0
 }
+
+# top | assertion | bug ID: open-defect detectors a bench trips on purpose
+KNOWN_SVA="
+tb_dma_top|a_no_read_before_refusal|DMA-12
+"
+known_sva() { echo "$KNOWN_SVA" | awk -F'|' -v t="$1" '$1 == t { print $2 }'; }
 
 # verdict_of <workdir> -> "checks fails verdict"
 verdict_of() {

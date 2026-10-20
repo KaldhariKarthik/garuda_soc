@@ -48,7 +48,7 @@ addrmap dma {
         } CNT @ 0x0C;
 
         reg {
-            name = "Channel status (read-only; a write raises PSLVERR)";
+            name = "Channel status (read-only; a write is ignored, AUD-13)";
             field { sw = r; hw = w; reset = 16'd0; desc = "Beats not yet transferred"; } remaining[15:0];
             field { sw = r; hw = w; reset = 1'b0;  desc = "EN set and REMAINING not 0"; } active[16:16];
             field { sw = r; hw = w; reset = 1'b0;  desc = "All beats transferred; sticky until ICLR"; } complete[17:17];
@@ -66,7 +66,7 @@ addrmap dma {
     } CH[6] @ 0x000 += 0x20;
 
     reg {
-        name = "Global status (read-only; a write raises PSLVERR)";
+        name = "Global status (read-only; a write is ignored, AUD-13)";
         field { sw = r; hw = w;  reset = 6'd0; desc = "ACTIVE of channels 0 to 5"; } active[5:0];
         field { sw = r; hw = na; reset = 2'd0; desc = "Reads 0"; } rsvd0[7:6];
         field { sw = r; hw = w;  reset = 6'd0; desc = "COMPLETE of channels 0 to 5"; } complete[13:8];

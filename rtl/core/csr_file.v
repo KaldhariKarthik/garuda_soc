@@ -260,6 +260,7 @@ module csr_file (
     assign mintthresh_o    = mintthresh_r;
     assign mintstatus_mil_o= mil_r;
     assign mgarudactl_o    = ctl_r;          // CORE-4
+    wire [31:0] ctl_next   = nextv({28'd0, ctl_r}, csr_wdata_i, csr_op_i);
 
     always @(posedge clk_i or negedge rst_n_i) begin
         if (!rst_n_i) begin
@@ -314,7 +315,7 @@ module csr_file (
                     MTVAL:    mtval_r    <= nextv(mtval_r,    csr_wdata_i, csr_op_i);
                     MSCRATCH: mscratch_r <= nextv(mscratch_r, csr_wdata_i, csr_op_i);
                     MINTTHRESH: mintthresh_r <= mintthresh_next[7:0];
-                    MGARUDACTL: ctl_r <= nextv({28'd0, ctl_r}, csr_wdata_i, csr_op_i) & 32'hF; // CORE-4
+                    MGARUDACTL: ctl_r <= ctl_next[3:0];                      // CORE-4
                     default: ; // counters/RO handled elsewhere or ignored
                 endcase
             end
