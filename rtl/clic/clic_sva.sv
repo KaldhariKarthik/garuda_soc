@@ -16,12 +16,13 @@
 // =============================================================================
 `ifndef SYNTHESIS
 `ifndef __ICARUS__
+`include "garuda_map.vh"
 // Icarus Verilog does not parse concurrent assertions; under it this file is
 // empty and the block is simulated without its properties (TOOL-B2).
 module clic_sva #(
     parameter integer N       = 32,
     parameter [31:0]  IE_MASK = 32'h00FF_FF7E,
-    parameter integer SWI_ID  = 23
+    parameter integer SWI_ID  = 32'd23
 )(
     input wire           hclk_i,
     input wire           pclk_i,
@@ -139,6 +140,10 @@ module clic_sva #(
     a_swi_read: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
         (psel_i && !pwrite_i && paddr_i == 12'h00C) |-> (prdata_o == {31'd0, swi}))
         else $error("[SVA-FAIL] a_swi_read");
+    // the ID is the CLIC's default (the SoC does not override it); it must stay
+    // the one the yaml gives the software source
+    initial if (SWI_ID != `GARUDA_CLIC_ID_SOFTWARE)
+        $error("[SVA-FAIL] clic SWI_ID %0d is not GARUDA_CLIC_ID_SOFTWARE %0d", SWI_ID, `GARUDA_CLIC_ID_SOFTWARE);
     c_swi_taken:    cover property (@(posedge hclk_i) preset_n_i && clic_irq_valid_o && clic_irq_id_o == SWI_ID);
     c_swi_clear:    cover property (@(posedge pclk_i) preset_n_i && swi ##1 !swi);
 endmodule

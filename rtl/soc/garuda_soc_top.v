@@ -287,7 +287,7 @@ module garuda_soc_top #(
     // The enable mask comes from the map. The block's own default still excluded
     // IDs 13 and 14 from when the SPI slave had been removed, so the SPI slave's
     // interrupt could be wired, pending, and impossible to enable (BUGS_HISTORY.md INT-3).
-    clic_top #(.IE_MASK(`GARUDA_CLIC_ID_MASK), .SWI_ID(`GARUDA_CLIC_ID_SOFTWARE)) u_clic (
+    clic_top #(.IE_MASK(`GARUDA_CLIC_ID_MASK)) u_clic (   // SWI_ID: default 23 = GARUDA_CLIC_ID_SOFTWARE
         .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .pclk_i(pclk_i), .preset_n_i(preset_n_i),
         .psel_i(psel[`GARUDA_APB_WIN_CLIC_CFG]), .penable_i(penable), .pwrite_i(pwrite),
         .paddr_i(paddr), .pwdata_i(pwdata), .prdata_o(prd_clic), .pready_o(rdy_clic),

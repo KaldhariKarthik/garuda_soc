@@ -25,7 +25,7 @@
 module clic_top #(
     parameter integer N       = 32,
     parameter [31:0]  IE_MASK = 32'h00FF_FF7E,
-    parameter integer SWI_ID  = 23            // GARUDA_CLIC_ID_SOFTWARE
+    parameter integer SWI_ID  = 32'd23        // = GARUDA_CLIC_ID_SOFTWARE, checked in clic_sva
 )(
     input  wire          hclk_i,
     input  wire          hreset_n_i,
