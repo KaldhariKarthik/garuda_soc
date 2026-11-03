@@ -610,6 +610,32 @@ Evidence:
 
 ---
 
+## D-32 — Rulings on the open entries of tracks A and B
+
+**Decided 2026-11-03 (owner)** from the ruling sheet of that day. Each entry's register line says which ruling closed it and in which commit.
+
+| Entry | Ruling | Kind of change |
+|---|---|---|
+| DMA-9 | A beat that completes after its channel's EN was cleared updates nothing (no REMAINING, SAR, DAR or COMPLETE) | RTL, `dma_chan.v` |
+| DMA-10 | An SAR or DAR not aligned to SIZE is refused like a forbidden region (error, source or destination phase) | RTL, `dma_engine.v` |
+| DMA-11 | EN = 1 always starts a new transfer from the current SAR, DAR and CNT; after a stop firmware writes all three again (TRM firmware rule F-13) | spec and TRM |
+| DMA-12 | A forbidden source or destination is refused in the read-address step, before any bus access | RTL, `dma_engine.v` |
+| DMA-13 | `ACK_CYCLES` outside 1..4 stops elaboration | RTL, `dma_top.v` |
+| DMA-14 | The engine takes SIZE once, when a beat starts | RTL, `dma_engine.v` |
+| DMA-15 | No acknowledge in memory-to-memory mode | RTL, `dma_engine.v` |
+| DMA-16, DMA-18, DMA-19 | Written into the DMA spec as stated in the sheet | spec |
+| DMA-17 | R-9 and the RTL stand: the DMA never reaches ISRAM; the yaml and TRM §3.4 are corrected | yaml, TRM |
+| DBG-4 | A hardware-set `sberror` wins over a debugger's write-1-to-clear in the same cycle | RTL, `debug_module.v` |
+| DBG-5, AHB-7, APB-1, SPIM-5, I2C-10 | Spec text as stated in the sheet | spec |
+| DSU-14 | A `csrr dsu_ovf` is held until a pending overflow has folded in | RTL |
+| DSU-15, DSU-16, DSU-17 | The DSU spec follows the RTL; TB-43's six sub-block benches are updated to it | spec, benches |
+| DSU-18 | The sticky overflow is set by the overflow whatever the next instruction does to the accumulator | RTL |
+| C-17 | A read of `minstret` counts the instructions already in MEM and WB | RTL, `csr_file.v` |
+| T-16 | An exception of the instruction after a WFI is not taken while the core sleeps | RTL, `pipe_ctrl.v` / `trap_ctrl.v` |
+| TB-A5 | The proposed Verilator bench fix is applied | bench |
+
+---
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. None blocks RTL.
