@@ -14,7 +14,7 @@ Run from the repository root in tcsh:
 
 The tool's reports are in this folder: `superlint_report.txt` (summary) and `superlint_violations.txt` (every finding with its file and line).
 
-The structural lint of the chip is HAL (`make static_lint`): 5 errors, each waived with a reason in `flow/2_static/hal_waivers.txt`, and the warning counts held by `flow/2_static/hal_baseline.txt`. Superlint adds formal checks, which find two classes: 5 floating buses and 31 dead-code statements. All 36 were read by hand. 35 are explained below and need no RTL change. One, `dma_chan.v:140`, is still open (see the table).
+The structural lint of the chip is HAL (`make static_lint`): 5 errors, each waived with a reason in `flow/2_static/hal_waivers.txt`, and the warning counts held by `flow/2_static/hal_baseline.txt`. Superlint adds formal checks, which find two classes: 5 floating buses and 31 dead-code statements. **All 36 were read by hand and explained. None is a design error and none needs an RTL change.**
 
 ## Floating bus (5)
 
@@ -35,7 +35,7 @@ A statement the formal engine proved can never execute, with the chip's real inp
 | Recovery branch of a state machine or `case` | `ahb2apb_bridge.v:172`, `ahb_default_slave.v:93`, `ahb_slave_mux.v:128`, `d_port_ahb_master.v:140`, `dma_engine.v:168`, `alu.v:40`, `csr_file.v:238`, `decode_control.v:216` | The `default:` of a fully enumerated `case`. Kept so that an illegal state or encoding returns to a safe one; that is the standard practice. |
 | Parameter value | `ahb2apb_apb_fsm.v:53`, `:89` | `APB_DIV` gives every window a divider of 0 and there are 12 windows, so neither the extra-wait countdown nor a window index of 12 or more is ever used. Both exist for a slow peripheral the chip does not have. |
 | Tie-off | `clic_select.v:35`, `:41` | ID 0 and the IDs with no source are masked out of the candidates (`GARUDA_CLIC_ID_MASK`), so their leaf and one inner node of the selection tree never win. |
-| **Not yet explained** | `dma_chan.v:140` | `taken_q <= 1` needs the request still high in the cycle the beat completes. All six request lines are live in the chip, so this is not a tie-off. The likely reason is that every peripheral shim drops its request when the DMA acknowledges it, before the beat completes. If so, the one-beat-per-request flag never engages in the chip, which bears on the open entry DMA-19. **Open: to be read with a counterexample trace and settled with DMA-19.** |
+| Behaviour of the attached peripherals | `dma_chan.v:140` | `taken_q <= 1` needs the request still high in the cycle the beat completes. In the chip it never is. `dma_engine.v` (state `E_WD`) raises `beat_done` and the acknowledge on the same edge, and every peripheral's APB shim drops its request combinationally while the acknowledge is high, then holds it low for one more pclk (`rtl/common/garuda_apb_shim.v:166-167`, DECISIONS D-21). So "one beat per request" is enforced by the shim in the chip, and the channel's own flag is a second safeguard for a peripheral that does not drop its request on the acknowledge. It is reachable in the DMA block bench, which has such a peripheral, and not in this chip. Not a defect; read 2026-11-03. |
 | Open finding | `dtm.v:66` | `rsp_err_i` is tied 0 in `debug_top`, so `dmistat = 2` cannot occur. This is the open entry **DBG-5** (spec text, P3) in `Docs/bugs/track_a.md`. |
 
 ## Dead code, vendored IP (17)
@@ -55,6 +55,6 @@ Vendored files are not edited (`Docs/THIRD_PARTY_NOTICES.md`).
 ## Result
 
 - Structural lint (HAL): 0 errors left without a waiver.
-- Superlint: 36 findings. 35 have their reason above; `dma_chan.v:140` is open.
+- Superlint: 36 findings, each with its reason above.
 
-Row 3.14 of the 1-TOPS workbook stays In Progress until `dma_chan.v:140` is explained.
+Row 3.14 of the 1-TOPS workbook is closed with this file as its evidence.

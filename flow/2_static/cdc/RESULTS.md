@@ -1,49 +1,50 @@
-# Clock-domain crossings on the whole chip: first JasperGold CDC run (1-TOPS item 3.15)
+# Clock and reset domain crossings on the whole chip (1-TOPS item 3.15)
 
-JasperGold 2022.09p002, CDC app, `flow/2_static/cdc/cdc_chip.tcl` on `garuda_chip_top`. Run on 2026-11-03. Run from the repository root in tcsh:
+JasperGold 2022.09p002, CDC app, `flow/2_static/cdc/cdc_chip.tcl` on `garuda_chip_top`. Final run on 2026-11-03.
+
+Run from the repository root in tcsh:
 
     source /home/install/cshrc
     /home/install/JASPER/bin/jg -allow_unsupported_OS -cdc -batch -no_jges -proj sim/cdc_chip flow/2_static/cdc/cdc_chip.tcl
 
-The tool's reports are in `reports/`.
+Reports are in `reports/`:
+- `domains.csv`, `pairs.csv`, `schemes.csv`, `reset_schemes.csv`, `clock_groups.csv`;
+- `violations.csv`: what is left unwaived, header only, so **0**;
+- `waivers.csv`: every waiver with its reason.
 
-## Setup that made the analysis work
+## Result
 
-- **The three clocks `clk_div` makes from `refclk` are declared.** Without this the run found no crossing at all: the tool does not follow a clock through a flop by itself, so `hclk`, `pclk` and `aon_clk` (and everything they clock) were unclocked. Each one now has an environmental stopat on the divider output (`stopat -env`) and its own `clock` command.
-- **Clock groups:** `{refclk aon_clk hclk pclk}` is one synchronous family and `tck` is asynchronous to it (TRM §2, CLKRST §9.1).
+**0 unwaived violations.** The run without waivers reported 364 violations. Every one was read and falls into one of the classes below. Each waiver in the script matches only its own tag and a narrow name pattern, so a new violation still appears.
 
-## What the run shows
+## What the script tells the tool
 
-| Report | Result |
+| Intent | How |
 |---|---|
-| Domains (`domains.csv`) | 5: `refclk`, `aon_clk`, `hclk`, `pclk` (one synchronous group) and `tck` |
-| Crossing pairs (`pairs.csv`) | 56, **every one between `tck` and `hclk`**, which is the debug port. No other asynchronous crossing exists in the chip, as the TRM states. |
-| Synchronisers found (`schemes.csv`) | 2, both two-flop (NDFF), both passed: `u_debug.u_cdc.req_s` (tck to hclk) and `u_debug.u_cdc.ack_s` (hclk to tck), the request/acknowledge toggles of `dmi_cdc` |
-| Pairs with no recognised scheme | 54 pairs, reported as 20 `CDC_NO_SYNC` destinations. Every one is DMI payload behind that handshake: 19 Debug Module registers on hclk (`sbaddr`, `sbdata`, `sbaccess`, `dmactive`, `ndmreset`, `hartreset`, `haltforced`, `hold0..2`, `rdata_o` and the other `sb*` fields) and the DTM's `rsp_q` on tck. |
+| Clocks | `refclk`, `tck`, and the three clocks `clk_div` makes from `refclk` with flops (`aon_clk_o`, `hclk_o`, `pclk_o`). Each of the three is an environmental stopat plus `clock`: the tool does not follow a clock through a flop, and without this it found no crossing at all. |
+| Clock groups | `{refclk aon_clk hclk pclk}` is synchronous (one family, CLKRST §9.1); `tck` is asynchronous to it |
+| Reset | only the pin `ext_rst_n`. The tool traces the five resets `reset_ctrl` makes from it. Declaring those nets as resets cuts them and hides `reset_ctrl`'s synchronisers. |
+| Pins | JTAG pins on `tck`. Outputs on `pclk`. The asynchronous inputs (`boot_sel`, UART rx, SPI-slave pins, SPI-master MISO, I2C, GPIO) are `async_to_all`. The black-boxed memory arrays are on `hclk`. |
+| The DMI handshake | 4 `handshake` schemes, one per payload bus: the DTM's request address, data and op (`tck` to `hclk`), and the DM's read data (`hclk` to `tck`). Each is mapped to the toggles and synchronisers in `dmi_cdc` (DEBUG [N-7.16]). |
 
-The payload is held stable by the toggle handshake from the moment the request toggles until the acknowledge returns (DEBUG [N-7.16]), so it needs no synchroniser of its own. This is the same set HAL reports and waives (`flow/2_static/hal_waivers.txt`, CLOCK DOMAIN). The proper closure is to declare the handshake to JasperGold as a scheme, for example:
+## What the tool found
 
-    check_cdc -scheme -add MUX_NDFF -map {{data ...} {dout ...} {sready ...} {dready ...}}
+| Item | Result |
+|---|---|
+| Clock domains | 5 |
+| Crossing pairs | 74, all at the debug port (`tck` and `hclk`) or at a pin |
+| Synchronisers | 12 two-flop (NDFF) and 4 handshake, all passed. NDFF covers `dmi_cdc`'s two toggles and the input pins. |
 
-The tool then checks the payload against the handshake instead of reporting it.
+## Classes of violation, read and waived
 
-## Not finished: setup still to write
+| Tag | Count | Where | Why it is safe |
+|---|---|---|---|
+| `RDC_RS_DFRS` | 306 | a flop with a reset feeding a storage array with none: DSRAM (144), the register file (93), ISRAM (35), boot ROM (34) | The arrays have no reset by design, and their contents are undefined after a reset. Writes need a valid AHB data phase, which a reset ends. The register file's write enable comes from `mem_wb.reg_write`, which resets to 0. |
+| `RDC_RS_DFRS` | 4 | vendored I2C `bit_controller.dout`, `dscl_oen` | One-cycle delayed copies without reset: they follow their source within one `pclk` |
+| `RST_NO_SYNC` | 29 | `clk_div` (7), `reset_ctrl` (7), TAP / DTM / `dmi_cdc` ack (15) | Reset by the pin, with no release synchroniser, on purpose. The divider must run before any synchronised reset exists (D-14). In `reset_ctrl`, every flop's D equals its reset value at release. The JTAG side is reset at power-on with `tck` stopped, and the TAP also resets on five TMS-high clocks (IEEE 1149.1). |
+| `RST_RS_CONV` | 4 | `reset_ctrl` request logic (3); `core_rst_n & hartreset_n` in the core (1) | Re-registered before use; the core AND is CORE [N-7.33] and the HAL GLTASR waiver |
+| `RST_RS_RIDP` | 2 | `hreset_n` used as data | On purpose: `preset_n` releases after it, and it clears the watchdog request flop (`rdc_review.md`, crossings 1 and 2) |
+| `CDC_PR_FOUT` | 7 | DMI request payload | Fans out to several Debug Module registers; stable for the whole handshake |
+| `CDC_NO_SYNC` | 4 | `i2c_scl`, `i2c_sda`, `gpio0`, `gpio1` | Bidirectional pins: the `pclk` drive into the pad leaves the chip and is not an on-chip crossing. The input side is synchronised in the shim (NDFF, passed). |
+| `CNV_ST_CONV` | 8 | GPIO interrupt status; APB read-data mux in the bridge; SPI-slave shifter | GPIO: one bit per pin. Bridge: one window is selected per read, so bits from different peripherals never meet. SPI slave: oversampled, and SCLK ≤ `pclk`/6 (SPIS [N-7.1a]) keeps MOSI stable around the detected edge. |
 
-The other 357 violations come from setup that has not been written yet. They are not findings about the design.
-
-| Tag | Count | What is missing |
-|---|---|---|
-| `RDC_RS_DFRS` | 310 | The internal resets (`hreset_n`, `preset_n`, `core_rst_n`, `dm_rst_n`, `ext_hrst_n`, `ext_prst_n`, the TAP reset) are not declared yet. Only `ext_rst_n` is. The reset-domain review `flow/2_static/rdc_review.md` lists them, and each has to be declared with its domain. |
-| `PRT_IS_UNCK` | 39 | The input pins have no clock assigned. JTAG pins belong to `tck`. UART rx, SPI slave, I2C, GPIO, `boot_sel` and `ext_rst_n` are asynchronous and are synchronised inside (GPIO R-7, the `boot_sel` path in `flow/signoff/g3/README.md`). Each needs `config_rtlds -port`. |
-| `RST_NO_SYNC` | 29 | Follows from the undeclared resets |
-| `CDC_PR_FOUT` | 7 | Warnings: fan-out of a crossing; to be read once the scheme is declared |
-| `RST_RS_CONV`, `RST_RS_RIDP` | 4, 2 | Reset convergence and reset in a data path; to be read once the resets are declared. The AND of the two core resets is known and waived in HAL (CORE [N-7.33]). |
-
-## State of row 3.15
-
-**In Progress.**
-- The clock-domain half is confirmed: one asynchronous boundary, synchronisers present, and the payload explained.
-- Still to do:
-  - declare the handshake scheme;
-  - declare the port clocks;
-  - declare the internal resets, and redo the reset-domain review with the tool (plan task 3.5; RDC-1 is fixed in the RTL).
+The reset-domain review that HAL could not do (`flow/2_static/rdc_review.md`, plan task 3.5) is now backed by this tool run. Crossing 5 of that review (the debugger halting the core under a live bus) is closed in the RTL by RDC-1.
