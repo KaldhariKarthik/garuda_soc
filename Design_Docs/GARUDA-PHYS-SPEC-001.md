@@ -261,6 +261,24 @@ unachievable.
 12–19% of the die and the rest is logic and routing, so the floorplan is not
 memory-dominated.
 
+**[N-6.4]** Gate-count budget (1-TOPS item 1.15). The figures come from a trial synthesis of
+`garuda_chip_top` on 2026-11-03, with Genus 21.1 on the Nangate 45 nm library. There was no
+SDC, the SRAMs and ROM were black boxes, and the run is `flow/signoff/g1/`.
+
+| Item | Measured | Budget |
+|---|---|---|
+| Logic, all 22 blocks, without memories | 113.3 kGE (90,452 µm² at 45 nm; 39,854 cells) | **150 kGE** |
+| Flops | 7,925 (61% of the logic area) | — |
+| Latches | 1, the clock-gate cell of `core_clk_gate` | 1 |
+| Memories | 64 KiB ISRAM, 4 × 16 KiB DSRAM, 4 KiB ROM | 0.25–0.40 mm² ([N-6.3]) |
+| Die | — | 2.10 mm², 40 pads |
+
+The 37 kGE margin above the measurement covers scan flops and test logic (G7), the clock tree,
+hold buffers and the timing-driven upsizing a 250 MHz SDC adds. Scaled from 45 nm by
+(28/45)², the logic is about 0.04 mm²; even at three times that after placement density, logic
+plus memory stays under a quarter of the die. The budget is re-measured on the 28 nm
+library when the PDK arrives (G7 item 7.4).
+
 ---
 
 ## 7 Timing closure and the fallback

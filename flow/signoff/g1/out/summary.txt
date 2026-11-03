@@ -1,0 +1,2 @@
+TRIAL_SYNTH dont_use on 477 typical cells
+TRIAL_SYNTH cells=39854 flops=7925 latches=1 area_um2=90451.7 nand2_um2=0.798 kGE=113.3
