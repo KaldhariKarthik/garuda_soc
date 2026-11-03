@@ -1,0 +1,10 @@
+-----------------------------------------------------------------
+Name           : pvs - PVS - (64-bit)
+Description    : Physical Verification System
+Version        : 22.20-p031
+Build Ref. No. : 031 Production (11-17-2022) [pvs_2220]
+Build Date     : Thu Nov 17 19:06:38 PST 2022
+-----------------------------------------------------------------
+Copyright 2022 Cadence Design Systems, Inc.
+All rights reserved worldwide.
+

@@ -1,0 +1,22 @@
+-----------------------------------------------------------------
+Name           : quantus - Quantus - (64-bit)
+Description    : Quantus Extraction program
+Version        : 21.2.2-p045
+Build Ref. No. : 045 
+IR Build No.   : 045 
+Build Date     : Fri Sep 23 10:56:50 PDT 2022
+-----------------------------------------------------------------
+Copyright 2022 Cadence Design Systems, Inc.
+
+All rights reserved.
+
+THIS PROGRAM IS CONFIDENTIAL AND PROPRIETARY
+TO CADENCE DESIGN SYSTEMS, INC. AND CONSTITUTES
+A VALUABLE TRADE SECRET.
+
+This work may not be copied, modified, re-published,
+uploaded, executed, or distributed in any way, in any
+medium, whether in whole or in part, without prior
+written permission from Cadence Design Systems, Inc.
+
+

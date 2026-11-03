@@ -1,0 +1,19 @@
+spike exit status: 0 (HTIF tohost = 1: test passed)
+first and last commit-log lines of 5467 lines:
+core   0: >>>>  $xrv32i2p1_m2p0_zifencei2p0_zmmul1p0
+core   0: 0x10000000 (0x00200193) li      gp, 2
+core   0: 3 0x10000000 (0x00200193) x3  0x00000002
+core   0: 0x10000004 (0x00000593) li      a1, 0
+core   0: 3 0x10000004 (0x00000593) x11 0x00000000
+core   0: 0x10000008 (0x00000613) li      a2, 0
+core   0: 3 0x10000008 (0x00000613) x12 0x00000000
+core   0: 0x1000000c (0x00c58733) add     a4, a1, a2
+core   0: 3 0x1000000c (0x00c58733) x14 0x00000000
+core   0: 0x10000010 (0x00000393) li      t2, 0
+core   0: 3 0x10000010 (0x00000393) x7  0x00000000
+core   0: 0x10000014 (0x4c771663) bne     a4, t2, pc + 1228
+...
+core   0: 3 0x10000508 (0x0000006f)
+core   0: 3 0x10000508 (0x0000006f)
+core   0: 3 0x10000508 (0x0000006f)
+core   0: 3 0x10000508 (0x0000006f)

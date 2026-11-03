@@ -52,8 +52,11 @@ endif
 # with them) because everything else assumes them.
 test_blocks: test_blocks_b test_blocks_a
 
-# Everything that is expected to be green, in one command.
-regress_all: $(REGRESS_A) $(REGRESS_B)
+# Everything that is expected to be green, in one command (1-TOPS item 0.7).
+# -k: every part runs even after a failure; the last line is the verdict.
+regress_all:
+	@if $(MAKE) --no-print-directory -k $(REGRESS_A) $(REGRESS_B); \
+	 then echo "regress_all: PASS"; else echo "regress_all: FAIL"; exit 1; fi
 
 clean:
 	rm -rf $(SIM_DIR) xcelium.d xrun.history xrun.log xrun.key

@@ -1,0 +1,163 @@
+irun: 15.20-s086: (c) Copyright 1995-2020 Cadence Design Systems, Inc.
+TOOL:	irun	15.20-s086: Started on Nov 03, 2026 at 10:59:04 IST
+irun
+	-hal
+	-sv
+	flow/signoff/g0/hello.sv
+	-top hello
+	-define SYNTHESIS
+	-nclibdirname sim/g0/INCA_hal
+	-l flow/signoff/g0/out/hal.txt
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+ncvlog: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+file: flow/signoff/g0/hello.sv
+	module worklib.hello:sv
+		errors: 0, warnings: 0
+	Total errors/warnings found outside modules and primitives:
+		errors: 0, warnings: 1
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+ncelab: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+	Elaborating the design hierarchy:
+	Top level design units:
+		hello
+ncelab: *W,DSEMEL: This SystemVerilog design will be simulated as per IEEE 1800-2009 SystemVerilog simulation semantics. Use -disable_sem2009 option for turning off SV 2009 simulation semantics.
+	Building instance overlay tables: .................... Done
+	Generating native compiled code:
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+ncvlog_cg: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+		worklib.hello:sv <0x16bd898f>
+			streams:   2, words:   270
+	Building instance specific data structures.
+	Loading native compiled code:     .................... Done
+	Design hierarchy summary:
+		        Instances  Unique
+		Modules:        1       1
+		Registers:      1       1
+		Scalar wires:   3       -
+		Always blocks:  1       1
+	Writing initial simulation snapshot: worklib.hello:sv
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+hal: 15.20-s086: (c) Copyright 1995-2020 Cadence Design Systems, Inc.
+hal: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+hal: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+hal: Options:   -cdslib sim/g0/INCA_hal/irun.lnx86.15.20.nc/cds.lib -logfile flow/signoff/g0/out/hal.txt -f /home/kkarthik/garuda_soc/sim/g0/INCA_hal/irun.lnx86.15.20.nc/hal.args .
+hal: Snapshot:  worklib.hello:sv.
+hal: Workspace: /home/kkarthik/garuda_soc.
+hal: Date: Tue Nov 03 10:59:04 IST 2026.
+
+hal: Running on elaborated SNAPSHOT.....
+
+  ==========================================================================
+Performing lint checks 
+
+halcheck: 15.20-s086: (c) Copyright 1995-2020 Cadence Design Systems, Inc.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+halcheck: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+visadev: 15.20-s086: (c) Copyright 1995-2020 Cadence Design Systems, Inc.
+visadev: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+
+// G0 hello-world: one flop and a check. Used by every tool of items 0.1 and 0.2.
+|
+halcheck: *W,MAXLEN (./flow/signoff/g0/hello.sv,1|0): The HDL source line is 81 characters, which exceeds the recommended length of 80 characters.
+module hello (input logic clk, input logic rst_n, input logic d, output logic q);
+|
+halcheck: *W,MAXLEN (./flow/signoff/g0/hello.sv,2|0): The HDL source line is 81 characters, which exceeds the recommended length of 80 characters.
+        if (!rst_n) q <= 1'b0; else q <= d;
+|
+halcheck: *W,SEPLIN (./flow/signoff/g0/hello.sv,4|0): Use a separate line for each HDL statement.
+`ifndef SYNTHESIS
+|
+halcheck: *W,CDWARN (./flow/signoff/g0/hello.sv,7|0): The compiler directive '`ifndef' is used in the RTL.
+        if (q !== 1'b1) begin $display("HELLO FAIL q=%b", q); $finish; end
+|
+halcheck: *W,SEPLIN (./flow/signoff/g0/hello.sv,14|0): Use a separate line for each HDL statement.
+`endif
+|
+halcheck: *W,CDWARN (./flow/signoff/g0/hello.sv,19|0): The compiler directive '`endif' is used in the RTL.
+module hello (input logic clk, input logic rst_n, input logic d, output logic q);
+|
+halcheck: *N,PRTCNT (./flow/signoff/g0/hello.sv,2|0): Module/Entity 'hello' contains '4' ports.
+halcheck: (./flow/signoff/g0/hello.sv,2): Number of Input ports: 3.
+halcheck: (./flow/signoff/g0/hello.sv,2): Number of Output ports: 1.
+module hello (input logic clk, input logic rst_n, input logic d, output logic q);
+|
+halcheck: *N,DECLIN (./flow/signoff/g0/hello.sv,2|0): Use a separate line for each HDL declaration.
+    always_ff @(posedge clk or negedge rst_n)
+|
+halcheck: *W,NBGEND (./flow/signoff/g0/hello.sv,3|0): Missing begin/end statement in the 'always' block.
+        if (!rst_n) q <= 1'b0; else q <= d;
+|
+halcheck: *W,NBGEND (./flow/signoff/g0/hello.sv,4|0): Missing begin/end statement in the 'if' block.
+halcheck: Total errors   = 0.
+halcheck: Total warnings = 9.
+
+  ==========================================================================
+Performing synthesizability checks 
+
+cfe: 15.20.s086..-(): (c) Copyright 1995 - 2020 Cadence Design Systems, Inc.
+cfe Build : Mon Dec  7 22:48:34 IST 2020 ldvopt223
+halsynth: Loading design snapshot....
+halsynth: Traversing design hierarchy....
+halsynth: Total errors   = 0.
+halsynth: Total warnings = 0.
+
+  ==========================================================================
+Performing structural checks 
+
+halstruct: 15.20-s086: (c) Copyright 1995-2020 Cadence Design Systems, Inc.
+visadev: 15.20-s086: (c) Copyright 1995-2020 Cadence Design Systems, Inc.
+visadev: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+
+        if (!rst_n) q <= 1'b0; else q <= d;
+|
+halstruct: *N,FFASRT (./flow/signoff/g0/hello.sv,4|0): Flip-flop 'q' has an asynchronous reset 'rst_n'.
+module hello (input logic clk, input logic rst_n, input logic d, output logic q);
+|
+halstruct: *N,CLKINF (./flow/signoff/g0/hello.sv,2|0): Signal 'hello.clk' was inferred as clock.
+halstruct: (./flow/signoff/g0/hello.sv,2): Clock source is signal 'hello.clk'.
+halstruct: (./flow/signoff/g0/hello.sv,4): Drives the flip-flop 'hello.q'.
+module hello (input logic clk, input logic rst_n, input logic d, output logic q);
+|
+halstruct: *N,NUMDFF (./flow/signoff/g0/hello.sv,2|0): Number of single-bit D flip-flops present in the hierarchy is 1.
+halstruct: Design facts generated in 'hal.design_facts'.
+halstruct: Total errors   = 0.
+halstruct: Total warnings = 0.
+
+  ==========================================================================
+
+
+Analysis complete.
+
+ ==========================================================================
+
+To analyze results, run following command :
+    ncbrowse -cdslib sim/g0/INCA_hal/irun.lnx86.15.20.nc/cds.lib -hdlvar sim/g0/INCA_hal/irun.lnx86.15.20.nc/hdl.var -sortby severity -sortby category -sortby tag flow/signoff/g0/out/hal.txt
+
+TOOL:	irun	15.20-s086: Exiting on Nov 03, 2026 at 10:59:10 IST  (total: 00:00:06)

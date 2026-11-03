@@ -1,0 +1,8 @@
+PEGASUSDFM 22.12.000
+Platform lnx86
+
+Pegasus LPA Version        : 22.1.2-s038
+Pegasus LPA Build Date     : Thu Oct 13 08:15:36 PDT 2022
+
+Pegasus CMP Version        : 22.1.2-s038
+Pegasus CMP Build Date     : Wed Oct 12 16:55:29 PDT 2022

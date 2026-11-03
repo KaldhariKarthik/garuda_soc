@@ -1,0 +1,79 @@
+irun: 15.20-s086: (c) Copyright 1995-2020 Cadence Design Systems, Inc.
+TOOL:	irun	15.20-s086: Started on Nov 03, 2026 at 10:58:58 IST
+irun
+	-sv
+	flow/signoff/g0/hello.sv
+	-top tb_hello
+	-nclibdirname sim/g0/INCA_libs
+	-l flow/signoff/g0/out/irun.txt
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+ncvlog: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+file: flow/signoff/g0/hello.sv
+	module worklib.hello:sv
+		errors: 0, warnings: 0
+	module worklib.tb_hello:sv
+		errors: 0, warnings: 0
+	Total errors/warnings found outside modules and primitives:
+		errors: 0, warnings: 1
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+irun: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+ncelab: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+	Elaborating the design hierarchy:
+		Caching library 'worklib' ....... Done
+	Top level design units:
+		tb_hello
+ncelab: *W,DSEMEL: This SystemVerilog design will be simulated as per IEEE 1800-2009 SystemVerilog simulation semantics. Use -disable_sem2009 option for turning off SV 2009 simulation semantics.
+	Building instance overlay tables: .................... Done
+	Generating native compiled code:
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+ncvlog_cg: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+		worklib.hello:sv <0x353f1a1c>
+			streams:   2, words:   334
+		worklib.tb_hello:sv <0x083c7362>
+			streams:   9, words:  4440
+	Building instance specific data structures.
+	Loading native compiled code:     .................... Done
+	Design hierarchy summary:
+		             Instances  Unique
+		Modules:             2       2
+		Registers:           5       5
+		Scalar wires:        5       -
+		Always blocks:       2       2
+		Initial blocks:      4       4
+		Pseudo assignments:  4       4
+	Writing initial simulation snapshot: worklib.tb_hello:sv
+SOFTINCLUDE $FOUNDRY/cds.lib
+|
+ncsim: *W,DLCVAR (/home/install/IC618/share/cdssetup/cds.lib,5): cds.lib Invalid environment variable ''.
+Loading snapshot worklib.tb_hello:sv .................... Done
+ncsim: *W,DSEM2009: This SystemVerilog design is simulated as per IEEE 1800-2009 SystemVerilog simulation semantics. Use -disable_sem2009 option for turning off SV 2009 simulation semantics.
+ncsim> source /home/install/INCISIVE152/tools/inca/files/ncsimrc
+ncsim> run
+HELLO PASS
+Simulation complete via $finish(1) at time 16 NS + 0
+./flow/signoff/g0/hello.sv:16         $finish;
+ncsim> exit
+TOOL:	irun	15.20-s086: Exiting on Nov 03, 2026 at 10:59:04 IST  (total: 00:00:06)
