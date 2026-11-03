@@ -1,0 +1,2 @@
+Name,Clock Group Type,Clock Groups
+RTLDS_unnamed:1,AsyncClkGroup,{refclk u_core.u_clk_div.hclk_o u_core.u_clk_div.aon_clk_o u_core.u_clk_div.pclk_o} {tck}

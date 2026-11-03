@@ -23,10 +23,17 @@ foreach d [split [string trim [exec env -u LD_LIBRARY_PATH python3 scripts/expan
 analyze -sv09 +define+SYNTHESIS +incdir+rtl/include +incdir+rtl/common {*}$INCS {*}$FILES
 elaborate -top garuda_chip_top
 
-# the two primary clocks; tck is asynchronous to refclk and everything derived from it
+# the two primary clocks, and the three clocks clk_div makes from refclk with
+# flops (the tool does not follow a clock through a flop by itself). The refclk
+# family is one synchronous group; tck is asynchronous to it.
 clock refclk
 clock tck
-# (no group statement: clocks declared separately are asynchronous unless grouped with -sync)
+# a clock must be an input or a stopat: cut the divider outputs and clock them
+stopat -env {u_core.u_clk_div.aon_clk_o u_core.u_clk_div.hclk_o u_core.u_clk_div.pclk_o}
+clock u_core.u_clk_div.aon_clk_o
+clock u_core.u_clk_div.hclk_o
+clock u_core.u_clk_div.pclk_o
+config_rtlds -clock -group -async {{refclk u_core.u_clk_div.aon_clk_o u_core.u_clk_div.hclk_o u_core.u_clk_div.pclk_o} {tck}}
 # the external reset pin (active low); the internal resets come from reset_ctrl flops
 config_rtlds -reset -async ext_rst_n -polarity low
 

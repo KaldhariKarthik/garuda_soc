@@ -1,0 +1,7 @@
+Scheme,Scheme Type,Detection Type,Violation,Out,Dclk,Srst,NDFF Chain
+u_core.u_reset_ctrl.ext_sync_q[1],Sync Deassert,Automatic,,u_core.u_reset_ctrl.ext_sync_q[1],u_core.u_clk_div.aon_clk_o,ext_rst_n,u_core.u_reset_ctrl.ext_sync_q[0] u_core.u_reset_ctrl.ext_sync_q[1]
+u_core.u_reset_ctrl.hrst_q[1],Sync Deassert,Automatic,,u_core.u_reset_ctrl.hrst_q[1],u_core.u_clk_div.hclk_o,u_core.u_reset_ctrl.sys_req_q,u_core.u_reset_ctrl.hrst_q[0] u_core.u_reset_ctrl.hrst_q[1]
+u_core.u_reset_ctrl.core_q[1],Sync Deassert,Automatic,,u_core.u_reset_ctrl.core_q[1],u_core.u_clk_div.hclk_o,u_core.u_reset_ctrl.core_req_q,u_core.u_reset_ctrl.core_q[0] u_core.u_reset_ctrl.core_q[1]
+u_core.u_reset_ctrl.dm_q[1],Sync Deassert,Automatic,,u_core.u_reset_ctrl.dm_q[1],u_core.u_clk_div.hclk_o,u_core.u_reset_ctrl.dm_req_q,u_core.u_reset_ctrl.dm_q[0] u_core.u_reset_ctrl.dm_q[1]
+u_core.u_reset_ctrl.exth_q[1],Sync Deassert,Automatic,,u_core.u_reset_ctrl.exth_q[1],u_core.u_clk_div.hclk_o,ext_rst_n,u_core.u_reset_ctrl.exth_q[0] u_core.u_reset_ctrl.exth_q[1]
+u_core.u_reset_ctrl.extp_q[1],Sync Deassert,Automatic,,u_core.u_reset_ctrl.extp_q[1],u_core.u_clk_div.pclk_o,ext_rst_n,u_core.u_reset_ctrl.extp_q[0] u_core.u_reset_ctrl.extp_q[1]

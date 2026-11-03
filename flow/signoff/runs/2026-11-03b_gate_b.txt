@@ -1,0 +1,79 @@
+tree a5c06a1, 2026-11-03 15:50, Xcelium 22.09 / irun 15.2
+check_tree: 1647 tracked files, 285 bug IDs, 0 problem(s)
+check_applicability: 146 own modules, 0 problem(s)
+static_lint   HAL errors=5  not waived=0  (log: sim/static/hal.log)
+  RISEN  W CONSBS  baseline 7 now 8
+hal_baseline: 79 rules, 746 findings; baseline 745; 1 rule(s) risen, 0 lower
+make[1]: *** [flow/mk/track_b.mk:105: static_lint] Error 1
+tb_crg         tb_crg: checks=43  FAIL=0 RESULT: PASSED 
+tb_clic        tb_clic: checks=24  FAIL=0 RESULT: PASSED 
+tb_timers      tb_timers: checks=27  FAIL=0 RESULT: PASSED 
+tb_apb_shim    tb_apb_shim: checks=26  FAIL=0 RESULT: PASSED 
+tb_spim        tb_spim: checks=27  FAIL=0 RESULT: PASSED 
+tb_uart        tb_uart: checks=117  FAIL=0 RESULT: PASSED 
+tb_i2c         tb_i2c: checks=93  FAIL=0 RESULT: PASSED 
+tb_gpio        tb_gpio: checks=26  FAIL=0 RESULT: PASSED 
+tb_pwm         tb_pwm: checks=60  FAIL=0 RESULT: PASSED 
+tb_spis        tb_spis: checks=74  FAIL=0 RESULT: PASSED 
+make -C sw all
+/home/vivado/2025.2/Vitis/gnu/riscv/linux_toolchain/lin64/bin/riscv64-amd-linux-gnu-gcc -march=rv32im_zicsr_zifencei -mabi=ilp32 -mno-relax -fno-pic -Os -g -ffreestanding -fno-builtin -nostdlib -nostartfiles -Wall -Wextra -Icommon -Ichip -T chip/link_chip.ld -no-pie -static \
+    chip/crt0_chip.S chip/t_chip_integ.c -o build/t_chip_integ.elf
+/home/vivado/2025.2/gnu/riscv/linux_toolchain/lin64/x86_64-amdedfsdk-linux/usr/bin/riscv64-amd-linux/riscv64-amd-linux-ld.real: warning: .note.gnu.build-id section discarded, --build-id ignored
+/home/vivado/2025.2/Vitis/gnu/riscv/linux_toolchain/lin64/bin/riscv64-amd-linux-gnu-objcopy -O binary build/t_chip_integ.elf build/t_chip_integ.bin
+python3 ../tools/elf2hex.py build/t_chip_integ.bin build/t_chip_integ.hex --base 0x00000000
+elf2hex: build/t_chip_integ.bin -> build/t_chip_integ.hex  (855 words of content, 855 written, base 0x00000000)
+chip_basic     RESULT: PASSED  ** 1 ASSERTION FAILURE(S), not counted in RESULT
+xmsim: *E,ASRTST (./rtl/dma/dma_props_a.sv,643): (time 8355 NS) Assertion tb_chip.dut.u_core.u_soc.u_dma.u_dma_props_a.a_no_read_before_refusal has failed
+  VERDICT: FAIL ( simulator exit 1; 1 *E/*F message(s); 1 failure line(s); )
+make[1]: *** [flow/mk/track_b.mk:61: test_chip_basic] Error 1
+chip_irq       RESULT: PASSED 
+chip_wdt       RESULT: PASSED 
+chip_flash     RESULT: PASSED 
+chip_uart      RESULT: PASSED 
+chip_periph    RESULT: PASSED 
+chip_integ     RESULT: PASSED 
+chip_jtag      RESULT: PASSED 
+chip_swirq     RESULT: PASSED 
+make[1]: Target 'test_chip' not remade because of errors.
+uvm_clic  reg_s1 PASS
+uvm_clic  directed_s1 PASS
+uvm_clic  random_s1 PASS
+uvm_clic  random_s2 PASS
+uvm_clic  random_s3 PASS
+uvm_timers  reg_s1 PASS
+uvm_timers  directed_s1 PASS
+uvm_timers  random_s1 PASS
+uvm_timers  random_s2 PASS
+uvm_timers  random_s3 PASS
+uvm_pwm  reg_s1 PASS
+uvm_pwm  directed_s1 PASS
+uvm_pwm  random_s1 PASS
+uvm_pwm  random_s2 PASS
+uvm_pwm  random_s3 PASS
+uvm_gpio  reg_s1 PASS
+uvm_gpio  directed_s1 PASS
+uvm_gpio  random_s1 PASS
+uvm_gpio  random_s2 PASS
+uvm_gpio  random_s3 PASS
+uvm_crg  reg_s1 PASS
+uvm_crg  directed_s1 PASS
+uvm_crg  random_s1 PASS
+uvm_crg  random_s2 PASS
+uvm_crg  random_s3 PASS
+uvm_spis  reg_s1 PASS
+uvm_spis  directed_s1 PASS
+uvm_spis  random_s1 PASS
+uvm_spis  random_s2 PASS
+uvm_spis  random_s3 PASS
+uvm_i2c  reg_s1 PASS
+uvm_i2c  directed_s1 PASS
+uvm_i2c  random_s1 PASS
+uvm_i2c  random_s2 PASS
+uvm_i2c  random_s3 PASS
+uvm_uart  reg_s1 PASS
+uvm_uart  directed_s1 PASS
+uvm_uart  random_s1 PASS
+uvm_uart  random_s2 PASS
+uvm_uart  random_s3 PASS
+gate_b: FAIL
+make: *** [flow/mk/track_b.mk:300: gate_b] Error 1
