@@ -48,7 +48,7 @@ def expand(path, seen, srcs, incs, defs):
         sys.exit(1)
 
     base = os.path.dirname(path)
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:   # comments may hold non-ASCII (a shell with no LANG reads ASCII)
         for raw in fh:
             line = raw.strip()
             if not line or line.startswith('//') or line.startswith('#'):

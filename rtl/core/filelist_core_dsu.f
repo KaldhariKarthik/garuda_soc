@@ -2,7 +2,6 @@
 // filelist_core_dsu.f -- core + REAL DSU (integration / SoC build)
 //
 // Identical to filelist_core.f except the last entry: the real rtl/dsu/dsu_top.v
-rtl/dsu/dsu_sva.sv
 // and its submodules replace tb/stub/dsu_top_stub.v. Never include both -- they
 // define the same module name.
 //

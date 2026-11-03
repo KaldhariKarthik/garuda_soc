@@ -12,7 +12,7 @@ ERRORS (5)
   UNRCHS  same line
           State MODE is never entered and never left. Not reachable in normal
           operation. Tracked as SPIM-2 (OPEN): the fix is a vendor patch.
-  GLTASR  rtl/core/garuda_core_top.v:88   core_rst_n_i & hartreset_n_i
+  GLTASR  rtl/core/garuda_core_top.v:124  core_rst_n_i & hartreset_n_i
           CORE [N-7.33] requires the two resets to be combined inside the core.
           Both are outputs of reset_ctrl synchroniser flops on hclk. A glitch
           needs them to move in opposite directions in the same cycle, and its
@@ -157,3 +157,14 @@ vendored = in third-party IP that is not edited (D-22); open = an open finding, 
   UNMGEN  W own 0   vendored 1    an unnamed generate block in vendored IP
   WIDSEL  W own 0   vendored 1    a vendored case too wide to check for completeness
 
+WARNINGS ADDED BY THE TRACK A MERGE OF 2026-10-21 (baseline raised by one each on 2026-11-03)
+  LOGORP  rtl/core/branch_unit.v:115   (jal | taken_r) ? branch_target
+          Bitwise OR of two 1-bit signals in a condition: identical to a logical
+          OR. T-18 fix.
+  MULNBA  rtl/debug/debug_module.v:129 haltforced <= 1'b0
+          W1C clear of HALTINFO.haltforced; the forced-grant set later in the
+          same block wins on purpose (comment on the line). RDC-1 fix.
+  URDWIR  rtl/core/csr_file.v:263      ctl_next
+          32-bit result of the shared CSR-op function; only [3:0] is stored
+          (mgarudactl has four bits). CORE-4.
+  UEASPD  one fewer than the baseline (lowered on 2026-11-03).

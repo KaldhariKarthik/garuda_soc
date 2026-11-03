@@ -187,9 +187,12 @@ module ahb2apb_sva #(
         sample && rdy_w && acc_cnt == {2'b0, ext} + TIMEOUT[5:0] - 6'd1);
     c_slverr:          cover property (@(posedge pclk_i) disable iff (!preset_n_i) sample && rdy_w && pslverr_i[w]);
 
+    // Read data is compared with `===` here and in a_rdata: they check routing, and a
+    // slave may return X in simulation (an SPI byte shifted in from a MISO that no bench
+    // model drives; TB-A8).
     // a_resp_from_active_window (white-box fabric): the return is the selected window's
     a_resp_from_active_window: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
-        !(|psel_o) || (pready_sel == pready_i[w] && pslverr_sel == pslverr_i[w] && prdata_sel == prdata_i[32*w +: 32]));
+        !(|psel_o) || (pready_sel == pready_i[w] && pslverr_sel == pslverr_i[w] && prdata_sel === prdata_i[32*w +: 32]));
 
     // =========================================================================
     // AHB side (hclk): one-to-one, no APB activity for a rejected request,
@@ -208,7 +211,7 @@ module ahb2apb_sva #(
     a_resp: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
         !(dp && hreadyout_o) || hresp_o == (!dp_legal || end_err));
     a_rdata: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        !(dp && hreadyout_o && dp_legal && !dp_write && !hresp_o) || hrdata_o == end_rdata);
+        !(dp && hreadyout_o && dp_legal && !dp_write && !hresp_o) || hrdata_o === end_rdata);
     // a_error_two_cycle: every ERROR is HREADY low then HREADY high
     a_error_two_cycle: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
         !(past_ok && $past(hresp_o && !hreadyout_o) && preset_n_i && $past(preset_n_i)) || (hresp_o && hreadyout_o));

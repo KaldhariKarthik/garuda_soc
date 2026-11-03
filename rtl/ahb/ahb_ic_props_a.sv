@@ -241,8 +241,12 @@ module ahb_ic_props_a (
     // =========================================================================
     // AHB-1: HWDATA belongs to the data-phase owner, not the address-phase grant
     // =========================================================================
+    // `===`: the property checks the routing, not the data. A master may write a
+    // value that is X in simulation (the boot ROM prologue saves s0..s3, which no
+    // instruction has written yet; the register file has no reset), and `==`
+    // turns X into a failure under a 4-state simulator (TB-A8).
     a_hwdata_data_phase: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        !(dv_q && dwr_q) || hwdata_o == m_wdata[do_q]);
+        !(dv_q && dwr_q) || hwdata_o === m_wdata[do_q]);
     c_write_handoff: cover property (@(posedge hclk_i) disable iff (!hreset_n_i)
         dv_q && dwr_q && slv_acc && acc_m != do_q);
 
@@ -263,9 +267,11 @@ module ahb_ic_props_a (
         // ... with that slave's response ...
         a_resp_value: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
             !(mdone[g] && exp_ok[g]) || m_err[g] == exp_resp[g]);
-        // ... and, for a read that completed OKAY, that slave's data
+        // ... and, for a read that completed OKAY, that slave's data. `===` as in
+        // a_hwdata_data_phase: a read of memory nobody has written returns X in
+        // simulation, and the property is about routing (TB-A8).
         a_rdata_value: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !(mdone[g] && exp_ok[g] && !exp_wr[g] && !exp_resp[g]) || m_rdata[g] == exp_data[g]);
+            !(mdone[g] && exp_ok[g] && !exp_wr[g] && !exp_resp[g]) || m_rdata[g] === exp_data[g]);
         // a_resp_hold (AHB-2): one held response at most; a second one would be lost
         a_resp_hold_one_deep: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
             !(slave_done && do_q == g && pend_v[g]));
