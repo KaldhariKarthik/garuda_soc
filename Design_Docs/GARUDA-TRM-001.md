@@ -40,6 +40,7 @@ from nine other documents in eleven places.
 | `GARUDA-ADR-001` | 1.0 | **Architecture decisions, 21 records. Authority on every choice.** |
 | `GARUDA-DOC-001` | 1.0 | Specification template and house rules |
 | `GARUDA-CORE-SPEC-001` | 3.0 | Block 1 — RV32IM core |
+| `GARUDA-CORE-UARCH-001` | 1.0 | Block 1 — micro-architecture of the core, stage by stage (companion to CORE-SPEC; 1-TOPS item 1.13) |
 | `GARUDA-DSU-SPEC-001` | 3.0 | Block 2 — DSP support unit |
 | `GARUDA-MEM-SPEC-001` | 2.0 | Blocks 3–5 — ISRAM, Boot ROM, DSRAM, boot |
 | `GARUDA-AHB-SPEC-001` | 4.0 | Block 6 — interconnect |

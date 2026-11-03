@@ -16,6 +16,7 @@ yaml disagree, the yaml is correct. `tools/garuda_gen.py` writes the yaml into
 | `GARUDA-ADR-001.md` | Architecture decision records (ADR-0001..) |
 | `GARUDA-TRM-001.md` | Technical reference manual |
 | `GARUDA-<BLOCK>-SPEC-001.md` | 17 specifications: one per block or block group, and PHYS for pins and physical constraints |
+| `GARUDA-CORE-UARCH-001.md` | Micro-architecture of the core, stage by stage: datapath, control, hazards and forwarding, the I-port and D-port protocols. Companion to the core spec |
 | `SPEC_TEMPLATE.md` | The section layout that every block spec follows |
 | `regs/*.rdl` | SystemRDL register descriptions (CLIC, clock/reset, GPIO, PWM, timers). They are written from each spec's §6 and generate the UVM register models |
 | `archive/` | Rev 1.x and 2.0 documents, kept for history. Superseded |

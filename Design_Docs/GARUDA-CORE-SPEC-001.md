@@ -20,6 +20,7 @@
 | 3.0 | `mtime`/`mtimecmp` 64-bit ports replaced by a single `mtip_i`. `hartreset_n_i` added for debug. WFI root clock gate added. Orphan `clic_mintthresh_o` removed. The hold/flush composition made a single authoritative table (§7.6). Frequency target and timing-closure fallback stated. | ADR-0010, 0012, 0001, 0009 |
 | 3.0a | Implementation-detail text aligned with the RTL (Track A W7 / AUD-12 sweep, 2026-10-11; no architectural change): the static branch predictor described ([N-7.1], [N-7.2], §13); `mtvec` reset value ([N-7.34]); `quiescent` terms and the gate enable with `CLK_GATE` and `mgarudactl.CG_DIS` ([N-7.28], [N-9.3], `a_gate_enable_is_quiescent`); `core_sleep_o` port. Architectural items (misa M vs Zmmul, CLIC `mpil`, DSU overflow) are rulings in `DECISIONS.md`, not edits here. | AUD-12, CORE-4 |
 | 3.0b | §6.1 CSR table completed from `csr_file.v` for 1-TOPS item 1.4 (2026-11-03): value after reset and access type (RW / WARL / RO / RZ) for every implemented CSR; the C-16 read-zero group, `mgarudactl`, `dsu_ovf`, the Zicntr copies, the identity CSRs and the ratified `mintstatus` alias added. No RTL change. | 1-TOPS 1.4, C-16, CORE-4 |
+| 3.0c | §4 sub-block table rewritten from `rtl/core/` (it named files that no longer exist); stage-by-stage detail moved to the new `GARUDA-CORE-UARCH-001` (1-TOPS item 1.13, 2026-11-03). No RTL change. | 1-TOPS 1.13 |
 
 ## 0.3 Normative references
 
@@ -123,20 +124,40 @@ instruction, precisely so that it cannot become a fifth.
 
 ## 4 Sub-block inventory
 
-| Name | Type | RTL file | Role | Rev 3.0 |
-|---|---|---|---|---|
-| `garuda_pc_gen` | seq | `garuda_pc_gen.v` | PC, prefetch buffer, I-port master. | — |
-| `garuda_decode` | comb | `garuda_decode.v` | Instruction decode, hazard detect. | — |
-| `garuda_regfile` | seq | `garuda_regfile.v` | 31×32 GPRs, 2R1W, x0 hardwired. | — |
-| `garuda_alu` | comb | `garuda_alu.v` | Arithmetic, logic, shift, compare. | — |
-| `garuda_mul` | comb | `garuda_mul.v` | 33×33 signed multiplier, one cycle. | — |
-| `garuda_dsu` | seq | `dsu/*.v` | Custom-0 MAC unit. Block 2. | — |
-| `garuda_lsu` | seq | `garuda_lsu.v` | Load/store, D-port master, alignment. | — |
-| `pipe_ctrl` | comb+seq | `pipe_ctrl.v` | **Hold, flush, trap, quiescence.** | `quiescent` output |
-| `csr_file` | seq | `csr_file.v` | CSRs. | `mtip_i`; port removed |
-| `trap_ctrl` | comb+seq | `trap_ctrl.v` | Exception and interrupt entry. | — |
-| `clic_ctrl` | comb | `clic_ctrl.v` | CLIC take decision. | — |
-| `core_clk_gate` | seq | `core_clk_gate.v` | **New.** WFI root gate. | new |
+One row per file in `rtl/core/`, grouped by stage. How each one works, stage by stage, is in
+`GARUDA-CORE-UARCH-001`.
+
+| Stage | Module (file) | Role |
+|---|---|---|
+| IF | `garuda_if_stage_top` | Wires the three IF sub-blocks. |
+| IF | `garuda_pc_gen` | Architectural PC and the speculative fetch PC; reset vector 0x1000_0000. |
+| IF | `garuda_iport_ahb_master` | I-port AHB-Lite master (M0): INCR bursts, discards data across a redirect. |
+| IF | `garuda_prefetch_buffer` | 4-entry instruction FIFO with PC and fault tags; flushed whole on a redirect. |
+| — | `if_id`, `id_ex`, `ex_mem`, `mem_wb_reg` | The four pipeline registers. |
+| ID | `id_stage` | Wires the ID sub-blocks. |
+| ID | `decode_control` | Decode to the control bundle; illegal-instruction detection (DIV/REM illegal, §7.2). |
+| ID | `imm_gen` | I, S, B, U, J immediates. |
+| ID | `regfile` | 31 × 32-bit, 2R1W, x0 reads 0, write-then-read bypass, no reset. |
+| ID | `branch_predict` | Static backward-taken / forward-not-taken; JAL and FENCE.I redirect from ID ([N-7.2]). |
+| ID | `hazard_forward_unit` | Load-use detection (§8.1). |
+| EX | `ex_stage` | Operand forwarding muxes, the EX result mux, alignment checks; instantiates the units below and the DSU. |
+| EX | `forward_unit` | Forward selects: EX/MEM > MEM/WB > register file. |
+| EX | `alu` | Arithmetic, logic, shifts, compares. |
+| EX | `mul32` | One 33 × 33 signed multiplier, single cycle (§7.2). |
+| EX | `branch_unit` | Branch resolution, mispredict, JALR target, link. |
+| EX | `csr_rw` | CSRRW/S/C value. |
+| EX | `dsu_top` (`rtl/dsu/`) | Custom-0 MAC unit, block 2. |
+| MEM | `mem_stage` | Wires MEM; write-back value mux. |
+| MEM | `load_store_unit` | HSIZE, store lane alignment. |
+| MEM | `d_port_ahb_master` | D-port AHB-Lite master (M1): SINGLE, one outstanding transfer. |
+| MEM | `load_formatter` | Load lane select and sign or zero extension. |
+| WB | `wb_stage` | Register-file write port. |
+| control | `pipe_ctrl` | **Hold, flush, redirect mux, quiescence** (§7.6). |
+| control | `trap_ctrl` | Exception priority, trap entry and exit. |
+| control | `clic_ctrl` | CLIC take decision. |
+| control | `csr_file` | CSRs (§6.1). |
+| control | `core_clk_gate` | WFI root clock gate. |
+| — | `garuda_rvfi` | RISC-V Formal Interface; verification builds only. |
 
 ---
 
