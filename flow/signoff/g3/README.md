@@ -36,3 +36,32 @@ The `boot_sel` path, from pin to firmware:
 There is no ROM remap: the reset vector is fixed at `0x1000_0000` (deviation D-A6).
 
 Reset control is `rtl/reset_ctrl/`. It has four sources (`ext_rst_n`, watchdog, `ndmreset`, software), a 1024-cycle stretch, and the cause in `RSTREASON`. Clock control is `rtl/clk_div/` (DIVSEL).
+
+## 3.16 Floating and unconnected nets
+
+Genus `check_design` on the elaborated RTL of `garuda_chip_top`, before any optimisation, so constant propagation hides nothing. SRAMs are black boxes. Run from the repository root in tcsh:
+
+    source /home/install/cshrc
+    /home/install/GENUS211/bin/genus -batch -no_gui -files flow/signoff/g3/floating_nets.tcl -log sim/g3_float/genus
+
+Run on 2026-11-03. Reports are in `out/`.
+
+| Check | Result |
+|---|---|
+| Undriven pins and ports, at every level (`out/undriven.rpt`) | **none** |
+| Unresolved references, empty modules (`out/unresolved.rpt`) | none |
+| Unloaded ports (`out/unloaded.rpt`) | none |
+| Unloaded flops | 35: three registers, each explained below |
+| Multiply driven pins (`out/multidriven.rpt`) | 4 flop inputs and 4 hierarchical pins: the bidirectional pads, explained below |
+
+**The 35 unloaded flops: each is unused on purpose.**
+
+| Flops | Register | Why nothing reads it |
+|---|---|---|
+| 32 | `u_pc_gen/pc_o` (`rtl/core/garuda_pc_gen.v`), the architectural PC | `garuda_if_stage_top.v` leaves the port unconnected on purpose: the pipeline uses the PC tag stored with each prefetch-buffer entry. The unit bench `tb_garuda_pc_gen` checks it. Synthesis removes it. |
+| 2 | `spi_mode` in the vendored `spi_master_controller.sv` | The quad and dual SPI modes are not exposed; GARUDA's SPI master is single-bit (SPIM spec). |
+| 1 | `sync1_q` in the PWM's APB shim | The shared shim carries a pad-input synchroniser. The PWM has no input pin, so `pad_async_i` is tied to 0 and `pad_sync_o` is left open (`rtl/pwm/garuda_pwm_top.v`). |
+
+**The multiply driven pins** are `i2c_scl_i`, `i2c_sda_i` and `gpio_i[1:0]`, and the first synchroniser flop behind each. Each is a bidirectional pin, modelled as `assign pin = oe ? out : 1'bz` and read back as the input. Genus counts the tristate output and the port as two drivers of one net. A pad cell from the PDK's IO library replaces this model, with separate output, enable and input pins, and the count goes to 0 (G7/G8).
+
+Nothing here needs an RTL change.

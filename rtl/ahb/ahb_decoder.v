@@ -22,10 +22,10 @@
 // HREADY itself, and some slaves use HSEL with HTRANS=IDLE to pre-charge.
 //
 // NOT DECODED HERE: whether the address is inside the slave's physical size.
-// Sec. 6 is explicit that "addresses inside a region but beyond a slave's
-// physical size are the slave's responsibility to flag; the interconnect only
-// routes by region." A 64 KB ISRAM sits in a 256 MB region; the ISRAM raises
-// the error for the other 255.9 MB, not this block.
+// The interconnect only routes by region. Inside a region, an address past the
+// memory's size aliases down: the memories ignore the high bits, by design
+// (GARUDA-MEM-SPEC-001 [N-7.2]; checked by sw/chip/t_chip_integ.c step 7). Only
+// an address outside the four regions gets an ERROR, from the default slave.
 // =============================================================================
 
 `include "ahb_defs.vh"

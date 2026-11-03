@@ -13,6 +13,9 @@
  *   5  each peripheral DMA request line reaches its own channel and no other
  *   6  an unmapped offset in every window, an absent window and a sub-word APB
  *      access each give one precise bus fault
+ *   7  AHB decode: an address in no region gets ERROR (load fault), a store to
+ *      the boot ROM gets ERROR (store fault), ISRAM and DSRAM alias above their
+ *      size (MEM [N-7.2])
  *
  * The companion on the SPI-slave pins sends a two-byte frame when firmware
  * raises gpio1 (tb_chip). Returns 0 = pass, otherwise the failed step * 10 + n.
@@ -43,14 +46,14 @@
 /* the peripheral behind CLIC IDs 14..21, in ID order */
 static const uint32_t pbase[8] = { SPIS, SPIM, I2C, U0, U1, U2, GPIO, PWM };
 
-volatile uint32_t hits[32], n_mti, exc, bad, last_cause, expect_mti;
+volatile uint32_t hits[32], n_mti, exc, bad, last_cause, expect_mti, last_exc;
 static uint32_t src[8], dst[8];
 
 uint32_t trap_handler(uint32_t mcause, uint32_t mepc)
 {
     uint32_t id = mcause & 0x1Fu;
 
-    if (!(mcause & MCAUSE_INT)) { exc++; return mepc + 4; }
+    if (!(mcause & MCAUSE_INT)) { exc++; last_exc = mcause; return mepc + 4; }
     last_cause = mcause;
     if (expect_mti && mcause == MTI_CAUSE) {
         n_mti++;
@@ -294,6 +297,32 @@ int main(void)
         e0 = exc;
         (void)*(volatile uint8_t *)(uintptr_t)U0;   /* APB is word-only */
         if (exc != e0 + 1u)                                         return 74;
+    }
+
+    /* ---- 7: AHB decode, 1-TOPS item 3.13 ------------------------------------------
+     * An address outside the four regions gets the default slave's ERROR (AHB R-6):
+     * a load access fault, cause 5. A store to the boot ROM gets ERROR: cause 7.
+     * Inside a region, past the memory's size, the address aliases down (MEM [N-7.2]). */
+    MARK(75);
+    {
+        static const uint32_t no_region[4] = { 0x30000000u, 0x50000000u, 0x80000000u, 0xF0000000u };
+        for (k = 0; k < 4; k++) {
+            e0 = exc;
+            (void)REG(no_region[k]);
+            if (exc != e0 + 1u || last_exc != 5u)                   return 75;
+        }
+        e0 = exc;
+        REG(GARUDA_BOOTROM_BASE + 0x100u) = 0xDEADBEEFu;
+        if (exc != e0 + 1u || last_exc != 7u)                       return 76;
+        /* ISRAM: the word of main() read through its alias 64 KiB higher */
+        {
+            uint32_t a = (uint32_t)(uintptr_t)&main;
+            if (REG(a + GARUDA_ISRAM_SIZE) != REG(a))               return 77;
+        }
+        /* DSRAM: written through the alias, read at the real address */
+        e0 = exc;
+        REG((uint32_t)(uintptr_t)&dst[0] + GARUDA_DSRAM_SIZE) = 0x5A5A1234u;
+        if (dst[0] != 0x5A5A1234u || exc != e0)                     return 78;
     }
 
     return bad ? 80 : 0;
