@@ -4,7 +4,7 @@ CORE,measured,Expression,66,70,0,94.29
 CORE,measured,Toggle,7873,9310,0,84.56
 CORE,measured,Fsm,4,4,0,100.00
 CORE,measured,Assertion,140,140,0,100.00
-CORE,measured,Functional,1172,1292,0,90.71
+CORE,measured,Functional,1188,1309,0,90.76
 DSU,measured,Block,63,63,0,100.00
 DSU,measured,Toggle,3601,3765,0,95.64
 DSU,measured,Functional,192,320,0,60.00

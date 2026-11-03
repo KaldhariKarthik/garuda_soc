@@ -270,7 +270,7 @@ package dma_env_pkg;
             end
         endtask
         task wait_idle(int ch); while (busy[ch]) @(negedge vif.hclk); endtask
-        task stop(int ch); if (busy[ch]) begin abort[ch] = 1; wait_idle(ch); end endtask
+        task stop_channel(int ch); if (busy[ch]) begin abort[ch] = 1; wait_idle(ch); end endtask
     endclass
 
     class dma_req_agent extends uvm_agent;

@@ -78,7 +78,7 @@ class dma_base_test extends uvm_test;
         program_mode(ch, mode, size, cnt, soff, doff);
         if (mode != M2M) reqs(ch, cnt, width);
         wait_done(ch, st);
-        env.reqs.drv.stop(ch);
+        env.reqs.drv.stop_channel(ch);
         wr(ra(ch, 5), 32'h3);                                    // ICLR both
     endtask
 
@@ -205,13 +205,13 @@ class dma_directed_test extends dma_base_test;
         prog(1, M2M, 2, 1, 1, src(1), ERRA - 8, 3); wait_done(1, st); wr(ra(1, 5), 32'h3);
         // errors in the peripheral modes
         prog(2, P2M, 2, 0, 1, ERRA + 32'h10, dst(2), 3); reqs(2, 3, 0, 1, 200); wait_done(2, st);
-        env.reqs.drv.stop(2); wr(ra(2, 5), 32'h3);
+        env.reqs.drv.stop_channel(2); wr(ra(2, 5), 32'h3);
         prog(2, M2P, 1, 1, 0, src(2), ERRA + 32'h20, 3); reqs(2, 3, 0, 1, 200); wait_done(2, st);
-        env.reqs.drv.stop(2); wr(ra(2, 5), 32'h3);
+        env.reqs.drv.stop_channel(2); wr(ra(2, 5), 32'h3);
         prog(2, P2M, 0, 0, 1, per(2), ERRA + 1, 2); reqs(2, 2, 0, 1, 200); wait_done(2, st);
-        env.reqs.drv.stop(2); wr(ra(2, 5), 32'h3);
+        env.reqs.drv.stop_channel(2); wr(ra(2, 5), 32'h3);
         prog(3, M2P, 0, 1, 0, ERRA - 1, per(3), 2); reqs(3, 2, 0, 1, 200); wait_done(3, st);
-        env.reqs.drv.stop(3); wr(ra(3, 5), 32'h3);
+        env.reqs.drv.stop_channel(3); wr(ra(3, 5), 32'h3);
         // F30: an error on one channel while another is mid-transfer
         prog(5, M2M, 2, 1, 1, src(5), dst(5), 30);
         prog(0, M2M, 2, 1, 1, ERRA, dst(0), 2);
@@ -232,7 +232,7 @@ class dma_directed_test extends dma_base_test;
                     bit [31:0] s = (mode == P2M) ? per(1) : src(1);
                     bit [31:0] d = (mode == P2M) ? dst(1) : per(1) + 32'h80;
                     prog(1, mode, 2, si, di, s, d, 2); reqs(1, 2);
-                    wait_done(1, st); env.reqs.drv.stop(1); wr(ra(1, 5), 32'h3);
+                    wait_done(1, st); env.reqs.drv.stop_channel(1); wr(ra(1, 5), 32'h3);
                 end
         // ---- cg_beat.x_channel_outcome: a refused source and a refused destination on every channel
         for (int ch = 0; ch < NCH; ch++) begin
@@ -254,7 +254,7 @@ class dma_directed_test extends dma_base_test;
         prog(5, P2M, 2, 0, 1, per(5), dst(5), 6);
         reqs(5, 2, 0, 1); env.reqs.drv.wait_idle(5); cycles(8); rd_(ra(5, 4));
         wr(ra(5, 1), per(5) + 32'h10); wr(ra(5, 2), dst(5) + 32'h400); wr(ra(5, 3), 3);
-        rd_(ra(5, 4)); reqs(5, 4, 0, 1); wait_done(5, st); env.reqs.drv.stop(5); wr(ra(5, 5), 32'h3);
+        rd_(ra(5, 4)); reqs(5, 4, 0, 1); wait_done(5, st); env.reqs.drv.stop_channel(5); wr(ra(5, 5), 32'h3);
 
         // ---- F26, F27, F28: fixed priority; every pair together, then all six
         for (int i = 0; i < NCH; i++)
@@ -272,9 +272,9 @@ class dma_directed_test extends dma_base_test;
         // A short pulse that comes and goes while the channel's previous beat is
         // still on the bus is withdrawn before its grant and gives no beat
         // ([N-7.10], F23), so short pulses are repeated until the channel is done.
-        program_mode(1, P2M, 2, 3); reqs(1, 12, 1, 2); wait_done(1, st); env.reqs.drv.stop(1); wr(ra(1, 5), 32'h3);
-        program_mode(1, P2M, 2, 3); reqs(1, 12, 4, 2); wait_done(1, st); env.reqs.drv.stop(1); wr(ra(1, 5), 32'h3);
-        program_mode(1, M2P, 2, 3); reqs(1, 3, 12, 1); wait_done(1, st); env.reqs.drv.stop(1); wr(ra(1, 5), 32'h3);
+        program_mode(1, P2M, 2, 3); reqs(1, 12, 1, 2); wait_done(1, st); env.reqs.drv.stop_channel(1); wr(ra(1, 5), 32'h3);
+        program_mode(1, P2M, 2, 3); reqs(1, 12, 4, 2); wait_done(1, st); env.reqs.drv.stop_channel(1); wr(ra(1, 5), 32'h3);
+        program_mode(1, M2P, 2, 3); reqs(1, 3, 12, 1); wait_done(1, st); env.reqs.drv.stop_channel(1); wr(ra(1, 5), 32'h3);
         // F23: a request withdrawn while it waits behind a higher channel
         prog(0, M2M, 2, 1, 1, src(0), dst(0), 40);
         program_mode(5, P2M, 2, 2);
@@ -350,7 +350,7 @@ class dma_random_test extends dma_base_test;
             end while (st[16] && polls < 6000);
             if (st[16]) `uvm_error("HANG", $sformatf("channel %0d still active after %0d status reads: STAT %08h", ch, polls, st))
         end
-        env.reqs.drv.stop(ch);
+        env.reqs.drv.stop_channel(ch);
         if ($urandom_range(0, 3) != 0) wr(ra(ch, 5), 32'h3);
         n_done++;
         busy[ch] = 0;

@@ -6,7 +6,7 @@ Written by `tools/gen/cov_findings.py` from the IMC reports of `make cov_chart` 
 
 | Block | Code: block | Expression | Toggle | Functional | Uncovered bins |
 |---|---|---|---|---|---|
-| RV32IM core | 97.6% | 94.3% | 84.6% | 90.7% | 111 |
+| RV32IM core | 97.6% | 94.3% | 84.6% | 90.8% | 111 |
 | DSU | 100.0% | - | 95.6% | 60.0% | 128 |
 | AHB interconnect | 98.6% | 100.0% | 69.1% | 71.8% | 40 |
 | AHB to APB bridge | 93.0% | 81.8% | 78.3% | 38.4% | 85 |

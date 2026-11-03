@@ -99,3 +99,8 @@ obj_dir/
 # runner summaries of partial (--only) runs; the full-suite summaries are the record
 logs/*/summary/*.partial.tsv
 logs/*/summary/*.partial.txt
+
+# Cadence GUI leftovers (vManager, vPlanner refine, SimVision crash diagnostics)
+vmanager.key
+*.vRefine
+simvision*.diag

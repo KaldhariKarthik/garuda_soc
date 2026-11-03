@@ -1,4 +1,4 @@
-Planted defects, block i2c: 2026-10-14, tree 8829691.
+Planted defects, block i2c: 2026-10-15, tree 4ac2f22.
 Each defect is planted in a copy of the RTL; the register test, the directed test and two
 random seeds are run on it (scripts/planted_defects.sh i2c).
 
@@ -18,7 +18,7 @@ unchanged RTL: all four runs pass
 12. caught by the directed test, property a_sda_stable_scl_high: the acknowledge sent for a byte read is inverted
 13. caught by the directed test, property a_tip_bounded: the timeout comes one pclk late
 14. caught by the directed test, check sb_pslverr: offset 0x1C answers without PSLVERR
-15. caught by the directed test, property a_tip_bounded: STATUS.TIP and STATUS.BUSY are swapped
+15. caught by the directed test, property a_sda_stable_scl_high: STATUS.TIP and STATUS.BUSY are swapped
 16. caught by the directed test, property a_shim_capture: an event in the cycle of its own clear is lost
 17. caught by the directed test, property a_cmd_nothing_to_do: a CMD with nothing to do is accepted and leaves TIP set (I2C-7)
 18. caught by the directed test, property a_set_beats_clear_status: a timeout in the cycle its interrupt bit is cleared is lost from STATUS (I2C-9)

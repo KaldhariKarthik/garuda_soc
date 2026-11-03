@@ -1,4 +1,4 @@
-Planted defects, block spis: 2026-10-14, tree 8f7cd8d.
+Planted defects, block spis: 2026-10-15, tree 4ac2f22.
 Each defect is planted in a copy of the RTL; the register test, the directed test and two
 random seeds are run on it (scripts/planted_defects.sh spis).
 

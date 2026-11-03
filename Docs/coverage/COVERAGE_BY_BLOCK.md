@@ -1,6 +1,6 @@
 # GARUDA SoC: coverage by block
 
-Written by `tools/gen/cov_chart.py` on 2026-10-15 from IMC 15.2 reports, tree `d8caeb4` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
+Written by `tools/gen/cov_chart.py` on 2026-10-16 from IMC 15.2 reports, tree `bcc0728` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
 
 ![coverage by block](coverage_by_block.svg)
 
@@ -14,7 +14,7 @@ Written by `tools/gen/cov_chart.py` on 2026-10-15 from IMC 15.2 reports, tree `d
 
 | Block | Track | Measured on | Statement | Expression | Toggle | FSM | Functional | Assertions triggered | Waivers |
 |---|---|---|---|---|---|---|---|---|---|
-| RV32IM core | A | all directed tests, merged | 97.6% (285/292) | 94.3% (66/70) | 84.6% (7873/9310) | 100.0% (4/4) | 90.7% (1172/1292) | 100.0% (140/140) | none written |
+| RV32IM core | A | all directed tests, merged | 97.6% (285/292) | 94.3% (66/70) | 84.6% (7873/9310) | 100.0% (4/4) | 90.8% (1188/1309) | 100.0% (140/140) | none written |
 | DSU | A | all directed tests, merged | 100.0% (63/63) | none | 95.6% (3601/3765) | none | 60.0% (192/320) | none | none written |
 | AHB interconnect | A | all directed tests, merged | 98.6% (72/73) | 100.0% (9/9) | 69.1% (1086/1572) | 100.0% (7/7) | 71.8% (102/142) | 94.6% (35/37) | none written |
 | AHB to APB bridge | A | all directed tests, merged | 93.0% (40/43) | 81.8% (9/11) | 78.3% (1100/1404) | 89.3% (25/28) | 38.4% (53/138) | 96.7% (29/30) | none written |
@@ -78,7 +78,7 @@ Measured on all directed tests merged, per module. No waiver applied.
 | `pipe_ctrl` | none | none | 86.1% (136/158) | none |
 | **whole block** | 97.6% (285/292) | 94.3% (66/70) | 84.6% (7873/9310) | 100.0% (4/4) |
 
-Functional coverage: 90.7% (1172/1292).
+Functional coverage: 90.8% (1188/1309).
 
 | Covergroups of | Bins covered |
 |---|---|
@@ -87,6 +87,7 @@ Functional coverage: 90.7% (1172/1292).
 | unit_alu | 100.0% (26/26) |
 | unit_branch_predict | 100.0% (14/14) |
 | unit_branch_unit | 100.0% (29/29) |
+| unit_clic_ctrl | 94.1% (16/17) |
 | unit_csr_rw | 84.8% (28/33) |
 | unit_d_port_ahb_master | 100.0% (28/28) |
 | unit_decode_control | 100.0% (59/59) |
