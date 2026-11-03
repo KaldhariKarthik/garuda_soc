@@ -129,6 +129,10 @@ register write can steal is a flight-safety hazard, and four pins is affordable 
 **[N-3.5]** Two chip selects on the SPI master, because the boot flash and the IMU share the
 bus. No previous document accounted for the second one.
 
+**[N-3.5a]** There is no pin multiplexing anywhere. Every pin in §3.1 has exactly one function,
+and no register can change a pin's function (1-TOPS item 1.11). The pad type of each pin is
+in the Type column. The pad cell itself is named when the pad library arrives with the PDK.
+
 ### 3.2 The 36-pin expansion (contingent)
 
 **[N-3.6]** ESP-NOW is **required** (ADR-0020 Rev 2 — it is APF's neighbour-position

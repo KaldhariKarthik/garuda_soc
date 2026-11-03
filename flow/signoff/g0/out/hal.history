@@ -1,1 +1,0 @@
-s1(03Nov2026:10:59:04):  irun -hal -sv flow/signoff/g0/hello.sv -top hello -define SYNTHESIS -nclibdirname sim/g0/INCA_hal -l flow/signoff/g0/out/hal.txt 

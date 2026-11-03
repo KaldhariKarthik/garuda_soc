@@ -30,6 +30,7 @@ from nine other documents in eleven places.
 |---|---|
 | 1.0–3.0 | Initial through the 24-block system view; 200 then 250 MHz; multi-layer interconnect; six provisional block numbers; contradictory peripheral and DMA assignments |
 | 4.0 | Rebuilt as a consolidation of ten settled block specs. All shared values generated. 22 blocks. Shared AHB layer. Debug is SBA-only. Peripheral assignment resolved. All ten open items closed. |
+| 4.0a | 2026-11-03, for the 1-TOPS gate G1: §3.1 RTL column brought up to `garuda_system.yaml` (every block exists); §9.1 replaced by the current state; firmware rule F-12 (save `mepc` and `mcause` before setting `MIE` again in a handler). No architectural change. |
 
 ## 0.4 Document set
 
@@ -143,26 +144,26 @@ substantially idle, which is what shapes the power architecture and nothing else
 |---|---|---|---|
 | 1 | `core` | GARUDA-CORE-SPEC-001 | exists |
 | 2 | `dsu` | GARUDA-DSU-SPEC-001 | exists |
-| 3 | `isram` | GARUDA-MEM-SPEC-001 | missing |
-| 4 | `bootrom` | GARUDA-MEM-SPEC-001 | missing |
-| 5 | `dsram` | GARUDA-MEM-SPEC-001 | missing |
+| 3 | `isram` | GARUDA-MEM-SPEC-001 | exists |
+| 4 | `bootrom` | GARUDA-MEM-SPEC-001 | exists |
+| 5 | `dsram` | GARUDA-MEM-SPEC-001 | exists |
 | 6 | `ahb_ic` | GARUDA-AHB-SPEC-001 | exists |
-| 7 | `apb_fabric` | GARUDA-AHB2APB-SPEC-001 | missing |
-| 8 | `ahb2apb` | GARUDA-AHB2APB-SPEC-001 | missing |
+| 7 | `apb_fabric` | GARUDA-AHB2APB-SPEC-001 | exists — rtl/ahb2apb/ahb2apb_fabric.v |
+| 8 | `ahb2apb` | GARUDA-AHB2APB-SPEC-001 | exists |
 | 9 | `dma` | GARUDA-DMA-SPEC-001 | exists |
-| 10 | `clic` | GARUDA-CLIC-SPEC-001 | missing |
-| 11 | `timers` | GARUDA-TIMERS-SPEC-001 | missing |
-| 12 | `debug` | GARUDA-DEBUG-SPEC-001 | missing |
-| 13 | `spi_master` | GARUDA-SPIM-SPEC-001 | sourced IP |
-| 14 | `reserved_spi_slave` | — | not instantiated |
-| 15 | `i2c` | GARUDA-I2C-SPEC-001 | sourced IP |
-| 16 | `uart0` | GARUDA-UART-SPEC-001 | sourced IP |
-| 17 | `uart1` | GARUDA-UART-SPEC-001 | sourced IP |
-| 18 | `uart2` | GARUDA-UART-SPEC-001 | sourced IP |
-| 19 | `gpio` | GARUDA-GPIO-SPEC-001 | sourced IP |
-| 20 | `pwm` | GARUDA-PWM-SPEC-001 | sourced IP |
-| 21 | `clk_div` | GARUDA-CLKRST-SPEC-001 | missing |
-| 22 | `reset_ctrl` | GARUDA-CLKRST-SPEC-001 | missing |
+| 10 | `clic` | GARUDA-CLIC-SPEC-001 | exists |
+| 11 | `timers` | GARUDA-TIMERS-SPEC-001 | exists |
+| 12 | `debug` | GARUDA-DEBUG-SPEC-001 | exists |
+| 13 | `spi_master` | GARUDA-SPIM-SPEC-001 | exists — PULP apb_spi_master + rtl/spi_master wrapper |
+| 14 | `spi_slave` | GARUDA-SPIS-SPEC-001 | exists — in-house (D-25); window 0, CLIC 14, DMA CH4; pin bonding gated on OPEN-2 via WITH_SPI_SLAVE |
+| 15 | `i2c` | GARUDA-I2C-SPEC-001 | exists — OpenCores controllers + GARUDA register layer (D-25) |
+| 16 | `uart0` | GARUDA-UART-SPEC-001 | exists — PULP apb_uart_sv, patched (D-24) |
+| 17 | `uart1` | GARUDA-UART-SPEC-001 | exists |
+| 18 | `uart2` | GARUDA-UART-SPEC-001 | exists |
+| 19 | `gpio` | GARUDA-GPIO-SPEC-001 | exists — PULP apb_gpio, PAD_NUM=2 |
+| 20 | `pwm` | GARUDA-PWM-SPEC-001 | exists — in-house (D-25) |
+| 21 | `clk_div` | GARUDA-CLKRST-SPEC-001 | exists |
+| 22 | `reset_ctrl` | GARUDA-CLKRST-SPEC-001 | exists |
 
 **[N-3.2]** There are 22 blocks. Rev 3.0's 24-block table carried two reserved rows nothing
 claimed and marked six numbers "Provisional" because three documents were assigning their own.
@@ -356,6 +357,7 @@ condition in its peripheral before `mret`,** or it re-enters immediately.
 | F-9 | Break large M2M DMA transfers into chunks; the DMA is the highest-priority master and has no rate limiting. | DMA §7.6 |
 | F-10 | Once `WDTCTL.EN` is set it cannot be cleared. Kick forever. | TIMERS §6.2 |
 | F-11 | Measure the loop duty cycle with `mcycle` and `mtime`. No document asserts a figure. | CORE §6.2 |
+| F-12 | A handler that sets `mstatus.MIE` again, or that can itself trap, saves `mepc` and `mcause` first and restores them before `mret`. `mcause[23:16]` (`mpil`) holds the interrupt level that `mret` returns to (T-12). | CORE [N-7.18a] |
 
 **[N-5.6]** F-8 is the one that will hurt most if skipped, and the moment it is needed is the
 moment it is too late to add.
@@ -455,13 +457,11 @@ trade of [N-7.3] is worth making.
 
 ### 9.1 RTL
 
-| Built and verified | Not yet written |
-|---|---|
-| core (1), dsu (2) — 63/63 lockstep vs. Spike, 27 errata fixed | isram (3), bootrom (4), dsram (5) |
-| ahb_ic (6) — shared layer, zero protocol violations | apb_fabric (7), ahb2apb (8) |
-| dma (9) — errata D-1, D-2 fixed | clic (10), timers (11), debug (12) |
-| | clk_div (21), reset_ctrl (22) |
-| | 8 peripheral integrations |
+All 22 blocks exist in `rtl/` and are instantiated in `garuda_chip_top` (state on 2026-11-03).
+The verification state of each block is in `Docs/coverage/COVERAGE_BY_BLOCK.md`. The open
+defects are in `Docs/bugs/track_a.md` and `Docs/bugs/track_b.md`. The sign-off state against the
+1-TOPS gates is kept in the GARUDA 1-TOPS signoff workbook. Sections 9.2 and 9.3 below are the
+plan of Rev 4.0 and are kept as history; every delta R1 to R11 is in the RTL.
 
 ### 9.2 RTL deltas on what exists
 

@@ -19,6 +19,7 @@
 | 1.0–2.1 | Initial through the 27-erratum fix set. RTL implemented and verified: 63/63 lockstep against Spike | — |
 | 3.0 | `mtime`/`mtimecmp` 64-bit ports replaced by a single `mtip_i`. `hartreset_n_i` added for debug. WFI root clock gate added. Orphan `clic_mintthresh_o` removed. The hold/flush composition made a single authoritative table (§7.6). Frequency target and timing-closure fallback stated. | ADR-0010, 0012, 0001, 0009 |
 | 3.0a | Implementation-detail text aligned with the RTL (Track A W7 / AUD-12 sweep, 2026-10-11; no architectural change): the static branch predictor described ([N-7.1], [N-7.2], §13); `mtvec` reset value ([N-7.34]); `quiescent` terms and the gate enable with `CLK_GATE` and `mgarudactl.CG_DIS` ([N-7.28], [N-9.3], `a_gate_enable_is_quiescent`); `core_sleep_o` port. Architectural items (misa M vs Zmmul, CLIC `mpil`, DSU overflow) are rulings in `DECISIONS.md`, not edits here. | AUD-12, CORE-4 |
+| 3.0b | §6.1 CSR table completed from `csr_file.v` for 1-TOPS item 1.4 (2026-11-03): value after reset and access type (RW / WARL / RO / RZ) for every implemented CSR; the C-16 read-zero group, `mgarudactl`, `dsu_ovf`, the Zicntr copies, the identity CSRs and the ratified `mintstatus` alias added. No RTL change. | 1-TOPS 1.4, C-16, CORE-4 |
 
 ## 0.3 Normative references
 
@@ -177,25 +178,44 @@ memories and peripherals running, which is what SBA needs (`GARUDA-DEBUG-SPEC-00
 
 ### 6.1 Implemented
 
-| Address | Name | Access | Notes |
-|---|---|---|---|
-| 0x300 | `mstatus` | RW | Only `MIE` (3) and `MPIE` (7) implemented. |
-| 0x301 | `misa` | RO | `0x4000_1100` — RV32IM. |
-| 0x304 | `mie` | RW | `MTIE` (7) only. CLIC enables live in the CLIC block. |
-| 0x305 | `mtvec` | RW | `MODE` hardwired to 3 (CLIC). |
-| 0x340 | `mscratch` | RW | |
-| 0x341 | `mepc` | RW | Bit 0 hardwired 0. |
-| 0x342 | `mcause` | RW | |
-| 0x343 | `mtval` | RW | |
-| 0x344 | `mip` | RO | `MTIP` (7) from `mtip_i`. |
-| 0x345 | `mnxti` | RO | **Reads 0, not implemented.** See §13. |
-| 0x346 | `mintstatus` | RO | `mil` (7:0) — current interrupt level. |
-| 0x347 | `mintthresh` | RW | Interrupt level threshold. |
-| 0xB00 | `mcycle` | RW | Cycle counter. |
-| 0xB02 | `minstret` | RW | Instructions retired. |
-| 0xB80 | `mcycleh` | RW | |
-| 0xB82 | `minstreth` | RW | |
-| 0xF14 | `mhartid` | RO | 0. |
+Every CSR the core implements, with its value after reset and its access type, taken from
+`rtl/core/csr_file.v` (reset branch and read mux). **RW**: every bit written is stored.
+**WARL**: writes are accepted and the register reads back only legal values. **RO**: a write
+raises an illegal-instruction exception. **RZ**: reads 0, writes ignored (C-16). An address not
+in this table raises an illegal-instruction exception on any access.
+
+| Address | Name | Access | Value after reset | Notes |
+|---|---|---|---|---|
+| 0x300 | `mstatus` | WARL | `0x0000_1800` | Only `MIE` (3) and `MPIE` (7) are stored. `MPP` (12:11) reads 3, M-mode only. |
+| 0x301 | `misa` | WARL | `0x4000_1100` | RV32IM. Writes are ignored (T-2). |
+| 0x304 | `mie` | WARL | `0x0000_0000` | Only `MTIE` (7) is stored. CLIC enables are in the CLIC block. |
+| 0x305 | `mtvec` | WARL | `0x0000_0003` | `BASE` (31:2) is RW and resets to 0. `MODE` (1:0) reads 3 (CLIC). Firmware writes `mtvec` before it enables an interrupt. |
+| 0x310 | `mstatush` | RZ | `0x0000_0000` | No `MBE`/`SBE` (C-16). |
+| 0x323–0x33F | `mhpmevent3..31` | RZ | `0x0000_0000` | C-16. |
+| 0x340 | `mscratch` | RW | `0x0000_0000` | |
+| 0x341 | `mepc` | WARL | `0x0000_0000` | Bits 1:0 read 0 (IALIGN = 32, T-15). |
+| 0x342 | `mcause` | RW | `0x0000_0000` | `mpil` in 23:16 (T-12): the level a trap leaves. |
+| 0x343 | `mtval` | RW | `0x0000_0000` | |
+| 0x344 | `mip` | RO | `MTIP` = `mtip_i` | `MTIP` (7) only, live from block 11 ([N-6.1]). |
+| 0x345 | `mnxti` | RO | `0x0000_0000` | **Reads 0, not implemented.** See §13. |
+| 0x346 | `mintstatus` | RO | `0x0000_0000` | `mil` (7:0), the current interrupt level. |
+| 0x347 | `mintthresh` | WARL | `0x0000_0000` | Interrupt level threshold, bits 7:0. |
+| 0x7C0 | `mgarudactl` | WARL | `0x0000_0000` | CORE-4: `BP_DIS` (0), `PF_DIS` (1), `PREEMPT_DIS` (2), `CG_DIS` (3). 0 = every feature on. |
+| 0xB00 / 0xB80 | `mcycle` / `mcycleh` | RW | 0 | Cycle counter. A write wins over the increment. |
+| 0xB02 / 0xB82 | `minstret` / `minstreth` | RW | 0 | Instructions retired (C-17 open: a read lags by the instructions in MEM and WB). |
+| 0xB03–0xB1F, 0xB83–0xB9F | `mhpmcounter3..31(h)` | RZ | 0 | C-16. |
+| 0xBC0 | `dsu_ovf` | RO (a read clears it) | 0 | DSU overflow flag in bit 0; reading it clears the flag (§13.2); a write traps. |
+| 0xC00 / 0xC80 | `cycle` / `cycleh` | RO | 0 | Zicntr read-only copies of `mcycle` (C-4). |
+| 0xC02 / 0xC82 | `instret` / `instreth` | RO | 0 | Zicntr read-only copies of `minstret` (C-4). `time` (0xC01) is not implemented. |
+| 0xF11 | `mvendorid` | RO | `0x0000_0000` | |
+| 0xF12 | `marchid` | RO | `0x0000_0000` | |
+| 0xF13 | `mimpid` | RO | `0x0000_0110` | Implementation 1.1. |
+| 0xF14 | `mhartid` | RO | `0x0000_0000` | |
+| 0xF15 | `mconfigptr` | RZ (RO) | `0x0000_0000` | Reads 0; a write traps (read-only by its address, C-16). |
+| 0xFB1 | `mintstatus` (ratified address) | RO | `0x0000_0000` | Same `mil`, in bits 31:24 (D-15). |
+
+The contract for the read-zero group is `Design_Docs/regs/core_csr.yaml`. `make csr_map` reads
+all 4096 addresses on the RTL and on Spike; every difference has a recorded reason.
 
 **[N-6.1]** `mip.MTIP` is read-only and reflects `mtip_i` combinationally. Firmware clears the
 timer interrupt by advancing `mtimecmp` in block 11, not by writing `mip` — which is what
@@ -313,6 +333,19 @@ level-prioritised against CLIC sources; firmware controls its relative priority 
 **[N-7.18]** An interrupt is taken only when a real instruction is in EX. This is erratum
 T-2's fix: taking an interrupt on an empty EX stage wrote a meaningless `mepc`, so the
 handler returned to nowhere.
+
+**[N-7.18a]** Trap model in one place (1-TOPS item 1.5). Each line is the RTL's behaviour in
+`trap_ctrl.v`, `csr_file.v` and `clic_ctrl.v`:
+
+| Item | Rule |
+|---|---|
+| Handler address | Every trap, exception or interrupt, enters at `mtvec` BASE (`{mtvec[31:2], 2'b00}`). Non-vectored (D-15); `mtvec.MODE` reads 3 (CLIC). |
+| Priority when several are pending | A synchronous exception of the instruction in EX first. Then a CLIC interrupt. Then the machine timer. Among exceptions: 1 > 2 > 3 > 4 > 6 > 11, with 0 below 1 and 2 ([N-7.12]). |
+| Trap boundary | A trap is taken only when a real instruction is in EX (T-2, T-4, T-17). An interrupt waits while a load or store is in MEM (H2, T-9). `mepc` is that instruction for an exception, or the next instruction to run for an interrupt. Every earlier instruction has retired ([N-7.13]). |
+| What entry writes | `mepc`. `mcause`: bit 31 = 1 for an interrupt; CLIC ID in the low bits; machine timer = `0x8000_0007`; and `mpil` (23:16) = the level being left (T-12). `mtval` per [N-7.12]. `MPIE` ← `MIE`, `MIE` ← 0. A CLIC interrupt sets `mil` to its own level; an exception or the timer leaves `mil` unchanged. |
+| What `mret` does | `MIE` ← `MPIE`, `MPIE` ← 1, `mil` ← `mcause.mpil`, then jump to `mepc`. |
+| Nesting | Only through the CLIC level: a source is taken when its level is greater than both `mintthresh` and `mil` ([N-7.15]). An equal level never preempts. A handler that sets `MIE` again must first save `mepc` and `mcause` (which holds `mpil`) and restore them before `mret` (TRM §5.3). The machine timer is outside the level scheme ([N-7.17]). Preemption can be switched off with `mgarudactl.PREEMPT_DIS` (CORE-4). |
+| Open items | T-16: an EX exception on the instruction behind a WFI is taken during the sleep. C-17: `minstret` read lag. Both wait for a ruling (`Docs/bugs/track_a.md`). |
 
 ### 7.6 Hold and flush composition — authoritative
 
