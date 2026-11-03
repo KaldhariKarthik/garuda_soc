@@ -1,0 +1,75 @@
+================================================
+  Jasper - Superlint Violation/Property Report  
+================================================
+
+---[ <Report Information> ]------------------------
+---------------------------------------------------
+ Num  | module          | created date             
+---------------------------------------------------
+[1]     garuda_chip_top   Nov 03 15:59:11 IST 2026 
+
+
+********************************************************************************************
+
+VIOLATIONS SUMMARY
+---[ <Domain: AUTO_FORMAL> ]--------------------------------------------
+------------------------------------------------------------------------
+ Num  | Category              | Error | Warning | Info | Waived | Total 
+------------------------------------------------------------------------
+[1]     AUTO_FORMAL_BUS         5       0         0      0        5     
+[2]     AUTO_FORMAL_DEAD_CODE   31      0         0      0        31    
+[3]     Total                   36      0         0      0        36    
+
+---[ <AUTO_FORMAL_BUS> ]------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Num  | Severity | Tag         | Message                                                | Source Location                 | Instance-Module                 | Grouping Status 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[1]     Error      BUS_IS_FLOT   "Floating bus failure found in bus 'tdo'"                rtl/soc/garuda_chip_top.v :443    garuda_chip_top-garuda_chip_top   -               
+[2]     Error      BUS_IS_FLOT   "Floating bus failure found in bus 'u_core.i2c_scl_i'"   rtl/soc/garuda_chip_top.v :74     u_core-garuda_chip_core           -               
+[3]     Error      BUS_IS_FLOT   "Floating bus failure found in bus 'u_core.i2c_sda_i'"   rtl/soc/garuda_chip_top.v :77     u_core-garuda_chip_core           -               
+[4]     Error      BUS_IS_FLOT   "Floating bus failure found in bus 'u_core.gpio_i'"      rtl/soc/garuda_chip_top.v :90     u_core-garuda_chip_core           Grouped         
+[5]     Error      BUS_IS_FLOT   "Floating bus failure found in bus 'spis_miso'"          rtl/soc/garuda_chip_top.v :448    garuda_chip_top-garuda_chip_top   -               
+
+---[ <AUTO_FORMAL_DEAD_CODE> ]--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Num  | Severity | Tag         | Message                                                                                                                                       | Source Location                                                        | Instance-Module                                                 | Grouping Status 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[1]     Error      BLK_NO_RCHB   "The non-blocking statement 'state <=  2'b00 ;' is not reachable"                                                                               rtl/ahb/ahb_default_slave.v :93                                          u_core.u_soc.u_ahb.u_def-ahb_default_slave                        -               
+[2]     Error      BLK_NO_RCHB   "The blocking statement 'hrdata_o = 32'b00000000000000000000000000000000 ;' is not reachable"                                                   rtl/ahb/ahb_slave_mux.v :128                                             u_core.u_soc.u_ahb.u_smux-ahb_slave_mux                           -               
+[3]     Error      BLK_NO_RCHB   "The continuous statement 'div_sel = ((win_i < 4'b1100) ? 24'b000000000000000000000000[(2 * win_i)+: 2] : 2'b00)' is not reachable"             rtl/ahb2apb/ahb2apb_apb_fsm.v :53                                        u_core.u_soc.u_bridge.u_fsm-ahb2apb_apb_fsm                       -               
+[4]     Error      BLK_NO_RCHB   "The non-blocking statement 'div_cnt <=  (div_cnt - 3'b001) ;' is not reachable"                                                                rtl/ahb2apb/ahb2apb_apb_fsm.v :89                                        u_core.u_soc.u_bridge.u_fsm-ahb2apb_apb_fsm                       -               
+[5]     Error      BLK_NO_RCHB   "The non-blocking statement 'hstate <=  3'b000 ;' is not reachable"                                                                             rtl/ahb2apb/ahb2apb_bridge.v :172                                        u_core.u_soc.u_bridge-ahb2apb_bridge                              -               
+[6]     Error      BLK_NO_RCHB   "The continuous statement 'node[((32 - 1) + 0)] = {cand_i[0],(cand_i[0] ? level_i[(8 * 0)+: 8] : 8'b00000000),(~(0[4:0]))}' is not reachable"   rtl/clic/clic_select.v :35                                               u_core.u_soc.u_clic.u_sel-clic_select                             Grouped         
+[7]     Error      BLK_NO_RCHB   "The continuous statement 'node[13] = ((l >= r) ? l : r)' is not reachable"                                                                     rtl/clic/clic_select.v :41                                               u_core.u_soc.u_clic.u_sel-clic_select                             Grouped         
+[8]     Error      BLK_NO_RCHB   "The blocking statement 'result = (op_a + op_b) ;' is not reachable"                                                                            rtl/core/alu.v :40                                                       u_core.u_soc.u_core.u_ex.u_alu-alu                                -               
+[9]     Error      BLK_NO_RCHB   "The blocking statement 'nextv = cur ;' is not reachable"                                                                                       rtl/core/csr_file.v :238                                                 u_core.u_soc.u_core.u_csr-csr_file                                Grouped         
+[10]    Error      BLK_NO_RCHB   "The non-blocking statement 'state <=  2'b00 ;' is not reachable"                                                                               rtl/core/d_port_ahb_master.v :140                                        u_core.u_soc.u_core.u_mem.u_d_port_ahb_master-d_port_ahb_master   -               
+[11]    Error      BLK_NO_RCHB   "The blocking statement 'illegal_instr_o = 1'b1 ;' is not reachable"                                                                            rtl/core/decode_control.v :216                                           u_core.u_soc.u_core.u_id.u_decode_control-decode_control          Grouped         
+[12]    Error      BLK_NO_RCHB   "The non-blocking statement 'dmistat <=  2'b10 ;' is not reachable"                                                                             rtl/debug/dtm.v :66                                                      u_core.u_soc.u_debug.u_dtm-dtm                                    -               
+[13]    Error      BLK_NO_RCHB   "The non-blocking statement 'taken_q <=  1'b1 ;' is not reachable"                                                                              rtl/dma/dma_chan.v :140                                                  u_core.u_soc.u_dma.g_ch[0].u_ch-dma_chan                          Grouped         
+[14]    Error      BLK_NO_RCHB   "The non-blocking statement 'st <=  3'b000 ;' is not reachable"                                                                                 rtl/dma/dma_engine.v :168                                                u_core.u_soc.u_dma.u_eng-dma_engine                               -               
+[15]    Error      BLK_NO_RCHB   "The non-blocking statement 'filter_cnt <=  14'b00000000000000 ;' is not reachable"                                                             rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv :247            u_core.u_i2c.u_byte.bit_controller-i2c_master_bit_ctrl            -               
+[16]    Error      BLK_NO_RCHB   "The blocking statement 's_write_dir[63:32] = 32'b11111111111111111111111111111111 ;' is not reachable"                                         rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv :284                       u_core.u_gpio.u_gpio-apb_gpio                                     Grouped         
+[17]    Error      BLK_NO_RCHB   "The blocking statement 'PRDATA[(32 - 32)] = 1'b0 ;' is not reachable"                                                                          rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv :547                       u_core.u_gpio.u_gpio-apb_gpio                                     Grouped         
+[18]    Error      BLK_NO_RCHB   "The blocking statement 's_state_tx_next = r_state_tx ;' is not reachable"                                                                      rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv :201           u_core.u_spim.u_spi-apb_spi_master                                -               
+[19]    Error      BLK_NO_RCHB   "The blocking statement 'iir_n = 4'b1000 ;' is not reachable"                                                                                   rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv :76               u_core.g_uart[0].u_uart.u_uart.uart_interrupt_i-uart_interrupt    Grouped         
+[20]    Error      BLK_NO_RCHB   "The blocking statement 'NS = 3'b000 ;' is not reachable"                                                                                       rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv :182                     u_core.g_uart[0].u_uart.u_uart.uart_rx_i-uart_rx                  Grouped         
+[21]    Error      BLK_NO_RCHB   "The non-blocking statement 'CS <=  3'b000 ;' is not reachable"                                                                                 rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv :206                     u_core.g_uart[0].u_uart.u_uart.uart_rx_i-uart_rx                  Grouped         
+[22]    Error      BLK_NO_RCHB   "The non-blocking statement 'reg_rx_sync <=  3'b111 ;' is not reachable"                                                                        rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv :220                     u_core.g_uart[0].u_uart.u_uart.uart_rx_i-uart_rx                  Grouped         
+[23]    Error      BLK_NO_RCHB   "The blocking statement 'NS = 3'b000 ;' is not reachable"                                                                                       rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv :150                     u_core.g_uart[0].u_uart.u_uart.uart_tx_i-uart_tx                  Grouped         
+[24]    Error      BLK_NO_RCHB   "The non-blocking statement 'CS <=  3'b000 ;' is not reachable"                                                                                 rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv :179                     u_core.g_uart[0].u_uart.u_uart.uart_tx_i-uart_tx                  Grouped         
+[25]    Error      BLK_NO_RCHB   "The blocking statement 's_spi_mode = ((spi_qrd | spi_qwr) ? 2'b01 : 2'b00) ;' is not reachable"                                                rtl/third_party/pulp/axi_spi_master/src/spi_master_controller.sv :221    u_core.u_spim.u_spi.u_spictrl-spi_master_controller               Grouped         
+[26]    Error      BLK_NO_RCHB   "The non-blocking statement 'en_quad_int <=  1'b1 ;' is not reachable"                                                                          rtl/third_party/pulp/axi_spi_master/src/spi_master_controller.sv :533    u_core.u_spim.u_spi.u_spictrl-spi_master_controller               -               
+[27]    Error      BLK_NO_RCHB   "The blocking statement 'counter_trgt_next = (en_quad_in ? {2'b00,counter_in[15:2]} : counter_in) ;' is not reachable"                          rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv :50             u_core.u_spim.u_spi.u_spictrl.u_rxreg-spi_master_rx               -               
+[28]    Error      BLK_NO_RCHB   "The blocking statement 'data_int_next = {data_int[27:0],sdi3,sdi2,sdi1,sdi0} ;' is not reachable"                                              rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv :82             u_core.u_spim.u_spi.u_spictrl.u_rxreg-spi_master_rx               -               
+[29]    Error      BLK_NO_RCHB   "The continuous statement 'sdo0 = (en_quad_in ? data_int[28] : data_int[31])' is not reachable"                                                 rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv :42             u_core.u_spim.u_spi.u_spictrl.u_txreg-spi_master_tx               -               
+[30]    Error      BLK_NO_RCHB   "The blocking statement 'counter_trgt_next = (en_quad_in ? {2'b00,counter_in[15:2]} : counter_in) ;' is not reachable"                          rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv :54             u_core.u_spim.u_spi.u_spictrl.u_txreg-spi_master_tx               -               
+[31]    Error      BLK_NO_RCHB   "The blocking statement 'data_int_next = (en_quad_in ? {data_int[27:0],4'b0000} : {data_int[30:0],1'b0}) ;' is not reachable"                   rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv :85             u_core.u_spim.u_spi.u_spictrl.u_txreg-spi_master_tx               -               
+
+
+
+********************************************************************************************
+
+
+
+[Jasper 2022.09] [Platform Linux] [Version 2022.09p002 64 bits] [Build date 2022.11.24 12:29:17 UTC]
