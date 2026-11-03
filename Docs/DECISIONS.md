@@ -585,6 +585,31 @@ on its defaults (16 CPUs, 7.4 GiB, 2 GiB swap). Create the file again (`memory=1
 
 ---
 
+## D-31 — A software interrupt, as CLIC ID 23
+
+**Decided 2026-11-03 (owner) · Raised by** the 1-TOPS signoff checklist, item 3.6 ("timer and software interrupts reach the core")
+
+GARUDA had no way for firmware to raise an interrupt. The core has no `msip`, and the CLIC's
+pending bits are read-only by design (CLIC [N-6.4], [N-6.5]). Three options were weighed:
+
+1. A register inside the CLIC.
+2. A CLINT-style `msip` in the timers block, wired to `mip.MSIP`.
+3. A written deviation.
+
+The owner chose option 1. `CLICSWI` (window 10, offset 0x00C) bit 0 is the source of ID 23.
+It is a level source with its own enable and level, so a software interrupt can be ordered
+against the hardware ones, and the change stays inside block 10. The yaml gives ID 23 the
+source `software`; the enable mask, the headers and the testbench map package are
+generated from it.
+
+Evidence:
+- CLIC spec Rev 2.1 §6.6;
+- `rtl/clic/clic_apb.v`, `clic_top.v`, and properties `a_swi_*` in `clic_sva.sv`;
+- `tb_clic`, the UVM environment (model and `cg_clic_swi`) and `sw/chip/t_chip_swirq.c`;
+- with the source planted out, `t_chip_swirq` fails (91 assertion and program failures).
+
+---
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. None blocks RTL.

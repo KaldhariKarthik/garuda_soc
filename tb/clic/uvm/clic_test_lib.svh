@@ -164,7 +164,16 @@ class clic_directed_test extends clic_base_test;
         wr(12'h000, 32'hFFFF_FFFF); rd(12'h000); wr(12'h000, 32'd0); rd(12'h000);
 
         // ---- F08: offsets that do not exist, read and written
-        rd(12'h00C); wr(12'h00C, 32'hFFFF_FFFF); rd(12'h0FC); wr(12'h0FC, 32'hFFFF_FFFF);
+        rd(12'h010); wr(12'h010, 32'hFFFF_FFFF); rd(12'h0FC); wr(12'h0FC, 32'hFFFF_FFFF);
+        // ---- [N-6.9] CLICSWI, the software interrupt on ID 23: set, taken at its
+        //      level, beaten by a higher hardware level, rewritten, cleared
+        wr(12'h004, 32'd0); set_src(32'd0, 2);
+        rd(12'h00C); wr(12'h00C, 32'h1); rd(12'h00C); rd(12'h008);
+        set_level(23, 8'd90); wr(12'h004, 32'd1 << 23); set_src(32'd0, 3);
+        set_level(10, 8'd200); wr(12'h004, (32'd1 << 23) | (32'd1 << 10)); set_src(32'd1 << 10, 3);
+        set_src(32'd0, 3); wr(12'h00C, 32'hFFFF_FFFF); rd(12'h00C);
+        wr(12'h00C, 32'h0); rd(12'h00C); rd(12'h008); set_src(32'd0, 2);
+        set_level(23, 8'd0); set_level(10, 8'd0); wr(12'h004, 32'd0);
         rd(12'h180); wr(12'h180, 32'hFFFF_FFFF); rd(12'hFFC); wr(12'hFFC, 32'hFFFF_FFFF);
         rd(12'h101); wr(12'h102, 32'hFFFF_FFFF); rd(12'h17E); wr(12'h17F, 32'hFFFF_FFFF);
         rd(12'h004);

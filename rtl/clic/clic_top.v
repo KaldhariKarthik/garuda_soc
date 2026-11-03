@@ -12,7 +12,8 @@
 // no acknowledge, no edge detection and no vectoring - Rev 2.0 of this
 // document removed all four, and the Rev 2.0-set RTL that had them is gone.
 //
-//   pending[n] = irq_src_i[n]        combinational ([N-7.1])
+//   pending[n] = irq_src_i[n]        combinational ([N-7.1]); ID SWI_ID (23)
+//                is CLICSWI[0], the software interrupt ([N-6.9])
 //   cand[n]    = pending[n] & CLICIE[n]
 //   winner     = max {level, ~id} over cand ([N-7.5])
 //
@@ -23,7 +24,8 @@
 
 module clic_top #(
     parameter integer N       = 32,
-    parameter [31:0]  IE_MASK = 32'h007F_FF7E
+    parameter [31:0]  IE_MASK = 32'h00FF_FF7E,
+    parameter integer SWI_ID  = 23            // GARUDA_CLIC_ID_SOFTWARE
 )(
     input  wire          hclk_i,
     input  wire          hreset_n_i,
@@ -51,16 +53,20 @@ module clic_top #(
 
     wire [N-1:0]   ie;
     wire [N*8-1:0] level;
+    wire           swi;
+    // The software interrupt joins the sources inside this block; the SoC ties
+    // irq_src_i[SWI_ID] low. It is then a level source like any other.
+    wire [N-1:0]   src = irq_src_i | ({{(N-1){1'b0}}, swi} << SWI_ID);
 
     clic_apb #(.N(N), .IE_MASK(IE_MASK)) u_apb (
         .pclk_i(pclk_i), .preset_n_i(preset_n_i),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
-        .pending_i(irq_src_i), .ie_o(ie), .level_o(level));
+        .pending_i(src), .ie_o(ie), .level_o(level), .swi_o(swi));
 
     clic_select #(.N(N)) u_sel (
-        .cand_i(irq_src_i & ie), .level_i(level),
+        .cand_i(src & ie), .level_i(level),
         .valid_o(clic_irq_valid_o), .id_o(clic_irq_id_o), .level_o(clic_irq_level_o));
 
     wire _unused = |{hclk_i, hreset_n_i};

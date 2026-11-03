@@ -30,7 +30,7 @@ from nine other documents in eleven places.
 |---|---|
 | 1.0–3.0 | Initial through the 24-block system view; 200 then 250 MHz; multi-layer interconnect; six provisional block numbers; contradictory peripheral and DMA assignments |
 | 4.0 | Rebuilt as a consolidation of ten settled block specs. All shared values generated. 22 blocks. Shared AHB layer. Debug is SBA-only. Peripheral assignment resolved. All ten open items closed. |
-| 4.0a | 2026-11-03, for the 1-TOPS gate G1: §3.1 RTL column brought up to `garuda_system.yaml` (every block exists); §9.1 replaced by the current state; firmware rule F-12 (save `mepc` and `mcause` before setting `MIE` again in a handler). No architectural change. |
+| 4.0a | 2026-11-03, for the 1-TOPS gate G1: §3.1 RTL column brought up to `garuda_system.yaml` (every block exists); §9.1 replaced by the current state; firmware rule F-12 (save `mepc` and `mcause` before setting `MIE` again in a handler). §3.6: ID 23 is the software interrupt (CLIC Rev 2.1). |
 
 ## 0.4 Document set
 
@@ -239,7 +239,8 @@ contradicted each other on where LoRa lived, and both contradicted the DMA spec.
 | 14 | `spi_slave` |
 | 15–21 | `spi_master`, `i2c`, `uart0`, `uart1`, `uart2`, `gpio`, `pwm` fault |
 | 22 | watchdog early warning |
-| 23–31 | reserved, unenableable |
+| 23 | software interrupt: firmware writes `CLICSWI` = 1 (CLIC §6.6) |
+| 24–31 | reserved, unenableable |
 
 ### 3.7 DMA channels
 

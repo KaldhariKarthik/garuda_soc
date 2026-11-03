@@ -6,7 +6,7 @@
 # or typed at the IMC prompt. Every line has its reason. Sign-off criterion 3
 # (flow/0_signoff_criteria.md): code coverage 100% after the waivers below.
 #
-# One reason covers almost everything here: IDs 0, 7 and 23 to 31 have no
+# One reason covers almost everything here: IDs 0, 7 and 24 to 31 have no
 # interrupt source (garuda_system.yaml clic.map), so their enable bits are
 # hardwired to 0 by GARUDA_CLIC_ID_MASK and can never toggle. CLIC [N-6.2],
 # [N-6.3] as amended by INT-2 and INT-3; checked by property a_reserved_ids.

@@ -366,6 +366,7 @@ handler returned to nowhere.
 | What entry writes | `mepc`. `mcause`: bit 31 = 1 for an interrupt; CLIC ID in the low bits; machine timer = `0x8000_0007`; and `mpil` (23:16) = the level being left (T-12). `mtval` per [N-7.12]. `MPIE` ← `MIE`, `MIE` ← 0. A CLIC interrupt sets `mil` to its own level; an exception or the timer leaves `mil` unchanged. |
 | What `mret` does | `MIE` ← `MPIE`, `MPIE` ← 1, `mil` ← `mcause.mpil`, then jump to `mepc`. |
 | Nesting | Only through the CLIC level: a source is taken when its level is greater than both `mintthresh` and `mil` ([N-7.15]). An equal level never preempts. A handler that sets `MIE` again must first save `mepc` and `mcause` (which holds `mpil`) and restore them before `mret` (TRM §5.3). The machine timer is outside the level scheme ([N-7.17]). Preemption can be switched off with `mgarudactl.PREEMPT_DIS` (CORE-4). |
+| Software interrupt | No `msip`. Firmware raises one by writing `CLICSWI` = 1 in the CLIC: it is CLIC ID 23 and follows every rule above (CLIC §6.6). |
 | Open items | T-16: an EX exception on the instruction behind a WFI is taken during the sleep. C-17: `minstret` read lag. Both wait for a ruling (`Docs/bugs/track_a.md`). |
 
 ### 7.6 Hold and flush composition — authoritative

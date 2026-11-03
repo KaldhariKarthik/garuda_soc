@@ -60,8 +60,9 @@
 `define GARUDA_CLIC_ID_GPIO_AGGREGATE       20
 `define GARUDA_CLIC_ID_PWM_FAULT            21
 `define GARUDA_CLIC_ID_WDT_EARLY_WARNING    22
+`define GARUDA_CLIC_ID_SOFTWARE             23
 `define GARUDA_CLIC_NUM_IDS                 32
-`define GARUDA_CLIC_ID_MASK                 32'h007F_FF7E  // every ID that has a source
+`define GARUDA_CLIC_ID_MASK                 32'h00FF_FF7E  // every ID that has a source
 // ---- DMA ----
 `define GARUDA_DMA_CHANNELS                 6
 `define GARUDA_DMA_PRIO_CH0                 5  // spi_master

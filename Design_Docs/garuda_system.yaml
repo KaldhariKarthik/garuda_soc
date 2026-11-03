@@ -289,7 +289,11 @@ clic:
     - {id: 20,         source: gpio_aggregate, block: 19}
     - {id: 21,         source: pwm_fault,  block: 20}
     - {id: 22,         source: wdt_early_warning, block: 11}
-    - {id: "23..31",   source: reserved}
+    # ID 23: the software interrupt (1-TOPS item 3.6, 2026-11-03). Its source is
+    # CLICSWI[0] inside the CLIC (window 10, offset 0x00C), set and cleared by firmware.
+    # Level, like every other source: it stays pending until firmware writes 0.
+    - {id: 23,         source: software,   block: 10, note: "CLICSWI[0], firmware set/clear"}
+    - {id: "24..31",   source: reserved}
   take_condition: "pending & mstatus.MIE & (level > mintthresh) & (level > mintstatus.mil)"
   strict_greater: true              # equal never preempts
 

@@ -11,7 +11,7 @@
 .PHONY: help_b test_crg test_clic test_timers test_apb_shim test_spim test_uart \
         test_i2c test_gpio test_pwm test_spis test_blocks_b \
         test_chip test_chip_basic test_chip_irq test_chip_wdt test_chip_flash \
-        test_chip_uart test_chip_periph test_chip_integ test_chip_jtag elab_chip \
+        test_chip_uart test_chip_periph test_chip_integ test_chip_jtag test_chip_swirq elab_chip \
         docs check_docs static static_lint static_cdc static_xprop \
         uvm_clic uvm_timers uvm_pwm uvm_gpio uvm_crg uvm_spis uvm_i2c uvm_b \
         synth local local_sim local_lint local_synth uvm_local gate_b
@@ -66,7 +66,8 @@ test_chip_flash: ; $(call run_blk,$(CHIP_FL),tb_chip,chip_flash,+MODE=flash +TES
 test_chip_uart:  ; $(call run_blk,$(CHIP_FL),tb_chip,chip_uart,+MODE=basic +TEST=sw/build/t_chip_uart.hex)
 test_chip_periph:; $(call run_blk,$(CHIP_FL),tb_chip,chip_periph,+MODE=basic +TEST=sw/build/t_chip_periph.hex +MAXUS=1200)
 test_chip_integ: ; $(call run_blk,$(CHIP_FL),tb_chip,chip_integ,+MODE=basic +TEST=sw/build/t_chip_integ.hex +MAXUS=4000)
-test_chip: sw test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_uart test_chip_periph test_chip_integ test_chip_jtag
+test_chip_swirq: ; $(call run_blk,$(CHIP_FL),tb_chip,chip_swirq,+MODE=basic +TEST=sw/build/t_chip_swirq.hex)   # 1-TOPS 3.6
+test_chip: sw test_chip_basic test_chip_irq test_chip_wdt test_chip_flash test_chip_uart test_chip_periph test_chip_integ test_chip_jtag test_chip_swirq
 
 elab_chip:                                       ## whole-chip elaboration
 	$(call run_blk,rtl/soc/filelist_chip.f,garuda_chip_top,elab_chip,-elaborate,-)

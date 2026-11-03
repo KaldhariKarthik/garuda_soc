@@ -18,6 +18,7 @@
 |---|---|---|
 | 1.0–1.1 | Initial. ID 13 carried `mtip`; trigger type configurable; ID map partly provisional | — |
 | 2.0 | ID 13 freed — `mtip` no longer routes through the CLIC. Trigger type fixed in hardware. ID 0 becomes a permanently unassigned sentinel. ID 14 freed by the SPI-slave removal. ID map now generated from `GARUDA-SYS-001`. `mintthresh` interface clarified. | ADR-0009, 0010, 0020 |
+| 2.1 | ID 23 becomes the software interrupt: register `CLICSWI` at 0x00C (§6.6, [N-6.9], [N-6.10]); IDs 24–31 stay spare. Added for the 1-TOPS signoff checklist, item 3.6 (2026-11-03). | 1-TOPS 3.6 |
 
 ## 0.3 Normative references
 
@@ -166,6 +167,7 @@ always right and only the index was wrong.)*
 | 0x000 | `CLICINFO` | RO | see §6.1 | Implementation parameters. |
 | 0x004 | `CLICIE` | RW | 0x0000_0000 | Per-ID enable, bit *n* = ID *n*. |
 | 0x008 | `CLICIP` | RO | — | Per-ID pending, read-only. |
+| 0x00C | `CLICSWI` | RW | 0x0000_0000 | Bit 0: the software interrupt, the source of ID 23 (§6.6). |
 | 0x100+4n | `CLICINTCFG[n]` | RW | 0x00 | 8-bit level for ID *n*. n = 0..31. |
 
 ### 6.1 `CLICINFO` (0x000)
@@ -188,7 +190,7 @@ whose state is not yet initialised.
 
 **[N-6.3]** Bit 7 and bits 31:23 are hardwired to zero and ignore writes. ID 7 is
 reserved because the core reports a CLIC interrupt as `mcause = 0x8000_0000 | ID`, and
-`0x8000_0007` is the machine-timer cause (`Docs/bugs/archive/BUGS_HISTORY.md` INT-2). IDs 23–31 have no source.
+`0x8000_0007` is the machine-timer cause (`Docs/bugs/archive/BUGS_HISTORY.md` INT-2). ID 23 is the software interrupt (§6.6). IDs 24–31 have no source.
 The enable mask is generated from the ID map (`GARUDA_CLIC_ID_MASK` = `0x007F_FF7E`,
 `Docs/bugs/archive/BUGS_HISTORY.md` INT-3). Reserved-and-unwritable rather than merely unassigned,
 so an enable of an ID with no source cannot produce a permanently-clear pending bit that a
@@ -197,7 +199,7 @@ debugging engineer then spends an afternoon on.
 ### 6.3 `CLICIP` (0x008)
 
 **[N-6.4]** Read-only, and combinational from the source lines. There is no write path,
-no set register and no clear register.
+no set register and no clear register. Bit 23 shows `CLICSWI[0]` (§6.6).
 
 **[N-6.5]** This follows from level triggering: a pending bit that firmware could clear
 while the source is still asserted would immediately re-assert, and firmware that expected
@@ -219,7 +221,7 @@ disturbing the pending state, since pending is combinational from the source (R-
 Changing the level of an interrupt that is currently *being serviced* changes the
 `mintstatus.mil` comparison for nested interrupts and is firmware's responsibility.
 
-**[N-6.8]** `CLICINTCFG` for IDs 0, 7 and 23–31 is writable but has no effect, as those
+**[N-6.8]** `CLICINTCFG` for IDs 0, 7 and 24–31 is writable but has no effect, as those
 IDs can never be enabled.
 
 ### 6.5 ID map
@@ -241,7 +243,30 @@ Generated from `GARUDA-SYS-001` `clic.map`:
 | 20 | `gpio` aggregate | 19 |
 | 21 | `pwm` fault | 20 |
 | 22 | watchdog early warning | 11 |
-| 23–31 | reserved | — |
+| 23 | software interrupt, `CLICSWI[0]` (§6.6) | 10 (this block) |
+| 24–31 | reserved | — |
+
+### 6.6 `CLICSWI` (0x00C): the software interrupt
+
+| Bits | Name | Reset | Description |
+|---|---|---|---|
+| 0 | `swi` | 0 | 1 raises the software interrupt, 0 withdraws it. |
+| 31:1 | — | 0 | Read 0, writes ignored. |
+
+**[N-6.9]** `CLICSWI[0]` is the source of ID 23, inside this block. It is a level source like
+every other (R-3). It stays pending until firmware writes 0, normally in its own handler, as
+F-4 of the TRM requires for every source. Enable, level, selection and nesting are those of
+any ID: firmware sets `CLICIE[23]` and `CLICINTCFG[23]`, and the core reports it with
+`mcause[31]` = 1 and `mcause[4:0]` = 23 (`mpil` is in bits 23:16, CORE [N-7.18a]). The SoC ties source line 23 low; the software interrupt is the only thing
+that drives ID 23.
+
+**[N-6.10]** Why it exists: GARUDA has no `msip` (CORE §7.5), and §6.3 makes the pending
+bits read-only, so until 2026-11-03 firmware had no way to raise an interrupt. The
+1-TOPS signoff checklist (item 3.6) requires one. A register in the CLIC keeps the change
+inside this block, and gives the software interrupt a level, so it can be ordered against
+the hardware sources. A CLINT-style `msip` would have touched the core and the timers.
+Uses: deferring work out of a high-level handler to a low-level one, and testing the
+interrupt path from firmware.
 
 ---
 
@@ -446,7 +471,7 @@ a_id0_never_wins: assert property (
   @(posedge hclk_i) disable iff (!hreset_n_i)
   clic_irq_valid_o |-> (clic_irq_id_o != 5'd0));
 
-// --- reserved IDs can never be enabled (N-6.3): ID 7 and IDs 23 to 31
+// --- reserved IDs can never be enabled (N-6.3): ID 7 and IDs 24 to 31
 a_reserved_ids: assert property (
   @(posedge hclk_i) disable iff (!hreset_n_i)
   (clic_ie[7] == 1'b0) && (clic_ie[31:23] == 9'd0));
@@ -558,7 +583,7 @@ the interleavings someone thought of.
 | Supervisor or user mode CLIC | M-mode only chip. |
 | `mnxti` | Not implemented in the core; its CSR address reads 0. Interrupt-tail-chaining is a performance optimisation for high interrupt rates that this workload does not have. |
 | Selective hardware vectoring (`CLICINTATTR.shv`) | All interrupts use the same vectored entry. A per-ID vector table would need a base register and a memory read in the trap path. |
-| More than 32 IDs | 21 assigned (1–6, 8–22), 9 spare (23–31), 2 reserved (0, 7). No growth pressure. |
+| More than 32 IDs | 22 assigned (1–6, 8–23), 8 spare (24–31), 2 reserved (0, 7). No growth pressure. |
 | Fewer than 8 level bits | 8 bits is what the core's `mintthresh` and `mintstatus.mil` already carry; narrowing would save a handful of flops and create a mismatch. |
 | Software-triggerable interrupts | No use case; firmware can call the handler directly. |
 

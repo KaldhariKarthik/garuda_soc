@@ -73,18 +73,21 @@ class clic_apb_rand_seq extends uvm_sequence #(apb_item);
                 endcase
             end else if (kind < 80) begin                          // a read of something mapped
                 req.write = 0;
-                case ($urandom_range(0, 3))
+                case ($urandom_range(0, 4))
                     0: req.addr = 12'h000;
                     1: req.addr = 12'h004;
                     2: req.addr = 12'h008;
+                    3: req.addr = 12'h00C;                         // CLICSWI
                     default: req.addr = 12'h100 + 4 * $urandom_range(0, 31);
                 endcase
             end else if (kind < 90) begin                          // an offset that does not exist
                 case ($urandom_range(0, 2))
-                    0: req.addr = 12'h00C + 4 * $urandom_range(0, 60);
+                    0: req.addr = 12'h010 + 4 * $urandom_range(0, 59);   // 0x00C is CLICSWI
                     1: req.addr = 12'h180 + 4 * $urandom_range(0, 927);
                     default: req.addr = 12'h100 + $urandom_range(0, 127);
                 endcase
+            end else if (kind < 95) begin                          // the software interrupt, CLICSWI
+                req.write = 1; req.addr = 12'h00C; req.wdata = $urandom();
             end else begin                                         // a write to a read-only register
                 req.write = 1; req.addr = ($urandom_range(0, 1)) ? 12'h000 : 12'h008; req.wdata = $urandom();
             end

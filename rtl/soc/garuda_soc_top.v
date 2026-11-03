@@ -281,12 +281,13 @@ module garuda_soc_top #(
     assign irq_src[14]    = spis_irq_i;
     assign irq_src[21:15] = periph_irq_i;                 // IDs 15-21
     assign irq_src[22]    = wdt_warn;                     // ID 22
-    assign irq_src[31:23] = 9'd0;
+    assign irq_src[23]    = 1'b0;                         // ID 23: CLICSWI inside the CLIC ([N-6.9])
+    assign irq_src[31:24] = 8'd0;
 
     // The enable mask comes from the map. The block's own default still excluded
     // IDs 13 and 14 from when the SPI slave had been removed, so the SPI slave's
     // interrupt could be wired, pending, and impossible to enable (BUGS_HISTORY.md INT-3).
-    clic_top #(.IE_MASK(`GARUDA_CLIC_ID_MASK)) u_clic (
+    clic_top #(.IE_MASK(`GARUDA_CLIC_ID_MASK), .SWI_ID(`GARUDA_CLIC_ID_SOFTWARE)) u_clic (
         .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .pclk_i(pclk_i), .preset_n_i(preset_n_i),
         .psel_i(psel[`GARUDA_APB_WIN_CLIC_CFG]), .penable_i(penable), .pwrite_i(pwrite),
         .paddr_i(paddr), .pwdata_i(pwdata), .prdata_o(prd_clic), .pready_o(rdy_clic),

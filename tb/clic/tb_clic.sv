@@ -90,7 +90,8 @@ module tb_clic;
         // It was 0x007F_9FFE - IDs 13 and 14 masked - from when the SPI slave had
         // been removed; block 14 is back on ID 14 (ADR-0020 Rev 2), the DMA error
         // lines are on 8..13 and ID 7 is reserved (BUGS_HISTORY.md INT-2, INT-3).
-        check(d == 32'h007F_FF7E, "[N-6.2]/[N-6.3]: IE bits 0, 7, 23-31 hardwired 0");
+        // ID 23 joined on 2026-11-03: the software interrupt, CLICSWI ([N-6.9]).
+        check(d == 32'h00FF_FF7E, "[N-6.2]/[N-6.3]: IE bits 0, 7, 24-31 hardwired 0");
 
         src = 32'h0000_0402; #1;
         rd(12'h008, d, e);
@@ -116,7 +117,20 @@ module tb_clic;
         #1 check(id == 1 && level == 10, "disabling ID 10 hands selection to ID 1");
         src = 0; #1 check(!valid && id == 0, "nothing pending -> valid low, ID reads 0 ([N-7.13])");
 
-        rd(12'h00C, d, e); check(e, "PSLVERR on unmapped offset 0x00C");
+        // [N-6.9] CLICSWI: the software interrupt is the source of ID 23
+        rd(12'h00C, d, e); check(!e && d == 0, "CLICSWI resets to 0");
+        wr(12'h004, 32'h0080_0000); wr(12'h100 + 4*23, 8'd90);
+        #1 check(!valid, "ID 23 enabled, CLICSWI 0: nothing pending");
+        wr(12'h00C, 32'hFFFF_FFFF);
+        rd(12'h00C, d, e); check(d == 32'h1, "CLICSWI: only bit 0 is stored");
+        rd(12'h008, d, e); check(d == 32'h0080_0000, "CLICSWI = 1: CLICIP shows ID 23 pending");
+        #1 check(valid && id == 23 && level == 90, "[N-6.9]: software interrupt presented as ID 23 at its level");
+        src = 32'h0000_0400; wr(12'h100 + 4*10, 8'd200); wr(12'h004, 32'h0080_0400);
+        #1 check(id == 10, "a higher-level hardware source still wins over the software one");
+        src = 0; wr(12'h00C, 32'h0);
+        #1 check(!valid, "CLICSWI written 0: the software interrupt is withdrawn");
+        wr(12'h004, 32'h0); wr(12'h100 + 4*23, 8'd0); wr(12'h100 + 4*10, 8'd0);
+        rd(12'h010, d, e); check(e, "PSLVERR on unmapped offset 0x010");
         rd(12'h180, d, e); check(e, "PSLVERR beyond CLICINTCFG[31]");
 
         // random selection vs model
@@ -128,7 +142,7 @@ module tb_clic;
             int n;
             n = rnd() % 32;
             case (rnd() % 3)
-                0: begin m_ie = rnd() & 32'h007F_FF7E; wr(12'h004, m_ie); end
+                0: begin m_ie = rnd() & 32'h00FF_FF7E; wr(12'h004, m_ie); end
                 1: begin m_lvl[n] = rnd(); wr(12'h100 + 4*n, m_lvl[n]); end
                 default: ;
             endcase

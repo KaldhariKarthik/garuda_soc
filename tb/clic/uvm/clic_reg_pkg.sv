@@ -34,6 +34,7 @@ package clic_reg_pkg;
         rand uvm_reg_field id7;
         rand uvm_reg_field dma_error;
         rand uvm_reg_field periph;
+        rand uvm_reg_field software;
         rand uvm_reg_field unassigned;
 
         function new(string name = "clic__CLICIE");
@@ -51,8 +52,10 @@ package clic_reg_pkg;
             this.dma_error.configure(this, 6, 8, "RW", 0, 'h0, 1, 1, 0);
             this.periph = new("periph");
             this.periph.configure(this, 9, 14, "RW", 0, 'h0, 1, 1, 0);
+            this.software = new("software");
+            this.software.configure(this, 1, 23, "RW", 0, 'h0, 1, 1, 0);
             this.unassigned = new("unassigned");
-            this.unassigned.configure(this, 9, 23, "RO", 0, 'h0, 1, 1, 0);
+            this.unassigned.configure(this, 8, 24, "RO", 0, 'h0, 1, 1, 0);
         endfunction : build
     endclass : clic__CLICIE
 
@@ -69,6 +72,23 @@ package clic_reg_pkg;
             this.pending.configure(this, 32, 0, "RO", 1, 'h0, 0, 1, 0);
         endfunction : build
     endclass : clic__CLICIP
+
+    // Reg - clic::CLICSWI
+    class clic__CLICSWI extends uvm_reg;
+        rand uvm_reg_field swi;
+        rand uvm_reg_field rsvd;
+
+        function new(string name = "clic__CLICSWI");
+            super.new(name, 32, UVM_NO_COVERAGE);
+        endfunction : new
+
+        virtual function void build();
+            this.swi = new("swi");
+            this.swi.configure(this, 1, 0, "RW", 0, 'h0, 1, 1, 0);
+            this.rsvd = new("rsvd");
+            this.rsvd.configure(this, 31, 1, "RO", 0, 'h0, 1, 1, 0);
+        endfunction : build
+    endclass : clic__CLICSWI
 
     // Reg - clic::CLICINTCFG
     class clic__CLICINTCFG extends uvm_reg;
@@ -92,6 +112,7 @@ package clic_reg_pkg;
         rand clic__CLICINFO CLICINFO;
         rand clic__CLICIE CLICIE;
         rand clic__CLICIP CLICIP;
+        rand clic__CLICSWI CLICSWI;
         rand clic__CLICINTCFG CLICINTCFG[32];
 
         function new(string name = "clic");
@@ -115,6 +136,11 @@ package clic_reg_pkg;
 
             this.CLICIP.build();
             this.default_map.add_reg(this.CLICIP, 'h8);
+            this.CLICSWI = new("CLICSWI");
+            this.CLICSWI.configure(this);
+
+            this.CLICSWI.build();
+            this.default_map.add_reg(this.CLICSWI, 'hc);
             foreach(this.CLICINTCFG[i0]) begin
                 this.CLICINTCFG[i0] = new($sformatf("CLICINTCFG[%0d]", i0));
                 this.CLICINTCFG[i0].configure(this);

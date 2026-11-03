@@ -26,13 +26,20 @@ addrmap clic {
         field { sw = r;  hw = na; reset = 1'b0;  desc = "ID 7 is reserved (its cause is the machine timer's): hardwired 0"; } id7[7:7];
         field { sw = rw; hw = r;  reset = 6'd0;  desc = "IDs 8 to 13: DMA channel 0 to 5 error"; }                     dma_error[13:8];
         field { sw = rw; hw = r;  reset = 9'd0;  desc = "IDs 14 to 22: SPI slave, SPI master, I2C, UART0-2, GPIO, PWM, watchdog warning"; } periph[22:14];
-        field { sw = r;  hw = na; reset = 9'd0;  desc = "IDs 23 to 31 have no source: hardwired 0"; }                  unassigned[31:23];
+        field { sw = rw; hw = r;  reset = 1'b0;  desc = "ID 23: the software interrupt (CLICSWI)"; }                   software[23:23];
+        field { sw = r;  hw = na; reset = 8'd0;  desc = "IDs 24 to 31 have no source: hardwired 0"; }                  unassigned[31:24];
     } CLICIE @ 0x004;
 
     reg {
         name = "Interrupt pending, combinational from the source lines";
         field { sw = r; hw = w; desc = "Bit n is source line n"; } pending[31:0];
     } CLICIP @ 0x008;
+
+    reg {
+        name = "Software interrupt: the source of ID 23";
+        field { sw = rw; hw = r;  reset = 1'b0;  desc = "1 raises the software interrupt, 0 withdraws it (level)"; } swi[0:0];
+        field { sw = r;  hw = na; reset = 31'd0; desc = "Reads 0"; }                                           rsvd[31:1];
+    } CLICSWI @ 0x00C;
 
     reg {
         name = "Interrupt level for one ID";

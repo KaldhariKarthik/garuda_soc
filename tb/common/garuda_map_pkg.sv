@@ -100,7 +100,7 @@ package garuda_map_pkg;
   // ---- CLIC IDs -------------------------------------------------------------
   localparam int unsigned CLIC_ID_DMA_COMPLETE [6] = '{1, 2, 3, 4, 5, 6};
   localparam int unsigned CLIC_ID_DMA_ERROR    [6] = '{8, 9, 10, 11, 12, 13};
-  localparam int unsigned CLIC_ID_RESERVED [11] = '{0, 7, 23, 24, 25, 26, 27, 28, 29, 30, 31};  // never driven by a source
+  localparam int unsigned CLIC_ID_RESERVED [10] = '{0, 7, 24, 25, 26, 27, 28, 29, 30, 31};  // never driven by a source
   localparam int unsigned CLIC_ID_SPI_SLAVE = 14;
   localparam int unsigned CLIC_ID_SPI_MASTER = 15;
   localparam int unsigned CLIC_ID_I2C = 16;
@@ -110,5 +110,6 @@ package garuda_map_pkg;
   localparam int unsigned CLIC_ID_GPIO_AGGREGATE = 20;
   localparam int unsigned CLIC_ID_PWM_FAULT = 21;
   localparam int unsigned CLIC_ID_WDT_EARLY_WARNING = 22;
+  localparam int unsigned CLIC_ID_SOFTWARE = 23;
 
 endpackage

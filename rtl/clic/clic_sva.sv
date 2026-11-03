@@ -20,7 +20,8 @@
 // empty and the block is simulated without its properties (TOOL-B2).
 module clic_sva #(
     parameter integer N       = 32,
-    parameter [31:0]  IE_MASK = 32'h007F_FF7E
+    parameter [31:0]  IE_MASK = 32'h00FF_FF7E,
+    parameter integer SWI_ID  = 23
 )(
     input wire           hclk_i,
     input wire           pclk_i,
@@ -32,7 +33,9 @@ module clic_sva #(
     input wire [31:0]    prdata_o,
     input wire           pready_o,
     input wire           pslverr_o,
-    input wire [N-1:0]   irq_src_i,
+    input wire [N-1:0]   irq_src_i,     // the sources as the block sees them (src: pins | CLICSWI)
+    input wire [31:0]    pwdata_i,
+    input wire           swi,
     input wire [N-1:0]   ie,
     input wire [N*8-1:0] level,
     input wire           clic_irq_valid_o,
@@ -95,12 +98,13 @@ module clic_sva #(
 
     // ---- F08: PSLVERR for exactly the unmapped offsets; an errored write changes nothing
     wire hit_ref = (paddr_i == 12'h000) || (paddr_i == 12'h004) || (paddr_i == 12'h008) ||
+                   (paddr_i == 12'h00C) ||                                       // CLICSWI ([N-6.9])
                    (paddr_i >= 12'h100 && paddr_i <= 12'h17C && paddr_i[1:0] == 2'b00);
     a_pslverr_map: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
         pslverr_o == (psel_i && penable_i && !hit_ref))
         else $error("[SVA-FAIL] a_pslverr_map: paddr=%h pslverr=%b", paddr_i, pslverr_o);
     a_err_no_change: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
-        (psel_i && penable_i && pwrite_i && pslverr_o) |=> ($stable(ie) && $stable(level)))
+        (psel_i && penable_i && pwrite_i && pslverr_o) |=> ($stable(ie) && $stable(level) && $stable(swi)))
         else $error("[SVA-FAIL] a_err_no_change");
 
     // ---- F09: zero wait ------------------------------------------------------------
@@ -122,13 +126,28 @@ module clic_sva #(
     c_clicip_read:  cover property (@(posedge pclk_i) preset_n_i && psel_i && !pwrite_i && paddr_i == 12'h008 && |irq_src_i);
     c_err_write:    cover property (@(posedge pclk_i) preset_n_i && psel_i && penable_i && pwrite_i && pslverr_o);
     c_reset:        cover property (@(posedge hclk_i) !preset_n_i ##1 preset_n_i);
+
+    // ---- [N-6.9] CLICSWI: the software interrupt (ID SWI_ID) ------------------
+    // A write to 0x00C sets the source to pwdata[0] at that pclk edge; the source
+    // of ID SWI_ID is CLICSWI (OR the pin, which the SoC ties low).
+    a_swi_write: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+        (psel_i && penable_i && pwrite_i && paddr_i == 12'h00C) |=> (swi == $past(pwdata_i[0])))
+        else $error("[SVA-FAIL] a_swi_write: CLICSWI did not take the written value");
+    a_swi_source: assert property (@(posedge hclk_i) disable iff (!preset_n_i)
+        swi |-> irq_src_i[SWI_ID])
+        else $error("[SVA-FAIL] a_swi_source: CLICSWI set but ID %0d not pending", SWI_ID);
+    a_swi_read: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+        (psel_i && !pwrite_i && paddr_i == 12'h00C) |-> (prdata_o == {31'd0, swi}))
+        else $error("[SVA-FAIL] a_swi_read");
+    c_swi_taken:    cover property (@(posedge hclk_i) preset_n_i && clic_irq_valid_o && clic_irq_id_o == SWI_ID);
+    c_swi_clear:    cover property (@(posedge pclk_i) preset_n_i && swi ##1 !swi);
 endmodule
 
-bind clic_top clic_sva #(.N(N), .IE_MASK(IE_MASK)) u_clic_sva (
+bind clic_top clic_sva #(.N(N), .IE_MASK(IE_MASK), .SWI_ID(SWI_ID)) u_clic_sva (
     .hclk_i(hclk_i), .pclk_i(pclk_i), .preset_n_i(preset_n_i),
     .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i), .paddr_i(paddr_i),
     .prdata_o(prdata_o), .pready_o(pready_o), .pslverr_o(pslverr_o),
-    .irq_src_i(irq_src_i), .ie(ie), .level(level),
+    .irq_src_i(src), .pwdata_i(pwdata_i), .swi(swi), .ie(ie), .level(level),
     .clic_irq_valid_o(clic_irq_valid_o), .clic_irq_id_o(clic_irq_id_o),
     .clic_irq_level_o(clic_irq_level_o));
 `endif

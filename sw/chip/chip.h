@@ -19,6 +19,7 @@
 /* CLIC (window 10) */
 #define CLICIE        REG(GARUDA_APB_BASE_CLIC_CFG + 0x004)
 #define CLICIP        REG(GARUDA_APB_BASE_CLIC_CFG + 0x008)
+#define CLICSWI       REG(GARUDA_APB_BASE_CLIC_CFG + 0x00C)   /* [0]: software interrupt, CLIC ID 23 */
 #define CLICINTCFG(n) REG(GARUDA_APB_BASE_CLIC_CFG + 0x100 + 4 * (n))
 /* timers (window 11) */
 #define MTIME_LO      REG(GARUDA_APB_BASE_TIMERS_CFG + 0x00)

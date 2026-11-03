@@ -22,6 +22,7 @@ package clic_env_pkg;
     import clic_reg_pkg::*;
 
     localparam bit [31:0] ID_MASK = `GARUDA_CLIC_ID_MASK;   // every ID that has a source
+    localparam int        SWI_ID  = `GARUDA_CLIC_ID_SOFTWARE; // ID 23: CLICSWI ([N-6.9])
 
     function automatic bit is_assigned(int n); return ID_MASK[n]; endfunction
 
@@ -129,15 +130,19 @@ package clic_env_pkg;
         `uvm_object_utils(clic_ref_model)
         bit [31:0] ie;
         bit [7:0]  lvl [32];
+        bit        swi;                         // CLICSWI[0], the source of ID 23 ([N-6.9])
         function new(string name = "clic_ref_model"); super.new(name); reset(); endfunction
 
         function void reset();
-            ie = 32'd0;
+            ie = 32'd0; swi = 1'b0;
             foreach (lvl[i]) lvl[i] = 8'd0;
         endfunction
 
+        // the sources the block sees: the pins, and CLICSWI on ID 23
+        function bit [31:0] eff(bit [31:0] src); return src | (32'(swi) << SWI_ID); endfunction
+
         function bit mapped(bit [11:0] a);
-            return (a == 12'h000) || (a == 12'h004) || (a == 12'h008) ||
+            return (a == 12'h000) || (a == 12'h004) || (a == 12'h008) || (a == 12'h00C) ||
                    (a >= 12'h100 && a <= 12'h17C && a[1:0] == 2'b00);
         endfunction
 
@@ -149,6 +154,7 @@ package clic_env_pkg;
         function bit write(bit [11:0] a, bit [31:0] d);
             if (!mapped(a)) return 1;
             if (a == 12'h004)     ie = d & ID_MASK;
+            else if (a == 12'h00C) swi = d[0];
             else if (is_cfg(a))   lvl[(a - 12'h100) >> 2] = d[7:0];
             return 0;                                   // CLICINFO, CLICIP: ignored, no error
         endfunction
@@ -158,19 +164,21 @@ package clic_env_pkg;
             if (!mapped(a)) return 1;
             if      (a == 12'h000) d = {7'd0, 4'd8, 8'd1, 13'd32};
             else if (a == 12'h004) d = ie;
-            else if (a == 12'h008) d = src;
+            else if (a == 12'h008) d = eff(src);
+            else if (a == 12'h00C) d = {31'd0, swi};
             else                   d = {24'd0, lvl[(a - 12'h100) >> 2]};
             return 0;
         endfunction
 
         // highest level among enabled pending IDs; lowest ID on a tie
         function void select(bit [31:0] src, output bit v, output bit [4:0] wid, output bit [7:0] wl);
+            bit [31:0] s = eff(src);
             v = 0; wid = 0; wl = 0;
             for (int n = 0; n < 32; n++)
-                if (src[n] && ie[n] && (!v || lvl[n] > wl)) begin v = 1; wid = n; wl = lvl[n]; end
+                if (s[n] && ie[n] && (!v || lvl[n] > wl)) begin v = 1; wid = n; wl = lvl[n]; end
         endfunction
 
-        function int ncand(bit [31:0] src); return $countones(src & ie); endfunction
+        function int ncand(bit [31:0] src); return $countones(eff(src) & ie); endfunction
     endclass
 
     // ------------------------------------------------------------------ scoreboard
@@ -262,7 +270,7 @@ package clic_env_pkg;
         // -------- register access
         covergroup cg_clic_apb with function sample(int kind, bit wr, int nsrc);
             option.per_instance = 1;
-            cp_reg: coverpoint kind { bins CLICINFO = {0}; bins CLICIE = {1}; bins CLICIP = {2}; bins CLICINTCFG = {3}; }
+            cp_reg: coverpoint kind { bins CLICINFO = {0}; bins CLICIE = {1}; bins CLICIP = {2}; bins CLICINTCFG = {3}; bins CLICSWI = {7}; }
             cp_rw:  coverpoint wr   { bins read = {0}; bins write = {1}; }
             x_reg_rw: cross cp_reg, cp_rw;
             cp_unmapped: coverpoint kind { bins low = {4}; bins high = {5}; bins unaligned = {6}; }
@@ -272,9 +280,9 @@ package clic_env_pkg;
 
         covergroup cg_clic_ie with function sample(int kind, int idx);
             option.per_instance = 1;
-            cp_set:   coverpoint idx iff (kind == 0) { bins id[] = {[1:6], [8:22]}; }
-            cp_clear: coverpoint idx iff (kind == 1) { bins id[] = {[1:6], [8:22]}; }
-            cp_reserved_write: coverpoint idx iff (kind == 2) { bins id[] = {0, 7, [23:31]}; }
+            cp_set:   coverpoint idx iff (kind == 0) { bins id[] = {[1:6], [8:23]}; }
+            cp_clear: coverpoint idx iff (kind == 1) { bins id[] = {[1:6], [8:23]}; }
+            cp_reserved_write: coverpoint idx iff (kind == 2) { bins id[] = {0, 7, [24:31]}; }
         endgroup
 
         covergroup cg_clic_cfg with function sample(int n, bit [7:0] l, bit unassigned_live);
@@ -282,24 +290,24 @@ package clic_env_pkg;
             cp_n: coverpoint n { bins id[] = {[0:31]}; }
             cp_level: coverpoint l { bins zero = {0}; bins one = {1}; bins mid = {[2:254]}; bins max = {255}; }
             x_n_level: cross cp_n, cp_level;
-            cp_unassigned_level: coverpoint n iff (unassigned_live) { bins id[] = {0, 7, [23:31]}; }
+            cp_unassigned_level: coverpoint n iff (unassigned_live) { bins id[] = {0, 7, [24:31]}; }
         endgroup
 
         covergroup cg_clic_src with function sample(int kind, int idx, int len);
             option.per_instance = 1;
-            cp_pulse_id:  coverpoint idx iff (kind == 0) { bins id[] = {[1:6], [8:22]}; }
+            cp_pulse_id:  coverpoint idx iff (kind == 0) { bins id[] = {[1:6], [8:23]}; }
             cp_pulse_len: coverpoint len iff (kind == 0) { bins one = {1}; bins two = {2}; bins held = {[3:$]}; }
             cp_pulse: cross cp_pulse_id, cp_pulse_len;
             cp_src0_high: coverpoint len iff (kind == 1) { bins alone = {0}; bins with_others = {1}; }
-            cp_reserved_high: coverpoint idx iff (kind == 2) { bins id[] = {7, [23:31]}; }
+            cp_reserved_high: coverpoint idx iff (kind == 2) { bins id[] = {7, [24:31]}; }
         endgroup
 
         covergroup cg_clic_sel with function sample(bit [4:0] w, int ncand, bit [7:0] wl, bit tie_next, int tie_size);
             option.per_instance = 1;
-            cp_winner: coverpoint w { bins id[] = {[1:6], [8:22]}; }
-            cp_ncand:  coverpoint ncand { bins one = {1}; bins two = {2}; bins few = {[3:5]}; bins many = {[6:20]}; bins all = {21}; }
+            cp_winner: coverpoint w { bins id[] = {[1:6], [8:23]}; }
+            cp_ncand:  coverpoint ncand { bins one = {1}; bins two = {2}; bins few = {[3:5]}; bins many = {[6:21]}; bins all = {22}; }
             cp_win_level: coverpoint wl { bins zero = {0}; bins one = {1}; bins mid = {[2:254]}; bins max = {255}; }
-            cp_tie_pair: coverpoint w iff (tie_next) { bins lower_of_pair[] = {[1:6], [8:21]}; }
+            cp_tie_pair: coverpoint w iff (tie_next) { bins lower_of_pair[] = {[1:6], [8:22]}; }
             cp_tie_size: coverpoint tie_size { bins two = {2}; bins three = {3}; bins more = {[4:$]}; }
         endgroup
 
@@ -309,6 +317,12 @@ package clic_env_pkg;
             cp_ie_move: coverpoint kind { bins winner_disabled_alone = {2}; bins winner_disabled_one_other = {3};
                                           bins winner_disabled_several = {4}; bins higher_enabled = {5}; }
             cp_coincident: coverpoint kind { bins write_with_src_rise = {6}; bins write_with_src_fall = {7}; }
+        endgroup
+
+        // [N-6.9] the software interrupt: set and cleared by firmware, and taken
+        covergroup cg_clic_swi with function sample(int kind);
+            option.per_instance = 1;
+            cp_swi: coverpoint kind { bins set = {0}; bins clear = {1}; bins rewrite_same = {2}; bins wins = {3}; }
         endgroup
 
         covergroup cg_clic_rst with function sample(int kind);
@@ -322,6 +336,7 @@ package clic_env_pkg;
             out_imp = new("out_imp", this);
             cg_clic_apb = new(); cg_clic_ie = new(); cg_clic_cfg = new();
             cg_clic_src = new(); cg_clic_sel = new(); cg_clic_dyn = new(); cg_clic_rst = new();
+            cg_clic_swi = new();
         endfunction
 
         function int next_assigned(int n);
@@ -338,6 +353,7 @@ package clic_env_pkg;
             if      (it.addr == 12'h000) kind = 0;
             else if (it.addr == 12'h004) kind = 1;
             else if (it.addr == 12'h008) kind = 2;
+            else if (it.addr == 12'h00C) kind = 7;
             else if (model.is_cfg(it.addr)) kind = 3;
             else if (it.addr >= 12'h100 && it.addr <= 12'h17F) kind = 6;     // unaligned inside the level array
             else if (it.addr < 12'h100) kind = 4;
@@ -347,6 +363,11 @@ package clic_env_pkg;
             if (!it.write) return;
 
             model.select(prev_src, v0, w0, l0);
+            if (kind == 7) begin
+                if (it.wdata[0] == model.swi) cg_clic_swi.sample(2);
+                else cg_clic_swi.sample(it.wdata[0] ? 0 : 1);
+                cfg_write_this_cycle = 1;
+            end
             if (kind == 1) begin
                 ie_new = it.wdata & ID_MASK;
                 for (int b = 0; b < 32; b++) begin
@@ -408,6 +429,7 @@ package clic_env_pkg;
                 nx = next_assigned(w);
                 tie_next = (nx >= 0) && it.src[nx] && model.ie[nx] && (model.lvl[nx] == wl);
                 cg_clic_sel.sample(w, nc, wl, tie_next, ts);
+                if (w == SWI_ID && model.swi) cg_clic_swi.sample(3);
             end
             prev_src = it.src; prev_valid = v; prev_in_reset = 0;
             apb_this_cycle = 0; cfg_write_this_cycle = 0;
