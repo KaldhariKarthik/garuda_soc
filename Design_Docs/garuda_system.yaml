@@ -176,7 +176,7 @@ ahb:
     iport: [isram, bootrom, dsram, apb]
     dport: [isram, bootrom, dsram, apb]
     sba:   [isram, bootrom, dsram, apb]
-    dma:   [isram, dsram, apb]
+    dma:   [dsram, apb]          # DMA-17 (Track A ruling 2026-11-01): R-9, the DMA refuses ISRAM and Boot ROM
   hprot: pass_through_not_decoded
   default_slave:
     on_undecoded: two_cycle_ERROR
