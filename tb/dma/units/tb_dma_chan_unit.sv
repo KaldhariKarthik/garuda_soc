@@ -29,7 +29,7 @@ module tb_dma_chan_unit;
     dma_chan dut (.hclk_i(clk), .hreset_n_i(rst_n), .wr_cr_i(wcr), .wr_sar_i(wsar), .wr_dar_i(wdar),
                   .wr_cnt_i(wcnt), .wr_iclr_i(wiclr), .wdata_i(wd), .cr_o(cr), .sar_o(sar), .dar_o(dar),
                   .cnt_o(cnt), .stat_o(stat), .req_i(req), .eligible_o(elig), .size_o(size),
-                  .beat_done_i(bd), .beat_err_i(be), .err_phase_i(ep), .complete_irq_o(ic), .error_irq_o(ie));
+                  .beat_done_i(bd), .beat_err_i(be), .err_phase_i(ep), .inflight_i(1'b0), .complete_irq_o(ic), .error_irq_o(ie));
     // ---- reference state ----
     bit en, sinc, dinc, iec, iee, comp, err, taken;
     logic [1:0] mode, sz; logic [31:0] rsar, rdar; logic [15:0] rcnt, rem; logic [2:0] errph;

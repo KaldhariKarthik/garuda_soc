@@ -15,6 +15,8 @@ analyze -sv09 +incdir+rtl/include {*}$FILES
 elaborate -top dma_top
 clock hclk_i
 clock pclk_i -factor 2 -phase 1
+# the APB master drives its signals from pclk: they change only at a pclk edge
+clock -rate {psel_i penable_i pwrite_i paddr_i pwdata_i} pclk_i
 reset -expression {!hreset_n_i} {!preset_n_i}
 prove -all -time_limit 900s
 report -summary

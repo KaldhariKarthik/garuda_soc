@@ -210,7 +210,7 @@ Window *n* is at `0x4000_0000 + 0x1000 × n` and is decoded from `haddr[15:12]`
 | 2 | `sba` | debug | | SINGLE | read, write |
 | 3 | `dma` | dma | **highest** | SINGLE | read, write |
 
-Every master reaches every slave, except that the DMA has no Boot ROM path. The DMA reaches ISRAM, DSRAM and APB (SSOT `dma: [isram, dsram, apb]`, ADR-0005). *(Corrected: the prior "no ISRAM path" contradicted both the SSOT and the AHB decoder RTL, which applies no DMA-specific ISRAM block. RTL is normative; TRM was wrong.)*
+Every master reaches every slave except the DMA, which reaches DSRAM and APB only: the fabric routes it everywhere (ADR-0005), and the DMA itself refuses an ISRAM or Boot ROM address (DMA R-9, [N-7.20]; ruling D-32 on DMA-17, 2026-11-04, which corrected the yaml to `dma: [dsram, apb]`).
 
 ### 3.5 Peripheral function, DMA channel, CLIC ID
 
@@ -360,6 +360,7 @@ condition in its peripheral before `mret`,** or it re-enters immediately.
 | F-10 | Once `WDTCTL.EN` is set it cannot be cleared. Kick forever. | TIMERS §6.2 |
 | F-11 | Measure the loop duty cycle with `mcycle` and `mtime`. No document asserts a figure. | CORE §6.2 |
 | F-12 | A handler that sets `mstatus.MIE` again, or that can itself trap, saves `mepc` and `mcause` first and restores them before `mret`. `mcause[23:16]` (`mpil`) holds the interrupt level that `mret` returns to (T-12). | CORE [N-7.18a] |
+| F-13 | After stopping a DMA channel (`EN` = 0), write `SAR`, `DAR` and `CNT` again before setting `EN`: `EN` = 1 always starts a new transfer from those registers and never resumes. | DMA [N-7.24] |
 
 **[N-5.6]** F-8 is the one that will hurt most if skipped, and the moment it is needed is the
 moment it is too late to add.

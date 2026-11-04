@@ -176,7 +176,9 @@ ahb:
     iport: [isram, bootrom, dsram, apb]
     dport: [isram, bootrom, dsram, apb]
     sba:   [isram, bootrom, dsram, apb]
-    dma:   [isram, dsram, apb]
+    # DMA-17 (ruling D-32, 2026-11-04): the DMA's effective reach. The fabric routes M3
+    # everywhere (ADR-0005); the DMA itself refuses ISRAM and Boot ROM (DMA R-9, D-16).
+    dma:   [dsram, apb]
   hprot: pass_through_not_decoded
   default_slave:
     on_undecoded: two_cycle_ERROR

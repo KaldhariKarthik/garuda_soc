@@ -203,7 +203,12 @@ module debug_module #(
                     end
                     A_SBCS: begin
                         if (wdata_i[22]) sbbusyerror <= 1'b0;
-                        if (wdata_i[14:12] != 0) sberror <= sberror & ~wdata_i[14:12];
+                        // ERRATUM DBG-4 (ruling D-32, 2026-11-03): an SBA error completing
+                        // in this cycle wins over the debugger's write-1-to-clear, as the
+                        // DMA's set-beats-clear rule ([N-7.19]); before, the later
+                        // assignment cleared the 4 just set and the error was lost.
+                        if (wdata_i[14:12] != 0 && !(sba_done_i && dmactive && sba_err_i))
+                            sberror <= sberror & ~wdata_i[14:12];
                         sbreadonaddr <= wdata_i[20];
                         sbaccess     <= wdata_i[19:17];
                         sbautoinc    <= wdata_i[16];

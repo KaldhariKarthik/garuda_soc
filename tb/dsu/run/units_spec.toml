@@ -46,13 +46,13 @@ name  = "tb_dsu_mac_cluster_spec"
 flist = "tb/dsu/units_spec/tb_dsu_mac_cluster_spec.f"
 top   = "tb_dsu_mac_cluster_spec"
 
-# DSU-18 reproducer (open, P3): an overflowing accumulate followed at once by MACCLEAR /
-# MACLOAD of the same accumulator loses its overflow; cases 2 and 3 fail
+# DSU-18 reproducer (fixed 2026-11-03): an overflowing accumulate followed at once by MACCLEAR /
+# MACLOAD of the same accumulator must still set the sticky flag; all four cases pass
 [[test]]
 name  = "tb_dsu_top_ovf_b2b"
 flist = "tb/dsu/units_spec/tb_dsu_top_ovf_b2b.f"
 top   = "tb_dsu_top_ovf_b2b"
-fail_reason = '^\[FAIL\] case 2 .*overflow flag 0'
+# DSU-18 fixed (ruling D-32, 2026-11-03): this reproducer passes; no expected failure
 
 # negative controls: each spec bench must catch a planted defect in its unit (XFAIL PLANTED)
 [[test]]

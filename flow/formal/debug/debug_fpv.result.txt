@@ -1,4 +1,11 @@
 top: debug_top
+script: flow/formal/debug/debug_fpv.tcl
+proved: 26/26, 39/39 covers covered
+tool: JasperGold Apps 2022.09p002, 2026-11-04
+DBG-4 fixed (ruling D-32): a_dm_bus_error, the counterexample of 2026-10-15, is proven.
+
+Previous result (2026-10-15):
+top: debug_top
 children: jtag_tap dtm dmi_cdc debug_module sba_master
 script: flow/formal/debug/debug_fpv.tcl
 proved: 25/26

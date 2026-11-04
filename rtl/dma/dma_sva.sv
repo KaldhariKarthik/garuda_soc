@@ -30,6 +30,7 @@ module dma_top_sva #(
     input wire [5:0]  dma_req_i, dma_ack_o,
     // internals
     input wire [2:0]  st, ch,
+    input wire        m2m,                     // the engine's beat is memory-to-memory (DMA-15)
     input wire [5:0]  eligible, beat_done, beat_err,
     input wire [2:0]  err_phase,
     input wire        grant_valid,
@@ -44,6 +45,11 @@ module dma_top_sva #(
         (!$past(htrans_o[1]) && st == E_IDLE) |-> !hresp_i );
     assume_apb_legal: assume property (@(posedge pclk_i) disable iff (!preset_n_i)
         (psel_i && !penable_i) |=> (psel_i && penable_i && $stable(paddr_i) && $stable(pwrite_i)) );
+    // an access phase only follows a setup phase, and lasts one pclk (PREADY is always 1)
+    assume_apb_access_after_setup: assume property (@(posedge pclk_i) disable iff (!preset_n_i)
+        (psel_i && penable_i) |-> $past(psel_i && !penable_i) );
+    assume_apb_access_one_pclk: assume property (@(posedge pclk_i) disable iff (!preset_n_i)
+        (psel_i && penable_i) |=> !penable_i );
 
     // ---- AHB master ----------------------------------------------------------
     // [N-7.2] SINGLE transfers only
@@ -88,9 +94,10 @@ module dma_top_sva #(
     a_err_phase: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
         (|beat_err) |-> (err_phase == 3'd1 || err_phase == 3'd2) )
         else $error("[SVA-FAIL] a_err_phase: ERRPHASE is neither read nor write");
-    // [N-7.8] an acknowledge only for a completed beat, of ACK_CYCLES hclk, on that channel only
+    // [N-7.8] an acknowledge only for a completed beat, of ACK_CYCLES hclk, on that channel only;
+    // none for a memory-to-memory beat (DMA-15, ruling D-32)
     a_ack_with_done: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        (|beat_done) |-> (dma_ack_o == beat_done) )
+        (|beat_done) |-> (dma_ack_o == (m2m ? 6'd0 : beat_done)) )
         else $error("[SVA-FAIL] a_ack_with_done: the acknowledge is not on the completed channel");
     a_ack_onehot: assert property (@(posedge hclk_i) disable iff (!hreset_n_i) $onehot0(dma_ack_o) )
         else $error("[SVA-FAIL] a_ack_onehot: two acknowledges");
@@ -99,7 +106,7 @@ module dma_top_sva #(
         else $error("[SVA-FAIL] a_ack_only_after_done: an acknowledge without a completed beat");
     // the width is the spec's (one pclk = 2 hclk, D-16), not the RTL parameter
     a_ack_width: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        ((|beat_done) && !$past(|dma_ack_o)) |-> (|dma_ack_o) [*2] ##1 (!(|dma_ack_o) || (|beat_done)) )
+        ((|beat_done) && !m2m && !$past(|dma_ack_o)) |-> (|dma_ack_o) [*2] ##1 (!(|dma_ack_o) || (|beat_done)) )
         else $error("[SVA-FAIL] a_ack_width: the acknowledge is not ACK_CYCLES long");
     // no error result for a beat that never left idle
     a_idle_quiet: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
@@ -118,7 +125,7 @@ module dma_top_sva #(
     // until then and contradicted the merged RTL (dma_apb_slave.v ERRATUM AUD-13).
     a_apb_stat_ro: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
         (psel_i && penable_i && pwrite_i && (paddr_i == 12'h100 ||
-         (paddr_i[11:8] == 4'h0 && paddr_i[7:5] < 3'd6 && paddr_i[4:2] == 3'd4))) |-> !pslverr_o )
+         (paddr_i[11:8] == 4'h0 && paddr_i[7:5] < 3'd6 && paddr_i[4:2] == 3'd4 && paddr_i[1:0] == 2'b00))) |-> !pslverr_o )
         else $error("[SVA-FAIL] a_apb_stat_ro: a write to STAT or GSTAT raised PSLVERR (AUD-13)");
     a_apb_err_only_access: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
         pslverr_o |-> (psel_i && penable_i) )
@@ -137,7 +144,7 @@ module dma_top_sva #(
     c_err_read_bus:   cover property (@(posedge hclk_i) (|beat_err) && err_phase == 3'd1 && $past(st) == E_RD);
     c_err_write_bus:  cover property (@(posedge hclk_i) (|beat_err) && err_phase == 3'd2 && $past(st) == E_WD);
     c_forbidden_src:  cover property (@(posedge hclk_i) (|beat_err) && $past(st) == E_RA);
-    c_forbidden_dst:  cover property (@(posedge hclk_i) (|beat_err) && $past(st) == E_WA);
+    c_forbidden_dst:  cover property (@(posedge hclk_i) (|beat_err) && $past(st) == E_RA && err_phase == 3'd2);   // DMA-12
     c_contended:      cover property (@(posedge hclk_i) st == E_IDLE && $countones(eligible) >= 2);
     c_byte_beat:      cover property (@(posedge hclk_i) htrans_o[1] && hsize_o == 3'd0);
     c_half_beat:      cover property (@(posedge hclk_i) htrans_o[1] && hsize_o == 3'd1);
@@ -154,11 +161,13 @@ module dma_chan_sva (
     input wire        en_q, iec_q, iee_q, comp_q, err_q, taken_q,
     input wire [1:0]  mode_q,
     input wire [15:0] rem_q, cnt_q,
-    input wire [31:0] sar_q, dar_q
+    input wire [31:0] sar_q, dar_q,
+    input wire        stale_q                  // the beat in flight was stopped by firmware (DMA-9)
 );
     // [N-7.3] REMAINING never counts below zero: a beat completes only with something left
+    // (a stale beat is not credited: DMA-9, ruling D-32)
     a_rem_no_underflow: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        beat_done_i |-> rem_q != 16'd0 )
+        (beat_done_i && !stale_q) |-> rem_q != 16'd0 )
         else $error("[SVA-FAIL] a_rem_no_underflow: a beat completed with REMAINING = 0");
     // [N-6.2], R-6: COMPLETE implies nothing remains (a_remaining_complete_consistent)
     a_complete_consistent: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
@@ -166,10 +175,10 @@ module dma_chan_sva (
         else $error("[SVA-FAIL] a_complete_consistent: COMPLETE set with beats remaining");
     // [N-7.3], [N-7.13], [N-7.17] hardware clears EN on the last beat and on an error, whatever software writes
     a_hw_clears_en_err: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        beat_err_i |=> !en_q )
+        (beat_err_i && !stale_q) |=> !en_q )
         else $error("[SVA-FAIL] a_hw_clears_en_err: EN still set after an error");
     a_hw_clears_en_last: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        (beat_done_i && rem_q == 16'd1) |=> (!en_q && comp_q && rem_q == 16'd0) )
+        (beat_done_i && !stale_q && rem_q == 16'd1) |=> (!en_q && comp_q && rem_q == 16'd0) )
         else $error("[SVA-FAIL] a_hw_clears_en_last: the last beat did not complete the channel");
     // [N-7.15] the addresses freeze at the failure point
     a_freeze_on_error: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
@@ -220,7 +229,7 @@ bind dma_top dma_top_sva #(.PRIO(PRIO), .ACK_CYCLES(ACK_CYCLES)) u_dma_sva (
     .haddr_o(haddr_o), .hwdata_o(hwdata_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o),
     .hready_i(hready_i), .hresp_i(hresp_i), .hsize_o(hsize_o), .hburst_o(hburst_o),
     .dma_req_i(dma_req_i), .dma_ack_o(dma_ack_o),
-    .st(u_eng.st), .ch(u_eng.ch), .eligible(eligible), .beat_done(beat_done), .beat_err(beat_err),
+    .st(u_eng.st), .ch(u_eng.ch), .m2m(u_eng.m2m_l), .eligible(eligible), .beat_done(beat_done), .beat_err(beat_err),
     .err_phase(err_phase), .grant_valid(grant_valid), .grant_ch(grant_ch));
 
 bind dma_chan dma_chan_sva u_chan_sva (
@@ -229,6 +238,6 @@ bind dma_chan dma_chan_sva u_chan_sva (
     .req_i(req_i), .eligible_o(eligible_o), .beat_done_i(beat_done_i), .beat_err_i(beat_err_i),
     .complete_irq_o(complete_irq_o), .error_irq_o(error_irq_o),
     .en_q(en_q), .iec_q(iec_q), .iee_q(iee_q), .comp_q(comp_q), .err_q(err_q), .taken_q(taken_q),
-    .mode_q(mode_q), .rem_q(rem_q), .cnt_q(cnt_q), .sar_q(sar_q), .dar_q(dar_q));
+    .mode_q(mode_q), .rem_q(rem_q), .cnt_q(cnt_q), .sar_q(sar_q), .dar_q(dar_q), .stale_q(stale_q));
 `endif
 `endif

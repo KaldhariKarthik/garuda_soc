@@ -19,6 +19,7 @@
 | 1.0–2.2 | Initial through six channels, with CDC primitives on the config port and a channel assignment contradicting two other documents | — |
 | 3.0 | All CDC logic deleted — the `hclk`/`pclk` boundary is synchronous. Channel assignment regenerated from `GARUDA-SYS-001`; no channel is shared. The ISRAM path and the boot-time role are removed. Block and CLIC numbering corrected. | ADR-0002, 0008, 0015, 0011 |
 | 3.0a | Text aligned with the RTL and the yaml (Track A, 2026-10-12; tasks 0.5 and 0.7): `CR` reset `0x0000_0040` and `SIZE` = 3 refused (AUD-12 item 7); error interrupts at CLIC IDs 8–13, ID 7 reserved (INT-2); channel 4 = `spi_slave`, wired (yaml `dma.assignment`, [N-6.4]); new [N-6.6] PSLVERR rule: a write to `STAT`/`GSTAT` is ignored without an error (AUD-13, ruled in the two-track plan); [N-7.8] ack is 2 `hclk` wide (D-16); [N-7.20] reach: the fabric is unrestricted and the DMA refuses (AUD-12 item 1, D-16); §10 `a_one_beat_per_req` in a sound form, `a_ch4_tied` removed. Open, pending rulings: DMA-9 to DMA-14 (§14), the per-channel clock gate of [N-9.3] (AUD-12 item 2). | AUD-12, AUD-13, INT-2 |
+| 3.1 | Rulings of 2026-11-04 (DECISIONS D-32): addresses checked before the source read, unaligned addresses refused, the beat atomic, a stopped beat not credited, EN starts a new transfer, no ack for M2M, a lost P2M item on a write error, COMPLETE cleared by arming, the request rule, ACK_CYCLES 1..4 (§7.7, §7.8). | DMA-9..19 |
 
 ## 0.3 Normative references
 
@@ -217,7 +218,7 @@ aliases is worse than one that refuses.
 |---|---|---|
 | 15:0 | `REMAINING` | Beats not yet transferred. |
 | 16 | `ACTIVE` | Channel is enabled and has beats remaining. |
-| 17 | `COMPLETE` | All beats transferred. Sticky until `ICLR`. |
+| 17 | `COMPLETE` | All beats transferred. Sticky until `ICLR`, or until the channel is armed again with `CNT` ≠ 0 (arming starts a new transfer, [N-7.27]). |
 | 18 | `ERROR` | AHB ERROR encountered. Sticky until `ICLR`. |
 | 21:19 | `ERRPHASE` | 0 = none, 1 = read, 2 = write. |
 
@@ -373,14 +374,50 @@ The interconnect is unrestricted (ADR-0005): `GARUDA-SYS-001` `ahb.master_reacha
 `GARUDA-AHB-SPEC-001` let master M3 address every region. R-9 is therefore enforced inside
 the DMA (DECISIONS D-16): the engine refuses a beat whose `SAR` or `DAR` lies in ISRAM
 (`0x0xxx_xxxx`) or Boot ROM (`0x1xxx_xxxx`) with `ERROR` and `ERRPHASE` = read or write,
-and issues no AHB transfer to the forbidden address. *(Reworded 2026-10-12, AUD-12 item 1.
-Open: a bad `DAR` is refused only after the source read, DMA-10.)*
+and issues no AHB transfer at all: both `SAR` and `DAR` are checked before the source read,
+so a refused beat consumes no source item (DMA-12, ruling D-32). An `SAR` or `DAR` that is not
+aligned to `SIZE` is refused in the same way (DMA-10). *(Reworded 2026-10-12, AUD-12 item 1;
+2026-11-04 for the rulings.)*
 
 **[N-7.21]** The ISRAM path existed in Rev 2.2 only to support the DMA boot copy. With the
 polled-PIO bootloader (ADR-0015) nothing needs it, and removing it means a DMA channel
 misconfigured with an ISRAM address gets a clean ERROR rather than corrupting instruction
 memory. This is an omission of an unused path that happens to also be a safety property;
 the ISRAM write lock (ADR-0006) covers the case more generally.
+
+### 7.8 Stopping, restarting and the beat in flight (rulings of 2026-11-04, D-32)
+
+**[N-7.22]** A beat is atomic. When the arbiter grants a channel, the engine takes that
+channel's `SAR`, `DAR`, `SIZE` and mode, and uses them until the beat ends. A `CR`, `SAR` or
+`DAR` write during the beat (for example `CR` = 0 to stop the channel) changes the registers,
+not the beat in flight (DMA-14).
+
+**[N-7.23]** A beat of a channel that firmware stops (writes `EN` = 0) while that beat is in
+flight still completes on the bus, but its result is not credited to the channel. `REMAINING`,
+`SAR`, `DAR`, `COMPLETE`, `ERROR` and `EN` are not changed by it. A channel armed again during
+that beat therefore starts its new transfer clean (DMA-9). After a stop, the destination can
+hold one more beat of data than `REMAINING` accounts for.
+
+**[N-7.24]** `EN` = 1 always starts a new transfer from the current `SAR`, `DAR` and `CNT`
+registers; it never resumes. After a stop firmware writes all three again before setting
+`EN` (DMA-11; TRM firmware rule F-13).
+
+**[N-7.25]** A memory-to-memory beat raises no `dma_ack`: no peripheral asked for it (DMA-15).
+
+**[N-7.26]** In P2M mode, a beat whose destination write gets an AHB `ERROR` has already
+taken its item from the peripheral: that item is lost. `SAR`, `DAR` and `REMAINING` stay at
+the failed beat, and firmware restarts the transfer after reading the peripheral's state
+(DMA-16).
+
+**[N-7.27]** Arming a channel with `CNT` ≠ 0 clears `COMPLETE`; arming with `CNT` = 0 sets it
+at once. `COMPLETE` therefore always means "`REMAINING` is 0" (R-6) (DMA-18).
+
+**[N-7.28]** A peripheral raises a new request only after the acknowledge of its previous
+beat. A request that rises while the channel's own previous beat is still on the bus is taken
+by that beat (DMA-19). Every GARUDA peripheral meets this through the APB shim, which drops its
+request while `dma_ack` is high and for one `pclk` after it (DECISIONS D-21).
+
+**[N-7.29]** `ACK_CYCLES` must be 1 to 4; any other value stops elaboration (DMA-13).
 
 ---
 
@@ -632,13 +669,8 @@ directed, cycle-accurate trigger.
 
 ## 14 Open items
 
-- **DMA-9 to DMA-14** (2026-10-12, `Docs/bugs/dma.md`): restart after a software stop
-  reloads REMAINING from CNT; a bad `DAR` is refused after the source read; a beat still in
-  flight lands in a re-armed transfer; `ACK_CYCLES` is unguarded; an unaligned halfword or
-  word `SAR`/`DAR` puts a misaligned transfer on the bus (vPlan F17); a `CR` write during a
-  beat (such as the stop `CR` = 0) changes that beat's size (vPlan F45). Rulings pending
-  (Track A DMA plan). Until then this specification does not describe the restart, re-arm,
-  unaligned and write-during-a-beat behaviour.
+- **DMA-9 to DMA-19** — *closed 2026-11-04* by the owner's rulings (DECISIONS D-32):
+  §7.7 and §7.8, [N-7.20] to [N-7.29].
 - **AUD-12 item 2** (2026-10-12): the per-channel clock gate of [N-9.3] does not exist in
   `rtl/dma`; ruling pending (DMA plan D5).
 

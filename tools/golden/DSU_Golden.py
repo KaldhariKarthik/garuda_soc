@@ -380,12 +380,14 @@ class DSUModel:
             else:
                 acc_next = adder_result
 
-            is_accum = not (my_load or my_clear or my_sat)
             # Overflow is a property of the COMMIT (DSU-4), not of an
             # instruction arriving: the fold that overflows may happen on a
             # cycle with no instruction at all. ERRATUM DSU-13: no ~flush -
             # the fold belongs to the older MAC, which has already left EX.
-            if accum_ovf and self.pending[i] and is_accum:
+            # ERRATUM DSU-18 (ruling D-32): a load/clear/saturate of this
+            # accumulator in the fold's cycle replaces the result but does not
+            # hide the fold's overflow from the sticky flag.
+            if accum_ovf and self.pending[i]:
                 mac_overflow = 1
 
             # ERRATUM DSU-2 (FLAG-A): only a genuine multiply may latch a new

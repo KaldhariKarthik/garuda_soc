@@ -168,3 +168,11 @@ WARNINGS ADDED BY THE TRACK A MERGE OF 2026-10-21 (baseline raised by one each o
           32-bit result of the shared CSR-op function; only [3:0] is stored
           (mgarudactl has four bits). CORE-4.
   UEASPD  one fewer than the baseline (lowered on 2026-11-03).
+
+WARNINGS ADDED BY THE RULINGS OF 2026-11-03 (D-32; baseline raised by one each on 2026-11-04)
+  POOBID  rtl/dma/dma_engine.v:141-144  size_i, sar_i, dar_i, m2m_i indexed by grant_ch_i
+          The beat's SIZE, SAR, DAR and mode are latched at the grant (DMA-14, DMA-15).
+          grant_ch_i is three bits; dma_arbiter grants channels 0 to 5 only, as for the
+          existing ch-indexed selections.
+  DFDRVS  rtl/dma/dma_engine.v:83  size_l
+          Reset to 2'd2 and loaded whole at the grant; the same pattern as size_q in dma_chan.v.

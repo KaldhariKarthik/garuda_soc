@@ -17,7 +17,6 @@ units	tb_dsu_mac_unit	FAIL	TB-43	bench models a single-stage accumulate (stale)
 units	tb_dsu_mac_cluster	FAIL	TB-43	bench models a single-stage accumulate (stale)
 units	tb_dsu_overflow_flag	FAIL	TB-43	bench requires clear-beats-set, spec N-6.9 says set beats clear
 units	tb_dsu_stall	FAIL	TB-43	FINDING1 over-stall after MACRD/MACSAT (performance)
-units_spec	tb_dsu_top_ovf_b2b	FAIL	DSU-18	an overflowing accumulate followed at once by MACCLEAR / MACLOAD of the same accumulator does not set the sticky overflow flag
 units_spec	negctl_overflow_flag_clear_wins	FAIL	PLANTED	negative control of a DSU spec bench (planted defect in its unit)
 units_spec	negctl_barrel_shifter_logical	FAIL	PLANTED	negative control of a DSU spec bench (planted defect in its unit)
 units_spec	negctl_decoder_sel3_legal	FAIL	PLANTED	negative control of a DSU spec bench (planted defect in its unit)

@@ -425,14 +425,15 @@ module tb_dma_top;
             if (err !== (6'd1 << ch) || comp !== 6'd0) ibad++;
             wr(R(ch, ICLR), 32'h2, e); repeat (2) @(posedge hclk);
             if (err !== 6'd0) ibad++;
-            // destination in Boot ROM or ISRAM: the read happens, the write is refused
+            // destination in Boot ROM or ISRAM: refused before the read too (DMA-12,
+            // ruling D-32: no source item is consumed for a beat that cannot complete)
             nr0 = n_rd; nw0 = n_wr;
             prog(ch, 32'h2000_8000, ch[0] ? 32'h0FFF_FFFC : 32'h1FFF_FFFC, 3);
             wr(R(ch, CR), crv(1, 2'd2, 1, 1, 2'd2, 1, 0), e);         // IE_ERR = 0
             wait_done(ch, 100);
             rd(R(ch, STAT), d);
             if (!(d[18] && d[21:19] == 3'd2 && !d[17] && !d[16] && d[15:0] == 3)) bad++;
-            if (n_wr != nw0 || n_rd != nr0 + 1) bad++;
+            if (n_wr != nw0 || n_rd != nr0) bad++;
             if (err !== 6'd0) ibad++;                                 // flag set, line masked
             wr(R(ch, ICLR), 32'h2, e);
         end
@@ -523,7 +524,10 @@ module tb_dma_top;
         bad = 0; coll_err = 0; nearly = 0; nlate = 0;
         for (wp = 0; wp < 4; wp++) for (k = 0; k < 6; k++) begin
             p_waits = wp;
-            prog(1, 32'h4000_3000, 32'h1000_0000, 2);                 // DAR in Boot ROM: refused at the write
+            // DMA-12 (ruling D-32) refuses a forbidden DAR before the read, too early for
+            // this sweep; an AHB ERROR on the write keeps the error at the end of the beat
+            prog(1, 32'h4000_3000, 32'h2000_9300, 2);
+            err_en = 1; err_base = 32'h2000_9300;
             repeat (4) @(posedge hclk);
             err1_seen = 0; c_iclr = -1; c_berr = -1;
             @(posedge pclk);
@@ -537,6 +541,7 @@ module tb_dma_top;
             else if (c_iclr <= c_berr) begin nearly++; if (!(d[18] && d[21:19] == 3'd2 && err[1])) bad++; end
             else                       begin nlate++;  if (d[18] || d[21:19] != 3'd0 || err[1]) bad++; end
             if (d[16] || d[15:0] != 2) bad++;
+            err_en = 0;
             wr(R(1, ICLR), 32'h3, e);
         end
         check(coll_err > 0 && nearly > coll_err && nlate > 0,
@@ -719,8 +724,13 @@ module tb_dma_top;
         rd(R(4, STAT), d1); rd(R(4, SAR), d2);
         check(!d[16] && !d[17] && !d[18] && d == d1 && n_rd == nr0 && n_wr == nw0 && comp == 0 && err == 0,
               "EN cleared mid-transfer: the channel stops at a beat boundary, M3 goes idle, no COMPLETE, no ERROR, no IRQ");
-        check(d[15:0] > 0 && d[15:0] < 200 && (200 - d[15:0]) == (nw0 - a0) && d2 == 32'h2000_8000 + 4 * (nw0 - a0),
-              $sformatf("EN cleared mid-transfer: REMAINING and SAR agree with the %0d beats actually written", nw0 - a0));
+        // DMA-9 (ruling D-32): the beat in flight when EN was cleared still completes on
+        // the bus but is not credited, so the registers count the beats before the stop
+        // and at most one more beat was written than counted.
+        check(d[15:0] > 0 && d[15:0] < 200 &&
+              ((nw0 - a0) - (200 - d[15:0])) inside {0, 1} && d2 == 32'h2000_8000 + 4 * (200 - d[15:0]),
+              $sformatf("EN cleared mid-transfer: REMAINING and SAR count the %0d beats credited before the stop (%0d written; DMA-9)",
+                        200 - d[15:0], nw0 - a0));
 
         check(ack_wbad == 0, "[N-7.8] every dma_ack pulse is exactly one pclk period wide (2 hclk, DECISIONS D-16)");
         check(burst_seen == 0, "[N-7.2] M3 only ever issues SINGLE transfers: HBURST = 0, HTRANS never SEQ or BUSY");

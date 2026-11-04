@@ -1,6 +1,27 @@
 top: dma_top
 children: dma_apb_slave dma_arbiter dma_chan dma_engine
 script: flow/formal/dma/dma_fpv.tcl
+proved: 485 of 486 assertions
+tool: JasperGold Apps 2022.09p002, 2026-11-04 (after the rulings D-32)
+
+dma_sva.sv and dma_props_a.sv together, with the APB environment now constrained to
+legal transfers on pclk (access after setup, one-pclk access, inputs change only at a
+pclk edge: clock -rate). 485 proven, 1 counterexample, 428 covers covered, 6 covers
+unreachable.
+  - DMA-9 and DMA-10, the 13 counterexamples of 2026-10-15, are fixed and proven
+    (a_rem_no_underflow, a_complete_consistent in all six channels; a_haddr_aligned).
+  - DMA-12 (a_no_read_before_refusal), DMA-14 (a_beat_size_atomic) and DMA-15
+    (a_done_gives_ack, a_ack_with_done) hold.
+  - Open: a_strobe_once (dma_props_a.sv), a 2-cycle counterexample in the APB-strobe
+    environment of the formal setup; the same rule holds in tb_dma, the UVM
+    environment and tb_dma_apb_slave_unit. To be traced.
+  - Unreachable covers: c_reset_idle/ra/rd/wa/wd (the setup resets only at the start)
+    and g_prio[0].c_contest.
+
+Previous result (2026-10-15):
+top: dma_top
+children: dma_apb_slave dma_arbiter dma_chan dma_engine
+script: flow/formal/dma/dma_fpv.tcl
 proved: 80/93
 tool: JasperGold Apps 2022.09p002, 2026-10-15
 

@@ -244,10 +244,6 @@ module mac_unit(
     end
     assign mac_out = acc;
     
-    // DSU-11: only THIS accumulator's own load/clear/saturate replaces the
-    // fold; one aimed at another accumulator must not hide this one's overflow.
-    wire is_accum = ~(my_load | my_clear | my_sat);
-
     // ERRATUM DSU-4 (continued): overflow must be reported on the cycle the
     // accumulate actually COMMITS, which is now `pending`, not on the cycle an
     // instruction happens to arrive (`write_en`). Leaving it on write_en after
@@ -256,6 +252,11 @@ module mac_unit(
     // conversely an arriving instruction no longer implies a fold. Caught by
     // tb_dsu_top as a sticky-overflow mismatch against DSUModel.
     // DSU-13: no ~flush here either - the fold belongs to the older MAC.
-    assign overflow = accum_ovf & pending & is_accum;
+    // ERRATUM DSU-18 (ruling D-32, 2026-11-03): a load, clear or saturate of this
+    // accumulator in the fold's cycle replaces the result (the later instruction
+    // wins) but no longer hides the fold's overflow: it was dropped from the sticky
+    // flag. (DSU-11 still holds: only this unit's own load/clear/saturate, the
+    // my_* terms, replaces its accumulator in acc_next.)
+    assign overflow = accum_ovf & pending;
     
 endmodule

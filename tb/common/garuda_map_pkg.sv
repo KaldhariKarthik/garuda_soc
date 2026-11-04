@@ -79,7 +79,7 @@ package garuda_map_pkg;
       0: return r == R_ISRAM || r == R_BOOTROM || r == R_DSRAM || r == R_APB;  // iport
       1: return r == R_ISRAM || r == R_BOOTROM || r == R_DSRAM || r == R_APB;  // dport
       2: return r == R_ISRAM || r == R_BOOTROM || r == R_DSRAM || r == R_APB;  // sba
-      3: return r == R_ISRAM || r == R_DSRAM || r == R_APB;  // dma
+      3: return r == R_DSRAM || r == R_APB;  // dma
       default: return 1'b0;
     endcase
   endfunction

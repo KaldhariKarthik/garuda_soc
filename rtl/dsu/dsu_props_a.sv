@@ -33,7 +33,7 @@
 // ---- one accumulator ---------------------------------------------------------
 module mac_unit_sva (
     input wire        clk, rst_n,
-    input wire        en, sat_writeback_en, flush, pending, acc_we, overflow, is_accum,
+    input wire        en, sat_writeback_en, flush, pending, acc_we, overflow,
     input wire        prod_en, my_sat, my_load, my_clear,
     input wire [47:0] acc
 );
@@ -55,9 +55,10 @@ module mac_unit_sva (
         else $error("[SVA-FAIL] DSU F19: a flushed instruction changed an accumulator");
     // F10.CHK4: overflow is flagged only by the fold of a pending accumulate
     a_ovf_from_49: assert property (@(posedge clk) disable iff (!rst_n)
-        !overflow || (pending && is_accum))
+        !overflow || pending)                    // DSU-18 (ruling D-32): a same-cycle load/clear/saturate no longer hides it
         else $error("[SVA-FAIL] DSU F10: overflow flagged outside an accumulate fold");
-    c_fold:     cover property (@(posedge clk) disable iff (!rst_n) pending && is_accum);
+    c_fold:     cover property (@(posedge clk) disable iff (!rst_n) pending && !(my_load || my_clear || my_sat));
+    c_fold_replaced_ovf: cover property (@(posedge clk) disable iff (!rst_n) overflow && (my_load || my_clear || my_sat));   // DSU-18
 `ifndef FORMAL
     // reached in simulation (t_cov_dsu, the clamp walk); a 48-bit overflow is
     // ~65000 cycles from reset, beyond any bounded formal cover
@@ -152,7 +153,7 @@ endmodule
 
 bind mac_unit mac_unit_sva u_mac_sva (
     .clk(clk), .rst_n(rst_n), .en(en), .sat_writeback_en(sat_writeback_en), .flush(flush),
-    .pending(pending), .acc_we(acc_we), .overflow(overflow), .is_accum(is_accum),
+    .pending(pending), .acc_we(acc_we), .overflow(overflow),
     .prod_en(prod_en), .my_sat(my_sat), .my_load(my_load), .my_clear(my_clear), .acc(acc)
 );
 bind dsu_top dsu_top_sva u_dsu_props_a (

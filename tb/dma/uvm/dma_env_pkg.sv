@@ -62,6 +62,17 @@ package dma_env_pkg;
 
     // the addresses the DMA must refuse without a bus transfer ([N-7.20])
     function automatic bit forbidden(bit [31:0] a); return a[31:28] == 4'h0 || a[31:28] == 4'h1; endfunction
+    // ruling D-32 (2026-11-03): DMA-10 an address not aligned to SIZE is refused too,
+    // and DMA-12 both addresses are checked before any bus access. 0 = the beat runs,
+    // 1 = refused at the source, 2 = refused at the destination; no transfer either way.
+    function automatic bit misaligned(bit [31:0] a, bit [1:0] sz);
+        return (sz == 2'd1 && a[0]) || (sz == 2'd2 && a[1:0] != 2'b00);
+    endfunction
+    function automatic int refused_at(bit [31:0] sar, bit [31:0] dar, bit [1:0] sz);
+        if (forbidden(sar) || misaligned(sar, sz)) return 1;
+        if (forbidden(dar) || misaligned(dar, sz)) return 2;
+        return 0;
+    endfunction
     // the slave answers ERROR here
     function automatic bit err_window(bit [31:0] a); return a[31:20] == 12'h2FF; endfunction
     // data of a byte nobody wrote: a fixed function of its address
@@ -546,6 +557,10 @@ package dma_env_pkg;
 
         // the beat in flight: its channel and the source lanes it read
         int        fl_ch = -1;
+        bit        stale_ch [NCH];               // DMA-9: the beat in flight was stopped by firmware
+        mode_e     beat_mode [NCH];              // DMA-15: mode of the beat in flight
+        bit [1:0]  beat_size [NCH];              // DMA-14: SIZE and DAR the engine took for the beat
+        bit [31:0] beat_dar  [NCH];
         bit [31:0] fl_src;
         bit [1:0]  fl_soff;
         int        fl_pos;                    // 0 first, 1 middle, 2 last beat (coverage)
@@ -616,6 +631,9 @@ package dma_env_pkg;
                 return;
             end
             fl_ch = n; fl_pos = (model.c[n].rem == model.c[n].cnt) ? 0 : (model.c[n].rem == 1) ? 2 : 1;
+            beat_mode[n] = model.c[n].mode;                       // the mode the engine latched (DMA-15)
+            beat_size[n] = model.c[n].size; beat_dar[n] = model.c[n].dar;   // and SIZE, DAR (DMA-14)
+            if (!model.c[n].en) stale_ch[n] = 1;                  // EN cleared between grant and read (DMA-9)
             // sb_req: a peripheral channel needs an assertion that has not had its beat
             if (model.c[n].mode != M2M) begin
                 if (req_id[n] == beat_req_id[n])
@@ -626,7 +644,7 @@ package dma_env_pkg;
             // arbitration: who else was waiting for this beat
             waiting = 0;
             for (int k = 0; k < NCH; k++)
-                if (dma_ref_model::active(model.c[k]) && !forbidden(model.c[k].sar) &&
+                if (dma_ref_model::active(model.c[k]) && refused_at(model.c[k].sar, model.c[k].dar, model.c[k].size) == 0 &&
                     (model.c[k].mode == M2M || (cur_req[k] && req_id[k] != beat_req_id[k]) || k == n))
                     waiting[k] = 1;
             nw = $countones(waiting);
@@ -667,27 +685,26 @@ package dma_env_pkg;
                     return;
                 end
                 fl_src = x.data; fl_soff = x.addr[1:0];
-                if (forbidden(s.dar)) begin                       // [N-7.20] the write is refused
-                    n_beat_err++;
-                    model.beat_error(n, 2, x.t_done);
-                    cov.cg_dma_err.sample(2, s.mode, fl_pos, n);
-                    fl_ch = -1;
-                end
+                if (!stale_ch[n] && refused_at(s.sar, s.dar, s.size) == 2)  // DMA-12: refused before the read
+                    fail("sb_addr", $sformatf("channel %0d: source read for a beat whose DAR 0x%08h is refused (DMA-12)", n, s.dar));
                 return;
             end
             n_writes++;
-            if (x.addr != s.dar || x.size != {1'b0, s.size})
+            if (x.addr != beat_dar[n] || x.size != {1'b0, beat_size[n]})
                 fail("sb_addr", $sformatf("channel %0d wrote %s, model expects 0x%08h size %0d",
-                                          n, x.convert2string(), s.dar, s.size));
+                                          n, x.convert2string(), beat_dar[n], beat_size[n]));
             if (x.err) begin                                      // [N-7.13] write failed
-                n_beat_err++;
-                model.beat_error(n, 2, x.t_done);
-                cov.cg_dma_err.sample(2, s.mode, fl_pos, n);
+                if (!stale_ch[n]) begin                           // DMA-9: a stopped beat updates nothing
+                    n_beat_err++;
+                    model.beat_error(n, 2, x.t_done);
+                    cov.cg_dma_err.sample(2, s.mode, fl_pos, n);
+                end
+                stale_ch[n] = 0;
                 fl_ch = -1;
                 return;
             end
             // sb_data: the destination lanes hold the source lanes ([N-7.2], F17)
-            case (s.size)
+            case (beat_size[n])
                 2'd0: begin want = (fl_src >> (8 * fl_soff)) & 32'hFF;   got = (x.data >> (8 * x.addr[1:0])) & 32'hFF; end
                 2'd1: begin want = (fl_src >> (8 * fl_soff)) & 32'hFFFF; got = (x.data >> (8 * x.addr[1:0])) & 32'hFFFF; end
                 default: begin want = fl_src; got = x.data; end
@@ -696,10 +713,17 @@ package dma_env_pkg;
                 fail("sb_data", $sformatf("channel %0d beat %0d: wrote %0h, the source held %0h (%s)",
                                           n, n_beats[n], got, want, x.convert2string()));
             cov.cg_dma_xfer.sample(s.mode, s.size, n, fl_soff, x.addr[1:0]);
-            n_beats[n]++;
-            model.beat_done(n, x.t_done);
-            // sb_ack: ack[n] high in the ACK_CYCLES cycles after this one ([N-7.8], D-16)
-            for (int k = 1; k <= ACK_CYCLES; k++) ack_due[n].push_back(cycle_of(x.t_done) + k);
+            // DMA-9 (ruling D-32): a beat of a channel firmware stopped while it was in
+            // flight still happens on the bus but is not credited to the channel
+            if (!stale_ch[n]) begin
+                n_beats[n]++;
+                model.beat_done(n, x.t_done);
+            end
+            stale_ch[n] = 0;
+            // sb_ack: ack[n] high in the ACK_CYCLES cycles after this one ([N-7.8], D-16);
+            // none for a memory-to-memory beat (DMA-15, ruling D-32)
+            if (beat_mode[n] != M2M)
+                for (int k = 1; k <= ACK_CYCLES; k++) ack_due[n].push_back(cycle_of(x.t_done) + k);
             take_cyc[n] = cycle_of(x.t_done) + 1;
             fl_ch = -1;
         endfunction
@@ -748,6 +772,8 @@ package dma_env_pkg;
                         if (it.wdata[1]) cov.cg_dma_iclr.sample(1, s.err);
                     end
                 end
+                // DMA-9: firmware clears EN while this channel's beat is in flight
+                if (k == 0 && !it.wdata[0] && model.c[n].en && fl_ch == n) stale_ch[n] = 1;
                 model.apb_write(it.addr, it.wdata, $realtime);
                 return;
             end
@@ -759,18 +785,20 @@ package dma_env_pkg;
                 string seen = "";
                 // a channel whose SAR the DMA refuses errors with no bus transfer:
                 // the model learns when from the first status that shows it
-                if (k == 4 && it.rdata[18] && it.rdata[21:19] == 3'd1 && !model.c[n].err &&
-                    dma_ref_model::active(model.c[n]) && forbidden(model.c[n].sar)) begin
+                if (k == 4 && it.rdata[18] && !model.c[n].err && dma_ref_model::active(model.c[n]) &&
+                    refused_at(model.c[n].sar, model.c[n].dar, model.c[n].size) != 0 &&
+                    it.rdata[21:19] == 3'(refused_at(model.c[n].sar, model.c[n].dar, model.c[n].size))) begin
                     n_beat_err++;
-                    model.beat_error(n, 1, tc);
-                    cov.cg_dma_err.sample(1, model.c[n].mode, 0, n);
+                    model.beat_error(n, refused_at(model.c[n].sar, model.c[n].dar, model.c[n].size), tc);
+                    cov.cg_dma_err.sample(refused_at(model.c[n].sar, model.c[n].dar, model.c[n].size), model.c[n].mode, 0, n);
                 end
                 if (k == 6)
                     for (int m = 0; m < NCH; m++)
-                        if (it.rdata[16 + m] && !model.c[m].err && dma_ref_model::active(model.c[m]) && forbidden(model.c[m].sar)) begin
+                        if (it.rdata[16 + m] && !model.c[m].err && dma_ref_model::active(model.c[m]) &&
+                            refused_at(model.c[m].sar, model.c[m].dar, model.c[m].size) != 0) begin
                             n_beat_err++;
-                            model.beat_error(m, 1, tc);
-                            cov.cg_dma_err.sample(1, model.c[m].mode, 0, m);
+                            model.beat_error(m, refused_at(model.c[m].sar, model.c[m].dar, model.c[m].size), tc);
+                            cov.cg_dma_err.sample(refused_at(model.c[m].sar, model.c[m].dar, model.c[m].size), model.c[m].mode, 0, m);
                         end
                 model.window(tc, w);
                 foreach (w[i]) begin
@@ -826,10 +854,10 @@ package dma_env_pkg;
             // a refused SAR, seen first on the error interrupt
             for (int n = 0; n < NCH; n++)
                 if (s.error[n] && !prev_err_line[n] && !model.c[n].err && dma_ref_model::active(model.c[n]) &&
-                    forbidden(model.c[n].sar)) begin
+                    refused_at(model.c[n].sar, model.c[n].dar, model.c[n].size) != 0) begin
                     n_beat_err++;
-                    model.beat_error(n, 1, s.t);
-                    cov.cg_dma_err.sample(1, model.c[n].mode, 0, n);
+                    model.beat_error(n, refused_at(model.c[n].sar, model.c[n].dar, model.c[n].size), s.t);
+                    cov.cg_dma_err.sample(refused_at(model.c[n].sar, model.c[n].dar, model.c[n].size), model.c[n].mode, 0, n);
                 end
             // sb_irq: complete = COMPLETE & IE_COMP, error = ERROR & IE_ERR ([N-7.4]),
             // judged WIN_AFTER later

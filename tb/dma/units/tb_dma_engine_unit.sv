@@ -28,9 +28,9 @@ module tb_dma_engine_unit;
     wire [31:0] haddr, hwdata; wire [1:0] htrans; wire hwrite; wire [2:0] hsize, hburst; wire busy;
     logic [31:0] hrdata = 0; logic hready = 1, hresp = 0;
     dma_engine #(.ACK_CYCLES(2)) dut (.hclk_i(clk), .hreset_n_i(rst_n), .grant_valid_i(gv), .grant_ch_i(gch),
-        .sar_i(sar), .dar_i(dar), .size_i(size), .beat_done_o(bdone), .beat_err_o(berr), .err_phase_o(eph),
+        .sar_i(sar), .dar_i(dar), .size_i(size), .m2m_i(6'd0), .beat_done_o(bdone), .beat_err_o(berr), .err_phase_o(eph),
         .dma_ack_o(ack), .haddr_o(haddr), .htrans_o(htrans), .hwrite_o(hwrite), .hsize_o(hsize), .hburst_o(hburst),
-        .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready), .hresp_i(hresp), .busy_o(busy));
+        .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready), .hresp_i(hresp), .busy_o(busy), .inflight_o());
     int checks = 0, fails = 0, n_ok = 0, n_rerr = 0, n_werr = 0, n_r9s = 0, n_r9d_read = 0, n_r9d_noread = 0;
     task automatic check(input bit c, input string s);
         checks++;
@@ -107,13 +107,15 @@ module tb_dma_engine_unit;
         if (refused(s)) begin
             n_r9s++;
             check(res_err && res_ph == 3'd1 && log_q.size() == 0, $sformatf("R-9 source %08h: error ph1, no transfer (err %0d ph %0d, %0d transfers)", s, res_err, res_ph, log_q.size()));
+        end else if (refused(d)) begin
+            // DMA-12 (ruling D-32, 2026-11-04): a refused destination is refused before the
+            // source read, so there is no transfer at all (and no read ERROR can occur)
+            bit read_first = log_q.size() == 1 && !log_q[0].w;
+            if (read_first) n_r9d_read++; else n_r9d_noread++;
+            check(res_err && res_ph == 3'd2 && log_q.size() == 0, $sformatf("R-9 destination %08h: error ph2, no transfer (DMA-12)", d));
         end else if (rerr) begin
             n_rerr++;
             check(res_err && res_ph == 3'd1 && log_q.size() == 1 && !log_q[0].w && log_q[0].e, "read ERROR: ph1, no write");
-        end else if (refused(d)) begin
-            bit read_first = log_q.size() == 1 && !log_q[0].w;
-            if (read_first) n_r9d_read++; else n_r9d_noread++;              // DMA-10: either is accepted
-            check(res_err && res_ph == 3'd2 && (log_q.size() == 0 || read_first), $sformatf("R-9 destination %08h: error ph2, no write", d));
         end else begin
             check(log_q.size() == 2 && !log_q[0].w && log_q[1].w, $sformatf("beat ch%0d: %0d transfers, expected read then write", c, log_q.size()));
             if (log_q.size() == 2) begin
