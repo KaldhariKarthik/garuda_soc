@@ -14,6 +14,7 @@ module trap_ctrl_sva #(parameter ID_W = 5) (
     input wire ex_dsu_illegal_i, ex_csr_illegal_i, ex_load_misalign_i, ex_store_misalign_i, ex_fetch_misalign_i,
     input wire mem_stall_i, mem_exc_valid_i, input wire [3:0] mem_exc_cause_i,
     input wire clic_take_cond_i, input wire [ID_W-1:0] clic_irq_id_i, input wire [31:0] clic_vector_target_i,
+    input wire clic_wake_cond_i, wfi_hold_o,
     input wire mti_pending_i, mstatus_mie_i, input wire [31:0] mtvec_i, mepc_i,
     input wire trap_enter_o, is_interrupt_o, mret_o, trap_redirect_valid_o,
     input wire [31:0] trap_pc_o, trap_cause_o, trap_redirect_target_o
@@ -36,7 +37,7 @@ module trap_ctrl_sva #(parameter ID_W = 5) (
         mem_exc_valid_i |-> (trap_enter_o && !is_interrupt_o && trap_cause_o == {28'd0, mem_exc_cause_i} && trap_pc_o == mem_exc_pc_i) )
         else $error("[SVA-FAIL] a_trap_mem_first: a MEM-point bus error was not taken first");
     a_trap_ex_priority: assert property (@(posedge clk_i) disable iff (!rst_n_i)
-        (!mem_exc_valid_i && !mem_stall_i && any_ex && !mret) |-> (trap_enter_o && !is_interrupt_o && trap_cause_o == spec_cause && trap_pc_o == idex_pc_i) )
+        (!mem_exc_valid_i && !mem_stall_i && !wfi_hold_o && any_ex && !mret) |-> (trap_enter_o && !is_interrupt_o && trap_cause_o == spec_cause && trap_pc_o == idex_pc_i) )
         else $error("[SVA-FAIL] a_trap_ex_priority: exception cause %0d, the priority order says %0d", trap_cause_o, spec_cause);
     // T-9: nothing is taken in EX while a load or store is still on the bus
     a_trap_not_in_h2: assert property (@(posedge clk_i) disable iff (!rst_n_i)
@@ -60,6 +61,14 @@ module trap_ctrl_sva #(parameter ID_W = 5) (
     // simulation it is checked like any other property.
     assume_clic_not_7: assume property (@(posedge clk_i) disable iff (!rst_n_i)
         clic_take_cond_i |-> clic_irq_id_i != 7 );
+    // a takeable CLIC request is also a wake request: clic_ctrl's take_cond_o is
+    // clic_irq_valid_i AND the level rules, its wake_cond_o is clic_irq_valid_i
+    assume_take_implies_wake: assume property (@(posedge clk_i) disable iff (!rst_n_i)
+        clic_take_cond_i |-> clic_wake_cond_i );
+    // T-16 (ruling D-32): an EX exception waits while the WFI hold is up
+    a_no_ex_trap_while_held: assert property (@(posedge clk_i) disable iff (!rst_n_i)
+        (trap_enter_o && !is_interrupt_o && !mem_exc_valid_i) |-> !wfi_hold_o )
+        else $error("[SVA-FAIL] a_no_ex_trap_while_held: EX exception taken during the WFI sleep (T-16)");
 
     // ---- where the PC goes ----------------------------------------------------------------------
     a_redirect_exc: assert property (@(posedge clk_i) disable iff (!rst_n_i)

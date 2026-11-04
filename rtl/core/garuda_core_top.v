@@ -154,7 +154,7 @@ module garuda_core_top #(
     wire [31:0] ex_result, ex_store_data; wire [4:0] ex_rd_out;
     wire ex_reg_write_out, ex_mem_read_out, ex_mem_write_out, ex_mem_to_reg_out;
     wire ex_redirect; wire [31:0] ex_redirect_target; wire ex_branch_mispredict;
-    wire ex_load_mis, ex_store_mis, ex_dsu_illegal, ex_dsu_busy, ex_dsu_overflow;
+    wire ex_load_mis, ex_store_mis, ex_dsu_illegal, ex_dsu_busy, ex_dsu_overflow, ex_dsu_ovf_pending;
     wire ex_fetch_mis;                    // cause 0, ERRATUM T-1
     // EX/MEM outputs
     wire [31:0] em_result, em_store, em_pc; wire [2:0] em_funct3; wire [4:0] em_rd;
@@ -308,7 +308,7 @@ module garuda_core_top #(
         .ex_redirect(ex_redirect), .ex_redirect_target(ex_redirect_target),
         .branch_mispredict(ex_branch_mispredict), .load_misaligned(ex_load_mis),
         .store_misaligned(ex_store_mis), .dsu_illegal_instr(ex_dsu_illegal),
-        .dsu_busy(ex_dsu_busy), .dsu_overflow(ex_dsu_overflow),
+        .dsu_busy(ex_dsu_busy), .dsu_overflow(ex_dsu_overflow), .dsu_ovf_pending(ex_dsu_ovf_pending),
         .dbg_acc_0(dbg_acc_0_o), .dbg_acc_1(dbg_acc_1_o), .dbg_acc_2(dbg_acc_2_o)
     );
     ex_mem u_exmem (
@@ -359,13 +359,20 @@ module garuda_core_top #(
     // cycle the instruction is squashed by a trap. dsu_busy is not in either:
     // it is the DSU's own interlock and the DSU already honours it.
     assign ex_parked = mem_stall | tr_wfi_hold;
-    assign ex_commit = ~ex_parked & ~tr_ex_squash;
+    // ERRATUM DSU-14 (ruling D-32, 2026-11-04): an accumulate folds into its
+    // accumulator, and its overflow into the sticky flag, one cycle after the MAC
+    // leaves EX. A CSR access to dsu_ovf in that cycle read the old flag (and its
+    // read-to-clear raced the set). It is now held one cycle in EX, through the DSU
+    // hold path (PC, IF/ID, ID/EX held, a bubble into EX/MEM), and does not commit.
+    wire ovf_rd_hold = xe_valid & ex_csr_en_out & (ex_csr_addr_w == 12'hBC0) & ex_dsu_ovf_pending;
+    assign ex_commit = ~ex_parked & ~tr_ex_squash & ~ovf_rd_hold;
 
     csr_file u_csr (
         .clk_i(gclk), .rst_n_i(rst_n_i),
         .csr_en_i(ex_csr_en_out), .commit_i(ex_commit), .csr_addr_i(ex_csr_addr_w), .csr_wdata_i(ex_csr_wdata),
         .csr_op_i(ex_csr_op_out), .csr_rdata_o(csr_rdata), .illegal_csr_o(csr_illegal),
         .instret_i(mw_retire),                        // true architectural retire
+        .ret_mem_i(mem_retire),                       // C-17: counted on a read of minstret
         .dsu_overflow_i(ex_dsu_overflow), .csr_clear_overflow_o(csr_clear_ovf),
         .trap_enter_i(tr_enter), .mret_i(tr_mret), .is_interrupt_i(tr_is_int),
         .clic_level_i(tr_level), .trap_pc_i(tr_pc), .trap_cause_i(tr_cause), .trap_tval_i(tr_tval),
@@ -419,7 +426,7 @@ module garuda_core_top #(
                                         (em_valid & em_mem_write & mem_stall));
 
     pipe_ctrl u_pipe (
-        .mem_stall_i(mem_stall), .dsu_busy_i(ex_dsu_busy), .load_use_stall_i(id_load_use | fencei_wait), .wfi_hold_i(tr_wfi_hold),
+        .mem_stall_i(mem_stall), .dsu_busy_i(ex_dsu_busy | ovf_rd_hold), .load_use_stall_i(id_load_use | fencei_wait), .wfi_hold_i(tr_wfi_hold),
         .id_redirect_valid_i(id_redir_v), .id_redirect_target_i(id_redir_t),
         .ex_redirect_i(ex_redirect), .ex_redirect_target_i(ex_redirect_target),
         .bus_idle_i(bus_idle), .wfi_settled_i(wfi_q2), .quiescent_o(quiescent),

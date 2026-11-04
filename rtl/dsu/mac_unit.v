@@ -24,7 +24,8 @@ module mac_unit(
     input wire         sat_writeback_en,
     
     output wire [47:0] mac_out,        
-    output wire        overflow
+    output wire        overflow,
+    output wire        pending_o           // a product folds into acc this cycle (DSU-14 interlock)
 );
 
     wire [15:0] a0, b0, a1, b1;
@@ -237,6 +238,7 @@ module mac_unit(
     end
 
     wire acc_we = my_sat | my_load | my_clear | pending;
+    assign pending_o = pending;
 
     always @(posedge clk or negedge rst_n) begin
         if      (!rst_n) acc <= 48'b0;

@@ -11,5 +11,4 @@ fv_trap	ctl_no_cgdis	FAIL	PLANTED	mgarudactl knob ignored must fail its a_ctl_* 
 fv_trap	t17_no_fix	FAIL	PLANTED	trap_ctrl without the T-17 fix must fail a_ex_exc_needs_instr
 fv_trap	buse_no_fix	FAIL	PLANTED	the I-port without the BUS-E fix must fail a_ihaddr_aligned
 fv_trap	t18_no_fix	FAIL	PLANTED	branch_unit without the T-18 fix must fail a_misfetch_tval_misaligned
-covtests	t_dsu_ovf_raw	FAIL	DSU-14	csrr dsu_ovf right after the overflowing MAC reads the old flag (fail code 9)
 covtests	t_dsu_macsat_rd	FAIL	DSU-15	MACSAT writes no rd and clamps to int32, not Q1.15 (all three cases fail: code 7)

@@ -25,6 +25,7 @@ module dsu_top (
     output wire        dsu_rd_valid,
     output wire [4:0]  dsu_rd_addr,
     output wire        dsu_overflow,
+    output wire        ovf_pending,      // DSU-14: no fold in the stub
     output wire        illegal_instr,
     output wire [47:0] dbg_acc_0,
     output wire [47:0] dbg_acc_1,
@@ -36,6 +37,7 @@ module dsu_top (
     assign dsu_rd_valid  = 1'b0;
     assign dsu_rd_addr   = 5'b0;
     assign dsu_overflow  = 1'b0;
+    assign ovf_pending   = 1'b0;
     assign illegal_instr = 1'b0;
     assign dbg_acc_0     = 48'b0;
     assign dbg_acc_1     = 48'b0;

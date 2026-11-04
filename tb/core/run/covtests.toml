@@ -44,12 +44,12 @@ plusargs = ["+MAXCYC=200000", "+QUIET"]
 name = "t_cov_dsu"
 hex  = "sw/build/t_cov_dsu.hex"
 plusargs = ["+MAXCYC=8000000", "+QUIET"]
-# DSU-14: the overflowing MACDOT directly followed by `csrr dsu_ovf` (expected 1)
+# DSU-14: the overflowing MACDOT directly followed by `csrr dsu_ovf` (expected 1).
+# Fixed 2026-11-04 (ruling D-32: the read is held while a fold is pending); passes.
 [[test]]
 name = "t_dsu_ovf_raw"
 hex  = "sw/build/t_dsu_ovf_raw.hex"
 plusargs = ["+MAXCYC=8000000", "+QUIET"]
-fail_reason = 'TOHOST=00000013 -> FAILED'
 
 # warm system reset in the middle of operation (tb_boot +RERESET_AT); the
 # second boot must find every architectural reset value back

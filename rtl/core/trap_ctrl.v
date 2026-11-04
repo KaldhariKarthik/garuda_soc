@@ -141,7 +141,13 @@ module trap_ctrl #(
     // where mem_stall is already low, so it is not delayed.
     // -----------------------------------------------------------------------
     wire h2 = mem_stall_i;
-    wire ex_exc = (e0|e1|e2|e3|e4|e6|e11) & ~h2;
+    // ERRATUM T-16 (ruling D-32, 2026-11-04; found by the audit's formal run):
+    // the instruction behind a WFI enters EX on the edge the sleep starts, and its
+    // own exception (an illegal instruction, say) was taken while the core slept.
+    // An EX exception now waits while the WFI hold is up, and is taken in the
+    // wake cycle like any other. MEM exceptions are not gated: an older access
+    // that fails during the sleep still ends it (T-14).
+    wire ex_exc = (e0|e1|e2|e3|e4|e6|e11) & ~h2 & ~wfi_hold_o;
     wire [3:0]  ex_cause = e1?4'd1 : e2?4'd2 : e0?4'd0 : e3?4'd3 :
                            e4?4'd4 : e6?4'd6 : 4'd11;
     wire [31:0] ex_tval  = e1?idex_pc_i : e2?idex_instr_i : e0?ex_fetch_target_i :

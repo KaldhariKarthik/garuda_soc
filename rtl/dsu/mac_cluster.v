@@ -22,6 +22,7 @@ module mac_cluster (
     
     output wire [47:0] cluster_out,
     output wire [2:0]  overflow,
+    output wire [2:0]  pending,            // per unit: a fold commits this cycle (DSU-14)
     
     output wire [47:0] dbg_acc_0,
     output wire [47:0] dbg_acc_1,
@@ -63,7 +64,8 @@ module mac_cluster (
         .sat_writeback    (sat_writeback),
         .sat_writeback_en (sat_we_onehot[0]),
         .mac_out          (mac_out_0),
-        .overflow         (overflow[0])
+        .overflow         (overflow[0]),
+        .pending_o        (pending[0])
     );
     
     mac_unit u_mac1 (
@@ -81,7 +83,8 @@ module mac_cluster (
         .sat_writeback    (sat_writeback),
         .sat_writeback_en (sat_we_onehot[1]),
         .mac_out          (mac_out_1),
-        .overflow         (overflow[1])
+        .overflow         (overflow[1]),
+        .pending_o        (pending[1])
     );
     
     mac_unit u_mac2 (
@@ -99,7 +102,8 @@ module mac_cluster (
         .sat_writeback    (sat_writeback),
         .sat_writeback_en (sat_we_onehot[2]),
         .mac_out          (mac_out_2),
-        .overflow         (overflow[2])
+        .overflow         (overflow[2]),
+        .pending_o        (pending[2])
     );
     
     reg [47:0] cluster_out_r;

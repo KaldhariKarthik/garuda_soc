@@ -75,7 +75,7 @@ help:
 	@echo "  selftest_runners  qualify runner, oracle and bug check (planted failures)"
 	@echo "  baseline_record   write logs/core/evidence/baseline_<sha>.txt"
 	@echo "  -- core environment (plan WP5) --"
-	@echo "  core_covtests     coverage-closure programs (t_cov_*, t_dsu_ovf_raw xfail DSU-14)"
+	@echo "  core_covtests     coverage-closure programs (t_cov_*, t_dsu_ovf_raw)"
 	@echo "  core_rvfi         5.1: RVFI port vs the commit-log probe"
 	@echo "  core_cosim        5.2/5.3: every program in step with Spike (co-simulation)"
 	@echo "  core_archtest     5.4: riscv-arch-test 3.10.0, signatures vs Spike"

@@ -96,6 +96,11 @@ module trap_ctrl_props_a (
     a_tc1_no_int_while_held: assert property (@(posedge clk) disable iff (!rst_n)
         !(is_interrupt && wfi_hold))
         else $error("[SVA-FAIL] TC-1: interrupt taken while the WFI hold is active");
+    // TC-2 (refuted by the audit, bug T-16; fixed by ruling D-32, 2026-11-04): no
+    // exception of the instruction in EX is entered while the WFI hold is active
+    a_tc2_no_ex_exc_while_held: assert property (@(posedge clk) disable iff (!rst_n)
+        !(trap_enter && !is_interrupt && !mem_exc_valid && wfi_hold))
+        else $error("[SVA-FAIL] TC-2 / T-16: an EX exception was taken during the WFI sleep");
     a_tc3_no_squash_in_h2: assert property (@(posedge clk) disable iff (!rst_n)
         !(squash_id_ex && h2))
         else $error("[SVA-FAIL] TC-3: ID/EX squashed while a D-port transfer is outstanding");

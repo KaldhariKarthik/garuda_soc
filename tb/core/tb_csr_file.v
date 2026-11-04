@@ -8,7 +8,7 @@ module tb_csr_file;
   wire [31:0] rdata; wire illegal, clr_ovf; wire [31:0] mtvec,mepc; wire mie; wire [7:0] ithr;
   csr_file dut(.clk_i(clk),.rst_n_i(rst_n),.csr_en_i(csr_en),.commit_i(1'b1),.csr_addr_i(addr),
     .csr_wdata_i(wdata),.csr_op_i(op),.csr_rdata_o(rdata),.illegal_csr_o(illegal),
-    .instret_i(instret),.dsu_overflow_i(dsu_ovf),.csr_clear_overflow_o(clr_ovf),
+    .instret_i(instret),.ret_mem_i(1'b0),.dsu_overflow_i(dsu_ovf),.csr_clear_overflow_o(clr_ovf),
     .trap_enter_i(trap_enter),.mret_i(mret),.is_interrupt_i(1'b0),.clic_level_i(8'd0),.trap_pc_i(tpc),.trap_cause_i(tcause),
     .trap_tval_i(ttval),.mtip_i(mtip),.mstatus_mie_o(mie),.mtvec_o(mtvec),
     .mti_pending_o(),.mepc_o(mepc),.mintthresh_o(ithr),.mintstatus_mil_o());

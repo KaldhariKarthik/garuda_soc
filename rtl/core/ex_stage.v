@@ -162,6 +162,7 @@ module ex_stage (
     //------------------------------------------------------------------
     output wire        dsu_busy,          // raw -- see integration constraint 1
     output wire        dsu_overflow,      // sticky, read via dsu_ovf CSR
+    output wire        dsu_ovf_pending,   // DSU-14: the flag may still change this cycle
     output wire [47:0] dbg_acc_0,         // straight to dbg_acc_0_o
     output wire [47:0] dbg_acc_1,
     output wire [47:0] dbg_acc_2
@@ -285,6 +286,7 @@ module ex_stage (
         .dsu_rd_valid       (dsu_rd_valid),
         .dsu_rd_addr        (dsu_rd_addr),
         .dsu_overflow       (dsu_overflow),
+        .ovf_pending        (dsu_ovf_pending),
         .illegal_instr      (dsu_illegal_instr),
         .dbg_acc_0          (dbg_acc_0),
         .dbg_acc_1          (dbg_acc_1),
