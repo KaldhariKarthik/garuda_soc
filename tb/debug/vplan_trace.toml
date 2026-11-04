@@ -1,0 +1,49 @@
+# vPlan trace configuration for debug (tools/run/vplan_trace.py debug; Track A plan 6A.5).
+vplan = "tb/debug/GARUDA_DEBUG_vplan.csv"
+sva_files = ["rtl/debug/debug_sva.sv"]
+cov_files = ["tb/debug/debug_cov.sv"]
+cov_report = "logs/debug/summary/cov_debug.txt"
+formal_manifests = ["tb/debug/formal/debug.toml"]
+formal_summaries = ["logs/debug/summary/fv_debug.tsv"]
+suite_summaries = ["logs/debug/summary/block.tsv", "logs/debug/summary/seeds.tsv", "logs/debug/summary/debug_mut.tsv", "logs/debug/summary/fv_dmi_cdc.tsv"]
+
+[alias]
+"DEBUG.F02.CHK1" = "a_tap_five_tms"
+"DEBUG.F06.CHK2" = "a_tap_tdo_oe"
+"DEBUG.F09.CHK1" = ["a_dtm_busy_sticky", "a_dtm_no_req_when_sticky", "a_dtm_update_busy_sticky"]
+"DEBUG.F11.CHK1" = ["cdc_abs_prove", "cdc_real_prove", "cdc_meta_prove"]
+"DEBUG.F12.COV1" = "cg_cdc_stop.cp_tck_stop"
+"DEBUG.F13.CHK1" = ["cdc_abs_prove", "cdc_real_prove"]
+"DEBUG.F16.CHK1" = ["a_dm_inactive_quiet", "a_dm_no_sba_inactive"]
+"DEBUG.F22.COV1" = "cg_sba_busy.cp_busy_access"
+"DEBUG.F24.COV1" = "cg_sba_err.x_error_kind"
+"DEBUG.F24.CHK2" = ["a_sba_aligned", "a_dm_start_legal"]
+"DEBUG.F27.CHK1" = "tb_debug"
+
+[rule."sb_*"]
+what  = "tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase)"
+tests = ["tb_debug", "tb_debug_icarus", "rand_s7700"]
+[rule.ahb_checker]
+what  = "tb/ahb/ahb_lite_checker.v on the SBA master in tb_debug (v_chk == 0)"
+tests = ["tb_debug"]
+[rule."cdc_*"]
+what  = "the crossing proof suite tb/debug/formal/dmi_cdc.toml (classes A-D)"
+tests = ["cdc_abs_prove", "cdc_real_prove", "cdc_meta_prove"]
+[rule.tb_debug]
+what  = "tb_debug's [N-7.14] check: ndmreset resets the system, the DM and the session stay alive"
+tests = ["tb_debug"]
+[rule.hal_cdc]
+what  = "static CDC check: Karthik (plan 3.4 static part); the crossing list is in the CDC proof note"
+tests = []
+[rule.review]
+what  = "review items, flow/reviews/debug.md"
+tests = []
+[rule."t_chip_*"]
+what  = "chip programs over JTAG: the chip suite (tb_chip MODE=jtag)"
+tests = []
+[rule."conn_*"]
+what  = "chip connectivity: Karthik's JasperGold Connectivity, flow/formal/conn"
+tests = []
+[rule."fpga_*"]
+what  = "the real probe on the KV260 (plan 9.4, with Karthik); OpenOCD against the simulation is step G7"
+tests = []

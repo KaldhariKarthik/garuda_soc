@@ -2,6 +2,8 @@
 # Module + SBA master against real slaves. Baseline (audit aae00a2, rtl/debug
 # unchanged to b90b481): 93 checks, 0 FAIL. The count is pinned so a check that
 # silently stops running fails the suite.
+# 2026-11-01: on our RDC-1 RTL with the DBG-4/6/7/8 fixes; Icarus builds it too since the
+# two `break`s went (2026-10-15). DM unit bench and the DMI crossing bench added.
 # Run: make -f flow/mk/track_a_run.mk debug_block
 [suite]
 block = "debug"
@@ -14,5 +16,30 @@ name    = "tb_debug"
 flist   = "tb/debug/filelist_debug.f"
 top     = "tb_debug"
 marker  = '^RESULT: PASSED'
-timeout = 900
+timeout = 1800
 require = ['tb_debug: checks=93 +FAIL=0']
+
+[[test]]
+name    = "tb_debug_icarus"
+flist   = "tb/debug/filelist_debug.f"
+top     = "tb_debug"
+sim     = "icarus"
+marker  = '^RESULT: PASSED'
+timeout = 1800
+require = ['tb_debug: checks=93 +FAIL=0']
+
+[[test]]
+name    = "tb_debug_dm"
+flist   = "tb/debug/filelist_debug_dm.f"
+top     = "tb_debug_dm"
+marker  = '^RESULT: PASSED'
+timeout = 300
+require = ['tb_debug_dm: checks=12 +FAIL=0']
+
+[[test]]
+name    = "tb_dmi_cdc"
+flist   = "tb/debug/filelist_dmi_cdc.f"
+top     = "tb_dmi_cdc"
+marker  = '^RESULT: PASSED'
+timeout = 600
+require = ['tb_dmi_cdc: checks=4 +FAIL=0']

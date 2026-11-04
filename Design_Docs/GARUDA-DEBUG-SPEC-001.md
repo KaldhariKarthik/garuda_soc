@@ -17,6 +17,8 @@
 | Rev | Change | Driver |
 |---|---|---|
 | 1.0 | Abstract Access Register commands plus a Program Buffer; no bus presence | — |
+| 2.2 | DBG-9: the acknowledgement's enables are single flops reset to inactive, not decodes of the arming counter (a reset-domain crossing) [N-7.17a]; re-arm rule stated; `dmcontrol` `haltreq`/`resumereq` text follows DBG-7/DBG-8. Track A, 2026-11-01 | Track A review |
+| 2.1 | RDC-1: halt = request, drain, grant, with `haltinfo` (0x70) [N-7.8a]; DBG-4: a bus error completing with a `sberror` W1C wins [N-7.6]; DBG-5: `dmistat` = 2 is never reported (6.2). Track A, 2026-10-15. | RDC-1, DBG-4, DBG-5 |
 | 2.0 | Complete rewrite as System Bus Access only. Abstract register access and the program buffer are removed because the core implements none of the features they require. The DM becomes AHB master 2. | ADR-0012, 0005, 0006 |
 
 ## 0.3 Normative references
@@ -203,7 +205,7 @@ check at bring-up.
 |---|---|---|---|---|
 | 3:0 | `version` | R | `1` | Debug spec 0.13. |
 | 9:4 | `abits` | R | `7` | DMI address width. |
-| 11:10 | `dmistat` | R | — | 0 none, 2 op failed, 3 busy. |
+| 11:10 | `dmistat` | R | — | 0 none, 3 busy. The Debug 0.13 code 2 (op failed) is never reported by GARUDA: the DM never fails a DMI access (an unimplemented address reads 0, an SBA error is reported in `sberror`), so `debug_top` ties the DTM's `rsp_err_i` to 0 (DBG-5). |
 | 14:12 | `idle` | R | `5` | Cycles the debugger should spend in Run-Test/Idle between DMI accesses. |
 | 16 | `dmireset` | W1 | — | Clears a sticky error. |
 | 17 | `dmihardreset` | W1 | — | Resets the DTM. |
@@ -237,6 +239,7 @@ nothing.
 | 0x64 | `dsuacc2_lo` | DSU ACC_MAG bits 31:0. |
 | 0x65 | `dsuacc2_hi` | DSU ACC_MAG bits 47:32. |
 | 0x66 | `dsuovf` | Three sticky overflow flags. |
+| 0x70 | `haltinfo` | Bit 0 `haltforced`, R/W1C, reset 0: the last halt was granted by the timeout, not by the core reaching a safe point [N-7.8a]. Other bits read 0. |
 
 **[N-6.3]** Addresses `0x04` (`data0`), `0x16` (`abstractcs`), `0x17` (`command`) and
 `0x20`–`0x2F` (`progbuf`) are **not implemented** and read as zero. A debugger discovers
@@ -251,8 +254,8 @@ custom configuration.
 | 0 | `dmactive` | RW | 0 | 0 holds the DM in reset. Must be written 1 to begin. |
 | 1 | `ndmreset` | RW | 0 | Resets the system, not the DM. |
 | 29 | `hartreset` | RW | 0 | Resets the core and DSU only. |
-| 30 | `resumereq` | W1 | — | Alias for clearing `hartreset`. See [N-7.8]. |
-| 31 | `haltreq` | W1 | — | Alias for setting `hartreset`. See [N-7.8]. |
+| 30 | `resumereq` | W1 | — | Releases the halt (the only way to); clears `allresumeack`/`anyresumeack`. See [N-7.8] (DBG-7, DBG-8). |
+| 31 | `haltreq` | W1 | — | Halts the hart: the core is held while the halt or the `hartreset` field is set. Wins over `resumereq`. See [N-7.8] (DBG-7). |
 
 **[N-6.4]** `dmactive` resets to 0. It is an `hclk` register on `dm_rst_n`, which the
 external, watchdog and software resets assert, and which `ndmreset` and `hartreset` never
@@ -266,11 +269,14 @@ debugger writes `dmactive` = 1 again.
 |---|---|---|---|
 | 3:0 | `version` | 2 | Debug 0.13. |
 | 7 | `authenticated` | 1 | No authentication. |
-| 8 | `anyhalted` | — | Mirrors `hartreset`. See [N-7.9]. |
+| 8 | `anyhalted` | — | The halt is granted (the core held): [N-7.8a]. See [N-7.9]. |
 | 9 | `allhalted` | — | Same. |
-| 10 | `anyrunning` | — | `!hartreset`. |
+| 10 | `anyrunning` | — | Not halted. |
 | 11 | `allrunning` | — | Same. |
-| 19 | `impebreak` | 0 | No program buffer. |
+| 16 | `anyresumeack` | — | Cleared by a `resumereq` write, set when the hart runs again (DBG-8). |
+| 17 | `allresumeack` | — | Same. |
+| 19:18 | `allhavereset` / `anyhavereset` | 0 | Not reported. |
+| 22 | `impebreak` | 0 | No program buffer (was listed at bit 19 before rev 2.1; the value is 0 in both places). |
 
 ### 6.7 `sbcs` (0x38)
 
@@ -341,7 +347,9 @@ and the access is discarded. The debugger must poll or respect the `idle` hint.
 ROM, DSRAM and the entire APB region (`GARUDA-SYS-001` `ahb.master_reachability`).
 
 **[N-7.6]** An AHB ERROR response sets `sberror` = 4. A misaligned `sbaddress0` sets
-`sberror` = 2 and no transfer is issued. `sberror` is sticky and must be cleared by W1C
+`sberror` = 2 and no transfer is issued. If a bus error completes in the same `hclk` cycle as a
+debugger write to `sbcs` that clears `sberror`, the error wins: the W1C clears the old value
+and `sberror` reads 4 (DBG-4; the rule DMA [N-7.19] states for the same pattern). `sberror` is sticky and must be cleared by W1C
 before further accesses succeed, so a failure cannot be silently overwritten by the next
 access.
 
@@ -352,9 +360,21 @@ want to inspect.
 
 ### 7.3 Halt and resume
 
-**[N-7.8]** "Halt" in this design means holding the core in `hartreset`. `haltreq` sets
-`hartreset`; `resumereq` clears it. The aliases exist so that an unmodified OpenOCD flow
-works.
+**[N-7.8]** "Halt" in this design means holding the core in reset. `haltreq` sets the halt and
+only `resumereq` clears it; the `hartreset` field (bit 29) is an independent read/write request,
+and the core is held while either is set (DBG-7: a `dmcontrol` write with `haltreq` = 0, which a
+Debug 0.13 debugger makes once the hart is halted, used to release the halt). `resumereq` is
+acknowledged in `dmstatus.allresumeack` (DBG-8). With these an unmodified OpenOCD flow works
+(connect, load and verify over SBA, reset halt, resume: tb/debug/openocd/run_ocd.sh).
+
+**[N-7.8a]** (RDC-1) `haltreq` / `hartreset` is the *request*. The DM raises `halt_req` to the
+core, which stops fetching and drains, and reports `halt_safe` when neither of its bus ports
+presents an address or owns a data phase. The *grant* (`hartreset_o`, to the core and to
+`reset_ctrl`) follows `halt_safe`, or `HALT_TIMEOUT` (1024) `hclk` cycles after the request if
+the core never gets there (a slave holding HREADY low); a grant by the timeout sets
+`haltinfo.haltforced`. `dmstatus.anyhalted`/`allhalted` report the grant, not the request.
+`resumereq` drops the request and the grant together. Without the drain, the reset could land
+in the middle of a waited store and change HWDATA under a slave.
 
 **[N-7.9]** The semantics differ from Debug 0.13 in a way that must be understood, because
 the difference is not cosmetic:
@@ -409,6 +429,16 @@ reviewer knows exactly where to look for CDC review: one module, `dmi_cdc.v`.
 progress to complete an AHB transfer: the transfer runs to completion and the result waits
 in `sbdata0` for whenever `tck` resumes. An `hclk`-side state machine that waited on `tck`
 could hold the bus indefinitely when a probe is unplugged.
+
+**[N-7.17a]** (rev 2.2, DBG-6 / DBG-9) Across a DM reset (watchdog, software or pin reset) the
+crossing is re-armed, not replayed. Three `hclk` edges after `dm_rst_n` ends fill the request
+synchroniser; the acknowledgement is then set equal to the settled request toggle ("already
+served") and pulses are enabled. A DMI request issued during the DM reset or in those three
+edges is therefore executed **at most once** (dropped, or delivered once), and its response is
+undefined; a debugger re-reads `dmstatus` after a reset. The acknowledgement flop is on POR
+(DBG-6) and the arming state on the DM reset, so the acknowledgement's enables are single flops
+that reset to their inactive value, never decodes of a counter (DBG-9: a counter cleared by an
+asynchronous reset passes through values it never holds, which a decode would act on).
 
 ### 7.6 Development loop this enables
 

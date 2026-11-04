@@ -11,8 +11,9 @@
 // hartreset; resume = release it and the core restarts at the reset vector
 // ([N-7.8], [N-7.9]).
 //
-//   0x10 dmcontrol  [0] dmactive [1] ndmreset [29] hartreset
-//                   [30] resumereq (W1: clear hartreset) [31] haltreq (W1: set)
+//   0x10 dmcontrol  [0] dmactive [1] ndmreset [29] hartreset (RW)
+//                   [30] resumereq (W1: release the halt) [31] haltreq (W1: halt)
+//                   The core is held while the halt OR the hartreset field is set (DBG-7).
 //   0x11 dmstatus   version 2, authenticated, any/allhalted = halt granted,
 //                   any/allrunning = !granted, impebreak 0  (RDC-1: the grant,
 //                   not the request -- see "Halt drain" below)
@@ -84,6 +85,16 @@ module debug_module #(
                      A_HALTINFO = 7'h70;
 
     reg        dmactive, ndmreset, hartreset;
+    // ERRATUM DBG-7 (fixed 2026-10-16): the halt was the hartreset field itself, and a dmcontrol
+    // write with neither haltreq nor resumereq set it from bit 29. Debug 0.13 debuggers (OpenOCD)
+    // write dmcontrol with haltreq = 0 once the hart is halted, which released the halt: OpenOCD
+    // then failed "Hart 0 is not halted" on resume. The halt is now its own state, set by haltreq
+    // and cleared only by resumereq; the hartreset field stays an ordinary read/write bit.
+    reg        halted_q;
+    // ERRATUM DBG-8 (fixed 2026-10-16): dmstatus had no allresumeack/anyresumeack, which a Debug
+    // 0.13 debugger polls after resumereq (OpenOCD: "unable to resume hart 0"). resumereq clears
+    // the acknowledgement; it is set once the hart runs again (the halt grant has dropped).
+    reg        resumeack_q, resume_pend;
     reg        sbbusyerror, sbreadonaddr, sbautoinc, sbreadondata;
     reg [2:0]  sbaccess, sberror;
     reg [31:0] sbaddr, sbdata;
@@ -104,17 +115,16 @@ module debug_module #(
     reg [15:0] halt_cnt;
     localparam integer HALT_LAST_I = HALT_TIMEOUT - 1;
     localparam [15:0]  HALT_LAST   = HALT_LAST_I[15:0];   // the counter is 16 bits
-    wire       halt_requested = dmactive & hartreset;
+    wire       halt_requested = dmactive & (hartreset | halted_q);
 
     wire [31:0] dmcontrol = {2'b00, hartreset, 27'd0, ndmreset, dmactive};
-    // dmstatus, RISC-V External Debug Support 0.13 layout, 32 bits. The fields
-    // above bit 11 are all 0; this used to be a 31-bit concatenation (impebreak
-    // at bit 18), the same value, and a lint waiver.
-    wire [31:0] dmstatus  = {9'd0, 1'b0 /*impebreak*/, 2'b00,
-                             2'b00 /*all,anyhavereset*/, 2'b00 /*all,anyresumeack*/,
-                             2'b00 /*all,anynonexistent*/, 2'b00 /*all,anyunavail*/,
+    // Debug 0.13 layout (DBG-8, 2026-10-16): [22] impebreak, [19:18] havereset, [17:16] resumeack,
+    // [15:12] nonexistent/unavail, [11:8] running/halted, [7] authenticated, [3:0] version
+    wire [31:0] dmstatus  = {9'd0, 1'b0 /*impebreak*/, 2'b00, 2'b00 /*havereset*/,
+                             resumeack_q, resumeack_q,                 // DBG-8
+                             4'b0000,
                              ~grant_q, ~grant_q, grant_q, grant_q,      // RDC-1: halted = granted
-                             1'b1 /*authenticated*/, 3'b000, 4'd2 /*version 0.13*/};
+                             1'b1 /*authenticated*/, 3'b000, 4'd2};
     wire [31:0] sbcs      = {3'd1, 6'd0, sbbusyerror, sbbusy, sbreadonaddr, sbaccess,
                              sbautoinc, sbreadondata, sberror, 7'd32, 5'b00100};
 
@@ -158,7 +168,8 @@ module debug_module #(
 
     always @(posedge hclk_i or negedge dm_rst_n_i) begin
         if (!dm_rst_n_i) begin
-            dmactive <= 1'b0; ndmreset <= 1'b0; hartreset <= 1'b0;
+            dmactive <= 1'b0; ndmreset <= 1'b0; hartreset <= 1'b0; halted_q <= 1'b0;
+            resumeack_q <= 1'b0; resume_pend <= 1'b0;
             sbbusyerror <= 1'b0; sbreadonaddr <= 1'b0; sbautoinc <= 1'b0;
             sbreadondata <= 1'b0; sbaccess <= 3'd2; sberror <= 3'd0;
             sbaddr <= 32'd0; sbdata <= 32'd0;
@@ -168,6 +179,7 @@ module debug_module #(
         end else begin
             done_o      <= req_i;
             sba_start_o <= 1'b0;
+            if (resume_pend && !grant_q && !halt_requested) begin resumeack_q <= 1'b1; resume_pend <= 1'b0; end
 
             // ---- SBA completion ----------------------------------------------------------
             if (sba_done_i && dmactive) begin
@@ -190,20 +202,27 @@ module debug_module #(
                     A_DMCONTROL: begin
                         dmactive <= wdata_i[0];
                         if (!wdata_i[0]) begin            // DM reset
-                            ndmreset <= 1'b0; hartreset <= 1'b0;
+                            ndmreset <= 1'b0; hartreset <= 1'b0; halted_q <= 1'b0;
+                            resumeack_q <= 1'b0; resume_pend <= 1'b0;
                             sbbusyerror <= 1'b0; sbreadonaddr <= 1'b0; sbautoinc <= 1'b0;
                             sbreadondata <= 1'b0; sbaccess <= 3'd2; sberror <= 3'd0;
                             sbaddr <= 32'd0; sbdata <= 32'd0;
                         end else begin
                             ndmreset <= wdata_i[1];
-                            if      (wdata_i[31]) hartreset <= 1'b1;   // haltreq
-                            else if (wdata_i[30]) hartreset <= 1'b0;   // resumereq
-                            else                  hartreset <= wdata_i[29];
+                            hartreset <= wdata_i[29];                  // the RW field
+                            if      (wdata_i[31]) halted_q <= 1'b1;    // haltreq: halt
+                            else if (wdata_i[30]) begin                // resumereq: only this resumes
+                                halted_q <= 1'b0; resumeack_q <= 1'b0; resume_pend <= 1'b1;
+                            end
                         end
                     end
                     A_SBCS: begin
                         if (wdata_i[22]) sbbusyerror <= 1'b0;
-                        if (wdata_i[14:12] != 0) sberror <= sberror & ~wdata_i[14:12];
+                        // ERRATUM DBG-4 (fixed 2026-10-15): an SBA bus error completing in this
+                        // cycle sets sberror = 4 above; the W1C clears the OLD value, so it must
+                        // not overwrite the new error (hardware set wins, as DMA [N-7.19]).
+                        if (wdata_i[14:12] != 0 && !(sba_done_i && sba_err_i))
+                            sberror <= sberror & ~wdata_i[14:12];
                         sbreadonaddr <= wdata_i[20];
                         sbaccess     <= wdata_i[19:17];
                         sbautoinc    <= wdata_i[16];

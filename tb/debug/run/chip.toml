@@ -8,6 +8,8 @@
 #   TB-38  timers a_mtimecmp_reset fired at 51 ns in 2-state: fixed on main by Karthik's
 #          TB-B1 (timers_sva); known entries removed 2026-10-15
 #   TB-37  2-state image sizing: jtag streams 64 KB, so it needs a 60 ms budget
+#   2026-11-01: + the debug/memories chip programs (plan 6A.5 G6, 6A.6 M4): F32 regions,
+#          F34 bulk, ILOCK over SBA; tb_chip has TB-A1 and TB-A9 fixed on this branch.
 # Run: make -f flow/mk/track_a_run.mk debug_chip
 [suite]
 block = "debug"
@@ -70,3 +72,17 @@ plusargs = ["+MODE=wdt", "+TEST=sw/build/t_chip_wdt.hex"]
 [[test]]
 name = "t_chip_flash"
 plusargs = ["+MODE=flash", "+TEST=sw/build/flash.hex", "+MAXUS=3000"]
+
+[[test]]
+name     = "t_chip_jtag_regions"
+plusargs = ["+MODE=jtag_reg", "+TEST=sw/build/t_chip_jtag_regions.hex", "+MAXUS=20000"]
+require  = ['F32: ISRAM, DSRAM, Boot ROM, reset_ctrl and DMA registers all read over SBA']
+
+[[test]]
+name     = "t_chip_jtag_bulk"
+plusargs = ["+MODE=jtagbulk", "+TEST=sw/build/t_chip_jtag_bulk.hex", "+MAXUS=20000"]
+
+[[test]]
+name     = "t_chip_jtag_ilock"
+plusargs = ["+MODE=jtagilck", "+TEST=sw/build/t_chip_jtag_ilock.hex", "+MAXUS=20000"]
+require  = ['ISRAM locked by firmware; debugger writing 0x8004 over SBA']

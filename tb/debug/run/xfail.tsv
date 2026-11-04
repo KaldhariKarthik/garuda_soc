@@ -1,2 +1,30 @@
 # xfail list for debug suites.
 # suite<TAB>test<TAB>expect(FAIL|BLOCKED)<TAB>bug<TAB>reason
+fv_debug	mut_dbg4_revert	FAIL	PLANTED	DBG-4 reverted (the W1C of sberror overwrites a bus error completing in the same cycle): a_dm_bus_error must fail
+fv_dmi_cdc	cdc_no_fc1	FAIL	PLANTED	FC-1 dropped (a POR without the DM reset): a phantom request must be found (the assumption is needed; reset_ctrl must keep it)
+fv_dmi_cdc	mut_dbg6_revert	FAIL	PLANTED	DBG-6 reverted (ack reset by the DM reset, adopted on every arming edge): a_cdc_ack_genuine must fail
+fv_dmi_cdc	mut_rise_only	FAIL	PLANTED	only rising request toggles make a pulse (every second request lost): a delivery property must fail
+fv_dmi_cdc	mut_no_adopt	FAIL	PLANTED	adopt-on-reset removed: after a DM reset ack stays out of step (DTM busy for ever or replay)
+fv_dmi_cdc	mut_ack_twice	FAIL	PLANTED	ack toggled for a request pulse too (two acknowledgements per request)
+fv_dmi_cdc	mut_pulse_stage0	FAIL	PLANTED	pulse taken from the first synchroniser stage (req_s[1]^req_s[0]), one stage before the adoption point: a toggle between arming edges is lost, a_cdc_hside_done must fail. NOT a metastability result: a 0/1 injection model cannot show a missing stage (one metastable value read two ways by two fan-outs); that is D3 (MTBF, pdk_arrival), recorded 2026-11-01
+fv_dmi_cdc	mut_dtm_payload_moves	FAIL	PLANTED	the DTM moves req_data while a request is outstanding: a_req_payload_held must fail
+debug_mut	mut_m01_w1c_clears_all	FAIL	PLANTED	an sbcs W1C clears sberror whatever bits are written: the bench must report it
+debug_mut	mut_m02_no_busyerror	FAIL	PLANTED	an sbaddress0 write while busy does not set sbbusyerror: the bench must report it
+debug_mut	mut_m03_autoinc_8	FAIL	PLANTED	auto-increment adds 8: the bench must report it
+debug_mut	mut_m04_no_readondata	FAIL	PLANTED	sbreadondata ignored: the bench must report it
+debug_mut	mut_m05_dbg3_revert	FAIL	PLANTED	DBG-3 reverted: dmactive = 0 leaves sbaddress0/sbdata0: the bench must report it
+debug_mut	mut_m06_no_align_check	FAIL	PLANTED	an unaligned sbaddress0 is not refused (kick): the bench must report it
+debug_mut	mut_m07_no_access_check	FAIL	PLANTED	an unsupported sbaccess is not refused (kick): the bench must report it
+debug_mut	mut_m08_haltreq_ignored	FAIL	PLANTED	haltreq ignored: the bench must report it
+debug_mut	mut_m09_unimpl_garbage	FAIL	PLANTED	an unimplemented address reads its address, not 0: the bench must report it
+debug_mut	mut_m10_ndmreset_bit2	FAIL	PLANTED	ndmreset taken from bit 2: the bench must report it
+debug_mut	mut_m11_idcode_wrong	FAIL	PLANTED	IDCODE wrong: the bench must report it
+debug_mut	mut_m13_tlr_no_idcode	FAIL	PLANTED	Test-Logic-Reset does not select IDCODE: the bench must report it
+debug_mut	mut_m14_sba_err_lost	FAIL	PLANTED	an AHB ERROR on the SBA master is not reported: the bench must report it
+debug_mut	mut_m15_rdata_not_captured	FAIL	PLANTED	SBA read data never captured: the bench must report it
+debug_mut	mut_m16_dbg7_revert	FAIL	PLANTED	DBG-7 reverted: a dmcontrol write without haltreq releases the halt: the bench must report it
+debug_mut	mut_m18_ack_not_cleared	FAIL	PLANTED	resumereq does not clear allresumeack (a stale ack from the last resume): the bench must report it
+debug_mut	mut_m17_no_resumeack	FAIL	PLANTED	DBG-8 reverted: no allresumeack: the bench must report it
+fv_debug	fv_mut_m16_dbg7_revert	FAIL	PLANTED	DBG-7 reverted: a_dm_halt_sticky must fail
+fv_debug	fv_mut_m17_no_resumeack	FAIL	PLANTED	DBG-8 reverted: a_dm_resumeack_set must fail
+fv_debug	fv_mut_m18_ack_not_cleared	FAIL	PLANTED	resumereq leaves the old ack: a_dm_resumeack_clear must fail

@@ -1,0 +1,11 @@
+# Debug coverage configuration (Track A plan 6A.5 G4; handbook H5): design code (rtl/debug,
+# five modules), design functional (debug_cov_vplan in tb/debug/debug_cov.sv), testbench code.
+# Collect: garuda_run.py suite tb/debug/run/debug.toml --coverage (and debug_seeds.toml)
+block = "debug"
+target_code = 95.0
+target_functional = 100.0
+suites = ["logs/debug/summary/block.cov.tsv", "logs/debug/summary/seeds.cov.tsv"]
+design    = ["rtl/debug/jtag_tap.v", "rtl/debug/dtm.v", "rtl/debug/dmi_cdc.v", "rtl/debug/debug_module.v", "rtl/debug/sba_master.v", "rtl/debug/debug_top.v"]
+testbench = ["tb/debug/*", "tb/ahb/*", "rtl/debug/debug_sva.sv", "rtl/mem/*", "rtl/isram/*"]
+functional_files = ["tb/debug/debug_cov.sv::^cg_(jtag|dtm|cdc|dm|sba|taps)"]
+waivers = "tb/debug/cov/debug_waivers.toml"

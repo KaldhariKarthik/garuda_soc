@@ -1,0 +1,102 @@
+# Debug baseline formal (Track A plan 6A.5 step G0): Karthik's rtl/debug/debug_sva.sv (portable
+# form, TOOL-A16) on debug_top with our RDC-1 RTL, two free clocks (multiclock), environment
+# tb/debug/formal/debug_fv_env.sv. Karthik's JasperGold result: 25/26 proved, cex = DBG-4.
+# Covers: debug_sva's 12 cover properties need a whole JTAG scan (about 120 tck edges, over 240
+# solver steps); smtbmc at depth 200 did not finish in 1 h (2026-10-16), so they are reached in
+# simulation (tb_debug, the vPlan model cov_debug 102/102). One formal witness is kept
+# (debug_cover, 2026-11-01): c_dm_access, a DMI request reaching the DM, so the environment's
+# assumptions are shown to allow the traffic every property talks about.
+# Run: python3.12 tools/run/garuda_fv.py tb/debug/formal/debug.toml
+[suite]
+block = "debug"
+name  = "fv_debug"
+xfail = "tb/debug/run/xfail.tsv"
+
+[design]
+flist   = "rtl/debug/filelist.f"
+top     = "debug_top"
+extra   = ["tb/debug/formal/debug_fv_env.sv"]
+pre_verilog = ["tb/debug/formal/debug_fv_env.v"]
+options = ["multiclock on"]
+synthesis_define = false   # debug_sva.sv sits inside `ifndef SYNTHESIS
+min_asserts = 32
+min_covers  = 12
+
+[[task]]
+name    = "debug_bmc"
+mode    = "bmc"
+depth   = 30
+engine  = "smtbmc yices"
+timeout = 3600
+
+# the witness under this environment's assumptions (review 2026-11-01): one full JTAG DMI access.
+# TOOL-A15 (2026-11-02): formal cells are $check cells in this Yosys, so the selection names
+# t:$check (t:$cover selected nothing: all 12 covers stayed and the task ran out its 2 h)
+[[task]]
+name    = "debug_cover"
+mode    = "cover"
+depth   = 150
+engine  = "smtbmc yices"
+script  = ["chformal -cover -remove t:$check n:u_debug_sva.c_dm_access %d"]
+min_covers = 1
+timeout = 7200
+
+[[task]]
+name    = "debug_prove"
+mode    = "prove"
+engine  = "abc pdr"
+min_asserts = 32
+timeout = 3600
+
+# DBG-4 negative control: the RTL before the fix (Karthik's JasperGold finding, reproduced
+# here first with the same property) must still FAIL a_dm_bus_error.
+[[task]]
+name    = "mut_dbg4_revert"
+expect_fail = ["a_dm_bus_error"]   # the planted defect must break this (2026-11-01)
+mode    = "prove"
+engine  = "abc pdr"
+replace = { "rtl/debug/debug_module.v" = "tb/debug/mut/debug_module_mut_dbg4_revert.v" }
+script  = ["chformal -assert -remove t:$check n:u_debug_sva.a_dm_bus_error %d"]
+min_asserts = 1
+timeout = 3600
+
+[[task]]
+name    = "mut_m12_equiv"
+mode    = "prove"
+engine  = "abc pdr"
+replace = { "rtl/debug/dtm.v" = "tb/debug/mut/dtm_mut_m12_busy_not_sticky.v" }
+min_asserts = 32
+timeout = 3600
+
+# formal negative control for the 2026-11-01 property (DBG-7 reverted; the same mutant as debug_mut)
+[[task]]
+name    = "fv_mut_m16_dbg7_revert"
+expect_fail = ["a_dm_halt_sticky"]
+mode    = "prove"
+engine  = "abc pdr"
+replace = { "rtl/debug/debug_module.v" = "tb/debug/mut/debug_module_mut_m16_dbg7_revert.v" }
+script  = ["chformal -assert -remove t:$check n:u_debug_sva.a_dm_halt_sticky %d"]
+min_asserts = 1
+timeout = 3600
+
+# formal negative control for the 2026-11-01 property (DBG-8 reverted; the same mutant as debug_mut)
+[[task]]
+name    = "fv_mut_m17_no_resumeack"
+expect_fail = ["a_dm_resumeack_set"]
+mode    = "prove"
+engine  = "abc pdr"
+replace = { "rtl/debug/debug_module.v" = "tb/debug/mut/debug_module_mut_m17_no_resumeack.v" }
+script  = ["chformal -assert -remove t:$check n:u_debug_sva.a_dm_resumeack_set %d"]
+min_asserts = 1
+timeout = 3600
+
+# formal negative control for the 2026-11-01 property (resumereq leaves the old ack; the same mutant as debug_mut)
+[[task]]
+name    = "fv_mut_m18_ack_not_cleared"
+expect_fail = ["a_dm_resumeack_clear"]
+mode    = "prove"
+engine  = "abc pdr"
+replace = { "rtl/debug/debug_module.v" = "tb/debug/mut/debug_module_mut_m18_ack_not_cleared.v" }
+script  = ["chformal -assert -remove t:$check n:u_debug_sva.a_dm_resumeack_clear %d"]
+min_asserts = 1
+timeout = 3600

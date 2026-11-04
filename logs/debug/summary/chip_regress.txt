@@ -1,0 +1,16 @@
+garuda-run 1  suite chip_regress  block debug  2026-11-01T15:16:17+05:30
+design dcf6f7d4335af6f68c521697cfd6344984474452  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    UNEXPECTED              t_chip_basic   1 [FAIL] line(s); 1 assertion failure(s); forbidden: /SVA-FAIL/ | first: [8323000] %Error: dma_props_a.sv:643: Assertion failed in tb_chip.dut.u_core.
+PASS    OK                      t_chip_irq     
+PASS    OK                      t_chip_wdt     
+PASS    OK                      t_chip_jtag    
+PASS    OK                      t_chip_flash   
+PASS    OK                      t_chip_uart    
+PASS    OK                      t_chip_periph  
+PASS    OK                      t_chip_integ   
+
+PASS    7
+FAIL    1
+BLOCKED 0
+total   8

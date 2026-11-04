@@ -1,0 +1,28 @@
+garuda-run 1  suite seeds  block debug  2026-11-01T16:45:58+05:30
+design dcf6f7d4335af6f68c521697cfd6344984474452  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      rand_s7700  
+PASS    OK                      rand_s7701  
+PASS    OK                      rand_s7702  
+PASS    OK                      rand_s7703  
+PASS    OK                      rand_s7704  
+PASS    OK                      rand_s7705  
+PASS    OK                      rand_s7706  
+PASS    OK                      rand_s7707  
+PASS    OK                      rand_s7708  
+PASS    OK                      rand_s7709  
+PASS    OK                      rand_s7710  
+PASS    OK                      rand_s7711  
+PASS    OK                      rand_s7712  
+PASS    OK                      rand_s7713  
+PASS    OK                      rand_s7714  
+PASS    OK                      rand_s7715  
+PASS    OK                      rand_s7716  
+PASS    OK                      rand_s7717  
+PASS    OK                      rand_s7718  
+PASS    OK                      rand_s7719  
+
+PASS    20
+FAIL    0
+BLOCKED 0
+total   20

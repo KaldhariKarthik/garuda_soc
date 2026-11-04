@@ -1,0 +1,7 @@
+# rdc_check suite=rdc_dmi_cdc block=debug top=dmi_cdc manifest=tb/debug/formal/rdc_dmi_cdc.toml
+task	result	class	detail
+crossing	WAIVED	OK	ack_tgl_o [por] <- ack_pulse_i [dm]
+crossing	WAIVED	OK	ack_tgl_o [por] <- adopt_q [dm]
+crossing	WAIVED	OK	ack_tgl_o [por] <- armed_r [dm]
+crossing	WAIVED	OK	ack_tgl_o [por] <- req_s [dm]
+rdc_dmi_cdc	PASS	OK	6 flops, 0 violations, 4 waived

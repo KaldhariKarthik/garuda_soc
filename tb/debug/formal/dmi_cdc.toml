@@ -1,0 +1,135 @@
+# The tck <-> hclk crossing (Track A plan 6A.5 step G2; the plan's CDC proof, classes A-D).
+# Harnesses: tb/debug/formal/dmi_cdc_fv.sv (dmi_fv_abs: abstract requester with the DTM's
+# protocol; dmi_fv_real: the real jtag_tap + dtm). Environment and properties:
+# tb/dmi_cdc_props.v, read with Yosys's Verilog frontend (pre_verilog: a real step clock).
+# Real rtl/debug/dmi_cdc.v (with the DBG-6 fix) in every task except the mutants and D1.
+#   A, B, C  cdc_abs_prove, cdc_real_prove  (resets and clocks free; FC-0, FC-1)
+#   covers   cdc_abs_cover                  (every scenario of the plan reachable)
+#   control  cdc_overconstrained            (tck forced to run: the stopped-tck cover must be
+#                                            UNREACHED, so a cover would catch such an assumption)
+#   FC-1     cdc_no_fc1                     (without it a POR alone makes a phantom request)
+#   D1       cdc_meta_prove                 (first synchroniser stages may take a change one edge
+#                                            late; every property with one edge more)
+#   D2, D3   not provable here: structural CDC check (Karthik, 3.4 static) and MTBF (pdk_arrival)
+# Negative controls: tb/debug/run/xfail.tsv (PLANTED).
+# Run: python3.12 tools/run/garuda_fv.py tb/debug/formal/dmi_cdc.toml
+[suite]
+block = "debug"
+name  = "fv_dmi_cdc"
+xfail = "tb/debug/run/xfail.tsv"
+
+[design]
+flist   = "rtl/debug/filelist.f"
+top     = "dmi_fv_abs"
+exclude = ["rtl/debug/debug_sva.sv"]
+extra   = ["tb/debug/formal/dmi_cdc_fv.sv"]
+pre_verilog = ["tb/debug/formal/dmi_cdc_props.v"]
+options = ["multiclock on"]
+min_asserts = 9
+min_covers  = 9
+
+[[task]]
+name    = "cdc_abs_prove"
+mode    = "prove"
+engine  = "abc pdr"
+timeout = 3600
+
+[[task]]
+name    = "cdc_abs_cover"
+mode    = "cover"
+depth   = 60
+engine  = "smtbmc yices"
+timeout = 3600
+
+[[task]]
+name    = "cdc_real_prove"
+mode    = "prove"
+engine  = "abc pdr"
+top     = "dmi_fv_real"
+timeout = 7200
+
+[[task]]
+name    = "cdc_meta_prove"
+mode    = "prove"
+engine  = "abc pdr"
+defines = ["DMI_FV_META"]
+replace = { "rtl/debug/dmi_cdc.v" = "tb/debug/formal/dmi_cdc_meta.v" }
+abstraction = "the injection model only adds behaviours; the task also assumes FC-2 and FC-3, which hold by construction (reset_ctrl dm_q release synchroniser; POR = pin reset), listed in dmi_cdc_fv.sv"
+timeout = 3600
+
+[[task]]
+name    = "cdc_meta_cover"
+mode    = "cover"
+depth   = 60
+engine  = "smtbmc yices"
+defines = ["DMI_FV_META"]
+replace = { "rtl/debug/dmi_cdc.v" = "tb/debug/formal/dmi_cdc_meta.v" }
+min_covers = 11
+timeout = 3600
+
+[[task]]
+name    = "cdc_overconstrained"
+mode    = "cover"
+depth   = 60
+engine  = "smtbmc yices"
+defines = ["DMI_FV_TCK_RUNS"]
+# tck forced to run: the stopped-tck cover, and tck much slower than hclk, become impossible
+expect_unreached = ["c_tck_stopped_busy", "c_hclk_fast"]
+timeout = 3600
+
+[[task]]
+name    = "cdc_no_fc1"
+expect_fail = ["a_cdc_no_late_exec"]   # the planted defect must break this (2026-11-01)
+mode    = "prove"
+engine  = "abc pdr"
+defines = ["DMI_FV_NO_FC1"]
+timeout = 3600
+
+[[task]]
+name    = "mut_dbg6_revert"
+expect_fail = ["a_cdc_ack_genuine"]   # the planted defect must break this (2026-11-01)
+mode    = "prove"
+engine  = "abc pdr"
+replace = { "rtl/debug/dmi_cdc.v" = "tb/debug/mut/dmi_cdc_mut_dbg6_revert.v" }
+timeout = 3600
+
+[[task]]
+name    = "mut_rise_only"
+expect_fail = ["a_cdc_deliver_bound"]   # the planted defect must break this (2026-11-01)
+mode    = "prove"
+engine  = "abc pdr"
+replace = { "rtl/debug/dmi_cdc.v" = "tb/debug/mut/dmi_cdc_mut_rise_only.v" }
+timeout = 3600
+
+[[task]]
+name    = "mut_no_adopt"
+expect_fail = ["a_cdc_hside_done"]   # the planted defect must break this (2026-11-01)
+mode    = "prove"
+engine  = "abc pdr"
+replace = { "rtl/debug/dmi_cdc.v" = "tb/debug/mut/dmi_cdc_mut_no_adopt.v" }
+timeout = 3600
+
+[[task]]
+name    = "mut_ack_twice"
+expect_fail = ["a_cdc_hside_done"]   # the planted defect must break this (2026-11-01)
+mode    = "prove"
+engine  = "abc pdr"
+replace = { "rtl/debug/dmi_cdc.v" = "tb/debug/mut/dmi_cdc_mut_ack_twice.v" }
+timeout = 3600
+
+[[task]]
+name    = "mut_pulse_stage0"
+expect_fail = ["a_cdc_hside_done"]   # the planted defect must break this (2026-11-01)
+mode    = "prove"
+engine  = "abc pdr"
+replace = { "rtl/debug/dmi_cdc.v" = "tb/debug/mut/dmi_cdc_mut_pulse_stage0.v" }
+timeout = 3600
+
+[[task]]
+name    = "mut_dtm_payload_moves"
+expect_fail = ["a_req_payload_held"]   # the planted defect must break this (2026-11-01)
+mode    = "prove"
+engine  = "abc pdr"
+top     = "dmi_fv_real"
+replace = { "rtl/debug/dtm.v" = "tb/debug/mut/dtm_mut_payload_moves.v" }
+timeout = 7200
