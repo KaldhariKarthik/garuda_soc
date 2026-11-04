@@ -1,13 +1,13 @@
-# garuda-run 1 suite=chip block=debug date=2026-11-03T21:43:52+05:30 design=dfab0bbf08f64ba296587f7ee71298a9fbaad266 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+# garuda-run 1 suite=chip block=debug date=2026-11-03T22:39:24+05:30 design=dfab0bbf08f64ba296587f7ee71298a9fbaad266 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
 test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
-t_chip_jtag	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.87	19				logs/debug/raw/chip/sim_t_chip_jtag_s1.log
-t_chip_irq	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	0.12	19				logs/debug/raw/chip/sim_t_chip_irq_s1.log
-t_chip_uart	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	0.16	19				logs/debug/raw/chip/sim_t_chip_uart_s1.log
-t_chip_periph	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	0.18	19				logs/debug/raw/chip/sim_t_chip_periph_s1.log
-t_chip_integ	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	2.28	19				logs/debug/raw/chip/sim_t_chip_integ_s1.log
-t_chip_basic	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	0.04	19				logs/debug/raw/chip/sim_t_chip_basic_s1.log
-t_chip_wdt	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	0.18	19				logs/debug/raw/chip/sim_t_chip_wdt_s1.log
-t_chip_flash	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	4.24	19				logs/debug/raw/chip/sim_t_chip_flash_s1.log
-t_chip_jtag_regions	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.49	19				logs/debug/raw/chip/sim_t_chip_jtag_regions_s1.log
-t_chip_jtag_bulk	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	11.31	19				logs/debug/raw/chip/sim_t_chip_jtag_bulk_s1.log
-t_chip_jtag_ilock	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.53	19				logs/debug/raw/chip/sim_t_chip_jtag_ilock_s1.log
+t_chip_jtag	PASS	OK	0	yes	0	0	0	-	551	0	EXCLUDED;SHIM-PULL	1	1.05	19				logs/debug/raw/chip/sim_t_chip_jtag_s1.log
+t_chip_irq	PASS	OK	0	yes	0	0	0	-	551	0	EXCLUDED;SHIM-PULL	1	0.12	19				logs/debug/raw/chip/sim_t_chip_irq_s1.log
+t_chip_uart	PASS	OK	0	yes	0	0	0	-	551	0	EXCLUDED;SHIM-PULL	1	0.14	19				logs/debug/raw/chip/sim_t_chip_uart_s1.log
+t_chip_periph	PASS	OK	0	yes	0	0	0	-	551	0	EXCLUDED;SHIM-PULL	1	0.18	19				logs/debug/raw/chip/sim_t_chip_periph_s1.log
+t_chip_integ	PASS	OK	0	yes	0	0	0	-	551	0	EXCLUDED;SHIM-PULL	1	1.41	19				logs/debug/raw/chip/sim_t_chip_integ_s1.log
+t_chip_basic	PASS	OK	0	yes	0	0	0	-	551	0	EXCLUDED;SHIM-PULL	1	0.04	19				logs/debug/raw/chip/sim_t_chip_basic_s1.log
+t_chip_wdt	PASS	OK	0	yes	0	0	0	-	551	0	EXCLUDED;SHIM-PULL	1	0.10	19				logs/debug/raw/chip/sim_t_chip_wdt_s1.log
+t_chip_flash	PASS	OK	0	yes	0	0	0	-	551	0	EXCLUDED;SHIM-PULL	1	4.06	19				logs/debug/raw/chip/sim_t_chip_flash_s1.log
+t_chip_jtag_regions	PASS	OK	0	yes	0	0	0	-	551	0	EXCLUDED;SHIM-PULL	1	1.41	19				logs/debug/raw/chip/sim_t_chip_jtag_regions_s1.log
+t_chip_jtag_bulk	PASS	OK	0	yes	0	0	0	-	551	0	EXCLUDED;SHIM-PULL	1	11.22	19				logs/debug/raw/chip/sim_t_chip_jtag_bulk_s1.log
+t_chip_jtag_ilock	PASS	OK	0	yes	0	0	0	-	551	0	EXCLUDED;SHIM-PULL	1	1.47	19				logs/debug/raw/chip/sim_t_chip_jtag_ilock_s1.log

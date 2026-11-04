@@ -608,46 +608,97 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-01T18:48:29+05:30	dcf6f7d4335a	True	fv_debug	fv_mut_m16_dbg7_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_halt_sticky
 2026-11-01T18:48:29+05:30	dcf6f7d4335a	True	fv_debug	fv_mut_m17_no_resumeack	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_resumeack_set
 2026-11-01T18:48:29+05:30	dcf6f7d4335a	True	fv_debug	fv_mut_m18_ack_not_cleared	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_resumeack_clear
-2026-11-03T21:43:22+05:30	dfab0bbf08f6	True	block	tb_debug	1	PASS	OK	
-2026-11-03T21:43:22+05:30	dfab0bbf08f6	True	block	tb_debug_icarus	1	PASS	OK	
-2026-11-03T21:43:22+05:30	dfab0bbf08f6	True	block	tb_debug_dm	1	PASS	OK	
-2026-11-03T21:43:22+05:30	dfab0bbf08f6	True	block	tb_dmi_cdc	1	PASS	OK	
-2026-11-03T21:43:52+05:30	dfab0bbf08f6	True	chip	t_chip_jtag	1	PASS	OK	
-2026-11-03T21:43:52+05:30	dfab0bbf08f6	True	chip	t_chip_irq	1	PASS	OK	
-2026-11-03T21:43:52+05:30	dfab0bbf08f6	True	chip	t_chip_uart	1	PASS	OK	
-2026-11-03T21:43:52+05:30	dfab0bbf08f6	True	chip	t_chip_periph	1	PASS	OK	
-2026-11-03T21:43:52+05:30	dfab0bbf08f6	True	chip	t_chip_integ	1	PASS	OK	
-2026-11-03T21:43:52+05:30	dfab0bbf08f6	True	chip	t_chip_basic	1	PASS	OK	
-2026-11-03T21:43:52+05:30	dfab0bbf08f6	True	chip	t_chip_wdt	1	PASS	OK	
-2026-11-03T21:43:52+05:30	dfab0bbf08f6	True	chip	t_chip_flash	1	PASS	OK	
-2026-11-03T21:43:52+05:30	dfab0bbf08f6	True	chip	t_chip_jtag_regions	1	PASS	OK	
-2026-11-03T21:43:52+05:30	dfab0bbf08f6	True	chip	t_chip_jtag_bulk	1	PASS	OK	
-2026-11-03T21:43:52+05:30	dfab0bbf08f6	True	chip	t_chip_jtag_ilock	1	PASS	OK	
-2026-11-03T21:44:14+05:30	dfab0bbf08f6	True	chip_diag	t_chip_jtag	1	PASS	OK	
-2026-11-03T21:44:14+05:30	dfab0bbf08f6	True	chip_diag	t_chip_irq	1	PASS	OK	
-2026-11-03T21:44:14+05:30	dfab0bbf08f6	True	chip_diag	t_chip_uart	1	PASS	OK	
-2026-11-03T21:44:14+05:30	dfab0bbf08f6	True	chip_diag	t_chip_periph	1	PASS	OK	
-2026-11-03T21:44:14+05:30	dfab0bbf08f6	True	chip_diag	t_chip_integ	1	PASS	OK	
-2026-11-03T21:44:14+05:30	dfab0bbf08f6	True	chip_diag	t_chip_basic	1	PASS	OK	
-2026-11-03T21:44:14+05:30	dfab0bbf08f6	True	chip_diag	t_chip_wdt	1	PASS	OK	
-2026-11-03T21:44:14+05:30	dfab0bbf08f6	True	chip_diag	t_chip_flash	1	PASS	OK	
-2026-11-03T22:27:38+05:30	dfab0bbf08f6	True	fv_debug	debug_bmc	-	BOUNDED(30)	OK	[32 asserts, 12 covers in model] 
-2026-11-03T22:27:38+05:30	dfab0bbf08f6	True	fv_debug	debug_prove	-	PROVEN	OK	[32 asserts, 12 covers in model] 
-2026-11-03T22:27:38+05:30	dfab0bbf08f6	True	fv_debug	mut_dbg4_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_bus_error
-2026-11-03T22:27:38+05:30	dfab0bbf08f6	True	fv_debug	mut_m12_equiv	-	PROVEN	OK	[32 asserts, 12 covers in model] 
-2026-11-03T22:27:38+05:30	dfab0bbf08f6	True	fv_debug	fv_mut_m16_dbg7_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_halt_sticky
-2026-11-03T22:27:38+05:30	dfab0bbf08f6	True	fv_debug	fv_mut_m17_no_resumeack	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_resumeack_set
-2026-11-03T22:27:38+05:30	dfab0bbf08f6	True	fv_debug	fv_mut_m18_ack_not_cleared	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_resumeack_clear
-2026-11-03T22:27:52+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_abs_prove	-	PROVEN	OK	[9 asserts, 9 covers in model] 
-2026-11-03T22:27:52+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_abs_cover	-	COVERED	OK	[9 asserts, 9 covers in model] 
-2026-11-03T22:27:52+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_real_prove	-	PROVEN	OK	[9 asserts, 9 covers in model] 
-2026-11-03T22:27:52+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_meta_prove	-	PROVEN	OK	[9 asserts, 11 covers in model] 
-2026-11-03T22:27:52+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_meta_cover	-	COVERED	OK	[9 asserts, 11 covers in model] 
-2026-11-03T22:27:52+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_overconstrained	-	UNREACHED-AS-EXPECTED	OK	[9 asserts, 9 covers in model] unreached exactly: c_hclk_fast c_tck_stopped_busy
-2026-11-03T22:27:52+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_no_fc1	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_no_late_exec
-2026-11-03T22:27:52+05:30	dfab0bbf08f6	True	fv_dmi_cdc	mut_dbg6_revert	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_ack_genuine
-2026-11-03T22:27:52+05:30	dfab0bbf08f6	True	fv_dmi_cdc	mut_rise_only	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_deliver_bound
-2026-11-03T22:27:52+05:30	dfab0bbf08f6	True	fv_dmi_cdc	mut_no_adopt	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_hside_done
-2026-11-03T22:27:52+05:30	dfab0bbf08f6	True	fv_dmi_cdc	mut_ack_twice	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_hside_done
-2026-11-03T22:27:52+05:30	dfab0bbf08f6	True	fv_dmi_cdc	mut_pulse_stage0	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_hside_done
-2026-11-03T22:27:52+05:30	dfab0bbf08f6	True	fv_dmi_cdc	mut_dtm_payload_moves	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_req_payload_held
+2026-11-02T22:57:54+05:30	dcf6f7d4335a	True	fv_debug	debug_bmc	-	BOUNDED(30)	OK	[32 asserts, 12 covers in model] 
+2026-11-02T22:57:54+05:30	dcf6f7d4335a	True	fv_debug	debug_cover	-	COVERED	OK	[32 asserts, 1 covers in model] 
+2026-11-02T22:57:54+05:30	dcf6f7d4335a	True	fv_debug	debug_prove	-	PROVEN	OK	[32 asserts, 12 covers in model] 
+2026-11-02T22:57:54+05:30	dcf6f7d4335a	True	fv_debug	mut_dbg4_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_bus_error
+2026-11-02T22:57:54+05:30	dcf6f7d4335a	True	fv_debug	mut_m12_equiv	-	PROVEN	OK	[32 asserts, 12 covers in model] 
+2026-11-02T22:57:54+05:30	dcf6f7d4335a	True	fv_debug	fv_mut_m16_dbg7_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_halt_sticky
+2026-11-02T22:57:54+05:30	dcf6f7d4335a	True	fv_debug	fv_mut_m17_no_resumeack	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_resumeack_set
+2026-11-02T22:57:54+05:30	dcf6f7d4335a	True	fv_debug	fv_mut_m18_ack_not_cleared	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_resumeack_clear
+2026-11-03T20:44:37+05:30	dcf6f7d4335a	True	block	tb_debug	1	PASS	OK	
+2026-11-03T20:44:37+05:30	dcf6f7d4335a	True	block	tb_debug_icarus	1	PASS	OK	
+2026-11-03T20:44:37+05:30	dcf6f7d4335a	True	block	tb_debug_dm	1	PASS	OK	
+2026-11-03T20:44:37+05:30	dcf6f7d4335a	True	block	tb_dmi_cdc	1	PASS	OK	
+2026-11-03T20:45:05+05:30	dcf6f7d4335a	True	chip	t_chip_jtag	1	PASS	OK	
+2026-11-03T20:45:05+05:30	dcf6f7d4335a	True	chip	t_chip_irq	1	PASS	OK	
+2026-11-03T20:45:05+05:30	dcf6f7d4335a	True	chip	t_chip_uart	1	PASS	OK	
+2026-11-03T20:45:05+05:30	dcf6f7d4335a	True	chip	t_chip_periph	1	PASS	OK	
+2026-11-03T20:45:05+05:30	dcf6f7d4335a	True	chip	t_chip_integ	1	PASS	OK	
+2026-11-03T20:45:05+05:30	dcf6f7d4335a	True	chip	t_chip_basic	1	PASS	OK	
+2026-11-03T20:45:05+05:30	dcf6f7d4335a	True	chip	t_chip_wdt	1	PASS	OK	
+2026-11-03T20:45:05+05:30	dcf6f7d4335a	True	chip	t_chip_flash	1	PASS	OK	
+2026-11-03T20:45:05+05:30	dcf6f7d4335a	True	chip	t_chip_jtag_regions	1	PASS	OK	
+2026-11-03T20:45:05+05:30	dcf6f7d4335a	True	chip	t_chip_jtag_bulk	1	PASS	OK	
+2026-11-03T20:45:05+05:30	dcf6f7d4335a	True	chip	t_chip_jtag_ilock	1	PASS	OK	
+2026-11-03T20:45:25+05:30	dcf6f7d4335a	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-11-03T20:45:25+05:30	dcf6f7d4335a	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-11-03T20:45:25+05:30	dcf6f7d4335a	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-11-03T20:45:25+05:30	dcf6f7d4335a	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-11-03T20:45:25+05:30	dcf6f7d4335a	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-11-03T20:45:25+05:30	dcf6f7d4335a	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-11-03T20:45:25+05:30	dcf6f7d4335a	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-11-03T20:45:25+05:30	dcf6f7d4335a	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-11-03T21:14:55+05:30	dcf6f7d4335a	True	fv_debug	debug_bmc	-	BOUNDED(30)	OK	[32 asserts, 12 covers in model] 
+2026-11-03T21:14:55+05:30	dcf6f7d4335a	True	fv_debug	debug_prove	-	PROVEN	OK	[32 asserts, 12 covers in model] 
+2026-11-03T21:14:55+05:30	dcf6f7d4335a	True	fv_debug	mut_dbg4_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_bus_error
+2026-11-03T21:14:55+05:30	dcf6f7d4335a	True	fv_debug	mut_m12_equiv	-	PROVEN	OK	[32 asserts, 12 covers in model] 
+2026-11-03T21:14:55+05:30	dcf6f7d4335a	True	fv_debug	fv_mut_m16_dbg7_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_halt_sticky
+2026-11-03T21:14:55+05:30	dcf6f7d4335a	True	fv_debug	fv_mut_m17_no_resumeack	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_resumeack_set
+2026-11-03T21:14:55+05:30	dcf6f7d4335a	True	fv_debug	fv_mut_m18_ack_not_cleared	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_resumeack_clear
+2026-11-03T21:15:09+05:30	dcf6f7d4335a	True	fv_dmi_cdc	cdc_abs_prove	-	PROVEN	OK	[9 asserts, 9 covers in model] 
+2026-11-03T21:15:09+05:30	dcf6f7d4335a	True	fv_dmi_cdc	cdc_abs_cover	-	COVERED	OK	[9 asserts, 9 covers in model] 
+2026-11-03T21:15:09+05:30	dcf6f7d4335a	True	fv_dmi_cdc	cdc_real_prove	-	PROVEN	OK	[9 asserts, 9 covers in model] 
+2026-11-03T21:15:09+05:30	dcf6f7d4335a	True	fv_dmi_cdc	cdc_meta_prove	-	PROVEN	OK	[9 asserts, 11 covers in model] 
+2026-11-03T21:15:09+05:30	dcf6f7d4335a	True	fv_dmi_cdc	cdc_meta_cover	-	COVERED	OK	[9 asserts, 11 covers in model] 
+2026-11-03T21:15:09+05:30	dcf6f7d4335a	True	fv_dmi_cdc	cdc_overconstrained	-	UNREACHED-AS-EXPECTED	OK	[9 asserts, 9 covers in model] unreached exactly: c_hclk_fast c_tck_stopped_busy
+2026-11-03T21:15:09+05:30	dcf6f7d4335a	True	fv_dmi_cdc	cdc_no_fc1	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_no_late_exec
+2026-11-03T21:15:09+05:30	dcf6f7d4335a	True	fv_dmi_cdc	mut_dbg6_revert	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_ack_genuine
+2026-11-03T21:15:09+05:30	dcf6f7d4335a	True	fv_dmi_cdc	mut_rise_only	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_deliver_bound
+2026-11-03T21:15:09+05:30	dcf6f7d4335a	True	fv_dmi_cdc	mut_no_adopt	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_hside_done
+2026-11-03T21:15:09+05:30	dcf6f7d4335a	True	fv_dmi_cdc	mut_ack_twice	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_hside_done
+2026-11-03T21:15:09+05:30	dcf6f7d4335a	True	fv_dmi_cdc	mut_pulse_stage0	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_hside_done
+2026-11-03T21:15:09+05:30	dcf6f7d4335a	True	fv_dmi_cdc	mut_dtm_payload_moves	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_req_payload_held
+2026-11-03T22:38:56+05:30	dfab0bbf08f6	True	block	tb_debug	1	PASS	OK	
+2026-11-03T22:38:56+05:30	dfab0bbf08f6	True	block	tb_debug_icarus	1	PASS	OK	
+2026-11-03T22:38:56+05:30	dfab0bbf08f6	True	block	tb_debug_dm	1	PASS	OK	
+2026-11-03T22:38:56+05:30	dfab0bbf08f6	True	block	tb_dmi_cdc	1	PASS	OK	
+2026-11-03T22:39:24+05:30	dfab0bbf08f6	True	chip	t_chip_jtag	1	PASS	OK	
+2026-11-03T22:39:24+05:30	dfab0bbf08f6	True	chip	t_chip_irq	1	PASS	OK	
+2026-11-03T22:39:24+05:30	dfab0bbf08f6	True	chip	t_chip_uart	1	PASS	OK	
+2026-11-03T22:39:24+05:30	dfab0bbf08f6	True	chip	t_chip_periph	1	PASS	OK	
+2026-11-03T22:39:24+05:30	dfab0bbf08f6	True	chip	t_chip_integ	1	PASS	OK	
+2026-11-03T22:39:24+05:30	dfab0bbf08f6	True	chip	t_chip_basic	1	PASS	OK	
+2026-11-03T22:39:24+05:30	dfab0bbf08f6	True	chip	t_chip_wdt	1	PASS	OK	
+2026-11-03T22:39:24+05:30	dfab0bbf08f6	True	chip	t_chip_flash	1	PASS	OK	
+2026-11-03T22:39:24+05:30	dfab0bbf08f6	True	chip	t_chip_jtag_regions	1	PASS	OK	
+2026-11-03T22:39:24+05:30	dfab0bbf08f6	True	chip	t_chip_jtag_bulk	1	PASS	OK	
+2026-11-03T22:39:24+05:30	dfab0bbf08f6	True	chip	t_chip_jtag_ilock	1	PASS	OK	
+2026-11-03T22:39:44+05:30	dfab0bbf08f6	True	chip_diag	t_chip_jtag	1	PASS	OK	
+2026-11-03T22:39:44+05:30	dfab0bbf08f6	True	chip_diag	t_chip_irq	1	PASS	OK	
+2026-11-03T22:39:44+05:30	dfab0bbf08f6	True	chip_diag	t_chip_uart	1	PASS	OK	
+2026-11-03T22:39:44+05:30	dfab0bbf08f6	True	chip_diag	t_chip_periph	1	PASS	OK	
+2026-11-03T22:39:44+05:30	dfab0bbf08f6	True	chip_diag	t_chip_integ	1	PASS	OK	
+2026-11-03T22:39:44+05:30	dfab0bbf08f6	True	chip_diag	t_chip_basic	1	PASS	OK	
+2026-11-03T22:39:44+05:30	dfab0bbf08f6	True	chip_diag	t_chip_wdt	1	PASS	OK	
+2026-11-03T22:39:44+05:30	dfab0bbf08f6	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-11-03T23:06:26+05:30	dfab0bbf08f6	True	fv_debug	debug_bmc	-	BOUNDED(30)	OK	[32 asserts, 12 covers in model] 
+2026-11-03T23:06:26+05:30	dfab0bbf08f6	True	fv_debug	debug_prove	-	PROVEN	OK	[32 asserts, 12 covers in model] 
+2026-11-03T23:06:26+05:30	dfab0bbf08f6	True	fv_debug	mut_dbg4_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_bus_error
+2026-11-03T23:06:26+05:30	dfab0bbf08f6	True	fv_debug	mut_m12_equiv	-	PROVEN	OK	[32 asserts, 12 covers in model] 
+2026-11-03T23:06:26+05:30	dfab0bbf08f6	True	fv_debug	fv_mut_m16_dbg7_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_halt_sticky
+2026-11-03T23:06:26+05:30	dfab0bbf08f6	True	fv_debug	fv_mut_m17_no_resumeack	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_resumeack_set
+2026-11-03T23:06:26+05:30	dfab0bbf08f6	True	fv_debug	fv_mut_m18_ack_not_cleared	-	FAIL	XFAIL:PLANTED	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_resumeack_clear
+2026-11-03T23:06:40+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_abs_prove	-	PROVEN	OK	[9 asserts, 9 covers in model] 
+2026-11-03T23:06:40+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_abs_cover	-	COVERED	OK	[9 asserts, 9 covers in model] 
+2026-11-03T23:06:40+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_real_prove	-	PROVEN	OK	[9 asserts, 9 covers in model] 
+2026-11-03T23:06:40+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_meta_prove	-	PROVEN	OK	[9 asserts, 11 covers in model] 
+2026-11-03T23:06:40+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_meta_cover	-	COVERED	OK	[9 asserts, 11 covers in model] 
+2026-11-03T23:06:40+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_overconstrained	-	UNREACHED-AS-EXPECTED	OK	[9 asserts, 9 covers in model] unreached exactly: c_hclk_fast c_tck_stopped_busy
+2026-11-03T23:06:40+05:30	dfab0bbf08f6	True	fv_dmi_cdc	cdc_no_fc1	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_no_late_exec
+2026-11-03T23:06:40+05:30	dfab0bbf08f6	True	fv_dmi_cdc	mut_dbg6_revert	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_ack_genuine
+2026-11-03T23:06:40+05:30	dfab0bbf08f6	True	fv_dmi_cdc	mut_rise_only	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_deliver_bound
+2026-11-03T23:06:40+05:30	dfab0bbf08f6	True	fv_dmi_cdc	mut_no_adopt	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_hside_done
+2026-11-03T23:06:40+05:30	dfab0bbf08f6	True	fv_dmi_cdc	mut_ack_twice	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_hside_done
+2026-11-03T23:06:40+05:30	dfab0bbf08f6	True	fv_dmi_cdc	mut_pulse_stage0	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_cdc_hside_done
+2026-11-03T23:06:40+05:30	dfab0bbf08f6	True	fv_dmi_cdc	mut_dtm_payload_moves	-	FAIL	XFAIL:PLANTED	[9 asserts, 9 covers in model] props: a_req_payload_held

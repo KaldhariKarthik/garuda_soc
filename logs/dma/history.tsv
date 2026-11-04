@@ -1819,68 +1819,559 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-01T18:22:58+05:30	dcf6f7d4335a	True	fv_dma_cov	cov_prove	-	PROVEN	OK	[6 asserts, 307 covers in model] 
 2026-11-01T18:22:58+05:30	dcf6f7d4335a	True	fv_dma_cov	cov_reach	-	COVERED	OK	[0 asserts, 4 covers in model] 
 2026-11-01T18:22:58+05:30	dcf6f7d4335a	True	fv_dma_cov	mut_cov_prio_inv	-	FAIL	XFAIL:PLANTED	[1 asserts, 307 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone
-2026-11-03T21:44:27+05:30	dfab0bbf08f6	True	block	tb_dma_top	1	PASS	OK	
-2026-11-03T21:44:49+05:30	dfab0bbf08f6	True	probe	probe_dma9	1	FAIL	XFAIL:DMA-9	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [DMA-9] [F20] EN set again continues: 4 + 8 beats = 12 (CNT 8), last write 2000102c (buffer ends at 2000101C) (t=1970000)
-2026-11-03T21:44:49+05:30	dfab0bbf08f6	True	probe	probe_dma10	1	FAIL	XFAIL:DMA-10	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [130000] %Error: dma_props_a.sv:643: Assertion failed in tb_dma_probe.dut.u_dma_props_a.a_no_read_before_refusal: [SVA-FAIL] a_no
-2026-11-03T21:44:49+05:30	dfab0bbf08f6	True	probe	probe_r9_sar	1	PASS	OK	
-2026-11-03T21:44:49+05:30	dfab0bbf08f6	True	probe	probe_dma11a	1	FAIL	XFAIL:DMA-11	pass marker missing; 66 [FAIL] line(s); 65 assertion failure(s) | first: [390000] %Error: dma_sva.sv:164: Assertion failed in tb_dma_probe.dut.g_ch[2].u_ch.u_chan_sva.a_rem_no_underflow: [SVA-FAIL] a_
-2026-11-03T21:44:49+05:30	dfab0bbf08f6	True	probe	probe_dma11b	1	FAIL	XFAIL:DMA-11	pass marker missing; 2 [FAIL] line(s); 1 assertion failure(s) | first: [390000] %Error: dma_props_a.sv:472: Assertion failed in tb_dma_probe.dut.u_dma_props_a.g_ch[2].a_beat_belongs_to_arm: [SVA-FAIL]
-2026-11-03T21:44:49+05:30	dfab0bbf08f6	True	probe	probe_unaligned	1	FAIL	XFAIL:DMA-13	pass marker missing; 9 [FAIL] line(s); 8 assertion failure(s) | first: [130000] %Error: dma_sva.sv:69: Assertion failed in tb_dma_probe.dut.u_dma_sva.a_aligned: [SVA-FAIL] a_aligned: an unaligned tran
-2026-11-03T21:44:49+05:30	dfab0bbf08f6	True	probe	probe_stop_size	1	FAIL	XFAIL:DMA-14	pass marker missing; 51 [FAIL] line(s); 50 assertion failure(s) | first: [622000] %Error: dma_props_a.sv:585: Assertion failed in tb_dma_probe.dut.u_dma_props_a.a_beat_size_atomic: [SVA-FAIL] a_beat_s
-2026-11-03T21:44:49+05:30	dfab0bbf08f6	True	probe	probe_m2m_ack	1	FAIL	XFAIL:DMA-15	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [DMA-15] [F21] [D-21] an M2M transfer (no request) pulses no dma_ack: 6 ack pulse(s) for 6 beats (t=354000)
-2026-11-03T21:44:49+05:30	dfab0bbf08f6	True	probe	probe_ack	1	PASS	OK	
-2026-11-03T21:51:04+05:30	dfab0bbf08f6	True	regs	tb_dma_regs	1	PASS	OK	
-2026-11-03T21:51:04+05:30	dfab0bbf08f6	True	regs	negctl_size_reset	1	FAIL	XFAIL:PLANTED	pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [F01] [F11] reset: ch0 CR = 00000000 (want 00000040) (t=42000)
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_smoke	1	PASS	OK	
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_qual	1	PASS	OK	
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_coll	1	PASS	OK	
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_reset	1	PASS	OK	
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_arb	1	PASS	OK	
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_req	1	PASS	OK	
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_matrix	1	PASS	OK	
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_edge	1	PASS	OK	
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_bits	1	PASS	OK	
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_r9	1	PASS	OK	
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_rand	1	PASS	OK	
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	negctl_beatchk_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 75 [FAIL] line(s); 29 assertion failure(s) | first: [2738000] %Error: dma_props_a.sv:606: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: w
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_maxcnt	1	PASS	OK	
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_dma16	1	PASS	OK	
-2026-11-03T22:02:55+05:30	dfab0bbf08f6	True	env	env_held_err	1	PASS	OK	
-2026-11-03T22:03:04+05:30	dfab0bbf08f6	True	units	tb_dma_apb_slave_unit	1	PASS	OK	
-2026-11-03T22:03:04+05:30	dfab0bbf08f6	True	units	tb_dma_chan_unit	1	PASS	OK	
-2026-11-03T22:03:04+05:30	dfab0bbf08f6	True	units	tb_dma_engine_unit	1	PASS	OK	
-2026-11-03T22:03:04+05:30	dfab0bbf08f6	True	units	negctl_apb_double_strobe	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 000: 2 strobe(s), expected 1
-2026-11-03T22:03:04+05:30	dfab0bbf08f6	True	units	negctl_apb_aud13	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 010: PSLVERR 1 (expected 0), PREADY 1
-2026-11-03T22:03:04+05:30	dfab0bbf08f6	True	units	negctl_chan_d2	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 2322: cr 00000041/00000040 sar d485a702/d485a702 dar c48bf794/c48bf794 cnt 00000001/0001 stat 00020000/00020000 elig 0/0 irq 00
-2026-11-03T22:03:04+05:30	dfab0bbf08f6	True	units	negctl_chan_half_step	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 457: cr 000000bb/000000bb sar 97dcb355/97dcb356 dar 77559be1/77559be1 cnt 00000004/0004 stat 00010003/00010003 elig 0/0 irq 00/
-2026-11-03T22:03:04+05:30	dfab0bbf08f6	True	units	negctl_engine_eng1	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] ENG-1: a new beat was taken in the cycle ch4's result was reported (t=66000)
-2026-11-03T22:03:04+05:30	dfab0bbf08f6	True	units	negctl_engine_ack_width	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch4 done: ack high 1 hclk, expected 2 (t=86000)
-2026-11-03T22:03:04+05:30	dfab0bbf08f6	True	units	negctl_engine_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch4: wrote lane 000000ff, read lane 00000098 (t=86000)
-2026-11-03T22:03:35+05:30	dfab0bbf08f6	True	chip	t_chip_dma_rearm	1	FAIL	XFAIL:DMA-11	pass marker missing; 3759 [FAIL] line(s); 3758 assertion failure(s) | first: [8043000] %Error: dma_sva.sv:164: Assertion failed in tb_chip.dut.u_core.u_soc.u_dma.g_ch[2].u_ch.u_chan_sva.a_rem_no_under
-2026-11-03T22:03:35+05:30	dfab0bbf08f6	True	chip	t_chip_dma_traffic	1	PASS	OK	
-2026-11-03T22:03:35+05:30	dfab0bbf08f6	True	chip	t_chip_dma_subword	1	PASS	OK	
-2026-11-03T22:03:35+05:30	dfab0bbf08f6	True	chip	t_chip_dma_uart	1	PASS	OK	
-2026-11-03T22:06:30+05:30	dfab0bbf08f6	True	fv_dma_arb	arb_prove	-	PROVEN	OK	[10 asserts, 3 covers in model] 
-2026-11-03T22:06:30+05:30	dfab0bbf08f6	True	fv_dma_arb	arb_cover	-	COVERED	OK	[10 asserts, 3 covers in model] 
-2026-11-03T22:06:30+05:30	dfab0bbf08f6	True	fv_dma_arb	arb_mut_tie_high	-	FAIL	XFAIL:PLANTED	[10 asserts, 3 covers in model] props: u_equal.a_grant, u_pairs.a_grant
-2026-11-03T22:06:30+05:30	dfab0bbf08f6	True	fv_dma_arb	arb_mut_tie_high_shipped	-	BOUNDED(2)	OK	[2 asserts, 3 covers in model] 
-2026-11-03T22:06:39+05:30	dfab0bbf08f6	True	fv_dma_2clk	pclk_prove	-	PROVEN	OK	[10 asserts, 303 covers in model] 
-2026-11-03T22:06:39+05:30	dfab0bbf08f6	True	fv_dma_2clk	pclk_cover	-	COVERED	OK	[381 asserts, 3 covers in model] 
-2026-11-03T22:06:43+05:30	dfab0bbf08f6	True	fv_dma	dma10_find	-	FAIL	XFAIL:DMA-10	[1 asserts, 303 covers in model] props: u_dma_props_a.a_no_read_before_refusal
-2026-11-03T22:06:43+05:30	dfab0bbf08f6	True	fv_dma	dma11_find	-	FAIL	XFAIL:DMA-11	[18 asserts, 303 covers in model] props: u_dma_props_a.g_ch[2].a_beat_belongs_to_arm
-2026-11-03T22:06:43+05:30	dfab0bbf08f6	True	fv_dma	dma13_find	-	FAIL	XFAIL:DMA-13	[1 asserts, 303 covers in model] props: u_dma_props_a.a_haddr_aligned
-2026-11-03T22:06:43+05:30	dfab0bbf08f6	True	fv_dma	dma14_find	-	FAIL	XFAIL:DMA-14	[1 asserts, 303 covers in model] props: u_dma_props_a.a_beat_size_atomic
-2026-11-03T22:06:43+05:30	dfab0bbf08f6	True	fv_dma	mut_eng1	-	FAIL	XFAIL:PLANTED	[1 asserts, 303 covers in model] props: u_dma_props_a.a_no_grant_while_reporting
-2026-11-03T22:06:43+05:30	dfab0bbf08f6	True	fv_dma	mut_d2	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[5].a_hw_wins_en
-2026-11-03T22:06:43+05:30	dfab0bbf08f6	True	fv_dma	mut_dma8	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[0].a_failed_beat_keeps_request
-2026-11-03T22:06:43+05:30	dfab0bbf08f6	True	fv_dma	mut_iclr_wins	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[2].a_set_beats_clear_complete
-2026-11-03T22:06:43+05:30	dfab0bbf08f6	True	fv_dma	mut_aud13	-	FAIL	XFAIL:PLANTED	[1 asserts, 303 covers in model] props: u_dma_props_a.a_pslverr_rule
-2026-11-03T22:06:47+05:30	dfab0bbf08f6	True	fv_dma_cov	cov_prove	-	PROVEN	OK	[6 asserts, 307 covers in model] 
-2026-11-03T22:06:47+05:30	dfab0bbf08f6	True	fv_dma_cov	cov_reach	-	COVERED	OK	[0 asserts, 4 covers in model] 
-2026-11-03T22:06:47+05:30	dfab0bbf08f6	True	fv_dma_cov	mut_cov_prio_inv	-	FAIL	XFAIL:PLANTED	[1 asserts, 307 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone
+2026-11-01T20:46:19+05:30	dcf6f7d4335a	True	block	tb_dma_top	1	FAIL	UNEXPECTED	known /a_no_read_before_refusal/ (DMA-10) occurred 0 time(s), want 31; exit 1; pass marker missing; 1002 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s); missing: /tb_dma_top: checks=64 +F
+2026-11-01T20:46:35+05:30	dcf6f7d4335a	True	probe	probe_dma9	1	FAIL	XFAIL:DMA-9	pass marker missing; 37 [FAIL] line(s); 36 assertion failure(s) | first: [198000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_probe.dut.u_dma_props_a.g_ch[0].a_done_gives_ack: [SVA-FAIL] a_
+2026-11-01T20:46:35+05:30	dcf6f7d4335a	True	probe	probe_dma10	1	PASS	XPASS:DMA-10	
+2026-11-01T20:46:35+05:30	dcf6f7d4335a	True	probe	probe_r9_sar	1	PASS	OK	
+2026-11-01T20:46:35+05:30	dcf6f7d4335a	True	probe	probe_dma11a	1	FAIL	UNEXPECTED	9 [FAIL] line(s); 9 assertion failure(s); fail_reason /Assertion failed in \S*a_remaining_complete_consistent/ not in the log | first: [390000] %Error: dma_sva.sv:164: Assertion failed in tb_dma_probe
+2026-11-01T20:46:35+05:30	dcf6f7d4335a	True	probe	probe_dma11b	1	FAIL	XFAIL:DMA-11	13 [FAIL] line(s); 13 assertion failure(s) | first: [390000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_probe.dut.u_dma_props_a.g_ch[2].a_done_gives_ack: [SVA-FAIL] a_done_gives_ac
+2026-11-01T20:46:35+05:30	dcf6f7d4335a	True	probe	probe_unaligned	1	PASS	XPASS:DMA-13	
+2026-11-01T20:46:35+05:30	dcf6f7d4335a	True	probe	probe_stop_size	1	FAIL	UNEXPECTED	390 [FAIL] line(s); 390 assertion failure(s); fail_reason /Assertion failed in \S*a_beat_size_atomic/ not in the log | first: [150000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_probe.dut.
+2026-11-01T20:46:35+05:30	dcf6f7d4335a	True	probe	probe_m2m_ack	1	FAIL	UNEXPECTED	18 [FAIL] line(s); 18 assertion failure(s); fail_reason /^\[FAIL\] \[DMA-15\]/ not in the log | first: [150000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_probe.dut.u_dma_props_a.g_ch[3].a
+2026-11-01T20:46:35+05:30	dcf6f7d4335a	True	probe	probe_ack	1	FAIL	UNEXPECTED	pass marker missing; 37 [FAIL] line(s); 36 assertion failure(s) | first: [826000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_probe.dut.u_dma_props_a.g_ch[3].a_done_gives_ack: [SVA-FAIL] a_
+2026-11-01T20:46:43+05:30	dcf6f7d4335a	True	regs	tb_dma_regs	1	PASS	OK	
+2026-11-01T20:46:43+05:30	dcf6f7d4335a	True	regs	negctl_size_reset	1	BLOCKED	UNEXPECTED	%Error-PINNOTFOUND: rtl/dma/dma_top.v:88:65: Pin not found: 'm2m_o'
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_smoke	1	FAIL	UNEXPECTED	144 [FAIL] line(s); 144 assertion failure(s) | first: [5190000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[0].a_done_gives_ack: [SVA-FAIL] a_done_gives_ack
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_qual	1	FAIL	UNEXPECTED	42 [FAIL] line(s); 42 assertion failure(s) | first: [154000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[0].a_done_gives_ack: [SVA-FAIL] a_done_gives_ack[
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_coll	1	FAIL	UNEXPECTED	exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [150000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[1].a_d
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_reset	1	FAIL	UNEXPECTED	105 [FAIL] line(s); 105 assertion failure(s) | first: [7430000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[0].a_done_gives_ack: [SVA-FAIL] a_done_gives_ack
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_arb	1	FAIL	UNEXPECTED	12 [FAIL] line(s); 12 assertion failure(s) | first: [6670000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[1].a_done_gives_ack: [SVA-FAIL] a_done_gives_ack
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_req	1	PASS	OK	
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_matrix	1	FAIL	UNEXPECTED	144 [FAIL] line(s); 144 assertion failure(s) | first: [3906000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[0].a_done_gives_ack: [SVA-FAIL] a_done_gives_ack
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_edge	1	FAIL	UNEXPECTED	30 [FAIL] line(s); 30 assertion failure(s) | first: [1310000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[0].a_done_gives_ack: [SVA-FAIL] a_done_gives_ack
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_bits	1	FAIL	UNEXPECTED	48 [FAIL] line(s); 48 assertion failure(s) | first: [350000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[0].a_done_gives_ack: [SVA-FAIL] a_done_gives_ack[
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_r9	1	FAIL	UNEXPECTED	known /a_no_read_before_refusal/ (DMA-10) occurred 0 time(s), want 3
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_rand	1	FAIL	UNEXPECTED	exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [274000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[4].a_d
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 147 [FAIL] line(s); 144 assertion failure(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 157 [FAIL] line(s); 144 assertion failure(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 147 [FAIL] line(s); 144 assertion failure(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 147 [FAIL] line(s); 144 assertion failure(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 147 [FAIL] line(s); 144 assertion failure(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	negctl_beatchk_lane0	1	BLOCKED	UNEXPECTED	%Error-PINNOTFOUND: rtl/dma/dma_top.v:100:51: Pin not found: 'm2m_i'
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_maxcnt	1	FAIL	UNEXPECTED	exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [150000] %Error: dma_props_a.sv:512: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[0].a_d
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_dma16	1	PASS	OK	
+2026-11-01T20:56:18+05:30	dcf6f7d4335a	True	env	env_held_err	1	PASS	OK	
+2026-11-01T20:56:24+05:30	dcf6f7d4335a	True	units	tb_dma_apb_slave_unit	1	PASS	OK	
+2026-11-01T20:56:24+05:30	dcf6f7d4335a	True	units	tb_dma_chan_unit	1	FAIL	UNEXPECTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 154: cr 00000159/00000159 sar 823cb8a5/823cb8a8 dar 8efa3b78/8efa3b7b cnt 00000005/0005 stat 00010004/00010004 elig 0/0 irq 00/
+2026-11-01T20:56:24+05:30	dcf6f7d4335a	True	units	tb_dma_engine_unit	1	FAIL	UNEXPECTED	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] read ERROR: ph1, no write (t=202998000)
+2026-11-01T20:56:24+05:30	dcf6f7d4335a	True	units	negctl_apb_double_strobe	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 000: 2 strobe(s), expected 1
+2026-11-01T20:56:24+05:30	dcf6f7d4335a	True	units	negctl_apb_aud13	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 010: PSLVERR 1 (expected 0), PREADY 1
+2026-11-01T20:56:24+05:30	dcf6f7d4335a	True	units	negctl_chan_d2	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 2322: cr 00000041/00000040 sar d485a702/d485a702 dar c48bf794/c48bf794 cnt 00000001/0001 stat 00020000/00020000 elig 0/0 irq 00
+2026-11-01T20:56:24+05:30	dcf6f7d4335a	True	units	negctl_chan_half_step	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 457: cr 000000bb/000000bb sar 97dcb355/97dcb356 dar 77559be1/77559be1 cnt 00000004/0004 stat 00010003/00010003 elig 0/0 irq 00/
+2026-11-01T20:56:24+05:30	dcf6f7d4335a	True	units	negctl_engine_eng1	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] ENG-1: a new beat was taken in the cycle ch4's result was reported (t=66000)
+2026-11-01T20:56:24+05:30	dcf6f7d4335a	True	units	negctl_engine_ack_width	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch4 done: ack high 1 hclk, expected 2 (t=86000)
+2026-11-01T20:56:24+05:30	dcf6f7d4335a	True	units	negctl_engine_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch4: wrote lane 000000ff, read lane 00000098 (t=86000)
+2026-11-01T20:59:41+05:30	dcf6f7d4335a	True	probe	probe_dma9	1	FAIL	XFAIL:DMA-9	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [DMA-9] [F20] EN set again continues: 4 + 8 beats = 12 (CNT 8), last write 2000102c (buffer ends at 2000101C) (t=1970000)
+2026-11-01T20:59:41+05:30	dcf6f7d4335a	True	probe	probe_dma10	1	PASS	XPASS:DMA-10	
+2026-11-01T20:59:41+05:30	dcf6f7d4335a	True	probe	probe_r9_sar	1	PASS	OK	
+2026-11-01T20:59:41+05:30	dcf6f7d4335a	True	probe	probe_dma11a	1	PASS	XPASS:DMA-11	
+2026-11-01T20:59:41+05:30	dcf6f7d4335a	True	probe	probe_dma11b	1	PASS	XPASS:DMA-11	
+2026-11-01T20:59:41+05:30	dcf6f7d4335a	True	probe	probe_unaligned	1	PASS	XPASS:DMA-13	
+2026-11-01T20:59:41+05:30	dcf6f7d4335a	True	probe	probe_stop_size	1	PASS	XPASS:DMA-14	
+2026-11-01T20:59:41+05:30	dcf6f7d4335a	True	probe	probe_m2m_ack	1	PASS	XPASS:DMA-15	
+2026-11-01T20:59:41+05:30	dcf6f7d4335a	True	probe	probe_ack	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [F22] [D-16] 12 ack pulses (want 24): 0 not 2 hclk wide, 0 not seen by exactly one pclk edge (t=1266000)
+2026-11-01T21:00:35+05:30	dcf6f7d4335a	True	probe	probe_dma9	1	PASS	OK	
+2026-11-01T21:00:35+05:30	dcf6f7d4335a	True	probe	probe_dma10	1	PASS	OK	
+2026-11-01T21:00:35+05:30	dcf6f7d4335a	True	probe	probe_r9_sar	1	PASS	OK	
+2026-11-01T21:00:35+05:30	dcf6f7d4335a	True	probe	probe_dma11a	1	PASS	OK	
+2026-11-01T21:00:35+05:30	dcf6f7d4335a	True	probe	probe_dma11b	1	PASS	OK	
+2026-11-01T21:00:35+05:30	dcf6f7d4335a	True	probe	probe_unaligned	1	PASS	OK	
+2026-11-01T21:00:35+05:30	dcf6f7d4335a	True	probe	probe_stop_size	1	PASS	OK	
+2026-11-01T21:00:35+05:30	dcf6f7d4335a	True	probe	probe_m2m_ack	1	PASS	OK	
+2026-11-01T21:00:35+05:30	dcf6f7d4335a	True	probe	probe_ack	1	PASS	OK	
+2026-11-01T21:00:58+05:30	dcf6f7d4335a	True	block	tb_dma_top	1	FAIL	UNEXPECTED	known /a_no_read_before_refusal/ (DMA-10) occurred 0 time(s), want 31; pass marker missing; 2 [FAIL] line(s); missing: /tb_dma_top: checks=64 +FAIL=0/ | first: [FAIL] [R-9] [N-7.20] [N-7.21] SAR or DA
+2026-11-01T21:01:06+05:30	dcf6f7d4335a	True	regs	tb_dma_regs	1	PASS	OK	
+2026-11-01T21:01:06+05:30	dcf6f7d4335a	True	regs	negctl_size_reset	1	BLOCKED	UNEXPECTED	%Error-PINNOTFOUND: rtl/dma/dma_top.v:88:65: Pin not found: 'm2m_o'
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_smoke	1	PASS	OK	
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_qual	1	PASS	OK	
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_coll	1	PASS	OK	
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_reset	1	PASS	OK	
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_arb	1	PASS	OK	
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_req	1	PASS	OK	
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_matrix	1	PASS	OK	
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_edge	1	PASS	OK	
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_bits	1	PASS	OK	
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_r9	1	FAIL	UNEXPECTED	known /a_no_read_before_refusal/ (DMA-10) occurred 0 time(s), want 3
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_rand	1	PASS	OK	
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	negctl_beatchk_lane0	1	BLOCKED	UNEXPECTED	%Error-PINNOTFOUND: rtl/dma/dma_top.v:100:51: Pin not found: 'm2m_i'
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_maxcnt	1	PASS	OK	
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_dma16	1	PASS	OK	
+2026-11-01T21:10:57+05:30	dcf6f7d4335a	True	env	env_held_err	1	PASS	OK	
+2026-11-01T21:11:03+05:30	dcf6f7d4335a	True	units	tb_dma_apb_slave_unit	1	PASS	OK	
+2026-11-01T21:11:03+05:30	dcf6f7d4335a	True	units	tb_dma_chan_unit	1	FAIL	UNEXPECTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 154: cr 00000159/00000159 sar 823cb8a5/823cb8a8 dar 8efa3b78/8efa3b7b cnt 00000005/0005 stat 00010004/00010004 elig 0/0 irq 00/
+2026-11-01T21:11:03+05:30	dcf6f7d4335a	True	units	tb_dma_engine_unit	1	FAIL	UNEXPECTED	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] read ERROR: ph1, no write (t=202998000)
+2026-11-01T21:11:03+05:30	dcf6f7d4335a	True	units	negctl_apb_double_strobe	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 000: 2 strobe(s), expected 1
+2026-11-01T21:11:03+05:30	dcf6f7d4335a	True	units	negctl_apb_aud13	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 010: PSLVERR 1 (expected 0), PREADY 1
+2026-11-01T21:11:03+05:30	dcf6f7d4335a	True	units	negctl_chan_d2	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 2322: cr 00000041/00000040 sar d485a702/d485a702 dar c48bf794/c48bf794 cnt 00000001/0001 stat 00020000/00020000 elig 0/0 irq 00
+2026-11-01T21:11:03+05:30	dcf6f7d4335a	True	units	negctl_chan_half_step	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 457: cr 000000bb/000000bb sar 97dcb355/97dcb356 dar 77559be1/77559be1 cnt 00000004/0004 stat 00010003/00010003 elig 0/0 irq 00/
+2026-11-01T21:11:03+05:30	dcf6f7d4335a	True	units	negctl_engine_eng1	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] ENG-1: a new beat was taken in the cycle ch4's result was reported (t=66000)
+2026-11-01T21:11:03+05:30	dcf6f7d4335a	True	units	negctl_engine_ack_width	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch4 done: ack high 1 hclk, expected 2 (t=86000)
+2026-11-01T21:11:03+05:30	dcf6f7d4335a	True	units	negctl_engine_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch4: wrote lane 000000ff, read lane 00000098 (t=86000)
+2026-11-01T21:15:01+05:30	dcf6f7d4335a	True	block	tb_dma_top	1	PASS	OK	
+2026-11-01T21:15:15+05:30	dcf6f7d4335a	True	regs	tb_dma_regs	1	PASS	OK	
+2026-11-01T21:15:15+05:30	dcf6f7d4335a	True	regs	negctl_size_reset	1	FAIL	XFAIL:PLANTED	pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [F01] [F11] reset: ch0 CR = 00000000 (want 00000040) (t=42000)
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_smoke	1	PASS	OK	
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_qual	1	PASS	OK	
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_coll	1	PASS	OK	
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_reset	1	PASS	OK	
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_arb	1	PASS	OK	
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_req	1	PASS	OK	
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_matrix	1	PASS	OK	
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_edge	1	PASS	OK	
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_bits	1	PASS	OK	
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_r9	1	PASS	OK	
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_rand	1	PASS	OK	
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	negctl_beatchk_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 75 [FAIL] line(s); 29 assertion failure(s) | first: [2738000] %Error: dma_props_a.sv:620: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: w
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_maxcnt	1	PASS	OK	
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_dma16	1	PASS	OK	
+2026-11-01T21:25:33+05:30	dcf6f7d4335a	True	env	env_held_err	1	PASS	OK	
+2026-11-01T21:25:42+05:30	dcf6f7d4335a	True	units	tb_dma_apb_slave_unit	1	PASS	OK	
+2026-11-01T21:25:42+05:30	dcf6f7d4335a	True	units	tb_dma_chan_unit	1	PASS	OK	
+2026-11-01T21:25:42+05:30	dcf6f7d4335a	True	units	tb_dma_engine_unit	1	PASS	OK	
+2026-11-01T21:25:42+05:30	dcf6f7d4335a	True	units	negctl_apb_double_strobe	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 000: 2 strobe(s), expected 1
+2026-11-01T21:25:42+05:30	dcf6f7d4335a	True	units	negctl_apb_aud13	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 010: PSLVERR 1 (expected 0), PREADY 1
+2026-11-01T21:25:42+05:30	dcf6f7d4335a	True	units	negctl_chan_d2	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 2322: cr 00000041/00000040 sar d485a702/d485a702 dar c48bf794/c48bf794 cnt 00000001/0001 stat 00020000/00020000 elig 0/0 irq 00
+2026-11-01T21:25:42+05:30	dcf6f7d4335a	True	units	negctl_chan_half_step	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 457: cr 000000bb/000000bb sar 97dcb355/97dcb356 dar 77559be1/77559be1 cnt 00000004/0004 stat 00010003/00010003 elig 0/0 irq 00/
+2026-11-01T21:25:42+05:30	dcf6f7d4335a	True	units	negctl_engine_eng1	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] ENG-1: a new beat was taken in the cycle ch4's result was reported (t=66000)
+2026-11-01T21:25:42+05:30	dcf6f7d4335a	True	units	negctl_engine_ack_width	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch2 done (M2M 0): ack high 1 hclk, expected 2 (DMA-15) (t=146000)
+2026-11-01T21:25:42+05:30	dcf6f7d4335a	True	units	negctl_engine_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch4: wrote lane 00000057, read lane 00000006 (t=86000)
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m01	1	FAIL	XFAIL:PLANTED	pass marker missing; 9 [FAIL] line(s); 8 assertion failure(s) | first: [283418000] %Error: dma_sva.sv:178: Assertion failed in tb_dma_env.dut.g_ch[1].u_ch.u_chan_sva.a_hw_clears_en_last: [SVA-FAIL] a_
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m02	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s); 2 assertion failure(s) | first: [45566000] %Error: dma_props_a.sv:520: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[2].a_failed_beat_keeps_request: [SVA
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m03	1	FAIL	XFAIL:PLANTED	pass marker missing; 430 [FAIL] line(s); 428 assertion failure(s) | first: [2034000] %Error: dma_sva.sv:199: Assertion failed in tb_dma_env.dut.g_ch[2].u_ch.u_chan_sva.a_one_beat_per_req: [SVA-FAIL] a
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m04	1	FAIL	XFAIL:PLANTED	pass marker missing; 8 [FAIL] line(s); 3 assertion failure(s) | first: [167450000] %Error: dma_sva.sv:178: Assertion failed in tb_dma_env.dut.g_ch[1].u_ch.u_chan_sva.a_hw_clears_en_last: [SVA-FAIL] a_
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m05	1	FAIL	XFAIL:PLANTED	pass marker missing; 97 [FAIL] line(s); 41 assertion failure(s) | first: [1410000] %Error: dma_props_a.sv:380: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[1].a_sar_step: [SVA-FAIL] a_sar_ste
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m06	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1010 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [8922000] %Error: dma_sva.sv:188: Assertion failed in tb_dma_regs.dut.g_ch[0].u_ch.u_chan_sva.a_m
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m07	1	FAIL	XFAIL:PLANTED	pass marker missing; 313 [FAIL] line(s); 308 assertion failure(s) | first: [47326000] %Error: dma_sva.sv:207: Assertion failed in tb_dma_env.dut.g_ch[5].u_ch.u_chan_sva.a_irq_error: [SVA-FAIL] a_irq_e
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m08	1	FAIL	XFAIL:PLANTED	pass marker missing; 443 [FAIL] line(s); 262 assertion failure(s) | first: [3506000] %Error: dma_props_a.sv:450: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[4].a_iclr_error: [SVA-FAIL] a_icl
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m09	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [238000] %Error: dma_sva.sv:171: Assertion failed in tb_dma_env.dut.g_ch[0].u_ch.u_chan_sva.a_com
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m10	1	FAIL	XFAIL:PLANTED	pass marker missing; 177 [FAIL] line(s); 104 assertion failure(s) | first: [3234000] %Error: dma_sva.sv:182: Assertion failed in tb_dma_env.dut.g_ch[4].u_ch.u_chan_sva.a_freeze_on_error: [SVA-FAIL] a_
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m11	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [394278000] %Error: dma_sva.sv:81: Assertion failed in tb_dma_env.dut.u_dma_sva.a_priority: [SVA-
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m13	1	FAIL	XFAIL:PLANTED	pass marker missing; 60 [FAIL] line(s); 56 assertion failure(s) | first: [3130000] %Error: dma_props_a.sv:657: Assertion failed in tb_dma_top.dut.u_dma_props_a.a_no_read_before_refusal: [SVA-FAIL] a_n
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m14	1	FAIL	XFAIL:PLANTED	pass marker missing; 692 [FAIL] line(s); 566 assertion failure(s) | first: [1982000] %Error: dma_props_a.sv:530: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[2].a_ack_width: [SVA-FAIL] a_ack_
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m15	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1047 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [158000] %Error: dma_props_a.sv:590: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_no_grant_
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m16	1	FAIL	XFAIL:PLANTED	pass marker missing; 112 [FAIL] line(s); 52 assertion failure(s) | first: [45562000] %Error: dma_props_a.sv:645: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_errphase_write: [SVA-FAIL] a_errphas
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m17	1	FAIL	XFAIL:PLANTED	pass marker missing; 342 [FAIL] line(s); 287 assertion failure(s) | first: [766000] %Error: dma_props_a.sv:620: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: 
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m18	1	FAIL	XFAIL:PLANTED	pass marker missing; 27 [FAIL] line(s); 6 assertion failure(s) | first: [3230000] %Error: dma_props_a.sv:642: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_errphase_read: [SVA-FAIL] a_errphase_re
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m19	1	FAIL	XFAIL:PLANTED	pass marker missing; 520 [FAIL] line(s); 468 assertion failure(s) | first: [4326000] %Error: dma_sva.sv:58: Assertion failed in tb_dma_env.dut.u_dma_sva.a_addr_stable: [SVA-FAIL] a_addr_stable: the ad
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m20	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [930000] %Error: dma_props_a.sv:294: Assertion failed in tb_dma_regs.dut.u_dma_props_a.a_strobe_o
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m21	1	FAIL	XFAIL:PLANTED	14 [FAIL] line(s); 14 assertion failure(s) | first: [54618000] %Error: dma_sva.sv:126: Assertion failed in tb_dma_regs.dut.u_dma_sva.a_apb_stat_ro: [SVA-FAIL] a_apb_stat_ro: a write to STAT or
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m22	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s); 6 assertion failure(s) | first: [52882000] %Error: dma_props_a.sv:284: Assertion failed in tb_dma_regs.dut.u_dma_props_a.a_read_data: [SVA-FAIL] a_read_data: pa
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m23	1	FAIL	XFAIL:PLANTED	pass marker missing; 628 [FAIL] line(s); 613 assertion failure(s) | first: [762000] %Error: dma_props_a.sv:279: Assertion failed in tb_dma_regs.dut.u_dma_props_a.a_pslverr_rule: [SVA-FAIL] a_pslverr_r
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m24	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1006 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [4022000] %Error: dma_props_a.sv:319: Assertion failed in tb_dma_regs.dut.u_dma_props_a.g_ch[0].a
+2026-11-01T21:33:57+05:30	dcf6f7d4335a	True	dma_mut	mut_m25	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1014 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [274000] %Error: dma_props_a.sv:494: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[0].a_i
+2026-11-01T21:34:28+05:30	dcf6f7d4335a	True	chip	t_chip_dma_rearm	1	PASS	XPASS:DMA-11	
+2026-11-01T21:34:28+05:30	dcf6f7d4335a	True	chip	t_chip_dma_traffic	1	PASS	OK	
+2026-11-01T21:34:28+05:30	dcf6f7d4335a	True	chip	t_chip_dma_subword	1	FAIL	UNEXPECTED	4 [FAIL] line(s); 8 assertion failure(s) | first: [5419000] %Error: ahb_interconnect_sva.sv:84: Assertion failed in tb_chip.dut.u_core.u_soc.u_ahb.u_ahb_sva.a_prio_iport: [SVA-FAIL] a_prio_i
+2026-11-01T21:34:28+05:30	dcf6f7d4335a	True	chip	t_chip_dma_uart	1	PASS	OK	
+2026-11-01T21:35:55+05:30	dcf6f7d4335a	True	chip	t_chip_dma_rearm	1	PASS	XPASS:DMA-11	
+2026-11-01T21:35:55+05:30	dcf6f7d4335a	True	chip	t_chip_dma_traffic	1	PASS	OK	
+2026-11-01T21:35:55+05:30	dcf6f7d4335a	True	chip	t_chip_dma_subword	1	PASS	OK	
+2026-11-01T21:35:55+05:30	dcf6f7d4335a	True	chip	t_chip_dma_uart	1	PASS	OK	
+2026-11-01T21:39:23+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_prove	-	PROVEN	OK	[10 asserts, 3 covers in model] 
+2026-11-01T21:39:23+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_cover	-	COVERED	OK	[10 asserts, 3 covers in model] 
+2026-11-01T21:39:23+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_mut_tie_high	-	FAIL	XFAIL:PLANTED	[10 asserts, 3 covers in model] props: u_equal.a_grant, u_pairs.a_grant
+2026-11-01T21:39:23+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_mut_tie_high_shipped	-	BOUNDED(2)	OK	[2 asserts, 3 covers in model] 
+2026-11-01T21:39:31+05:30	dcf6f7d4335a	True	fv_dma_2clk	pclk_prove	-	PROVEN	OK	[10 asserts, 309 covers in model] 
+2026-11-01T21:39:31+05:30	dcf6f7d4335a	True	fv_dma_2clk	pclk_cover	-	COVERED	OK	[381 asserts, 3 covers in model] 
+2026-11-01T21:41:44+05:30	dcf6f7d4335a	True	fv_dma	dma10_find	-	FAIL	XFAIL:DMA-10	[1 asserts, 309 covers in model] props: u_dma_props_a.a_no_read_before_refusal
+2026-11-01T21:41:44+05:30	dcf6f7d4335a	True	fv_dma	dma11_find	-	BOUNDED(32)	XPASS:DMA-11	[18 asserts, 309 covers in model] 
+2026-11-01T21:41:44+05:30	dcf6f7d4335a	True	fv_dma	dma13_find	-	BOUNDED(24)	XPASS:DMA-13	[1 asserts, 309 covers in model] 
+2026-11-01T21:41:44+05:30	dcf6f7d4335a	True	fv_dma	dma14_find	-	BOUNDED(24)	XPASS:DMA-14	[1 asserts, 309 covers in model] 
+2026-11-01T21:41:44+05:30	dcf6f7d4335a	True	fv_dma	mut_eng1	-	FAIL	XFAIL:PLANTED	[1 asserts, 309 covers in model] props: u_dma_props_a.a_no_grant_while_reporting
+2026-11-01T21:41:44+05:30	dcf6f7d4335a	True	fv_dma	mut_d2	-	FAIL	XFAIL:PLANTED	[6 asserts, 309 covers in model] props: u_dma_props_a.g_ch[5].a_hw_wins_en
+2026-11-01T21:41:44+05:30	dcf6f7d4335a	True	fv_dma	mut_dma8	-	FAIL	XFAIL:PLANTED	[6 asserts, 309 covers in model] props: u_dma_props_a.g_ch[0].a_failed_beat_keeps_request
+2026-11-01T21:41:44+05:30	dcf6f7d4335a	True	fv_dma	mut_iclr_wins	-	FAIL	XFAIL:PLANTED	[6 asserts, 309 covers in model] props: u_dma_props_a.g_ch[2].a_set_beats_clear_complete
+2026-11-01T21:41:44+05:30	dcf6f7d4335a	True	fv_dma	mut_aud13	-	FAIL	XFAIL:PLANTED	[1 asserts, 309 covers in model] props: u_dma_props_a.a_pslverr_rule
+2026-11-01T21:52:57+05:30	dcf6f7d4335a	True	chip	t_chip_dma_rearm	1	PASS	OK	
+2026-11-01T21:52:57+05:30	dcf6f7d4335a	True	chip	t_chip_dma_traffic	1	PASS	OK	
+2026-11-01T21:52:57+05:30	dcf6f7d4335a	True	chip	t_chip_dma_subword	1	PASS	OK	
+2026-11-01T21:52:57+05:30	dcf6f7d4335a	True	chip	t_chip_dma_uart	1	PASS	OK	
+2026-11-02T22:06:50+05:30	dcf6f7d4335a	True	fv_dma	mut_dma9_revert	-	FAIL	XFAIL:PLANTED	[18 asserts, 309 covers in model] props: u_dma_props_a.g_ch[0].a_beat_belongs_to_arm
+2026-11-02T22:06:50+05:30	dcf6f7d4335a	True	fv_dma	mut_dma10_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 309 covers in model] props: u_dma_props_a.a_haddr_aligned
+2026-11-02T22:06:50+05:30	dcf6f7d4335a	True	fv_dma	mut_dma12_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 309 covers in model] props: u_dma_props_a.a_no_read_before_refusal
+2026-11-02T22:06:50+05:30	dcf6f7d4335a	True	fv_dma	mut_dma14_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 309 covers in model] props: u_dma_props_a.a_beat_size_atomic
+2026-11-02T22:06:50+05:30	dcf6f7d4335a	True	fv_dma	mut_dma15_revert	-	ERROR	UNEXPECTED	[0 asserts, 309 covers in model] model has 0 assert(s), manifest wants >= 1
+2026-11-02T22:15:37+05:30	dcf6f7d4335a	True	fv_dma	mut_dma9_revert	-	FAIL	XFAIL:PLANTED	[18 asserts, 311 covers in model] props: u_dma_props_a.g_ch[1].a_beat_belongs_to_arm
+2026-11-02T22:15:37+05:30	dcf6f7d4335a	True	fv_dma	mut_dma10_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 311 covers in model] props: u_dma_props_a.a_haddr_aligned
+2026-11-02T22:15:37+05:30	dcf6f7d4335a	True	fv_dma	mut_dma12_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 311 covers in model] props: u_dma_props_a.a_no_read_before_refusal
+2026-11-02T22:15:37+05:30	dcf6f7d4335a	True	fv_dma	mut_dma14_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 311 covers in model] props: u_dma_props_a.a_beat_size_atomic
+2026-11-02T22:15:37+05:30	dcf6f7d4335a	True	fv_dma	mut_dma15_revert	-	FAIL	XFAIL:PLANTED	[6 asserts, 311 covers in model] props: u_dma_props_a.g_ch[4].a_no_ack_for_m2m
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	tb_dma_apb_slave_unit	1	PASS	OK	
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	tb_dma_chan_unit	1	PASS	OK	
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	tb_dma_engine_unit	1	PASS	OK	
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	ack_param_1	1	PASS	OK	
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	ack_param_4	1	PASS	OK	
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	negctl_ack_param_0	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [0] %Fatal: dma_engine.v:105: Assertion failed in tb_dma_ack_param.dut: dma_engine: ACK_CYCLES = 0, must be 1..4
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	negctl_ack_param_5	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [0] %Fatal: dma_engine.v:105: Assertion failed in tb_dma_ack_param.dut: dma_engine: ACK_CYCLES = 5, must be 1..4
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	negctl_apb_double_strobe	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 000: 2 strobe(s), expected 1
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	negctl_apb_aud13	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 010: PSLVERR 1 (expected 0), PREADY 1
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	negctl_chan_d2	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 2322: cr 00000041/00000040 sar d485a702/d485a702 dar c48bf794/c48bf794 cnt 00000001/0001 stat 00020000/00020000 elig 0/0 irq 00
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	negctl_chan_half_step	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 457: cr 000000bb/000000bb sar 97dcb355/97dcb356 dar 77559be1/77559be1 cnt 00000004/0004 stat 00010003/00010003 elig 0/0 irq 00/
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	negctl_engine_eng1	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] ENG-1: a new beat was taken in the cycle ch4's result was reported (t=66000)
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	negctl_engine_ack_width	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch2 done (M2M 0): ack high 1 hclk, expected 2 (DMA-15) (t=146000)
+2026-11-02T22:17:15+05:30	dcf6f7d4335a	True	units	negctl_engine_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch4: wrote lane 00000057, read lane 00000006 (t=86000)
+2026-11-02T22:17:50+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_prove	-	PROVEN	OK	[10 asserts, 3 covers in model] 
+2026-11-02T22:17:50+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_cover	-	COVERED	OK	[10 asserts, 3 covers in model] 
+2026-11-02T22:17:50+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_mut_tie_high	-	FAIL	XFAIL:PLANTED	[10 asserts, 3 covers in model] props: u_equal.a_grant, u_pairs.a_grant
+2026-11-02T22:17:50+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_mut_tie_high_shipped	-	BOUNDED(2)	OK	[2 asserts, 3 covers in model] 
+2026-11-02T22:18:09+05:30	dcf6f7d4335a	True	fv_dma_2clk	pclk_prove	-	PROVEN	OK	[10 asserts, 311 covers in model] 
+2026-11-02T22:18:09+05:30	dcf6f7d4335a	True	fv_dma_2clk	pclk_cover	-	COVERED	OK	[388 asserts, 3 covers in model] 
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m01	1	FAIL	XFAIL:PLANTED	pass marker missing; 9 [FAIL] line(s); 8 assertion failure(s) | first: [283418000] %Error: dma_sva.sv:178: Assertion failed in tb_dma_env.dut.g_ch[1].u_ch.u_chan_sva.a_hw_clears_en_last: [SVA-FAIL] a_
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m02	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s); 2 assertion failure(s) | first: [45566000] %Error: dma_props_a.sv:535: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[2].a_failed_beat_keeps_request: [SVA
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m03	1	FAIL	XFAIL:PLANTED	pass marker missing; 430 [FAIL] line(s); 428 assertion failure(s) | first: [2034000] %Error: dma_sva.sv:199: Assertion failed in tb_dma_env.dut.g_ch[2].u_ch.u_chan_sva.a_one_beat_per_req: [SVA-FAIL] a
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m04	1	FAIL	XFAIL:PLANTED	pass marker missing; 8 [FAIL] line(s); 3 assertion failure(s) | first: [167450000] %Error: dma_sva.sv:178: Assertion failed in tb_dma_env.dut.g_ch[1].u_ch.u_chan_sva.a_hw_clears_en_last: [SVA-FAIL] a_
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m05	1	FAIL	XFAIL:PLANTED	pass marker missing; 97 [FAIL] line(s); 41 assertion failure(s) | first: [1410000] %Error: dma_props_a.sv:395: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[1].a_sar_step: [SVA-FAIL] a_sar_ste
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m06	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1010 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [8922000] %Error: dma_sva.sv:188: Assertion failed in tb_dma_regs.dut.g_ch[0].u_ch.u_chan_sva.a_m
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m07	1	FAIL	XFAIL:PLANTED	pass marker missing; 313 [FAIL] line(s); 308 assertion failure(s) | first: [47326000] %Error: dma_sva.sv:207: Assertion failed in tb_dma_env.dut.g_ch[5].u_ch.u_chan_sva.a_irq_error: [SVA-FAIL] a_irq_e
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m08	1	FAIL	XFAIL:PLANTED	pass marker missing; 443 [FAIL] line(s); 262 assertion failure(s) | first: [3506000] %Error: dma_props_a.sv:465: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[4].a_iclr_error: [SVA-FAIL] a_icl
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m09	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [238000] %Error: dma_sva.sv:171: Assertion failed in tb_dma_env.dut.g_ch[0].u_ch.u_chan_sva.a_com
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m10	1	FAIL	XFAIL:PLANTED	pass marker missing; 177 [FAIL] line(s); 104 assertion failure(s) | first: [3234000] %Error: dma_sva.sv:182: Assertion failed in tb_dma_env.dut.g_ch[4].u_ch.u_chan_sva.a_freeze_on_error: [SVA-FAIL] a_
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m11	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [394278000] %Error: dma_sva.sv:81: Assertion failed in tb_dma_env.dut.u_dma_sva.a_priority: [SVA-
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m13	1	FAIL	XFAIL:PLANTED	pass marker missing; 60 [FAIL] line(s); 56 assertion failure(s) | first: [3130000] %Error: dma_props_a.sv:677: Assertion failed in tb_dma_top.dut.u_dma_props_a.a_refuse_dar: [SVA-FAIL] a_refuse_dar (R
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m14	1	FAIL	XFAIL:PLANTED	pass marker missing; 692 [FAIL] line(s); 566 assertion failure(s) | first: [1982000] %Error: dma_props_a.sv:550: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[2].a_ack_width: [SVA-FAIL] a_ack_
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m15	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1047 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [158000] %Error: dma_props_a.sv:610: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_no_grant_
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m16	1	FAIL	XFAIL:PLANTED	pass marker missing; 112 [FAIL] line(s); 52 assertion failure(s) | first: [45562000] %Error: dma_props_a.sv:665: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_errphase_write: [SVA-FAIL] a_errphas
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m17	1	FAIL	XFAIL:PLANTED	pass marker missing; 342 [FAIL] line(s); 287 assertion failure(s) | first: [766000] %Error: dma_props_a.sv:640: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: 
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m18	1	FAIL	XFAIL:PLANTED	pass marker missing; 27 [FAIL] line(s); 6 assertion failure(s) | first: [3230000] %Error: dma_props_a.sv:662: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_errphase_read: [SVA-FAIL] a_errphase_re
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m19	1	FAIL	XFAIL:PLANTED	pass marker missing; 520 [FAIL] line(s); 468 assertion failure(s) | first: [4326000] %Error: dma_sva.sv:58: Assertion failed in tb_dma_env.dut.u_dma_sva.a_addr_stable: [SVA-FAIL] a_addr_stable: the ad
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m20	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [930000] %Error: dma_props_a.sv:309: Assertion failed in tb_dma_regs.dut.u_dma_props_a.a_strobe_o
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m21	1	FAIL	XFAIL:PLANTED	14 [FAIL] line(s); 14 assertion failure(s) | first: [54618000] %Error: dma_sva.sv:126: Assertion failed in tb_dma_regs.dut.u_dma_sva.a_apb_stat_ro: [SVA-FAIL] a_apb_stat_ro: a write to STAT or
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m22	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s); 6 assertion failure(s) | first: [52882000] %Error: dma_props_a.sv:299: Assertion failed in tb_dma_regs.dut.u_dma_props_a.a_read_data: [SVA-FAIL] a_read_data: pa
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m23	1	FAIL	XFAIL:PLANTED	pass marker missing; 628 [FAIL] line(s); 613 assertion failure(s) | first: [762000] %Error: dma_props_a.sv:294: Assertion failed in tb_dma_regs.dut.u_dma_props_a.a_pslverr_rule: [SVA-FAIL] a_pslverr_r
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m24	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1006 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [4022000] %Error: dma_props_a.sv:334: Assertion failed in tb_dma_regs.dut.u_dma_props_a.g_ch[0].a
+2026-11-02T22:29:41+05:30	dcf6f7d4335a	True	dma_mut	mut_m25	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1014 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [274000] %Error: dma_props_a.sv:509: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[0].a_i
+2026-11-02T23:00:14+05:30	dcf6f7d4335a	True	fv_dma	dma_cover	-	UNREACHED(2)	UNEXPECTED	[382 asserts, 308 covers in model] u_dma_props_a.c_unaligned u_dma_props_a.c_unaligned_half
+2026-11-02T23:00:14+05:30	dcf6f7d4335a	True	fv_dma	dma_bmc	-	BOUNDED(32)	OK	[382 asserts, 311 covers in model] 
+2026-11-02T23:00:14+05:30	dcf6f7d4335a	True	fv_dma	dma_prove	-	FAIL	UNEXPECTED	[376 asserts, 311 covers in model] props: u_dma_props_a.g_ch[0].a_en_cleared_by_hw, u_dma_props_a.g_ch[0].a_error_on_beat_err
+2026-11-02T23:00:14+05:30	dcf6f7d4335a	True	fv_dma	mut_dma9_revert	-	FAIL	XFAIL:PLANTED	[18 asserts, 311 covers in model] props: u_dma_props_a.g_ch[1].a_beat_belongs_to_arm
+2026-11-02T23:00:14+05:30	dcf6f7d4335a	True	fv_dma	mut_dma10_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 311 covers in model] props: u_dma_props_a.a_haddr_aligned
+2026-11-02T23:00:14+05:30	dcf6f7d4335a	True	fv_dma	mut_dma12_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 311 covers in model] props: u_dma_props_a.a_no_read_before_refusal
+2026-11-02T23:00:14+05:30	dcf6f7d4335a	True	fv_dma	mut_dma14_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 311 covers in model] props: u_dma_props_a.a_beat_size_atomic
+2026-11-02T23:00:14+05:30	dcf6f7d4335a	True	fv_dma	mut_dma15_revert	-	FAIL	XFAIL:PLANTED	[6 asserts, 311 covers in model] props: u_dma_props_a.g_ch[4].a_no_ack_for_m2m
+2026-11-02T23:00:14+05:30	dcf6f7d4335a	True	fv_dma	mut_eng1	-	FAIL	XFAIL:PLANTED	[1 asserts, 311 covers in model] props: u_dma_props_a.a_no_grant_while_reporting
+2026-11-02T23:00:14+05:30	dcf6f7d4335a	True	fv_dma	mut_d2	-	FAIL	XFAIL:PLANTED	[6 asserts, 311 covers in model] props: u_dma_props_a.g_ch[5].a_hw_wins_en
+2026-11-02T23:00:14+05:30	dcf6f7d4335a	True	fv_dma	mut_dma8	-	FAIL	XFAIL:PLANTED	[6 asserts, 311 covers in model] props: u_dma_props_a.g_ch[0].a_failed_beat_keeps_request
+2026-11-02T23:00:14+05:30	dcf6f7d4335a	True	fv_dma	mut_iclr_wins	-	FAIL	XFAIL:PLANTED	[6 asserts, 311 covers in model] props: u_dma_props_a.g_ch[3].a_set_beats_clear_complete
+2026-11-02T23:00:14+05:30	dcf6f7d4335a	True	fv_dma	mut_aud13	-	FAIL	XFAIL:PLANTED	[1 asserts, 311 covers in model] props: u_dma_props_a.a_pslverr_rule
+2026-11-03T19:39:34+05:30	dcf6f7d4335a	True	fv_dma	dma_cover	-	COVERED	OK	[382 asserts, 308 covers in model] 
+2026-11-03T19:39:34+05:30	dcf6f7d4335a	True	fv_dma	mut_dma9_revert	-	FAIL	XFAIL:PLANTED	[18 asserts, 311 covers in model] props: u_dma_props_a.g_ch[0].a_beat_belongs_to_arm
+2026-11-03T19:39:43+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_prove	-	PROVEN	OK	[10 asserts, 3 covers in model] 
+2026-11-03T19:39:43+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_cover	-	COVERED	OK	[10 asserts, 3 covers in model] 
+2026-11-03T19:39:43+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_mut_tie_high	-	FAIL	XFAIL:PLANTED	[10 asserts, 3 covers in model] props: u_equal.a_grant, u_pairs.a_grant
+2026-11-03T19:39:43+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_mut_tie_high_shipped	-	BOUNDED(2)	OK	[2 asserts, 3 covers in model] 
+2026-11-03T19:39:50+05:30	dcf6f7d4335a	True	fv_dma_2clk	pclk_prove	-	PROVEN	OK	[10 asserts, 311 covers in model] 
+2026-11-03T19:39:50+05:30	dcf6f7d4335a	True	fv_dma_2clk	pclk_cover	-	COVERED	OK	[388 asserts, 3 covers in model] 
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	tb_dma_apb_slave_unit	1	PASS	OK	
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	tb_dma_chan_unit	1	PASS	OK	
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	tb_dma_engine_unit	1	PASS	OK	
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	ack_param_1	1	PASS	OK	
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	ack_param_4	1	PASS	OK	
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	negctl_ack_param_0	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [0] %Fatal: dma_engine.v:105: Assertion failed in tb_dma_ack_param.dut: dma_engine: ACK_CYCLES = 0, must be 1..4
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	negctl_ack_param_5	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [0] %Fatal: dma_engine.v:105: Assertion failed in tb_dma_ack_param.dut: dma_engine: ACK_CYCLES = 5, must be 1..4
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	negctl_apb_double_strobe	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 000: 2 strobe(s), expected 1
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	negctl_apb_aud13	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 010: PSLVERR 1 (expected 0), PREADY 1
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	negctl_chan_d2	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 2322: cr 00000041/00000040 sar d485a702/d485a702 dar c48bf794/c48bf794 cnt 00000001/0001 stat 00020000/00020000 elig 0/0 irq 00
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	negctl_chan_half_step	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 457: cr 000000bb/000000bb sar 97dcb355/97dcb356 dar 77559be1/77559be1 cnt 00000004/0004 stat 00010003/00010003 elig 0/0 irq 00/
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	negctl_engine_eng1	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] ENG-1: a new beat was taken in the cycle ch4's result was reported (t=66000)
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	negctl_engine_ack_width	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch2 done (M2M 0): ack high 1 hclk, expected 2 (DMA-15) (t=146000)
+2026-11-03T19:42:54+05:30	dcf6f7d4335a	True	units	negctl_engine_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch4: wrote lane 00000057, read lane 00000006 (t=86000)
+2026-11-03T19:44:17+05:30	dcf6f7d4335a	True	fv_dma	dma_cover	-	COVERED	OK	[384 asserts, 314 covers in model] 
+2026-11-03T19:44:17+05:30	dcf6f7d4335a	True	fv_dma	mut_dma9_revert	-	FAIL	XFAIL:PLANTED	[18 asserts, 317 covers in model] props: u_dma_props_a.g_ch[0].a_beat_belongs_to_arm
+2026-11-03T19:44:17+05:30	dcf6f7d4335a	True	fv_dma	mut_dma10_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_haddr_aligned
+2026-11-03T19:44:17+05:30	dcf6f7d4335a	True	fv_dma	mut_dma12_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_no_read_before_refusal
+2026-11-03T19:44:17+05:30	dcf6f7d4335a	True	fv_dma	mut_dma14_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_beat_size_atomic
+2026-11-03T19:44:17+05:30	dcf6f7d4335a	True	fv_dma	mut_dma15_revert	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[3].a_no_ack_for_m2m
+2026-11-03T19:44:17+05:30	dcf6f7d4335a	True	fv_dma	mut_dma14_addr_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_read_addr
+2026-11-03T19:44:17+05:30	dcf6f7d4335a	True	fv_dma	mut_dma14_step_revert	-	FAIL	XFAIL:PLANTED	[12 asserts, 317 covers in model] props: u_dma_props_a.g_ch[2].a_sar_step
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_smoke	1	PASS	OK	
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_qual	1	PASS	OK	
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_coll	1	PASS	OK	
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_reset	1	PASS	OK	
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_arb	1	PASS	OK	
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_req	1	PASS	OK	
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_matrix	1	PASS	OK	
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_edge	1	PASS	OK	
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_bits	1	PASS	OK	
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_r9	1	PASS	OK	
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_rand	1	PASS	OK	
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	negctl_beatchk_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 75 [FAIL] line(s); 29 assertion failure(s) | first: [2738000] %Error: dma_props_a.sv:642: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: w
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_maxcnt	1	PASS	OK	
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_dma16	1	PASS	OK	
+2026-11-03T19:54:31+05:30	dcf6f7d4335a	True	env	env_held_err	1	PASS	OK	
+2026-11-03T19:54:41+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_prove	-	PROVEN	OK	[10 asserts, 3 covers in model] 
+2026-11-03T19:54:41+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_cover	-	COVERED	OK	[10 asserts, 3 covers in model] 
+2026-11-03T19:54:41+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_mut_tie_high	-	FAIL	XFAIL:PLANTED	[10 asserts, 3 covers in model] props: u_equal.a_grant, u_pairs.a_grant
+2026-11-03T19:54:41+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_mut_tie_high_shipped	-	BOUNDED(2)	OK	[2 asserts, 3 covers in model] 
+2026-11-03T19:54:48+05:30	dcf6f7d4335a	True	fv_dma_2clk	pclk_prove	-	PROVEN	OK	[10 asserts, 317 covers in model] 
+2026-11-03T19:54:48+05:30	dcf6f7d4335a	True	fv_dma_2clk	pclk_cover	-	COVERED	OK	[390 asserts, 3 covers in model] 
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	dma_cover	-	COVERED	OK	[384 asserts, 314 covers in model] 
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	dma_bmc	-	BOUNDED(32)	OK	[384 asserts, 317 covers in model] 
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	dma_prove	-	PROVEN	OK	[378 asserts, 317 covers in model] 
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	mut_dma9_revert	-	FAIL	XFAIL:PLANTED	[18 asserts, 317 covers in model] props: u_dma_props_a.g_ch[0].a_beat_belongs_to_arm
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	mut_dma10_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_haddr_aligned
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	mut_dma12_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_no_read_before_refusal
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	mut_dma14_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_beat_size_atomic
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	mut_dma15_revert	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[3].a_no_ack_for_m2m
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	mut_eng1	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_no_grant_while_reporting
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	mut_d2	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[5].a_hw_wins_en
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	mut_dma8	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[0].a_failed_beat_keeps_request
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	mut_iclr_wins	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[2].a_set_beats_clear_complete
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	mut_aud13	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_pslverr_rule
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	mut_dma14_addr_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_read_addr
+2026-11-03T20:41:15+05:30	dcf6f7d4335a	True	fv_dma	mut_dma14_step_revert	-	FAIL	XFAIL:PLANTED	[12 asserts, 317 covers in model] props: u_dma_props_a.g_ch[2].a_sar_step
+2026-11-03T20:41:19+05:30	dcf6f7d4335a	True	fv_dma_cov	cov_prove	-	PROVEN	OK	[6 asserts, 321 covers in model] 
+2026-11-03T20:41:19+05:30	dcf6f7d4335a	True	fv_dma_cov	cov_reach	-	COVERED	OK	[0 asserts, 4 covers in model] 
+2026-11-03T20:41:19+05:30	dcf6f7d4335a	True	fv_dma_cov	mut_cov_prio_inv	-	FAIL	XFAIL:PLANTED	[1 asserts, 321 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone
+2026-11-03T20:45:37+05:30	dcf6f7d4335a	True	block	tb_dma_top	1	PASS	OK	
+2026-11-03T20:45:53+05:30	dcf6f7d4335a	True	probe	probe_dma9	1	PASS	OK	
+2026-11-03T20:45:53+05:30	dcf6f7d4335a	True	probe	probe_dma10	1	PASS	OK	
+2026-11-03T20:45:53+05:30	dcf6f7d4335a	True	probe	probe_r9_sar	1	PASS	OK	
+2026-11-03T20:45:53+05:30	dcf6f7d4335a	True	probe	probe_dma11a	1	PASS	OK	
+2026-11-03T20:45:53+05:30	dcf6f7d4335a	True	probe	probe_dma11b	1	PASS	OK	
+2026-11-03T20:45:53+05:30	dcf6f7d4335a	True	probe	probe_unaligned	1	PASS	OK	
+2026-11-03T20:45:53+05:30	dcf6f7d4335a	True	probe	probe_stop_size	1	PASS	OK	
+2026-11-03T20:45:53+05:30	dcf6f7d4335a	True	probe	probe_m2m_ack	1	PASS	OK	
+2026-11-03T20:45:53+05:30	dcf6f7d4335a	True	probe	probe_ack	1	PASS	OK	
+2026-11-03T20:51:07+05:30	dcf6f7d4335a	True	regs	tb_dma_regs	1	PASS	OK	
+2026-11-03T20:51:07+05:30	dcf6f7d4335a	True	regs	negctl_size_reset	1	FAIL	XFAIL:PLANTED	pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [F01] [F11] reset: ch0 CR = 00000000 (want 00000040) (t=42000)
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_smoke	1	PASS	OK	
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_qual	1	PASS	OK	
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_coll	1	PASS	OK	
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_reset	1	PASS	OK	
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_arb	1	PASS	OK	
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_req	1	PASS	OK	
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_matrix	1	PASS	OK	
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_edge	1	PASS	OK	
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_bits	1	PASS	OK	
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_r9	1	PASS	OK	
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_rand	1	PASS	OK	
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	negctl_beatchk_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 75 [FAIL] line(s); 29 assertion failure(s) | first: [2738000] %Error: dma_props_a.sv:642: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: w
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_maxcnt	1	PASS	OK	
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_dma16	1	PASS	OK	
+2026-11-03T21:01:10+05:30	dcf6f7d4335a	True	env	env_held_err	1	PASS	OK	
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	tb_dma_apb_slave_unit	1	PASS	OK	
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	tb_dma_chan_unit	1	PASS	OK	
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	tb_dma_engine_unit	1	PASS	OK	
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	ack_param_1	1	PASS	OK	
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	ack_param_4	1	PASS	OK	
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	negctl_ack_param_0	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [0] %Fatal: dma_engine.v:105: Assertion failed in tb_dma_ack_param.dut: dma_engine: ACK_CYCLES = 0, must be 1..4
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	negctl_ack_param_5	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [0] %Fatal: dma_engine.v:105: Assertion failed in tb_dma_ack_param.dut: dma_engine: ACK_CYCLES = 5, must be 1..4
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	negctl_apb_double_strobe	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 000: 2 strobe(s), expected 1
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	negctl_apb_aud13	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 010: PSLVERR 1 (expected 0), PREADY 1
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	negctl_chan_d2	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 2322: cr 00000041/00000040 sar d485a702/d485a702 dar c48bf794/c48bf794 cnt 00000001/0001 stat 00020000/00020000 elig 0/0 irq 00
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	negctl_chan_half_step	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 457: cr 000000bb/000000bb sar 97dcb355/97dcb356 dar 77559be1/77559be1 cnt 00000004/0004 stat 00010003/00010003 elig 0/0 irq 00/
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	negctl_engine_eng1	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] ENG-1: a new beat was taken in the cycle ch4's result was reported (t=66000)
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	negctl_engine_ack_width	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch2 done (M2M 0): ack high 1 hclk, expected 2 (DMA-15) (t=146000)
+2026-11-03T21:01:19+05:30	dcf6f7d4335a	True	units	negctl_engine_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch4: wrote lane 00000057, read lane 00000006 (t=86000)
+2026-11-03T21:01:48+05:30	dcf6f7d4335a	True	chip	t_chip_dma_rearm	1	PASS	OK	
+2026-11-03T21:01:48+05:30	dcf6f7d4335a	True	chip	t_chip_dma_traffic	1	PASS	OK	
+2026-11-03T21:01:48+05:30	dcf6f7d4335a	True	chip	t_chip_dma_subword	1	PASS	OK	
+2026-11-03T21:01:48+05:30	dcf6f7d4335a	True	chip	t_chip_dma_uart	1	PASS	OK	
+2026-11-03T21:04:22+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_prove	-	PROVEN	OK	[10 asserts, 3 covers in model] 
+2026-11-03T21:04:22+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_cover	-	COVERED	OK	[10 asserts, 3 covers in model] 
+2026-11-03T21:04:22+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_mut_tie_high	-	FAIL	XFAIL:PLANTED	[10 asserts, 3 covers in model] props: u_equal.a_grant, u_pairs.a_grant
+2026-11-03T21:04:22+05:30	dcf6f7d4335a	True	fv_dma_arb	arb_mut_tie_high_shipped	-	BOUNDED(2)	OK	[2 asserts, 3 covers in model] 
+2026-11-03T21:04:30+05:30	dcf6f7d4335a	True	fv_dma_2clk	pclk_prove	-	PROVEN	OK	[10 asserts, 317 covers in model] 
+2026-11-03T21:04:30+05:30	dcf6f7d4335a	True	fv_dma_2clk	pclk_cover	-	COVERED	OK	[390 asserts, 3 covers in model] 
+2026-11-03T21:04:37+05:30	dcf6f7d4335a	True	fv_dma	mut_dma9_revert	-	FAIL	XFAIL:PLANTED	[18 asserts, 317 covers in model] props: u_dma_props_a.g_ch[0].a_beat_belongs_to_arm
+2026-11-03T21:04:37+05:30	dcf6f7d4335a	True	fv_dma	mut_dma10_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_haddr_aligned
+2026-11-03T21:04:37+05:30	dcf6f7d4335a	True	fv_dma	mut_dma12_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_no_read_before_refusal
+2026-11-03T21:04:37+05:30	dcf6f7d4335a	True	fv_dma	mut_dma14_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_beat_size_atomic
+2026-11-03T21:04:37+05:30	dcf6f7d4335a	True	fv_dma	mut_dma15_revert	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[3].a_no_ack_for_m2m
+2026-11-03T21:04:37+05:30	dcf6f7d4335a	True	fv_dma	mut_eng1	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_no_grant_while_reporting
+2026-11-03T21:04:37+05:30	dcf6f7d4335a	True	fv_dma	mut_d2	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[5].a_hw_wins_en
+2026-11-03T21:04:37+05:30	dcf6f7d4335a	True	fv_dma	mut_dma8	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[0].a_failed_beat_keeps_request
+2026-11-03T21:04:37+05:30	dcf6f7d4335a	True	fv_dma	mut_iclr_wins	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[2].a_set_beats_clear_complete
+2026-11-03T21:04:37+05:30	dcf6f7d4335a	True	fv_dma	mut_aud13	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_pslverr_rule
+2026-11-03T21:04:37+05:30	dcf6f7d4335a	True	fv_dma	mut_dma14_addr_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_read_addr
+2026-11-03T21:04:37+05:30	dcf6f7d4335a	True	fv_dma	mut_dma14_step_revert	-	FAIL	XFAIL:PLANTED	[12 asserts, 317 covers in model] props: u_dma_props_a.g_ch[2].a_sar_step
+2026-11-03T21:04:40+05:30	dcf6f7d4335a	True	fv_dma_cov	cov_prove	-	PROVEN	OK	[6 asserts, 321 covers in model] 
+2026-11-03T21:04:40+05:30	dcf6f7d4335a	True	fv_dma_cov	cov_reach	-	COVERED	OK	[0 asserts, 4 covers in model] 
+2026-11-03T21:04:40+05:30	dcf6f7d4335a	True	fv_dma_cov	mut_cov_prio_inv	-	FAIL	XFAIL:PLANTED	[1 asserts, 321 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone
+2026-11-03T21:16:48+05:30	dcf6f7d4335a	True	block.cov	tb_dma_top	1	PASS	OK	
+2026-11-03T21:17:09+05:30	dcf6f7d4335a	True	probe.cov	probe_dma9	1	PASS	OK	
+2026-11-03T21:17:09+05:30	dcf6f7d4335a	True	probe.cov	probe_dma10	1	PASS	OK	
+2026-11-03T21:17:09+05:30	dcf6f7d4335a	True	probe.cov	probe_r9_sar	1	PASS	OK	
+2026-11-03T21:17:09+05:30	dcf6f7d4335a	True	probe.cov	probe_dma11a	1	PASS	OK	
+2026-11-03T21:17:09+05:30	dcf6f7d4335a	True	probe.cov	probe_dma11b	1	PASS	OK	
+2026-11-03T21:17:09+05:30	dcf6f7d4335a	True	probe.cov	probe_unaligned	1	PASS	OK	
+2026-11-03T21:17:09+05:30	dcf6f7d4335a	True	probe.cov	probe_stop_size	1	PASS	OK	
+2026-11-03T21:17:09+05:30	dcf6f7d4335a	True	probe.cov	probe_m2m_ack	1	PASS	OK	
+2026-11-03T21:17:09+05:30	dcf6f7d4335a	True	probe.cov	probe_ack	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_smoke	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_qual	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_coll	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_reset	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_arb	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_req	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_matrix	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_edge	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_bits	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_r9	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_rand	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	negctl_beatchk_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 70 [FAIL] line(s); 24 assertion failure(s) | first: [2738000] %Error: dma_props_a.sv:642: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: w
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_maxcnt	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_dma16	1	PASS	OK	
+2026-11-03T21:32:06+05:30	dcf6f7d4335a	True	env.cov	env_held_err	1	PASS	OK	
+2026-11-03T21:32:17+05:30	dcf6f7d4335a	True	regs.cov	tb_dma_regs	1	PASS	OK	
+2026-11-03T21:32:17+05:30	dcf6f7d4335a	True	regs.cov	negctl_size_reset	1	FAIL	XFAIL:PLANTED	pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [F01] [F11] reset: ch0 CR = 00000000 (want 00000040) (t=42000)
+2026-11-03T21:39:29+05:30	dfab0bbf08f6	True	fv_dma_arb	arb_prove	-	PROVEN	OK	[10 asserts, 3 covers in model] 
+2026-11-03T21:39:29+05:30	dfab0bbf08f6	True	fv_dma_arb	arb_cover	-	COVERED	OK	[10 asserts, 3 covers in model] 
+2026-11-03T21:39:29+05:30	dfab0bbf08f6	True	fv_dma_arb	arb_mut_tie_high	-	FAIL	XFAIL:PLANTED	[10 asserts, 3 covers in model] props: u_equal.a_grant, u_pairs.a_grant
+2026-11-03T21:39:29+05:30	dfab0bbf08f6	True	fv_dma_arb	arb_mut_tie_high_shipped	-	BOUNDED(2)	OK	[2 asserts, 3 covers in model] 
+2026-11-03T21:39:42+05:30	dfab0bbf08f6	True	fv_dma_2clk	pclk_prove	-	PROVEN	OK	[10 asserts, 317 covers in model] 
+2026-11-03T21:39:42+05:30	dfab0bbf08f6	True	fv_dma_2clk	pclk_cover	-	COVERED	OK	[390 asserts, 3 covers in model] 
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	dma_cover	-	COVERED	OK	[384 asserts, 314 covers in model] 
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	dma_bmc	-	BOUNDED(32)	OK	[384 asserts, 317 covers in model] 
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	dma_prove	-	PROVEN	OK	[378 asserts, 317 covers in model] 
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	mut_dma9_revert	-	FAIL	XFAIL:PLANTED	[18 asserts, 317 covers in model] props: u_dma_props_a.g_ch[0].a_beat_belongs_to_arm
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	mut_dma10_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_haddr_aligned
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	mut_dma12_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_no_read_before_refusal
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	mut_dma14_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_beat_size_atomic
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	mut_dma15_revert	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[3].a_no_ack_for_m2m
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	mut_eng1	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_no_grant_while_reporting
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	mut_d2	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[5].a_hw_wins_en
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	mut_dma8	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[0].a_failed_beat_keeps_request
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	mut_iclr_wins	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[2].a_set_beats_clear_complete
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	mut_aud13	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_pslverr_rule
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	mut_dma14_addr_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_read_addr
+2026-11-03T22:35:31+05:30	dfab0bbf08f6	True	fv_dma	mut_dma14_step_revert	-	FAIL	XFAIL:PLANTED	[12 asserts, 317 covers in model] props: u_dma_props_a.g_ch[2].a_sar_step
+2026-11-03T22:35:35+05:30	dfab0bbf08f6	True	fv_dma_cov	cov_prove	-	PROVEN	OK	[6 asserts, 321 covers in model] 
+2026-11-03T22:35:35+05:30	dfab0bbf08f6	True	fv_dma_cov	cov_reach	-	COVERED	OK	[0 asserts, 4 covers in model] 
+2026-11-03T22:35:35+05:30	dfab0bbf08f6	True	fv_dma_cov	mut_cov_prio_inv	-	FAIL	XFAIL:PLANTED	[1 asserts, 321 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone
+2026-11-03T22:39:56+05:30	dfab0bbf08f6	True	block	tb_dma_top	1	PASS	OK	
+2026-11-03T22:40:17+05:30	dfab0bbf08f6	True	probe	probe_dma9	1	PASS	OK	
+2026-11-03T22:40:17+05:30	dfab0bbf08f6	True	probe	probe_dma10	1	PASS	OK	
+2026-11-03T22:40:17+05:30	dfab0bbf08f6	True	probe	probe_r9_sar	1	PASS	OK	
+2026-11-03T22:40:17+05:30	dfab0bbf08f6	True	probe	probe_dma11a	1	PASS	OK	
+2026-11-03T22:40:17+05:30	dfab0bbf08f6	True	probe	probe_dma11b	1	PASS	OK	
+2026-11-03T22:40:17+05:30	dfab0bbf08f6	True	probe	probe_unaligned	1	PASS	OK	
+2026-11-03T22:40:17+05:30	dfab0bbf08f6	True	probe	probe_stop_size	1	PASS	OK	
+2026-11-03T22:40:17+05:30	dfab0bbf08f6	True	probe	probe_m2m_ack	1	PASS	OK	
+2026-11-03T22:40:17+05:30	dfab0bbf08f6	True	probe	probe_ack	1	PASS	OK	
+2026-11-03T22:46:01+05:30	dfab0bbf08f6	True	regs	tb_dma_regs	1	PASS	OK	
+2026-11-03T22:46:01+05:30	dfab0bbf08f6	True	regs	negctl_size_reset	1	FAIL	XFAIL:PLANTED	pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [F01] [F11] reset: ch0 CR = 00000000 (want 00000040) (t=42000)
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_smoke	1	PASS	OK	
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_qual	1	PASS	OK	
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_coll	1	PASS	OK	
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_reset	1	PASS	OK	
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_arb	1	PASS	OK	
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_req	1	PASS	OK	
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_matrix	1	PASS	OK	
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_edge	1	PASS	OK	
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_bits	1	PASS	OK	
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_r9	1	PASS	OK	
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_rand	1	PASS	OK	
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	negctl_beatchk_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 75 [FAIL] line(s); 29 assertion failure(s) | first: [2738000] %Error: dma_props_a.sv:642: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: w
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_maxcnt	1	PASS	OK	
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_dma16	1	PASS	OK	
+2026-11-03T22:56:29+05:30	dfab0bbf08f6	True	env	env_held_err	1	PASS	OK	
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	tb_dma_apb_slave_unit	1	PASS	OK	
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	tb_dma_chan_unit	1	PASS	OK	
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	tb_dma_engine_unit	1	PASS	OK	
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	ack_param_1	1	PASS	OK	
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	ack_param_4	1	PASS	OK	
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	negctl_ack_param_0	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [0] %Fatal: dma_engine.v:105: Assertion failed in tb_dma_ack_param.dut: dma_engine: ACK_CYCLES = 0, must be 1..4
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	negctl_ack_param_5	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [0] %Fatal: dma_engine.v:105: Assertion failed in tb_dma_ack_param.dut: dma_engine: ACK_CYCLES = 5, must be 1..4
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	negctl_apb_double_strobe	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 000: 2 strobe(s), expected 1
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	negctl_apb_aud13	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] write 010: PSLVERR 1 (expected 0), PREADY 1
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	negctl_chan_d2	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 2322: cr 00000041/00000040 sar d485a702/d485a702 dar c48bf794/c48bf794 cnt 00000001/0001 stat 00020000/00020000 elig 0/0 irq 00
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	negctl_chan_half_step	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] cycle 457: cr 000000bb/000000bb sar 97dcb355/97dcb356 dar 77559be1/77559be1 cnt 00000004/0004 stat 00010003/00010003 elig 0/0 irq 00/
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	negctl_engine_eng1	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] ENG-1: a new beat was taken in the cycle ch4's result was reported (t=66000)
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	negctl_engine_ack_width	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch2 done (M2M 0): ack high 1 hclk, expected 2 (DMA-15) (t=146000)
+2026-11-03T22:56:39+05:30	dfab0bbf08f6	True	units	negctl_engine_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s) | first: [FAIL] beat ch4: wrote lane 00000057, read lane 00000006 (t=86000)
+2026-11-03T22:57:11+05:30	dfab0bbf08f6	True	chip	t_chip_dma_rearm	1	PASS	OK	
+2026-11-03T22:57:11+05:30	dfab0bbf08f6	True	chip	t_chip_dma_traffic	1	PASS	OK	
+2026-11-03T22:57:11+05:30	dfab0bbf08f6	True	chip	t_chip_dma_subword	1	PASS	OK	
+2026-11-03T22:57:11+05:30	dfab0bbf08f6	True	chip	t_chip_dma_uart	1	PASS	OK	
+2026-11-03T22:59:49+05:30	dfab0bbf08f6	True	fv_dma_arb	arb_prove	-	PROVEN	OK	[10 asserts, 3 covers in model] 
+2026-11-03T22:59:49+05:30	dfab0bbf08f6	True	fv_dma_arb	arb_cover	-	COVERED	OK	[10 asserts, 3 covers in model] 
+2026-11-03T22:59:49+05:30	dfab0bbf08f6	True	fv_dma_arb	arb_mut_tie_high	-	FAIL	XFAIL:PLANTED	[10 asserts, 3 covers in model] props: u_equal.a_grant, u_pairs.a_grant
+2026-11-03T22:59:49+05:30	dfab0bbf08f6	True	fv_dma_arb	arb_mut_tie_high_shipped	-	BOUNDED(2)	OK	[2 asserts, 3 covers in model] 
+2026-11-03T22:59:56+05:30	dfab0bbf08f6	True	fv_dma_2clk	pclk_prove	-	PROVEN	OK	[10 asserts, 317 covers in model] 
+2026-11-03T22:59:56+05:30	dfab0bbf08f6	True	fv_dma_2clk	pclk_cover	-	COVERED	OK	[390 asserts, 3 covers in model] 
+2026-11-03T23:00:03+05:30	dfab0bbf08f6	True	fv_dma	mut_dma9_revert	-	FAIL	XFAIL:PLANTED	[18 asserts, 317 covers in model] props: u_dma_props_a.g_ch[0].a_beat_belongs_to_arm
+2026-11-03T23:00:03+05:30	dfab0bbf08f6	True	fv_dma	mut_dma10_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_haddr_aligned
+2026-11-03T23:00:03+05:30	dfab0bbf08f6	True	fv_dma	mut_dma12_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_no_read_before_refusal
+2026-11-03T23:00:03+05:30	dfab0bbf08f6	True	fv_dma	mut_dma14_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_beat_size_atomic
+2026-11-03T23:00:03+05:30	dfab0bbf08f6	True	fv_dma	mut_dma15_revert	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[3].a_no_ack_for_m2m
+2026-11-03T23:00:03+05:30	dfab0bbf08f6	True	fv_dma	mut_eng1	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_no_grant_while_reporting
+2026-11-03T23:00:03+05:30	dfab0bbf08f6	True	fv_dma	mut_d2	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[5].a_hw_wins_en
+2026-11-03T23:00:03+05:30	dfab0bbf08f6	True	fv_dma	mut_dma8	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[0].a_failed_beat_keeps_request
+2026-11-03T23:00:03+05:30	dfab0bbf08f6	True	fv_dma	mut_iclr_wins	-	FAIL	XFAIL:PLANTED	[6 asserts, 317 covers in model] props: u_dma_props_a.g_ch[2].a_set_beats_clear_complete
+2026-11-03T23:00:03+05:30	dfab0bbf08f6	True	fv_dma	mut_aud13	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_pslverr_rule
+2026-11-03T23:00:03+05:30	dfab0bbf08f6	True	fv_dma	mut_dma14_addr_revert	-	FAIL	XFAIL:PLANTED	[1 asserts, 317 covers in model] props: u_dma_props_a.a_read_addr
+2026-11-03T23:00:03+05:30	dfab0bbf08f6	True	fv_dma	mut_dma14_step_revert	-	FAIL	XFAIL:PLANTED	[12 asserts, 317 covers in model] props: u_dma_props_a.g_ch[2].a_sar_step
+2026-11-03T23:00:07+05:30	dfab0bbf08f6	True	fv_dma_cov	cov_prove	-	PROVEN	OK	[6 asserts, 321 covers in model] 
+2026-11-03T23:00:07+05:30	dfab0bbf08f6	True	fv_dma_cov	cov_reach	-	COVERED	OK	[0 asserts, 4 covers in model] 
+2026-11-03T23:00:07+05:30	dfab0bbf08f6	True	fv_dma_cov	mut_cov_prio_inv	-	FAIL	XFAIL:PLANTED	[1 asserts, 321 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone
+2026-11-03T23:08:19+05:30	dfab0bbf08f6	True	block.cov	tb_dma_top	1	PASS	OK	
+2026-11-03T23:08:46+05:30	dfab0bbf08f6	True	probe.cov	probe_dma9	1	PASS	OK	
+2026-11-03T23:08:46+05:30	dfab0bbf08f6	True	probe.cov	probe_dma10	1	PASS	OK	
+2026-11-03T23:08:46+05:30	dfab0bbf08f6	True	probe.cov	probe_r9_sar	1	PASS	OK	
+2026-11-03T23:08:46+05:30	dfab0bbf08f6	True	probe.cov	probe_dma11a	1	PASS	OK	
+2026-11-03T23:08:46+05:30	dfab0bbf08f6	True	probe.cov	probe_dma11b	1	PASS	OK	
+2026-11-03T23:08:46+05:30	dfab0bbf08f6	True	probe.cov	probe_unaligned	1	PASS	OK	
+2026-11-03T23:08:46+05:30	dfab0bbf08f6	True	probe.cov	probe_stop_size	1	PASS	OK	
+2026-11-03T23:08:46+05:30	dfab0bbf08f6	True	probe.cov	probe_m2m_ack	1	PASS	OK	
+2026-11-03T23:08:46+05:30	dfab0bbf08f6	True	probe.cov	probe_ack	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_smoke	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_qual	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_coll	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_reset	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_arb	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_req	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_matrix	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_edge	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_bits	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_r9	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_rand	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	negctl_beatchk_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 70 [FAIL] line(s); 24 assertion failure(s) | first: [2738000] %Error: dma_props_a.sv:642: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: w
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_maxcnt	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_dma16	1	PASS	OK	
+2026-11-03T23:24:49+05:30	dfab0bbf08f6	True	env.cov	env_held_err	1	PASS	OK	
+2026-11-03T23:25:00+05:30	dfab0bbf08f6	True	regs.cov	tb_dma_regs	1	PASS	OK	
+2026-11-03T23:25:00+05:30	dfab0bbf08f6	True	regs.cov	negctl_size_reset	1	FAIL	XFAIL:PLANTED	pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [F01] [F11] reset: ch0 CR = 00000000 (want 00000040) (t=42000)
