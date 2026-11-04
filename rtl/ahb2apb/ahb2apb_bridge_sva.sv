@@ -46,7 +46,7 @@ module ahb2apb_bridge_sva #(
     input wire [4:0]  to_cnt
 );
     localparam [2:0] H_IDLE = 3'd0, H_CAPT = 3'd1, H_WAIT = 3'd2,
-                     H_OK   = 3'd3, H_ERR1 = 3'd4, H_ERR2 = 3'd5;
+                     H_OK   = 3'd3, H_ERR1 = 3'd4, H_ERR2 = 3'd5, H_EWAIT = 3'd6;
     localparam [1:0] P_IDLE = 2'd0, P_SETUP = 2'd1, P_ACCESS = 2'd2, P_DONE = 2'd3;
     // the longest legal access: setup, the divider (1 << 2 = 8 cycles at /8), the
     // timeout, done; twice for the hclk side and a margin of the toggle handshake
@@ -80,8 +80,10 @@ module ahb2apb_bridge_sva #(
         else $error("[SVA-FAIL] a_good_one_request: capture without a request toggle");
     // [N-7.12], [N-7.19] a sub-word access or an absent window makes no APB transfer
     a_bad_no_request: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        (hstate inside {H_IDLE, H_OK, H_ERR2}) && !(hstate == H_ERR2 && !prst_ok_q)
-        && xfer && (!win_ok || !word_ok) |=> ($stable(req_tgl) && hstate == H_ERR1) )
+        (hstate inside {H_IDLE, H_OK, H_ERR2})
+        && xfer && (!win_ok || !word_ok) |=> ($stable(req_tgl) && hstate == ($past(prst_ok_q) ? H_ERR1 : H_EWAIT)) )
+        // (Track A, 2026-11-01, APB-4: in the [N-9.2] window an illegal access waits in H_EWAIT
+        //  with OKAY and gives its ERROR when the APB side is out of reset; for Karthik's OK)
         else $error("[SVA-FAIL] a_bad_no_request: an illegal access started an APB transfer");
     // [N-7.20] a slave error, a timeout, becomes ERROR on the bus; otherwise OKAY
     a_slverr_to_error: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)

@@ -61,6 +61,7 @@ module ahb2apb_sva #(
     input wire [11:0] pslverr_i,
     // white-box
     input wire [2:0]  hstate,
+    input wire        prst_ok_q, req_tgl,   // APB-4 properties (2026-11-01)
     input wire [3:0]  win_cap,
     input wire [11:0] addr_cap,
     input wire        write_cap,
@@ -71,7 +72,7 @@ module ahb2apb_sva #(
     input wire [4:0]  to_cnt,           // the pclk FSM's timeout counter (coverage evidence)
     input wire [1:0]  pstate            // the pclk FSM's state
 );
-    localparam [2:0] H_WAIT = 3'd2;
+    localparam [2:0] H_WAIT = 3'd2, H_ERR1 = 3'd4, H_EWAIT = 3'd6;
     localparam integer HANG_MAX = 2 * (4 + 7 + TIMEOUT) + 8;   // hclk cycles, worst legal transfer + margin
 
     // ---- AHB side model (hclk) ------------------------------------------------------
@@ -214,7 +215,17 @@ module ahb2apb_sva #(
         !(dp && hreadyout_o && dp_legal && !dp_write && !hresp_o) || hrdata_o === end_rdata);
     // a_error_two_cycle: every ERROR is HREADY low then HREADY high
     a_error_two_cycle: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        !(past_ok && $past(hresp_o && !hreadyout_o) && preset_n_i && $past(preset_n_i)) || (hresp_o && hreadyout_o));
+        !(past_ok && $past(hresp_o && !hreadyout_o)) || (hresp_o && hreadyout_o));
+    // (2026-11-01, TB-A22: the property excused cycles with preset_n low -- exactly the [N-9.2]
+    //  window in which APB-4 held ERROR with HREADY low -- and the environment never opened it)
+    // APB-4: an illegal access accepted in the [N-9.2] window waits with OKAY, makes no APB
+    // transfer, and starts its two-cycle ERROR once the APB side is out of reset
+    a_ewait_okay: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        !(hstate == H_EWAIT) || (!hresp_o && !hreadyout_o));
+    a_ewait_until_apb: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        !(past_ok && $past(hstate == H_EWAIT)) || (hstate == ($past(prst_ok_q) ? H_ERR1 : H_EWAIT)));
+    a_ewait_no_apb: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        !(past_ok && $past(hstate == H_EWAIT)) || req_tgl == $past(req_tgl));
     a_error_first_cycle: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
         !(past_ok && hresp_o && hreadyout_o) || $past(hresp_o && !hreadyout_o));
     a_okay_outside_error: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
@@ -236,7 +247,7 @@ module ahb2apb_sva #(
     // white-box invariants, the evidence for coverage waivers (tb/ahb2apb/cov):
     // the hclk FSM uses six of its eight codes; only legal windows are captured; the
     // timeout counter never passes TIMEOUT-1 (bit 4 of the 5-bit counter stays 0)
-    a_hstate_legal: assert property (@(posedge hclk_i) disable iff (!hreset_n_i) hstate <= 3'd5);
+    a_hstate_legal: assert property (@(posedge hclk_i) disable iff (!hreset_n_i) hstate <= 3'd6);   // H_EWAIT = 6 (APB-4)
     a_win_cap_legal: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
         win_cap < 4'd12 && (hstate != H_WAIT || WINDOW_MASK[win_cap]));
     a_to_cnt_max: assert property (@(posedge pclk_i) disable iff (!preset_n_i) to_cnt <= TIMEOUT[4:0] - 5'd1);
@@ -248,6 +259,8 @@ module ahb2apb_sva #(
     c_back_to_back: cover property (@(posedge hclk_i) disable iff (!hreset_n_i) dp && hreadyout_o && acc);
     c_err_resp:     cover property (@(posedge hclk_i) disable iff (!hreset_n_i) dp && hreadyout_o && hresp_o && dp_legal);
     c_reset_gap:    cover property (@(posedge hclk_i) disable iff (!hreset_n_i) !preset_n_i && acc);
+    c_err_in_gap:   cover property (@(posedge hclk_i) disable iff (!hreset_n_i) hstate == H_EWAIT);
+    c_ewait_to_err: cover property (@(posedge hclk_i) disable iff (!hreset_n_i) past_ok && $past(hstate == H_EWAIT) && hstate == H_ERR1);
 endmodule
 
 bind ahb2apb_bridge ahb2apb_sva #(.WINDOW_MASK(WINDOW_MASK), .APB_DIV(APB_DIV), .TIMEOUT(TIMEOUT)) u_apb_sva (
@@ -256,7 +269,7 @@ bind ahb2apb_bridge ahb2apb_sva #(.WINDOW_MASK(WINDOW_MASK), .APB_DIV(APB_DIV), 
     .hready_i(hready_i), .hrdata_o(hrdata_o), .hreadyout_o(hreadyout_o), .hresp_o(hresp_o),
     .psel_o(psel_o), .penable_o(penable_o), .pwrite_o(pwrite_o), .paddr_o(paddr_o), .pwdata_o(pwdata_o),
     .prdata_i(prdata_i), .pready_i(pready_i), .pslverr_i(pslverr_i),
-    .hstate(hstate), .win_cap(win_cap), .addr_cap(addr_cap), .write_cap(write_cap), .wdata_cap(wdata_cap),
+    .hstate(hstate), .prst_ok_q(prst_ok_q), .req_tgl(req_tgl), .win_cap(win_cap), .addr_cap(addr_cap), .write_cap(write_cap), .wdata_cap(wdata_cap),
     .prdata_sel(prdata_sel), .pready_sel(pready_sel), .pslverr_sel(pslverr_sel),
     .to_cnt(u_fsm.to_cnt), .pstate(u_fsm.state));
 `endif

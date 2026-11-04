@@ -1,4 +1,4 @@
-// MUTANT apb2 (bus plan B2 negative control): APB-2 revert: no aperture check
+// MUTANT apb2 (bus plan B2 negative control): APB-2 revert: no aperture check (GENERATED, gen_bridge_mutants.py)
 `timescale 1ns/1ps
 `default_nettype none
 // =============================================================================
@@ -87,7 +87,8 @@ module ahb2apb_bridge #(
 );
 
     localparam [2:0] H_IDLE = 3'd0, H_CAPT = 3'd1, H_WAIT = 3'd2,
-                     H_OK   = 3'd3, H_ERR1 = 3'd4, H_ERR2 = 3'd5;
+                     H_OK   = 3'd3, H_ERR1 = 3'd4, H_ERR2 = 3'd5,
+                     H_EWAIT = 3'd6;   // APB-4: an illegal access waits (OKAY) for preset_n
 
     // =========================================================================
     // Reset release gate
@@ -142,11 +143,16 @@ module ahb2apb_bridge #(
                     // the bus is ready. One accepted during the [N-9.2] window
                     // (APB side still in reset) is captured and simply waits:
                     // the pclk FSM picks it up when preset_n releases.
-                    if (!prst_ok_q && hstate == H_ERR2) begin
-                        hstate <= H_ERR2;          // hold the 2nd ERROR cycle
-                    end else if (xfer) begin
+                    // ERRATUM APB-4 (fixed 2026-11-01): an ILLEGAL access accepted in
+                    // that window went to H_ERR1 at once and was then held in H_ERR2
+                    // with HREADYOUT low until preset_n released: HRESP = ERROR with
+                    // HREADY low for many cycles, which AHB-Lite forbids (wait states
+                    // carry OKAY; an ERROR is exactly two cycles). It now waits in
+                    // H_EWAIT (OKAY, not ready), like a legal access does, and gives its
+                    // two-cycle ERROR once the APB side is out of reset.
+                    if (xfer) begin
                         if (!win_ok || !word_ok) begin
-                            hstate <= H_ERR1;
+                            hstate <= prst_ok_q ? H_ERR1 : H_EWAIT;
                         end else begin
                             hstate    <= H_CAPT;
                             win_cap   <= win;
@@ -170,6 +176,7 @@ module ahb2apb_bridge #(
                     end
                 end
                 H_ERR1:  hstate <= H_ERR2;
+                H_EWAIT: if (prst_ok_q) hstate <= H_ERR1;   // APB-4
                 default: hstate <= H_IDLE;
             endcase
         end
@@ -219,20 +226,9 @@ module ahb2apb_bridge #(
         .pslverr_o     (pslverr_sel)
     );
 
-`ifndef SYNTHESIS
-    // a_capture_stable_at_phase: the captures never move between two cycles
-    // that are both inside an APB transfer (H_WAIT), so every pclk edge the
-    // FSM samples on sees a stable value.
-    reg [44:0] cap_prev;
-    reg [2:0]  hstate_d;
-    always @(posedge hclk_i) begin
-        if (hreset_n_i && hstate == H_WAIT && hstate_d == H_WAIT &&
-            cap_prev !== {win_cap, addr_cap, write_cap, wdata_cap[27:0]})
-            $display("[BRG-ASSERT] capture moved during an APB transfer at %0t", $time);
-        cap_prev <= {win_cap, addr_cap, write_cap, wdata_cap[27:0]};
-        hstate_d <= hstate;
-    end
-`endif
+    // TB-49: a_capture_stable_at_phase used to be a `$display("[BRG-ASSERT] ...")` here,
+    // which no regression counted as a failure. It is now a bound, formally PROVEN
+    // property in rtl/ahb2apb/ahb2apb_sva.sv (verification only, not synthesised).
 
 endmodule
 

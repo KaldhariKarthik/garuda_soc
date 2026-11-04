@@ -118,7 +118,9 @@ module dma_top_sva #(
     // until then and contradicted the merged RTL (dma_apb_slave.v ERRATUM AUD-13).
     a_apb_stat_ro: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
         (psel_i && penable_i && pwrite_i && (paddr_i == 12'h100 ||
-         (paddr_i[11:8] == 4'h0 && paddr_i[7:5] < 3'd6 && paddr_i[4:2] == 3'd4))) |-> !pslverr_o )
+         (paddr_i[11:8] == 4'h0 && paddr_i[7:5] < 3'd6 && paddr_i[4:2] == 3'd4 && paddr_i[1:0] == 2'b00))) |-> !pslverr_o )
+        // (paddr[1:0] == 0, 2026-11-01, TB-A18: a misaligned offset of STAT is not a register and
+        //  answers PSLVERR, as dma_apb_slave's chan_rgn says; tb_dma_regs writes those)
         else $error("[SVA-FAIL] a_apb_stat_ro: a write to STAT or GSTAT raised PSLVERR (AUD-13)");
     a_apb_err_only_access: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
         pslverr_o |-> (psel_i && penable_i) )

@@ -38,8 +38,12 @@ module tb_apb_env;
     localparam [15:0] MASK = `APB_ENV_MASK;
 
     // ---- clocks and resets (reset starts X: TB-22 / TB-46) ---------------------------
-    reg refclk = 1'b0, ext_rst_n;
-    initial #0 ext_rst_n = 1'b0;
+    reg refclk = 1'b0, ext_rst_n = 1'b1;   // starts high so the reset FALLS (TB-A17)
+    // TB-A17 (2026-11-01): low from time 0 is no edge in a two-state simulator (Verilator), so
+    // clk_div's `negedge raw_rst_n` branch never ran and pclk started in the wrong phase
+    // (a_pclk_phase failed on every cycle); high, then low at 0.5 ns (before the first refclk
+    // edge, so $rose(raw_rst_n) never sees the start value as a release), is a real falling edge
+    initial #0.5 ext_rst_n = 1'b0;
     always #1 refclk = ~refclk;
     wire aon, hclk, pclk, pclk_phase, div_busy; wire [1:0] div_act;
     clk_div u_clk (.refclk_i(refclk), .raw_rst_n_i(ext_rst_n), .div_sel_i(2'b00), .aon_clk_o(aon),
