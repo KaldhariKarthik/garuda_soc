@@ -1,0 +1,58 @@
+# vPlan trace configuration for the memories (tools/run/vplan_trace.py mem; Track A plan
+# 6A.6). [alias]: vPlan NAMEs (planned 2026-10-04) -> what was built, keyed by element_id;
+# the vPlan CSV keeps its names. [rule]: names that are a kind of check.
+vplan = "tb/mem/GARUDA_MEM_vplan.csv"
+sva_files = ["rtl/mem/mem_sva.sv", "tb/mem/formal/ilock_sva.sv", "tb/mem/formal/sram_wrapper_fv.sv"]
+cov_files = ["tb/mem/mem_cov.sv"]
+cov_report = "logs/mem/summary/cov_mem.txt"
+formal_manifests = ["tb/mem/formal/mem_isram.toml", "tb/mem/formal/mem_dsram.toml", "tb/mem/formal/mem_brom.toml", "tb/mem/formal/ilock.toml"]
+formal_summaries = ["logs/mem/summary/fv_mem_isram.tsv", "logs/mem/summary/fv_mem_dsram.tsv", "logs/mem/summary/fv_mem_brom.tsv", "logs/mem/summary/fv_mem_ilock.tsv"]
+suite_summaries = ["logs/mem/summary/block.tsv", "logs/mem/summary/seeds.tsv", "logs/mem/summary/mem_mut.tsv", "logs/mem/summary/boot.tsv", "logs/mem/summary/crc_vectors.tsv", "logs/debug/summary/chip.tsv"]
+
+[alias]
+"MEM.F01.COV2" = "cg_mem_addr.cp_isram_addr"
+"MEM.F02.COV2" = "cg_mem_addr.cp_dsram_boundary"
+"MEM.F02.CHK3" = ["a_bank_read_issue", "a_bank_read_return", "a_data_integrity"]
+"MEM.F03.CHK1" = ["a_rom_write_refused", "a_rom_never_written"]
+"MEM.F05.CHK1" = "a_misaligned_refused"
+"MEM.F07.CHK1" = "a_zero_wait"
+"MEM.F10.COV2" = "c_cleared_by_reset"
+"MEM.F11.CHK1" = "a_lock_refused"
+"MEM.F12.CHK1" = "a_lock_bypass"
+"MEM.F13.CHK2" = "a_lock_refused"
+# boot rows (Track A 2026-11-01): tb/mem/run/boot.toml on tb_chip (+MODE=flash / bootfault)
+"MEM.F14.TC1"  = ["boot_good", "boot_good_data"]
+"MEM.F15.TC1"  = ["crc_text_first", "crc_text_last", "crc_data", "crc_hdr_magic", "crc_hdr_textlen", "crc_hdr_datalen", "crc_hdr_entry", "crc_hdr_textcrc", "crc_hdr_datacrc", "crc_hdr_hdrcrc"]
+"MEM.F16.TC1"  = ["crc_text_first", "blank", "bus_error"]
+"MEM.F17.TC1"  = "blank"
+"MEM.F18.TC1"  = ["hdr_textlen_big", "hdr_textlen_odd", "hdr_datalen_odd", "hdr_datalen_big", "hdr_entry_out", "hdr_entry_odd", "hdr_reserved"]
+"MEM.F19.TC1"  = "t_chip_jtag"
+"MEM.F20.TC1"  = ["bus_error", "flash_stops"]
+"MEM.F21.TC1"  = ["miso_low", "miso_high", "flash_stops"]
+"MEM.F23.CHK1" = ["boot_good", "boot_good_data"]
+"MEM.F24.TC1"  = "boot_good"
+
+[rule."sb_*"]
+what  = "Track A seeded soak: bus monitor + scoreboard against an independent byte model of the three memories (tb/mem/tb_mem_subsystem.sv soak2), plus Karthik's directed checks; formal: a_data_integrity and a_read_returns_stored PROVEN unbounded"
+tests = ["tb_mem_subsystem", "soak_s6600", "mut_bypass_all_lanes", "mut_bank_swap", "mut_rdbank_stale"]
+[rule.ahb_checker]
+what  = "tb/ahb/ahb_lite_checker.v in the block bench (count checked against the deliberate misaligned transfers)"
+tests = ["tb_mem_subsystem"]
+[rule."t_chip_*"]
+what  = "chip programs: the chip suites (tb/debug/run/chip.toml, tb/mem/run/boot.toml); boot rows are mapped by alias to the boot suite (2026-11-01)"
+tests = []
+[rule."xprop*"]
+what  = "X-propagation chip runs: Xcelium only (Karthik)"
+tests = []
+[rule.hal_cdc]
+what  = "static CDC check (HAL / Conformal CDC): Karthik, plan 3.4 static part"
+tests = []
+[rule.conn_reach]
+what  = "chip connectivity: Karthik's JasperGold Connectivity (flow/formal/conn) and Track A's AHB decode proofs"
+tests = []
+[rule.crc_vectors]
+what  = "boot ROM CRC routine (sw/bootrom/boot.c crc32_words, host build) against zlib.crc32 (tb/mem/boot/crc_vectors.py)"
+suites = ["logs/mem/summary/crc_vectors.tsv"]
+[rule.review]
+what  = "review item (F28 macro assumptions): the review record flow/reviews/mem.md"
+tests = []

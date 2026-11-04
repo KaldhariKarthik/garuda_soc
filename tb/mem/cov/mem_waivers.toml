@@ -1,0 +1,253 @@
+# Memories coverage waivers (H5; Track A plan 6A.6 M3). Read by tools/cov/cov_report.py.
+# Same rules as tb/dma/cov/dma_waivers.toml: id, metric, file, match, category, reason,
+# evidence, reviewer. A reachable hole is never waived: it gets a test.
+# Formal evidence: tb/mem/formal/mem_{isram,dsram,brom}.toml (PROVEN unbounded 2026-10-15
+# on the one-word model, BOUNDED(10) on the real arrays, covers COVERED, planted defects FAIL).
+# Reviewer: pending (Sreyesh), then Karthik.
+
+# =============================================================================
+# SIMULATION-ONLY CODE in the RTL files (`ifndef SYNTHESIS): not silicon
+# =============================================================================
+[[waiver]]
+id = "CM-SIM-1"
+metric = "line"
+file = "rtl/isram/isram_top.v"
+match = "^line:(6[0-9]|7[0-5]) "
+category = "ignore"
+reason = "ISRAM backdoor tasks bd_write / bd_read / bd_load_hex for testbenches, inside `ifndef SYNTHESIS (lines 59-76): no hardware."
+evidence = "rtl/isram/isram_top.v:59 `ifndef SYNTHESIS ... :76 `endif"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-SIM-2"
+metric = "line"
+file = "rtl/brom/bootrom_top.v"
+match = "^line:(59|6[0-9]|7[0-4]) "
+category = "ignore"
+reason = "Boot ROM backdoor tasks (bd_load_hex, bd_write), inside `ifndef SYNTHESIS (lines 58-75): no hardware."
+evidence = "rtl/brom/bootrom_top.v:58 `ifndef SYNTHESIS ... :75 `endif"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-SIM-3"
+metric = "line"
+file = "rtl/dsram/dsram_top.v"
+match = "^line:(7[1-9]|8[0-9]|9[0-4]) "
+category = "ignore"
+reason = "DSRAM byte-addressed backdoor (bd_write / bd_read over the four banks), inside `ifndef SYNTHESIS (lines 70-95): no hardware."
+evidence = "rtl/dsram/dsram_top.v:70 `ifndef SYNTHESIS ... :95 `endif"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-SIM-4"
+metric = "line"
+file = "rtl/mem/sram_wrapper.v"
+match = "^line:(9[4-9]|10[0-9]) "
+category = "ignore"
+reason = "Macro backdoor tasks bd_write / bd_read / bd_load_hex, inside `ifndef SYNTHESIS (lines 93-110): no hardware."
+evidence = "rtl/mem/sram_wrapper.v:93 `ifndef SYNTHESIS ... :110 `endif"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-SIM-5"
+metric = "branch"
+file = "rtl/mem/ahb_mem_slave_if.v"
+match = "^line:192 "
+category = "ignore"
+reason = "The simulation-only write-buffer overflow message ([MEM-ASSERT], `ifndef SYNTHESIS lines 190-194); it can never fire."
+evidence = "PROVEN a_wbuf_no_overflow (mem_sva) in fv_mem_isram/isram_prove, fv_mem_dsram/dsram_prove, fv_mem_brom/brom_prove (unbounded); rtl/mem/ahb_mem_slave_if.v:190"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-SIM-6"
+metric = "expr"
+file = "rtl/mem/ahb_mem_slave_if.v"
+match = "^line:192 "
+category = "ignore"
+reason = "Condition of the simulation-only overflow message (see CM-SIM-5); never true."
+evidence = "as CM-SIM-5"
+reviewer = "pending: Sreyesh"
+
+# =============================================================================
+# LINT SINKS and inputs the memories do not use (HBURST, HPROT)
+# =============================================================================
+[[waiver]]
+id = "CM-LINT-1"
+metric = "expr"
+file = "rtl/*/*_top.v"
+match = "^line:(77|78|97) "
+category = "ignore"
+reason = "`wire _unused = |{hburst_i, hprot_i}` only tells lint the inputs are unused on purpose; it drives nothing and is removed in synthesis. The memories ignore HBURST and HPROT (GARUDA-MEM-SPEC-001 section 5)."
+evidence = "rtl/isram/isram_top.v:78, rtl/dsram/dsram_top.v:97, rtl/brom/bootrom_top.v:77"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-LINT-2"
+metric = "toggle"
+file = "rtl/*/*_top.v"
+match = "^(hburst_i\\[[12]\\]|hprot_i\\[[0-3]\\]):"
+category = "ignore"
+reason = "HBURST[2:1] and HPROT reach only the lint sink (CM-LINT-1): no logic reads them. GARUDA masters issue SINGLE / INCR only (HBURST[0], which is toggled), and the bench master has one fixed HPROT."
+evidence = "rtl/isram/isram_top.v:78, rtl/dsram/dsram_top.v:97, rtl/brom/bootrom_top.v:77; AHB environment FA-2 (tb/ahb/formal/ahb_fv_env.sv)"
+reviewer = "pending: Sreyesh"
+
+# =============================================================================
+# CONSTANT by parameter or tie-off
+# =============================================================================
+[[waiver]]
+id = "CM-CONST-1"
+metric = "expr"
+file = "rtl/mem/ahb_mem_slave_if.v"
+module = "^ahb_mem_slave_if$"
+match = "^(line:84\\ \\(hwrite_i==1\\ \\&\\&\\ \\(WRITABLE\\ ==\\ 32'sh0\\)==1\\)\\ =>\\ 1|line:86\\ \\(ro_write==1\\)\\ =>\\ 1)$"
+category = "constant"
+reason = "ro_write needs WRITABLE == 0; the ISRAM and DSRAM build the front end with WRITABLE = 1, so it is constant 0 there (the ROM build covers it)."
+evidence = "rtl/isram/isram_top.v:45, rtl/dsram/dsram_top.v:47 (WRITABLE(1)); rtl/mem/ahb_mem_slave_if.v:84"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-CONST-2"
+metric = "toggle"
+file = "rtl/mem/ahb_mem_slave_if.v"
+module = "^ahb_mem_slave_if__Aa_W0$"
+match = "^(wr_lock_i|lock_bypass_i|lock_write):"
+category = "constant"
+reason = "The Boot ROM ties the lock inputs to 0, so the lock logic of its front end is constant (the ISRAM build covers it)."
+evidence = "rtl/brom/bootrom_top.v:50 .wr_lock_i(1'b0), .lock_bypass_i(1'b0)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-CONST-3"
+metric = "expr"
+file = "rtl/mem/ahb_mem_slave_if.v"
+module = "^ahb_mem_slave_if__Aa_W0$"
+match = "^(line:84\\ \\(\\(WRITABLE\\ ==\\ 32'sh0\\)==0\\)\\ =>\\ 0|line:85\\ \\(hwrite_i==1\\ \\&\\&\\ wr_lock_i==1\\ \\&\\&\\ lock_bypass_i==0\\)\\ =>\\ 1|line:85\\ \\(lock_bypass_i==1\\)\\ =>\\ 0|line:86\\ \\(lock_write==1\\)\\ =>\\ 1)$"
+category = "constant"
+reason = "In the ROM build WRITABLE == 0 (constant) and the lock inputs are tied 0 (lock_write constant 0)."
+evidence = "rtl/brom/bootrom_top.v:44 WRITABLE(0), :50 tie-offs"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-CONST-4"
+metric = "branch"
+file = "rtl/mem/sram_wrapper.v"
+module = "^sram_wrapper__W"
+match = "^(line:87\\ else)$"
+category = "constant"
+reason = "In a RAM build (ROM = 0) every access with we = 1 takes the write branch, so the implicit else of `else if (!we)` (we = 1 with ROM = 1) cannot happen."
+evidence = "rtl/mem/sram_wrapper.v:82-87; ROM parameter 0 for ISRAM and DSRAM"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-CONST-5"
+metric = "expr"
+file = "rtl/mem/sram_wrapper.v"
+module = "^sram_wrapper__W"
+match = "^(line:82\\ \\(\\(ROM\\ ==\\ 32'sh0\\)==0\\)\\ =>\\ 0|line:87\\ \\(we==1\\)\\ =>\\ 0)$"
+category = "constant"
+reason = "ROM == 0 is a constant 1 in a RAM build, and inside `else if (!we)` we is 0 by the first branch."
+evidence = "rtl/mem/sram_wrapper.v:82, :87"
+reviewer = "pending: Sreyesh"
+
+# =============================================================================
+# UNREACHABLE in the ROM build: the write path (formal evidence)
+# =============================================================================
+[[waiver]]
+id = "CM-UNR-1"
+metric = "toggle"
+file = "rtl/mem/ahb_mem_slave_if.v"
+module = "^ahb_mem_slave_if__Aa_W0$"
+match = "^(wb_data|wb_word|wb_be|wb_v|wr_dp|park_wr|commit_wb|direct_wr|byp|arr_we_o)(\\[\\d+\\])?:"
+category = "unreachable"
+reason = "A ROM refuses every write in its address phase (dp_err), so no write data phase exists: the write buffer never fills, nothing is parked, committed, bypassed or written."
+evidence = "PROVEN unbounded fv_mem_brom/brom_prove: a_rom_write_refused, a_rom_never_written, h_rom_no_wbuf (tb/mem/formal/sram_wrapper_fv.sv); negative control mut_rom_writable FAILS"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-UNR-2"
+metric = "expr"
+file = "rtl/mem/ahb_mem_slave_if.v"
+module = "^ahb_mem_slave_if__Aa_W0$"
+match = "^(line:140\\ \\(dp_valid==1\\ \\&\\&\\ dp_write==1\\ \\&\\&\\ dp_err==0\\ \\&\\&\\ hready_i==1\\)\\ =>\\ 1|line:149\\ \\(wb_v==1\\ \\&\\&\\ rd_now==0\\)\\ =>\\ 1|line:150\\ \\(wb_v==1\\)\\ =>\\ 0|line:150\\ \\(wr_dp==1\\ \\&\\&\\ rd_now==0\\ \\&\\&\\ wb_v==0\\)\\ =>\\ 1|line:151\\ \\(direct_wr==1\\)\\ =>\\ 0|line:151\\ \\(wr_dp==1\\ \\&\\&\\ direct_wr==0\\)\\ =>\\ 1|line:171\\ \\(commit_wb==1\\)\\ =>\\ 1|line:171\\ \\(direct_wr==1\\)\\ =>\\ 1|line:172\\ \\(rd_now==0\\ \\&\\&\\ commit_wb==1\\)\\ =>\\ 1|line:172\\ \\(rd_now==0\\ \\&\\&\\ direct_wr==1\\)\\ =>\\ 1|line:174\\ \\(commit_wb==1\\)\\ =>\\ 1|line:175\\ \\(commit_wb==1\\)\\ =>\\ 1|line:181\\ \\(wb_v==1\\ \\&\\&\\ \\(wb_word\\ ==\\ dp_word\\)==1\\)\\ =>\\ 1|line:183\\ \\(byp==1\\ \\&\\&\\ wb_be\\[3\\]==1\\)\\ =>\\ 1|line:184\\ \\(byp==1\\ \\&\\&\\ wb_be\\[2\\]==1\\)\\ =>\\ 1|line:185\\ \\(byp==1\\ \\&\\&\\ wb_be\\[1\\]==1\\)\\ =>\\ 1|line:186\\ \\(byp==1\\ \\&\\&\\ wb_be\\[0\\]==1\\)\\ =>\\ 1)$"
+category = "unreachable"
+reason = "Write-path conditions of the ROM build (see CM-UNR-1)."
+evidence = "as CM-UNR-1"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-UNR-3"
+metric = "branch"
+file = "rtl/mem/ahb_mem_slave_if.v"
+module = "^ahb_mem_slave_if__Aa_W0$"
+match = "^(line:165\\ if|line:174\\ cond_then|line:175\\ cond_then)$"
+category = "unreachable"
+reason = "Write-buffer commit branches of the ROM build (see CM-UNR-1)."
+evidence = "as CM-UNR-1"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-UNR-4"
+metric = "line"
+file = "rtl/mem/ahb_mem_slave_if.v"
+module = "^ahb_mem_slave_if__Aa_W0$"
+match = "^line:160 "
+category = "unreachable"
+reason = "Parking a write in the ROM build (see CM-UNR-1)."
+evidence = "as CM-UNR-1"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-UNR-5"
+metric = "branch"
+file = "rtl/mem/sram_wrapper.v"
+module = "^sram_wrapper__R1$"
+match = "^(line:83\\ else|line:83\\ if|line:84\\ else|line:84\\ if|line:85\\ else|line:85\\ if|line:86\\ else|line:86\\ if|line:87\\ else)$"
+category = "unreachable"
+reason = "The ROM macro never sees we = 1 (its front end never writes), so its write and byte-enable branches cannot run."
+evidence = "PROVEN unbounded a_rom_never_written (fv_mem_brom/brom_prove)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-UNR-6"
+metric = "expr"
+file = "rtl/mem/sram_wrapper.v"
+module = "^sram_wrapper__R1$"
+match = "^(line:82\\ \\(we==1\\ \\&\\&\\ \\(ROM\\ ==\\ 32'sh0\\)==1\\)\\ =>\\ 1|line:87\\ \\(we==1\\)\\ =>\\ 0)$"
+category = "unreachable"
+reason = "As CM-UNR-5: we is never 1 at the ROM macro."
+evidence = "as CM-UNR-5"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-UNR-7"
+metric = "line"
+file = "rtl/mem/sram_wrapper.v"
+module = "^sram_wrapper__R1$"
+match = "^line:82 "
+category = "unreachable"
+reason = "As CM-UNR-5."
+evidence = "as CM-UNR-5"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-UNR-8"
+metric = "toggle"
+file = "rtl/*"
+module = "^(sram_wrapper__R1|bootrom_top)$"
+match = "^we:"
+category = "unreachable"
+reason = "The ROM macro's write enable is never asserted."
+evidence = "as CM-UNR-5"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CM-UNR-3b"
+metric = "branch"
+file = "rtl/mem/ahb_mem_slave_if.v"
+module = "^ahb_mem_slave_if__Aa_W0$"
+match = "^line:173 cond_then$"
+column = 58
+category = "unreachable"
+reason = "The inner `commit_wb ?` of arr_addr_o in the ROM build: a ROM never commits a parked write (see CM-UNR-1). The outer `rd_now ?` (column 35) is covered and not waived."
+evidence = "as CM-UNR-1"
+reviewer = "pending: Sreyesh"

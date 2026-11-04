@@ -68,6 +68,7 @@ module dsram_top (
     end endgenerate
 
 `ifndef SYNTHESIS
+`ifndef FORMAL      // backdoors are simulation-only; in formal they stop the array being one memory (Track A, 2026-10-15)
     // Byte-addressed backdoor; the testbench never sees the banking.
     task bd_write; input [31:0] byte_addr; input [31:0] data;
         begin
@@ -90,6 +91,7 @@ module dsram_top (
             default: bd_read = g_bank[3].u_array.bd_read(byte_addr[13:2]);
         endcase
     endfunction
+`endif  // FORMAL
 `endif
 
     wire _unused = |{hburst_i, hprot_i};

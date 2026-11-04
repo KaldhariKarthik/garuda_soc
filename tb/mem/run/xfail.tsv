@@ -1,0 +1,16 @@
+# xfail list for memory suites (Track A, plan 6A.6).
+# suite<TAB>test<TAB>expect(FAIL|BLOCKED)<TAB>bug<TAB>reason
+fv_mem_dsram	mut_bank_swap	FAIL	PLANTED	bank decode reversed (bank 3-b gets the access): a_bank_read_issue must fail
+fv_mem_dsram	mut_rdbank_stale	FAIL	PLANTED	bank of a read never remembered: a_bank_read_return must fail
+fv_mem_dsram	mut_bypass_all_lanes	FAIL	PLANTED	Karthik's M2 (read bypass takes every lane of a parked sub-word write): a_data_integrity must fail
+fv_mem_ilock	mut_ilock_rw	FAIL	PLANTED	ILOCK as a plain RW bit (software can clear it): a_ilock_sticky must fail
+fv_mem_isram	mut_lock_off	FAIL	PLANTED	the lock never refuses a write: a_lock_refused must fail
+fv_mem_isram	mut_no_sba_bypass	FAIL	PLANTED	the debugger's write to locked ISRAM is refused too: a_lock_bypass must fail
+fv_mem_isram	mut_bypass_all_lanes	FAIL	PLANTED	Karthik's M2 (read bypass takes every lane of a parked sub-word write): a_data_integrity must fail
+fv_mem_brom	mut_rom_writable	FAIL	PLANTED	ROM writes not refused: a_rom_write_refused must fail
+mem_mut	mut_bypass_all_lanes	FAIL	PLANTED	Karthik's M2: the read bypass takes every lane of a parked sub-word write (his bench misses it): the soak2 scoreboard must report it
+mem_mut	mut_lock_off	FAIL	PLANTED	the lock never refuses a write: the soak2 scoreboard must report it
+mem_mut	mut_no_sba_bypass	FAIL	PLANTED	the debugger's write to locked ISRAM is refused too: the soak2 scoreboard must report it
+mem_mut	mut_rom_writable	FAIL	PLANTED	ROM writes are not refused: the soak2 scoreboard must report it
+mem_mut	mut_bank_swap	FAIL	PLANTED	DSRAM bank decode reversed: the soak2 scoreboard must report it
+mem_mut	mut_rdbank_stale	FAIL	PLANTED	DSRAM bank of a read never remembered: the soak2 scoreboard must report it

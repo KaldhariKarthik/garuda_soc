@@ -1,0 +1,5 @@
+# garuda-fv 1 suite=fv_mem_ilock block=mem date=2026-11-03T22:07:42+05:30 design=dfab0bbf08f64ba296587f7ee71298a9fbaad266 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+ilock_prove	prove	PROVEN	OK	0	[5 asserts, 3 covers in model] 	logs/mem/raw/fv_mem_ilock/fv_ilock_prove.log
+ilock_cover	cover	COVERED	OK	0	[5 asserts, 3 covers in model] 	logs/mem/raw/fv_mem_ilock/fv_ilock_cover.log
+mut_ilock_rw	bmc	FAIL	XFAIL:PLANTED	0	[5 asserts, 3 covers in model] props: u_ilock_sva.a_ilock_sticky	logs/mem/raw/fv_mem_ilock/fv_mut_ilock_rw.log

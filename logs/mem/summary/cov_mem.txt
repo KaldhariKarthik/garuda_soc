@@ -1,0 +1,115 @@
+Coverage report: block mem  (Verilator 5.052, merged per module definition)
+runs merged : 21 passing runs from 2 suite summaries
+      1  logs/mem/summary/block.cov.tsv
+     20  logs/mem/summary/seeds.cov.tsv
+targets     : design code >= 95.0% per metric per module; design functional = 100.0% of bins (after reviewed waivers)
+
+== DESIGN CODE COVERAGE (sign-off) ==
+module                                  line            branch              expr            toggle               fsm   waived
+ahb_mem_slave_if               10/10    100.0      22/22    100.0      95/95    100.0     660/660   100.0                  -   9
+ahb_mem_slave_if__Aa_W0         9/9     100.0      18/18    100.0      76/76    100.0     516/516   100.0                  -   145
+bootrom_top                                -                 -                 -    376/376   100.0                  -   25
+dsram_top                       2/2     100.0       2/2     100.0       5/5     100.0     586/586   100.0                  -   30
+isram_top                                  -                 -                 -    390/390   100.0                  -   23
+sram_wrapper__R1                1/1     100.0       3/3     100.0       3/3     100.0     160/160   100.0                  -   17
+sram_wrapper__W1000_Ac          2/2     100.0      11/11    100.0       3/3     100.0     166/166   100.0                  -   6
+sram_wrapper__W4000_Ae          2/2     100.0      11/11    100.0       3/3     100.0     170/170   100.0                  -   6
+TOTAL                          26/26    100.0      67/67    100.0     185/185   100.0    3024/3024  100.0                  -   261
+RAW (before waivers)           26/53     49.1      67/86     77.9     185/248    74.6    3024/3176   95.2                  -
+
+== TESTBENCH CODE COVERAGE (reported, not sign-off) ==
+module                                  line            branch              expr            toggle               fsm   waived
+ahb_lite_checker               10/20     50.0      36/98     36.7      35/59     59.3     442/518    85.3                  -   0
+ahb_lite_master_bfm__Q400       7/16     43.8       8/8     100.0      20/24     83.3     428/450    95.1                  -   0
+dsram_sva                       1/1     100.0       2/2     100.0      17/17    100.0     448/448   100.0                  -   0
+mem_cov_vplan                  11/11    100.0      11/12     91.7      12/13     92.3     188/196    95.9                  -   0
+mem_cov_vplan__K1              11/11    100.0      11/12     91.7      12/13     92.3     181/196    92.3                  -   0
+mem_cov_vplan__K2              11/11    100.0      11/12     91.7      12/13     92.3     181/196    92.3                  -   0
+mem_sva                         7/8      87.5      18/18    100.0      31/32     96.9     338/338   100.0                  -   0
+mem_sva__Aa_W0                  6/8      75.0      14/18     77.8      28/32     87.5     304/322    94.4                  -   0
+tb_mem_subsystem              126/128    98.4     104/116    89.7     129/162    79.6     915/1064   86.0                  -   0
+TOTAL                         190/214    88.8     215/296    72.6     296/365    81.1    3425/3728   91.9                  -   0
+RAW (before waivers)          190/214    88.8     215/296    72.6     296/365    81.1    3425/3728   91.9                  -
+
+== DESIGN FUNCTIONAL COVERAGE (covergroup bins) ==
+cg_ilock (mem_cov.sv)                             16/16     100.0%   waived 0
+cg_mem (mem_cov.sv)                               37/37     100.0%   waived 0
+cg_mem_addr (mem_cov.sv)                          15/15     100.0%   waived 0
+TOTAL                                             68/68     100.0%
+RAW (before waivers)                              68/68     100.0%   (0 waived bins; illegal/ignore bins declared in the source are never targets)
+
+== ILLEGAL / IGNORE BINS (declared in the source; not targets; illegal must stay 0) ==
+
+== WAIVERS (22) ==
+CM-SIM-1  [line/ignore]  rtl/isram/isram_top.v  /^line:(6[0-9]|7[0-5]) /  -> 3 point(s)
+    reason  : ISRAM backdoor tasks bd_write / bd_read / bd_load_hex for testbenches, inside `ifndef SYNTHESIS (lines 59-76): no hardware.
+    evidence: rtl/isram/isram_top.v:59 `ifndef SYNTHESIS ... :76 `endif   reviewer: pending: Sreyesh
+CM-SIM-2  [line/ignore]  rtl/brom/bootrom_top.v  /^line:(59|6[0-9]|7[0-4]) /  -> 3 point(s)
+    reason  : Boot ROM backdoor tasks (bd_load_hex, bd_write), inside `ifndef SYNTHESIS (lines 58-75): no hardware.
+    evidence: rtl/brom/bootrom_top.v:58 `ifndef SYNTHESIS ... :75 `endif   reviewer: pending: Sreyesh
+CM-SIM-3  [line/ignore]  rtl/dsram/dsram_top.v  /^line:(7[1-9]|8[0-9]|9[0-4]) /  -> 10 point(s)
+    reason  : DSRAM byte-addressed backdoor (bd_write / bd_read over the four banks), inside `ifndef SYNTHESIS (lines 70-95): no hardware.
+    evidence: rtl/dsram/dsram_top.v:70 `ifndef SYNTHESIS ... :95 `endif   reviewer: pending: Sreyesh
+CM-SIM-4  [line/ignore]  rtl/mem/sram_wrapper.v  /^line:(9[4-9]|10[0-9]) /  -> 9 point(s)
+    reason  : Macro backdoor tasks bd_write / bd_read / bd_load_hex, inside `ifndef SYNTHESIS (lines 93-110): no hardware.
+    evidence: rtl/mem/sram_wrapper.v:93 `ifndef SYNTHESIS ... :110 `endif   reviewer: pending: Sreyesh
+CM-SIM-5  [branch/ignore]  rtl/mem/ahb_mem_slave_if.v  /^line:192 /  -> 4 point(s)
+    reason  : The simulation-only write-buffer overflow message ([MEM-ASSERT], `ifndef SYNTHESIS lines 190-194); it can never fire.
+    evidence: PROVEN a_wbuf_no_overflow (mem_sva) in fv_mem_isram/isram_prove, fv_mem_dsram/dsram_prove, fv_mem_brom/brom_prove (unbounded); rtl/mem/ahb_mem_slave_if.v:190   reviewer: pending: Sreyesh
+CM-SIM-6  [expr/ignore]  rtl/mem/ahb_mem_slave_if.v  /^line:192 /  -> 10 point(s)
+    reason  : Condition of the simulation-only overflow message (see CM-SIM-5); never true.
+    evidence: as CM-SIM-5   reviewer: pending: Sreyesh
+CM-LINT-1  [expr/ignore]  rtl/*/*_top.v  /^line:(77|78|97) /  -> 24 point(s)
+    reason  : `wire _unused = |{hburst_i, hprot_i}` only tells lint the inputs are unused on purpose; it drives nothing and is removed in synthesis. The memories ignore HBURST and HPROT (GARUDA-MEM-SPEC-001 section 5).
+    evidence: rtl/isram/isram_top.v:78, rtl/dsram/dsram_top.v:97, rtl/brom/bootrom_top.v:77   reviewer: pending: Sreyesh
+CM-LINT-2  [toggle/ignore]  rtl/*/*_top.v  /^(hburst_i\[[12]\]|hprot_i\[[0-3]\]):/  -> 36 point(s)
+    reason  : HBURST[2:1] and HPROT reach only the lint sink (CM-LINT-1): no logic reads them. GARUDA masters issue SINGLE / INCR only (HBURST[0], which is toggled), and the bench master has one fixed HPROT.
+    evidence: rtl/isram/isram_top.v:78, rtl/dsram/dsram_top.v:97, rtl/brom/bootrom_top.v:77; AHB environment FA-2 (tb/ahb/formal/ahb_fv_env.sv)   reviewer: pending: Sreyesh
+CM-CONST-1  [expr/constant]  rtl/mem/ahb_mem_slave_if.v  /^(line:84\ \(hwrite_i==1\ \&\&\ \(WRITABLE\ ==\ 32'sh0\)==1\)\ =>\ 1|line:86\ \(ro_write==1\)\ =>\ 1)$/  -> 2 point(s)
+    reason  : ro_write needs WRITABLE == 0; the ISRAM and DSRAM build the front end with WRITABLE = 1, so it is constant 0 there (the ROM build covers it).
+    evidence: rtl/isram/isram_top.v:45, rtl/dsram/dsram_top.v:47 (WRITABLE(1)); rtl/mem/ahb_mem_slave_if.v:84   reviewer: pending: Sreyesh
+CM-CONST-2  [toggle/constant]  rtl/mem/ahb_mem_slave_if.v  /^(wr_lock_i|lock_bypass_i|lock_write):/  -> 6 point(s)
+    reason  : The Boot ROM ties the lock inputs to 0, so the lock logic of its front end is constant (the ISRAM build covers it).
+    evidence: rtl/brom/bootrom_top.v:50 .wr_lock_i(1'b0), .lock_bypass_i(1'b0)   reviewer: pending: Sreyesh
+CM-CONST-3  [expr/constant]  rtl/mem/ahb_mem_slave_if.v  /^(line:84\ \(\(WRITABLE\ ==\ 32'sh0\)==0\)\ =>\ 0|line:85\ \(hwrite_i==1\ \&\&\ wr_lock_i==1\ \&\&\ lock_bypass_i==0\)\ =>\ 1|line:85\ \(lock_bypass_i==1\)\ =>\ 0|line:86\ \(lock_write==1\)\ =>\ 1)$/  -> 4 point(s)
+    reason  : In the ROM build WRITABLE == 0 (constant) and the lock inputs are tied 0 (lock_write constant 0).
+    evidence: rtl/brom/bootrom_top.v:44 WRITABLE(0), :50 tie-offs   reviewer: pending: Sreyesh
+CM-CONST-4  [branch/constant]  rtl/mem/sram_wrapper.v  /^(line:87\ else)$/  -> 2 point(s)
+    reason  : In a RAM build (ROM = 0) every access with we = 1 takes the write branch, so the implicit else of `else if (!we)` (we = 1 with ROM = 1) cannot happen.
+    evidence: rtl/mem/sram_wrapper.v:82-87; ROM parameter 0 for ISRAM and DSRAM   reviewer: pending: Sreyesh
+CM-CONST-5  [expr/constant]  rtl/mem/sram_wrapper.v  /^(line:82\ \(\(ROM\ ==\ 32'sh0\)==0\)\ =>\ 0|line:87\ \(we==1\)\ =>\ 0)$/  -> 4 point(s)
+    reason  : ROM == 0 is a constant 1 in a RAM build, and inside `else if (!we)` we is 0 by the first branch.
+    evidence: rtl/mem/sram_wrapper.v:82, :87   reviewer: pending: Sreyesh
+CM-UNR-1  [toggle/unreachable]  rtl/mem/ahb_mem_slave_if.v  /^(wb_data|wb_word|wb_be|wb_v|wr_dp|park_wr|commit_wb|direct_wr|byp|arr_we_o)(\[\d+\])?:/  -> 106 point(s)
+    reason  : A ROM refuses every write in its address phase (dp_err), so no write data phase exists: the write buffer never fills, nothing is parked, committed, bypassed or written.
+    evidence: PROVEN unbounded fv_mem_brom/brom_prove: a_rom_write_refused, a_rom_never_written, h_rom_no_wbuf (tb/mem/formal/sram_wrapper_fv.sv); negative control mut_rom_writable FAILS   reviewer: pending: Sreyesh
+CM-UNR-2  [expr/unreachable]  rtl/mem/ahb_mem_slave_if.v  /^(line:140\ \(dp_valid==1\ \&\&\ dp_write==1\ \&\&\ dp_err==0\ \&\&\ hready_i==1\)\ =>\ 1|line:149\ \(wb_v==1\ \&\&\ rd_now==0\)\ =>\ 1|line:150\ \(wb_v==1\)\ =>\ 0|line:150\ \(wr_dp==1\ \&\&\ rd_now==0\ \&\&\ wb_v==0\)\ =>\ 1|line:151\ \(direct_wr==1\)\ =>\ 0|line:151\ \(wr_dp==1\ \&\&\ direct_wr==0\)\ =>\ 1|line:171\ \(commit_wb==1\)\ =>\ 1|line:171\ \(direct_wr==1\)\ =>\ 1|line:172\ \(rd_now==0\ \&\&\ commit_wb==1\)\ =>\ 1|line:172\ \(rd_now==0\ \&\&\ direct_wr==1\)\ =>\ 1|line:174\ \(commit_wb==1\)\ =>\ 1|line:175\ \(commit_wb==1\)\ =>\ 1|line:181\ \(wb_v==1\ \&\&\ \(wb_word\ ==\ dp_word\)==1\)\ =>\ 1|line:183\ \(byp==1\ \&\&\ wb_be\[3\]==1\)\ =>\ 1|line:184\ \(byp==1\ \&\&\ wb_be\[2\]==1\)\ =>\ 1|line:185\ \(byp==1\ \&\&\ wb_be\[1\]==1\)\ =>\ 1|line:186\ \(byp==1\ \&\&\ wb_be\[0\]==1\)\ =>\ 1)$/  -> 17 point(s)
+    reason  : Write-path conditions of the ROM build (see CM-UNR-1).
+    evidence: as CM-UNR-1   reviewer: pending: Sreyesh
+CM-UNR-3  [branch/unreachable]  rtl/mem/ahb_mem_slave_if.v  /^(line:165\ if|line:174\ cond_then|line:175\ cond_then)$/  -> 3 point(s)
+    reason  : Write-buffer commit branches of the ROM build (see CM-UNR-1).
+    evidence: as CM-UNR-1   reviewer: pending: Sreyesh
+CM-UNR-4  [line/unreachable]  rtl/mem/ahb_mem_slave_if.v  /^line:160 /  -> 1 point(s)
+    reason  : Parking a write in the ROM build (see CM-UNR-1).
+    evidence: as CM-UNR-1   reviewer: pending: Sreyesh
+CM-UNR-5  [branch/unreachable]  rtl/mem/sram_wrapper.v  /^(line:83\ else|line:83\ if|line:84\ else|line:84\ if|line:85\ else|line:85\ if|line:86\ else|line:86\ if|line:87\ else)$/  -> 9 point(s)
+    reason  : The ROM macro never sees we = 1 (its front end never writes), so its write and byte-enable branches cannot run.
+    evidence: PROVEN unbounded a_rom_never_written (fv_mem_brom/brom_prove)   reviewer: pending: Sreyesh
+CM-UNR-6  [expr/unreachable]  rtl/mem/sram_wrapper.v  /^(line:82\ \(we==1\ \&\&\ \(ROM\ ==\ 32'sh0\)==1\)\ =>\ 1|line:87\ \(we==1\)\ =>\ 0)$/  -> 2 point(s)
+    reason  : As CM-UNR-5: we is never 1 at the ROM macro.
+    evidence: as CM-UNR-5   reviewer: pending: Sreyesh
+CM-UNR-7  [line/unreachable]  rtl/mem/sram_wrapper.v  /^line:82 /  -> 1 point(s)
+    reason  : As CM-UNR-5.
+    evidence: as CM-UNR-5   reviewer: pending: Sreyesh
+CM-UNR-8  [toggle/unreachable]  rtl/*  /^we:/  -> 4 point(s)
+    reason  : The ROM macro's write enable is never asserted.
+    evidence: as CM-UNR-5   reviewer: pending: Sreyesh
+CM-UNR-3b  [branch/unreachable]  rtl/mem/ahb_mem_slave_if.v  /^line:173 cond_then$/  -> 1 point(s)
+    reason  : The inner `commit_wb ?` of arr_addr_o in the ROM build: a ROM never commits a parked write (see CM-UNR-1). The outer `rd_now ?` (column 35) is covered and not waived.
+    evidence: as CM-UNR-1   reviewer: pending: Sreyesh
+
+== DESIGN HOLES (uncovered, not waived) ==
+
+== FUNCTIONAL HOLES (bins never hit, not waived) ==
+
+verdict: PASS  (0 below target, 0 waiver/input error(s))

@@ -1,0 +1,86 @@
+vPlan trace: tb/mem/GARUDA_MEM_vplan.csv (tools/run/vplan_trace.py mem)
+totals: CHK mapped 20, COV UNMAPPED 1, COV mapped 8, TC mapped 11
+
+MEM.F01.CHK1     CHK  sb_mem
+                      Track A seeded soak: bus monitor + scoreboard against an independent byte model of the three memories (tb/mem/tb_mem_subsystem.sv soak2), plus Karthik's directed checks; formal: a_data_integrity and a_read_returns_stored PROVEN unbounded [tb_mem_subsystem: OK (block.tsv), soak_s6600: OK (seeds.tsv), mut_bypass_all_lanes: XFAIL:PLANTED (mem_mut.tsv), mut_bank_swap: XFAIL:PLANTED (mem_mut.tsv), mut_rdbank_stale: XFAIL:PLANTED (mem_mut.tsv)]
+MEM.F01.COV2     COV  cg_mem.cp_isram_addr -> cg_mem_addr.cp_isram_addr
+                      cg_mem_addr (mem_cov.sv)                          15/15     100.0%   waived 0
+MEM.F02.CHK1     CHK  a_bank_onehot
+                      assert a_bank_onehot: sim bound; formal: isram_prove PROVEN OK; isram_bmc BOUNDED(10) OK; dsram_prove PROVEN OK; dsram_bmc BOUNDED(10) OK; brom_prove PROVEN OK; brom_bmc BOUNDED(10) OK
+MEM.F02.COV2     COV  cg_mem.cp_dsram_boundary -> cg_mem_addr.cp_dsram_boundary
+                      cg_mem_addr (mem_cov.sv)                          15/15     100.0%   waived 0
+MEM.F02.CHK3     CHK  sb_mem -> a_bank_read_issue, a_bank_read_return, a_data_integrity
+                      assert a_bank_read_issue: sim bound; formal: isram_prove PROVEN OK; isram_bmc BOUNDED(10) OK; dsram_prove PROVEN OK; dsram_bmc BOUNDED(10) OK; brom_prove PROVEN OK; brom_bmc BOUNDED(10) OK | assert a_bank_read_return: sim bound; formal: isram_prove PROVEN OK; isram_bmc BOUNDED(10) OK; dsram_prove PROVEN OK; dsram_bmc BOUNDED(10) OK; brom_prove PROVEN OK; brom_bmc BOUNDED(10) OK | assert a_data_integrity: sim bound; formal: isram_prove PROVEN OK; isram_bmc BOUNDED(10) OK; dsram_prove PROVEN OK; dsram_bmc BOUNDED(10) OK; brom_prove PROVEN OK; brom_bmc BOUNDED(10) OK
+MEM.F03.CHK1     CHK  a_rom_write_error -> a_rom_write_refused, a_rom_never_written
+                      assert a_rom_write_refused: sim bound; formal: isram_prove PROVEN OK; isram_bmc BOUNDED(10) OK; dsram_prove PROVEN OK; dsram_bmc BOUNDED(10) OK; brom_prove PROVEN OK; brom_bmc BOUNDED(10) OK | assert a_rom_never_written: sim bound; formal: isram_prove PROVEN OK; isram_bmc BOUNDED(10) OK; dsram_prove PROVEN OK; dsram_bmc BOUNDED(10) OK; brom_prove PROVEN OK; brom_bmc BOUNDED(10) OK
+MEM.F03.CHK2     CHK  sb_mem
+                      Track A seeded soak: bus monitor + scoreboard against an independent byte model of the three memories (tb/mem/tb_mem_subsystem.sv soak2), plus Karthik's directed checks; formal: a_data_integrity and a_read_returns_stored PROVEN unbounded [tb_mem_subsystem: OK (block.tsv), soak_s6600: OK (seeds.tsv), mut_bypass_all_lanes: XFAIL:PLANTED (mem_mut.tsv), mut_bank_swap: XFAIL:PLANTED (mem_mut.tsv), mut_rdbank_stale: XFAIL:PLANTED (mem_mut.tsv)]
+MEM.F04.COV1     COV  cg_mem.x_size_offset_mem
+                      cg_mem (mem_cov.sv)                               37/37     100.0%   waived 0
+MEM.F04.CHK2     CHK  sb_mem
+                      Track A seeded soak: bus monitor + scoreboard against an independent byte model of the three memories (tb/mem/tb_mem_subsystem.sv soak2), plus Karthik's directed checks; formal: a_data_integrity and a_read_returns_stored PROVEN unbounded [tb_mem_subsystem: OK (block.tsv), soak_s6600: OK (seeds.tsv), mut_bypass_all_lanes: XFAIL:PLANTED (mem_mut.tsv), mut_bank_swap: XFAIL:PLANTED (mem_mut.tsv), mut_rdbank_stale: XFAIL:PLANTED (mem_mut.tsv)]
+MEM.F05.CHK1     CHK  a_misaligned_error -> a_misaligned_refused
+                      assert a_misaligned_refused: sim bound; formal: isram_prove PROVEN OK; isram_bmc BOUNDED(10) OK; dsram_prove PROVEN OK; dsram_bmc BOUNDED(10) OK; brom_prove PROVEN OK; brom_bmc BOUNDED(10) OK
+MEM.F05.COV2     COV  cg_mem.cp_misaligned
+                      cg_mem (mem_cov.sv)                               37/37     100.0%   waived 0
+MEM.F06.CHK1     CHK  sb_mem
+                      Track A seeded soak: bus monitor + scoreboard against an independent byte model of the three memories (tb/mem/tb_mem_subsystem.sv soak2), plus Karthik's directed checks; formal: a_data_integrity and a_read_returns_stored PROVEN unbounded [tb_mem_subsystem: OK (block.tsv), soak_s6600: OK (seeds.tsv), mut_bypass_all_lanes: XFAIL:PLANTED (mem_mut.tsv), mut_bank_swap: XFAIL:PLANTED (mem_mut.tsv), mut_rdbank_stale: XFAIL:PLANTED (mem_mut.tsv)]
+MEM.F07.CHK1     CHK  a_hready_high -> a_zero_wait
+                      assert a_zero_wait: sim bound; formal: isram_prove PROVEN OK; isram_bmc BOUNDED(10) OK; dsram_prove PROVEN OK; dsram_bmc BOUNDED(10) OK; brom_prove PROVEN OK; brom_bmc BOUNDED(10) OK
+MEM.F07.COV2     COV  cg_mem.cp_b2b
+                      cg_mem (mem_cov.sv)                               37/37     100.0%   waived 0
+MEM.F08.CHK1     CHK  ahb_checker
+                      tb/ahb/ahb_lite_checker.v in the block bench (count checked against the deliberate misaligned transfers) [tb_mem_subsystem: OK (block.tsv)]
+MEM.F08.CHK2     CHK  a_unselected_no_write
+                      assert a_unselected_no_write: sim bound; formal: isram_prove PROVEN OK; isram_bmc BOUNDED(10) OK; dsram_prove PROVEN OK; dsram_bmc BOUNDED(10) OK; brom_prove PROVEN OK; brom_bmc BOUNDED(10) OK
+MEM.F09.TC1      TC   xprop chip tests
+                      X-propagation chip runs: Xcelium only (Karthik)
+MEM.F10.CHK1     CHK  a_ilock_sticky
+                      assert a_ilock_sticky: sim bound; formal: ilock_prove PROVEN OK
+MEM.F10.COV2     COV  cg_ilock.cp_clear_by -> c_cleared_by_reset
+                      cover c_cleared_by_reset: sim bound; formal: ilock_cover COVERED
+MEM.F11.CHK1     CHK  a_locked_no_write -> a_lock_refused
+                      assert a_lock_refused: sim bound; formal: isram_prove PROVEN OK; isram_bmc BOUNDED(10) OK; dsram_prove PROVEN OK; dsram_bmc BOUNDED(10) OK; brom_prove PROVEN OK; brom_bmc BOUNDED(10) OK
+MEM.F11.COV2     COV  cg_ilock.x_lock_master_dir
+                      cg_ilock (mem_cov.sv)                             16/16     100.0%   waived 0
+MEM.F12.CHK1     CHK  a_sba_bypass -> a_lock_bypass
+                      assert a_lock_bypass: sim bound; formal: isram_prove PROVEN OK; isram_bmc BOUNDED(10) OK; dsram_prove PROVEN OK; dsram_bmc BOUNDED(10) OK; brom_prove PROVEN OK; brom_bmc BOUNDED(10) OK
+MEM.F13.COV1     COV  cg_ilock.cp_master_switch
+                      cg_ilock (mem_cov.sv)                             16/16     100.0%   waived 0
+MEM.F13.CHK2     CHK  a_locked_no_write -> a_lock_refused
+                      assert a_lock_refused: sim bound; formal: isram_prove PROVEN OK; isram_bmc BOUNDED(10) OK; dsram_prove PROVEN OK; dsram_bmc BOUNDED(10) OK; brom_prove PROVEN OK; brom_bmc BOUNDED(10) OK
+MEM.F14.TC1      TC   t_chip_flash -> boot_good, boot_good_data
+                      test boot_good: OK (boot.tsv) | test boot_good_data: OK (boot.tsv)
+MEM.F14.COV2     COV  cg_boot.cp_image
+                      UNMAPPED
+MEM.F15.TC1      TC   t_chip_boot_crc_fail -> crc_text_first, crc_text_last, crc_data, crc_hdr_magic, crc_hdr_textlen, crc_hdr_datalen, crc_hdr_entry, crc_hdr_textcrc, crc_hdr_datacrc, crc_hdr_hdrcrc
+                      test crc_text_first: OK (boot.tsv) | test crc_text_last: OK (boot.tsv) | test crc_data: OK (boot.tsv) | test crc_hdr_magic: OK (boot.tsv) | test crc_hdr_textlen: OK (boot.tsv) | test crc_hdr_datalen: OK (boot.tsv) | test crc_hdr_entry: OK (boot.tsv) | test crc_hdr_textcrc: OK (boot.tsv) | test crc_hdr_datacrc: OK (boot.tsv) | test crc_hdr_hdrcrc: OK (boot.tsv)
+MEM.F16.TC1      TC   t_chip_boot_recovery -> crc_text_first, blank, bus_error
+                      test crc_text_first: OK (boot.tsv) | test blank: OK (boot.tsv) | test bus_error: OK (boot.tsv)
+MEM.F17.TC1      TC   t_chip_boot_blank -> blank
+                      test blank: OK (boot.tsv)
+MEM.F18.TC1      TC   t_chip_boot_bad_header -> hdr_textlen_big, hdr_textlen_odd, hdr_datalen_odd, hdr_datalen_big, hdr_entry_out, hdr_entry_odd, hdr_reserved
+                      test hdr_textlen_big: OK (boot.tsv) | test hdr_textlen_odd: OK (boot.tsv) | test hdr_datalen_odd: OK (boot.tsv) | test hdr_datalen_big: OK (boot.tsv) | test hdr_entry_out: OK (boot.tsv) | test hdr_entry_odd: OK (boot.tsv) | test hdr_reserved: OK (boot.tsv)
+MEM.F19.TC1      TC   t_chip_jtag
+                      test t_chip_jtag: OK (chip.tsv)
+MEM.F20.TC1      TC   t_chip_boot_trap -> bus_error, flash_stops
+                      test bus_error: OK (boot.tsv) | test flash_stops: OK (boot.tsv)
+MEM.F21.TC1      TC   t_chip_boot_no_flash -> miso_low, miso_high, flash_stops
+                      test miso_low: OK (boot.tsv) | test miso_high: OK (boot.tsv) | test flash_stops: OK (boot.tsv)
+MEM.F22.CHK1     CHK  crc_vectors
+                      boot ROM CRC routine (sw/bootrom/boot.c crc32_words, host build) against zlib.crc32 (tb/mem/boot/crc_vectors.py) [crc_vectors.tsv: OK 10]
+MEM.F23.CHK1     CHK  a_locked_at_entry -> boot_good, boot_good_data
+                      test boot_good: OK (boot.tsv) | test boot_good_data: OK (boot.tsv)
+MEM.F24.TC1      TC   t_chip_flash -> boot_good
+                      test boot_good: OK (boot.tsv)
+MEM.F25.CHK1     CHK  conn_reach
+                      chip connectivity: Karthik's JasperGold Connectivity (flow/formal/conn) and Track A's AHB decode proofs
+MEM.F26.TC1      TC   t_chip_basic
+                      test t_chip_basic: OK (chip.tsv)
+MEM.F27.CHK1     CHK  hal_cdc
+                      static CDC check (HAL / Conformal CDC): Karthik, plan 3.4 static part
+MEM.F28.CHK1     CHK  review
+                      review item (F28 macro assumptions): the review record flow/reviews/mem.md
+
+UNMAPPED (1): need an alias, an implementation or a decision
+  MEM.F14.COV2 cg_boot.cp_image

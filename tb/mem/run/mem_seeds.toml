@@ -1,0 +1,96 @@
+# Memories seeded soak, 20 seeds (plan 6A.6 M2; 500 accumulate in the nightly).
+# GENERATED (seeds 6600..6619) -- regenerate rather than edit.
+# Run: python3.12 tools/run/garuda_run.py suite tb/mem/run/mem_seeds.toml
+[suite]
+block = "mem"
+name  = "seeds"
+kind  = "sim"
+xfail = "tb/mem/run/xfail.tsv"
+
+[defaults]
+flist   = "tb/mem/filelist_mem.f"
+top     = "tb_mem_subsystem"
+marker  = '^RESULT: PASSED'
+timeout = 900
+require = ['tb_mem_subsystem: checks=28 +FAIL=0']
+forbid  = ['\[SVA-FAIL\]', 'MEM-ASSERT']
+
+[[test]]
+name     = "soak_s6600"
+plusargs = ["+SEED=6600"]
+
+[[test]]
+name     = "soak_s6601"
+plusargs = ["+SEED=6601"]
+
+[[test]]
+name     = "soak_s6602"
+plusargs = ["+SEED=6602"]
+
+[[test]]
+name     = "soak_s6603"
+plusargs = ["+SEED=6603"]
+
+[[test]]
+name     = "soak_s6604"
+plusargs = ["+SEED=6604"]
+
+[[test]]
+name     = "soak_s6605"
+plusargs = ["+SEED=6605"]
+
+[[test]]
+name     = "soak_s6606"
+plusargs = ["+SEED=6606"]
+
+[[test]]
+name     = "soak_s6607"
+plusargs = ["+SEED=6607"]
+
+[[test]]
+name     = "soak_s6608"
+plusargs = ["+SEED=6608"]
+
+[[test]]
+name     = "soak_s6609"
+plusargs = ["+SEED=6609"]
+
+[[test]]
+name     = "soak_s6610"
+plusargs = ["+SEED=6610"]
+
+[[test]]
+name     = "soak_s6611"
+plusargs = ["+SEED=6611"]
+
+[[test]]
+name     = "soak_s6612"
+plusargs = ["+SEED=6612"]
+
+[[test]]
+name     = "soak_s6613"
+plusargs = ["+SEED=6613"]
+
+[[test]]
+name     = "soak_s6614"
+plusargs = ["+SEED=6614"]
+
+[[test]]
+name     = "soak_s6615"
+plusargs = ["+SEED=6615"]
+
+[[test]]
+name     = "soak_s6616"
+plusargs = ["+SEED=6616"]
+
+[[test]]
+name     = "soak_s6617"
+plusargs = ["+SEED=6617"]
+
+[[test]]
+name     = "soak_s6618"
+plusargs = ["+SEED=6618"]
+
+[[test]]
+name     = "soak_s6619"
+plusargs = ["+SEED=6619"]

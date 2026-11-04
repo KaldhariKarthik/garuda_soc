@@ -1,0 +1,75 @@
+# ISRAM (one 16384-word macro) with ILOCK and hmaster_is_sba free in every cycle
+# Track A plan 6A.6 step M1 (vPlan F01, F04-F08, F11-F13). Properties: Karthik's mem_sva
+# (rtl/mem/mem_sva.sv, rewritten 2026-10-15 to the portable form, same meaning) and the
+# formal-only helpers in tb/mem/formal/sram_wrapper_fv.sv; environment
+# tb/mem/formal/mem_fv_env.sv (FM-1..FM-3). Planted defects: tb/mem/run/xfail.tsv.
+#   isram_prove  UNBOUNDED, on the one-word model of the array (sram_wrapper_fv.sv: an
+#             over-approximation, so a proof there holds for the real array); k-induction
+#             closes with the asserted (proved) helper invariants.
+#   isram_bmc    the real full-size array (kept as SMT memories), bounded cross-check.
+#   isram_cover  every cover reached on the real array.
+# Run: python3.12 tools/run/garuda_fv.py tb/mem/formal/mem_isram.toml
+[suite]
+block = "mem"
+name  = "fv_mem_isram"
+xfail = "tb/mem/run/xfail.tsv"
+
+[design]
+flist   = "rtl/mem/filelist.f"
+top     = "isram_top"
+extra   = ["tb/mem/formal/mem_fv_env.sv"]
+synthesis_define = false   # mem_sva.sv sits inside `ifndef SYNTHESIS
+min_asserts = 13
+min_covers  = 7
+
+[[task]]
+name    = "isram_prove"
+mode    = "prove"
+depth   = 4
+engine  = "smtbmc yices"
+replace = { "rtl/mem/sram_wrapper.v" = "tb/mem/formal/sram_wrapper_fv.sv" }
+abstraction = "sram_wrapper_fv.sv over-approximates the array: a proof here is a result"
+min_asserts = 19
+timeout = 3600
+
+[[task]]
+name    = "isram_bmc"
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+timeout = 3600
+
+[[task]]
+name    = "isram_cover"
+mode    = "cover"
+depth   = 10
+engine  = "smtbmc yices"
+min_covers = 7
+timeout = 3600
+
+[[task]]
+name    = "mut_lock_off"
+expect_fail = ["a_lock_refused"]   # the planted defect must break this (2026-11-01)
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+replace = { "rtl/mem/ahb_mem_slave_if.v" = "tb/mem/mut/ahb_mem_slave_if_mut_lock_off.v" }
+timeout = 1800
+
+[[task]]
+name    = "mut_no_sba_bypass"
+expect_fail = ["a_lock_bypass"]   # the planted defect must break this (2026-11-01)
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+replace = { "rtl/mem/ahb_mem_slave_if.v" = "tb/mem/mut/ahb_mem_slave_if_mut_no_sba_bypass.v" }
+timeout = 1800
+
+[[task]]
+name    = "mut_bypass_all_lanes"
+expect_fail = ["a_data_integrity"]   # the planted defect must break this (2026-11-01)
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+replace = { "rtl/mem/ahb_mem_slave_if.v" = "tb/mem/mut/ahb_mem_slave_if_mut_bypass_all_lanes.v" }
+timeout = 1800

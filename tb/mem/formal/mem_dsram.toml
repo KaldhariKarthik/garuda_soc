@@ -1,0 +1,88 @@
+# DSRAM (4 x 4096-word macros, kept as memories)
+# Track A plan 6A.6 step M1 (vPlan F01-F08). Properties: Karthik's mem_sva and dsram_sva (bank routing)
+# (rtl/mem/mem_sva.sv, rewritten 2026-10-15 to the portable form, same meaning) and the
+# formal-only helpers in tb/mem/formal/sram_wrapper_fv.sv; environment
+# tb/mem/formal/mem_fv_env.sv (FM-1..FM-3). Planted defects: tb/mem/run/xfail.tsv.
+#   dsram_prove  UNBOUNDED, on the one-word model of the array (sram_wrapper_fv.sv: an
+#             over-approximation, so a proof there holds for the real array); k-induction
+#             closes with the asserted (proved) helper invariants.
+#   dsram_bmc    the real full-size array (kept as SMT memories), bounded cross-check.
+#   dsram_cover  every cover reached on the real array except c_lock / c_lock_bypass (the DSRAM ties its lock input
+#             to 0), removed by name.
+# Run: python3.12 tools/run/garuda_fv.py tb/mem/formal/mem_dsram.toml
+[suite]
+block = "mem"
+name  = "fv_mem_dsram"
+xfail = "tb/mem/run/xfail.tsv"
+
+[design]
+flist   = "rtl/mem/filelist.f"
+top     = "dsram_top"
+extra   = ["tb/mem/formal/mem_fv_env.sv"]
+synthesis_define = false   # mem_sva.sv sits inside `ifndef SYNTHESIS
+min_asserts = 16
+min_covers  = 8
+
+[[task]]
+name    = "dsram_prove"
+mode    = "prove"
+depth   = 4
+engine  = "smtbmc yices"
+replace = { "rtl/mem/sram_wrapper.v" = "tb/mem/formal/sram_wrapper_fv.sv" }
+abstraction = "sram_wrapper_fv.sv over-approximates the array: a proof here is a result"
+min_asserts = 22
+timeout = 3600
+
+[[task]]
+name    = "dsram_bmc"
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+timeout = 3600
+
+[[task]]
+name    = "dsram_cover"
+mode    = "cover"
+depth   = 10
+engine  = "smtbmc yices"
+script  = ["chformal -cover -remove n:u_if.u_mem_sva.c_lock n:u_if.u_mem_sva.c_lock_bypass"]
+min_covers = 6
+timeout = 3600
+
+[[task]]
+name    = "mut_bank_swap"
+expect_fail = ["a_bank_read_issue"]   # the planted defect must break this (2026-11-01)
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+replace = { "rtl/dsram/dsram_top.v" = "tb/mem/mut/dsram_top_mut_bank_swap.v" }
+timeout = 1800
+
+[[task]]
+name    = "mut_rdbank_stale"
+expect_fail = ["a_bank_read_return"]   # the planted defect must break this (2026-11-01)
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+replace = { "rtl/dsram/dsram_top.v" = "tb/mem/mut/dsram_top_mut_rdbank_stale.v" }
+timeout = 1800
+
+[[task]]
+name    = "mut_bypass_all_lanes"
+expect_fail = ["a_data_integrity"]   # the planted defect must break this (2026-11-01)
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+replace = { "rtl/mem/ahb_mem_slave_if.v" = "tb/mem/mut/ahb_mem_slave_if_mut_bypass_all_lanes.v" }
+timeout = 1800
+
+# Karthik's M8 ("equivalent by reasoning, not proved"), proved here: with the bank also
+# remembered on writes, every property still holds, UNBOUNDED (same model as dsram_prove).
+[[task]]
+name    = "mut_rdbank_on_write_equiv"
+mode    = "prove"
+depth   = 4
+engine  = "smtbmc yices"
+replace = { "rtl/dsram/dsram_top.v" = "tb/mem/mut/dsram_top_mut_rdbank_on_write.v", "rtl/mem/sram_wrapper.v" = "tb/mem/formal/sram_wrapper_fv.sv" }
+min_asserts = 22
+timeout = 1800

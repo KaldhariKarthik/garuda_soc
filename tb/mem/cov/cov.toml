@@ -1,0 +1,23 @@
+# Memories coverage configuration (Track A plan 6A.6 step M3; handbook H5). Used by
+# tools/cov/cov_report.py: design code (the five memory modules), design functional
+# (tb/mem/mem_cov.sv) and testbench code are reported separately.
+# Collect: garuda_run.py suite tb/mem/run/mem.toml --coverage (and mem_seeds.toml)
+block = "mem"
+target_code = 95.0
+target_functional = 100.0
+
+suites = [
+  "logs/mem/summary/block.cov.tsv",
+  "logs/mem/summary/seeds.cov.tsv",
+]
+
+design    = ["rtl/mem/sram_wrapper.v", "rtl/mem/ahb_mem_slave_if.v", "rtl/isram/isram_top.v", "rtl/dsram/dsram_top.v", "rtl/brom/bootrom_top.v"]
+testbench = ["tb/mem/*", "tb/ahb/*", "rtl/mem/mem_sva.sv"]
+
+functional_files = ["tb/mem/mem_cov.sv"]
+
+# ahb_mem_slave_if, sram_wrapper and the checkers are built with three parameter sets
+# (ISRAM / DSRAM bank / ROM), so Verilator's per-build __Pz<N> names are merged.
+merge_variants = ["ahb_mem_slave_if", "sram_wrapper", "mem_sva"]
+
+waivers = "tb/mem/cov/mem_waivers.toml"
