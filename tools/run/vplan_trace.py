@@ -74,8 +74,10 @@ def formal_of(name):
         script = " ".join(t.get("script", []))
         named = set(re.findall(r"\*(\w+)\*", script)) | set(re.findall(r"n:\S*\.(\w+)\b", script))
         keeps_only = "t:$check" in script and script.rstrip().endswith("%d")
-        if t.get("replace"):
-            continue                                          # mutants: negative controls, not results
+        # mutants are negative controls, not results; a swapped-in design counts only as a declared
+        # sound abstraction, with its reason as the value (abstraction = "<why it only adds behaviour>")
+        if t.get("replace") and not (isinstance(t.get("abstraction"), str) and t["abstraction"].strip()):
+            continue
         if keeps_only:
             inc = name in named or any(name.startswith(n.rstrip("*")) for n in named if n.endswith("*"))
         else:
@@ -102,7 +104,8 @@ holes = re.findall(r"^\s+(cg_\w+\.\w+)\.\S+", rep.split("== FUNCTIONAL HOLES")[-
 tests = {}
 for s in cfg["suite_summaries"]:
     for r in tsv(s):
-        tests[r["test"]] = f"{r['class']} ({os.path.basename(s)})"
+        # simulation summaries key on "test", formal ones on "task" (both may be listed)
+        tests[r.get("test") or r["task"]] = f"{r['class']} ({os.path.basename(s)})"
 
 rules = cfg.get("rule", {})
 alias = cfg.get("alias", {})
@@ -144,7 +147,10 @@ for r in rows:
                 res.append(("UNMAPPED " if bad else "") + f"{rule['what']}" + (f" [{', '.join(st)}]" if st else ""))
             else:
                 res.append("UNMAPPED")
-    status = "UNMAPPED" if any(x.startswith("UNMAPPED") or "MISSING" in x for x in res) else "mapped"
+    # a row is traced only by evidence that passed: a formal or suite result classed UNEXPECTED or
+    # XPASS maps nothing (it used to count, the name alone was enough)
+    status = "UNMAPPED" if any(x.startswith("UNMAPPED") or "MISSING" in x
+                               or re.search(r"\b(UNEXPECTED|XPASS:\S+)", x) for x in res) else "mapped"
     tally[(kind, status)] += 1
     if status == "UNMAPPED":
         unmapped.append(f"{r['element_id']} {name}")

@@ -60,6 +60,7 @@ timeout = 3600
 # the solver finds each open defect on its own (expected FAIL, xfail with the bug ID)
 [[task]]
 name    = "dma10_find"
+expect_fail = ["a_no_read_before_refusal"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
@@ -69,6 +70,7 @@ min_asserts = 1
 
 [[task]]
 name    = "dma11_find"
+expect_fail = ["a_beat_belongs_to_arm"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 32
 engine  = "smtbmc yices"
@@ -78,6 +80,7 @@ min_asserts = 18
 
 [[task]]
 name    = "dma13_find"
+expect_fail = ["a_haddr_aligned"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
@@ -87,6 +90,7 @@ min_asserts = 1
 
 [[task]]
 name    = "dma14_find"
+expect_fail = ["a_beat_size_atomic"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
@@ -100,6 +104,7 @@ min_asserts = 1
 # ENG-1 guard removed: a beat is taken in the cycle a result is reported
 [[task]]
 name    = "mut_eng1"
+expect_fail = ["a_no_grant_while_reporting"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
@@ -111,6 +116,7 @@ min_asserts = 1
 # D-2 reverted: a software CR write beats the hardware EN clear
 [[task]]
 name    = "mut_d2"
+expect_fail = ["a_hw_wins_en"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
@@ -122,6 +128,7 @@ min_asserts = 6
 # DMA-8 reverted: a failed beat marks the request as taken
 [[task]]
 name    = "mut_dma8"
+expect_fail = ["a_failed_beat_keeps_request"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
@@ -133,6 +140,7 @@ min_asserts = 6
 # set-beats-clear reverted: an ICLR in the cycle COMPLETE sets clears it
 [[task]]
 name    = "mut_iclr_wins"
+expect_fail = ["a_set_beats_clear_complete"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
@@ -144,6 +152,7 @@ min_asserts = 6
 # AUD-13 reverted: PSLVERR on a write to read-only STAT/GSTAT
 [[task]]
 name    = "mut_aud13"
+expect_fail = ["a_pslverr_rule"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"

@@ -43,6 +43,7 @@ timeout = 3600
 # the solver finds AHB-7 by itself: free masters (no FA-4), only its detectors kept
 [[task]]
 name    = "ahb7_find"
+expect_fail = ["a_held_resp_okay", "a_master_err_shape"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 12
 engine  = "smtbmc yices"
@@ -56,6 +57,7 @@ min_asserts = 8
 
 [[task]]
 name    = "mut_ahb1"
+expect_fail = ["a_hwdata_data_phase"]   # the planted defect must break this (2026-11-01)
 min_asserts = 1
 mode    = "bmc"
 depth   = 12
@@ -67,6 +69,7 @@ timeout = 3600
 
 [[task]]
 name    = "mut_ahb2"
+expect_fail = ["a_rdata_value"]   # the planted defect must break this (2026-11-01)
 min_asserts = 12
 mode    = "bmc"
 depth   = 12
@@ -78,6 +81,7 @@ timeout = 3600
 
 [[task]]
 name    = "mut_ahb3"
+expect_fail = ["a_burst_restart_nonseq"]   # the planted defect must break this (2026-11-01)
 min_asserts = 1
 mode    = "bmc"
 depth   = 12
@@ -89,6 +93,7 @@ timeout = 3600
 
 [[task]]
 name    = "mut_ahb4"
+expect_fail = ["a_idle_not_gated", "a_reset_state"]   # the planted defect must break this (2026-11-01)
 min_asserts = 5
 mode    = "bmc"
 depth   = 12
@@ -100,6 +105,7 @@ timeout = 3600
 
 [[task]]
 name    = "mut_prio"
+expect_fail = ["a_priority"]   # the planted defect must break this (2026-11-01)
 min_asserts = 1
 mode    = "bmc"
 depth   = 12
@@ -111,6 +117,7 @@ timeout = 3600
 
 [[task]]
 name    = "mut_decode"
+expect_fail = ["a_decode"]   # the planted defect must break this (2026-11-01)
 min_asserts = 1
 mode    = "bmc"
 depth   = 12
@@ -122,6 +129,7 @@ timeout = 3600
 
 [[task]]
 name    = "mut_nofreeze"
+expect_fail = ["a_grant_stable_in_data_phase"]   # the planted defect must break this (2026-11-01)
 min_asserts = 2
 mode    = "bmc"
 depth   = 12

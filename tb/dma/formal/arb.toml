@@ -29,6 +29,7 @@ timeout = 600
 
 [[task]]
 name    = "arb_mut_tie_high"
+expect_fail = ["a_grant"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 2
 engine  = "smtbmc yices"

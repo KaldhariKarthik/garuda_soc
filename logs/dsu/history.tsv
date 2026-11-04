@@ -420,3 +420,90 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-10-15T22:06:42+05:30	167aa935078d	True	units_spec	negctl_stall_no_interlock	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
 2026-10-15T22:06:42+05:30	167aa935078d	True	units_spec	negctl_mac_unit_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
 2026-10-15T22:06:42+05:30	167aa935078d	True	units_spec	negctl_mac_cluster_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035b9d88), cluster_out[0] 770c065d2ece, o
+2026-11-01T15:47:06+05:30	dcf6f7d4335a	True	model	tb_dsu_top	1	PASS	OK	
+2026-11-01T15:47:06+05:30	dcf6f7d4335a	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-11-01T15:47:06+05:30	dcf6f7d4335a	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-11-01T15:47:06+05:30	dcf6f7d4335a	True	model	tb_dsu_top_10k	1	PASS	OK	
+2026-11-01T15:47:06+05:30	dcf6f7d4335a	True	model	tb_dsu_top_ovf_fx	1	PASS	OK	
+2026-11-01T15:47:06+05:30	dcf6f7d4335a	True	model	tb_dsu_top_ovf_fy	1	PASS	OK	
+2026-11-01T15:47:06+05:30	dcf6f7d4335a	True	model	tb_dsu_top_ovf_mag	1	PASS	OK	
+2026-11-01T16:05:32+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_overflow_flag_spec	1	PASS	OK	
+2026-11-01T16:05:32+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_barrel_shifter_spec	1	PASS	OK	
+2026-11-01T16:05:32+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_decoder_spec	1	PASS	OK	
+2026-11-01T16:05:32+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_stall_spec	1	PASS	OK	
+2026-11-01T16:05:32+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_mac_unit_spec	1	PASS	OK	
+2026-11-01T16:05:32+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_mac_cluster_spec	1	PASS	OK	
+2026-11-01T16:05:32+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_top_ovf_b2b	1	FAIL	XFAIL:DSU-18	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+2026-11-01T16:05:32+05:30	dcf6f7d4335a	True	units_spec	negctl_overflow_flag_clear_wins	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] set+clear same cycle mac=001 sat=0 clr=1 -> flag=0 expected 1
+2026-11-01T16:05:32+05:30	dcf6f7d4335a	True	units_spec	negctl_barrel_shifter_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] acc=ffffffffffff amt=17 dir=0 -> 7fffffff expected ffffffff
+2026-11-01T16:05:32+05:30	dcf6f7d4335a	True	units_spec	negctl_decoder_sel3_legal	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] instr=0631038b en=1: illegal mac_en
+2026-11-01T16:05:32+05:30	dcf6f7d4335a	True	units_spec	negctl_stall_no_interlock	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
+2026-11-01T16:05:32+05:30	dcf6f7d4335a	True	units_spec	negctl_mac_unit_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
+2026-11-01T16:05:32+05:30	dcf6f7d4335a	True	units_spec	negctl_mac_cluster_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035b9d88), cluster_out[0] 770c065d2ece, o
+2026-11-01T17:15:49+05:30	dcf6f7d4335a	True	fv_dsu	dsu_bmc	-	BOUNDED(16)	OK	[18 asserts, 6 covers in model] 
+2026-11-01T17:15:49+05:30	dcf6f7d4335a	True	fv_dsu	dsu_prove	-	PROVEN	OK	[18 asserts, 6 covers in model] 
+2026-11-01T17:15:49+05:30	dcf6f7d4335a	True	fv_dsu	dsu_cover	-	COVERED	OK	[18 asserts, 6 covers in model] 
+2026-11-01T17:15:49+05:30	dcf6f7d4335a	True	fv_dsu	dsu_no_dsu9	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_per_acc
+2026-11-01T17:15:49+05:30	dcf6f7d4335a	True	fv_dsu	dsu_mut_no_interlock	-	FAIL	XFAIL:PLANTED	[16 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_fires
+2026-11-01T17:15:49+05:30	dcf6f7d4335a	True	fv_dsu	dsu_mut_ovf_not_sticky	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_sticky
+2026-11-01T17:15:49+05:30	dcf6f7d4335a	True	fv_dsu	dsu_mut_ovf_clear_drops_set	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_set_beats_clear
+2026-11-01T17:18:07+05:30	dcf6f7d4335a	True	model	tb_dsu_top	1	PASS	OK	
+2026-11-01T17:18:07+05:30	dcf6f7d4335a	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-11-01T17:18:07+05:30	dcf6f7d4335a	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-11-01T17:18:07+05:30	dcf6f7d4335a	True	model	tb_dsu_top_10k	1	PASS	OK	
+2026-11-01T17:18:07+05:30	dcf6f7d4335a	True	model	tb_dsu_top_ovf_fx	1	PASS	OK	
+2026-11-01T17:18:07+05:30	dcf6f7d4335a	True	model	tb_dsu_top_ovf_fy	1	PASS	OK	
+2026-11-01T17:18:07+05:30	dcf6f7d4335a	True	model	tb_dsu_top_ovf_mag	1	PASS	OK	
+2026-11-01T17:43:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_overflow_flag_spec	1	PASS	OK	
+2026-11-01T17:43:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_barrel_shifter_spec	1	PASS	OK	
+2026-11-01T17:43:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_decoder_spec	1	PASS	OK	
+2026-11-01T17:43:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_stall_spec	1	PASS	OK	
+2026-11-01T17:43:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_mac_unit_spec	1	PASS	OK	
+2026-11-01T17:43:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_mac_cluster_spec	1	PASS	OK	
+2026-11-01T17:43:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_top_ovf_b2b	1	FAIL	XFAIL:DSU-18	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+2026-11-01T17:43:26+05:30	dcf6f7d4335a	True	units_spec	negctl_overflow_flag_clear_wins	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] set+clear same cycle mac=001 sat=0 clr=1 -> flag=0 expected 1
+2026-11-01T17:43:26+05:30	dcf6f7d4335a	True	units_spec	negctl_barrel_shifter_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] acc=ffffffffffff amt=17 dir=0 -> 7fffffff expected ffffffff
+2026-11-01T17:43:26+05:30	dcf6f7d4335a	True	units_spec	negctl_decoder_sel3_legal	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] instr=0631038b en=1: illegal mac_en
+2026-11-01T17:43:26+05:30	dcf6f7d4335a	True	units_spec	negctl_stall_no_interlock	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
+2026-11-01T17:43:26+05:30	dcf6f7d4335a	True	units_spec	negctl_mac_unit_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
+2026-11-01T17:43:26+05:30	dcf6f7d4335a	True	units_spec	negctl_mac_cluster_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035b9d88), cluster_out[0] 770c065d2ece, o
+2026-11-01T18:00:23+05:30	dcf6f7d4335a	True	model	tb_dsu_top	1	PASS	OK	
+2026-11-01T18:00:23+05:30	dcf6f7d4335a	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-11-01T18:00:23+05:30	dcf6f7d4335a	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-11-01T18:00:23+05:30	dcf6f7d4335a	True	model	tb_dsu_top_10k	1	PASS	OK	
+2026-11-01T18:00:23+05:30	dcf6f7d4335a	True	model	tb_dsu_top_ovf_fx	1	PASS	OK	
+2026-11-01T18:00:23+05:30	dcf6f7d4335a	True	model	tb_dsu_top_ovf_fy	1	PASS	OK	
+2026-11-01T18:00:23+05:30	dcf6f7d4335a	True	model	tb_dsu_top_ovf_mag	1	PASS	OK	
+2026-11-01T18:19:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_overflow_flag_spec	1	PASS	OK	
+2026-11-01T18:19:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_barrel_shifter_spec	1	PASS	OK	
+2026-11-01T18:19:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_decoder_spec	1	PASS	OK	
+2026-11-01T18:19:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_stall_spec	1	PASS	OK	
+2026-11-01T18:19:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_mac_unit_spec	1	PASS	OK	
+2026-11-01T18:19:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_mac_cluster_spec	1	PASS	OK	
+2026-11-01T18:19:26+05:30	dcf6f7d4335a	True	units_spec	tb_dsu_top_ovf_b2b	1	FAIL	XFAIL:DSU-18	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+2026-11-01T18:19:26+05:30	dcf6f7d4335a	True	units_spec	negctl_overflow_flag_clear_wins	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] set+clear same cycle mac=001 sat=0 clr=1 -> flag=0 expected 1
+2026-11-01T18:19:26+05:30	dcf6f7d4335a	True	units_spec	negctl_barrel_shifter_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] acc=ffffffffffff amt=17 dir=0 -> 7fffffff expected ffffffff
+2026-11-01T18:19:26+05:30	dcf6f7d4335a	True	units_spec	negctl_decoder_sel3_legal	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] instr=0631038b en=1: illegal mac_en
+2026-11-01T18:19:26+05:30	dcf6f7d4335a	True	units_spec	negctl_stall_no_interlock	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
+2026-11-01T18:19:26+05:30	dcf6f7d4335a	True	units_spec	negctl_mac_unit_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
+2026-11-01T18:19:26+05:30	dcf6f7d4335a	True	units_spec	negctl_mac_cluster_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035b9d88), cluster_out[0] 770c065d2ece, o
+2026-11-03T21:42:32+05:30	dfab0bbf08f6	True	model	tb_dsu_top	1	PASS	OK	
+2026-11-03T21:42:32+05:30	dfab0bbf08f6	True	model	tb_dsu_top_icarus	1	PASS	OK	
+2026-11-03T21:42:32+05:30	dfab0bbf08f6	True	model	tb_dsu_top_clamp	1	PASS	OK	
+2026-11-03T21:42:32+05:30	dfab0bbf08f6	True	model	tb_dsu_top_10k	1	PASS	OK	
+2026-11-03T21:42:32+05:30	dfab0bbf08f6	True	model	tb_dsu_top_ovf_fx	1	PASS	OK	
+2026-11-03T21:42:32+05:30	dfab0bbf08f6	True	model	tb_dsu_top_ovf_fy	1	PASS	OK	
+2026-11-03T21:42:32+05:30	dfab0bbf08f6	True	model	tb_dsu_top_ovf_mag	1	PASS	OK	
+2026-11-03T22:03:13+05:30	dfab0bbf08f6	True	units_spec	tb_dsu_overflow_flag_spec	1	PASS	OK	
+2026-11-03T22:03:13+05:30	dfab0bbf08f6	True	units_spec	tb_dsu_barrel_shifter_spec	1	PASS	OK	
+2026-11-03T22:03:13+05:30	dfab0bbf08f6	True	units_spec	tb_dsu_decoder_spec	1	PASS	OK	
+2026-11-03T22:03:13+05:30	dfab0bbf08f6	True	units_spec	tb_dsu_stall_spec	1	PASS	OK	
+2026-11-03T22:03:13+05:30	dfab0bbf08f6	True	units_spec	tb_dsu_mac_unit_spec	1	PASS	OK	
+2026-11-03T22:03:13+05:30	dfab0bbf08f6	True	units_spec	tb_dsu_mac_cluster_spec	1	PASS	OK	
+2026-11-03T22:03:13+05:30	dfab0bbf08f6	True	units_spec	tb_dsu_top_ovf_b2b	1	FAIL	XFAIL:DSU-18	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] case 2 (MAC overflow, MACCLEAR at once): overflow flag 0, ACC_FX 000000000000
+2026-11-03T22:03:13+05:30	dfab0bbf08f6	True	units_spec	negctl_overflow_flag_clear_wins	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] set+clear same cycle mac=001 sat=0 clr=1 -> flag=0 expected 1
+2026-11-03T22:03:13+05:30	dfab0bbf08f6	True	units_spec	negctl_barrel_shifter_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] acc=ffffffffffff amt=17 dir=0 -> 7fffffff expected ffffffff
+2026-11-03T22:03:13+05:30	dfab0bbf08f6	True	units_spec	negctl_decoder_sel3_legal	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] instr=0631038b en=1: illegal mac_en
+2026-11-03T22:03:13+05:30	dfab0bbf08f6	True	units_spec	negctl_stall_no_interlock	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
+2026-11-03T22:03:13+05:30	dfab0bbf08f6	True	units_spec	negctl_mac_unit_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
+2026-11-03T22:03:13+05:30	dfab0bbf08f6	True	units_spec	negctl_mac_cluster_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035b9d88), cluster_out[0] 770c065d2ece, o

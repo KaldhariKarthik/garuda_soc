@@ -42,6 +42,7 @@ script = ["chformal -cover -remove n:*c_h4_*"]
 # Negative control: hartreset_o following the raw request (pre-fix) must FAIL.
 [[task]]
 name    = "rdc1_prove_rawgrant"
+expect_fail = ["a_grant_only_safe", "a_i_addr_stable"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 30
 engine  = "smtbmc yices"

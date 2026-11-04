@@ -47,6 +47,8 @@ MUTANTS = [
   "a second acknowledge toggle after DONE (one request, two responses)"),
  ("P16", B, "                        if (!win_ok || !word_ok) begin", "                        if (!word_ok) begin",
   "absent / out-of-aperture windows passed to APB (only sub-word rejected)"),
+ ("P17", B, "                            hstate <= prst_ok_q ? H_ERR1 : H_EWAIT;", "                            hstate <= H_ERR1;",
+  "APB-4 reverted: an illegal access in the [N-9.2] window goes to ERROR at once (held with HREADY low)"),
 ]
 
 

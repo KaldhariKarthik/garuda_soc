@@ -30,6 +30,7 @@ import glob
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -46,6 +47,9 @@ def design_sources(d, t=None):
     excl = set(d.get("exclude", []))
     repl = dict(d.get("replace", {}))
     repl.update((t or {}).get("replace", {}))   # per-task swap, e.g. a reference mutant
+    stale = sorted(set(repl) - set(srcs))
+    if stale:   # a swap that matches nothing would run the unmutated design under the mutant's name
+        raise RuntimeError(f"replace key(s) not in the filelist: {stale}")
     out = [repl.get(s, s) for s in srcs if s not in excl]
     out += d.get("extra", [])
     hdrs = []
@@ -68,13 +72,25 @@ def make_sby(d, t, props):
     # extra SBY [options] lines from the design and the task, e.g. "multiclock on"
     # for a two-clock design (the DMA: pclk = hclk/2, tb/dma/formal/dma.toml)
     lines += list(d.get("options", [])) + list(t.get("options", []))
-    lines += ["", "[engines]", t.get("engine", "smtbmc yices"), "", "[script]", "plugin -i slang",
-              "read_slang -I . " + " ".join(f"-D{x}" for x in defs) + " "
-              + " ".join(os.path.basename(f) for f in files) + f" --top {d['top']}"]
+    # read_slang adds an implicit -D SYNTHESIS; a design whose checkers sit inside
+    # `ifndef SYNTHESIS (Karthik's rtl/mem/mem_sva.sv) sets synthesis_define = false,
+    # or the run elaborates without its properties (found 2026-10-15, TOOL-A10)
+    nosyn = "" if d.get("synthesis_define", True) else "--no-synthesis-define "
+    # pre_verilog: files read FIRST with Yosys's own Verilog frontend, for what yosys-slang
+    # does not model: a step clock ((* gclk *) / $global_clock, ignored by yosys-slang,
+    # 2026-10-15). The SystemVerilog files declare those modules' ports as (* blackbox *)
+    # and instantiate them; Yosys keeps the real (first) definition and links it.
+    pre = list(d.get("pre_verilog", []))
+    slang_args = " ".join(d.get("slang_args", []))
+    lines += ["", "[engines]", t.get("engine", "smtbmc yices"), "", "[script]"]
+    lines += [f"read_verilog -sv -formal " + " ".join(f"-D{x}" for x in defs) + " " + os.path.basename(f) for f in pre]
+    lines += ["plugin -i slang",
+              "read_slang -I . " + nosyn + slang_args + " " + " ".join(f"-D{x}" for x in defs) + " "
+              + " ".join(os.path.basename(f) for f in files) + f" --top {t.get('top', d['top'])}"]
     lines += t.get("script", [])
-    lines += [f"prep -top {d['top']}", "", "[files]"]
-    lines += [os.path.join(ROOT, f) for f in files + hdrs]
-    return "\n".join(lines) + "\n", files
+    lines += [f"prep -top {t.get('top', d['top'])}", "", "[files]"]
+    lines += [os.path.join(ROOT, f) for f in files + hdrs + pre]
+    return "\n".join(lines) + "\n", files + pre
 
 
 def model_props(work):
@@ -129,7 +145,7 @@ def run_task(ctx, d, t):
         sby, _ = make_sby(d, t, props)
     except (FileNotFoundError, RuntimeError) as e:
         return {"task": t["name"], "mode": t["mode"], "result": "ERROR", "detail": str(e),
-                "secs": 0, "log": "-"}
+                "secs": 0, "log": "-", "failed": []}
     sby_path = os.path.join(work_root, f"{t['name']}.sby")
     open(sby_path, "w").write(sby)
     env = dict(os.environ)
@@ -145,27 +161,46 @@ def run_task(ctx, d, t):
                 f"# reproduce : source tools/run/env.sh && python3.12 tools/run/garuda_fv.py "
                 f"{ctx['manifest']} --only {t['name']}\n# ---- tool output ----\n")
         f.flush()
+        # own process group, so a timeout also stops yosys-smtbmc and the solvers under sby
+        p = subprocess.Popen([os.path.join(ctx["oss"], "bin", "sby"), "-f", sby_path],
+                             cwd=work_root, stdout=f, stderr=subprocess.STDOUT, env=env,
+                             start_new_session=True)
         try:
-            p = subprocess.run([os.path.join(ctx["oss"], "bin", "sby"), "-f", sby_path],
-                               cwd=work_root, stdout=f, stderr=subprocess.STDOUT, env=env,
-                               timeout=t.get("timeout", 3600))
-            rc = p.returncode
+            rc = p.wait(timeout=t.get("timeout", 3600))
         except subprocess.TimeoutExpired:
+            os.killpg(p.pid, signal.SIGKILL)
+            p.wait()
             rc, timed_out = "TIMEOUT", True
     secs = int(time.time() - t0)
     work = os.path.join(work_root, t["name"])
-    res, detail, _ = classify(t["mode"], t.get("depth", 20), work, rc, timed_out)
+    res, detail, failed = classify(t["mode"], t.get("depth", 20), work, rc, timed_out)
+    if t.get("expect_unreached"):
+        if res.startswith("UNREACHED"):
+            log_txt = open(os.path.join(work, "logfile.txt"), errors="replace").read() if os.path.exists(os.path.join(work, "logfile.txt")) else ""
+            # leaf names as a sorted list, not a set: two instances' covers of the same name stay two
+            got = sorted(n.split(".")[-1] for n in set(re.findall(r"Unreached cover statement[^:]*:\s*(\S+)", log_txt)))
+            want = sorted(t["expect_unreached"])
+            if got == want:
+                res, detail = "UNREACHED-AS-EXPECTED", "unreached exactly: " + " ".join(got)
+            else:
+                res, detail = "FAIL", f"expected unreached {want}, got {got}"
+        elif res == "COVERED":
+            # an over-constraint control that reaches its covers no longer controls anything
+            res, detail = "FAIL", f"expected unreached {sorted(t['expect_unreached'])}, but every cover was reached"
     n_as, n_cv = model_props(work)
     want = t.get("min_asserts", ctx["min_asserts"]) if t["mode"] != "cover" else t.get("min_covers", ctx["min_covers"])
     have = n_as if t["mode"] != "cover" else n_cv
-    if have is not None and have < want:
+    passed = res in ("PROVEN", "COVERED", "UNREACHED-AS-EXPECTED") or res.startswith("BOUNDED")
+    if have is None and passed:
+        res, detail = "ERROR", "no elaborated model (model/design.il) to count the properties in"
+    elif have is not None and have < want:
         # a run with the properties missing proves nothing (seen 2026-10-11)
         res, detail = "ERROR", f"model has {have} {'assert' if t['mode'] != 'cover' else 'cover'}(s), manifest wants >= {want}"
     detail = (f"[{n_as} asserts, {n_cv} covers in model] " if n_as is not None else "") + detail
     with open(log, "a") as f:
         f.write(f"\n# ---- footer ----\n# exit code : {rc}\n# seconds   : {secs}\n# result    : {res}  {detail}\n")
     return {"task": t["name"], "mode": t["mode"], "result": res, "detail": detail, "secs": secs,
-            "log": rel(log)}
+            "log": rel(log), "failed": failed}
 
 
 def main():
@@ -179,7 +214,12 @@ def main():
     s, d = m["suite"], m["design"]
     tasks = m["task"]
     if a.only:
+        unknown = sorted(set(a.only) - {t["name"] for t in tasks})
+        if unknown:
+            sys.exit(f"garuda_fv: --only names no task: {unknown}")
         tasks = [t for t in tasks if t["name"] in a.only]
+    if not tasks:
+        sys.exit(f"garuda_fv: {a.manifest} has no tasks to run")
     blk, suite = s["block"], s["name"]
     raw = os.path.join(ROOT, "logs", blk, "raw", suite)
     os.makedirs(raw, exist_ok=True)
@@ -192,23 +232,51 @@ def main():
            "min_asserts": d.get("min_asserts", 1), "min_covers": d.get("min_covers", 1)}
     print(f"[{suite}] block={blk} tasks={len(tasks)} design={ctx['git']['sha'][:12]}"
           f"{' DIRTY' if ctx['git']['design_dirty'] else ''}", flush=True)
+    tag = ".partial" if a.only else ""
+    tsv = os.path.join(ROOT, "logs", blk, "summary", f"{suite}{tag}.tsv")
+    if os.path.exists(tsv):
+        os.remove(tsv)          # a run that dies must not leave the last run's summary as evidence
+
+    def safe_run(t):
+        try:
+            return run_task(ctx, d, t)
+        except Exception as e:  # noqa: BLE001 -- one broken task is an ERROR row, not a lost suite
+            return {"task": t["name"], "mode": t["mode"], "result": "ERROR",
+                    "detail": f"runner exception: {type(e).__name__}: {e}", "secs": 0, "log": "-", "failed": []}
     with cf.ThreadPoolExecutor(max(1, a.jobs)) as ex:
-        rows = list(ex.map(lambda t: run_task(ctx, d, t), tasks))
+        rows = list(ex.map(safe_run, tasks))
+    by_name = {t["name"]: t for t in tasks}
     xf = load_xfail(s.get("xfail"))
     bad = 0
     for r in rows:
         key = (suite, r["task"])
-        ok_res = r["result"] in ("PROVEN", "COVERED") or r["result"].startswith("BOUNDED")
+        t = by_name[r["task"]]
+        ok_res = r["result"] in ("PROVEN", "COVERED", "UNREACHED-AS-EXPECTED") or r["result"].startswith("BOUNDED")
         if key in xf:
             exp, bug, _ = xf[key]
-            r["class"] = f"XFAIL:{bug}" if r["result"] == exp else (f"XPASS:{bug}" if ok_res else "UNEXPECTED")
+            if r["result"] == exp == "FAIL":
+                # a negative control counts only if it fails for its named property (expect_fail)
+                want = set(t.get("expect_fail", []))
+                got = {n.split(".")[-1] for n in r["failed"]}
+                if not want:
+                    r["class"], r["detail"] = "UNEXPECTED", "xfail FAIL row but the task names no expect_fail property; " + r["detail"]
+                elif want & got:
+                    r["class"] = f"XFAIL:{bug}"
+                else:
+                    r["class"], r["detail"] = "UNEXPECTED", f"failed, but not for {sorted(want)}; " + r["detail"]
+            else:
+                r["class"] = f"XFAIL:{bug}" if r["result"] == exp else (f"XPASS:{bug}" if ok_res else "UNEXPECTED")
         else:
             r["class"] = "OK" if ok_res else "UNEXPECTED"
+            if t.get("expect_fail"):
+                r["class"], r["detail"] = "UNEXPECTED", "task has expect_fail but no xfail row; " + r["detail"]
         if r["class"] == "UNEXPECTED" or r["class"].startswith("XPASS"):
             bad += 1
         print(f"  {r['result']:<14} {r['class']:<20} {r['task']:<26} {r['secs']:>5}s  {r['detail'][:100]}", flush=True)
-    tag = ".partial" if a.only else ""
-    tsv = os.path.join(ROOT, "logs", blk, "summary", f"{suite}{tag}.tsv")
+    if not a.only:
+        for (sx, tx) in sorted(k for k in xf if k[0] == suite and k[1] not in by_name):
+            print(f"  xfail row names no task: {sx} {tx}", flush=True)
+            bad += 1
     cols = ["task", "mode", "result", "class", "secs", "detail", "log"]
     with open(tsv, "w") as f:
         f.write(f"# {VERSION} suite={suite} block={blk} date={now()} design={ctx['git']['sha']} "
