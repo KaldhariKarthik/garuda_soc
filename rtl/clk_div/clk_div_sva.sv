@@ -73,9 +73,18 @@ module clk_div_sva (
     end
     always @(negedge raw_rst_n_i) t_pclk = 0;
 
+    // TB-A5 (ruling D-32, 2026-11-04): hclk stops while the raw reset is low, and a
+    // simulator that tests disable iff only on a clock tick (Verilator) judged an attempt
+    // begun before a warm reset after it. hclk_seen counts the rises since the reset;
+    // the two properties below skip the first one.
+    reg [1:0] hclk_seen;
+    always @(posedge hclk_o or negedge raw_rst_n_i)
+        if (!raw_rst_n_i)            hclk_seen <= 2'd0;
+        else if (hclk_seen != 2'd2)  hclk_seen <= hclk_seen + 2'd1;
+
     // ---- F10: pclk toggles on every hclk rising edge ----------------------------
     a_pclk_ratio: assert property (@(posedge hclk_o) disable iff (!raw_rst_n_i)
-        raw_rst_n_i |=> (pclk_o != $past(pclk_o)))
+        (raw_rst_n_i && hclk_seen != 2'd0) |=> (pclk_o != $past(pclk_o)))
         else $error("[SVA-FAIL] a_pclk_ratio");
     // ---- F12: pclk_phase is 1 exactly in the hclk cycle that ends with a pclk rise --
     // Checked at the hclk FALLING edge (track A, 2026-10-15, for track B's OK): since SIM-1
@@ -87,7 +96,7 @@ module clk_div_sva (
     // Between edges pclk_phase is ~pclk (see clk_div.v), which is the same statement: the
     // cycle with pclk low is the one that ends with a pclk rise. Nothing changes on a fall.
     a_pclk_phase: assert property (@(negedge hclk_o) disable iff (!raw_rst_n_i)
-        pclk_phase_o == !pclk_o)
+        (hclk_seen == 2'd0) || (pclk_phase_o == !pclk_o))
         else $error("[SVA-FAIL] a_pclk_phase");
     // ---- F14: a requested ratio is in effect within one full count of the dividers,
     //      and DIVBUSY is up until then ---------------------------------------------

@@ -219,6 +219,12 @@ refuses to produce a STOP.
 **[N-6.2b]** Writing `CMD` while `STATUS.TIP` is set is ignored and raises
 `PSLVERR`. One command at a time — the byte controller has no queue.
 
+**[N-6.2e]** While `STATUS.TIP` is set, writes to `PRESCALE` and `TIMEOUT` are ignored
+(I2C-10, ruling D-32, 2026-11-04): a new value takes effect for the next transfer. Before, a
+`PRESCALE` write changed the bit timing inside a bit, and a `TIMEOUT` of 0 disabled the
+countdown already running, so a wedged slave could hold `TIP` for ever (R-8). `CTRL` stays
+writable: `EN` = 0 and `ABORT` are the ways to stop a transfer ([N-6.3], [N-7.5]).
+
 **[N-6.2c]** A `CMD` with none of `RD`, `WR` and `STO` (`STA` alone, `NACK`
 alone, or 0) has nothing to put on the bus. It is refused in the same way: ignored,
 with `PSLVERR`. A START is sent together with the byte that follows it

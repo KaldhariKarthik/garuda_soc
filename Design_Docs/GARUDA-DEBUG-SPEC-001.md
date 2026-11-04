@@ -203,7 +203,7 @@ check at bring-up.
 |---|---|---|---|---|
 | 3:0 | `version` | R | `1` | Debug spec 0.13. |
 | 9:4 | `abits` | R | `7` | DMI address width. |
-| 11:10 | `dmistat` | R | — | 0 none, 2 op failed, 3 busy. |
+| 11:10 | `dmistat` | R | — | 0 none, 3 busy. The value 2 ("op failed") of the debug specification is never reported by GARUDA: the DM never fails a DMI access (unimplemented registers read 0, SBA errors go to `sberror`), so `debug_top` ties the DTM's failure input to 0 (DBG-5, ruling D-32, 2026-11-04). |
 | 14:12 | `idle` | R | `5` | Cycles the debugger should spend in Run-Test/Idle between DMI accesses. |
 | 16 | `dmireset` | W1 | — | Clears a sticky error. |
 | 17 | `dmihardreset` | W1 | — | Resets the DTM. |

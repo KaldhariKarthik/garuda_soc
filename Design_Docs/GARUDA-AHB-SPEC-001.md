@@ -319,6 +319,15 @@ encoding of `HADDR[31:28]` selects either a real slave or the default slave, and
 bridge — the only slave that can take unbounded time — has its own 16-cycle timeout
 (`GARUDA-AHB2APB-SPEC-001` §7).
 
+**[N-7.18a]** The response hold of AHB-2 (a response that arrives for a master that has
+already lost the grant is held for it) can hold an `ERROR`: if the grant moves during the
+first cycle of a two-cycle `ERROR`, the held response is `ERROR` (AHB-7). None of GARUDA's
+masters issues a transfer in that cycle (each waits for the second `ERROR` cycle before it
+does anything else), so the case does not arise in this chip, and the interconnect is proven
+for four free masters under that condition. Ruled acceptable and documented
+(ruling D-32, 2026-11-04); a new master that can issue in the first `ERROR` cycle would
+reopen it.
+
 ### 7.7 Wait states
 
 **[N-7.19]** The interconnect inserts no wait states. `HREADY` seen by the granted master

@@ -18,6 +18,7 @@
 |---|---|---|
 | 1.0–2.0 | Three MACs, 48-bit accumulators, nine Custom-0 instructions. RTL implemented and verified | — |
 | 3.0 | **Numeric contract stated for the first time** (§6): Q1.15 operands, Q18.30 accumulators. The EKF acceleration claim is scoped to what the format can actually hold. Overflow guard width resolved. Clock gating on `dsu_busy`. | ADR-0017 |
+| 3.1 | Rulings of 2026-11-04 (DECISIONS D-32): `MACDOT`, `MACSHIFT` and `MACSAT` described as the RTL implements them (DSU-15, DSU-16, DSU-17); the sticky overflow is set by a fold even when the same accumulator is cleared or loaded in that cycle (DSU-18); a `csrr dsu_ovf` waits for a pending fold (DSU-14). | D-32 |
 
 ## 0.3 Normative references
 
@@ -208,25 +209,33 @@ All in the Custom-0 opcode space (`0x0B`), distinguished by `funct3` and `funct7
 | `MAC_SEL acc` | Select the target accumulator | — | 1 |
 | `MAC rs1, rs2` | `acc += rs1[15:0] × rs2[15:0]` | — | 1 |
 | `MACSUB rs1, rs2` | `acc -= rs1[15:0] × rs2[15:0]` | — | 1 |
-| `MACDOT rs1, rs2` | Two products into two accumulators | — | 1 |
+| `MACDOT rs1, rs2` | `acc += rs1[15:0] × rs2[15:0] + rs1[31:16] × rs2[31:16]` (both products into the selected accumulator) | — | 1 |
 | `MACCLEAR` | `acc = 0`; overflow flag unchanged | — | 1 |
 | `MACLOAD rs1` | `acc = sign_extend(rs1)` as Q18.30 | — | 1 |
 | `MACREAD_LO rd` | `rd = acc[31:0]` | rd | 1 |
 | `MACREAD_HI rd` | `rd = sign_extend(acc[47:32])` | rd | 1 |
-| `MACSHIFT rs1` | `acc >>>= rs1[4:0]`, arithmetic | — | 1 |
-| `MACSAT rd` | `rd = acc` saturated to Q1.15 in `rd[15:0]` | rd | 1 |
+| `MACSHIFT rd, imm` | `rd = (dir ? acc << amt : acc >>> amt)[31:0]`; the accumulator is unchanged. I-type: `imm[8]` = dir (1 left, 0 arithmetic right), `imm[7:6]` = accumulator, `imm[5:0]` = amt, 0..47 (48..63 illegal) | rd | 1 |
+| `MACSAT` | `acc` clamped in place to the int32 range and sign-extended back to 48 bits; sets the sticky overflow flag when it clamps | — | 1 |
 | `MACABS` | `acc = |acc|` | — | 1 |
 
 **[N-7.1]** Every instruction is single-cycle throughput. The only stall is the
 same-accumulator RAW interlock (§7.3).
 
-**[N-7.2]** `MACDOT` is the EKF and APF primitive: it issues two 16×16 products into two
-different accumulators in one instruction, which is what makes a 2-element dot product one
-cycle rather than two.
+**[N-7.2]** `MACDOT` is the EKF and APF primitive: it adds two 16×16 products, the low
+halves and the high halves of `rs1` and `rs2`, into the selected accumulator in one
+instruction, which is what makes a 2-element dot product one cycle rather than two.
+*(Rev 3.1, ruling D-32 on DSU-16: the earlier text said two accumulators; the RTL and both
+models add both products into one, and the specification follows them.)*
 
-**[N-7.3]** `MACSAT` converts an accumulator back to Q1.15 with saturation, which is the
-normal way a result re-enters the RV32IM datapath. `MACREAD_LO`/`_HI` give the raw Q18.30
-value for firmware that needs the full precision or is writing diagnostics.
+**[N-7.3]** `MACSAT` clamps the selected accumulator in place to the int32 range
+(±2³¹, sign-extended to 48 bits) and raises the sticky overflow flag if it had to clamp. It
+writes no register: firmware reads the clamped value with `MACREAD_LO`. `MACSHIFT` returns a
+shifted view of an accumulator in `rd` without changing it, so a Q-format result is
+extracted with one `MACSHIFT` (for example right by 15 for Q1.15) after an optional `MACSAT`.
+`MACREAD_LO`/`_HI` give the raw value for firmware that needs the full precision or is
+writing diagnostics. *(Rev 3.1, ruling D-32 on DSU-15 and DSU-17: the earlier text had
+`MACSAT rd` returning Q1.15 and `MACSHIFT rs1` shifting the accumulator in place; the RTL,
+verified against its model, does the above, and the specification follows it.)*
 
 ### 7.2 `acc_sel` encoding
 
@@ -460,10 +469,10 @@ a_flush_no_accumulate: assert property (
   @(posedge hclk_i) disable iff (!core_rst_n_i)
   (dsu_valid_i && ex_flush) |=> $stable(acc[instr_acc_sel]));
 
-// --- MACSAT saturates correctly to Q1.15
+// --- MACSAT clamps the accumulator to the int32 range (DSU-15, ruling D-32)
 a_macsat: assert property (
   @(posedge hclk_i) disable iff (!core_rst_n_i)
-  macsat_en |-> (dsu_result_o[15:0] == q15_saturate(acc[instr_acc_sel])));
+  macsat_en |=> (acc[instr_acc_sel] == int32_clamp($past(acc[instr_acc_sel]))));
 
 // --- taps are always live, never gated (R-6)
 a_taps_live: assert property (

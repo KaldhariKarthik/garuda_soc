@@ -175,8 +175,20 @@ Boot ROM runs at the reset `DIVSEL`, so the boot value is always valid.
 
 **[N-6.3]** The engine asserts the selected chip select for the whole
 transfer — command, address, dummy and data — and releases it at the end. This
-is R-2, and it is why a flash read works without software CS control. Firmware
-must not change `[11:8]` while `STATUS[0]` reads 0.
+is R-2, and it is why a flash read works without software CS control.
+
+**[N-6.3a]** Firmware rules for `STATUS` and `CLKDIV` (SPIM-5, ruling D-32, 2026-11-04):
+1. No `STATUS` write from the write that starts a transfer until the transfer has ended (wait
+   on `IRQSTAT[0]`, [N-6.1a]). `STATUS[0]` alone is not enough: it reads idle in the first
+   cycles after a start and while a chip select is already low.
+2. A soft reset is never written in the same `STATUS` write as a start: together they release
+   CS with SCLK high.
+3. `CLKDIV` resets to 0, below the R-4 minimum of 3; at 0 the first MOSI bit changes on the
+   first SCLK rise. Firmware writes `CLKDIV` (≥ 3) before the first transfer, as the boot ROM does.
+
+These three are the assumptions of `flow/formal/spim/spim_fpv.tcl`; with them all its
+properties prove. The property `a_cs_idle` suggested in section 11 is not true of this block
+and is withdrawn.
 
 ---
 
@@ -317,8 +329,8 @@ a_pready:   assert property (@(posedge pclk_i) psel_i |-> pready_o);
 // chip selects are mutually exclusive and idle high when the engine is idle
 a_cs_excl:  assert property (@(posedge pclk_i) disable iff (!preset_n_i)
               !(!spim_cs_flash_n_o && !spim_cs_imu_n_o));
-a_cs_idle:  assert property (@(posedge pclk_i) disable iff (!preset_n_i)
-              status_idle |-> (spim_cs_flash_n_o && spim_cs_imu_n_o));
+// a_cs_idle (withdrawn 2026-11-04, SPIM-5): "CS idle whenever STATUS reads idle" is
+// false - STATUS[0] reads idle in the first cycles after a start. See [N-6.3a].
 
 // the selected chip select stays asserted for the whole transfer (R-2)
 a_cs_held:  assert property (@(posedge pclk_i) disable iff (!preset_n_i)

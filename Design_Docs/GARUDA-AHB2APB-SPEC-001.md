@@ -329,6 +329,13 @@ indefinitely has one here.
 write. No recovery is attempted. The reasonable firmware response is to treat the access
 fault as fatal and reset.
 
+**[N-7.18a]** Abandoning the access breaks a strict APB rule: APB has no abort, and the
+bridge drops `PSEL` and `PENABLE` while `PREADY` is still low. This is intended (APB-1,
+ruling D-32, 2026-11-04): it happens only for a target that never becomes ready, and the
+alternative is a bus that hangs for ever. The bridge's verification keeps its APB checkers
+strict and requires their violations to equal the number of abandoned accesses, so the
+exception is counted, not waived.
+
 ### 7.6 Unmapped windows
 
 **[N-7.19]** `haddr[15:12]` values with no window — `0xC`–`0xF`, and `0x0` when the chip

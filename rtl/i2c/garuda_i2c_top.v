@@ -179,10 +179,14 @@ module garuda_i2c_top #(
         end else begin
             if (wr_hit) begin
                 case (ip_paddr)
-                    A_PRESCALE: prescale_q <= pwdata_i[15:0];
+                    // I2C-10 (ruling D-32, 2026-11-04): PRESCALE and TIMEOUT are ignored
+                    // while TIP is set; a mid-transfer write used to change the bit timing
+                    // inside a bit, or disable the timeout already running (R-8). CTRL stays
+                    // writable: EN = 0 and ABORT are the specified ways to stop ([N-6.3]).
+                    A_PRESCALE: if (!tip_q) prescale_q <= pwdata_i[15:0];
                     A_CTRL:     en_q       <= pwdata_i[0];
                     A_TXDATA:   txdata_q   <= pwdata_i[7:0];
-                    A_TIMEOUT:  timeout_q  <= pwdata_i[15:0];
+                    A_TIMEOUT:  if (!tip_q) timeout_q  <= pwdata_i[15:0];
                     default: ;
                 endcase
             end
