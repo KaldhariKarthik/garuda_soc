@@ -1,0 +1,153 @@
+tree 9d9c2bb, 2026-11-04 21:21, Xcelium 22.09 / irun 15.2
+EX SMOKE: ALL CHECKS PASSED
+EX SMOKE: ALL CHECKS PASSED
+ID_EX + FWD SMOKE: ALL CHECKS PASSED
+EXMEM + IFID SMOKE: ALL CHECKS PASSED
+PIPE_CTRL SMOKE: ALL CHECKS PASSED
+CSR_FILE SMOKE: ALL CHECKS PASSED
+TRAP_CTRL SMOKE: checks=64 ALL CHECKS PASSED
+decode_control         PASS=3075  FAIL=0    SVA_FAIL=0
+imm_gen                PASS=2047  FAIL=0    SVA_FAIL=0
+reg_file               PASS=2091  FAIL=0    SVA_FAIL=0
+branch_predict         PASS=2033  FAIL=0    SVA_FAIL=0
+hazard_forward_unit    PASS=2058  FAIL=0    SVA_FAIL=0
+id_stage               PASS=3067  FAIL=0    SVA_FAIL=0
+garuda_pc_gen              PASS=0      FAIL=0    SVA_FAIL=0     RESULT: ALL CHECKS PASSED
+garuda_prefetch_buffer     PASS=0      FAIL=0    SVA_FAIL=0     RESULT: ALL CHECKS PASSED
+garuda_iport_ahb_master    PASS=0      FAIL=0    SVA_FAIL=0     RESULT: ALL CHECKS PASSED
+garuda_if_stage_top        PASS=0      FAIL=0    SVA_FAIL=0     RESULT: ALL CHECKS PASSED
+alu                        PASS=0      FAIL=0    SVA_FAIL=0     RESULT: ALL CHECKS PASSED
+mul32                      PASS=0      FAIL=0    SVA_FAIL=0     RESULT: ALL CHECKS PASSED
+branch_unit                PASS=0      FAIL=0    SVA_FAIL=0     RESULT: ALL CHECKS PASSED
+csr_rw                     PASS=0      FAIL=0    SVA_FAIL=0     RESULT: ALL CHECKS PASSED
+load_store_unit            PASS=0      FAIL=0    SVA_FAIL=0     RESULT: ALL CHECKS PASSED
+load_formatter             PASS=0      FAIL=0    SVA_FAIL=0     RESULT: ALL CHECKS PASSED
+d_port_ahb_master          PASS=0      FAIL=0    SVA_FAIL=0     RESULT: ALL CHECKS PASSED
+mem_stage                  PASS=0      FAIL=0    SVA_FAIL=0     RESULT: ALL CHECKS PASSED
+mem_wb_reg                 PASS=0      FAIL=0    SVA_FAIL=0     RESULT: ALL CHECKS PASSED
+clic_ctrl                  PASS=10012  FAIL=0    SVA_FAIL=0     RESULT: PASSED  (40056 checks, 0 failed)
+tb_ahb_ic      AHB IC TB: 802 checks, 0 failures RESULT: PASSED 
+tb_bridge      tb_ahb2apb: checks=22  FAIL=0 RESULT: PASSED 
+tb_mem         tb_mem_subsystem: checks=18  FAIL=0 RESULT: PASSED 
+tb_dma         tb_dma_top: checks=64  FAIL=0 RESULT: PASSED 
+tb_debug       tb_debug: checks=93  FAIL=0 RESULT: PASSED 
+make -C sw all
+make[2]: Nothing to be done for 'all'.
+elaborating...
+
+TEST           RESULT     PLAN ROW
+----------------------------------------------------------------------
+t_loadbranch   PASS       11 load-use into a branch
+t_flush        PASS       22 flush with outstanding fetch
+t_buserr       PASS       17 D-port ERROR response
+t_irq          PASS       18/19 CLIC interrupt mid-stream, MRET resume
+t_wfi          PASS       20 WFI sleep and wake
+t_dsu          PASS       9/13 DSU Custom-0 and busy hold
+t_mem          PASS       item 6: width x offset matrix, byte enables, misalign traps
+t_clic         PASS       18: CLIC id/level/threshold sweep, take and block
+t_cov          PASS       coverage closure: FENCE, reserved encodings, CSR sweep, toggle walks
+t_mtip         PASS       T-8: timer-only WFI wake, then clear, core keeps running
+t_hold_flush_matrix PASS       [N-11.2] hold x flush matrix: 19 cells, interrupts and D-port waits
+t_dsu_b2b      PASS       DSU instructions back to back through the pipeline (DSU-11..13)
+t_lead1_mret_buserr PASS       T-13: bus error on the instruction before MRET is taken
+t_lead2_wfi_buserr PASS       T-14: bus error on the instruction before WFI, core does not stay asleep
+----------------------------------------------------------------------
+PASS=14 FAIL=0
+        -0.99           0/2000                        ok
+  tests compared : 448
+  mismatches     : 0
+  RESULT         : PASSED
+make -C sw/riscv-tests all
+make[2]: Nothing to be done for 'all'.
+elaborating snapshot...
+
+TEST         TOHOST     LOCKSTEP   AHB-I/D   NOTE
+----------------------------------------------------------------------
+add          PASS       MATCH      0/0       
+addi         PASS       MATCH      0/0       
+and          PASS       MATCH      0/0       
+andi         PASS       MATCH      0/0       
+auipc        PASS       MATCH      0/0       
+beq          PASS       MATCH      0/0       
+bge          PASS       MATCH      0/0       
+bgeu         PASS       MATCH      0/0       
+blt          PASS       MATCH      0/0       
+bltu         PASS       MATCH      0/0       
+bne          PASS       MATCH      0/0       
+fence_i      PASS       MATCH      0/0       
+jal          PASS       MATCH      0/0       
+jalr         PASS       MATCH      0/0       
+lb           PASS       MATCH      0/0       
+lbu          PASS       MATCH      0/0       
+ld_st        PASS       MATCH      0/0       
+lh           PASS       MATCH      0/0       
+lhu          PASS       MATCH      0/0       
+lui          PASS       MATCH      0/0       
+lw           PASS       MATCH      0/0       
+mul          PASS       MATCH      0/0       
+mulh         PASS       MATCH      0/0       
+mulhsu       PASS       MATCH      0/0       
+mulhu        PASS       MATCH      0/0       
+or           PASS       MATCH      0/0       
+ori          PASS       MATCH      0/0       
+p-csr        PASS       MATCH      0/0       
+p-csr_readzero PASS       MATCH      0/0       
+p-csr_warl   PASS       MATCH      0/0       
+p-div        PASS       n/a        0/0       
+p-divu       PASS       n/a        0/0       
+p-illegal    PASS       MATCH      0/0       
+p-lh-misaligned PASS       MATCH      0/0       
+p-lw-misaligned PASS       MATCH      0/0       
+p-ma_addr    PASS       MATCH      0/0       
+p-ma_data    PASS       MATCH      0/0       
+p-ma_fetch   PASS       MATCH      0/0       
+p-mcsr       PASS       n/a        0/0       
+p-minstret   PASS       MATCH      0/0       
+p-rem        PASS       n/a        0/0       
+p-remu       PASS       n/a        0/0       
+p-sbreak     PASS       n/a        0/0       
+p-scall      PASS       MATCH      0/0       
+p-shamt      PASS       MATCH      0/0       
+p-sh-misaligned PASS       MATCH      0/0       
+p-sw-misaligned PASS       MATCH      0/0       
+p-zicntr     PASS       MATCH      0/0       
+sb           PASS       MATCH      0/0       
+sh           PASS       MATCH      0/0       
+simple       PASS       MATCH      0/0       
+sll          PASS       MATCH      0/0       
+slli         PASS       MATCH      0/0       
+slt          PASS       MATCH      0/0       
+slti         PASS       MATCH      0/0       
+sltiu        PASS       MATCH      0/0       
+sltu         PASS       MATCH      0/0       
+sra          PASS       MATCH      0/0       
+srai         PASS       MATCH      0/0       
+srl          PASS       MATCH      0/0       
+srli         PASS       MATCH      0/0       
+st_ld        PASS       MATCH      0/0       
+sub          PASS       MATCH      0/0       
+sw           PASS       MATCH      0/0       
+xor          PASS       MATCH      0/0       
+xori         PASS       MATCH      0/0       
+----------------------------------------------------------------------
+PASS=66 FAIL=0
+tb_crg         tb_crg: checks=43  FAIL=0 RESULT: PASSED 
+tb_clic        tb_clic: checks=24  FAIL=0 RESULT: PASSED 
+tb_timers      tb_timers: checks=27  FAIL=0 RESULT: PASSED 
+tb_apb_shim    tb_apb_shim: checks=26  FAIL=0 RESULT: PASSED 
+tb_spim        tb_spim: checks=27  FAIL=0 RESULT: PASSED 
+tb_uart        tb_uart: checks=117  FAIL=0 RESULT: PASSED 
+tb_i2c         tb_i2c: checks=93  FAIL=0 RESULT: PASSED 
+tb_gpio        tb_gpio: checks=26  FAIL=0 RESULT: PASSED 
+tb_pwm         tb_pwm: checks=60  FAIL=0 RESULT: PASSED 
+tb_spis        tb_spis: checks=74  FAIL=0 RESULT: PASSED 
+chip_basic     RESULT: PASSED 
+chip_irq       RESULT: PASSED 
+chip_wdt       RESULT: PASSED 
+chip_flash     RESULT: PASSED 
+chip_uart      RESULT: PASSED 
+chip_periph    RESULT: PASSED 
+chip_integ     RESULT: PASSED 
+chip_jtag      RESULT: PASSED 
+chip_swirq     RESULT: PASSED 
+regress_all: PASS
