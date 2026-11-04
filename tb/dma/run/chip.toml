@@ -48,7 +48,7 @@ lines = 1
 
 [[test]]
 name = "t_chip_dma_rearm"
-fail_reason = 'Assertion failed in \S*a_beat_belongs_to_arm'
+# DMA-9 fixed 2026-11-01: this program failed by a_beat_belongs_to_arm before the fix
 # The error limit is raised for this probe only: once a stale beat lands, the R-6
 # detector fires on every cycle the bad state lasts, and the default limit (1000)
 # would stop the sweep before the firmware reports its counts.
@@ -56,16 +56,13 @@ plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_dma_rearm.hex", "+MAXUS=4000",
 
 # F38 / plan 8.6: six channels under CPU load, completion IDs 1-6, channel 4 refused
 # (ISRAM destination, R-9) -> ERROR, ERRPHASE write, CLIC ID 12 (INT-2), the others
-# finish (R-8). The refused channel reads its source first (DMA-10, open): the
-# detector a_no_read_before_refusal fires once, declared until the DMA-10 fix (D6).
+# finish (R-8). Since the DMA-12 fix (2026-11-01) the refused channel is refused before
+# its source read; before, a_no_read_before_refusal fired once and was declared here.
 [[test]]
 name = "t_chip_dma_traffic"
 plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_dma_traffic.hex", "+MAXUS=4000"]
 # TB-38 (timers a_mtimecmp_reset at 51 ns) is fixed on main by Karthik's TB-B1 (timers_sva);
 # its known entry was removed on 2026-10-15 (a/track-a on 167aa93).
-known = [
-  ['a_no_read_before_refusal', 1, "DMA-10"],
-]
 
 # F51 / D-21 rule 4: byte and halfword beats to and from an APB register end in a
 # bus fault (bridge R-6), ERRPHASE write / read, no partial write; a word beat lands

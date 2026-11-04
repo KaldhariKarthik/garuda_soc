@@ -15,10 +15,12 @@
 // from SRC_BASE + n*WIN, writes to DST_BASE + n*WIN, and its peripheral data
 // register is FIFO_BASE + n*0x100.
 //
-// Until the D6 fixes, random transfers stay clear of the open defects (each is
-// reproduced by a directed case instead): aligned addresses (DMA-13), legal
-// regions (DMA-10), a stop keeps SIZE (DMA-14), no re-arm with a beat in flight
-// (DMA-11), no restart with CNT untouched (DMA-9).
+// Random transfers stay clear of the scenarios of DMA-9, DMA-10, DMA-11, DMA-12 and DMA-14
+// (working IDs in brackets in the register): aligned addresses, legal regions, a stop
+// keeps SIZE, no re-arm with a beat in flight, no restart with CNT untouched. Those
+// defects are fixed since 2026-11-01 (branch a/dma-rulings) and checked by directed
+// probes, unit benches and formal; widening this random stimulus needs the model to
+// predict refusals and stale beats (TB-A23, open).
 // =============================================================================
 package dma_env_pkg;
     localparam logic [31:0] SRC_BASE  = 32'h2000_0000;
@@ -119,7 +121,7 @@ package dma_env_pkg;
         bit          rd_ok [6];
         logic [31:0] rd_addr [6], rd_data [6];
         int          errors = 0;
-        int          m2m_acks = 0;      // DMA-15 (ruling): acks on M2M beats, counted, not failed
+        int          m2m_acks = 0;      // DMA-15: acks on M2M beats (each one also fails, check_regs)
         bit          comp_cleared [6];  // an ICLR landed after COMPLETE set ([N-7.19]: then it clears)
         bit          err_cleared [6];   // likewise for ERROR and ERRPHASE
         bit          ack_free [6];      // F45: MODE changed while running, acks not predicted (DMA-15 ruling)
@@ -193,7 +195,9 @@ package dma_env_pkg;
             if (irq_c != (comp && x[n].iec))        fail($sformatf("ch%0d: dma_complete %0d", n, irq_c));
             if (irq_e != (err[n] && !err_cleared[n] && x[n].iee)) fail($sformatf("ch%0d: dma_error %0d", n, irq_e));
             if (x[n].mode != M_M2M && !ack_free[n] && acks != k) fail($sformatf("ch%0d: %0d acks for %0d beats", n, acks, k));
-            if (x[n].mode == M_M2M) m2m_acks += acks;     // DMA-15: the RTL acks every beat; ruling pending
+            if (x[n].mode == M_M2M) m2m_acks += acks;
+            // DMA-15 ruling (2026-11-01): an M2M beat gives no acknowledge (until then counted, not failed)
+            if (x[n].mode == M_M2M && !ack_free[n] && acks != 0) fail($sformatf("ch%0d: %0d acks on an M2M transfer (DMA-15)", n, acks));
         endfunction
     endclass
 endpackage

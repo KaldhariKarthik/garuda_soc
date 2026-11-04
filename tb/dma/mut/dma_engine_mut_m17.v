@@ -41,12 +41,15 @@ module dma_engine #(
     input  wire [6*32-1:0] sar_i,
     input  wire [6*32-1:0] dar_i,
     input  wire [6*2-1:0]  size_i,
+    input  wire [5:0]      m2m_i,           // DMA-15: channel n is in M2M mode
 
     // ---- per-channel results -------------------------------------------------------
     output reg  [5:0]  beat_done_o,
     output reg  [5:0]  beat_err_o,
     output reg  [2:0]  err_phase_o,
     output wire [5:0]  dma_ack_o,
+    output wire [1:0]  beat_size_o,     // DMA-14: SIZE of the beat being reported (latched at its start)
+    output wire [5:0]  inflight_o,      // DMA-9: channel n has a beat in progress
 
     // ---- AHB-Lite master ---------------------------------------------------------------
     output reg  [31:0] haddr_o,
@@ -68,12 +71,21 @@ module dma_engine #(
     reg  [2:0]  ch;
     reg  [31:0] data_q;
 
-    wire [31:0] sar  = sar_i[32*ch +: 32];
-    wire [31:0] dar  = dar_i[32*ch +: 32];
-    wire [1:0]  size = size_i[2*ch +: 2];
-
-    wire sar_bad = (sar[31:28] == 4'h0) || (sar[31:28] == 4'h1);
-    wire dar_bad = (dar[31:28] == 4'h0) || (dar[31:28] == 4'h1);
+    // ERRATUM DMA-14 (fixed 2026-11-01, Track A proposal): SIZE, SAR and DAR were read live
+    // from the channel during the beat, so a stop with CR = 0 (which writes SIZE = byte) inside
+    // a word beat turned its write into a byte write. They are latched when the beat is taken,
+    // with the mode (DMA-15), and the channel steps SAR/DAR by the latched size.
+    reg  [31:0] sar, dar;
+    reg  [1:0]  size;
+    reg         m2m;
+    // ERRATUM DMA-10 / DMA-12 (fixed 2026-11-01, Track A proposals): an unaligned SAR or DAR went
+    // out as an unaligned AHB transfer, and a forbidden DAR was refused only after the source had
+    // been read (a P2M FIFO lost an item). Both addresses are checked before the read: a region
+    // or alignment fault aborts the beat with ERRPHASE = read (SAR) or write (DAR), no transfer.
+    wire sar_bad = (sar[31:28] == 4'h0) || (sar[31:28] == 4'h1) ||
+                   (size == 2'd1 && sar[0]) || (size == 2'd2 && sar[1:0] != 2'b00);
+    wire dar_bad = (dar[31:28] == 4'h0) || (dar[31:28] == 4'h1) ||
+                   (size == 2'd1 && dar[0]) || (size == 2'd2 && dar[1:0] != 2'b00);
 
     // lane extraction and replication for sub-word beats
     wire [7:0]  rd_byte = hrdata_i[7:0];
@@ -87,11 +99,18 @@ module dma_engine #(
 
     assign hburst_o = 3'b000;                  // SINGLE only
     assign busy_o   = (st != E_IDLE);
+    assign beat_size_o = size;
+    assign inflight_o  = (st != E_IDLE) ? (6'd1 << ch) : 6'd0;
+`ifndef SYNTHESIS
+    initial if (ACK_CYCLES < 1 || ACK_CYCLES > 4)       // DMA-13: the ack counter is 2 bits
+        $fatal(1, "dma_engine: ACK_CYCLES = %0d, must be 1..4", ACK_CYCLES);
+`endif
     assign dma_ack_o = ack_q;
 
     always @(posedge hclk_i or negedge hreset_n_i) begin
         if (!hreset_n_i) begin
             st <= E_IDLE; ch <= 3'd0; data_q <= 32'd0;
+            sar <= 32'd0; dar <= 32'd0; size <= 2'd2; m2m <= 1'b0;
             haddr_o <= 32'd0; htrans_o <= 2'b00; hwrite_o <= 1'b0;
             hsize_o <= 3'b010; hwdata_o <= 32'd0;
             beat_done_o <= 6'd0; beat_err_o <= 6'd0; err_phase_o <= 3'd0;
@@ -109,14 +128,21 @@ module dma_engine #(
                     // has not yet decremented REMAINING / set its taken flag,
                     // so its eligibility is stale (would duplicate a beat).
                     if (grant_valid_i && beat_done_o == 6'd0 && beat_err_o == 6'd0) begin
-                        ch <= grant_ch_i;
-                        st <= E_RA;
+                        ch   <= grant_ch_i;
+                        sar  <= sar_i[32*grant_ch_i +: 32];      // DMA-14: latched for the beat
+                        dar  <= dar_i[32*grant_ch_i +: 32];
+                        size <= size_i[2*grant_ch_i +: 2];
+                        m2m  <= m2m_i[grant_ch_i];
+                        st   <= E_RA;
                     end
                 end
                 E_RA: begin
                     // present the read (or refuse a forbidden source)
-                    if (sar_bad) begin
+                    if (sar_bad) begin                       // DMA-10, DMA-12: before any transfer
                         beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd1;
+                        st <= E_IDLE;
+                    end else if (dar_bad) begin
+                        beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd2;
                         st <= E_IDLE;
                     end else begin
                         haddr_o  <= sar;
@@ -138,17 +164,12 @@ module dma_engine #(
                         end
                     end
                 end
-                E_WA: begin
-                    if (dar_bad) begin
-                        beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd2;
-                        st <= E_IDLE;
-                    end else begin
-                        haddr_o  <= dar;
-                        htrans_o <= 2'b10;
-                        hwrite_o <= 1'b1;
-                        hsize_o  <= {1'b0, size};
-                        st       <= E_WD;
-                    end
+                E_WA: begin                                   // DAR checked in E_RA (DMA-12)
+                    haddr_o  <= dar;
+                    htrans_o <= 2'b10;
+                    hwrite_o <= 1'b1;
+                    hsize_o  <= {1'b0, size};
+                    st       <= E_WD;
                 end
                 E_WD: begin
                     if (htrans_o[1] && hready_i) begin                 // address accepted
@@ -160,8 +181,10 @@ module dma_engine #(
                             beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd2;
                         end else begin
                             beat_done_o[ch] <= 1'b1;
-                            ack_q[ch]       <= 1'b1;
-                            ack_cnt         <= ACK_CYCLES - 1;
+                            if (!m2m) begin                    // DMA-15: no peripheral asked in M2M
+                                ack_q[ch] <= 1'b1;
+                                ack_cnt   <= ACK_CYCLES - 1;
+                            end
                         end
                         st <= E_IDLE;
                     end

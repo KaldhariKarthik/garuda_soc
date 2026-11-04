@@ -18,7 +18,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_m01.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M02: DMA-8 reverted: a failed beat consumes the request
 [[test]]
@@ -27,7 +27,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_m02.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M03: one beat per request lost: a request still high gives another beat
 [[test]]
@@ -36,7 +36,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_m03.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M04: set-beats-clear reverted: ICLR beats a same-cycle COMPLETE set (completion lost)
 [[test]]
@@ -45,7 +45,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_m04.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M05: halfword address step 1 instead of 2
 [[test]]
@@ -54,7 +54,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_m05.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M06: MODE = 3 accepted
 [[test]]
@@ -63,7 +63,7 @@ flist = "tb/dma/filelist_dma_regs.f"
 top = "tb_dma_regs"
 plusargs = []
 replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_m06.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M07: error interrupt gated by IE_COMP instead of IE_ERR
 [[test]]
@@ -72,7 +72,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_m07.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M08: ICLR ERROR leaves ERRPHASE set
 [[test]]
@@ -81,7 +81,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_m08.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M09: COMPLETE one beat early (D-1 shape)
 [[test]]
@@ -90,7 +90,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_m09.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M10: SAR advances on a failed beat (no freeze, [N-7.15])
 [[test]]
@@ -99,7 +99,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_m10.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M11: priority inverted: the lowest priority wins
 [[test]]
@@ -108,7 +108,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_arbiter.v" = "tb/dma/mut/dma_arbiter_mut_m11.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M13: R-9 DAR check removed: writes to ISRAM / Boot ROM
 [[test]]
@@ -117,7 +117,7 @@ flist = "tb/dma/filelist_dma_top.f"
 top = "tb_dma_top"
 plusargs = []
 replace = { "rtl/dma/dma_engine.v" = "tb/dma/mut/dma_engine_mut_m13.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M14: DMA-7 reverted: dma_ack one hclk wide
 [[test]]
@@ -126,7 +126,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_engine.v" = "tb/dma/mut/dma_engine_mut_m14.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M15: ENG-1 reverted: regrant before the channel has counted the beat
 [[test]]
@@ -135,7 +135,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_engine.v" = "tb/dma/mut/dma_engine_mut_m15.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M16: write ERROR reported as ERRPHASE = read
 [[test]]
@@ -144,7 +144,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_engine.v" = "tb/dma/mut/dma_engine_mut_m16.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M17: byte beats always take lane 0
 [[test]]
@@ -153,7 +153,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_engine.v" = "tb/dma/mut/dma_engine_mut_m17.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M18: read ERROR ignored: the beat writes garbage
 [[test]]
@@ -162,7 +162,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_engine.v" = "tb/dma/mut/dma_engine_mut_m18.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M19: read address dropped while HREADY is low (AHB violation)
 [[test]]
@@ -171,7 +171,7 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_engine.v" = "tb/dma/mut/dma_engine_mut_m19.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M20: every APB write applied twice (two strobes)
 [[test]]
@@ -180,7 +180,7 @@ flist = "tb/dma/filelist_dma_regs.f"
 top = "tb_dma_regs"
 plusargs = []
 replace = { "rtl/dma/dma_apb_slave.v" = "tb/dma/mut/dma_apb_slave_mut_m20.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M21: AUD-13 reverted: a write to read-only STAT / GSTAT answers PSLVERR
 [[test]]
@@ -189,7 +189,7 @@ flist = "tb/dma/filelist_dma_regs.f"
 top = "tb_dma_regs"
 plusargs = []
 replace = { "rtl/dma/dma_apb_slave.v" = "tb/dma/mut/dma_apb_slave_mut_m21.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M22: GSTAT COMPLETE bits show ERROR
 [[test]]
@@ -198,7 +198,7 @@ flist = "tb/dma/filelist_dma_regs.f"
 top = "tb_dma_regs"
 plusargs = []
 replace = { "rtl/dma/dma_apb_slave.v" = "tb/dma/mut/dma_apb_slave_mut_m22.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M23: channel 5 registers not decoded
 [[test]]
@@ -207,7 +207,7 @@ flist = "tb/dma/filelist_dma_regs.f"
 top = "tb_dma_regs"
 plusargs = []
 replace = { "rtl/dma/dma_apb_slave.v" = "tb/dma/mut/dma_apb_slave_mut_m23.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M24: a DAR write also lands in CNT; CNT never writable
 [[test]]
@@ -216,7 +216,7 @@ flist = "tb/dma/filelist_dma_regs.f"
 top = "tb_dma_regs"
 plusargs = []
 replace = { "rtl/dma/dma_apb_slave.v" = "tb/dma/mut/dma_apb_slave_mut_m24.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "
 
 # M25: completion and error interrupt lines swapped
 [[test]]
@@ -225,4 +225,4 @@ flist = "tb/dma/env/filelist_dma_env.f"
 top = "tb_dma_env"
 plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_top.v" = "tb/dma/mut/dma_top_mut_m25.v" }
-fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
+fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] "

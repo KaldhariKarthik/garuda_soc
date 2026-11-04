@@ -1,3 +1,4 @@
+// MUTANT (GENERATED, gen_dma_fv_mutants.py): ties go to the higher channel
 `timescale 1ns/1ps
 `default_nettype none
 // =============================================================================

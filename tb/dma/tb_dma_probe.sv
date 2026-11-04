@@ -215,12 +215,15 @@ module tb_dma_probe;
             check(!cr[0] && !st[16] && !st[17] && !st[18] && st[15:0] == 16'(8 - k1),
                   $sformatf("[F20] EN cleared mid-transfer: stopped at a beat boundary after %0d beats, REMAINING %0d, no COMPLETE, no ERROR", k1, st[15:0]));
             nw1 = n_wr;
-            apb_wr(R(0, CR), CRV(1, M2M, 1, 1, W));              // EN again, CNT untouched
+            // DMA-11 ruling (Track A proposal, 2026-11-01): EN = 0 aborts; to resume, firmware
+            // writes CNT = REMAINING first (SAR and DAR have stopped where the transfer stopped)
+            apb_wr(R(0, CNT), st[15:0]);
+            apb_wr(R(0, CR), CRV(1, M2M, 1, 1, W));              // EN again: the rest of the buffer
             wait_bit("COMPLETE", 0, 20000, ok);
             repeat (20) @(posedge hclk);
             k2 = n_wr - nw1;
             check(k1 + k2 == 8 && wr_log[$] == 32'h2000_101C,
-                  $sformatf("[DMA-9] [F20] EN set again continues: %0d + %0d beats = %0d (CNT 8), last write %08h (buffer ends at 2000101C)",
+                  $sformatf("[DMA-11] [F20] resume as ruled (CNT = REMAINING, EN): %0d + %0d beats = %0d (CNT 8), last write %08h (buffer ends at 2000101C)",
                             k1, k2, k1 + k2, wr_log[$]));
         end
         // ===== DMA-10 (F43) ==============================================================
@@ -369,8 +372,9 @@ module tb_dma_probe;
             apb_wr(R(3, CR), CRV(1, M2M, 1, 1, W));
             wait_bit("COMPLETE", 3, 5000, ok);
             repeat (10) @(posedge hclk);
-            check(n_pulses == 24 && bad_width == 0 && bad_edges == 0,
-                  $sformatf("[F22] [D-16] %0d ack pulses (want 24): %0d not 2 hclk wide, %0d not seen by exactly one pclk edge",
+            // DMA-15 ruling (2026-11-01): the 12 M2M beats of channel 3 give no acknowledge
+            check(n_pulses == 12 && bad_width == 0 && bad_edges == 0,
+                  $sformatf("[F22] [D-16] [DMA-15] %0d ack pulses (want 12: the P2M beats only): %0d not 2 hclk wide, %0d not seen by exactly one pclk edge",
                             n_pulses, bad_width, bad_edges));
         end
         default: begin

@@ -335,7 +335,7 @@ cdc_chip:
 	 printf '# cdc_check negative control (dmi_cdc_mut_pulse_stage0 swapped in)\ntask\tresult\tclass\tdetail\nnegctl_pulse_stage0\t%b\n' "$$r" > logs/common/summary/cdc_negctl.tsv; tail -1 logs/common/summary/cdc_negctl.tsv
 rdc_debug:
 	@$(ENV) $$PYTHON tools/run/rdc_check.py tb/debug/formal/rdc_dmi_cdc.toml && $$PYTHON tools/run/rdc_check.py tb/debug/formal/rdc_debug_top.toml
-FV_DMA_QUICK = dma10_find dma11_find dma13_find dma14_find mut_eng1 mut_d2 mut_dma8 mut_iclr_wins mut_aud13
+FV_DMA_QUICK = mut_dma9_revert mut_dma10_revert mut_dma12_revert mut_dma14_revert mut_dma15_revert mut_dma14_addr_revert mut_dma14_step_revert mut_eng1 mut_d2 mut_dma8 mut_iclr_wins mut_aud13
 fv_dma_quick:
 	@$(ENV) $$PYTHON tools/run/garuda_fv.py tb/dma/formal/arb.toml --jobs 3 && \
 	 $$PYTHON tools/run/garuda_fv.py tb/dma/formal/dma_2clk.toml --jobs 2 && \

@@ -33,7 +33,8 @@ module dma_top_sva #(
     input wire [5:0]  eligible, beat_done, beat_err,
     input wire [2:0]  err_phase,
     input wire        grant_valid,
-    input wire [2:0]  grant_ch
+    input wire [2:0]  grant_ch,
+    input wire        eng_m2m           // DMA-15: the engine's latched M2M flag for this beat
 );
     localparam [2:0] E_IDLE = 3'd0, E_RA = 3'd1, E_RD = 3'd2, E_WA = 3'd3, E_WD = 3'd4;
 
@@ -89,8 +90,9 @@ module dma_top_sva #(
         (|beat_err) |-> (err_phase == 3'd1 || err_phase == 3'd2) )
         else $error("[SVA-FAIL] a_err_phase: ERRPHASE is neither read nor write");
     // [N-7.8] an acknowledge only for a completed beat, of ACK_CYCLES hclk, on that channel only
+    // (DMA-15, 2026-11-01: an M2M beat, eng_m2m latched with the beat, gives no acknowledge)
     a_ack_with_done: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        (|beat_done) |-> (dma_ack_o == beat_done) )
+        (|beat_done) |-> (dma_ack_o == (eng_m2m ? 6'd0 : beat_done)) )
         else $error("[SVA-FAIL] a_ack_with_done: the acknowledge is not on the completed channel");
     a_ack_onehot: assert property (@(posedge hclk_i) disable iff (!hreset_n_i) $onehot0(dma_ack_o) )
         else $error("[SVA-FAIL] a_ack_onehot: two acknowledges");
@@ -99,7 +101,7 @@ module dma_top_sva #(
         else $error("[SVA-FAIL] a_ack_only_after_done: an acknowledge without a completed beat");
     // the width is the spec's (one pclk = 2 hclk, D-16), not the RTL parameter
     a_ack_width: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        ((|beat_done) && !$past(|dma_ack_o)) |-> (|dma_ack_o) [*2] ##1 (!(|dma_ack_o) || (|beat_done)) )
+        ((|beat_done) && !eng_m2m && !$past(|dma_ack_o)) |-> (|dma_ack_o) [*2] ##1 (!(|dma_ack_o) || (|beat_done)) )
         else $error("[SVA-FAIL] a_ack_width: the acknowledge is not ACK_CYCLES long");
     // no error result for a beat that never left idle
     a_idle_quiet: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
@@ -138,8 +140,10 @@ module dma_top_sva #(
     end
     c_err_read_bus:   cover property (@(posedge hclk_i) (|beat_err) && err_phase == 3'd1 && $past(st) == E_RD);
     c_err_write_bus:  cover property (@(posedge hclk_i) (|beat_err) && err_phase == 3'd2 && $past(st) == E_WD);
-    c_forbidden_src:  cover property (@(posedge hclk_i) (|beat_err) && $past(st) == E_RA);
-    c_forbidden_dst:  cover property (@(posedge hclk_i) (|beat_err) && $past(st) == E_WA);
+    // DMA-10 / DMA-12 (2026-11-01): both refusals happen in E_RA, before the read; ERRPHASE
+    // tells them apart (until then the DAR was refused in E_WA)
+    c_forbidden_src:  cover property (@(posedge hclk_i) (|beat_err) && err_phase == 3'd1 && $past(st) == E_RA);
+    c_forbidden_dst:  cover property (@(posedge hclk_i) (|beat_err) && err_phase == 3'd2 && $past(st) == E_RA);
     c_contended:      cover property (@(posedge hclk_i) st == E_IDLE && $countones(eligible) >= 2);
     c_byte_beat:      cover property (@(posedge hclk_i) htrans_o[1] && hsize_o == 3'd0);
     c_half_beat:      cover property (@(posedge hclk_i) htrans_o[1] && hsize_o == 3'd1);
@@ -156,11 +160,12 @@ module dma_chan_sva (
     input wire        en_q, iec_q, iee_q, comp_q, err_q, taken_q,
     input wire [1:0]  mode_q,
     input wire [15:0] rem_q, cnt_q,
-    input wire [31:0] sar_q, dar_q
+    input wire [31:0] sar_q, dar_q,
+    input wire        stale           // DMA-9 (2026-11-01): this result belongs to a beat taken before the last arm
 );
     // [N-7.3] REMAINING never counts below zero: a beat completes only with something left
     a_rem_no_underflow: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        beat_done_i |-> rem_q != 16'd0 )
+        (beat_done_i && !stale) |-> rem_q != 16'd0 )
         else $error("[SVA-FAIL] a_rem_no_underflow: a beat completed with REMAINING = 0");
     // [N-6.2], R-6: COMPLETE implies nothing remains (a_remaining_complete_consistent)
     a_complete_consistent: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
@@ -168,10 +173,10 @@ module dma_chan_sva (
         else $error("[SVA-FAIL] a_complete_consistent: COMPLETE set with beats remaining");
     // [N-7.3], [N-7.13], [N-7.17] hardware clears EN on the last beat and on an error, whatever software writes
     a_hw_clears_en_err: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        beat_err_i |=> !en_q )
+        (beat_err_i && !stale) |=> !en_q )
         else $error("[SVA-FAIL] a_hw_clears_en_err: EN still set after an error");
     a_hw_clears_en_last: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        (beat_done_i && rem_q == 16'd1) |=> (!en_q && comp_q && rem_q == 16'd0) )
+        (beat_done_i && !stale && rem_q == 16'd1) |=> (!en_q && comp_q && rem_q == 16'd0) )
         else $error("[SVA-FAIL] a_hw_clears_en_last: the last beat did not complete the channel");
     // [N-7.15] the addresses freeze at the failure point
     a_freeze_on_error: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
@@ -213,6 +218,9 @@ module dma_chan_sva (
     c_rearm_in_beat: cover property (@(posedge hclk_i) wr_cr_i && wdata_i[0] && !en_q && rem_q != 16'd0);
     c_m2m:           cover property (@(posedge hclk_i) beat_done_i && mode_q == 2'd2);
     c_p2m_req_held:  cover property (@(posedge hclk_i) taken_q && req_i && en_q && rem_q != 16'd0);
+    // DMA-9 (2026-11-03 review): the properties above gate on !stale; both kinds of result occur
+    c_counted_beat:  cover property (@(posedge hclk_i) beat_done_i && !stale);
+    c_stale_beat:    cover property (@(posedge hclk_i) beat_done_i && stale);
 endmodule
 
 bind dma_top dma_top_sva #(.PRIO(PRIO), .ACK_CYCLES(ACK_CYCLES)) u_dma_sva (
@@ -223,7 +231,7 @@ bind dma_top dma_top_sva #(.PRIO(PRIO), .ACK_CYCLES(ACK_CYCLES)) u_dma_sva (
     .hready_i(hready_i), .hresp_i(hresp_i), .hsize_o(hsize_o), .hburst_o(hburst_o),
     .dma_req_i(dma_req_i), .dma_ack_o(dma_ack_o),
     .st(u_eng.st), .ch(u_eng.ch), .eligible(eligible), .beat_done(beat_done), .beat_err(beat_err),
-    .err_phase(err_phase), .grant_valid(grant_valid), .grant_ch(grant_ch));
+    .err_phase(err_phase), .grant_valid(grant_valid), .grant_ch(grant_ch), .eng_m2m(u_eng.m2m));
 
 bind dma_chan dma_chan_sva u_chan_sva (
     .hclk_i(hclk_i), .hreset_n_i(hreset_n_i),
@@ -231,6 +239,6 @@ bind dma_chan dma_chan_sva u_chan_sva (
     .req_i(req_i), .eligible_o(eligible_o), .beat_done_i(beat_done_i), .beat_err_i(beat_err_i),
     .complete_irq_o(complete_irq_o), .error_irq_o(error_irq_o),
     .en_q(en_q), .iec_q(iec_q), .iee_q(iee_q), .comp_q(comp_q), .err_q(err_q), .taken_q(taken_q),
-    .mode_q(mode_q), .rem_q(rem_q), .cnt_q(cnt_q), .sar_q(sar_q), .dar_q(dar_q));
+    .mode_q(mode_q), .rem_q(rem_q), .cnt_q(cnt_q), .sar_q(sar_q), .dar_q(dar_q), .stale(stale));
 `endif
 `endif
