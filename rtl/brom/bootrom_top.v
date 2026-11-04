@@ -56,6 +56,7 @@ module bootrom_top #(
         .we(we), .be(be));
 
 `ifndef SYNTHESIS
+`ifndef FORMAL      // backdoors are simulation-only; in formal they stop the array being one memory (Track A, 2026-10-15)
     task bd_load_hex;  input [1023:0] path;
         u_array.bd_load_hex(path);
     endtask
@@ -70,6 +71,7 @@ module bootrom_top #(
     function [31:0] bd_read; input [31:0] byte_addr;
         bd_read = u_array.bd_read(byte_addr[AW+1:2]);
     endfunction
+`endif  // FORMAL
 `endif
 
     wire _unused = |{hburst_i, hprot_i};

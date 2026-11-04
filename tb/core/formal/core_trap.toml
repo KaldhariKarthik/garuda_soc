@@ -63,8 +63,12 @@ script = ["chformal -cover -remove n:*c_h4_*"]
 # (before T-13/T-14). Must FAIL; listed in tb/core/run/xfail.tsv as PLANTED.
 [[task]]
 name    = "trap_prove_unfixed"
+# the T-13 / T-14 properties (rtl/core/trap_ctrl_props_a.sv header); smtbmc names a_no_wfi_arm_in_h2 (T-14)
+expect_fail = ["a_mem_fault_entered", "a_mem_fault_no_mret", "a_mem_fault_vectors", "a_no_wfi_arm_in_h2", "a_no_fault_trap_while_asleep"]
 mode    = "prove"
-engine  = "abc pdr"
+# smtbmc, not abc pdr: a PDR failure has no trace and names no property, so the control
+# could not show WHICH property the old trap_ctrl breaks (expect_fail, 2026-11-01)
+engine  = "smtbmc yices"
 timeout = 3600
 replace = { "rtl/core/trap_ctrl.v" = "tb/core/formal/mutants/trap_ctrl_b90b481.v" }
 
@@ -72,6 +76,7 @@ replace = { "rtl/core/trap_ctrl.v" = "tb/core/formal/mutants/trap_ctrl_b90b481.v
 # bubble raises cause 1). a_ex_exc_needs_instr must FAIL (PLANTED in xfail.tsv).
 [[task]]
 name    = "t17_no_fix"
+expect_fail = ["a_ex_exc_needs_instr"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 20
 engine  = "smtbmc yices"
@@ -81,6 +86,7 @@ replace = { "rtl/core/trap_ctrl.v" = "tb/core/formal/mutants/trap_ctrl_no_t17.v"
 # fake branch compare of its bit fields). a_misfetch_tval_misaligned must FAIL.
 [[task]]
 name    = "t18_no_fix"
+expect_fail = ["a_misfetch_tval_misaligned"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 20
 engine  = "smtbmc yices"
@@ -89,6 +95,7 @@ replace = { "rtl/core/branch_unit.v" = "tb/core/formal/mutants/branch_unit_no_t1
 # BUS-E negative control: the I-port before the fix must issue a misaligned fetch
 [[task]]
 name    = "buse_no_fix"
+expect_fail = ["a_ihaddr_aligned"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 20
 engine  = "smtbmc yices"
@@ -97,24 +104,28 @@ replace = { "rtl/core/garuda_iport_ahb_master.v" = "tb/core/formal/mutants/garud
 # CORE-4 (mgarudactl) negative controls: each knob ignored must break its property
 [[task]]
 name    = "ctl_no_bpdis"
+expect_fail = ["a_ctl_bp"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 16
 engine  = "smtbmc yices"
 replace = { "rtl/core/branch_predict.v" = "tb/core/formal/mutants/branch_predict_no_bpdis.v" }
 [[task]]
 name    = "ctl_no_pfdis"
+expect_fail = ["a_ctl_pf"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 16
 engine  = "smtbmc yices"
 replace = { "rtl/core/garuda_iport_ahb_master.v" = "tb/core/formal/mutants/garuda_iport_ahb_master_no_pfdis.v" }
 [[task]]
 name    = "ctl_no_preempt"
+expect_fail = ["a_ctl_preempt"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 16
 engine  = "smtbmc yices"
 replace = { "rtl/core/clic_ctrl.v" = "tb/core/formal/mutants/clic_ctrl_no_preempt.v" }
 [[task]]
 name    = "ctl_no_cgdis"
+expect_fail = ["a_ctl_cg"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"

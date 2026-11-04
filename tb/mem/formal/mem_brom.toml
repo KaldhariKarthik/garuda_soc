@@ -1,0 +1,59 @@
+# Boot ROM (1024 words, WRITABLE=0, contents free: INIT_FILE empty)
+# Track A plan 6A.6 step M1 (vPlan F03-F08). Properties: Karthik's mem_sva
+# (rtl/mem/mem_sva.sv, rewritten 2026-10-15 to the portable form, same meaning) and the
+# formal-only helpers in tb/mem/formal/sram_wrapper_fv.sv; environment
+# tb/mem/formal/mem_fv_env.sv (FM-1..FM-3). Planted defects: tb/mem/run/xfail.tsv.
+#   brom_prove  UNBOUNDED, on the one-word model of the array (sram_wrapper_fv.sv: an
+#             over-approximation, so a proof there holds for the real array); k-induction
+#             closes with the asserted (proved) helper invariants.
+#   brom_bmc    the real full-size array (kept as SMT memories), bounded cross-check.
+#   brom_cover  every cover reached on the real array except the six write / lock covers a ROM cannot reach (its writes are refused
+#             in the address phase and its lock input is tied 0), removed by name.
+# Run: python3.12 tools/run/garuda_fv.py tb/mem/formal/mem_brom.toml
+[suite]
+block = "mem"
+name  = "fv_mem_brom"
+xfail = "tb/mem/run/xfail.tsv"
+
+[design]
+flist   = "rtl/mem/filelist.f"
+top     = "bootrom_top"
+extra   = ["tb/mem/formal/mem_fv_env.sv"]
+synthesis_define = false   # mem_sva.sv sits inside `ifndef SYNTHESIS
+min_asserts = 13
+min_covers  = 7
+
+[[task]]
+name    = "brom_prove"
+mode    = "prove"
+depth   = 4
+engine  = "smtbmc yices"
+replace = { "rtl/mem/sram_wrapper.v" = "tb/mem/formal/sram_wrapper_fv.sv" }
+abstraction = "sram_wrapper_fv.sv over-approximates the array: a proof here is a result"
+min_asserts = 22
+timeout = 3600
+
+[[task]]
+name    = "brom_bmc"
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+timeout = 3600
+
+[[task]]
+name    = "brom_cover"
+mode    = "cover"
+depth   = 10
+engine  = "smtbmc yices"
+script  = ["chformal -cover -remove n:u_if.u_mem_sva.c_park n:u_if.u_mem_sva.c_commit n:u_if.u_mem_sva.c_bypass n:u_if.u_mem_sva.c_write_read n:u_if.u_mem_sva.c_lock n:u_if.u_mem_sva.c_lock_bypass"]
+min_covers = 1
+timeout = 3600
+
+[[task]]
+name    = "mut_rom_writable"
+expect_fail = ["a_rom_write_refused"]   # the planted defect must break this (2026-11-01)
+mode    = "bmc"
+depth   = 10
+engine  = "smtbmc yices"
+replace = { "rtl/mem/ahb_mem_slave_if.v" = "tb/mem/mut/ahb_mem_slave_if_mut_rom_writable.v" }
+timeout = 1800

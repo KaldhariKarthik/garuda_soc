@@ -1,0 +1,17 @@
+# DBG-7 before the fix: tb/debug/tb_debug_dm.sv T6, 2026-10-16T05:52:31+05:30
+=== tb_debug_dm: debug_module unit bench (DBG-4 and controls) ===
+[PASS] T1 DBG-4: SBA bus error in the cycle of an sbcs W1C write reads sberror = 4
+[PASS] T3 control: W1C clears sberror when no transfer completes
+[PASS] T2 control: SBA bus error with an sbcs write that clears nothing reads 4
+[PASS] T5 control: W1C in a good transfer's completion cycle leaves sberror 0
+[PASS] T5 control: the read data of that transfer is in sbdata0
+[PASS] T4 control: dmactive = 0 in the error's completion cycle resets sberror
+[PASS] T6 haltreq halts the hart (dmstatus allhalted/anyhalted)
+[FAIL] T6 DBG-7: clearing haltreq keeps the hart halted (only resumereq resumes) (t=324000)
+[PASS] T6 resumereq resumes the hart (allrunning/anyrunning)
+tb_debug_dm: checks=9  FAIL=1
+RESULT: FAILED
+- tb/debug/tb_debug_dm.sv:147: Verilog $finish
+- S i m u l a t i o n   R e p o r t: Verilator 5.052 2026-09-05
+- Verilator: $finish at 356ns; walltime 0.000 s; speed 2.585 ms/s
+- Verilator: cpu 0.000 s on 1 threads; allocated 3 MB

@@ -1,0 +1,32 @@
+# Nightly witness for the crossing proof on the REAL jtag_tap + dtm (review 2026-11-01): a
+# request can be issued and acknowledged at all under the proof's environment. Slow (a JTAG DMI
+# access is ~60 tck edges deep), so it is not in regress_a. Same design as dmi_cdc.toml.
+# Run: python3.12 tools/run/garuda_fv.py tb/debug/formal/dmi_cdc_witness.toml
+[suite]
+block = "debug"
+name  = "fv_dmi_cdc_witness"
+xfail = "tb/debug/run/xfail.tsv"
+
+[design]
+flist   = "rtl/debug/filelist.f"
+top     = "dmi_fv_abs"
+exclude = ["rtl/debug/debug_sva.sv"]
+extra   = ["tb/debug/formal/dmi_cdc_fv.sv"]
+pre_verilog = ["tb/debug/formal/dmi_cdc_props.v"]
+options = ["multiclock on"]
+min_asserts = 9
+min_covers  = 2
+
+# reachability on the real TAP + DTM (review 2026-11-01: the real harness had proofs but no
+# witness that a request can be issued at all). Only the two delivery covers; the scenario covers
+# are reached on the abstract harness (cdc_abs_cover). A JTAG DMI access is ~60 tck edges deep.
+[[task]]
+name    = "cdc_real_cover"
+mode    = "cover"
+depth   = 200
+engine  = "smtbmc yices"
+top     = "dmi_fv_real"
+script  = ["chformal -cover -remove n:u_props.c_dm_reset_idle n:u_props.c_tck_stopped_busy n:u_props.c_hreset_pending n:u_props.c_por_pending n:u_props.c_dropped_by_reset n:u_props.c_hclk_fast n:u_props.c_tck_fast"]
+min_covers = 2
+timeout = 7200
+

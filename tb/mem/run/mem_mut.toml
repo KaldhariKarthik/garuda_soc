@@ -1,0 +1,52 @@
+# Memories planted defects (plan 6A.6 M2/M3, recipe R10). Each must FAIL through the
+# Track A soak's own scoreboard ([FAIL] soak2 ...), not only through bound SVA, so the
+# bench is shown to see the defect. The same mutant files are the formal negative controls.
+# Run: python3.12 tools/run/garuda_run.py suite tb/mem/run/mem_mut.toml
+[suite]
+block = "mem"
+name  = "mem_mut"
+kind  = "sim"
+xfail = "tb/mem/run/xfail.tsv"
+
+[defaults]
+flist   = "tb/mem/filelist_mem.f"
+top     = "tb_mem_subsystem"
+marker  = '^RESULT: PASSED'
+timeout = 900
+plusargs = ["+SEED=1"]
+
+# Karthik's M2: the read bypass takes every lane of a parked sub-word write (his bench misses it)
+[[test]]
+name = "mut_bypass_all_lanes"
+replace = { "rtl/mem/ahb_mem_slave_if.v" = "tb/mem/mut/ahb_mem_slave_if_mut_bypass_all_lanes.v" }
+fail_reason = "^\\[FAIL\\] soak2"
+
+# the lock never refuses a write
+[[test]]
+name = "mut_lock_off"
+replace = { "rtl/mem/ahb_mem_slave_if.v" = "tb/mem/mut/ahb_mem_slave_if_mut_lock_off.v" }
+fail_reason = "^\\[FAIL\\] soak2"
+
+# the debugger's write to locked ISRAM is refused too
+[[test]]
+name = "mut_no_sba_bypass"
+replace = { "rtl/mem/ahb_mem_slave_if.v" = "tb/mem/mut/ahb_mem_slave_if_mut_no_sba_bypass.v" }
+fail_reason = "^\\[FAIL\\] soak2"
+
+# ROM writes are not refused
+[[test]]
+name = "mut_rom_writable"
+replace = { "rtl/mem/ahb_mem_slave_if.v" = "tb/mem/mut/ahb_mem_slave_if_mut_rom_writable.v" }
+fail_reason = "^\\[FAIL\\] soak2"
+
+# DSRAM bank decode reversed
+[[test]]
+name = "mut_bank_swap"
+replace = { "rtl/dsram/dsram_top.v" = "tb/mem/mut/dsram_top_mut_bank_swap.v" }
+fail_reason = "^\\[FAIL\\] soak2"
+
+# DSRAM bank of a read never remembered
+[[test]]
+name = "mut_rdbank_stale"
+replace = { "rtl/dsram/dsram_top.v" = "tb/mem/mut/dsram_top_mut_rdbank_stale.v" }
+fail_reason = "^\\[FAIL\\] soak2"

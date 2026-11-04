@@ -1,0 +1,10 @@
+# garuda-fv 1 suite=fv_debug block=debug date=2026-11-01T18:48:29+05:30 design=dcf6f7d4335af6f68c521697cfd6344984474452 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+debug_bmc	bmc	BOUNDED(30)	OK	1	[32 asserts, 12 covers in model] 	logs/debug/raw/fv_debug/fv_debug_bmc.log
+debug_cover	cover	UNRESOLVED	UNEXPECTED	7200	[32 asserts, 12 covers in model] timeout	logs/debug/raw/fv_debug/fv_debug_cover.log
+debug_prove	prove	PROVEN	OK	25	[32 asserts, 12 covers in model] 	logs/debug/raw/fv_debug/fv_debug_prove.log
+mut_dbg4_revert	prove	FAIL	XFAIL:PLANTED	871	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_bus_error	logs/debug/raw/fv_debug/fv_mut_dbg4_revert.log
+mut_m12_equiv	prove	PROVEN	OK	30	[32 asserts, 12 covers in model] 	logs/debug/raw/fv_debug/fv_mut_m12_equiv.log
+fv_mut_m16_dbg7_revert	prove	FAIL	XFAIL:PLANTED	99	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_halt_sticky	logs/debug/raw/fv_debug/fv_fv_mut_m16_dbg7_revert.log
+fv_mut_m17_no_resumeack	prove	FAIL	XFAIL:PLANTED	16	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_resumeack_set	logs/debug/raw/fv_debug/fv_fv_mut_m17_no_resumeack.log
+fv_mut_m18_ack_not_cleared	prove	FAIL	XFAIL:PLANTED	289	[1 asserts, 12 covers in model] props: u_debug_sva.a_dm_resumeack_clear	logs/debug/raw/fv_debug/fv_fv_mut_m18_ack_not_cleared.log

@@ -1,0 +1,3 @@
+# cdc_check suite=cdc_chip top=garuda_chip_core manifest=flow/2_static/cdc_chip.toml
+task	result	class	detail
+cdc_garuda_chip_core	PASS	OK	822 flops, 13 synchronisers, 0 violations

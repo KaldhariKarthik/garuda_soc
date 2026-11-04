@@ -43,8 +43,7 @@ module ahb2apb_bridge_cov #(
     // ---- at the address phase: what was asked, from which state it was accepted
     reg [3:0] a_win; reg a_wr; reg [2:0] a_size; prev_e a_prev; reg a_inreset;
     reg [2:0] hstate_d;
-    wire accept = xfer && (hstate == H_IDLE || hstate == H_OK || hstate == H_ERR2) &&
-                  !(hstate == H_ERR2 && !prst_ok_q);
+    wire accept = xfer && (hstate == H_IDLE || hstate == H_OK || hstate == H_ERR2);   // APB-4: no ERR2 hold any more
     always @(posedge hclk_i) if (hreset_n_i) begin
         if (accept) begin
             a_win <= haddr_i[15:12]; a_wr <= hwrite_i; a_size <= hsize_i; a_inreset <= !prst_ok_q;

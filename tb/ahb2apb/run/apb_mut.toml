@@ -169,3 +169,13 @@ plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
 replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p16.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
+
+# P17: APB-4 reverted: an illegal access in the [N-9.2] window goes to ERROR at once (held with HREADY low)
+[[test]]
+name = "mut_p17"
+flist = "tb/ahb2apb/env/filelist_apb_env.f"
+top = "tb_apb_env"
+plusargs = ["+TEST=mut"]
+defines = ["APB_ENV_DIV=24'hE4E4E4"]
+replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p17.v" }
+fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'

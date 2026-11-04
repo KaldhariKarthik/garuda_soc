@@ -28,12 +28,14 @@ engine = "smtbmc yices"
 
 [[task]]
 name    = "csr_prove_no_t12"
+expect_fail = ["a_mret_pops_mil"]   # the planted defect must break this (2026-11-01)
 mode    = "prove"
 engine  = "abc pdr"
 replace = { "rtl/core/csr_file.v" = "tb/core/formal/mutants/csr_file_no_t12.v" }
 
 [[task]]
 name    = "csr_prove_no_c16"
+expect_fail = ["a_mconfigptr_read_ok"]   # the planted defect must break this (2026-11-01)
 mode    = "prove"
 engine  = "abc pdr"
 replace = { "rtl/core/csr_file.v" = "tb/core/formal/mutants/csr_file_no_c16.v" }

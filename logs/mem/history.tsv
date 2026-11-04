@@ -1,0 +1,300 @@
+date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
+2026-11-01T15:12:39+05:30	dcf6f7d4335a	True	block.cov	tb_mem_subsystem	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6600	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6601	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6602	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6603	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6604	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6605	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6606	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6607	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6608	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6609	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6610	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6611	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6612	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6613	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6614	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6615	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6616	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6617	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6618	1	PASS	OK	
+2026-11-01T15:13:13+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6619	1	PASS	OK	
+2026-11-01T15:13:23+05:30	dcf6f7d4335a	True	mem_mut	mut_bypass_all_lanes	1	FAIL	XFAIL:PLANTED	pass marker missing; 289 [FAIL] line(s); 134 assertion failure(s) | first: [102000] %Error: mem_sva.sv:136: Assertion failed in tb_mem_subsystem.u_dsram.u_if.u_mem_sva.a_data_integrity: [SVA-FAIL] a_d
+2026-11-01T15:13:23+05:30	dcf6f7d4335a	True	mem_mut	mut_lock_off	1	FAIL	XFAIL:PLANTED	pass marker missing; 1348 [FAIL] line(s); 561 assertion failure(s) | first: [214000] %Error: mem_sva.sv:73: Assertion failed in tb_mem_subsystem.u_isram.u_if.u_mem_sva.a_lock_refused: [SVA-FAIL] a_loc
+2026-11-01T15:13:23+05:30	dcf6f7d4335a	True	mem_mut	mut_no_sba_bypass	1	FAIL	XFAIL:PLANTED	pass marker missing; 375 [FAIL] line(s); 186 assertion failure(s) | first: [246000] %Error: mem_sva.sv:76: Assertion failed in tb_mem_subsystem.u_isram.u_if.u_mem_sva.a_lock_bypass: [SVA-FAIL] a_lock_
+2026-11-01T15:13:23+05:30	dcf6f7d4335a	True	mem_mut	mut_rom_writable	1	FAIL	XFAIL:PLANTED	pass marker missing; 391 [FAIL] line(s); 278 assertion failure(s) | first: [150000] %Error: mem_sva.sv:97: Assertion failed in tb_mem_subsystem.u_rom.u_if.u_mem_sva.a_rom_never_written: [SVA-FAIL] a_r
+2026-11-01T15:13:23+05:30	dcf6f7d4335a	True	mem_mut	mut_bank_swap	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1208 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [34000] %Error: mem_sva.sv:201: Assertion failed in tb_mem_subsystem.u_dsram.u_dsram_sva.a_bank_r
+2026-11-01T15:13:23+05:30	dcf6f7d4335a	True	mem_mut	mut_rdbank_stale	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1654 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [54000] %Error: mem_sva.sv:205: Assertion failed in tb_mem_subsystem.u_dsram.u_dsram_sva.a_bank_r
+2026-11-01T15:13:27+05:30	dcf6f7d4335a	True	fv_mem_isram	isram_prove	-	PROVEN	OK	[19 asserts, 7 covers in model] 
+2026-11-01T15:13:27+05:30	dcf6f7d4335a	True	fv_mem_isram	isram_bmc	-	BOUNDED(10)	OK	[13 asserts, 7 covers in model] 
+2026-11-01T15:13:27+05:30	dcf6f7d4335a	True	fv_mem_isram	isram_cover	-	COVERED	OK	[13 asserts, 7 covers in model] 
+2026-11-01T15:13:27+05:30	dcf6f7d4335a	True	fv_mem_isram	mut_lock_off	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_lock_refused
+2026-11-01T15:13:27+05:30	dcf6f7d4335a	True	fv_mem_isram	mut_no_sba_bypass	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_lock_bypass
+2026-11-01T15:13:27+05:30	dcf6f7d4335a	True	fv_mem_isram	mut_bypass_all_lanes	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_data_integrity
+2026-11-01T15:13:43+05:30	dcf6f7d4335a	True	fv_mem_dsram	dsram_prove	-	PROVEN	OK	[22 asserts, 8 covers in model] 
+2026-11-01T15:13:43+05:30	dcf6f7d4335a	True	fv_mem_dsram	dsram_bmc	-	BOUNDED(10)	OK	[16 asserts, 8 covers in model] 
+2026-11-01T15:13:43+05:30	dcf6f7d4335a	True	fv_mem_dsram	dsram_cover	-	COVERED	OK	[16 asserts, 7 covers in model] 
+2026-11-01T15:13:43+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_bank_swap	-	FAIL	XFAIL:PLANTED	[16 asserts, 8 covers in model] props: u_dsram_sva.a_bank_read_issue
+2026-11-01T15:13:43+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_rdbank_stale	-	FAIL	XFAIL:PLANTED	[16 asserts, 8 covers in model] props: u_dsram_sva.a_bank_read_return
+2026-11-01T15:13:43+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_bypass_all_lanes	-	FAIL	XFAIL:PLANTED	[16 asserts, 8 covers in model] props: u_if.u_mem_sva.a_data_integrity
+2026-11-01T15:13:43+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_rdbank_on_write_equiv	-	PROVEN	OK	[22 asserts, 8 covers in model] 
+2026-11-01T15:13:44+05:30	dcf6f7d4335a	True	fv_mem_brom	brom_prove	-	PROVEN	OK	[22 asserts, 6 covers in model] 
+2026-11-01T15:13:44+05:30	dcf6f7d4335a	True	fv_mem_brom	brom_bmc	-	BOUNDED(10)	OK	[14 asserts, 6 covers in model] 
+2026-11-01T15:13:44+05:30	dcf6f7d4335a	True	fv_mem_brom	brom_cover	-	COVERED	OK	[14 asserts, 1 covers in model] 
+2026-11-01T15:13:44+05:30	dcf6f7d4335a	True	fv_mem_brom	mut_rom_writable	-	FAIL	XFAIL:PLANTED	[14 asserts, 6 covers in model] props: u_if.u_mem_sva.a_rom_write_refused
+2026-11-01T15:13:44+05:30	dcf6f7d4335a	True	fv_mem_ilock	ilock_prove	-	PROVEN	OK	[5 asserts, 3 covers in model] 
+2026-11-01T15:13:44+05:30	dcf6f7d4335a	True	fv_mem_ilock	ilock_cover	-	COVERED	OK	[5 asserts, 3 covers in model] 
+2026-11-01T15:13:44+05:30	dcf6f7d4335a	True	fv_mem_ilock	mut_ilock_rw	-	FAIL	XFAIL:PLANTED	[5 asserts, 3 covers in model] props: u_ilock_sva.a_ilock_sticky
+2026-11-01T16:08:52+05:30	dcf6f7d4335a	True	block	tb_mem_subsystem	1	PASS	OK	
+2026-11-01T16:08:56+05:30	dcf6f7d4335a	True	fv_mem_isram	isram_prove	-	PROVEN	OK	[19 asserts, 7 covers in model] 
+2026-11-01T16:08:56+05:30	dcf6f7d4335a	True	fv_mem_isram	isram_bmc	-	BOUNDED(10)	OK	[13 asserts, 7 covers in model] 
+2026-11-01T16:08:56+05:30	dcf6f7d4335a	True	fv_mem_isram	isram_cover	-	COVERED	OK	[13 asserts, 7 covers in model] 
+2026-11-01T16:08:56+05:30	dcf6f7d4335a	True	fv_mem_isram	mut_lock_off	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_lock_refused
+2026-11-01T16:08:56+05:30	dcf6f7d4335a	True	fv_mem_isram	mut_no_sba_bypass	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_lock_bypass
+2026-11-01T16:08:56+05:30	dcf6f7d4335a	True	fv_mem_isram	mut_bypass_all_lanes	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_data_integrity
+2026-11-01T16:09:10+05:30	dcf6f7d4335a	True	fv_mem_dsram	dsram_prove	-	PROVEN	OK	[22 asserts, 11 covers in model] 
+2026-11-01T16:09:10+05:30	dcf6f7d4335a	True	fv_mem_dsram	dsram_bmc	-	BOUNDED(10)	OK	[16 asserts, 11 covers in model] 
+2026-11-01T16:09:10+05:30	dcf6f7d4335a	True	fv_mem_dsram	dsram_cover	-	COVERED	OK	[16 asserts, 10 covers in model] 
+2026-11-01T16:09:10+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_bank_swap	-	FAIL	XFAIL:PLANTED	[16 asserts, 11 covers in model] props: u_dsram_sva.a_bank_read_issue
+2026-11-01T16:09:10+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_rdbank_stale	-	FAIL	XFAIL:PLANTED	[16 asserts, 11 covers in model] props: u_dsram_sva.a_bank_read_return
+2026-11-01T16:09:10+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_bypass_all_lanes	-	FAIL	XFAIL:PLANTED	[16 asserts, 11 covers in model] props: u_if.u_mem_sva.a_data_integrity
+2026-11-01T16:09:10+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_rdbank_on_write_equiv	-	PROVEN	OK	[22 asserts, 11 covers in model] 
+2026-11-01T16:09:10+05:30	dcf6f7d4335a	True	fv_mem_brom	brom_prove	-	PROVEN	OK	[22 asserts, 6 covers in model] 
+2026-11-01T16:09:10+05:30	dcf6f7d4335a	True	fv_mem_brom	brom_bmc	-	BOUNDED(10)	OK	[14 asserts, 6 covers in model] 
+2026-11-01T16:09:10+05:30	dcf6f7d4335a	True	fv_mem_brom	brom_cover	-	COVERED	OK	[14 asserts, 1 covers in model] 
+2026-11-01T16:09:10+05:30	dcf6f7d4335a	True	fv_mem_brom	mut_rom_writable	-	FAIL	XFAIL:PLANTED	[14 asserts, 6 covers in model] props: u_if.u_mem_sva.a_rom_write_refused
+2026-11-01T16:09:11+05:30	dcf6f7d4335a	True	fv_mem_ilock	ilock_prove	-	PROVEN	OK	[5 asserts, 3 covers in model] 
+2026-11-01T16:09:11+05:30	dcf6f7d4335a	True	fv_mem_ilock	ilock_cover	-	COVERED	OK	[5 asserts, 3 covers in model] 
+2026-11-01T16:09:11+05:30	dcf6f7d4335a	True	fv_mem_ilock	mut_ilock_rw	-	FAIL	XFAIL:PLANTED	[5 asserts, 3 covers in model] props: u_ilock_sva.a_ilock_sticky
+2026-11-01T16:34:10+05:30	dcf6f7d4335a	True	block.cov	tb_mem_subsystem	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6600	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6601	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6602	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6603	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6604	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6605	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6606	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6607	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6608	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6609	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6610	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6611	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6612	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6613	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6614	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6615	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6616	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6617	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6618	1	PASS	OK	
+2026-11-01T16:35:00+05:30	dcf6f7d4335a	True	seeds.cov	soak_s6619	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6600	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6601	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6602	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6603	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6604	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6605	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6606	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6607	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6608	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6609	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6610	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6611	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6612	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6613	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6614	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6615	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6616	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6617	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6618	1	PASS	OK	
+2026-11-01T16:41:09+05:30	dcf6f7d4335a	True	seeds	soak_s6619	1	PASS	OK	
+2026-11-01T16:41:20+05:30	dcf6f7d4335a	True	mem_mut	mut_bypass_all_lanes	1	FAIL	XFAIL:PLANTED	pass marker missing; 289 [FAIL] line(s); 134 assertion failure(s) | first: [102000] %Error: mem_sva.sv:136: Assertion failed in tb_mem_subsystem.u_dsram.u_if.u_mem_sva.a_data_integrity: [SVA-FAIL] a_d
+2026-11-01T16:41:20+05:30	dcf6f7d4335a	True	mem_mut	mut_lock_off	1	FAIL	XFAIL:PLANTED	pass marker missing; 1348 [FAIL] line(s); 561 assertion failure(s) | first: [214000] %Error: mem_sva.sv:73: Assertion failed in tb_mem_subsystem.u_isram.u_if.u_mem_sva.a_lock_refused: [SVA-FAIL] a_loc
+2026-11-01T16:41:20+05:30	dcf6f7d4335a	True	mem_mut	mut_no_sba_bypass	1	FAIL	XFAIL:PLANTED	pass marker missing; 375 [FAIL] line(s); 186 assertion failure(s) | first: [246000] %Error: mem_sva.sv:76: Assertion failed in tb_mem_subsystem.u_isram.u_if.u_mem_sva.a_lock_bypass: [SVA-FAIL] a_lock_
+2026-11-01T16:41:20+05:30	dcf6f7d4335a	True	mem_mut	mut_rom_writable	1	FAIL	XFAIL:PLANTED	pass marker missing; 391 [FAIL] line(s); 278 assertion failure(s) | first: [150000] %Error: mem_sva.sv:97: Assertion failed in tb_mem_subsystem.u_rom.u_if.u_mem_sva.a_rom_never_written: [SVA-FAIL] a_r
+2026-11-01T16:41:20+05:30	dcf6f7d4335a	True	mem_mut	mut_bank_swap	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1208 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [34000] %Error: mem_sva.sv:201: Assertion failed in tb_mem_subsystem.u_dsram.u_dsram_sva.a_bank_r
+2026-11-01T16:41:20+05:30	dcf6f7d4335a	True	mem_mut	mut_rdbank_stale	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1654 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [54000] %Error: mem_sva.sv:205: Assertion failed in tb_mem_subsystem.u_dsram.u_dsram_sva.a_bank_r
+2026-11-01T17:47:08+05:30	dcf6f7d4335a	True	block	tb_mem_subsystem	1	PASS	OK	
+2026-11-01T17:47:12+05:30	dcf6f7d4335a	True	fv_mem_isram	isram_prove	-	PROVEN	OK	[19 asserts, 7 covers in model] 
+2026-11-01T17:47:12+05:30	dcf6f7d4335a	True	fv_mem_isram	isram_bmc	-	BOUNDED(10)	OK	[13 asserts, 7 covers in model] 
+2026-11-01T17:47:12+05:30	dcf6f7d4335a	True	fv_mem_isram	isram_cover	-	COVERED	OK	[13 asserts, 7 covers in model] 
+2026-11-01T17:47:12+05:30	dcf6f7d4335a	True	fv_mem_isram	mut_lock_off	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_lock_refused
+2026-11-01T17:47:12+05:30	dcf6f7d4335a	True	fv_mem_isram	mut_no_sba_bypass	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_lock_bypass
+2026-11-01T17:47:12+05:30	dcf6f7d4335a	True	fv_mem_isram	mut_bypass_all_lanes	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_data_integrity
+2026-11-01T17:47:26+05:30	dcf6f7d4335a	True	fv_mem_dsram	dsram_prove	-	PROVEN	OK	[22 asserts, 11 covers in model] 
+2026-11-01T17:47:26+05:30	dcf6f7d4335a	True	fv_mem_dsram	dsram_bmc	-	BOUNDED(10)	OK	[16 asserts, 11 covers in model] 
+2026-11-01T17:47:26+05:30	dcf6f7d4335a	True	fv_mem_dsram	dsram_cover	-	COVERED	OK	[16 asserts, 10 covers in model] 
+2026-11-01T17:47:26+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_bank_swap	-	FAIL	XFAIL:PLANTED	[16 asserts, 11 covers in model] props: u_dsram_sva.a_bank_read_issue
+2026-11-01T17:47:26+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_rdbank_stale	-	FAIL	XFAIL:PLANTED	[16 asserts, 11 covers in model] props: u_dsram_sva.a_bank_read_return
+2026-11-01T17:47:26+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_bypass_all_lanes	-	FAIL	XFAIL:PLANTED	[16 asserts, 11 covers in model] props: u_if.u_mem_sva.a_data_integrity
+2026-11-01T17:47:26+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_rdbank_on_write_equiv	-	PROVEN	OK	[22 asserts, 11 covers in model] 
+2026-11-01T17:47:26+05:30	dcf6f7d4335a	True	fv_mem_brom	brom_prove	-	PROVEN	OK	[22 asserts, 6 covers in model] 
+2026-11-01T17:47:26+05:30	dcf6f7d4335a	True	fv_mem_brom	brom_bmc	-	BOUNDED(10)	OK	[14 asserts, 6 covers in model] 
+2026-11-01T17:47:26+05:30	dcf6f7d4335a	True	fv_mem_brom	brom_cover	-	COVERED	OK	[14 asserts, 1 covers in model] 
+2026-11-01T17:47:26+05:30	dcf6f7d4335a	True	fv_mem_brom	mut_rom_writable	-	FAIL	XFAIL:PLANTED	[14 asserts, 6 covers in model] props: u_if.u_mem_sva.a_rom_write_refused
+2026-11-01T17:47:27+05:30	dcf6f7d4335a	True	fv_mem_ilock	ilock_prove	-	PROVEN	OK	[5 asserts, 3 covers in model] 
+2026-11-01T17:47:27+05:30	dcf6f7d4335a	True	fv_mem_ilock	ilock_cover	-	COVERED	OK	[5 asserts, 3 covers in model] 
+2026-11-01T17:47:27+05:30	dcf6f7d4335a	True	fv_mem_ilock	mut_ilock_rw	-	FAIL	XFAIL:PLANTED	[5 asserts, 3 covers in model] props: u_ilock_sva.a_ilock_sticky
+2026-11-01T18:23:05+05:30	dcf6f7d4335a	True	block	tb_mem_subsystem	1	PASS	OK	
+2026-11-01T18:23:09+05:30	dcf6f7d4335a	True	fv_mem_isram	isram_prove	-	PROVEN	OK	[19 asserts, 7 covers in model] 
+2026-11-01T18:23:09+05:30	dcf6f7d4335a	True	fv_mem_isram	isram_bmc	-	BOUNDED(10)	OK	[13 asserts, 7 covers in model] 
+2026-11-01T18:23:09+05:30	dcf6f7d4335a	True	fv_mem_isram	isram_cover	-	COVERED	OK	[13 asserts, 7 covers in model] 
+2026-11-01T18:23:09+05:30	dcf6f7d4335a	True	fv_mem_isram	mut_lock_off	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_lock_refused
+2026-11-01T18:23:09+05:30	dcf6f7d4335a	True	fv_mem_isram	mut_no_sba_bypass	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_lock_bypass
+2026-11-01T18:23:09+05:30	dcf6f7d4335a	True	fv_mem_isram	mut_bypass_all_lanes	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_data_integrity
+2026-11-01T18:23:23+05:30	dcf6f7d4335a	True	fv_mem_dsram	dsram_prove	-	PROVEN	OK	[22 asserts, 11 covers in model] 
+2026-11-01T18:23:23+05:30	dcf6f7d4335a	True	fv_mem_dsram	dsram_bmc	-	BOUNDED(10)	OK	[16 asserts, 11 covers in model] 
+2026-11-01T18:23:23+05:30	dcf6f7d4335a	True	fv_mem_dsram	dsram_cover	-	COVERED	OK	[16 asserts, 10 covers in model] 
+2026-11-01T18:23:23+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_bank_swap	-	FAIL	XFAIL:PLANTED	[16 asserts, 11 covers in model] props: u_dsram_sva.a_bank_read_issue
+2026-11-01T18:23:23+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_rdbank_stale	-	FAIL	XFAIL:PLANTED	[16 asserts, 11 covers in model] props: u_dsram_sva.a_bank_read_return
+2026-11-01T18:23:23+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_bypass_all_lanes	-	FAIL	XFAIL:PLANTED	[16 asserts, 11 covers in model] props: u_if.u_mem_sva.a_data_integrity
+2026-11-01T18:23:23+05:30	dcf6f7d4335a	True	fv_mem_dsram	mut_rdbank_on_write_equiv	-	PROVEN	OK	[22 asserts, 11 covers in model] 
+2026-11-01T18:23:23+05:30	dcf6f7d4335a	True	fv_mem_brom	brom_prove	-	PROVEN	OK	[22 asserts, 6 covers in model] 
+2026-11-01T18:23:23+05:30	dcf6f7d4335a	True	fv_mem_brom	brom_bmc	-	BOUNDED(10)	OK	[14 asserts, 6 covers in model] 
+2026-11-01T18:23:23+05:30	dcf6f7d4335a	True	fv_mem_brom	brom_cover	-	COVERED	OK	[14 asserts, 1 covers in model] 
+2026-11-01T18:23:23+05:30	dcf6f7d4335a	True	fv_mem_brom	mut_rom_writable	-	FAIL	XFAIL:PLANTED	[14 asserts, 6 covers in model] props: u_if.u_mem_sva.a_rom_write_refused
+2026-11-01T18:23:24+05:30	dcf6f7d4335a	True	fv_mem_ilock	ilock_prove	-	PROVEN	OK	[5 asserts, 3 covers in model] 
+2026-11-01T18:23:24+05:30	dcf6f7d4335a	True	fv_mem_ilock	ilock_cover	-	COVERED	OK	[5 asserts, 3 covers in model] 
+2026-11-01T18:23:24+05:30	dcf6f7d4335a	True	fv_mem_ilock	mut_ilock_rw	-	FAIL	XFAIL:PLANTED	[5 asserts, 3 covers in model] props: u_ilock_sva.a_ilock_sticky
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	boot_good	1	PASS	OK	
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	boot_good_data	1	PASS	OK	
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	crc_text_first	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	crc_text_last	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	crc_data	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_magic	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_textlen	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_datalen	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_entry	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_textcrc	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_datacrc	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_hdrcrc	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	blank	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	hdr_textlen_big	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	hdr_textlen_odd	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	hdr_datalen_odd	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	hdr_datalen_big	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	hdr_entry_out	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	hdr_entry_odd	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	hdr_reserved	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	miso_low	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	miso_high	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	flash_stops	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:23:21+05:30	dcf6f7d4335a	True	boot	bus_error	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /BOOTFAIL set at/ | first: [FAIL] program reported step 1
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	boot_good	1	PASS	OK	
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	boot_good_data	1	PASS	OK	
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	crc_text_first	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] TIMEOUT after 20000 us: tohost never written (1286099 retired, pc in EX = 0x00000000)
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	crc_text_last	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] program reported step 1
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	crc_data	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] program reported step 26
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_magic	1	PASS	OK	
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_textlen	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] TIMEOUT after 20000 us: tohost never written (2217004 retired, pc in EX = 0x0002010c)
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_datalen	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] program reported step 1
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_entry	1	FAIL	UNEXPECTED	missing: /BOOTFAIL set at/
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_textcrc	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] program reported step 1
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_datacrc	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] program reported step 1
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	crc_hdr_hdrcrc	1	FAIL	UNEXPECTED	missing: /BOOTFAIL set at/
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	blank	1	PASS	OK	
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	hdr_textlen_big	1	PASS	OK	
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	hdr_textlen_odd	1	PASS	OK	
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	hdr_datalen_odd	1	PASS	OK	
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	hdr_datalen_big	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] bootfault hdr: the Boot ROM did not set RSTREASON.BOOTFAIL within 3000 us (ILOCK=0, mailbox mcause=00000000)
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	hdr_entry_out	1	PASS	OK	
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	hdr_entry_odd	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] bootfault hdr: the Boot ROM did not set RSTREASON.BOOTFAIL within 3000 us (ILOCK=1, mailbox mcause=00000000)
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	hdr_reserved	1	FAIL	UNEXPECTED	missing: /BOOTFAIL set at/
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	miso_low	1	PASS	OK	
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	miso_high	1	PASS	OK	
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	flash_stops	1	PASS	OK	
+2026-11-01T20:25:21+05:30	dcf6f7d4335a	True	boot	bus_error	1	FAIL	UNEXPECTED	pass marker missing; 5 [FAIL] line(s); 4 assertion failure(s) | first: [4439000] %Error: garuda_apb_shim_sva.sv:99: Assertion failed in tb_chip.dut.u_core.u_spim.u_shim.u_shim_sva.a_shim_err_no_select
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	boot_good	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	boot_good_data	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	crc_text_first	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	crc_text_last	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	crc_data	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_magic	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_textlen	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_datalen	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_entry	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_textcrc	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_datacrc	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_hdrcrc	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	blank	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	hdr_textlen_big	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	hdr_textlen_odd	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	hdr_datalen_odd	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	hdr_datalen_big	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	hdr_entry_out	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	hdr_entry_odd	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	hdr_reserved	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	miso_low	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	miso_high	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	flash_stops	1	PASS	OK	
+2026-11-01T20:27:29+05:30	dcf6f7d4335a	True	boot	bus_error	1	FAIL	UNEXPECTED	2 [FAIL] line(s); 2 assertion failure(s) | first: [4487000] %Error: garuda_apb_shim_sva.sv:99: Assertion failed in tb_chip.dut.u_core.u_spim.u_shim.u_shim_sva.a_shim_err_no_select: [SVA-FAIL
+2026-11-01T20:28:14+05:30	dcf6f7d4335a	True	boot	bus_error	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	boot_good	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	boot_good_data	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	crc_text_first	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	crc_text_last	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	crc_data	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_magic	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_textlen	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_datalen	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_entry	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_textcrc	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_datacrc	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	crc_hdr_hdrcrc	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	blank	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	hdr_textlen_big	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	hdr_textlen_odd	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	hdr_datalen_odd	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	hdr_datalen_big	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	hdr_entry_out	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	hdr_entry_odd	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	hdr_reserved	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	miso_low	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	miso_high	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	flash_stops	1	PASS	OK	
+2026-11-01T20:30:29+05:30	dcf6f7d4335a	True	boot	bus_error	1	PASS	OK	
+2026-11-03T22:06:53+05:30	dfab0bbf08f6	True	block	tb_mem_subsystem	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	boot_good	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	boot_good_data	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	crc_text_first	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	crc_text_last	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	crc_data	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	crc_hdr_magic	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	crc_hdr_textlen	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	crc_hdr_datalen	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	crc_hdr_entry	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	crc_hdr_textcrc	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	crc_hdr_datacrc	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	crc_hdr_hdrcrc	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	blank	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	hdr_textlen_big	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	hdr_textlen_odd	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	hdr_datalen_odd	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	hdr_datalen_big	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	hdr_entry_out	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	hdr_entry_odd	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	hdr_reserved	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	miso_low	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	miso_high	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	flash_stops	1	PASS	OK	
+2026-11-03T22:07:23+05:30	dfab0bbf08f6	True	boot	bus_error	1	PASS	OK	
+2026-11-03T22:07:27+05:30	dfab0bbf08f6	True	fv_mem_isram	isram_prove	-	PROVEN	OK	[19 asserts, 7 covers in model] 
+2026-11-03T22:07:27+05:30	dfab0bbf08f6	True	fv_mem_isram	isram_bmc	-	BOUNDED(10)	OK	[13 asserts, 7 covers in model] 
+2026-11-03T22:07:27+05:30	dfab0bbf08f6	True	fv_mem_isram	isram_cover	-	COVERED	OK	[13 asserts, 7 covers in model] 
+2026-11-03T22:07:27+05:30	dfab0bbf08f6	True	fv_mem_isram	mut_lock_off	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_lock_refused
+2026-11-03T22:07:27+05:30	dfab0bbf08f6	True	fv_mem_isram	mut_no_sba_bypass	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_lock_bypass
+2026-11-03T22:07:27+05:30	dfab0bbf08f6	True	fv_mem_isram	mut_bypass_all_lanes	-	FAIL	XFAIL:PLANTED	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_data_integrity
+2026-11-03T22:07:41+05:30	dfab0bbf08f6	True	fv_mem_dsram	dsram_prove	-	PROVEN	OK	[22 asserts, 11 covers in model] 
+2026-11-03T22:07:41+05:30	dfab0bbf08f6	True	fv_mem_dsram	dsram_bmc	-	BOUNDED(10)	OK	[16 asserts, 11 covers in model] 
+2026-11-03T22:07:41+05:30	dfab0bbf08f6	True	fv_mem_dsram	dsram_cover	-	COVERED	OK	[16 asserts, 10 covers in model] 
+2026-11-03T22:07:41+05:30	dfab0bbf08f6	True	fv_mem_dsram	mut_bank_swap	-	FAIL	XFAIL:PLANTED	[16 asserts, 11 covers in model] props: u_dsram_sva.a_bank_read_issue
+2026-11-03T22:07:41+05:30	dfab0bbf08f6	True	fv_mem_dsram	mut_rdbank_stale	-	FAIL	XFAIL:PLANTED	[16 asserts, 11 covers in model] props: u_dsram_sva.a_bank_read_return
+2026-11-03T22:07:41+05:30	dfab0bbf08f6	True	fv_mem_dsram	mut_bypass_all_lanes	-	FAIL	XFAIL:PLANTED	[16 asserts, 11 covers in model] props: u_if.u_mem_sva.a_data_integrity
+2026-11-03T22:07:41+05:30	dfab0bbf08f6	True	fv_mem_dsram	mut_rdbank_on_write_equiv	-	PROVEN	OK	[22 asserts, 11 covers in model] 
+2026-11-03T22:07:41+05:30	dfab0bbf08f6	True	fv_mem_brom	brom_prove	-	PROVEN	OK	[22 asserts, 6 covers in model] 
+2026-11-03T22:07:41+05:30	dfab0bbf08f6	True	fv_mem_brom	brom_bmc	-	BOUNDED(10)	OK	[14 asserts, 6 covers in model] 
+2026-11-03T22:07:41+05:30	dfab0bbf08f6	True	fv_mem_brom	brom_cover	-	COVERED	OK	[14 asserts, 1 covers in model] 
+2026-11-03T22:07:41+05:30	dfab0bbf08f6	True	fv_mem_brom	mut_rom_writable	-	FAIL	XFAIL:PLANTED	[14 asserts, 6 covers in model] props: u_if.u_mem_sva.a_rom_write_refused
+2026-11-03T22:07:42+05:30	dfab0bbf08f6	True	fv_mem_ilock	ilock_prove	-	PROVEN	OK	[5 asserts, 3 covers in model] 
+2026-11-03T22:07:42+05:30	dfab0bbf08f6	True	fv_mem_ilock	ilock_cover	-	COVERED	OK	[5 asserts, 3 covers in model] 
+2026-11-03T22:07:42+05:30	dfab0bbf08f6	True	fv_mem_ilock	mut_ilock_rw	-	FAIL	XFAIL:PLANTED	[5 asserts, 3 covers in model] props: u_ilock_sva.a_ilock_sticky

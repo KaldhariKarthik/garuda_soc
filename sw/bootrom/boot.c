@@ -38,6 +38,9 @@
 #define IMG_MAGIC       0x47415244u         /* "GARD" */
 #define MBOX            ((volatile uint32_t *)(uintptr_t)(GARUDA_DSRAM_BASE + GARUDA_DSRAM_SIZE - 16))
 #define MBOX_MAGIC      0x4A544147u         /* "JTAG" */
+/* MEM-3 (2026-11-01): the ROM's own stack (top 0x2000_FF00) and the mailbox (0x2000_FFF0) are in
+ * the top 1 KiB of DSRAM, so a DATA image may fill DSRAM only up to there */
+#define ROM_DSRAM_RSVD  0x400u
 
 void boot_recovery(void) __attribute__((noreturn));
 void boot_main(void) __attribute__((noreturn));
@@ -93,6 +96,14 @@ void boot_recovery(void)
 
 void boot_main(void)
 {
+    /* ERRATUM MEM-6 (fixed 2026-11-01): GARUDA's debug halt holds the core in reset, so "resume"
+     * restarts it here. With boot_sel = 0 the ROM used to boot from flash again, copy the flash
+     * image over the program a debugger had just loaded into ISRAM, and then (mailbox posted)
+     * run the flash image: after a failed flash boot the documented debugger loop (DEBUG-SPEC
+     * 7.6) ran the broken image again. A posted mailbox now wins: a debugger has loaded a
+     * program, so go straight to recovery, which jumps to it. */
+    if (MBOX[0] == MBOX_MAGIC)
+        boot_recovery();
     if (CLKSTAT & CLKSTAT_BOOTSEL)
         boot_recovery();
 
@@ -106,9 +117,16 @@ void boot_main(void)
              entry = hdr[3], text_crc = hdr[4], data_crc = hdr[5];
 
     if (magic != IMG_MAGIC)                                        boot_fail();
-    if (text_len > GARUDA_ISRAM_SIZE || data_len > GARUDA_DSRAM_SIZE) boot_fail();
+    /* ERRATUM MEM-5 (fixed 2026-11-01): the header had no integrity check, so a flipped bit in
+     * ENTRY that stayed inside ISRAM (0 -> 4) booted at the wrong address; word 6 is now
+     * HDR_CRC, the CRC-32 of header bytes 0x00-0x17. MEM-2: word 7 is reserved and must be 0. */
+    if (crc32_words(hdr, 24u) != hdr[6])                           boot_fail();
+    if (hdr[7] != 0u)                                              boot_fail();
+    if (text_len > GARUDA_ISRAM_SIZE)                              boot_fail();
+    if (data_len > GARUDA_DSRAM_SIZE - ROM_DSRAM_RSVD)             boot_fail();   /* MEM-3 */
     if ((text_len | data_len) & 3u)                                boot_fail();
     if (entry >= GARUDA_ISRAM_BASE + text_len)                     boot_fail();   /* ISRAM starts at 0 */
+    if (entry & 3u)                                                boot_fail();   /* MEM-4: before ILOCK, not a trap after it */
 
     volatile uint32_t *isram = (volatile uint32_t *)(uintptr_t)GARUDA_ISRAM_BASE;
     volatile uint32_t *dsram = (volatile uint32_t *)(uintptr_t)GARUDA_DSRAM_BASE;

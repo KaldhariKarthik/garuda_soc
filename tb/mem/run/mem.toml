@@ -1,0 +1,19 @@
+# Memories block bench (tb/mem/tb_mem_subsystem.sv): Karthik's directed checks and
+# soak, plus Track A's seeded monitor/scoreboard soak (plan 6A.6 M2). The check count
+# is pinned so a check that silently stops running fails the suite.
+# Run: python3.12 tools/run/garuda_run.py suite tb/mem/run/mem.toml
+[suite]
+block = "mem"
+name  = "block"
+kind  = "sim"
+xfail = "tb/mem/run/xfail.tsv"
+
+[[test]]
+name    = "tb_mem_subsystem"
+flist   = "tb/mem/filelist_mem.f"
+top     = "tb_mem_subsystem"
+marker  = '^RESULT: PASSED'
+plusargs = ["+SEED=1"]
+timeout = 900
+require = ['tb_mem_subsystem: checks=28 +FAIL=0', '^soak2: seed 1$']
+forbid  = ['\[SVA-FAIL\]', 'MEM-ASSERT']

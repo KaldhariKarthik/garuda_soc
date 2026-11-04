@@ -1,0 +1,8 @@
+# garuda-fv 1 suite=fv_mem_isram block=mem date=2026-11-03T22:07:27+05:30 design=dfab0bbf08f64ba296587f7ee71298a9fbaad266 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+isram_prove	prove	PROVEN	OK	0	[19 asserts, 7 covers in model] 	logs/mem/raw/fv_mem_isram/fv_isram_prove.log
+isram_bmc	bmc	BOUNDED(10)	OK	3	[13 asserts, 7 covers in model] 	logs/mem/raw/fv_mem_isram/fv_isram_bmc.log
+isram_cover	cover	COVERED	OK	0	[13 asserts, 7 covers in model] 	logs/mem/raw/fv_mem_isram/fv_isram_cover.log
+mut_lock_off	bmc	FAIL	XFAIL:PLANTED	0	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_lock_refused	logs/mem/raw/fv_mem_isram/fv_mut_lock_off.log
+mut_no_sba_bypass	bmc	FAIL	XFAIL:PLANTED	0	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_lock_bypass	logs/mem/raw/fv_mem_isram/fv_mut_no_sba_bypass.log
+mut_bypass_all_lanes	bmc	FAIL	XFAIL:PLANTED	0	[13 asserts, 7 covers in model] props: u_if.u_mem_sva.a_data_integrity	logs/mem/raw/fv_mem_isram/fv_mut_bypass_all_lanes.log

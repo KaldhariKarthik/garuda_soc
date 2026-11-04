@@ -23,5 +23,14 @@ rom_trap:
     sw      t1, 8(t0)
     csrr    t1, mepc
     sw      t1, 12(t0)
+    # ERRATUM MEM-1 (fixed 2026-11-01): [N-8.12] says any exception during boot sets
+    # RSTREASON.BOOTFAIL; this handler went to recovery without it, so a debugger could not
+    # tell a boot that trapped from boot_sel = 1. RSTCTL = (RSTCTL & DIVSEL) | BOOTFAIL, as
+    # boot_fail() does; after the mailbox record, so a fault here still leaves the record.
+    li      t0, 0x40009000          # GARUDA_APB_BASE_RESET_CTRL
+    lw      t1, 4(t0)
+    andi    t1, t1, 0x300           # keep DIVSEL
+    ori     t1, t1, 0x10            # BOOTFAIL
+    sw      t1, 4(t0)
     li      sp, 0x2000FF00
     j       boot_recovery

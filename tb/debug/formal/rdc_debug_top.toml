@@ -1,0 +1,43 @@
+# Structural reset-domain-crossing check of the whole debug block (DBG-9 follow-up, 2026-11-01).
+# Run: python3.12 tools/run/rdc_check.py tb/debug/formal/rdc_debug_top.toml
+block = "debug"
+suite = "rdc_debug_top"
+top   = "debug_top"
+files = ["rtl/debug/jtag_tap.v", "rtl/debug/dtm.v", "rtl/debug/dmi_cdc.v", "rtl/debug/debug_module.v", "rtl/debug/sba_master.v", "rtl/debug/debug_top.v"]
+
+[reset_domain]
+por_n_i    = "por"
+dm_rst_n_i = "dm"
+
+# reset ordering: POR (the pin) always asserts the DM reset too (reset_ctrl: ext_rst_n sets
+# dm_req_q, which clears dm_q; FC-1 of the crossing proof). A DM-domain flop fed from a POR flop
+# is therefore in reset whenever that flop can be reset. The reverse is NOT true (watchdog and
+# software resets are DM-only), so DM -> POR crossings are checked.
+[implies]
+por = ["dm"]
+
+[[waiver]]
+to     = "u_cdc.ack_tgl_o"
+from   = "u_dm.done_o"
+reason = "as in rdc_dmi_cdc.toml: done_o only falls when the DM reset hits; toggle or not are both the frozen at-most-once contract (re-arm adopts); ack_tgl is read only through the 2-flop tck synchroniser"
+
+[[waiver]]
+to     = "u_dtm.rsp_q"
+from   = "u_dtm.rsp_data_i"
+reason = "the DM's rdata_o, captured when the synchronised ack shows the toggle; a DM-only reset clears it, so a capture coinciding with that reset may take a wrong word: the response to a request across an hclk reset is UNDEFINED by contract (step-0 item 12; the debugger re-reads dmstatus after a reset)"
+
+# DBG-9 fix (2026-11-01): ack_tgl's enables are single flops reset to their inactive value
+[[waiver]]
+to     = "u_cdc.ack_tgl_o"
+from   = "u_cdc.adopt_q"
+reason = "one flop, reset value 0: an asynchronous DM reset can only take it 1 -> 0 (load becomes hold), never pass through an active decode; it is 1 only in the third arming cycle"
+
+[[waiver]]
+to     = "u_cdc.ack_tgl_o"
+from   = "u_cdc.armed_r"
+reason = "one flop, reset value 0: a DM reset can only take it 1 -> 0, which turns a toggle into a hold; that only matters with a done in the same cycle, the at-most-once case of done_o"
+
+[[waiver]]
+to     = "u_cdc.ack_tgl_o"
+from   = "u_cdc.req_s"
+reason = "data loaded only while adopt_q = 1 (arming); a DM reset landing then needs a second DM reset within 3 hclk edges of the last release: watchdog / software resets are system resets and cannot fire then, and a pin reset is POR, which resets ack_tgl itself"

@@ -65,6 +65,18 @@ help:
 	@echo "  fv_dma            DMA formal, all: + PDR proof of every property, bounded check, covers (~16 min)"
 	@echo "  debug_chip        chip-level tests through the debug path (tb_chip)"
 	@echo "  debug_chip_diag   same, diagnostic reset-edge shim (TB-30): all must pass"
+	@echo "  -- debug 6A.5 and memories 6A.6 (Track A, 2026-11-01) --"
+	@echo "  mem_block         memories: tb_mem_subsystem (directed + seeded soak, independent byte model)"
+	@echo "  mem_seeds         memories: 20 seeds of the soak     mem_mut   planted defects (simulation)"
+	@echo "  mem_boot          Boot ROM at chip level: good boots (text, data), every fault -> BOOTFAIL -> JTAG recovery (F14-F24)"
+	@echo "  fv_mem            memories formal: ISRAM, DSRAM 4 banks, Boot ROM, ILOCK (+ negative controls)"
+	@echo "  debug_seeds       debug: 20 seeds of the random DMI/SBA phase   debug_mut  planted defects"
+	@echo "  fv_debug_quick    debug formal: the block proof + the DBG-4/7/8 negative controls"
+	@echo "  fv_debug          debug formal, all (+ the JTAG cover witness, slow)"
+	@echo "  fv_debug_cdc      the tck <-> hclk crossing proof (classes A-D, negative controls)"
+	@echo "  rdc_debug         structural reset-domain-crossing check: dmi_cdc and debug_top (DBG-9)"
+	@echo "  debug_ocd         OpenOCD against the simulated debug block (F35)"
+	@echo "  cov_mem / cov_debug   coverage collection + report (design and TB separately)"
 	@echo "  fv_core_trap      formal: trap_ctrl properties (T-13/T-14/TC-1/TC-3)"
 	@echo "  core_csr_map      all 4096 CSR addresses: RTL vs contract vs Spike"
 	@echo "  fv_core_csr       formal: csr_file properties (C-16 ..)"
@@ -197,8 +209,27 @@ dma_seeds:
 	@$(ENV) $$PYTHON tools/gen/gen_dma_seeds_manifest.py --base $(DMA_SEED_BASE) --seeds 100 > tb/dma/run/env_seeds.toml && \
 	 $$PYTHON tools/run/garuda_run.py suite tb/dma/run/env_seeds.toml --jobs $(JOBS)
 dma_chip:       ; @$(ENV) $(MAKE) -s -C sw build/t_chip_dma_rearm.hex build/t_chip_dma_traffic.hex build/t_chip_dma_subword.hex build/t_chip_dma_uart.hex && $(RUN) tb/dma/run/chip.toml --jobs $(JOBS) $(SEEDARG)
-debug_chip:     ; @$(RUN) tb/debug/run/chip.toml    --jobs $(JOBS) $(SEEDARG)
+debug_chip:     ; @$(ENV) $(MAKE) -s -C sw build/t_chip_jtag_regions.hex build/t_chip_jtag_bulk.hex build/t_chip_jtag_ilock.hex && $(RUN) tb/debug/run/chip.toml    --jobs $(JOBS) $(SEEDARG)
 debug_chip_diag: ; @$(RUN) tb/debug/run/chip_diag.toml --jobs $(JOBS) $(SEEDARG)
+mem_block:      ; @$(RUN) tb/mem/run/mem.toml        --jobs $(JOBS) $(SEEDARG)
+# boot images (memories vPlan F14-F24): the recovery program, and a flash image with a DATA part
+boot_images:
+	@$(ENV) $(MAKE) -s -C sw build/bootrom.hex build/flash.hex build/t_chip_boot_recovery.hex build/t_chip_boot_data.bin && \
+	 $$PYTHON -c "import struct; open('sw/build/boot_pattern.bin','wb').write(b''.join(struct.pack('<I', ((i*0x9E3779B1) ^ 0x5A5A5A5A) & 0xffffffff) for i in range(64)))" && \
+	 $$PYTHON tools/mkbootimg.py sw/build/t_chip_boot_data.bin sw/build/flash_data.hex --entry 0x0 --size 69632 --data sw/build/boot_pattern.bin
+mem_boot: boot_images ; @$(RUN) tb/mem/run/boot.toml --jobs $(JOBS) $(SEEDARG)
+mem_crc:        ; @$(ENV) $$PYTHON tb/mem/boot/crc_vectors.py
+mem_seeds:      ; @$(RUN) tb/mem/run/mem_seeds.toml  --jobs $(JOBS)
+mem_mut:        ; @$(RUN) tb/mem/run/mem_mut.toml    --jobs $(JOBS)
+debug_seeds:    ; @$(RUN) tb/debug/run/debug_seeds.toml --jobs $(JOBS)
+debug_mut:      ; @$(RUN) tb/debug/run/debug_mut.toml   --jobs $(JOBS)
+debug_ocd:      ; @$(ENV) bash tb/debug/openocd/run_ocd.sh
+cov_mem:
+	@$(RUN) tb/mem/run/mem.toml --coverage --jobs $(JOBS); $(RUN) tb/mem/run/mem_seeds.toml --coverage --jobs $(JOBS); \
+	 $(ENV) $$PYTHON tools/cov/cov_report.py tb/mem/cov/cov.toml
+cov_debug:
+	@$(RUN) tb/debug/run/debug.toml --coverage --jobs $(JOBS); $(RUN) tb/debug/run/debug_seeds.toml --coverage --jobs $(JOBS); \
+	 $(ENV) $$PYTHON tools/cov/cov_report.py tb/debug/cov/cov.toml
 
 # DSU vectors: the generator must write exactly 445 tests and its own
 # independent cross-check (DSUModel vs ArchDSU) must read CLEAN.
@@ -288,6 +319,22 @@ fv_core_rdc1: ; @$(ENV) $$PYTHON tools/run/garuda_fv.py tb/core/formal/rdc1.toml
 fv_dsu:        ; @$(ENV) $$PYTHON tools/run/garuda_fv.py tb/dsu/formal/dsu.toml --jobs 4
 fv_cov_unreach: ; @$(ENV) $$PYTHON tools/run/garuda_fv.py tb/core/formal/cov_unreach.toml --jobs 2
 fv_core: fv_core_trap fv_core_csr fv_core_rdc1 fv_cov_unreach
+.PHONY: fv_mem fv_debug fv_debug_quick fv_debug_cdc rdc_debug
+fv_mem:
+	@$(ENV) for m in mem_isram mem_dsram mem_brom ilock; do $$PYTHON tools/run/garuda_fv.py tb/mem/formal/$$m.toml --jobs 4 || exit 1; done
+FV_DEBUG_QUICK = debug_bmc debug_prove mut_dbg4_revert mut_m12_equiv fv_mut_m16_dbg7_revert fv_mut_m17_no_resumeack fv_mut_m18_ack_not_cleared
+fv_debug_quick: ; @$(ENV) $$PYTHON tools/run/garuda_fv.py tb/debug/formal/debug.toml --only $(FV_DEBUG_QUICK) --jobs 4
+fv_debug:       ; @$(ENV) $$PYTHON tools/run/garuda_fv.py tb/debug/formal/debug.toml --jobs 4
+fv_debug_cdc:   ; @$(ENV) $$PYTHON tools/run/garuda_fv.py tb/debug/formal/dmi_cdc.toml --jobs 6
+fv_debug_witness: ; @$(ENV) $$PYTHON tools/run/garuda_fv.py tb/debug/formal/dmi_cdc_witness.toml --jobs 1
+# whole-chip structural CDC (flow/2_static/cdc_chip.toml) + its negative control (must FAIL)
+cdc_chip:
+	@$(ENV) $$PYTHON tools/run/cdc_check.py flow/2_static/cdc_chip.toml | grep -v '^SYNC' ; \
+	 if $$PYTHON tools/run/cdc_check.py flow/2_static/cdc_chip_negctl.toml > logs/common/raw/cdc_negctl.txt 2>&1; then r="PASS\tXPASS:PLANTED\tthe planted first-stage fan-out was NOT found"; \
+	 else r="FAIL\tXFAIL:PLANTED\t$$(grep -m1 VIOLATION logs/common/raw/cdc_negctl.txt | cut -c1-160)"; fi; \
+	 printf '# cdc_check negative control (dmi_cdc_mut_pulse_stage0 swapped in)\ntask\tresult\tclass\tdetail\nnegctl_pulse_stage0\t%b\n' "$$r" > logs/common/summary/cdc_negctl.tsv; tail -1 logs/common/summary/cdc_negctl.tsv
+rdc_debug:
+	@$(ENV) $$PYTHON tools/run/rdc_check.py tb/debug/formal/rdc_dmi_cdc.toml && $$PYTHON tools/run/rdc_check.py tb/debug/formal/rdc_debug_top.toml
 FV_DMA_QUICK = dma10_find dma11_find dma13_find dma14_find mut_eng1 mut_d2 mut_dma8 mut_iclr_wins mut_aud13
 fv_dma_quick:
 	@$(ENV) $$PYTHON tools/run/garuda_fv.py tb/dma/formal/arb.toml --jobs 3 && \
@@ -361,7 +408,8 @@ throughput_a:
 regress_a: check_tools_a sw_open
 	-@$(MAKE) -s -k -f flow/mk/track_a_run.mk core_units core_elements core_smokes core_isa core_isa_rand \
 	    core_sanity core_extra core_directed core_covtests core_rvfi core_cosim core_csr core_halt core_csr_map dsu_model \
-	    debug_block debug_chip debug_chip_diag dma_block dma_probe apb_probe bus_b0 ahb_ic ahb_env ahb_units apb_bridge apb_env apb_units dma_regs dma_env dma_units dsu_units_spec dma_chip fv_core fv_dma_quick selftest_runners JOBS=$(JOBS)
+	    debug_block debug_chip debug_chip_diag dma_block dma_probe apb_probe bus_b0 ahb_ic ahb_env ahb_units apb_bridge apb_env apb_units dma_regs dma_env dma_units dsu_units_spec dma_chip fv_core fv_dma_quick \
+	    mem_block mem_boot mem_crc fv_mem fv_debug_quick fv_debug_cdc rdc_debug cdc_chip selftest_runners JOBS=$(JOBS)
 	@$(MAKE) -s -f flow/mk/track_a_run.mk regress_a_report
 
 # ---- regression tiers (plan 1.4 / E12; times measured 2026-10-11, H9) ---------
@@ -375,7 +423,8 @@ fast_a: check_tools_a sw_open
 	    core_covtests dsu_model dsu_units_spec dma_block dma_probe apb_probe bus_b0 ahb_ic ahb_env ahb_units apb_bridge apb_env apb_units dma_regs dma_env dma_units fv_core_trap selftest_runners JOBS=$(JOBS)
 	@$(MAKE) -s -f flow/mk/track_a_run.mk tier_report TIER_SUITES="$(FAST_SUITES)"
 nightly_a: regress_a
-	-@$(MAKE) -s -k -f flow/mk/track_a_run.mk core_archtest core_stress core_riscv_dv dsu_mut dsu_units dsu_units_spec fv_dsu fv_dma dma_seeds dma_mut fv_ahb ahb_seeds ahb_mut fv_apb apb_seeds apb_mut JOBS=$(JOBS)
+	-@$(MAKE) -s -k -f flow/mk/track_a_run.mk core_archtest core_stress core_riscv_dv dsu_mut dsu_units dsu_units_spec fv_dsu fv_dma dma_seeds dma_mut fv_ahb ahb_seeds ahb_mut fv_apb apb_seeds apb_mut \
+	    mem_seeds mem_mut debug_seeds debug_mut fv_debug fv_debug_witness debug_ocd JOBS=$(JOBS)
 	@$(MAKE) -s -f flow/mk/track_a_run.mk tier_report TIER_SUITES="$(NIGHTLY_SUITES)"
 soak_a:
 	-@$(MAKE) -s -k -f flow/mk/track_a_run.mk core_endurance JOBS=$(JOBS)
@@ -389,6 +438,7 @@ FAST_SUITES = $(addprefix logs/core/summary/,units.tsv elements.tsv isa.tsv sani
               logs/flow/summary/selftest.tsv
 NIGHTLY_SUITES = $(addprefix logs/core/summary/,archtest.tsv stress.tsv stress_halt.tsv riscv_dv.tsv) \
                  logs/dsu/summary/dsu_mut.tsv logs/dsu/summary/units.tsv logs/dsu/summary/fv_dsu.tsv \
+                 logs/mem/summary/seeds.tsv logs/mem/summary/mem_mut.tsv logs/debug/summary/seeds.tsv logs/debug/summary/debug_mut.tsv logs/debug/summary/fv_debug.tsv logs/debug/summary/fv_dmi_cdc_witness.tsv \
                  logs/dma/summary/fv_dma.tsv logs/dma/summary/env_seeds.tsv logs/ahb/summary/fv_ahb.tsv logs/ahb/summary/env_seeds.tsv logs/ahb/summary/ahb_mut.tsv logs/ahb2apb/summary/fv_apb.tsv logs/ahb2apb/summary/env_seeds.tsv logs/ahb2apb/summary/apb_mut.tsv
 # one line per suite; exit 1 on a missing suite or any UNEXPECTED / XPASS row
 tier_report:
@@ -407,6 +457,8 @@ regress_a_report:
 	for f in logs/core/summary/{units,elements,smokes,isa,isa_rand,sanity,extra,directed,covtests,rvfi,cosim,csr,halt,csr_map}.tsv \
 	         logs/dsu/summary/model.tsv logs/debug/summary/{block,chip,chip_diag}.tsv logs/dma/summary/{block,probe,regs,env,units,chip,fv_dma_arb,fv_dma_2clk,fv_dma_cov}.tsv logs/dsu/summary/units_spec.tsv logs/ahb2apb/summary/probe.tsv logs/ahb2apb/summary/bridge.tsv logs/ahb2apb/summary/env.tsv logs/ahb2apb/summary/units.tsv logs/ahb/summary/ic.tsv logs/common/summary/b0.tsv \
 	         logs/core/summary/{fv_trap,fv_csr,fv_rdc1,fv_cov}.tsv \
+	         logs/mem/summary/{block,boot,crc_vectors,fv_mem_isram,fv_mem_dsram,fv_mem_brom,fv_mem_ilock}.tsv \
+	         logs/debug/summary/{fv_debug.partial,fv_dmi_cdc,rdc_dmi_cdc,rdc_debug_top}.tsv logs/common/summary/{cdc_chip,cdc_negctl}.tsv \
 	         logs/flow/summary/{selftest,negctl_prog,negctl_t12,negctl_preempt,negctl_elem,negctl_cosim,fv_selftest}.tsv; do \
 	    [ -f "$$f" ] || { printf '%-26s %s\n' "$$f" "NOT RUN"; bad=1; continue; }; \
 	    awk -F'\t' -v f="$$(basename $$(dirname $$(dirname $$f)))/$$(basename $$f .tsv)" \

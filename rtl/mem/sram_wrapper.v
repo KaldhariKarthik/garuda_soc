@@ -91,6 +91,7 @@ module sram_wrapper #(
     end
 
 `ifndef SYNTHESIS
+`ifndef FORMAL      // backdoors are simulation-only; in formal they stop the array being one memory (Track A, 2026-10-15)
     // Backdoor access for testbenches (never used by RTL).
     task bd_write;
         input [AW-1:0] word_addr;
@@ -105,6 +106,7 @@ module sram_wrapper #(
         input [1023:0] path;
         $readmemh(path, mem);
     endtask
+`endif  // FORMAL
 `endif
 `endif
 

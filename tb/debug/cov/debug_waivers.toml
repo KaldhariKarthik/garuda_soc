@@ -1,0 +1,82 @@
+# Debug coverage waivers (H5; Track A plan 6A.5 G4). Same rules as tb/mem/cov/mem_waivers.toml.
+# Reviewer of every entry: pending (Sreyesh), then Karthik.
+
+[[waiver]]
+id = "CD-CONST-1"
+metric = "toggle"
+file = "rtl/debug/dtm.v"
+match = "^(dtmcs\\[0\\]:1\\->0|dtmcs\\[12\\]:1\\->0|dtmcs\\[13\\]:0\\->1|dtmcs\\[13\\]:1\\->0|dtmcs\\[14\\]:1\\->0|dtmcs\\[15\\]:0\\->1|dtmcs\\[15\\]:1\\->0|dtmcs\\[16\\]:0\\->1|dtmcs\\[16\\]:1\\->0|dtmcs\\[17\\]:0\\->1|dtmcs\\[17\\]:1\\->0|dtmcs\\[18\\]:0\\->1|dtmcs\\[18\\]:1\\->0|dtmcs\\[19\\]:0\\->1|dtmcs\\[19\\]:1\\->0|dtmcs\\[1\\]:0\\->1|dtmcs\\[1\\]:1\\->0|dtmcs\\[20\\]:0\\->1|dtmcs\\[20\\]:1\\->0|dtmcs\\[21\\]:0\\->1|dtmcs\\[21\\]:1\\->0|dtmcs\\[22\\]:0\\->1|dtmcs\\[22\\]:1\\->0|dtmcs\\[23\\]:0\\->1|dtmcs\\[23\\]:1\\->0|dtmcs\\[24\\]:0\\->1|dtmcs\\[24\\]:1\\->0|dtmcs\\[25\\]:0\\->1|dtmcs\\[25\\]:1\\->0|dtmcs\\[26\\]:0\\->1|dtmcs\\[26\\]:1\\->0|dtmcs\\[27\\]:0\\->1|dtmcs\\[27\\]:1\\->0|dtmcs\\[28\\]:0\\->1|dtmcs\\[28\\]:1\\->0|dtmcs\\[29\\]:0\\->1|dtmcs\\[29\\]:1\\->0|dtmcs\\[2\\]:0\\->1|dtmcs\\[2\\]:1\\->0|dtmcs\\[30\\]:0\\->1|dtmcs\\[30\\]:1\\->0|dtmcs\\[31\\]:0\\->1|dtmcs\\[31\\]:1\\->0|dtmcs\\[3\\]:0\\->1|dtmcs\\[3\\]:1\\->0|dtmcs\\[4\\]:1\\->0|dtmcs\\[5\\]:1\\->0|dtmcs\\[6\\]:1\\->0|dtmcs\\[7\\]:0\\->1|dtmcs\\[7\\]:1\\->0|dtmcs\\[8\\]:0\\->1|dtmcs\\[8\\]:1\\->0|dtmcs\\[9\\]:0\\->1|dtmcs\\[9\\]:1\\->0)$"
+category = "constant"
+reason = "dtmcs is a read-value bundle: version 1 [3:0], abits 7 [9:4], idle 5 [14:12] and zeros above are constants of the spec; only dmistat [11:10] varies (and toggles)."
+evidence = "rtl/debug/dtm.v:53; GARUDA-DEBUG-SPEC-001 6.2"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CD-CONST-2"
+metric = "toggle"
+file = "rtl/debug/debug_module.v"
+match = "^(dmcontrol\\[10\\]:0\\->1|dmcontrol\\[10\\]:1\\->0|dmcontrol\\[11\\]:0\\->1|dmcontrol\\[11\\]:1\\->0|dmcontrol\\[12\\]:0\\->1|dmcontrol\\[12\\]:1\\->0|dmcontrol\\[13\\]:0\\->1|dmcontrol\\[13\\]:1\\->0|dmcontrol\\[14\\]:0\\->1|dmcontrol\\[14\\]:1\\->0|dmcontrol\\[15\\]:0\\->1|dmcontrol\\[15\\]:1\\->0|dmcontrol\\[16\\]:0\\->1|dmcontrol\\[16\\]:1\\->0|dmcontrol\\[17\\]:0\\->1|dmcontrol\\[17\\]:1\\->0|dmcontrol\\[18\\]:0\\->1|dmcontrol\\[18\\]:1\\->0|dmcontrol\\[19\\]:0\\->1|dmcontrol\\[19\\]:1\\->0|dmcontrol\\[20\\]:0\\->1|dmcontrol\\[20\\]:1\\->0|dmcontrol\\[21\\]:0\\->1|dmcontrol\\[21\\]:1\\->0|dmcontrol\\[22\\]:0\\->1|dmcontrol\\[22\\]:1\\->0|dmcontrol\\[23\\]:0\\->1|dmcontrol\\[23\\]:1\\->0|dmcontrol\\[24\\]:0\\->1|dmcontrol\\[24\\]:1\\->0|dmcontrol\\[25\\]:0\\->1|dmcontrol\\[25\\]:1\\->0|dmcontrol\\[26\\]:0\\->1|dmcontrol\\[26\\]:1\\->0|dmcontrol\\[27\\]:0\\->1|dmcontrol\\[27\\]:1\\->0|dmcontrol\\[28\\]:0\\->1|dmcontrol\\[28\\]:1\\->0|dmcontrol\\[2\\]:0\\->1|dmcontrol\\[2\\]:1\\->0|dmcontrol\\[30\\]:0\\->1|dmcontrol\\[30\\]:1\\->0|dmcontrol\\[31\\]:0\\->1|dmcontrol\\[31\\]:1\\->0|dmcontrol\\[3\\]:0\\->1|dmcontrol\\[3\\]:1\\->0|dmcontrol\\[4\\]:0\\->1|dmcontrol\\[4\\]:1\\->0|dmcontrol\\[5\\]:0\\->1|dmcontrol\\[5\\]:1\\->0|dmcontrol\\[6\\]:0\\->1|dmcontrol\\[6\\]:1\\->0|dmcontrol\\[7\\]:0\\->1|dmcontrol\\[7\\]:1\\->0|dmcontrol\\[8\\]:0\\->1|dmcontrol\\[8\\]:1\\->0|dmcontrol\\[9\\]:0\\->1|dmcontrol\\[9\\]:1\\->0|dmstatus\\[0\\]:0\\->1|dmstatus\\[0\\]:1\\->0|dmstatus\\[12\\]:0\\->1|dmstatus\\[12\\]:1\\->0|dmstatus\\[13\\]:0\\->1|dmstatus\\[13\\]:1\\->0|dmstatus\\[14\\]:0\\->1|dmstatus\\[14\\]:1\\->0|dmstatus\\[15\\]:0\\->1|dmstatus\\[15\\]:1\\->0|dmstatus\\[18\\]:0\\->1|dmstatus\\[18\\]:1\\->0|dmstatus\\[19\\]:0\\->1|dmstatus\\[19\\]:1\\->0|dmstatus\\[1\\]:1\\->0|dmstatus\\[20\\]:0\\->1|dmstatus\\[20\\]:1\\->0|dmstatus\\[21\\]:0\\->1|dmstatus\\[21\\]:1\\->0|dmstatus\\[22\\]:0\\->1|dmstatus\\[22\\]:1\\->0|dmstatus\\[23\\]:0\\->1|dmstatus\\[23\\]:1\\->0|dmstatus\\[24\\]:0\\->1|dmstatus\\[24\\]:1\\->0|dmstatus\\[25\\]:0\\->1|dmstatus\\[25\\]:1\\->0|dmstatus\\[26\\]:0\\->1|dmstatus\\[26\\]:1\\->0|dmstatus\\[27\\]:0\\->1|dmstatus\\[27\\]:1\\->0|dmstatus\\[28\\]:0\\->1|dmstatus\\[28\\]:1\\->0|dmstatus\\[29\\]:0\\->1|dmstatus\\[29\\]:1\\->0|dmstatus\\[2\\]:0\\->1|dmstatus\\[2\\]:1\\->0|dmstatus\\[30\\]:0\\->1|dmstatus\\[30\\]:1\\->0|dmstatus\\[31\\]:0\\->1|dmstatus\\[31\\]:1\\->0|dmstatus\\[3\\]:0\\->1|dmstatus\\[3\\]:1\\->0|dmstatus\\[4\\]:0\\->1|dmstatus\\[4\\]:1\\->0|dmstatus\\[5\\]:0\\->1|dmstatus\\[5\\]:1\\->0|dmstatus\\[6\\]:0\\->1|dmstatus\\[6\\]:1\\->0|dmstatus\\[7\\]:1\\->0|sbcs\\[0\\]:0\\->1|sbcs\\[0\\]:1\\->0|sbcs\\[10\\]:1\\->0|sbcs\\[11\\]:0\\->1|sbcs\\[11\\]:1\\->0|sbcs\\[1\\]:0\\->1|sbcs\\[1\\]:1\\->0|sbcs\\[23\\]:0\\->1|sbcs\\[23\\]:1\\->0|sbcs\\[24\\]:0\\->1|sbcs\\[24\\]:1\\->0|sbcs\\[25\\]:0\\->1|sbcs\\[25\\]:1\\->0|sbcs\\[26\\]:0\\->1|sbcs\\[26\\]:1\\->0|sbcs\\[27\\]:0\\->1|sbcs\\[27\\]:1\\->0|sbcs\\[28\\]:0\\->1|sbcs\\[28\\]:1\\->0|sbcs\\[29\\]:1\\->0|sbcs\\[2\\]:1\\->0|sbcs\\[30\\]:0\\->1|sbcs\\[30\\]:1\\->0|sbcs\\[31\\]:0\\->1|sbcs\\[31\\]:1\\->0|sbcs\\[3\\]:0\\->1|sbcs\\[3\\]:1\\->0|sbcs\\[4\\]:0\\->1|sbcs\\[4\\]:1\\->0|sbcs\\[5\\]:0\\->1|sbcs\\[5\\]:1\\->0|sbcs\\[6\\]:0\\->1|sbcs\\[6\\]:1\\->0|sbcs\\[7\\]:0\\->1|sbcs\\[7\\]:1\\->0|sbcs\\[8\\]:0\\->1|sbcs\\[8\\]:1\\->0|sbcs\\[9\\]:0\\->1|sbcs\\[9\\]:1\\->0)$"
+category = "constant"
+reason = "Read-value bundles: dmcontrol's unimplemented fields, dmstatus's version 2 / authenticated / zeros (not [17:16], allresumeack/anyresumeack since DBG-8: they toggle; removed 2026-11-01), sbcs's sbversion 1 / sbasize 32 / sbaccess32 only; the live bits (dmactive, ndmreset, hartreset; the halt status; the sbcs control and error fields) toggle and are not waived."
+evidence = "rtl/debug/debug_module.v:107-112; GARUDA-DEBUG-SPEC-001 6.5-6.7"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CD-CONST-3"
+metric = "toggle"
+file = "rtl/debug/debug_module.v"
+match = "^halt_cnt\\[1[0-5]\\]:"
+category = "constant"
+reason = "The RDC-1 halt counter stops at HALT_TIMEOUT - 1 = 1023, so its bits 10-15 stay 0 (the 16-bit counter allows a larger HALT_TIMEOUT parameter)."
+evidence = "rtl/debug/debug_module.v HALT_TIMEOUT = 1024; the timeout itself is covered (cov_fill, haltinfo.haltforced checked)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CD-CONST-4"
+metric = "toggle"
+file = "rtl/debug/*.v"
+match = "^(hburst_o\\[0\\]:0\\->1|hburst_o\\[0\\]:1\\->0|hburst_o\\[1\\]:0\\->1|hburst_o\\[1\\]:1\\->0|hburst_o\\[2\\]:0\\->1|hburst_o\\[2\\]:1\\->0|hsize_o\\[0\\]:0\\->1|hsize_o\\[0\\]:1\\->0|hsize_o\\[1\\]:1\\->0|hsize_o\\[2\\]:0\\->1|hsize_o\\[2\\]:1\\->0|htrans_o\\[0\\]:0\\->1|htrans_o\\[0\\]:1\\->0)$"
+category = "constant"
+reason = "The SBA master issues single 32-bit NONSEQ transfers only: HSIZE = word, HBURST = SINGLE, HTRANS never SEQ or BUSY (spec [N-6.6], vPlan F25)."
+evidence = "rtl/debug/sba_master.v:42 assign hsize_o = 3'b010 (and hburst 0); a_sba_single_word PROVEN (fv_debug/debug_prove)"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CD-CONST-5"
+metric = "toggle"
+file = "rtl/debug/*.v"
+match = "^rsp_err_i:"
+category = "constant"
+reason = "debug_top ties the DTM's rsp_err_i to 0: the DM never fails a DMI access (DBG-5)."
+evidence = "rtl/debug/debug_top.v (rsp_err_i(1'b0)); GARUDA-DEBUG-SPEC-001 rev 2.1 6.2"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CD-CONST-6"
+metric = "branch"
+file = "rtl/debug/dtm.v"
+match = "^line:66 if$"
+category = "constant"
+reason = "The op-failed status (dmistat = 2) needs rsp_err_i, tied 0 (DBG-5)."
+evidence = "as CD-CONST-5"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CD-CONST-7"
+metric = "expr"
+file = "rtl/debug/dtm.v"
+match = "^line:66 \\(rsp_err_i==1"
+category = "constant"
+reason = "As CD-CONST-6."
+evidence = "as CD-CONST-5"
+reviewer = "pending: Sreyesh"
+
+[[waiver]]
+id = "CD-CONST-8"
+metric = "toggle"
+file = "rtl/debug/*.v"
+match = "^haddr_o\\[[01]\\]:"
+category = "constant"
+reason = "The SBA master issues aligned word transfers only: an unaligned sbaddress0 is refused with sberror = 2 before any bus access, so HADDR[1:0] stays 0."
+evidence = "a_sba_aligned and a_dm_start_legal PROVEN (fv_debug/debug_prove); rtl/debug/debug_module.v kick()"
+reviewer = "pending: Sreyesh"

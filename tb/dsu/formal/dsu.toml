@@ -34,6 +34,7 @@ engine = "smtbmc yices"
 # negative control: the DSU-9 fix reverted (the interlock not gated by dsu_en)
 [[task]]
 name    = "dsu_no_dsu9"
+expect_fail = ["a_interlock_per_acc"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 10
 engine  = "smtbmc yices"
@@ -43,18 +44,21 @@ replace = { "rtl/dsu/dsu_top.v" = "tb/dsu/formal/mutants/dsu_top_no_dsu9.v" }
 # flag defects tb_dsu_top cannot see (TB-42) must each break a proven property.
 [[task]]
 name    = "dsu_mut_no_interlock"
+expect_fail = ["a_interlock_fires"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 10
 engine  = "smtbmc yices"
 replace = { "rtl/dsu/dsu_stall.v" = "tb/dsu/mut/dsu_stall_mut_no_interlock.v" }
 [[task]]
 name    = "dsu_mut_ovf_not_sticky"
+expect_fail = ["a_ovf_sticky"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 10
 engine  = "smtbmc yices"
 replace = { "rtl/dsu/overflow_flag.v" = "tb/dsu/mut/overflow_flag_mut_ovf_not_sticky.v" }
 [[task]]
 name    = "dsu_mut_ovf_clear_drops_set"
+expect_fail = ["a_ovf_set_beats_clear"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 10
 engine  = "smtbmc yices"

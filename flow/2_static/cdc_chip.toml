@@ -1,0 +1,55 @@
+# Whole-chip structural CDC check (Track A, 2026-11-01): tools/run/cdc_check.py on the synthesis top
+# garuda_chip_core (rtl/soc/filelist_chip.f + the SRAM stubs of the ASAP7 flow), the open-tool
+# counterpart of the static CDC part of plan 3.4 (HAL / Conformal CDC: Karthik, licence-blocked here).
+# Run: python3.12 tools/run/cdc_check.py flow/2_static/cdc_chip.toml
+block = "common"
+suite = "cdc_chip"
+top   = "garuda_chip_core"
+flist = "rtl/soc/filelist_chip.f"
+extra = ["flow/pd/asap7/garuda_sram_stubs.v"]
+exclude = ["*_sva.sv", "*/chip_pads_sva.sv"]
+
+[[family]]
+name  = "refclk"          # refclk and the dividers: aon_clk, hclk, pclk (SDC generated clocks)
+roots = ["refclk"]
+[[family]]
+name  = "tck"             # the JTAG probe clock: asynchronous to refclk ([N-7.15])
+roots = ["tck"]
+
+# non-clock inputs and the domain they belong to
+[async_input]
+tms = "tck"
+tdi = "tck"
+spim_miso = "pins"
+i2c_scl_i = "pins"
+i2c_sda_i = "pins"
+uart0_rx = "pins"
+uart1_rx = "pins"
+uart2_rx = "pins"
+gpio_i = "pins"
+boot_sel = "pins"
+spis_sclk = "pins"
+spis_mosi = "pins"
+spis_cs_n = "pins"
+
+# ---- the DMI crossing's multi-bit payload (the only asynchronous data crossing, [N-7.16]) --------
+# Not synchronised by design: held stable by the DTM from its request toggle until the acknowledgement
+# returns, and sampled on hclk only after the synchronised toggle (req_s) has made req_pulse. Proven:
+# a_req_payload_held, a_cdc_* (fv_dmi_cdc, 13/13 incl. metastability injection). Timed: garuda.sdc
+# set_max_delay $HCLK_NS -ignore_clock_latency between tck and {aon_clk hclk pclk}.
+[[waiver]]
+to     = "u_soc.u_debug.u_dm.*"
+from   = "u_soc.u_debug.u_dtm.req_*_o"
+reason = "DMI request payload (addr/data/op): held by the DTM until ack, used only after the synchronised request toggle (a_req_payload_held PROVEN); SDC max_delay tck->hclk"
+[[waiver]]
+to     = "u_soc.u_debug.u_sba.*"
+from   = "u_soc.u_debug.u_dtm.req_*_o"
+reason = "the same payload, through the Debug Module's SBA start / address / data / write"
+[[waiver]]
+to     = "u_soc.u_debug.u_dtm.rsp_data_i"
+from   = "u_soc.u_debug.u_dtm.req_*_o"
+reason = "the DM's read data register is loaded from the payload (read mux), under the same qualification"
+[[waiver]]
+to     = "u_soc.u_debug.u_dtm.rsp_q"
+from   = "u_soc.u_debug.u_dtm.rsp_data_i"
+reason = "DMI response: held by the DM from its ack toggle until the next request, captured on tck only after the synchronised ack (ack_s); SDC max_delay hclk->tck; undefined only across a DM reset (contract, DBG-9 waivers)"

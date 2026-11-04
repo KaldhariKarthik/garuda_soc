@@ -35,6 +35,6 @@ top   = "tb_apb_checker_selftest"
 
 [[test]]
 name  = "apb_shim"
-count = [['checks=25  FAIL=0', 1]]
+count = [['checks=26  FAIL=0', 1]]   # 26 since Karthik's dff65e2 ([AUD-13] PSLVERR check), 2026-11-01
 flist = "tb/common/filelist_shim.f"
 top   = "tb_apb_shim"

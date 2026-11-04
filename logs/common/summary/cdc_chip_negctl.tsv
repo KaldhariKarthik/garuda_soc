@@ -1,0 +1,4 @@
+# cdc_check suite=cdc_chip_negctl top=garuda_chip_core manifest=flow/2_static/cdc_chip_negctl.toml
+task	result	class	detail
+crossing	FAIL	UNEXPECTED	R2 u_soc.u_debug.u_cdc.req_s [refclk] <- u_soc.u_debug.u_dtm.req_tgl_o [tck]: first-stage bit u_soc.u_debug.u_cdc.req_s fans out to 1 non-synchroniser load(s): ['$xor']
+cdc_garuda_chip_core	FAIL	UNEXPECTED	822 flops, 12 synchronisers, 1 violations

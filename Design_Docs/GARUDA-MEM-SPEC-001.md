@@ -301,11 +301,12 @@ waste boot time on memory the firmware may not all use.
 |---|---|---|---|
 | 0x00 | 4 | `MAGIC` | `0x47415244` ("GARD"). Distinguishes a programmed flash from an erased one. |
 | 0x04 | 4 | `TEXT_LEN` | Byte length of the `.text`+`.rodata` image. Must be ≤ 64 KiB and word-aligned. |
-| 0x08 | 4 | `DATA_LEN` | Byte length of the `.data` initialisation image. Word-aligned. |
-| 0x0C | 4 | `ENTRY` | Entry point, an absolute address inside ISRAM. |
+| 0x08 | 4 | `DATA_LEN` | Byte length of the `.data` initialisation image. Word-aligned. At most 63 KiB: the top 1 KiB of DSRAM holds the Boot ROM's stack and the mailbox during the copy (MEM-3). |
+| 0x0C | 4 | `ENTRY` | Entry point, an absolute, word-aligned address inside ISRAM (MEM-4). |
 | 0x10 | 4 | `TEXT_CRC` | CRC-32 over the `TEXT_LEN` bytes of the text image. |
 | 0x14 | 4 | `DATA_CRC` | CRC-32 over the `DATA_LEN` bytes of the data image. |
-| 0x18 | 8 | reserved | Must be zero. |
+| 0x18 | 4 | `HDR_CRC` | CRC-32 over header bytes 0x00-0x17 (MEM-5: without it a flipped bit in `ENTRY` that stays inside ISRAM boots at the wrong address). |
+| 0x1C | 4 | reserved | Must be zero; the ROM refuses an image where it is not (MEM-2). |
 | 0x20 | `TEXT_LEN` | text image | Loaded to `ISRAM_BASE`. |
 | 0x20+`TEXT_LEN` | `DATA_LEN` | data image | Loaded to `DSRAM_BASE`. |
 
@@ -316,13 +317,15 @@ takes the recovery path rather than attempting to execute erased memory.
 
 ```
  1. Reset. PC = BOOTROM_BASE (0x1000_0000).
- 2. Sample boot_sel.
+ 2. If the JTAG mailbox holds MAGIC "JTAG" (a debugger has loaded a program and the
+    debug halt, a core reset, restarted the ROM)  ──▶ step 12, which jumps to it (MEM-6).
+    Sample boot_sel.
       boot_sel == 1  ──▶ go to step 12 (JTAG recovery).
  3. Configure SPI master: mode 0, CS = cs_flash_n, divider for ≤20 MHz SCLK.
  4. Read 32-byte header by polled PIO (§8.3).
  5. Check MAGIC. Mismatch ──▶ set RSTREASON.BOOTFAIL, go to step 12.
- 6. Check TEXT_LEN ≤ 64 KiB, DATA_LEN ≤ 64 KiB, both word-aligned,
-    ENTRY inside ISRAM. Any failure ──▶ BOOTFAIL, step 12.
+ 6. Check HDR_CRC, reserved word = 0, TEXT_LEN ≤ 64 KiB, DATA_LEN ≤ 63 KiB, both
+    word-aligned, ENTRY inside ISRAM and word-aligned. Any failure ──▶ BOOTFAIL, step 12.
  7. Copy TEXT_LEN bytes: flash ──▶ ISRAM_BASE, polled, word at a time.
  8. Copy DATA_LEN bytes: flash ──▶ DSRAM_BASE, polled, word at a time.
  9. CRC-32 over ISRAM_BASE..+TEXT_LEN, compare to TEXT_CRC.

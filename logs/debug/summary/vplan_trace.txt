@@ -1,0 +1,110 @@
+vPlan trace: tb/debug/GARUDA_DEBUG_vplan.csv (tools/run/vplan_trace.py debug)
+totals: CHK UNMAPPED 1, CHK mapped 33, COV mapped 14, TC mapped 4
+
+DEBUG.F01.CHK1   CHK  a_tap_fsm
+                      assert a_tap_fsm: sim bound; formal: none (simulation only)
+DEBUG.F01.COV2   COV  cg_jtag_tap.cp_transition
+                      cg_jtag_tap (debug_cov.sv)                        48/48     100.0%   waived 0
+DEBUG.F02.CHK1   CHK  a_tap_reset_5 -> a_tap_five_tms
+                      assert a_tap_five_tms: sim bound; formal: none (simulation only)
+DEBUG.F02.COV2   COV  cg_jtag_tap.cp_reset_from
+                      cg_jtag_tap (debug_cov.sv)                        48/48     100.0%   waived 0
+DEBUG.F03.COV1   COV  cg_jtag_ir.cp_ir
+                      cg_jtag_ir (debug_cov.sv)                          5/5      100.0%   waived 0
+DEBUG.F03.CHK2   CHK  sb_jtag
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F04.CHK1   CHK  sb_jtag
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F05.CHK1   CHK  sb_jtag
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F06.CHK1   CHK  a_tdo_oe
+                      UNMAPPED
+DEBUG.F06.CHK2   CHK  a_tdo_negedge -> a_tap_tdo_oe
+                      assert a_tap_tdo_oe: sim bound; formal: none (simulation only)
+DEBUG.F07.CHK1   CHK  sb_jtag
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F07.COV2   COV  cg_dtm.cp_dtmcs_write
+                      cg_dtm (debug_cov.sv)                             10/10     100.0%   waived 0
+DEBUG.F08.CHK1   CHK  sb_dmi
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F08.COV2   COV  cg_dtm.x_op_status
+                      cg_dtm (debug_cov.sv)                             10/10     100.0%   waived 0
+DEBUG.F09.CHK1   CHK  a_busy_request_dropped -> a_dtm_busy_sticky, a_dtm_no_req_when_sticky, a_dtm_update_busy_sticky
+                      assert a_dtm_busy_sticky: sim bound; formal: none (simulation only) | assert a_dtm_no_req_when_sticky: sim bound; formal: none (simulation only) | assert a_dtm_update_busy_sticky: sim bound; formal: none (simulation only)
+DEBUG.F10.COV1   COV  cg_jtag_env.cp_sys_state
+                      cg_jtag_env (debug_cov.sv)                         4/4      100.0%   waived 0
+DEBUG.F10.CHK2   CHK  sb_jtag
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F11.CHK1   CHK  a_dmi_handshake -> cdc_abs_prove, cdc_real_prove, cdc_meta_prove
+                      test cdc_abs_prove: OK (fv_dmi_cdc.tsv) | test cdc_real_prove: OK (fv_dmi_cdc.tsv) | test cdc_meta_prove: OK (fv_dmi_cdc.tsv)
+DEBUG.F11.COV2   COV  cg_cdc.x_ratio_phase
+                      cg_cdc (debug_cov.sv)                              4/4      100.0%   waived 0
+DEBUG.F12.COV1   COV  cg_cdc.cp_tck_stop -> cg_cdc_stop.cp_tck_stop
+                      cg_cdc_stop (debug_cov.sv)                         2/2      100.0%   waived 0
+DEBUG.F12.CHK2   CHK  sb_dmi
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F13.CHK1   CHK  a_dmi_handshake -> cdc_abs_prove, cdc_real_prove
+                      test cdc_abs_prove: OK (fv_dmi_cdc.tsv) | test cdc_real_prove: OK (fv_dmi_cdc.tsv)
+DEBUG.F14.CHK1   CHK  hal_cdc
+                      static CDC check: Karthik (plan 3.4 static part); the crossing list is in the CDC proof note
+DEBUG.F15.CHK1   CHK  sb_dm
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F15.COV2   COV  cg_dm.cp_dmcontrol
+                      cg_dm (debug_cov.sv)                              15/15     100.0%   waived 0
+DEBUG.F16.CHK1   CHK  a_inactive_no_sba -> a_dm_inactive_quiet, a_dm_no_sba_inactive
+                      assert a_dm_inactive_quiet: sim bound; formal: none (simulation only) | assert a_dm_no_sba_inactive: sim bound; formal: none (simulation only)
+DEBUG.F17.CHK1   CHK  review
+                      review items, flow/reviews/debug.md
+DEBUG.F18.CHK1   CHK  sb_dm
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F19.COV1   COV  cg_dm.cp_addr
+                      cg_dm (debug_cov.sv)                              15/15     100.0%   waived 0
+DEBUG.F19.CHK2   CHK  sb_dm
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F20.CHK1   CHK  sb_sba
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F20.COV2   COV  cg_sba.x_kind_trigger
+                      cg_sba (debug_cov.sv)                              3/3      100.0%   waived 0
+DEBUG.F21.CHK1   CHK  a_sbbusy_covers
+                      assert a_sbbusy_covers: sim bound; formal: none (simulation only)
+DEBUG.F22.COV1   COV  cg_sba.cp_busy_access -> cg_sba_busy.cp_busy_access
+                      cg_sba_busy (debug_cov.sv)                         3/3      100.0%   waived 0
+DEBUG.F22.CHK2   CHK  sb_sba
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F23.CHK1   CHK  sb_sba
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F24.COV1   COV  cg_sba.x_error_kind -> cg_sba_err.x_error_kind
+                      cg_sba_err (debug_cov.sv)                          6/6      100.0%   waived 0
+DEBUG.F24.CHK2   CHK  a_no_xfer_misaligned -> a_sba_aligned, a_dm_start_legal
+                      assert a_sba_aligned: sim bound; formal: none (simulation only) | assert a_dm_start_legal: sim bound; formal: none (simulation only)
+DEBUG.F25.CHK1   CHK  ahb_checker
+                      tb/ahb/ahb_lite_checker.v on the SBA master in tb_debug (v_chk == 0) [tb_debug: OK (block.tsv)]
+DEBUG.F26.CHK1   CHK  sb_dm
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F27.CHK1   CHK  a_ndmreset_dm_alive -> tb_debug
+                      test tb_debug: OK (block.tsv)
+DEBUG.F28.CHK1   CHK  review
+                      review items, flow/reviews/debug.md
+DEBUG.F29.CHK1   CHK  sb_taps
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F30.COV1   COV  cg_taps.cp_change_vs_read
+                      cg_taps (debug_cov.sv)                             2/2      100.0%   waived 0
+DEBUG.F30.CHK2   CHK  sb_taps
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F31.CHK1   CHK  sb_taps
+                      tb_debug's directed checks (93) and the seeded random DMI/SBA phase against the independent model (tb/debug/tb_debug.sv rand_phase) [tb_debug: OK (block.tsv), tb_debug_icarus: OK (block.tsv), rand_s7700: OK (seeds.tsv)]
+DEBUG.F32.TC1    TC   t_chip_jtag
+                      chip programs over JTAG: the chip suite (tb_chip MODE=jtag)
+DEBUG.F32.TC2    TC   t_chip_jtag_regions
+                      chip programs over JTAG: the chip suite (tb_chip MODE=jtag)
+DEBUG.F33.CHK1   CHK  conn_sba_ind
+                      chip connectivity: Karthik's JasperGold Connectivity, flow/formal/conn
+DEBUG.F34.TC1    TC   t_chip_jtag_bulk
+                      chip programs over JTAG: the chip suite (tb_chip MODE=jtag)
+DEBUG.F35.TC1    TC   fpga_openocd
+                      the real probe on the KV260 (plan 9.4, with Karthik); OpenOCD against the simulation is step G7
+DEBUG.F36.CHK1   CHK  conn_jtag
+                      chip connectivity: Karthik's JasperGold Connectivity, flow/formal/conn
+
+UNMAPPED (1): need an alias, an implementation or a decision
+  DEBUG.F06.CHK1 a_tdo_oe

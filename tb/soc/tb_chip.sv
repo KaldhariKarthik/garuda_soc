@@ -119,9 +119,20 @@ module tb_chip;
 
     // ---- program image -------------------------------------------------------------------
     reg [1023:0] test_hex;
-    reg [8*8-1:0] mode;
+    reg [16*8-1:0] mode;   // 16 characters (Track A 2026-11-01: "bootfault" is 9)
     reg [31:0] img [0:16383];
+    reg [31:0] img2 [0:16383];                    // TB-A1: the second load (other fill)
     integer maxus, nwords, i;
+    // ---- Track A boot checks (2026-11-01, memories vPlan F15-F24) ------------------------------
+    //   +MODE=bootfault +FLASH=<flash image> +TEST=<recovery program> +FAULT=<kind> [options]
+    //   FAULT: flip (+FBYTE +FBIT) | blank | hdr (+HWORD +HVAL) | miso0 | miso1 |
+    //          stop (+FSTOP_US: the flash stops answering) | buserr (the first SPI-master access
+    //          answers PSLVERR: a bus ERROR inside the ROM, [N-8.12])
+    //   The ROM must report BOOTFAIL within +BFUS us; then the recovery program is loaded over
+    //   JTAG SBA and run, as a debugger would (F16).
+    reg [1023:0] flash_hex, fault, fregion;
+    integer fbyte, fbit, hword, hval, fstop_us, bfus, k;
+    reg     boot_entered = 1'b0;
     reg [31:0] th, r;
     integer rc;
 
@@ -176,10 +187,74 @@ module tb_chip;
     spi_flash_model #(.MAX_MHZ(20.0)) u_flash (
         .cs_n(spim_cs_flash_n), .sclk(spim_sclk), .mosi(spim_mosi), .miso(spim_miso));
 
+    // Track A debug F32: the debugger reads every region and sees what the CPU saw
+    task automatic sba_rd(input [31:0] a, output [31:0] v);
+        dmw(7'h38, (2 << 17) | (1 << 20)); dmw(7'h39, a); dmr(7'h3C, v);
+    endtask
+    task automatic region_checks(inout integer rc_);
+        reg [31:0] v, e;
+        #0.5;                     // TB-A9: off the hclk grid (this runs from the verdict loop's 1 us poll)
+        sba_rd(32'h0000_0000, v);  if (v !== img[0])          begin rc_ = 101; $display("[FAIL] F32 ISRAM word 0 over SBA %h, image %h", v, img[0]); end
+        sba_rd(32'h2000_8000, v);  if (v !== 32'hC0FFEE01)    begin rc_ = 102; $display("[FAIL] F32 DSRAM marker over SBA %h", v); end
+        sba_rd(32'h2000_8014, e); sba_rd(32'h1000_0000, v);
+                                   if (v !== e)               begin rc_ = 103; $display("[FAIL] F32 Boot ROM word 0 over SBA %h, CPU read %h", v, e); end
+        sba_rd(32'h2000_800C, e); sba_rd(32'h4000_9000, v);
+                                   if (v !== e)               begin rc_ = 104; $display("[FAIL] F32 RSTREASON over SBA %h, CPU read %h", v, e); end
+        sba_rd(32'h4000_5004, v);  if (v !== 32'h2000_8004)   begin rc_ = 105; $display("[FAIL] F32 DMA SAR0 over SBA %h", v); end
+        sba_rd(32'h4000_5008, v);  if (v !== 32'h2000_8008)   begin rc_ = 106; $display("[FAIL] F32 DMA DAR0 over SBA %h", v); end
+        if (rc_ == 0) $display("[tb_chip] F32: ISRAM, DSRAM, Boot ROM, reset_ctrl and DMA registers all read over SBA as the CPU saw them");
+    endtask
+    // CRC-32/IEEE 802.3 (reflected 0xEDB88320, init and xorout all ones) of the boot header's
+    // first 24 bytes in the flash model: the HDR_CRC of MEM-5, as tools/mkbootimg.py writes it
+    function automatic [31:0] hdr_crc();
+        reg [31:0] c; integer b, j;
+        c = 32'hFFFF_FFFF;
+        for (b = 0; b < 24; b++) begin
+            c = c ^ {24'd0, u_flash.mem[b]};
+            for (j = 0; j < 8; j++) c = (c >> 1) ^ (32'hEDB8_8320 & {32{c[0]}});
+        end
+        hdr_crc = ~c;
+    endfunction
     task automatic post_mailbox;
         dut.u_core.u_soc.u_dsram.bd_write(MBOX + 4, 32'h0000_0000);     // entry = ISRAM base
         dut.u_core.u_soc.u_dsram.bd_write(MBOX,     MBOX_MAGIC);
     endtask
+
+    initial begin : boot_fault_drivers
+        #1;
+        if (mode == "bootfault") begin
+            if (fault == "miso0") force u_flash.miso = 1'b0;
+            if (fault == "miso1") force u_flash.miso = 1'b1;
+            if (fault == "stop") begin
+                if (!$value$plusargs("FSTOP_US=%d", fstop_us)) fstop_us = 200;
+                #(fstop_us * 1000);
+                force u_flash.miso = 1'b0;
+                $display("[tb_chip] bootfault stop: the flash stops answering at %0t", $time);
+            end
+            if (fault == "buserr") begin
+                // PSLVERR is legal only in the access phase (PSEL and PENABLE): wait for it
+                wait (dut.u_core.u_spim.psel_i && dut.u_core.u_spim.penable_i);
+                // after the shim (window 1 = GARUDA_APB_WIN_SPI_MASTER, rtl/include/garuda_map.vh),
+                // the bridge's view, so the shim's own
+                // SVA does not see an error it did not make
+                force dut.u_core.ext_pslverr[1] = 1'b1;
+                @(negedge dut.u_core.u_spim.penable_i);
+                release dut.u_core.ext_pslverr[1];
+                $display("[tb_chip] bootfault buserr: PSLVERR on the first SPI-master access at %0t", $time);
+            end
+        end
+    end
+
+    // F23 a_locked_at_entry / F24 boot time: after a flash boot the first fetch from ISRAM
+    // happens with ILOCK set (8.2 step 10), and the time to it is recorded
+    always @(posedge dut.u_core.hclk) if (mode == "flash" && !boot_entered && dut.u_core.hreset_n
+                                          && dut.u_core.u_soc.i_htrans[1] && dut.u_core.u_soc.i_haddr < 32'h0001_0000) begin
+        boot_entered <= 1'b1;
+        if (!dut.u_core.u_reset_ctrl.u_apb.ilock_q)
+            $display("[FAIL] a_locked_at_entry: first ISRAM fetch (%h) after the flash boot with ILOCK clear at %0t", dut.u_core.u_soc.i_haddr, $time);
+        else
+            $display("[tb_chip] F23/F24: first ISRAM fetch at %h, ILOCK set, boot time %0t ns", dut.u_core.u_soc.i_haddr, $time / 1000);
+    end
 
     always @(negedge dut.u_core.hreset_n) if (ext_rst_n) begin
         n_hreset_fall++;
@@ -204,11 +279,47 @@ module tb_chip;
             boot_sel = 1'b0;
             u_flash.bd_load_hex(test_hex);
             $display("[tb_chip] flash image %0s loaded, booting from SPI", test_hex);
-        end else begin
-            for (i = 0; i < 16384; i++) img[i] = 32'hx;
+        end
+        if (mode == "bootfault") begin                         // Track A F15-F21: a faulty flash
+            boot_sel = 1'b0;
+            if (!$value$plusargs("FLASH=%s", flash_hex)) flash_hex = "sw/build/flash.hex";
+            if (!$value$plusargs("FAULT=%s", fault))     fault = "flip";
+            u_flash.bd_load_hex(flash_hex);
+            if (fault == "flip") begin                     // +FREGION=hdr|text|data +FOFF=<byte> +FBIT=<0..7>
+                if (!$value$plusargs("FREGION=%s", fregion)) fregion = "text";
+                if (!$value$plusargs("FOFF=%d", fbyte)) fbyte = 8;
+                if (!$value$plusargs("FBIT=%d", fbit))  fbit = 0;
+                hval = {u_flash.mem[7], u_flash.mem[6], u_flash.mem[5], u_flash.mem[4]};   // TEXT_LEN
+                if (fregion == "text")      fbyte = 32 + fbyte;
+                else if (fregion == "data") fbyte = 32 + hval + fbyte;
+                u_flash.mem[fbyte] = u_flash.mem[fbyte] ^ (8'd1 << fbit);
+                $display("[tb_chip] bootfault flip: %0s byte %0d bit %0d (flash offset %0d)", fregion, fbyte, fbit, fbyte);
+            end else if (fault == "blank") begin
+                for (k = 0; k < u_flash.SIZE_BYTES; k++) u_flash.mem[k] = 8'hFF;
+            end else if (fault == "hdr") begin
+                if (!$value$plusargs("HWORD=%d", hword)) hword = 0;
+                if (!$value$plusargs("HVAL=%h", hval))   hval = 0;
+                for (k = 0; k < 4; k++) u_flash.mem[4 * hword + k] = hval[8*k +: 8];   // little endian
+                // +HFIXCRC: re-seal HDR_CRC (word 6, MEM-5) so the ROM's own range check is what
+                // refuses the field, not the header CRC
+                if ($test$plusargs("HFIXCRC")) begin
+                    hval = hdr_crc();
+                    for (k = 0; k < 4; k++) u_flash.mem[24 + k] = hval[8*k +: 8];
+                end
+            end
+            $display("[tb_chip] bootfault: flash %0s, FAULT=%0s", flash_hex, fault);
+        end
+        if (mode != "flash") begin
+            // TB-A1 (fixed 2026-10-16): the image length was found with an X sentinel, which a
+            // two-state simulator (Verilator) reads as 0, so every one of the 16384 words was
+            // streamed over JTAG (42 ms) and +MAXUS expired. Now the image is read twice, over
+            // two different fills: a word belongs to the image when it differs from either fill.
+            for (i = 0; i < 16384; i++) begin img[i] = 32'hDEAD_BEEF; img2[i] = 32'h2152_4110; end
             $readmemh(test_hex, img);
-            for (nwords = 0; nwords < 16384 && img[nwords] !== 32'hx; nwords++) ;
-            if (mode != "jtag") begin
+            $readmemh(test_hex, img2);
+            nwords = 0;
+            for (i = 0; i < 16384; i++) if (img[i] != 32'hDEAD_BEEF || img2[i] != 32'h2152_4110) nwords = i + 1;
+            if (mode != "jtag" && mode != "jtag_reg" && mode != "jtagbulk" && mode != "jtagilck" && mode != "bootfault") begin
                 for (i = 0; i < nwords; i++) dut.u_core.u_soc.u_isram.bd_write(4 * i, img[i]);
                 post_mailbox();
             end
@@ -216,9 +327,30 @@ module tb_chip;
 
         #50 ext_rst_n = 1;
 
-        if (mode == "jtag") begin
+        if (mode == "jtag" || mode == "jtag_reg" || mode == "jtagbulk" || mode == "jtagilck" || mode == "bootfault") begin
             @(posedge dut.u_core.hreset_n);
-            #200;
+            if (mode == "bootfault") begin
+                // the Boot ROM must give up and say so (8.2 steps 5, 6, 9; [N-8.12])
+                if (!$value$plusargs("BFUS=%d", bfus)) bfus = 3000;
+                for (k = 0; k < bfus && !dut.u_core.u_reset_ctrl.bootfail_q; k++) #1000;
+                if (!dut.u_core.u_reset_ctrl.bootfail_q) begin
+                    $display("[FAIL] bootfault %0s: the Boot ROM did not set RSTREASON.BOOTFAIL within %0d us (ILOCK=%b, mailbox mcause=%h)",
+                             fault, bfus, dut.u_core.u_reset_ctrl.u_apb.ilock_q, dut.u_core.u_soc.u_dsram.bd_read(MBOX + 8));
+                    $display("RESULT: FAILED"); $finish;
+                end
+                $display("[tb_chip] bootfault %0s: BOOTFAIL set at %0t (mailbox mcause %h), ILOCK %b; loading the recovery program over JTAG",
+                         fault, $time, dut.u_core.u_soc.u_dsram.bd_read(MBOX + 8), dut.u_core.u_reset_ctrl.u_apb.ilock_q);
+                if (fault == "buserr" && !(dut.u_core.u_soc.u_dsram.bd_read(MBOX + 8) inside {32'd5, 32'd7}))
+                    $display("[FAIL] buserr: the ROM's trap record (mailbox word 2) is %h, not a load/store access fault",
+                             dut.u_core.u_soc.u_dsram.bd_read(MBOX + 8));
+                #20000;                                          // the ROM is in its recovery loop
+            end
+            // TB-A9 (2026-10-16): start the JTAG traffic off the hclk grid. With #200 every tck
+            // edge (25 ns half period) met an hclk edge exactly once per 100 ns, a zero-delay
+            // race in which the synchroniser took a toggle in the same time step as the payload
+            // moved while the SVA sampled the old payload (a_cdc_payload_settled fired falsely).
+            // Real tck and hclk are unrelated and never coincide exactly.
+            #200.5;
             tap_reset();
             shift_ir(5'h11);
             dmw(7'h10, 32'h0000_0001);                           // dmactive
@@ -226,12 +358,25 @@ module tb_chip;
             dmw(7'h38, (2 << 17) | (1 << 16));                   // 32-bit, autoincrement
             dmw(7'h39, 32'h0000_0000);
             for (i = 0; i < nwords; i++) dmw(7'h3C, img[i]);     // stream the image
+            if (mode == "jtagbulk") begin                        // Track A F34: 1024 data words at 0x8000
+                dmw(7'h39, 32'h0000_8000);
+                for (i = 0; i < 1024; i++) dmw(7'h3C, (i * 32'h9E37_79B1) ^ 32'hA5A5_A5A5);
+            end
             dmw(7'h39, MBOX + 4); dmw(7'h3C, 32'h0);             // entry
             dmw(7'h39, MBOX);     dmw(7'h3C, MBOX_MAGIC);        // post
             dmr(7'h11, r);
             if (!r[9]) begin $display("[FAIL] hart not halted during the JTAG load"); $display("RESULT: FAILED"); $finish; end
             dmw(7'h10, 32'h4000_0001);                           // resumereq: run
             $display("[tb_chip] %0d words loaded over JTAG SBA, hart resumed at %0t", nwords, $time);
+            if (mode == "jtagilck") begin                        // Track A mem F12: SBA writes locked ISRAM
+                dmw(7'h38, (2 << 17) | (1 << 20));               // 32-bit, read on address
+                r = 0;
+                for (i = 0; i < 4000 && r != 1; i++) begin dmw(7'h39, 32'h2000_8010); dmr(7'h3C, r); end
+                if (r !== 32'd1) $display("[FAIL] jtagilck: the firmware never signalled ILOCK set (DSRAM 0x2000_8010 = %h after 4000 polls)", r);
+                dmw(7'h38, (2 << 17));
+                $display("[tb_chip] ISRAM locked by firmware; debugger writing 0x8004 over SBA at %0t", $time);
+                dmw(7'h39, 32'h0000_8004); dmw(7'h3C, 32'h5BA0_5BA0);
+            end
         end
     end
 
@@ -243,6 +388,7 @@ module tb_chip;
             th = dut.u_core.u_soc.u_dsram.bd_read(TOHOST);
             if (th != 0) begin
                 rc = (th == 1) ? 0 : (th >> 1);
+                if (mode == "jtag_reg" && rc == 0) region_checks(rc);
                 $display("[tb_chip] tohost = 0x%08h at %0t: %0d retired, %0d hclk cycles clock-gated, %0d system resets",
                          th, $time, n_retire, n_sleep, n_hreset_fall);
                 $display("[tb_chip] AHB checker violations: I=%0d D=%0d SBA=%0d DMA=%0d (slave bus %0d, expected >0 only for deliberate faults)",

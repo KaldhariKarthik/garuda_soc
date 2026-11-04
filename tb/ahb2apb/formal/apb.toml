@@ -51,6 +51,7 @@ timeout = 3600
 
 [[task]]
 name    = "mut_brg1"
+expect_fail = ["a_resp"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
@@ -61,6 +62,7 @@ timeout = 3600
 
 [[task]]
 name    = "mut_apb2"
+expect_fail = ["a_subword_no_apb"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
@@ -71,6 +73,7 @@ timeout = 3600
 
 [[task]]
 name    = "mut_subword"
+expect_fail = ["a_subword_no_apb"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
@@ -81,6 +84,7 @@ timeout = 3600
 
 [[task]]
 name    = "mut_to15"
+expect_fail = ["a_apb_div"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
@@ -91,6 +95,7 @@ timeout = 3600
 
 [[task]]
 name    = "mut_to17"
+expect_fail = ["a_access_ends", "a_timeout_at_16"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
@@ -101,6 +106,7 @@ timeout = 3600
 
 [[task]]
 name    = "mut_win"
+expect_fail = ["a_unmapped"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
@@ -111,10 +117,24 @@ timeout = 3600
 
 [[task]]
 name    = "mut_nosetup"
+expect_fail = ["a_apb_setup_first"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
 replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_nosetup.v" }
 script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_apb_setup_first %d"]
+min_asserts = 1
+timeout = 3600
+
+# APB-4 negative control (2026-11-01): the fix reverted; with preset_n now released at any cycle
+# after hreset_n (FB-1), the ERROR held with HREADY low must break a_error_two_cycle
+[[task]]
+name    = "mut_apb4"
+expect_fail = ["a_error_two_cycle"]
+mode    = "bmc"
+depth   = 30
+engine  = "smtbmc yices"
+replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_apb4.v" }
+script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_error_two_cycle %d"]
 min_asserts = 1
 timeout = 3600

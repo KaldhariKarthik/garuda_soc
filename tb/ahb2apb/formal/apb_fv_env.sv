@@ -40,16 +40,21 @@ module apb_fv_env #(parameter integer RST_CYCLES = 2) (
     reg [31:0] addr_q = 32'd0, wdata_q = 32'd0;
     reg [2:0]  size_q = 3'd0;
     reg [1:0]  trans_q = 2'd0;
+    reg        pres_n_q = 1'b0;   // preset_n last cycle (FB-1)
     always @(posedge clk) begin
         if (cyc != 3'd7) cyc <= cyc + 3'd1;
         if (!hreset_n_i) dp <= 1'b0;
         else if (hready_i) dp <= hsel_i && htrans_i[1];
+        pres_n_q <= preset_n_i;
         pres_q <= htrans_i[1]; rdy_q <= hready_i; sel_q <= hsel_i; wr_q <= hwrite_i;
         addr_q <= haddr_i; size_q <= hsize_i; trans_q <= htrans_i; wdata_q <= hwdata_i;
     end
     always @(*) begin
+        // FB-1 (2026-11-01, TB-A22): hreset_n released at RST_CYCLES; preset_n released at
+        // ANY cycle from then on and high for ever after (the [N-9.2] window, of any length;
+        // until now both were released together, so the window was never explored)
         if (cyc < RST_CYCLES) begin assume (!hreset_n_i); assume (!preset_n_i); end
-        else                  begin assume (hreset_n_i);  assume (preset_n_i);  end
+        else                  begin assume (hreset_n_i);  if (pres_n_q) assume (preset_n_i); end
         assume (htrans_i == 2'b00 || htrans_i == 2'b10);
         if (!hreset_n_i) assume (htrans_i == 2'b00);
         if (cyc >= RST_CYCLES && pres_q && !rdy_q)

@@ -43,13 +43,14 @@ module tb_debug;
     wire [31:0] haddr, hwdata, hrdata;
     wire [1:0]  htrans;
     wire        hwrite, hready, hresp;
+    reg         halt_safe = 1'b1;            // Track A: 0 = the "core" never reaches a safe point (RDC-1 timeout)
     wire [2:0]  hsize, hburst;
 
     debug_top dut (
         .tck_i(tck), .tms_i(tms), .tdi_i(tdi), .tdo_o(tdo), .tdo_oe_o(tdo_oe), .por_n_i(por_n),
         .hclk_i(hclk), .dm_rst_n_i(rst_n), .ndmreset_o(ndmreset), .hartreset_o(hartreset),
-        .halt_req_o(), .halt_safe_i(1'b1),     // RDC-1: no core here, always at a safe point
         .dsu_acc0_i(acc0), .dsu_acc1_i(acc1), .dsu_acc2_i(acc2), .dsu_ovf_i(ovf),
+        .halt_req_o(), .halt_safe_i(halt_safe), // RDC-1: no core here; a safe point unless a test says not
         .haddr_o(haddr), .htrans_o(htrans), .hwrite_o(hwrite), .hsize_o(hsize),
         .hburst_o(hburst), .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready),
         .hresp_i(hresp));
@@ -60,7 +61,24 @@ module tb_debug;
     always @(posedge hclk) if (hready && htrans[1]) dsel <= sel_d;
     wire [31:0] rd_i, rd_d; wire ro_i, ro_d, re_i, re_d;
     assign hrdata = dsel ? rd_d : rd_i;
-    assign hready = dsel ? ro_d : ro_i;
+    // Track A: ext_stall emulates another master's waited data phase (in another slave): global
+    // HREADY low while the SBA has no data phase open, so its address phase must wait
+    reg  ext_stall = 1'b0, dp_open = 1'b0, stall_en = 1'b0;
+    reg [31:0] rs_st = 32'h5EED_0003;
+    // every random source follows +SEED (review 2026-11-01: rs_st and the DSRAM model's wait
+    // generator had fixed seeds); seed 1 keeps the old streams, so earlier logs reproduce
+    reg [31:0] seed_pa = 32'd1;
+    initial begin
+        if (!$value$plusargs("SEED=%d", seed_pa)) seed_pa = 32'd1;
+        if (seed_pa != 32'd1) begin rs_st = 32'h5EED_0003 ^ (seed_pa * 32'h9E37_79B1); if (rs_st == 0) rs_st = 1; end
+    end
+    always @(negedge hclk) begin                     // (a process, not a fork: Icarus 12 crashes on
+        rs_st ^= rs_st << 13; rs_st ^= rs_st >> 17; rs_st ^= rs_st << 5;   //  join_none in an automatic task)
+        ext_stall <= stall_en && (rs_st[1:0] == 2'd0);
+    end
+    wire hready_s = dsel ? ro_d : ro_i;
+    always @(posedge hclk) if (hready) dp_open <= htrans[1];
+    assign hready = hready_s && !(ext_stall && !dp_open);
     assign hresp  = dsel ? re_d : re_i;
 
     reg [7:0] d_waits = 8'd2;               // DSRAM model wait states
@@ -72,7 +90,7 @@ module tb_debug;
         .hrdata_o(rd_i), .hreadyout_o(ro_i), .hresp_o(re_i),
         .ilock_i(1'b1), .hmaster_is_sba_i(1'b1));             // only SBA drives this bus
     ahb_lite_sram #(.BASE_ADDR(32'h2000_0000), .SIZE_BYTES(65536)) u_dsram (
-        .hclk_i(hclk), .hreset_n_i(rst_n), .waits_i(d_waits), .rand_waits_i(d_rand), .seed_i(32'h7),
+        .hclk_i(hclk), .hreset_n_i(rst_n), .waits_i(d_waits), .rand_waits_i(d_rand), .seed_i(seed_pa == 32'd1 ? 32'h7 : 32'h7 ^ seed_pa),
         .err_en_i(1'b1), .err_base_i(32'h2000_F000), .err_size_i(32'h10),
         .hsel_i(sel_d), .haddr_i(haddr), .htrans_i(htrans), .hwrite_i(hwrite),
         .hsize_i(hsize), .hwdata_i(hwdata), .hready_i(hready),
@@ -198,8 +216,9 @@ module tb_debug;
     // debugger clears it, waits longer between scans and issues the scan again.
     integer nidle = 0, busy_seen = 0, ign_viol = 0;
     task automatic dbg_issue(input [6:0] a, input [31:0] d, input [1:0] op);
-        reg [31:0] r; reg [1:0] st; integer l0;
-        forever begin
+        reg [31:0] r; reg [1:0] st; integer l0; bit done;
+        done = 0;
+        while (!done) begin                                   // (no `break`: Icarus has none)
             l0 = n_launch;
             dmi_scan(a, d, op, r, st);
             #0.01;
@@ -207,17 +226,18 @@ module tb_debug;
                 busy_seen = busy_seen + 1;
                 if (n_launch != l0) ign_viol = ign_viol + 1;   // refused request was launched anyway
                 dmireset(); nidle = nidle + 1; idle(nidle);
-            end else break;
+            end else done = 1;
         end
         idle(nidle);
     endtask
     task automatic dbg_collect(output [31:0] rd);
-        reg [1:0] st;
-        forever begin
+        reg [1:0] st; bit done;
+        done = 0;
+        while (!done) begin
             dmi_scan(7'h00, 0, 2'd0, rd, st);
             if (st == 2'd3) begin
                 busy_seen = busy_seen + 1; dmireset(); nidle = nidle + 1; idle(nidle);
-            end else break;
+            end else done = 1;
         end
     endtask
 
@@ -249,11 +269,203 @@ module tb_debug;
     int i, ok, l0, p0, x0, stale, w;
 
     // accumulators keep running during the tap tests
-    always @(posedge hclk) if (rst_n) begin
+    reg acc_hold = 1'b0;                     // Track A coverage phase: freeze the accumulators
+    always @(posedge hclk) if (rst_n && !acc_hold) begin
         acc0 <= acc0 + 48'h0000_0010_0001;
         acc1 <= acc1 + 48'h0123_4567_89AB;   // upper half changes every cycle
         acc2 <= acc2 - 48'h0000_FFFF_FFF1;
     end
+
+
+    // ---- Track A seeded random DMI / SBA traffic (plan 6A.5 G3) -------------------------
+    // +RAND=<n> operations, +SEED=<s>. An independent model of the DM's system-bus state
+    // (sbcs fields, sberror, sbaddress0, sbdata0) and of three memory windows (ISRAM, DSRAM,
+    // and the DSRAM model's error window), written from GARUDA-DEBUG-SPEC-001 6.7, 7.2 and
+    // RISC-V Debug 0.13 3.10: every read is compared with it. Scans are slow against hclk,
+    // so every transfer finishes before the next DMI access (sbbusyerror must stay 0).
+    reg [31:0] rs = 32'h1;
+    function automatic [31:0] rr();
+        rs ^= rs << 13; rs ^= rs >> 17; rs ^= rs << 5; return rs;
+    endfunction
+    // 16 KiB per region, indexed by addr[13:2] (auto-increment walks out of the 64-word fill
+    // windows; a 64-word index aliased them, 2026-10-16), with valid bits: a word the model
+    // never saw is not compared
+    reg [31:0] m_isr [0:4095];
+    reg [31:0] m_dsr [0:4095];
+    reg        v_isr [0:4095];
+    reg        v_dsr [0:4095];
+    reg        m_data_ok;
+    reg        m_rdonaddr, m_rdondata, m_autoinc;
+    reg [2:0]  m_access, m_sberror;
+    reg [31:0] m_addr, m_data;
+    bit        dbg_rand = 0;
+    integer    r_ops = 0, r_mis = 0, r_kick_rd = 0, r_kick_wr = 0, r_err2 = 0, r_err3 = 0, r_err4 = 0, r_unimp = 0;
+    // a word address in the three windows: ISRAM 0x400.., DSRAM 0x2000_1000.., error 0x2000_F000..
+    function automatic [31:0] r_addr();
+        reg [31:0] x; x = rr();
+        case (x[2:0])
+            3'd0, 3'd1, 3'd2, 3'd3: r_addr = 32'h0000_0400 + {x[8:3], 2'b00};
+            3'd4, 3'd5, 3'd6:       r_addr = 32'h2000_1000 + {x[8:3], 2'b00};
+            default:                r_addr = 32'h2000_F000 + {x[5:4], 2'b00};   // AHB ERROR window
+        endcase
+    endfunction
+    function automatic bit in_err(input [31:0] a); return a[31:12] == 20'h2000F && a[11:4] == 0; endfunction
+    function automatic [31:0] mem_rd(input [31:0] a);
+        mem_rd = (a[31:28] == 4'h0) ? m_isr[a[13:2]] : m_dsr[a[13:2]];
+    endfunction
+    function automatic bit mem_ok(input [31:0] a);
+        mem_ok = (a[31:28] == 4'h0) ? v_isr[a[13:2]] : v_dsr[a[13:2]];
+    endfunction
+    task automatic m_transfer(input bit wr);                 // the model of one SBA kick
+        if (m_access != 3'd2)      begin m_sberror = 3'd3; r_err3++; end
+        else if (m_addr[1:0] != 0) begin m_sberror = 3'd2; r_err2++; end
+        else if (in_err(m_addr))   begin m_sberror = 3'd4; r_err4++; end
+        else begin
+            if (wr) begin if (m_addr[31:28] == 4'h0) begin m_isr[m_addr[13:2]] = m_data; v_isr[m_addr[13:2]] = m_data_ok; end
+                          else begin m_dsr[m_addr[13:2]] = m_data; v_dsr[m_addr[13:2]] = m_data_ok; end
+                          r_kick_wr++;
+                          if (dbg_rand) $display("  model: write %h <- %h", m_addr, m_data); end
+            else    begin m_data = mem_rd(m_addr); m_data_ok = mem_ok(m_addr); r_kick_rd++; end
+            if (m_autoinc) m_addr = m_addr + 32'd4;
+        end
+    endtask
+    task automatic r_cmp(input [31:0] got, input [31:0] exp, input string what);
+        r_ops++;
+        if (got !== exp) begin r_mis++; $display("[FAIL] random op %0d: %s read %h, model %h", r_ops, what, got, exp); end
+    endtask
+
+    // ---- Track A coverage completion (plan 6A.5 G4), run before the random phase -------------
+    // directed stimulus for the vPlan coverage rows the directed tests never reach; every DMI
+    // request it can cause goes to an unimplemented address
+    task automatic cov_fill;
+        bit q; reg [63:0] x; reg [31:0] r, a_; reg [1:0] st_; integer k;
+        // F01/F02: a TMS walk with TDI = 1 (the IR can only load BYPASS or, in Test-Logic-Reset,
+        // IDCODE, so no DMI or DTMCS write can happen), with runs of five TMS = 1 from many states
+        for (k = 0; k < 4000; k++) begin
+            if (rr() % 23 == 0) repeat (5) clk1(1'b1, 1'b1, q);
+            else clk1(rr() % 2, 1'b1, q);
+        end
+        tap_reset(); shift_ir(5'h11);
+        // F07: a DTMCS write with dmireset and dmihardreset together
+        shift_ir(5'h10); shift_dr({14'd0, 2'b11, 16'd0}, 32, x); shift_ir(5'h11);
+        // F08: DMI scans while the DTM is busy (hclk practically stopped: the previous request
+        // stays open across several scans)
+        hh = 20000.0; @(posedge hclk);
+        dmi_scan(7'h40, 32'h0, 2'd2, r, st_);
+        dmi_scan(7'h40, 32'h0, 2'd0, r, st_);
+        dmi_scan(7'h40, 32'h0, 2'd1, r, st_);
+        dmi_scan(7'h40, 32'h0, 2'd2, r, st_);
+        idle(40); dmireset(); idle(8);
+        hh = 2.0; repeat (8) @(posedge hclk);
+        // F10: scans while the DM is in reset (the TAP keeps working)
+        rst_n = 1'b0; repeat (4) @(posedge hclk);
+        shift_ir(5'h01); shift_dr(0, 32, x); shift_ir(5'h11);
+        rst_n = 1'b1; repeat (8) @(posedge hclk); idle(8);
+        dmr(7'h3C, r);                                         // an sbdata0 read with the DM inactive: no side effect
+        dmw(7'h10, 32'h1);
+        // F19: haltinfo; RDC-1 forced grant: no safe point, the timeout grants and flags haltforced
+        dmr(7'h70, r);
+        halt_safe = 1'b0; dmw(7'h10, 32'h8000_0001);           // haltreq
+        repeat (1100) @(posedge hclk);
+        dmr(7'h70, r); r_cmp(r, 32'h1, "haltinfo.haltforced after a halt with no safe point (RDC-1 timeout)");
+        dmw(7'h70, 32'h1); dmr(7'h70, r); r_cmp(r, 32'h0, "haltinfo.haltforced cleared by W1C");
+        dmw(7'h10, 32'h4000_0001); halt_safe = 1'b1;           // resumereq
+        // sbbusyerror set (a long SBA transfer, then an access while busy); with it set no access starts
+        hh = 16.0; d_rand = 0; d_waits = 8'd255;               // one transfer ~8 us: a scan lands inside it
+        dmw(7'h38, 32'h0004_0000 | (32'd1 << 20) | (32'd1 << 15));   // sbaccess 2, readonaddr, readondata
+        dmw(7'h39, 32'h2000_1100);                             // starts a 200-wait read
+        dmw(7'h39, 32'h2000_1104);                             // while busy: sbbusyerror
+        repeat (700) @(posedge hclk);
+        dmw(7'h39, 32'h2000_1108);                             // sbbusyerror set: no read starts
+        dmr(7'h3C, r);                                         // nor on a data read
+        dmw(7'h38, 32'h0004_7000 | (32'd1 << 22));             // clear
+        d_waits = 8'd2; d_rand = 1; hh = 2.0; repeat (8) @(posedge hclk);
+        // SBA accesses to regions with no slave (every address bit toggles; nothing answers ERROR)
+        dmw(7'h38, 32'h0004_7000 | (32'd1 << 22));
+        for (k = 0; k < 24; k++) begin
+            a_ = rr() & 32'h0FFF_FFFC; a_[31:28] = 4'(4'h3 + (rr() % 13));
+            if (k == 22) a_ = 32'hFFFF_FFFC; if (k == 23) a_ = 32'h4000_0000;
+            dmw(7'h39, a_); dmw(7'h3C, rr());
+        end
+        // the accumulator taps with random and complemented values (every bit both ways); dsuovf back to 0
+        acc_hold = 1'b1;
+        for (k = 0; k < 6; k++) begin
+            acc0 = {rr(), rr()}; acc1 = {rr(), rr()}; acc2 = {rr(), rr()};
+            if (k % 2) begin acc0 = ~acc0; acc1 = ~acc1; acc2 = ~acc2; end
+            repeat (2) @(posedge hclk);
+            dmr(7'h60, r); dmr(7'h61, r); dmr(7'h62, r); dmr(7'h63, r); dmr(7'h64, r); dmr(7'h65, r);
+        end
+        acc_hold = 1'b0; ovf = 1'b0; dmr(7'h66, r); ovf = 1'b1; dmr(7'h66, r); ovf = 1'b0;
+        // the SBA's address phase waiting for another master's data phase (HREADY held low)
+        stall_en = 1'b1;
+        for (k = 0; k < 12; k++) begin dmw(7'h39, 32'h2000_1000 + 4*k); dmw(7'h3C, 32'h0); end
+        stall_en = 1'b0; repeat (4) @(posedge hclk);
+        // F30: a tap read while the accumulator is frozen (the high half then matches)
+        acc_hold = 1'b1; repeat (4) @(posedge hclk);
+        dmr(7'h60, r); dmr(7'h61, r);
+        acc_hold = 1'b0;
+    endtask
+
+    task automatic rand_phase(input integer n);
+        reg [31:0] r, d, a, w;
+        integer k;
+        // known contents in the windows, plain sbcs
+        dmw(7'h10, 32'h1);
+        dmw(7'h38, 32'h0004_7000 | (32'd2 << 17));          // sbaccess 2, clear sberror/sbbusyerror
+        m_rdonaddr = 0; m_rdondata = 0; m_autoinc = 0; m_access = 3'd2; m_sberror = 0;
+        for (k = 0; k < 4096; k++) begin v_isr[k] = 0; v_dsr[k] = 0; end
+        for (k = 0; k < 64; k++) begin
+            d = rr(); dmw(7'h39, 32'h0000_0400 + 4*k); dmw(7'h3C, d); m_isr[256 + k] = d; v_isr[256 + k] = 1;
+            d = rr(); dmw(7'h39, 32'h2000_1000 + 4*k); dmw(7'h3C, d); m_dsr[1024 + k] = d; v_dsr[1024 + k] = 1;
+        end
+        dmr(7'h39, m_addr); dmr(7'h3C, m_data); m_data_ok = 1;   // where the model starts
+        for (k = 0; k < n; k++) begin
+            w = rr();
+            case (w[3:0])
+                4'd0, 4'd1, 4'd13: begin                     // sbcs write
+                    m_rdonaddr = w[4]; m_autoinc = w[5]; m_rdondata = w[6];
+                    m_access = (w[9:7] != 3'd7) ? 3'd2 : {1'b0, w[11:10]};  // mostly legal, sometimes 0..3
+                    d = {11'd0, 1'b0, 2'b00, m_rdonaddr, m_access, m_autoinc, m_rdondata,
+                         (w[12] | w[13] ? 3'b111 : 3'b000), 12'd0};
+                    if (w[12] | w[13]) m_sberror = 3'd0;     // W1C of all sberror bits (3 times in 4)
+                    dmw(7'h38, d | (32'd1 << 22));           // and clear sbbusyerror
+                end
+                4'd2, 4'd3, 4'd4: begin                      // sbaddress0 write (maybe a read)
+                    a = r_addr(); if (w[13:11] == 3'd0) a[1:0] = w[15:14] | 2'b01;   // sometimes unaligned
+                    dmw(7'h39, a); m_addr = a;
+                    if (m_rdonaddr && m_sberror == 0) m_transfer(1'b0);
+                end
+                4'd5, 4'd6, 4'd7: begin                      // sbdata0 write = a bus write
+                    d = rr(); dmw(7'h3C, d); m_data = d; m_data_ok = 1;
+                    if (m_sberror == 0) m_transfer(1'b1);
+                end
+                4'd8, 4'd9: begin                            // sbdata0 read (maybe the next read)
+                    dmr(7'h3C, r); if (m_data_ok) r_cmp(r, m_data, "sbdata0");
+                    if (m_rdondata && m_sberror == 0) m_transfer(1'b0);
+                end
+                4'd10, 4'd11: begin                          // sbcs read
+                    dmr(7'h38, r);
+                    r_cmp({r[22:12]}, {1'b0, 1'b0, m_rdonaddr, m_access, m_autoinc, m_rdondata, m_sberror},
+                          "sbcs (busyerror, busy, rdonaddr, access, autoinc, rdondata, sberror)");
+                end
+                4'd12: begin dmr(7'h39, r); r_cmp(r, m_addr, "sbaddress0"); end
+                default: begin                               // an unimplemented address reads 0
+                    case (w[6:4]) 3'd0: a = 7'h04; 3'd1: a = 7'h16; 3'd2: a = 7'h17; 3'd3: a = 7'h20 + w[10:7];
+                                  3'd4: a = 7'h12; 3'd5: a = 7'h40; default: a = 7'h7F; endcase
+                    dmr(a[6:0], r); r_cmp(r, 32'd0, $sformatf("unimplemented 0x%02h", a[6:0])); r_unimp++;
+                end
+            endcase
+        end
+        // end state: every window word read back over SBA and compared
+        dmw(7'h38, 32'h0004_7000 | (32'd2 << 17) | (32'd1 << 20) | (32'd1 << 22));   // readonaddr, clear errors
+        m_sberror = 0;
+        for (k = 0; k < 64; k++) begin
+            dmw(7'h39, 32'h0000_0400 + 4*k); dmr(7'h3C, r); if (v_isr[256 + k])  r_cmp(r, m_isr[256 + k], $sformatf("ISRAM word %0d", k));
+            dmw(7'h39, 32'h2000_1000 + 4*k); dmr(7'h3C, r); if (v_dsr[1024 + k]) r_cmp(r, m_dsr[1024 + k], $sformatf("DSRAM word %0d", k));
+        end
+        $display("random: %0d ops checked, %0d mismatches; reads %0d, writes %0d, sberror 2/3/4: %0d/%0d/%0d, unimplemented %0d",
+                 r_ops, r_mis, r_kick_rd, r_kick_wr, r_err2, r_err3, r_err4, r_unimp);
+    endtask
 
     initial begin
         $display("=== tb_debug: Block 12 Rev 4.0 ===");
@@ -608,6 +820,23 @@ module tb_debug;
         dmr(7'h66, r); check(!r[0], "dsuovf reads 0 while no overflow is flagged");
         ovf = 1; dmr(7'h66, r); check(r[0], "dsuovf reports the sticky DSU overflow");
 
+        // ---- Track A seeded random phase (+RAND=<n> +SEED=<s>) ------------------------------
+        begin : rnd
+            integer nr, sd;
+            if ($value$plusargs("RAND=%d", nr) && nr > 0) begin
+                if (!$value$plusargs("SEED=%d", sd)) sd = 1;
+                dbg_rand = $test$plusargs("RAND_TRACE");
+                rs = 32'hA5A5_0001 ^ sd; if (rs == 0) rs = 1;
+                hh = 2.0; d_rand = 1; d_waits = 8'd2;
+                $display("random: seed %0d, %0d operations", sd, nr);
+                cov_fill();
+                rand_phase(nr);
+                // per seed: no mismatch and real traffic; which outcomes were reached is measured
+                // across all seeds by functional coverage, not demanded of each seed
+                check(r_mis == 0 && r_ops > nr / 3 && r_kick_rd > 0 && r_kick_wr > 0,
+                      $sformatf("random DMI/SBA traffic (seed %0d): every read matches the model", sd));
+            end
+        end
         idle(12); repeat (12) @(posedge hclk); #0.01;
         check(cdc_err == 0 && lq.size() == 0,
               $sformatf("[N-7.16] whole run: %0d DMI requests launched in tck, %0d delivered in hclk, none lost, duplicated or corrupted", n_launch, n_pulse));

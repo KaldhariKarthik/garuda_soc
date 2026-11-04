@@ -1,0 +1,19 @@
+# Boot ROM faults MEM-1..MEM-6, before the fix (Track A, 2026-11-01)
+# Run: tb/mem/run/boot.toml on main dcf6f7d's sw/bootrom (rom_start.S, boot.c, tools/mkbootimg.py
+# without HDR_CRC), tb_chip +MODE=bootfault, Verilator 5.052; then the same suite after the fix: 24/24.
+# (bus_error before the fix could not be shown with this run: the bench's first PSLVERR injection was
+#  itself protocol-illegal; after it was moved to the access phase, the FIXED ROM was already in.)
+test               before the fix                                                   bug
+crc_hdr_entry      boots (ENTRY 0 -> 4 still inside ISRAM; no BOOTFAIL)               MEM-5
+crc_hdr_hdrcrc     boots (header word 6 unchecked)                                    MEM-5
+hdr_reserved       boots (header word 7 = 1 accepted)                                 MEM-2
+hdr_entry_odd      no BOOTFAIL within 3 ms: passes step 6, ILOCK set, the jump traps   MEM-4, MEM-1
+hdr_datalen_big    no BOOTFAIL within 3 ms: DATA_LEN 64 KiB accepted, the copy runs    MEM-3
+                   on towards the ROM's own stack at DSRAM 0xFF00
+crc_text_first     TIMEOUT: resume re-ran the flash boot, the corrupt text overwrote  MEM-6
+crc_text_last,     the JTAG-loaded program and ran ("program reported step 1"; crc_data: MEM-6
+crc_data, crc_hdr_ "step 26" = t_chip_boot_data's own code)
+textlen/datalen/
+textcrc/datacrc
+blank, miso_low, miso_high, flash_stops, hdr_textlen_*, hdr_datalen_odd, hdr_entry_out,
+crc_hdr_magic      PASS (the header check fails before anything is copied)

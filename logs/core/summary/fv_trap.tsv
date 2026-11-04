@@ -1,10 +1,10 @@
-# garuda-fv 1 suite=fv_trap block=core date=2026-10-15T22:07:35+05:30 design=167aa935078d4e9cecaa35e5186328b55cfc2ca6 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+# garuda-fv 1 suite=fv_trap block=core date=2026-11-03T22:04:03+05:30 design=dfab0bbf08f64ba296587f7ee71298a9fbaad266 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
 task	mode	result	class	secs	detail	log
-trap_bmc	bmc	BOUNDED(20)	OK	6	[39 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_trap_bmc.log
-trap_prove	prove	PROVEN	OK	6	[30 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_trap_prove.log
-pipe_bmc	bmc	BOUNDED(30)	OK	16	[9 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_pipe_bmc.log
-trap_cover	cover	COVERED	OK	25	[39 asserts, 34 covers in model] 	logs/core/raw/fv_trap/fv_trap_cover.log
-trap_prove_unfixed	prove	FAIL	XFAIL:PLANTED	4	[39 asserts, 35 covers in model] assertion failed (see trace)	logs/core/raw/fv_trap/fv_trap_prove_unfixed.log
+trap_bmc	bmc	BOUNDED(20)	OK	8	[39 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_trap_bmc.log
+trap_prove	prove	PROVEN	OK	9	[30 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_trap_prove.log
+pipe_bmc	bmc	BOUNDED(30)	OK	17	[9 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_pipe_bmc.log
+trap_cover	cover	COVERED	OK	27	[39 asserts, 34 covers in model] 	logs/core/raw/fv_trap/fv_trap_cover.log
+trap_prove_unfixed	prove	FAIL	XFAIL:PLANTED	1	[39 asserts, 35 covers in model] props: u_trap.u_trap_sva.a_no_wfi_arm_in_h2	logs/core/raw/fv_trap/fv_trap_prove_unfixed.log
 t17_no_fix	bmc	FAIL	XFAIL:PLANTED	2	[39 asserts, 35 covers in model] props: u_trap.u_trap_sva.a_ex_exc_needs_instr	logs/core/raw/fv_trap/fv_t17_no_fix.log
 t18_no_fix	bmc	FAIL	XFAIL:PLANTED	1	[39 asserts, 35 covers in model] props: u_trap.u_trap_sva.a_misfetch_tval_misaligned	logs/core/raw/fv_trap/fv_t18_no_fix.log
 buse_no_fix	bmc	FAIL	XFAIL:PLANTED	1	[39 asserts, 35 covers in model] props: u_if.u_iport_master.u_ctl_sva.a_ihaddr_aligned	logs/core/raw/fv_trap/fv_buse_no_fix.log

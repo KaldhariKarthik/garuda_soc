@@ -1,0 +1,27 @@
+Open On-Chip Debugger 0.12.0+dev-01523-gb6ee13720-dirty (2026-07-31-04:04)
+Licensed under GNU GPL v2
+For bug reports, read
+	http://openocd.org/doc/doxygen/bugs.html
+logs/debug/raw/ocd/img.bin
+Info : Initializing remote_bitbang driver
+Info : Connecting to 127.0.0.1:9818
+Info : remote_bitbang driver initialized
+Info : Note: The adapter "remote_bitbang" doesn't support configurable speed
+Info : JTAG tap: garuda.cpu tap/device found: 0x00000db1 (mfg: 0x6d8 (Fusontai Technology), part: 0x0000, ver: 0x0)
+Info : datacount=0 progbufsize=0
+Warn : We won't be able to execute fence instructions on this target. Memory may not always appear consistent. (progbufsize=0, impebreak=0)
+Info : Examined RISC-V core; found 1 harts
+Info :  hart 0: XLEN=64, misa=0x0
+Info : [garuda.cpu] Examination succeed
+Info : gdb port disabled
+OCD PASS init (scan chain and the target examine): 
+OCD PASS IDCODE over the real TAP = 00000db1
+OCD PASS dmstatus = 0x30c82 (version 2)
+OCD PASS load_image over SBA (64 words to ISRAM 0x400)
+OCD PASS verify_image: the 64 words read back over SBA
+OCD PASS read_memory 0x404 = 0x9e3779b1
+Info : JTAG tap: garuda.cpu tap/device found: 0x00000db1 (mfg: 0x6d8 (Fusontai Technology), part: 0x0000, ver: 0x0)
+OCD PASS reset halt
+OCD PASS resume
+shutdown command invoked
+Info : remote_bitbang interface quit

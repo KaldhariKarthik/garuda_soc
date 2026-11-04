@@ -1,0 +1,28 @@
+garuda-run 1  suite seeds  block mem  2026-11-01T16:41:09+05:30
+design dcf6f7d4335af6f68c521697cfd6344984474452  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      soak_s6600  
+PASS    OK                      soak_s6601  
+PASS    OK                      soak_s6602  
+PASS    OK                      soak_s6603  
+PASS    OK                      soak_s6604  
+PASS    OK                      soak_s6605  
+PASS    OK                      soak_s6606  
+PASS    OK                      soak_s6607  
+PASS    OK                      soak_s6608  
+PASS    OK                      soak_s6609  
+PASS    OK                      soak_s6610  
+PASS    OK                      soak_s6611  
+PASS    OK                      soak_s6612  
+PASS    OK                      soak_s6613  
+PASS    OK                      soak_s6614  
+PASS    OK                      soak_s6615  
+PASS    OK                      soak_s6616  
+PASS    OK                      soak_s6617  
+PASS    OK                      soak_s6618  
+PASS    OK                      soak_s6619  
+
+PASS    20
+FAIL    0
+BLOCKED 0
+total   20

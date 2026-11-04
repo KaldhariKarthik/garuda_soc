@@ -1,0 +1,22 @@
+# garuda-run 1 suite=seeds block=debug date=2026-11-01T16:45:58+05:30 design=dcf6f7d4335af6f68c521697cfd6344984474452 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+rand_s7700	PASS	OK	0	yes	0	0	0	-	52	0	-	1	3.24	21				logs/debug/raw/seeds/sim_rand_s7700_s1.log
+rand_s7701	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.79	21				logs/debug/raw/seeds/sim_rand_s7701_s1.log
+rand_s7702	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.75	21				logs/debug/raw/seeds/sim_rand_s7702_s1.log
+rand_s7703	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.83	21				logs/debug/raw/seeds/sim_rand_s7703_s1.log
+rand_s7704	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.75	21				logs/debug/raw/seeds/sim_rand_s7704_s1.log
+rand_s7705	PASS	OK	0	yes	0	0	0	-	52	0	-	1	2.05	21				logs/debug/raw/seeds/sim_rand_s7705_s1.log
+rand_s7706	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.73	21				logs/debug/raw/seeds/sim_rand_s7706_s1.log
+rand_s7707	PASS	OK	0	yes	0	0	0	-	52	0	-	1	2.09	21				logs/debug/raw/seeds/sim_rand_s7707_s1.log
+rand_s7708	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.73	21				logs/debug/raw/seeds/sim_rand_s7708_s1.log
+rand_s7709	PASS	OK	0	yes	0	0	0	-	52	0	-	1	2.11	21				logs/debug/raw/seeds/sim_rand_s7709_s1.log
+rand_s7710	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.77	21				logs/debug/raw/seeds/sim_rand_s7710_s1.log
+rand_s7711	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.95	21				logs/debug/raw/seeds/sim_rand_s7711_s1.log
+rand_s7712	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.91	21				logs/debug/raw/seeds/sim_rand_s7712_s1.log
+rand_s7713	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.85	21				logs/debug/raw/seeds/sim_rand_s7713_s1.log
+rand_s7714	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.73	21				logs/debug/raw/seeds/sim_rand_s7714_s1.log
+rand_s7715	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.95	21				logs/debug/raw/seeds/sim_rand_s7715_s1.log
+rand_s7716	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.85	21				logs/debug/raw/seeds/sim_rand_s7716_s1.log
+rand_s7717	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.75	21				logs/debug/raw/seeds/sim_rand_s7717_s1.log
+rand_s7718	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.79	21				logs/debug/raw/seeds/sim_rand_s7718_s1.log
+rand_s7719	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.77	21				logs/debug/raw/seeds/sim_rand_s7719_s1.log

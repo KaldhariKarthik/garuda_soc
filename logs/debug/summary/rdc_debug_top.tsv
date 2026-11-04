@@ -1,0 +1,8 @@
+# rdc_check suite=rdc_debug_top block=debug top=debug_top manifest=tb/debug/formal/rdc_debug_top.toml
+task	result	class	detail
+crossing	WAIVED	OK	u_cdc.ack_tgl_o [por] <- u_cdc.adopt_q [dm]
+crossing	WAIVED	OK	u_cdc.ack_tgl_o [por] <- u_cdc.armed_r [dm]
+crossing	WAIVED	OK	u_cdc.ack_tgl_o [por] <- u_cdc.req_s [dm]
+crossing	WAIVED	OK	u_cdc.ack_tgl_o [por] <- u_dm.done_o [dm]
+crossing	WAIVED	OK	u_dtm.rsp_q [por] <- u_dtm.rsp_data_i [dm]
+rdc_debug_top	PASS	OK	54 flops, 0 violations, 5 waived

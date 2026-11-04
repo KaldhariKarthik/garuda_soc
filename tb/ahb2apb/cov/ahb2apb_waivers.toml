@@ -8,10 +8,10 @@
 id       = "CL-HSTATE"
 metric   = "line"
 file     = "rtl/ahb2apb/ahb2apb_bridge.v"
-match    = "^line:172 case"
+match    = "^line:179 case"
 category = "unreachable"
-reason   = "The hclk FSM's 3-bit state uses six codes (H_IDLE..H_ERR2); the `default:` arm recovers the two unused codes, which no transition produces."
-evidence = "PROVEN fv_apb apb_prove + fv_apb_div div_prove a_hstate_legal (hstate <= 5), abc pdr, 2026-10-14"
+reason   = "The hclk FSM's 3-bit state uses seven codes (H_IDLE..H_ERR2, H_EWAIT since APB-4); the `default:` arm recovers the one unused code (7), which no transition produces."
+evidence = "PROVEN fv_apb apb_prove + fv_apb_div div_prove a_hstate_legal (hstate <= 6), abc pdr, 2026-10-14"
 reviewer = "pending: Sreyesh"
 
 [[waiver]]

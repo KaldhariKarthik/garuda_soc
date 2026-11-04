@@ -36,6 +36,7 @@ MAGIC = 0x47415244
 HDR_BYTES = 32
 ISRAM_SIZE = 64 * 1024
 DSRAM_SIZE = 64 * 1024
+ROM_DSRAM_RSVD = 1024      # Boot ROM stack + mailbox at the top of DSRAM (MEM-3)
 
 
 def pad4(b):
@@ -66,14 +67,19 @@ def main():
     # sentence instead of in simulation as a silent jump to boot_fail().
     if len(text) > ISRAM_SIZE:
         sys.exit(f"mkbootimg: text is {len(text)} bytes, ISRAM holds {ISRAM_SIZE}")
-    if len(data) > DSRAM_SIZE:
-        sys.exit(f"mkbootimg: data is {len(data)} bytes, DSRAM holds {DSRAM_SIZE}")
+    # MEM-3 (2026-11-01): the top 1 KiB of DSRAM holds the Boot ROM's stack and the mailbox
+    if len(data) > DSRAM_SIZE - ROM_DSRAM_RSVD:
+        sys.exit(f"mkbootimg: data is {len(data)} bytes, DSRAM holds {DSRAM_SIZE - ROM_DSRAM_RSVD} below the ROM's stack")
+    if entry & 3:
+        sys.exit(f"mkbootimg: entry {entry:#x} is not word aligned (MEM-4)")
     if entry >= len(text):
         sys.exit(f"mkbootimg: entry {entry:#x} is outside the {len(text)}-byte text")
 
-    hdr = struct.pack("<8I", MAGIC, len(text), len(data), entry,
+    hdr = struct.pack("<6I", MAGIC, len(text), len(data), entry,
                       zlib.crc32(text) & 0xFFFFFFFF,
-                      zlib.crc32(data) & 0xFFFFFFFF, 0, 0)
+                      zlib.crc32(data) & 0xFFFFFFFF)
+    # MEM-5 (2026-11-01): word 6 = HDR_CRC over header bytes 0x00-0x17; word 7 reserved, 0
+    hdr += struct.pack("<2I", zlib.crc32(hdr) & 0xFFFFFFFF, 0)
     assert len(hdr) == HDR_BYTES
     img = hdr + text + data
 

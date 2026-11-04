@@ -509,13 +509,15 @@ def load_manifest(path):
 
 def load_xfail(path):
     xf = {}
-    if path and os.path.exists(os.path.join(ROOT, path)):
-        for ln in open(os.path.join(ROOT, path)):
+    if path and not os.path.exists(os.path.join(ROOT, path)):
+        raise SystemExit(f"xfail file named by the manifest does not exist: {path}")
+    if path:
+        for n, ln in enumerate(open(os.path.join(ROOT, path)), 1):
             if not ln.strip() or ln.startswith("#"):
                 continue
             f = ln.rstrip("\n").split("\t")
-            if len(f) < 4:
-                continue
+            if len(f) < 4:   # a mistyped row (spaces for tabs) must not silently drop an expectation
+                raise SystemExit(f"{path}:{n}: xfail row needs 4+ tab-separated fields: {ln.strip()!r}")
             suite, test, expect, bug = f[:4]
             xf[(suite, test)] = (expect.upper(), bug, f[4] if len(f) > 4 else "")
     return xf

@@ -1,0 +1,39 @@
+# MEMCTL.ILOCK at its source, reset_ctrl_apb (Track A plan 6A.6 step M1, vPlan F10).
+# Checker tb/mem/formal/ilock_sva.sv is Track A's, bound into Karthik's module (his file
+# unchanged; his reset_ctrl_sva.sv is left out: it is his block's set and uses |->).
+# All inputs free (no APB protocol needed: the properties hold for any input).
+# Run: python3.12 tools/run/garuda_fv.py tb/mem/formal/ilock.toml
+[suite]
+block = "mem"
+name  = "fv_mem_ilock"
+xfail = "tb/mem/run/xfail.tsv"
+
+[design]
+flist   = "rtl/reset_ctrl/filelist.f"
+top     = "reset_ctrl_apb"
+exclude = ["rtl/reset_ctrl/reset_ctrl_sva.sv"]
+extra   = ["tb/mem/formal/ilock_sva.sv"]
+min_asserts = 5
+min_covers  = 3
+
+[[task]]
+name    = "ilock_prove"
+mode    = "prove"
+engine  = "abc pdr"
+timeout = 600
+
+[[task]]
+name    = "ilock_cover"
+mode    = "cover"
+depth   = 6
+engine  = "smtbmc yices"
+timeout = 600
+
+[[task]]
+name    = "mut_ilock_rw"
+expect_fail = ["a_ilock_sticky"]   # the planted defect must break this (2026-11-01)
+mode    = "bmc"
+depth   = 6
+engine  = "smtbmc yices"
+replace = { "rtl/reset_ctrl/reset_ctrl_apb.v" = "tb/mem/mut/reset_ctrl_apb_mut_ilock_rw.v" }
+timeout = 600

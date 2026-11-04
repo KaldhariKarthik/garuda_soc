@@ -1,0 +1,9 @@
+garuda-run 1  suite block.cov  block mem  2026-11-01T16:34:10+05:30
+design dcf6f7d4335af6f68c521697cfd6344984474452  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      tb_mem_subsystem  
+
+PASS    1
+FAIL    0
+BLOCKED 0
+total   1

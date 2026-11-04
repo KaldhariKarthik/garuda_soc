@@ -1,0 +1,41 @@
+# Structural reset-domain-crossing check of the tck <-> hclk crossing (DBG-9, 2026-11-01).
+# Run: python3.12 tools/run/rdc_check.py tb/debug/formal/rdc_dmi_cdc.toml
+# Domains: "por" = tck_rst_n_i (the pin reset, por_n), "dm" = hrst_n_i (dm_rst_n: watchdog,
+# software and pin resets; asserted asynchronously to hclk by reset_ctrl's dm_q).
+block = "debug"
+suite = "rdc_dmi_cdc"
+top   = "dmi_cdc"
+files = ["rtl/debug/dmi_cdc.v"]
+
+[reset_domain]
+tck_rst_n_i = "por"
+hrst_n_i    = "dm"
+
+[port_domain]
+req_tgl_i   = "por"     # the DTM's request toggle (dtm.v, reset by por_n)
+ack_pulse_i = "dm"      # the DM's done_o (debug_module.v, reset by dm_rst_n)
+
+# the one crossing left by design: done_o (DM, dm_rst_n) cleared by the DM reset mid-cycle
+[[waiver]]
+to     = "ack_tgl_o"
+from   = "ack_pulse_i"
+reason = "done_o can only fall when the DM reset hits; a request completing as the reset lands then toggles ack or not, and both are the frozen contract (at most once across an hclk reset; re-arm adopts the request); a metastable ack_tgl is read only by the 2-flop tck synchroniser"
+
+[implies]
+por = ["dm"]
+
+# DBG-9 fix (2026-11-01): ack_tgl's enables are single flops reset to their inactive value
+[[waiver]]
+to     = "ack_tgl_o"
+from   = "adopt_q"
+reason = "one flop, reset value 0: an asynchronous DM reset can only take it 1 -> 0 (load becomes hold), never pass through an active decode; it is 1 only in the third arming cycle"
+
+[[waiver]]
+to     = "ack_tgl_o"
+from   = "armed_r"
+reason = "one flop, reset value 0: a DM reset can only take it 1 -> 0, which turns a toggle into a hold; that only matters with a done in the same cycle, the at-most-once case of done_o"
+
+[[waiver]]
+to     = "ack_tgl_o"
+from   = "req_s"
+reason = "data loaded only while adopt_q = 1 (arming); a DM reset landing then needs a second DM reset within 3 hclk edges of the last release: watchdog / software resets are system resets and cannot fire then, and a pin reset is POR, which resets ack_tgl itself"

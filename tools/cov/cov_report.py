@@ -183,9 +183,16 @@ def main():
         return f"line:{kv.get('l')} {kv.get('o', '')}"
 
     def waiver_for(k, kv):
+        # optional `module` (regex on the module name as reported, e.g. one parameter
+        # variant such as ahb_mem_slave_if__Aa_W0, the ROM build of the memory front end)
+        mod = str(kv.get("page", "")).split("/", 1)[-1]
         for w in wv:
             if w.get("metric") == k[0] and fnmatch.fnmatch(k[1], w.get("file", "")) \
-                    and w["_rx"].search(label(k, kv)):
+                    and w["_rx"].search(label(k, kv)) \
+                    and (not w.get("module") or re.search(w["module"], mod)) \
+                    and ("column" not in w or str(kv.get("n")) == str(w["column"])):   # column 0 is a column
+                # `column`: Verilator's point index on that line, for two points with the
+                # same label (e.g. the two cond_then of a nested ?:)
                 return w
         return None
 
@@ -367,6 +374,8 @@ def main():
     if errors:
         out.append("== ERRORS ==")
         out += [f"   {e}" for e in errors]
+    if not runs:   # no passing run merged: nothing was measured, so nothing can pass
+        errors.append("no passing coverage run was merged (every suite failed, or none was collected)")
     verdict = "PASS" if not fails and not errors else "FAIL"
     out.append(f"verdict: {verdict}  ({len(fails)} below target, {len(errors)} waiver/input error(s))")
     if fails:

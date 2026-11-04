@@ -1,0 +1,25 @@
+garuda-run 1  suite debug_mut  block debug  2026-11-01T16:48:22+05:30
+design dcf6f7d4335af6f68c521697cfd6344984474452  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+FAIL    XFAIL:PLANTED           mut_m01_w1c_clears_all      pass marker missing; 1 [FAIL] line(s) | first: [FAIL] sberror W1C clears only the bits written as 1 (t=679690000)
+FAIL    XFAIL:PLANTED           mut_m02_no_busyerror        pass marker missing; 4 [FAIL] line(s); 2 assertion failure(s) | first: [739274000] %Error: debug_sva.sv:166: Assertion failed in tb_debug.dut.u_debug_
+FAIL    XFAIL:PLANTED           mut_m03_autoinc_8           pass marker missing; 106 [FAIL] line(s); 62 assertion failure(s) | first: [224394000] %Error: debug_sva.sv:193: Assertion failed in tb_debug.dut.u_deb
+FAIL    XFAIL:PLANTED           mut_m04_no_readondata       pass marker missing; 14 [FAIL] line(s) | first: [FAIL] [N-7.2] sbreadondata: the transfer starts when sbdata0 is read (t=201290000)
+FAIL    XFAIL:PLANTED           mut_m05_dbg3_revert         pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dmactive = 0 resets the DM: sbaddress0 back to 0 (t=3535524000)
+FAIL    XFAIL:PLANTED           mut_m06_no_align_check      pass marker missing; 12 [FAIL] line(s); 6 assertion failure(s) | first: [343978000] %Error: debug_sva.sv:162: Assertion failed in tb_debug.dut.u_debug
+FAIL    XFAIL:PLANTED           mut_m07_no_access_check     pass marker missing; 14 [FAIL] line(s); 10 assertion failure(s) | first: [375178000] %Error: debug_sva.sv:162: Assertion failed in tb_debug.dut.u_debu
+FAIL    XFAIL:PLANTED           mut_m08_haltreq_ignored     pass marker missing; 5 [FAIL] line(s) | first: [FAIL] [N-7.8] haltreq holds the hart in hartreset (t=73490000)
+FAIL    XFAIL:PLANTED           mut_m09_unimpl_garbage      pass marker missing; 36 [FAIL] line(s) | first: [FAIL] [N-6.3] abstractcs reads 0: datacount 0, progbufsize 0 (t=47290000)
+FAIL    XFAIL:PLANTED           mut_m10_ndmreset_bit2       pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [N-7.14] ndmreset is a level out to reset_ctrl (t=131490000)
+FAIL    XFAIL:PLANTED           mut_m11_idcode_wrong        pass marker missing; 216 [FAIL] line(s); 211 assertion failure(s) | first: [575000] %Error: debug_sva.sv:126: Assertion failed in tb_debug.dut.u_debug
+FAIL    XFAIL:PLANTED           mut_m13_tlr_no_idcode       pass marker missing; 646 [FAIL] line(s); 642 assertion failure(s) | first: [4915000] %Error: debug_sva.sv:85: Assertion failed in tb_debug.dut.u_debug
+FAIL    XFAIL:PLANTED           mut_m14_sba_err_lost        pass marker missing; 14 [FAIL] line(s) | first: [FAIL] [N-7.6] AHB ERROR -> sberror 4 (t=658890000)
+FAIL    XFAIL:PLANTED           mut_m15_rdata_not_captured  pass marker missing; 145 [FAIL] line(s) | first: [FAIL] [N-7.2] SBA write then read-on-addr to DSRAM (t=185690000)
+FAIL    XFAIL:PLANTED           mut_m16_dbg7_revert         pass marker missing; 1 [FAIL] line(s) | first: [FAIL] T6 DBG-7: clearing haltreq keeps the hart halted (only resumereq resumes) (t=324000)
+FAIL    XFAIL:PLANTED           mut_m18_ack_not_cleared     pass marker missing; 1 [FAIL] line(s) | first: [FAIL] T7 resumereq clears allresumeack/anyresumeack while the hart is still held (t=412000)
+FAIL    XFAIL:PLANTED           mut_m17_no_resumeack        pass marker missing; 2 [FAIL] line(s) | first: [FAIL] T7 DBG-8: after resumereq dmstatus reports allresumeack/anyresumeack (t=356000)
+
+PASS    0
+FAIL    17
+BLOCKED 0
+total   17

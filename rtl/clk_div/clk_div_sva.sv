@@ -84,6 +84,9 @@ module clk_div_sva (
     // of a value written in the same step): the former form
     //     @(posedge hclk_o) raw_rst_n_i |=> (pclk_o == $past(pclk_phase_o))
     // failed on every cycle in tb_apb_env, tb_apb_probe and tb_ahb2apb (not in tb_chip).
+    // CORRECTION 2026-11-01 (TB-A17): the real cause was those benches' reset, low from time 0,
+    // which is no edge in a two-state simulator, so clk_div's async reset never ran and pclk
+    // started in the wrong phase; with a falling reset both forms hold. This form is kept.
     // Between edges pclk_phase is ~pclk (see clk_div.v), which is the same statement: the
     // cycle with pclk low is the one that ends with a pclk rise. Nothing changes on a fall.
     a_pclk_phase: assert property (@(negedge hclk_o) disable iff (!raw_rst_n_i)

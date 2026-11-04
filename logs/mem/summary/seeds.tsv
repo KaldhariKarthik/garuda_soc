@@ -1,0 +1,22 @@
+# garuda-run 1 suite=seeds block=mem date=2026-11-01T16:41:09+05:30 design=dcf6f7d4335af6f68c521697cfd6344984474452 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+soak_s6600	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.05	21				logs/mem/raw/seeds/sim_soak_s6600_s1.log
+soak_s6601	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.04	21				logs/mem/raw/seeds/sim_soak_s6601_s1.log
+soak_s6602	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.02	21				logs/mem/raw/seeds/sim_soak_s6602_s1.log
+soak_s6603	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.02	21				logs/mem/raw/seeds/sim_soak_s6603_s1.log
+soak_s6604	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.02	21				logs/mem/raw/seeds/sim_soak_s6604_s1.log
+soak_s6605	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.02	21				logs/mem/raw/seeds/sim_soak_s6605_s1.log
+soak_s6606	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.02	21				logs/mem/raw/seeds/sim_soak_s6606_s1.log
+soak_s6607	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.02	21				logs/mem/raw/seeds/sim_soak_s6607_s1.log
+soak_s6608	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.06	21				logs/mem/raw/seeds/sim_soak_s6608_s1.log
+soak_s6609	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.06	21				logs/mem/raw/seeds/sim_soak_s6609_s1.log
+soak_s6610	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.06	21				logs/mem/raw/seeds/sim_soak_s6610_s1.log
+soak_s6611	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.06	21				logs/mem/raw/seeds/sim_soak_s6611_s1.log
+soak_s6612	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.06	21				logs/mem/raw/seeds/sim_soak_s6612_s1.log
+soak_s6613	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.06	21				logs/mem/raw/seeds/sim_soak_s6613_s1.log
+soak_s6614	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.04	21				logs/mem/raw/seeds/sim_soak_s6614_s1.log
+soak_s6615	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.04	21				logs/mem/raw/seeds/sim_soak_s6615_s1.log
+soak_s6616	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.04	21				logs/mem/raw/seeds/sim_soak_s6616_s1.log
+soak_s6617	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.04	21				logs/mem/raw/seeds/sim_soak_s6617_s1.log
+soak_s6618	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.04	21				logs/mem/raw/seeds/sim_soak_s6618_s1.log
+soak_s6619	PASS	OK	0	yes	0	0	0	-	18	0	-	1	0.04	21				logs/mem/raw/seeds/sim_soak_s6619_s1.log

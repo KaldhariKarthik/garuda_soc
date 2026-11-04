@@ -1,0 +1,7 @@
+WAIVED     u_cdc.ack_tgl_o [por] <- u_cdc.req_s [dm]  (data loaded only while adopt_q = 1 (arming); a DM reset landing then needs a second DM reset within 3 hclk edges of the last release: watchdog / software resets are system resets and cannot fire then, and a pin reset is POR, which resets ack_tgl itself)
+WAIVED     u_cdc.ack_tgl_o [por] <- u_dm.done_o [dm]  (as in rdc_dmi_cdc.toml: done_o only falls when the DM reset hits; toggle or not are both the frozen at-most-once contract (re-arm adopts); ack_tgl is read only through the 2-flop tck synchroniser)
+WAIVED     u_dtm.rsp_q [por] <- u_dtm.rsp_data_i [dm]  (the DM's rdata_o, captured when the synchronised ack shows the toggle; a DM-only reset clears it, so a capture coinciding with that reset may take a wrong word: the response to a request across an hclk reset is UNDEFINED by contract (step-0 item 12; the debugger re-reads dmstatus after a reset))
+VIOLATION  u_cdc.ack_tgl_o [por] <- u_cdc.arm_cnt [dm]
+STALE WAIVER u_cdc.ack_tgl_o <- u_cdc.adopt_q (matches no crossing)
+STALE WAIVER u_cdc.ack_tgl_o <- u_cdc.armed_r (matches no crossing)
+rdc_check debug_top: 52 flops, 1 violation(s), 3 waived, 2 stale waiver(s) -> FAIL

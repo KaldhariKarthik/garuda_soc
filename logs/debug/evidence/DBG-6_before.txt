@@ -1,0 +1,9 @@
+# DBG-6 before the fix: tb/debug/tb_dmi_cdc.sv on rtl/debug/dmi_cdc.v (4466181), Icarus, 2026-10-16T04:22:51+05:30
+=== tb_dmi_cdc: tck <-> hclk crossing, real dmi_cdc + debug_module ===
+[PASS] T1: 24 x (write + read) at three clock ratios: every read genuine, each executed once before its ack
+[FAIL] T2 DBG-6: after a DM-only reset the next request is executed before it is acknowledged (t=10000000)
+[FAIL] T2 DBG-6: the read after it returns the DM's answer (t=10013000)
+[PASS] T3 control: parity 0, the next request is executed before it is acknowledged
+tb_dmi_cdc: checks=4  FAIL=2
+RESULT: FAILED
+tb/debug/tb_dmi_cdc.sv:117: $finish called at 10065300 (1ps)

@@ -39,6 +39,7 @@ min_asserts = 0
 # arbiter exclusions (channel 5 then wins contests); expected FAIL (xfail PLANTED)
 [[task]]
 name    = "mut_cov_prio_inv"
+expect_fail = ["a_cov_arb_c5_alone"]   # the planted defect must break this (2026-11-01)
 mode    = "bmc"
 depth   = 16
 engine  = "smtbmc yices"

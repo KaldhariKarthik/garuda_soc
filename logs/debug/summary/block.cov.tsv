@@ -1,0 +1,5 @@
+# garuda-run 1 suite=block.cov block=debug date=2026-11-01T16:35:43+05:30 design=dcf6f7d4335af6f68c521697cfd6344984474452 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+tb_debug	PASS	OK	0	yes	0	0	0	-	52	0	-	1	1.37	20		logs/debug/raw/block.cov/cov/tb_debug_s1.dat		logs/debug/raw/block.cov/sim_tb_debug_s1.log
+tb_debug_dm	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.02	20		logs/debug/raw/block.cov/cov/tb_debug_dm_s1.dat		logs/debug/raw/block.cov/sim_tb_debug_dm_s1.log
+tb_dmi_cdc	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.02	20		logs/debug/raw/block.cov/cov/tb_dmi_cdc_s1.dat		logs/debug/raw/block.cov/sim_tb_dmi_cdc_s1.log

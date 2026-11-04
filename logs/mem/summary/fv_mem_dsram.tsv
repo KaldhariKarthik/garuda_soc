@@ -1,0 +1,9 @@
+# garuda-fv 1 suite=fv_mem_dsram block=mem date=2026-11-03T22:07:41+05:30 design=dfab0bbf08f64ba296587f7ee71298a9fbaad266 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+task	mode	result	class	secs	detail	log
+dsram_prove	prove	PROVEN	OK	0	[22 asserts, 11 covers in model] 	logs/mem/raw/fv_mem_dsram/fv_dsram_prove.log
+dsram_bmc	bmc	BOUNDED(10)	OK	13	[16 asserts, 11 covers in model] 	logs/mem/raw/fv_mem_dsram/fv_dsram_bmc.log
+dsram_cover	cover	COVERED	OK	0	[16 asserts, 10 covers in model] 	logs/mem/raw/fv_mem_dsram/fv_dsram_cover.log
+mut_bank_swap	bmc	FAIL	XFAIL:PLANTED	0	[16 asserts, 11 covers in model] props: u_dsram_sva.a_bank_read_issue	logs/mem/raw/fv_mem_dsram/fv_mut_bank_swap.log
+mut_rdbank_stale	bmc	FAIL	XFAIL:PLANTED	0	[16 asserts, 11 covers in model] props: u_dsram_sva.a_bank_read_return	logs/mem/raw/fv_mem_dsram/fv_mut_rdbank_stale.log
+mut_bypass_all_lanes	bmc	FAIL	XFAIL:PLANTED	0	[16 asserts, 11 covers in model] props: u_if.u_mem_sva.a_data_integrity	logs/mem/raw/fv_mem_dsram/fv_mut_bypass_all_lanes.log
+mut_rdbank_on_write_equiv	prove	PROVEN	OK	0	[22 asserts, 11 covers in model] 	logs/mem/raw/fv_mem_dsram/fv_mut_rdbank_on_write_equiv.log

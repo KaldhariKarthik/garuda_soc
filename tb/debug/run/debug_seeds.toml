@@ -1,0 +1,95 @@
+# Debug seeded random DMI/SBA traffic against the model (plan 6A.5 G3), 20 seeds.
+# GENERATED (seeds 7700..7719) -- regenerate rather than edit. 500 accumulate nightly.
+# Run: python3.12 tools/run/garuda_run.py suite tb/debug/run/debug_seeds.toml
+[suite]
+block = "debug"
+name  = "seeds"
+kind  = "sim"
+xfail = "tb/debug/run/xfail.tsv"
+
+[defaults]
+flist   = "tb/debug/filelist_debug.f"
+top     = "tb_debug"
+marker  = '^RESULT: PASSED'
+timeout = 2400
+require = ['tb_debug: checks=94 +FAIL=0', '^random: [0-9]+ ops checked, 0 mismatches']
+
+[[test]]
+name     = "rand_s7700"
+plusargs = ["+RAND=300", "+SEED=7700"]
+
+[[test]]
+name     = "rand_s7701"
+plusargs = ["+RAND=300", "+SEED=7701"]
+
+[[test]]
+name     = "rand_s7702"
+plusargs = ["+RAND=300", "+SEED=7702"]
+
+[[test]]
+name     = "rand_s7703"
+plusargs = ["+RAND=300", "+SEED=7703"]
+
+[[test]]
+name     = "rand_s7704"
+plusargs = ["+RAND=300", "+SEED=7704"]
+
+[[test]]
+name     = "rand_s7705"
+plusargs = ["+RAND=300", "+SEED=7705"]
+
+[[test]]
+name     = "rand_s7706"
+plusargs = ["+RAND=300", "+SEED=7706"]
+
+[[test]]
+name     = "rand_s7707"
+plusargs = ["+RAND=300", "+SEED=7707"]
+
+[[test]]
+name     = "rand_s7708"
+plusargs = ["+RAND=300", "+SEED=7708"]
+
+[[test]]
+name     = "rand_s7709"
+plusargs = ["+RAND=300", "+SEED=7709"]
+
+[[test]]
+name     = "rand_s7710"
+plusargs = ["+RAND=300", "+SEED=7710"]
+
+[[test]]
+name     = "rand_s7711"
+plusargs = ["+RAND=300", "+SEED=7711"]
+
+[[test]]
+name     = "rand_s7712"
+plusargs = ["+RAND=300", "+SEED=7712"]
+
+[[test]]
+name     = "rand_s7713"
+plusargs = ["+RAND=300", "+SEED=7713"]
+
+[[test]]
+name     = "rand_s7714"
+plusargs = ["+RAND=300", "+SEED=7714"]
+
+[[test]]
+name     = "rand_s7715"
+plusargs = ["+RAND=300", "+SEED=7715"]
+
+[[test]]
+name     = "rand_s7716"
+plusargs = ["+RAND=300", "+SEED=7716"]
+
+[[test]]
+name     = "rand_s7717"
+plusargs = ["+RAND=300", "+SEED=7717"]
+
+[[test]]
+name     = "rand_s7718"
+plusargs = ["+RAND=300", "+SEED=7718"]
+
+[[test]]
+name     = "rand_s7719"
+plusargs = ["+RAND=300", "+SEED=7719"]

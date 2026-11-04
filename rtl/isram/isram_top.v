@@ -57,6 +57,7 @@ module isram_top (
         .we(we), .be(be));
 
 `ifndef SYNTHESIS
+`ifndef FORMAL      // backdoors are simulation-only; in formal they stop the array being one memory (Track A, 2026-10-15)
     task bd_write;     input [31:0] byte_addr; input [31:0] data;
         begin
             u_array.bd_write(byte_addr[AW+1:2], data);
@@ -71,6 +72,7 @@ module isram_top (
     task bd_load_hex;  input [1023:0] path;
         u_array.bd_load_hex(path);
     endtask
+`endif  // FORMAL
 `endif
 
     wire _unused = |{hburst_i, hprot_i};
