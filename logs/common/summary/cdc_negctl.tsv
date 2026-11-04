@@ -1,0 +1,3 @@
+# cdc_check negative control (dmi_cdc_mut_pulse_stage0 swapped in)
+task	result	class	detail
+negctl_pulse_stage0	FAIL	XFAIL:PLANTED	VIOLATION R2 u_soc.u_debug.u_cdc.req_s [refclk] <- u_soc.u_debug.u_dtm.req_tgl_o [tck]: first-stage bit u_soc.u_debug.u_cdc.req_s fans out to 1 non-synchroniser
