@@ -1,3 +1,4 @@
+// MUTANT (GENERATED, gen_dma_fv_mutants.py): ICLR beats a same-cycle COMPLETE set
 `timescale 1ns/1ps
 `default_nettype none
 // =============================================================================
@@ -52,8 +53,11 @@ module dma_chan (
     // ---- to / from the engine ---------------------------------------------
     output wire        eligible_o,
     output wire [1:0]  size_o,
+    output wire        m2m_o,              // DMA-15
     input  wire        beat_done_i,        // this channel's beat completed OK
     input  wire        beat_err_i,         // this channel's beat failed
+    input  wire [1:0]  beat_size_i,        // DMA-14: the SIZE that beat used
+    input  wire        inflight_i,         // DMA-9: this channel has a beat in progress
     input  wire [2:0]  err_phase_i,        // 1 = read, 2 = write
 
     // ---- interrupts ------------------------------------------------------------
@@ -71,12 +75,23 @@ module dma_chan (
     reg [2:0]  errph_q;
     reg        taken_q;
 
+    // ERRATUM DMA-9 (fixed 2026-11-01, Track A proposal (A)): a channel re-armed while a beat of
+    // its previous transfer was still in flight took that beat out of the NEW transfer's count
+    // (REMAINING wrapped to 65535 with CNT = 0, or the new buffer lost a beat and SAR/DAR moved
+    // for the old one). A beat that started before the re-arm is now stale: its done / error
+    // does not count, step or report for the new transfer (it still satisfied its request).
+    reg  stale_q;
+    wire arm_req  = wr_cr_i && wdata_i[0] && !en_q;
+    wire stale    = stale_q || (arm_req && (beat_done_i || beat_err_i));
+    wire done     = beat_done_i && !stale;
+    wire err      = beat_err_i && !stale;
     wire active   = en_q && (rem_q != 16'd0);
     wire last     = (rem_q == 16'd1);
-    wire [31:0] step = (size_q == 2'd0) ? 32'd1 : (size_q == 2'd1) ? 32'd2 : 32'd4;
+    // DMA-14: step by the size the beat used (latched by the engine), not today's SIZE field
+    wire [31:0] step = (beat_size_i == 2'd0) ? 32'd1 : (beat_size_i == 2'd1) ? 32'd2 : 32'd4;
 
     // hardware-owned EN clear: completion or error ([N-7.3], [N-7.13])
-    wire hw_clr_en = (beat_done_i && last) || beat_err_i;
+    wire hw_clr_en = (done && last) || err;
 
     always @(posedge hclk_i or negedge hreset_n_i) begin
         if (!hreset_n_i) begin
@@ -84,7 +99,10 @@ module dma_chan (
             size_q <= 2'd2; iec_q <= 1'b0; iee_q <= 1'b0;
             sar_q <= 32'd0; dar_q <= 32'd0; cnt_q <= 16'd0; rem_q <= 16'd0;
             comp_q <= 1'b0; err_q <= 1'b0; errph_q <= 3'd0; taken_q <= 1'b0;
+            stale_q <= 1'b0;
         end else begin
+            if (arm_req && inflight_i && !(beat_done_i || beat_err_i)) stale_q <= 1'b1;   // DMA-9
+            else if (beat_done_i || beat_err_i)                        stale_q <= 1'b0;
             // ---- CR: software fields ------------------------------------------
             if (wr_cr_i) begin
                 if (wdata_i[2:1] != 2'b11) mode_q <= wdata_i[2:1];
@@ -105,13 +123,13 @@ module dma_chan (
             end
             // ---- address / count registers -------------------------------------------
             if (wr_sar_i) sar_q <= wdata_i;
-            else if (beat_done_i && sinc_q) sar_q <= sar_q + step;
+            else if (done && sinc_q) sar_q <= sar_q + step;
             if (wr_dar_i) dar_q <= wdata_i;
-            else if (beat_done_i && dinc_q) dar_q <= dar_q + step;
+            else if (done && dinc_q) dar_q <= dar_q + step;
             if (wr_cnt_i) cnt_q <= wdata_i[15:0];
 
             // ---- progress / status (same edge: R-6) -----------------------------------
-            if (beat_done_i) begin
+            if (done) begin
                 rem_q <= rem_q - 16'd1;
                 if (last) comp_q <= 1'b1;
             end else if (wr_cr_i && wdata_i[0] && !en_q && !hw_clr_en) begin
@@ -120,13 +138,13 @@ module dma_chan (
                 // always holds (a_remaining_complete_consistent).
                 comp_q <= (cnt_q == 16'd0);
             end
-            if (beat_err_i) begin
+            if (err) begin
                 err_q   <= 1'b1;
                 errph_q <= err_phase_i;
             end
             if (wr_iclr_i) begin
                 if (wdata_i[0]) comp_q <= 1'b0;             // MUTANT: clear beats set
-                if (wdata_i[1] && !beat_err_i) begin err_q <= 1'b0; errph_q <= 3'd0; end
+                if (wdata_i[1] && !err) begin err_q <= 1'b0; errph_q <= 3'd0; end
             end
 
             // ---- one beat per request assertion ([N-7.10]) -----------------------------
@@ -143,6 +161,7 @@ module dma_chan (
 
     assign eligible_o = active && ((mode_q == M_M2M) || (req_i && !taken_q));
     assign size_o     = size_q;
+    assign m2m_o      = (mode_q == M_M2M);
 
     assign cr_o   = {23'd0, iee_q, iec_q, size_q, dinc_q, sinc_q, mode_q, en_q};
     assign sar_o  = sar_q;

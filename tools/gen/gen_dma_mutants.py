@@ -24,9 +24,9 @@ import json, os, re, sys, datetime
 
 R = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 ENV, REGS, BLOCK = "env", "regs", "block"
-# a named check; on the block bench the open DMA-10 detector fires on today's RTL by
-# design (known in tb/dma/run/dma.toml), so it never counts as a kill
-KILL = r"^\[FAIL\] |\[SVA-FAIL\] (?!a_no_read_before_refusal\b)"
+# a named check (until the DMA-12 fix of 2026-11-01 the DMA-12 detector
+# a_no_read_before_refusal fired on the block bench by design and did not count)
+KILL = r"^\[FAIL\] |\[SVA-FAIL\] "
 E_WD_ERR = ("if (hresp_i) begin\n                            beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd2;",
             "if (hresp_i) begin\n                            beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd1;")
 # id, file, pattern, replacement, bench, what it models
@@ -37,20 +37,20 @@ MUTANTS = [
   "DMA-8 reverted: a failed beat consumes the request"),
  ("M03", "dma_chan.v", "else if (beat_done_i) taken_q <= 1'b1;", "else if (1'b0) taken_q <= 1'b1;", ENV,
   "one beat per request lost: a request still high gives another beat"),
- ("M04", "dma_chan.v", "if (wdata_i[0] && !(beat_done_i && last)) comp_q <= 1'b0;", "if (wdata_i[0]) comp_q <= 1'b0;", ENV,
+ ("M04", "dma_chan.v", "if (wdata_i[0] && !(done && last)) comp_q <= 1'b0;", "if (wdata_i[0]) comp_q <= 1'b0;", ENV,
   "set-beats-clear reverted: ICLR beats a same-cycle COMPLETE set (completion lost)"),
- ("M05", "dma_chan.v", "(size_q == 2'd1) ? 32'd2 : 32'd4", "(size_q == 2'd1) ? 32'd1 : 32'd4", ENV, "halfword address step 1 instead of 2"),
+ ("M05", "dma_chan.v", "(beat_size_i == 2'd1) ? 32'd2 : 32'd4", "(beat_size_i == 2'd1) ? 32'd1 : 32'd4", ENV, "halfword address step 1 instead of 2"),
  ("M06", "dma_chan.v", "if (wdata_i[2:1] != 2'b11) mode_q <= wdata_i[2:1];", "mode_q <= wdata_i[2:1];", REGS, "MODE = 3 accepted"),
  ("M07", "dma_chan.v", "assign error_irq_o    = err_q  & iee_q;", "assign error_irq_o    = err_q  & iec_q;", ENV,
   "error interrupt gated by IE_COMP instead of IE_ERR"),
- ("M08", "dma_chan.v", "if (wdata_i[1] && !beat_err_i) begin err_q <= 1'b0; errph_q <= 3'd0; end",
-  "if (wdata_i[1] && !beat_err_i) begin err_q <= 1'b0; end", ENV, "ICLR ERROR leaves ERRPHASE set"),
+ ("M08", "dma_chan.v", "if (wdata_i[1] && !err) begin err_q <= 1'b0; errph_q <= 3'd0; end",
+  "if (wdata_i[1] && !err) begin err_q <= 1'b0; end", ENV, "ICLR ERROR leaves ERRPHASE set"),
  ("M09", "dma_chan.v", "if (last) comp_q <= 1'b1;", "if (rem_q == 16'd2) comp_q <= 1'b1;", ENV, "COMPLETE one beat early (D-1 shape)"),
- ("M10", "dma_chan.v", "else if (beat_done_i && sinc_q) sar_q <= sar_q + step;",
-  "else if ((beat_done_i || beat_err_i) && sinc_q) sar_q <= sar_q + step;", ENV, "SAR advances on a failed beat (no freeze, [N-7.15])"),
+ ("M10", "dma_chan.v", "else if (done && sinc_q) sar_q <= sar_q + step;",
+  "else if ((done || err) && sinc_q) sar_q <= sar_q + step;", ENV, "SAR advances on a failed beat (no freeze, [N-7.15])"),
  ("M11", "dma_arbiter.v", "PRIO[3*n +: 3] > best", "PRIO[3*n +: 3] < best", ENV, "priority inverted: the lowest priority wins"),
  ("M13", "dma_engine.v", "if (dar_bad) begin", "if (1'b0) begin", BLOCK, "R-9 DAR check removed: writes to ISRAM / Boot ROM"),
- ("M14", "dma_engine.v", "ack_cnt         <= ACK_CYCLES - 1;", "ack_cnt         <= 2'd0;", ENV, "DMA-7 reverted: dma_ack one hclk wide"),
+ ("M14", "dma_engine.v", "ack_cnt   <= ACK_CYCLES - 1;", "ack_cnt   <= 2'd0;", ENV, "DMA-7 reverted: dma_ack one hclk wide"),
  ("M15", "dma_engine.v", "if (grant_valid_i && beat_done_o == 6'd0 && beat_err_o == 6'd0) begin", "if (grant_valid_i) begin", ENV,
   "ENG-1 reverted: regrant before the channel has counted the beat"),
  ("M16", "dma_engine.v", E_WD_ERR[0], E_WD_ERR[1], ENV, "write ERROR reported as ERRPHASE = read"),

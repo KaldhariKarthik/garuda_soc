@@ -29,7 +29,8 @@ module tb_dma_chan_unit;
     dma_chan dut (.hclk_i(clk), .hreset_n_i(rst_n), .wr_cr_i(wcr), .wr_sar_i(wsar), .wr_dar_i(wdar),
                   .wr_cnt_i(wcnt), .wr_iclr_i(wiclr), .wdata_i(wd), .cr_o(cr), .sar_o(sar), .dar_o(dar),
                   .cnt_o(cnt), .stat_o(stat), .req_i(req), .eligible_o(elig), .size_o(size),
-                  .beat_done_i(bd), .beat_err_i(be), .err_phase_i(ep), .complete_irq_o(ic), .error_irq_o(ie));
+                  .beat_done_i(bd), .beat_err_i(be), .err_phase_i(ep), .complete_irq_o(ic), .error_irq_o(ie),
+                  .m2m_o(), .beat_size_i(size), .inflight_i(1'b0));   // 2026-11-01: DMA-14 / DMA-9 ports
     // ---- reference state ----
     bit en, sinc, dinc, iec, iee, comp, err, taken;
     logic [1:0] mode, sz; logic [31:0] rsar, rdar; logic [15:0] rcnt, rem; logic [2:0] errph;
@@ -39,7 +40,11 @@ module tb_dma_chan_unit;
     endtask
     function automatic bit r_active(); return en && rem != 0; endfunction
     task automatic ref_edge();
-        bit last = rem == 16'd1, hw = (bd && last) || be;
+        // DMA-9 ruling (2026-11-01): an arm in the cycle a beat result arrives makes that result stale
+        // (no engine here, so inflight_i = 0 and that is the only stale case): it does not count
+        bit stale_now = wcr && wd[0] && !en && (bd || be);
+        bit cbd = bd && !stale_now, cbe = be && !stale_now;
+        bit last = rem == 16'd1, hw = (cbd && last) || cbe;
         bit n_en = en; logic [15:0] n_rem = rem; bit n_comp = comp, n_err = err; logic [2:0] n_eph = errph;
         logic [31:0] step = sz == 0 ? 1 : sz == 1 ? 2 : 4;
         bit o_sinc = sinc, o_dinc = dinc;                                  // the values before the edge
@@ -50,14 +55,14 @@ module tb_dma_chan_unit;
         end
         if (hw || (en && rem == 0 && !wcr)) n_en = 0;
         else if (wcr) begin n_en = wd[0]; if (wd[0] && !en) n_rem = rcnt; end
-        if (wsar) rsar = wd; else if (bd && o_sinc) rsar = rsar + step;   // step, SINC, DINC of before the edge
-        if (wdar) rdar = wd; else if (bd && o_dinc) rdar = rdar + step;
-        if (bd) begin n_rem = rem - 1; if (last) n_comp = 1; end
+        if (wsar) rsar = wd; else if (cbd && o_sinc) rsar = rsar + step;  // step, SINC, DINC of before the edge
+        if (wdar) rdar = wd; else if (cbd && o_dinc) rdar = rdar + step;
+        if (cbd) begin n_rem = rem - 1; if (last) n_comp = 1; end
         else if (wcr && wd[0] && !en && !hw) n_comp = (rcnt == 0);
-        if (be) begin n_err = 1; n_eph = ep; end
+        if (cbe) begin n_err = 1; n_eph = ep; end
         if (wiclr) begin
-            if (wd[0] && !(bd && last)) n_comp = 0;
-            if (wd[1] && !be) begin n_err = 0; n_eph = 0; end
+            if (wd[0] && !(cbd && last)) n_comp = 0;
+            if (wd[1] && !cbe) begin n_err = 0; n_eph = 0; end
         end
         if (!req) taken = 0; else if (bd) taken = 1;
         if (wcnt) rcnt = wd[15:0];

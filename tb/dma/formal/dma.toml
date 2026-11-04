@@ -4,10 +4,16 @@
 # over-approximation argument in tb/dma/formal/ASSUMPTIONS.md). One step is one
 # hclk cycle; one APB write is two. a_ack_one_pclk_edge needs a real pclk and runs
 # in tb/dma/formal/dma_2clk.toml.
-# Each task picks its properties with `chformal` (no ifdefs in dma_props_a.sv): the
-# proof tasks leave out the open-bug detectors; each *_find task keeps ONLY one
-# defect's detectors and must FAIL, so the solver finds that defect by itself.
+# Each task picks its properties with `chformal` (no ifdefs in dma_props_a.sv). Since
+# the DMA rulings (branch a/dma-rulings, 2026-11-02) no detector is open: the proof
+# tasks keep every property except a_ack_one_pclk_edge, and each fixed defect has a
+# control below that reverts its fix and must FAIL its detector (these replaced the
+# *_find tasks, in which the solver found each open defect by itself).
 # Every counterexample is replayed with real timing before it is filed (H6).
+# Karthik's rtl/dma/dma_sva.sv is not in these models: read_slang's implicit SYNTHESIS
+# define leaves it out, and yosys-slang cannot read it anyway (12 'unsupported SVA
+# feature' errors, 2026-11-02: JasperGold sequences). It runs in simulation and in
+# Karthik's JasperGold flow.
 # Run: make -f flow/mk/track_a_run.mk fv_dma
 [suite]
 block = "dma"
@@ -33,17 +39,18 @@ name    = "dma_cover"
 mode    = "cover"
 depth   = 24
 engine  = "smtbmc yices"
-script  = ["chformal -assert -remove n:u_dma_props_a.*a_no_read_before_refusal* n:u_dma_props_a.*a_beat_belongs_to_arm* n:u_dma_props_a.*a_no_rem_underflow* n:u_dma_props_a.*a_remaining_complete_consistent* n:u_dma_props_a.*a_haddr_aligned* n:u_dma_props_a.*a_ack_one_pclk_edge* n:u_dma_props_a.*a_write_data* n:u_dma_props_a.*a_beat_size_atomic* %u %u %u %u %u %u %u", "chformal -cover -remove n:u_dma_props_a.c_apb_access2 n:u_dma_props_a.g_prio*0*.c_contest n:u_dma_props_a.c_all_eligible %u %u"]
+script  = ["chformal -assert -remove n:u_dma_props_a.*a_ack_one_pclk_edge*", "chformal -cover -remove n:u_dma_props_a.c_apb_access2 n:u_dma_props_a.g_prio*0*.c_contest n:u_dma_props_a.c_all_eligible %u %u"]
 timeout = 3600
 
-# every property except the open-bug detectors (a_write_data belongs to DMA-14 and DMA-13:
-# it fails when a beat changes size or reads an unaligned lane)
+# every property except a_ack_one_pclk_edge (two clocks). Since 2026-11-02 this includes
+# the detectors of DMA-9, DMA-10, DMA-12 and DMA-14 (fixed) and a_write_data, which
+# failed through DMA-14 and DMA-10 (a beat that changed size or read an unaligned lane)
 [[task]]
 name    = "dma_bmc"
 mode    = "bmc"
 depth   = 32
 engine  = "smtbmc yices"
-script  = ["chformal -assert -remove n:u_dma_props_a.*a_no_read_before_refusal* n:u_dma_props_a.*a_beat_belongs_to_arm* n:u_dma_props_a.*a_no_rem_underflow* n:u_dma_props_a.*a_remaining_complete_consistent* n:u_dma_props_a.*a_haddr_aligned* n:u_dma_props_a.*a_ack_one_pclk_edge* n:u_dma_props_a.*a_write_data* n:u_dma_props_a.*a_beat_size_atomic* %u %u %u %u %u %u %u"]
+script  = ["chformal -assert -remove n:u_dma_props_a.*a_ack_one_pclk_edge*"]
 timeout = 3600
 
 # abc pdr needs an AIGER model with no x bits: the out-of-range part-selects for
@@ -54,49 +61,72 @@ timeout = 3600
 name    = "dma_prove"
 mode    = "prove"
 engine  = "abc pdr"
-script  = ["prep -top dma_top", "techmap", "opt -fast", "setundef -anyseq", "chformal -assert -remove n:u_dma_props_a.*a_no_read_before_refusal* n:u_dma_props_a.*a_beat_belongs_to_arm* n:u_dma_props_a.*a_no_rem_underflow* n:u_dma_props_a.*a_remaining_complete_consistent* n:u_dma_props_a.*a_haddr_aligned* n:u_dma_props_a.*a_ack_one_pclk_edge* n:u_dma_props_a.*a_write_data* n:u_dma_props_a.*a_beat_size_atomic* %u %u %u %u %u %u %u"]
+script  = ["prep -top dma_top", "techmap", "opt -fast", "setundef -anyseq", "chformal -assert -remove n:u_dma_props_a.*a_ack_one_pclk_edge*"]
 timeout = 3600
 
-# the solver finds each open defect on its own (expected FAIL, xfail with the bug ID)
-[[task]]
-name    = "dma10_find"
-expect_fail = ["a_no_read_before_refusal"]   # the planted defect must break this (2026-11-01)
-mode    = "bmc"
-depth   = 24
-engine  = "smtbmc yices"
-script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_no_read_before_refusal* %d"]
-timeout = 3600
-min_asserts = 1
+# The DMA ruling fixes (2026-11-01), each reverted on its own: the reverted fix must
+# fail its detector, the only property kept. Register IDs (Docs/bugs/track_a.md);
+# mutants from tools/gen/gen_dma_fv_mutants.py.
 
+# DMA-9 fix reverted: a beat taken before a re-arm counts in the new transfer
 [[task]]
-name    = "dma11_find"
-expect_fail = ["a_beat_belongs_to_arm"]   # the planted defect must break this (2026-11-01)
+name    = "mut_dma9_revert"
+expect_fail = ["a_beat_belongs_to_arm"]   # the reverted fix must break this (2026-11-02)
 mode    = "bmc"
 depth   = 32
 engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_chan.v" = "tb/dma/formal/mutants/dma_chan_mut_dma9_revert.v" }
 script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_beat_belongs_to_arm* n:u_dma_props_a.*a_no_rem_underflow* n:u_dma_props_a.*a_remaining_complete_consistent* %u %u %d"]
 timeout = 3600
 min_asserts = 18
 
+# DMA-10 fix reverted: no alignment check, an unaligned SAR or DAR goes on the bus
 [[task]]
-name    = "dma13_find"
-expect_fail = ["a_haddr_aligned"]   # the planted defect must break this (2026-11-01)
+name    = "mut_dma10_revert"
+expect_fail = ["a_haddr_aligned"]   # the reverted fix must break this (2026-11-02)
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_engine.v" = "tb/dma/formal/mutants/dma_engine_mut_dma10_revert.v" }
 script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_haddr_aligned* %d"]
 timeout = 3600
 min_asserts = 1
 
+# DMA-12 fix reverted: a bad DAR is refused only after the source read
 [[task]]
-name    = "dma14_find"
-expect_fail = ["a_beat_size_atomic"]   # the planted defect must break this (2026-11-01)
+name    = "mut_dma12_revert"
+expect_fail = ["a_no_read_before_refusal"]   # the reverted fix must break this (2026-11-02)
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_engine.v" = "tb/dma/formal/mutants/dma_engine_mut_dma12_revert.v" }
+script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_no_read_before_refusal* %d"]
+timeout = 3600
+min_asserts = 1
+
+# DMA-14 fix reverted: the write takes the channel's live SIZE, not the beat's
+[[task]]
+name    = "mut_dma14_revert"
+expect_fail = ["a_beat_size_atomic"]   # the reverted fix must break this (2026-11-02)
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_engine.v" = "tb/dma/formal/mutants/dma_engine_mut_dma14_revert.v" }
 script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_beat_size_atomic* %d"]
 timeout = 3600
 min_asserts = 1
+
+# DMA-15 fix reverted: an M2M beat pulses dma_ack too
+[[task]]
+name    = "mut_dma15_revert"
+expect_fail = ["a_no_ack_for_m2m"]   # the reverted fix must break this (2026-11-02)
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_engine.v" = "tb/dma/formal/mutants/dma_engine_mut_dma15_revert.v" }
+script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_no_ack_for_m2m* %d"]
+timeout = 3600
+min_asserts = 6
 
 # Negative controls (H6): each re-planted defect must fail its named property, which
 # is the only property kept in the task (so a FAIL cannot come from another one).
@@ -160,3 +190,27 @@ replace = { "rtl/dma/dma_apb_slave.v" = "tb/dma/formal/mutants/dma_apb_slave_mut
 script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_pslverr_rule* %d"]
 timeout = 3600
 min_asserts = 1
+
+# DMA-14 address latch reverted: the read goes to the channel's live SAR (review 2026-11-03)
+[[task]]
+name    = "mut_dma14_addr_revert"
+expect_fail = ["a_read_addr"]   # the reverted fix must break this (2026-11-03)
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_engine.v" = "tb/dma/formal/mutants/dma_engine_mut_dma14_addr_revert.v" }
+script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_read_addr* %d"]
+timeout = 3600
+min_asserts = 1
+
+# DMA-14 step reverted: SAR / DAR step by the live SIZE field, not the beat's size (review 2026-11-03)
+[[task]]
+name    = "mut_dma14_step_revert"
+expect_fail = ["a_sar_step", "a_dar_step"]   # the reverted fix must break this (2026-11-03)
+mode    = "bmc"
+depth   = 24
+engine  = "smtbmc yices"
+replace = { "rtl/dma/dma_chan.v" = "tb/dma/formal/mutants/dma_chan_mut_dma14_step_revert.v" }
+script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_sar_step* n:u_dma_props_a.*a_dar_step* %u %d"]
+timeout = 3600
+min_asserts = 12

@@ -432,7 +432,7 @@ module tb_dma_top;
             wait_done(ch, 100);
             rd(R(ch, STAT), d);
             if (!(d[18] && d[21:19] == 3'd2 && !d[17] && !d[16] && d[15:0] == 3)) bad++;
-            if (n_wr != nw0 || n_rd != nr0 + 1) bad++;
+            if (n_wr != nw0 || n_rd != nr0) bad++;   // DMA-12 ruling (Track A, 2026-11-01): a bad DAR is refused before the source read
             if (err !== 6'd0) ibad++;                                 // flag set, line masked
             wr(R(ch, ICLR), 32'h2, e);
         end
@@ -521,9 +521,12 @@ module tb_dma_top;
         check(bad == 0, $sformatf("[N-7.19] [R-7] COMPLETE setting in the cycle ICLR clears it is not lost (set wins); a later ICLR clears it (%0d errors)", bad));
 
         bad = 0; coll_err = 0; nearly = 0; nlate = 0;
+        // DMA-12 ruling (Track A, 2026-11-01): a Boot ROM DAR is now refused before the read, too
+        // early for this sweep; the write answers an AHB ERROR instead (same beat point, ERRPHASE = write)
+        err_en = 1; err_base = 32'h2000_9200;
         for (wp = 0; wp < 4; wp++) for (k = 0; k < 6; k++) begin
             p_waits = wp;
-            prog(1, 32'h4000_3000, 32'h1000_0000, 2);                 // DAR in Boot ROM: refused at the write
+            prog(1, 32'h4000_3000, 32'h2000_9200, 2);                 // the write answers ERROR
             repeat (4) @(posedge hclk);
             err1_seen = 0; c_iclr = -1; c_berr = -1;
             @(posedge pclk);
@@ -539,6 +542,7 @@ module tb_dma_top;
             if (d[16] || d[15:0] != 2) bad++;
             wr(R(1, ICLR), 32'h3, e);
         end
+        err_en = 0;
         check(coll_err > 0 && nearly > coll_err && nlate > 0,
               $sformatf("ICLR sweep placed the W1C write in the exact cycle ERROR sets %0d times (%0d at-or-before, %0d after)", coll_err, nearly, nlate));
         check(bad == 0, $sformatf("[N-7.19] ERROR and ERRPHASE setting in the cycle ICLR clears them are not lost (%0d errors)", bad));

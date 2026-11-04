@@ -22,19 +22,21 @@
 // RTL. White-box signals (engine state and channel, request-taken flags) come
 // in through the bind; every property that uses them says so.
 //
-// Detectors of open defects. They are always on (no waive define): a test that
-// reaches the scenario fails, and is declared in its suite with the bug ID
-// (xfail or a `known` line count), so the firing is counted, not hidden.
-//   a_no_read_before_refusal            DMA-10  source read before a bad DAR is refused
-//   a_remaining_complete_consistent[n]  DMA-11  COMPLETE with REMAINING != 0 (R-6)
-//   a_no_rem_underflow[n]               DMA-11  a beat completes with REMAINING = 0
-//   a_beat_belongs_to_arm[n]            DMA-11  a beat started before the last arm
-//   a_haddr_aligned                     DMA-13  a misaligned transfer on the bus (unaligned SAR/DAR)
-//   a_beat_size_atomic                  DMA-14  a beat changes size after it was taken (CR write in flight)
+// Detectors of the DMA defects fixed on track A's branch a/dma-rulings (2026-11-01;
+// register IDs of Docs/bugs/track_a.md, the working IDs of the 2026-10 notes in
+// brackets). They are ordinary properties now, and each has a control in
+// tb/dma/formal/dma.toml that reverts its fix and must fail it.
+//   a_no_read_before_refusal            DMA-12 [DMA-10]  source read before a bad DAR is refused
+//   a_remaining_complete_consistent[n]  DMA-9  [DMA-11]  COMPLETE with REMAINING != 0 (R-6)
+//   a_no_rem_underflow[n]               DMA-9  [DMA-11]  a beat completes with REMAINING = 0
+//   a_beat_belongs_to_arm[n]            DMA-9  [DMA-11]  a beat started before the last arm
+//   a_haddr_aligned                     DMA-10 [DMA-13]  a misaligned transfer on the bus (unaligned SAR/DAR)
+//   a_beat_size_atomic                  DMA-14           a beat changes size after it was taken (CR write in flight)
+//   a_no_ack_for_m2m[n]                 DMA-15           an M2M beat pulses dma_ack
 // Formal tasks pick their properties with `chformal` in tb/dma/formal/*.toml (no
 // ifdefs here), so this file is the same in every simulation and proof.
-// a_arm_loads encodes the proposed DMA-9 ruling (arming loads REMAINING from CNT);
-// it changes if the ruling is "resume".
+// a_arm_loads encodes the DMA-11 ruling (working ID DMA-9): arming loads REMAINING
+// from CNT; software resumes a stopped transfer with CNT := REMAINING, then EN.
 // =============================================================================
 
 `ifdef FORMAL
@@ -89,6 +91,7 @@ module dma_sva #(
     // white-box: engine state and channel, request-taken flags (dma_chan)
     input wire [2:0]  eng_st,
     input wire [2:0]  eng_ch,
+    input wire        eng_m2m,          // DMA-15: the engine's latched M2M flag for the beat
     input wire [5:0]  taken
 );
     localparam [1:0] T_IDLE = 2'b00, T_NONSEQ = 2'b10;
@@ -137,6 +140,9 @@ module dma_sva #(
     function automatic bit f_r9_bad(input [31:0] a);            // ISRAM 0x0..., Boot ROM 0x1...
         return a[31:29] == 3'b000;                                // region nibble 0 or 1
     endfunction
+    function automatic bit f_misaligned(input [31:0] a, input [1:0] size);   // DMA-10 ruling
+        return (size == 2'd1 && a[0]) || (size == 2'd2 && a[1:0] != 2'b00);
+    endfunction
     function automatic [2:0] f_prio(input [2:0] n);
         return PRIO[3*n +: 3];
     endfunction
@@ -152,11 +158,6 @@ module dma_sva #(
     endfunction
 
     wire any_wr   = |{wr_cr, wr_sar, wr_dar, wr_cnt, wr_iclr};
-    // R-9 check of the engine's current channel. Kept out of $past(): Verilator 5.052
-    // rejects a variable part-select inside $past ("Selection index is constantly
-    // unknown"), TOOL-24.
-    wire sar_bad_cur = f_r9_bad(sar[32*eng_ch +: 32]);              // white-box channel
-    wire dar_bad_cur = f_r9_bad(dar[32*eng_ch +: 32]);
     wire apb_acc  = psel_i && penable_i;
     wire apb_wacc = psel_i && penable_i && pwrite_i;
     wire rd_addr  = (htrans_o == T_NONSEQ) && !hwrite_o && hready_i;     // read address phase accepted
@@ -171,8 +172,6 @@ module dma_sva #(
     reg          rd_err_pend;               // the last read ended in ERROR; no write may follow
     reg          beat_open;                 // a read has been accepted and its beat has no result yet
     reg  [2:0]   beat_ch;
-    reg  [3:0]   beat_gen;
-    reg  [5:0][3:0] arm_gen;                // arm count per channel
     reg  [5:0]   need_low;                  // the request was served and has not dropped since
     reg  [5:0][3:0] ack_len;                // hclk cycles the current ack has been high (saturates)
     reg          acc_q;
@@ -180,8 +179,26 @@ module dma_sva #(
     reg  [1:0]   rd_lane_q, wr_lane_q;      // byte offset of the read and of the write in flight
     reg  [3:0]   wr_hist;                   // any_wr of the last four hclk cycles (back-to-back cover)
     reg  [1:0]   beat_size_q;               // the channel's SIZE when the engine took the beat (white-box)
+    // DMA-14 / DMA-15 rulings (2026-11-01): a beat uses the SAR, DAR and MODE of its take, so
+    // the refusal and acknowledge checks use these captures, not the live registers (a CR, SAR
+    // or DAR write may land in the take cycle or while the beat is in flight)
+    reg  [31:0]  beat_sar_q, beat_dar_q;
+    reg          beat_m2m_q;
+    // R-9 region, or since the DMA-10 ruling an address not aligned to the beat's SIZE.
+    // Wires, kept out of $past(): Verilator 5.052 rejects a variable part-select inside
+    // $past ("Selection index is constantly unknown"), TOOL-24.
+    wire sar_bad_beat = f_r9_bad(beat_sar_q) || f_misaligned(beat_sar_q, beat_size_q);
+    wire dar_bad_beat = f_r9_bad(beat_dar_q) || f_misaligned(beat_dar_q, beat_size_q);
 
     wire [5:0] en, comp, err, sinc, dinc, iec, iee, active, arm, hwclr;
+    // DMA-9 ruling (2026-11-01): a beat counts for a channel only if it was taken under that
+    // channel's current arm and no arm arrives in its result cycle (the arm wins). Independent
+    // of the RTL: tk_ch records the channel of the beat the engine took, tk_rearmed whether that
+    // channel was armed again since the take. (Until 2026-11-03 a 4-bit arm-generation compare:
+    // 16 re-arms during one waited beat made it wrap, and the PDR proof failed at step 61.)
+    wire [5:0] cdone, cerr, arm_raw;
+    reg  [2:0] tk_ch;
+    reg        tk_rearmed;
     wire [5:0][1:0]  mode, csize;
     wire [5:0][15:0] rem;
     wire [5:0][2:0]  eph;
@@ -200,7 +217,10 @@ module dma_sva #(
         assign err[g]    = stat[32*g + 18];
         assign eph[g]    = stat[32*g + 19 +: 3];
         // hardware clears EN on the last successful beat or on an error ([N-7.3], [N-7.13])
-        assign hwclr[g]  = (beat_done[g] && rem[g] == 16'd1) || beat_err[g];
+        assign arm_raw[g] = wr_cr[g] && wdata[0] && !en[g];
+        assign cdone[g]   = beat_done[g] && tk_ch == g && !tk_rearmed && !arm_raw[g];
+        assign cerr[g]    = beat_err[g]  && tk_ch == g && !tk_rearmed && !arm_raw[g];
+        assign hwclr[g]  = (cdone[g] && rem[g] == 16'd1) || cerr[g];
         // software arms the channel: EN written 0 -> 1 and hardware is not clearing it
         assign arm[g]    = wr_cr[g] && wdata[0] && !en[g] && !hwclr[g];
     end endgenerate
@@ -209,16 +229,23 @@ module dma_sva #(
         if (!hreset_n_i) begin
             live_q <= 1'b0; past_ok <= 1'b0;
             dp_rd <= 1'b0; dp_wr <= 1'b0; rd_err_pend <= 1'b0;
-            beat_open <= 1'b0; beat_ch <= 3'd0; beat_gen <= 4'd0;
-            arm_gen <= '0; ack_len <= '0;
-            need_low <= 6'd0; acc_q <= 1'b0; wr_hist <= 4'd0; beat_size_q <= 2'd2;
+            beat_open <= 1'b0; beat_ch <= 3'd0;
+            ack_len <= '0;
+            need_low <= 6'd0; acc_q <= 1'b0; wr_hist <= 4'd0; beat_size_q <= 2'd2; tk_ch <= 3'd0; tk_rearmed <= 1'b0;
+            beat_sar_q <= 32'd0; beat_dar_q <= 32'd0; beat_m2m_q <= 1'b0;
             rd_data_q <= 32'd0; rd_lane_q <= 2'd0; wr_lane_q <= 2'd0;
         end else begin
             live_q  <= 1'b1;
             past_ok <= live_q;
             acc_q   <= apb_wacc;
             wr_hist <= {wr_hist[2:0], any_wr};
-            if (eng_take) beat_size_q <= csize[grant_ch];
+            if (eng_take) begin
+                beat_size_q <= csize[grant_ch]; tk_ch <= grant_ch; tk_rearmed <= 1'b0;
+                beat_sar_q  <= sar[32*grant_ch +: 32]; beat_dar_q <= dar[32*grant_ch +: 32];
+                beat_m2m_q  <= (mode[grant_ch] == M_M2M);
+            end else if (arm_raw[tk_ch]) begin
+                tk_rearmed  <= 1'b1;      // the taken beat's channel was armed again: the beat is stale
+            end
             // data phases
             if (dp_rd && hready_i) begin dp_rd <= 1'b0; rd_err_pend <= hresp_i; end
             if (dp_wr && hready_i) dp_wr <= 1'b0;
@@ -226,10 +253,9 @@ module dma_sva #(
             if (rd_addr) begin dp_rd <= 1'b1; rd_err_pend <= 1'b0; rd_lane_q <= haddr_o[1:0]; end
             if (wr_addr) begin dp_wr <= 1'b1; rd_err_pend <= 1'b0; wr_lane_q <= haddr_o[1:0]; end
             // the beat in flight and the arm it belongs to
-            if (rd_addr) begin beat_open <= 1'b1; beat_ch <= eng_ch; beat_gen <= arm_gen[eng_ch]; end
+            if (rd_addr) begin beat_open <= 1'b1; beat_ch <= eng_ch; end
             else if (|beat_done || |beat_err) beat_open <= 1'b0;
             for (int n = 0; n < 6; n++) begin
-                if (arm[n]) arm_gen[n] <= arm_gen[n] + 4'd1;
                 // one beat per request assertion ([N-7.10]): served, and not yet dropped
                 if (!dma_req_i[n])                                  need_low[n] <= 1'b0;
                 else if (beat_done[n] && mode[n] != M_M2M)          need_low[n] <= 1'b1;
@@ -248,9 +274,9 @@ module dma_sva #(
 
 `ifndef FORMAL
     // ------------------------------------------------------------------ elaboration
-    // F49 / DMA-12: ack_cnt in dma_engine is two bits wide
+    // F49 / DMA-13: ack_cnt in dma_engine is two bits wide
     initial assert (ACK_CYCLES >= 1 && ACK_CYCLES <= 4)
-        else $error("[SVA-FAIL] F49 ACK_CYCLES=%0d is outside 1..4 (dma_engine ack_cnt is 2 bits, DMA-12)", ACK_CYCLES);
+        else $error("[SVA-FAIL] F49 ACK_CYCLES=%0d is outside 1..4 (dma_engine ack_cnt is 2 bits, DMA-13)", ACK_CYCLES);
 `endif
 
     // ================================================================== reset (F11, F47)
@@ -365,21 +391,21 @@ module dma_sva #(
             !past_ok || !$past(wr_sar[g]) || (sar[32*g +: 32] == $past(wdata)))
             else $error("[SVA-FAIL] a_sar_write[%0d] (F04)", g);
         a_sar_step: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(beat_done[g] && !wr_sar[g]) ||
-            (sar[32*g +: 32] == $past(sar[32*g +: 32]) + ($past(sinc[g]) ? f_step($past(csize[g])) : 32'd0)))
+            !past_ok || !$past(cdone[g] && !wr_sar[g]) ||
+            (sar[32*g +: 32] == $past(sar[32*g +: 32]) + ($past(sinc[g]) ? f_step($past(beat_size_q)) : 32'd0)))
             else $error("[SVA-FAIL] a_sar_step[%0d] (F04)", g);
         a_sar_holds: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(!beat_done[g] && !wr_sar[g]) || $stable(sar[32*g +: 32]))
+            !past_ok || !$past(!cdone[g] && !wr_sar[g]) || $stable(sar[32*g +: 32]))
             else $error("[SVA-FAIL] a_sar_holds[%0d]: SAR moved with no beat and no write (N-7.15)", g);
         a_dar_write: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
             !past_ok || !$past(wr_dar[g]) || (dar[32*g +: 32] == $past(wdata)))
             else $error("[SVA-FAIL] a_dar_write[%0d] (F04)", g);
         a_dar_step: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(beat_done[g] && !wr_dar[g]) ||
-            (dar[32*g +: 32] == $past(dar[32*g +: 32]) + ($past(dinc[g]) ? f_step($past(csize[g])) : 32'd0)))
+            !past_ok || !$past(cdone[g] && !wr_dar[g]) ||
+            (dar[32*g +: 32] == $past(dar[32*g +: 32]) + ($past(dinc[g]) ? f_step($past(beat_size_q)) : 32'd0)))
             else $error("[SVA-FAIL] a_dar_step[%0d] (F04)", g);
         a_dar_holds: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(!beat_done[g] && !wr_dar[g]) || $stable(dar[32*g +: 32]))
+            !past_ok || !$past(!cdone[g] && !wr_dar[g]) || $stable(dar[32*g +: 32]))
             else $error("[SVA-FAIL] a_dar_holds[%0d]: DAR moved with no beat and no write (N-7.15)", g);
         a_cnt_write: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
             !past_ok || !$past(wr_cnt[g]) || (cnt[32*g +: 32] == {16'd0, $past(wdata[15:0])}))
@@ -390,9 +416,9 @@ module dma_sva #(
         c_sar_write:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i) wr_sar[g]);
         c_dar_write:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i) wr_dar[g]);
         c_cnt_write:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i) wr_cnt[g]);
-        c_beat_done:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i) beat_done[g]);
-        c_step_sinc:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i) beat_done[g] && sinc[g] && !wr_sar[g]);
-        c_step_dinc:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i) beat_done[g] && dinc[g] && !wr_dar[g]);
+        c_beat_done:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i) cdone[g]);
+        c_step_sinc:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i) cdone[g] && sinc[g] && !wr_sar[g]);
+        c_step_dinc:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i) cdone[g] && dinc[g] && !wr_dar[g]);
 
         // ============================================================== STAT (F06, F07, F18, F19, F29)
         a_active_def: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
@@ -402,77 +428,81 @@ module dma_sva #(
             stat[32*g + 22 +: 10] == 10'd0 && eph[g] inside {3'd0, 3'd1, 3'd2})
             else $error("[SVA-FAIL] a_stat_reserved[%0d] (F06)", g);
         a_rem_step: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(beat_done[g]) || (rem[g] == $past(rem[g]) - 16'd1))
+            !past_ok || !$past(cdone[g]) || (rem[g] == $past(rem[g]) - 16'd1))
             else $error("[SVA-FAIL] a_rem_step[%0d] (F18)", g);
         a_rem_holds: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(!beat_done[g] && !arm[g]) || $stable(rem[g]))
+            !past_ok || !$past(!cdone[g] && !arm[g]) || $stable(rem[g]))
             else $error("[SVA-FAIL] a_rem_holds[%0d] (F18)", g);
-        // arming loads REMAINING from CNT (the proposed DMA-9 ruling; see the header)
+        // arming loads REMAINING from CNT (the DMA-11 ruling; see the header)
         a_arm_loads: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(arm[g] && !beat_done[g]) ||
+            !past_ok || !$past(arm[g] && !cdone[g]) ||
             (rem[g] == $past(cnt[32*g +: 16]) && comp[g] == ($past(cnt[32*g +: 16]) == 16'd0)))
             else $error("[SVA-FAIL] a_arm_loads[%0d]: arming must load REMAINING from CNT, COMPLETE only if CNT = 0 (F18, F42)", g);
         a_complete_on_last: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(beat_done[g] && rem[g] == 16'd1) || (comp[g] && rem[g] == 16'd0 && !en[g] && !active[g]))
+            !past_ok || !$past(cdone[g] && rem[g] == 16'd1) || (comp[g] && rem[g] == 16'd0 && !en[g] && !active[g]))
             else $error("[SVA-FAIL] a_complete_on_last[%0d] ([N-7.3], F19)", g);
         a_complete_sticky: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
             !past_ok || !$past(comp[g] && !(wr_iclr[g] && wdata[0]) && !arm[g]) || comp[g])
             else $error("[SVA-FAIL] a_complete_sticky[%0d] (F07)", g);
         a_complete_only_by_hw: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
             !past_ok || !$rose(comp[g]) ||
-            $past(beat_done[g] && rem[g] == 16'd1) || $past(arm[g] && cnt[32*g +: 16] == 16'd0))
+            $past(cdone[g] && rem[g] == 16'd1) || $past(arm[g] && cnt[32*g +: 16] == 16'd0))
             else $error("[SVA-FAIL] a_complete_only_by_hw[%0d] (F19)", g);
         a_error_on_beat_err: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(beat_err[g]) || (err[g] && !en[g] && eph[g] == $past(err_phase)))
+            !past_ok || !$past(cerr[g]) || (err[g] && !en[g] && eph[g] == $past(err_phase)))
             else $error("[SVA-FAIL] a_error_on_beat_err[%0d] ([N-7.13], F29)", g);
         a_error_sticky: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(err[g] && !(wr_iclr[g] && wdata[1]) && !beat_err[g]) || (err[g] && $stable(eph[g])))
+            !past_ok || !$past(err[g] && !(wr_iclr[g] && wdata[1]) && !cerr[g]) || (err[g] && $stable(eph[g])))
             else $error("[SVA-FAIL] a_error_sticky[%0d] (F07, F29)", g);
         a_error_only_by_hw: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$rose(err[g]) || $past(beat_err[g]))
+            !past_ok || !$rose(err[g]) || $past(cerr[g]))
             else $error("[SVA-FAIL] a_error_only_by_hw[%0d] (F29)", g);
         // ICLR (F07): W1C, a hardware set in the same cycle wins ([N-7.19])
         a_iclr_complete: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(wr_iclr[g] && wdata[0] && !(beat_done[g] && rem[g] == 16'd1)) || !comp[g])
+            !past_ok || !$past(wr_iclr[g] && wdata[0] && !(cdone[g] && rem[g] == 16'd1)) || !comp[g])
             else $error("[SVA-FAIL] a_iclr_complete[%0d] (F07)", g);
         a_iclr_error: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(wr_iclr[g] && wdata[1] && !beat_err[g]) || (!err[g] && eph[g] == 3'd0))
+            !past_ok || !$past(wr_iclr[g] && wdata[1] && !cerr[g]) || (!err[g] && eph[g] == 3'd0))
             else $error("[SVA-FAIL] a_iclr_error[%0d]: ERROR or ERRPHASE survived ICLR (F07)", g);
         a_set_beats_clear_complete: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(beat_done[g] && rem[g] == 16'd1 && wr_iclr[g] && wdata[0]) || comp[g])
+            !past_ok || !$past(cdone[g] && rem[g] == 16'd1 && wr_iclr[g] && wdata[0]) || comp[g])
             else $error("[SVA-FAIL] a_set_beats_clear_complete[%0d] (F07, F35)", g);
         a_set_beats_clear_error: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(beat_err[g] && wr_iclr[g] && wdata[1]) || err[g])
+            !past_ok || !$past(cerr[g] && wr_iclr[g] && wdata[1]) || err[g])
             else $error("[SVA-FAIL] a_set_beats_clear_error[%0d] (F07, F35)", g);
         // freeze at the failing beat ([N-7.15]), except for a software write (row F29 as corrected)
         a_freeze_on_error: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !past_ok || !$past(err[g] && !en[g] && !arm[g] && !beat_done[g]) || $stable(rem[g]))
+            !past_ok || !$past(err[g] && !en[g] && !arm[g] && !cdone[g]) || $stable(rem[g]))
             else $error("[SVA-FAIL] a_freeze_on_error[%0d] (F29)", g);
-        c_arm:               cover property (@(posedge hclk_i) disable iff (!hreset_n_i) arm[g] && !beat_done[g]);
+        c_arm:               cover property (@(posedge hclk_i) disable iff (!hreset_n_i) arm[g] && !cdone[g]);
         c_zero_length:       cover property (@(posedge hclk_i) disable iff (!hreset_n_i) arm[g] && cnt[32*g +: 16] == 16'd0);
         c_cnt_max:           cover property (@(posedge hclk_i) disable iff (!hreset_n_i) arm[g] && cnt[32*g +: 16] == 16'hFFFF);
-        c_complete:          cover property (@(posedge hclk_i) disable iff (!hreset_n_i) beat_done[g] && rem[g] == 16'd1);
+        c_complete:          cover property (@(posedge hclk_i) disable iff (!hreset_n_i) cdone[g] && rem[g] == 16'd1);
         c_complete_held:     cover property (@(posedge hclk_i) disable iff (!hreset_n_i) comp[g] && !(wr_iclr[g] && wdata[0]) && !arm[g]);
-        c_err_held:          cover property (@(posedge hclk_i) disable iff (!hreset_n_i) err[g] && !(wr_iclr[g] && wdata[1]) && !beat_err[g]);
+        c_err_held:          cover property (@(posedge hclk_i) disable iff (!hreset_n_i) err[g] && !(wr_iclr[g] && wdata[1]) && !cerr[g]);
         c_iclr_complete:     cover property (@(posedge hclk_i) disable iff (!hreset_n_i) wr_iclr[g] && wdata[0] && comp[g]);
         c_iclr_error:        cover property (@(posedge hclk_i) disable iff (!hreset_n_i) wr_iclr[g] && wdata[1] && err[g]);
-        c_set_beats_clear_c: cover property (@(posedge hclk_i) disable iff (!hreset_n_i) beat_done[g] && rem[g] == 16'd1 && wr_iclr[g] && wdata[0]);
-        c_set_beats_clear_e: cover property (@(posedge hclk_i) disable iff (!hreset_n_i) beat_err[g] && wr_iclr[g] && wdata[1]);
-        c_frozen:            cover property (@(posedge hclk_i) disable iff (!hreset_n_i) err[g] && !en[g] && !arm[g] && !beat_done[g]);
+        c_set_beats_clear_c: cover property (@(posedge hclk_i) disable iff (!hreset_n_i) cdone[g] && rem[g] == 16'd1 && wr_iclr[g] && wdata[0]);
+        c_set_beats_clear_e: cover property (@(posedge hclk_i) disable iff (!hreset_n_i) cerr[g] && wr_iclr[g] && wdata[1]);
+        c_frozen:            cover property (@(posedge hclk_i) disable iff (!hreset_n_i) err[g] && !en[g] && !arm[g] && !cdone[g]);
 
-        // ============================================================== DMA-11 detectors (F06, F19, F44)
+        // ============================================================== DMA-9 (F06, F19, F44; working ID DMA-11), fixed 2026-11-01
         a_remaining_complete_consistent: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
             !comp[g] || (rem[g] == 16'd0))
-            else $error("[SVA-FAIL] a_remaining_complete_consistent[%0d]: COMPLETE with REMAINING=%0d (R-6, DMA-11)", g, rem[g]);
+            else $error("[SVA-FAIL] a_remaining_complete_consistent[%0d]: COMPLETE with REMAINING=%0d (R-6, DMA-9)", g, rem[g]);
         a_no_rem_underflow: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !beat_done[g] || (rem[g] != 16'd0))
-            else $error("[SVA-FAIL] a_no_rem_underflow[%0d]: a beat completed with REMAINING = 0 (DMA-11)", g);
+            !cdone[g] || (rem[g] != 16'd0))
+            else $error("[SVA-FAIL] a_no_rem_underflow[%0d]: a beat completed with REMAINING = 0 (DMA-9)", g);
+        // DMA-9 ruling (2026-11-01): a beat taken before the last arm does not count in it: REMAINING
+        // is left to the arm (CNT if the arm is in the same cycle, else unchanged)
         a_beat_belongs_to_arm: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !beat_done[g] || (beat_open && beat_ch == g && beat_gen == arm_gen[g]))
-            else $error("[SVA-FAIL] a_beat_belongs_to_arm[%0d]: a beat started before the last arm was counted in it (DMA-11)", g);
+            !past_ok || !$past(beat_done[g] && !cdone[g]) ||
+            (rem[g] == ($past(arm[g]) ? $past(cnt[32*g +: 16]) : $past(rem[g]))))
+            else $error("[SVA-FAIL] a_beat_belongs_to_arm[%0d]: a beat started before the last arm was counted in it (DMA-9)", g);
+        c_stale_beat: cover property (@(posedge hclk_i) disable iff (!hreset_n_i) beat_done[g] && !cdone[g]);
         c_comp:              cover property (@(posedge hclk_i) disable iff (!hreset_n_i) comp[g]);
-        c_rearm_in_flight:   cover property (@(posedge hclk_i) disable iff (!hreset_n_i) arm[g] && beat_open && beat_ch == g);   // DMA-11 scenario
-        c_restart_after_stop:cover property (@(posedge hclk_i) disable iff (!hreset_n_i) arm[g] && rem[g] != 16'd0);            // DMA-9 scenario
+        c_rearm_in_flight:   cover property (@(posedge hclk_i) disable iff (!hreset_n_i) arm[g] && beat_open && beat_ch == g);   // DMA-9 scenario
+        c_restart_after_stop:cover property (@(posedge hclk_i) disable iff (!hreset_n_i) arm[g] && rem[g] != 16'd0);            // DMA-11 scenario
 
         // ============================================================== interrupts (F33)
         a_irq_level: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
@@ -508,8 +538,14 @@ module dma_sva #(
             !ack_rise[g] || beat_done[g])
             else $error("[SVA-FAIL] a_ack_with_done[%0d]: dma_ack without a successful beat (F22)", g);
         a_done_gives_ack: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-            !beat_done[g] || ack_rise[g])
-            else $error("[SVA-FAIL] a_done_gives_ack[%0d]: a successful beat with no dma_ack (F22)", g);
+            !beat_done[g] || ack_rise[g] || beat_m2m_q)   // DMA-15: no acknowledge for an M2M beat
+            else $error("[SVA-FAIL] a_done_gives_ack[%0d]: a successful peripheral beat with no dma_ack (F22)", g);
+        // DMA-15 ruling (2026-11-01): an M2M beat (MODE of its take) gives no acknowledge,
+        // because no peripheral asked for it
+        a_no_ack_for_m2m: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+            !(beat_done[g] && beat_m2m_q) || !ack_rise[g])
+            else $error("[SVA-FAIL] a_no_ack_for_m2m[%0d]: dma_ack for an M2M beat (DMA-15)", g);
+        c_m2m_done: cover property (@(posedge hclk_i) disable iff (!hreset_n_i) beat_done[g] && beat_m2m_q);
         // row F22 as corrected: two hclk cycles, seen high by exactly one pclk edge
         a_ack_width: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
             !past_ok || !(!dma_ack_o[g] && $past(dma_ack_o[g])) || (ack_len[g] == 4'(ACK_CYCLES)))
@@ -577,9 +613,9 @@ module dma_sva #(
     a_beat_atomic: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)                  // white-box, [N-7.11]
         !past_ok || !$past(eng_st != E_IDLE) || (eng_st == E_IDLE || eng_ch == $past(eng_ch)))
         else $error("[SVA-FAIL] a_beat_atomic: the engine changed channel inside a beat (F27)");
-    // DMA-14 detector (F45, F20): a beat keeps the SIZE it was taken with, for its read
-    // and its write. Fails on today's RTL when a CR write (e.g. the stop CR = 0, which
-    // also writes SIZE = byte) lands while the beat is in flight: dma_engine reads SIZE live.
+    // DMA-14 (F45, F20; fixed 2026-11-01): a beat keeps the SIZE it was taken with, for its
+    // read and its write, also when a CR write (e.g. the stop CR = 0, which also writes
+    // SIZE = byte) lands while it is in flight. Until the fix dma_engine read SIZE live.
     a_beat_size_atomic: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
         !htrans_o[1] || (hsize_o == {1'b0, beat_size_q}))
         else $error("[SVA-FAIL] a_beat_size_atomic: HSIZE %0d inside a beat taken with SIZE %0d (DMA-14, F45)", hsize_o, beat_size_q);
@@ -605,18 +641,26 @@ module dma_sva #(
         !(dp_wr && hready_i && !hresp_i) || f_lanes_ok(hsize_o, rd_lane_q, wr_lane_q, rd_data_q, hwdata_o))
         else $error("[SVA-FAIL] a_write_data: wrote %08h (lane %0d), read %08h (lane %0d), hsize=%0d (F17)",
                     hwdata_o, wr_lane_q, rd_data_q, rd_lane_q, hsize_o);
-    // AHB-Lite: HADDR is aligned to HSIZE. DMA-13 detector (F17): fails on today's RTL
-    // when a halfword or word channel is given an unaligned SAR or DAR.
+    // AHB-Lite: HADDR is aligned to HSIZE (F17). DMA-10 (fixed 2026-11-01; working ID
+    // DMA-13): an unaligned SAR or DAR is refused before any transfer instead of going out.
     a_haddr_aligned: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
         !htrans_o[1] || (hsize_o == 3'b000) || (hsize_o == 3'b001 && !haddr_o[0]) ||
         (hsize_o == 3'b010 && haddr_o[1:0] == 2'b00))
-        else $error("[SVA-FAIL] a_haddr_aligned: HADDR %08h is not aligned to HSIZE %0d (AHB-Lite, DMA-13, F17)", haddr_o, hsize_o);
+        else $error("[SVA-FAIL] a_haddr_aligned: HADDR %08h is not aligned to HSIZE %0d (AHB-Lite, DMA-10, F17)", haddr_o, hsize_o);
     a_no_isram: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
         !htrans_o[1] || !f_r9_bad(haddr_o))
         else $error("[SVA-FAIL] a_no_isram: DMA presented %08h (R-9, F32)", haddr_o);
     a_read_then_write: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
         !rd_addr || (!dp_rd && !dp_wr && !beat_open))
         else $error("[SVA-FAIL] a_read_then_write: a read began while another beat was open ([N-7.2], F16)");
+    // DMA-14 ruling: the beat reads at the SAR and writes at the DAR of its take, whatever
+    // software writes to SAR / DAR meanwhile (review 2026-11-03: no property tied HADDR to them)
+    a_read_addr: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        !rd_addr || haddr_o == beat_sar_q)
+        else $error("[SVA-FAIL] a_read_addr: read at %08h, the beat's SAR is %08h (DMA-14, F16)", haddr_o, beat_sar_q);
+    a_write_addr: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        !wr_addr || haddr_o == beat_dar_q)
+        else $error("[SVA-FAIL] a_write_addr: write at %08h, the beat's DAR is %08h (DMA-14, F16)", haddr_o, beat_dar_q);
     a_write_same_beat: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
         !wr_addr || (beat_open && eng_ch == beat_ch))
         else $error("[SVA-FAIL] a_write_same_beat: a write with no read of the same channel before it (F16)");
@@ -629,19 +673,27 @@ module dma_sva #(
     a_errphase_write: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
         !past_ok || !$past(dp_wr && hready_i && hresp_i) || (beat_err == (6'd1 << $past(eng_ch)) && err_phase == 3'd2))
         else $error("[SVA-FAIL] a_errphase_write (F29)");
+    // R-9 with the DMA-10 / DMA-12 rulings (2026-11-01): a beat whose SAR or DAR (those of its
+    // take) is in a refused region or not aligned to its SIZE is refused in E_RA, before any
+    // transfer: the SAR first (ERRPHASE read), else the DAR (ERRPHASE write). Until the
+    // DMA-12 fix the DAR was refused in E_WA, after the source read.
     a_refuse_sar: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)                    // white-box state
-        !past_ok || !$past(eng_st == E_RA && sar_bad_cur) ||
+        !past_ok || !$past(eng_st == E_RA && sar_bad_beat) ||
         (beat_err == (6'd1 << $past(eng_ch)) && err_phase == 3'd1 && htrans_o == T_IDLE))
-        else $error("[SVA-FAIL] a_refuse_sar (R-9, F32)");
+        else $error("[SVA-FAIL] a_refuse_sar (R-9, DMA-10, F32)");
     a_refuse_dar: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        !past_ok || !$past(eng_st == E_WA && dar_bad_cur) ||
+        !past_ok || !$past(eng_st == E_RA && !sar_bad_beat && dar_bad_beat) ||
         (beat_err == (6'd1 << $past(eng_ch)) && err_phase == 3'd2 && htrans_o == T_IDLE))
-        else $error("[SVA-FAIL] a_refuse_dar (R-9, F32)");
-    // DMA-10 detector (F43); fails on today's RTL whenever a bad DAR is refused
+        else $error("[SVA-FAIL] a_refuse_dar (R-9, DMA-10, DMA-12, F32)");
+    // DMA-12 (F43; working ID DMA-10, fixed 2026-11-01): no source read for a refused DAR
     a_no_read_before_refusal: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        !rd_addr || !dar_bad_cur)
-        else $error("[SVA-FAIL] a_no_read_before_refusal: source read for a beat whose DAR %08h will be refused (DMA-10, F43)",
-                    dar[32*eng_ch +: 32]);
+        !rd_addr || !dar_bad_beat)
+        else $error("[SVA-FAIL] a_no_read_before_refusal: source read for a beat whose DAR %08h is refused (DMA-12, F43)",
+                    beat_dar_q);
+    // DMA-14 / DMA-15 rulings: while a beat is in flight the engine keeps the MODE of its take
+    a_m2m_latched: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)                   // white-box
+        (eng_st == E_IDLE) || (eng_m2m == beat_m2m_q))
+        else $error("[SVA-FAIL] a_m2m_latched: the engine's M2M flag is not the MODE of the take (DMA-15)");
 
     // ================================================================== covers, bus and reset
     c_take:          cover property (@(posedge hclk_i) disable iff (!hreset_n_i) eng_st == E_IDLE && grant_valid && beat_done == 6'd0 && beat_err == 6'd0);
@@ -655,12 +707,20 @@ module dma_sva #(
     c_rd_error:      cover property (@(posedge hclk_i) disable iff (!hreset_n_i) dp_rd && hready_i && hresp_i);
     c_wr_error:      cover property (@(posedge hclk_i) disable iff (!hreset_n_i) dp_wr && hready_i && hresp_i);
     c_after_rd_err:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i) rd_err_pend && htrans_o[1]);
-    c_refuse_sar:    cover property (@(posedge hclk_i) disable iff (!hreset_n_i) eng_st == E_RA && sar_bad_cur);
-    c_refuse_dar:    cover property (@(posedge hclk_i) disable iff (!hreset_n_i) eng_st == E_WA && dar_bad_cur);
+    c_refuse_sar:    cover property (@(posedge hclk_i) disable iff (!hreset_n_i) eng_st == E_RA && sar_bad_beat);
+    c_refuse_dar:    cover property (@(posedge hclk_i) disable iff (!hreset_n_i) eng_st == E_RA && !sar_bad_beat && dar_bad_beat);
+    c_refuse_align:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i)                  // DMA-10: alignment only
+        eng_st == E_RA && !f_r9_bad(beat_sar_q) && !f_r9_bad(beat_dar_q) && (sar_bad_beat || dar_bad_beat));
+    c_sar_write_at_take: cover property (@(posedge hclk_i) disable iff (!hreset_n_i)              // DMA-14: the take wins
+        eng_take && wr_sar[grant_ch]);
     c_byte_beat:     cover property (@(posedge hclk_i) disable iff (!hreset_n_i) rd_addr && hsize_o == 3'b000 && haddr_o[1:0] == 2'b11);
     c_half_beat:     cover property (@(posedge hclk_i) disable iff (!hreset_n_i) rd_addr && hsize_o == 3'b001 && haddr_o[1] == 1'b1);
-    c_unaligned:     cover property (@(posedge hclk_i) disable iff (!hreset_n_i) htrans_o[1] && hsize_o == 3'b010 && haddr_o[1:0] != 2'b00);
-    c_unaligned_half:cover property (@(posedge hclk_i) disable iff (!hreset_n_i) htrans_o[1] && hsize_o == 3'b001 && haddr_o[0]);
+    // DMA-10 (2026-11-01): an unaligned beat never reaches the bus; these cover its refusal
+    // (until then they covered the unaligned transfer itself)
+    c_unaligned:     cover property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        eng_st == E_RA && beat_size_q == 2'd2 && (beat_sar_q[1:0] != 2'b00 || beat_dar_q[1:0] != 2'b00));
+    c_unaligned_half:cover property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        eng_st == E_RA && beat_size_q == 2'd1 && (beat_sar_q[0] || beat_dar_q[0]));
     c_gstat_read:    cover property (@(posedge pclk_i) disable iff (!preset_n_i) apb_acc && !pwrite_i && paddr_i == 12'h100);
     c_ro_write:      cover property (@(posedge pclk_i) disable iff (!preset_n_i) apb_acc && pwrite_i && f_read_only(paddr_i));
     c_unmapped:      cover property (@(posedge pclk_i) disable iff (!preset_n_i) apb_acc && !f_mapped(paddr_i));
@@ -685,7 +745,7 @@ bind dma_top dma_sva #(.PRIO(PRIO), .ACK_CYCLES(ACK_CYCLES)) u_dma_props_a (
     .wdata(wdata), .cr(cr), .sar(sar), .dar(dar), .cnt(cnt), .stat(stat),
     .eligible(eligible), .beat_done(beat_done), .beat_err(beat_err), .err_phase(err_phase),
     .grant_valid(grant_valid), .grant_ch(grant_ch),
-    .eng_st(u_eng.st), .eng_ch(u_eng.ch),
+    .eng_st(u_eng.st), .eng_ch(u_eng.ch), .eng_m2m(u_eng.m2m),
     .taken({g_ch[5].u_ch.taken_q, g_ch[4].u_ch.taken_q, g_ch[3].u_ch.taken_q,
             g_ch[2].u_ch.taken_q, g_ch[1].u_ch.taken_q, g_ch[0].u_ch.taken_q}));
 `endif

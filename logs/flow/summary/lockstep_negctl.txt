@@ -1,4 +1,4 @@
-lockstep negative controls  2026-11-03T22:28:56+05:30
+lockstep negative controls  2026-11-03T23:07:42+05:30
 reference: logs/core/raw/isa/add.commit.log
 
 N0  OK          rc=0   want=MATCH  untouched evidence
@@ -10,7 +10,7 @@ N3  CAUGHT      rc=1   want=fail   RTL log cut to half
 N4  CAUGHT      rc=1   want=fail   Spike log cut after 213 of 427 RTL commits
       MISMATCH: Spike's log ends 214 instructions before the RTL's (last common pc=100002bc) - 214 RTL instructions not compared
 N5  CAUGHT      rc=1   want=fail   Spike exits 1 after a full log (TOOL-12)
-      SPIKE-ERROR: Spike exited with status 1 - its log is not a reference (see /home/tg/garuda_push/rest_a/logs/flow/raw/negctl/n5.spike.log)
+      SPIKE-ERROR: Spike exited with status 1 - its log is not a reference (see /home/tg/garuda_push/rest_dma/logs/flow/raw/negctl/n5.spike.log)
 N1  -           rc=-   want=fail   add->sub at word 134: judged by negctl_prog suite
       prepared
 

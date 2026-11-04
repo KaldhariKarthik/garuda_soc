@@ -1,4 +1,4 @@
-# garuda-run 1 suite=selftest block=flow date=2026-11-03T22:28:50+05:30 design=dfab0bbf08f64ba296587f7ee71298a9fbaad266 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+# garuda-run 1 suite=selftest block=flow date=2026-11-03T23:07:36+05:30 design=dfab0bbf08f64ba296587f7ee71298a9fbaad266 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
 test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
 pass	PASS	OK	0	yes	0	0	0	-	1	0	-	1	0.02	18				logs/flow/raw/selftest/sim_pass_s1.log
 fail_line	FAIL	XFAIL:PLANTED	0	yes	1	0	0	-	1	0	-	1	0.02	18			1 [FAIL] line(s) | first: [FAIL] planted check failure	logs/flow/raw/selftest/sim_fail_line_s1.log

@@ -24,7 +24,7 @@
 #   evidence: PROVEN fv_dma_cov cov_prove and fv_dma dma_prove: a_state_legal (rtl/dma/dma_props_a.sv, eng_st <= E_WD)
 # exclude -inst dma_top.u_eng -block <IMC block id of that line> -comment "The default arm of the engine's state case: st only takes E_IDLE..E_WD (0..4); the arm exists for the codes 5..7 and resets to E_IDLE."
 # CT-ACKCNT-dma_engine (constant): PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_ackcnt_bit1; rtl/dma/dma_top.v:21 ACK_CYCLES = 2
-exclude -inst dma_top.u_eng -toggle ack_cnt\[1\] -comment "With the shipped ACK_CYCLES = 2 the ack stretch counter loads ACK_CYCLES - 1 = 1 at most: bit 1 stays 0 (DMA-12: values outside 1..4 are a separate bug)."
+exclude -inst dma_top.u_eng -toggle ack_cnt\[1\] -comment "With the shipped ACK_CYCLES = 2 the ack stretch counter loads ACK_CYCLES - 1 = 1 at most: bit 1 stays 0 (DMA-13: values outside 1..4 stop the simulation at time 0 since 2026-11-01)."
 # CT-CNTHI-dma_apb_slave (constant): literal rtl/dma/dma_chan.v:150 assign cnt_o = {16'd0, cnt_q}
 exclude -inst dma_top.u_apb -toggle cnt_i\[112\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top.u_apb -toggle cnt_i\[113\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."

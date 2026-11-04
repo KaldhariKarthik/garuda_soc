@@ -59,6 +59,8 @@ module dma_top #(
     wire [31:0] wdata;
     wire [6*32-1:0] cr, sar, dar, cnt, stat;
     wire [6*2-1:0]  size;
+    wire [5:0]  m2m, inflight;
+    wire [1:0]  beat_size;
     wire [5:0]  eligible, beat_done, beat_err;
     wire [2:0]  err_phase;
     wire        grant_valid;
@@ -83,8 +85,9 @@ module dma_top #(
             .cr_o(cr[32*n +: 32]), .sar_o(sar[32*n +: 32]), .dar_o(dar[32*n +: 32]),
             .cnt_o(cnt[32*n +: 32]), .stat_o(stat[32*n +: 32]),
             .req_i(dma_req_i[n]),
-            .eligible_o(eligible[n]), .size_o(size[2*n +: 2]),
+            .eligible_o(eligible[n]), .size_o(size[2*n +: 2]), .m2m_o(m2m[n]),
             .beat_done_i(beat_done[n]), .beat_err_i(beat_err[n]), .err_phase_i(err_phase),
+            .beat_size_i(beat_size), .inflight_i(inflight[n]),
             .complete_irq_o(dma_complete_o[n]), .error_irq_o(dma_error_o[n]));
     end endgenerate
 
@@ -94,9 +97,9 @@ module dma_top #(
     dma_engine #(.ACK_CYCLES(ACK_CYCLES)) u_eng (
         .hclk_i(hclk_i), .hreset_n_i(hreset_n_i),
         .grant_valid_i(grant_valid), .grant_ch_i(grant_ch),
-        .sar_i(sar), .dar_i(dar), .size_i(size),
+        .sar_i(sar), .dar_i(dar), .size_i(size), .m2m_i(m2m),
         .beat_done_o(beat_done), .beat_err_o(beat_err), .err_phase_o(err_phase),
-        .dma_ack_o(dma_ack_o),
+        .dma_ack_o(dma_ack_o), .beat_size_o(beat_size), .inflight_o(inflight),
         .haddr_o(haddr_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o), .hsize_o(hsize_o),
         .hburst_o(hburst_o), .hwdata_o(hwdata_o), .hrdata_i(hrdata_i),
         .hready_i(hready_i), .hresp_i(hresp_i), .busy_o());

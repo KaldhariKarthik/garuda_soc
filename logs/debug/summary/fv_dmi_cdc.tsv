@@ -1,15 +1,15 @@
-# garuda-fv 1 suite=fv_dmi_cdc block=debug date=2026-11-03T22:27:52+05:30 design=dfab0bbf08f64ba296587f7ee71298a9fbaad266 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+# garuda-fv 1 suite=fv_dmi_cdc block=debug date=2026-11-03T23:06:40+05:30 design=dfab0bbf08f64ba296587f7ee71298a9fbaad266 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
 task	mode	result	class	secs	detail	log
 cdc_abs_prove	prove	PROVEN	OK	2	[9 asserts, 9 covers in model] 	logs/debug/raw/fv_dmi_cdc/fv_cdc_abs_prove.log
 cdc_abs_cover	cover	COVERED	OK	1	[9 asserts, 9 covers in model] 	logs/debug/raw/fv_dmi_cdc/fv_cdc_abs_cover.log
 cdc_real_prove	prove	PROVEN	OK	12	[9 asserts, 9 covers in model] 	logs/debug/raw/fv_dmi_cdc/fv_cdc_real_prove.log
-cdc_meta_prove	prove	PROVEN	OK	4	[9 asserts, 11 covers in model] 	logs/debug/raw/fv_dmi_cdc/fv_cdc_meta_prove.log
+cdc_meta_prove	prove	PROVEN	OK	3	[9 asserts, 11 covers in model] 	logs/debug/raw/fv_dmi_cdc/fv_cdc_meta_prove.log
 cdc_meta_cover	cover	COVERED	OK	1	[9 asserts, 11 covers in model] 	logs/debug/raw/fv_dmi_cdc/fv_cdc_meta_cover.log
 cdc_overconstrained	cover	UNREACHED-AS-EXPECTED	OK	1	[9 asserts, 9 covers in model] unreached exactly: c_hclk_fast c_tck_stopped_busy	logs/debug/raw/fv_dmi_cdc/fv_cdc_overconstrained.log
 cdc_no_fc1	prove	FAIL	XFAIL:PLANTED	0	[9 asserts, 9 covers in model] props: a_cdc_no_late_exec	logs/debug/raw/fv_dmi_cdc/fv_cdc_no_fc1.log
 mut_dbg6_revert	prove	FAIL	XFAIL:PLANTED	1	[9 asserts, 9 covers in model] props: a_cdc_ack_genuine	logs/debug/raw/fv_dmi_cdc/fv_mut_dbg6_revert.log
 mut_rise_only	prove	FAIL	XFAIL:PLANTED	1	[9 asserts, 9 covers in model] props: a_cdc_deliver_bound	logs/debug/raw/fv_dmi_cdc/fv_mut_rise_only.log
-mut_no_adopt	prove	FAIL	XFAIL:PLANTED	1	[9 asserts, 9 covers in model] props: a_cdc_hside_done	logs/debug/raw/fv_dmi_cdc/fv_mut_no_adopt.log
+mut_no_adopt	prove	FAIL	XFAIL:PLANTED	0	[9 asserts, 9 covers in model] props: a_cdc_hside_done	logs/debug/raw/fv_dmi_cdc/fv_mut_no_adopt.log
 mut_ack_twice	prove	FAIL	XFAIL:PLANTED	1	[9 asserts, 9 covers in model] props: a_cdc_hside_done	logs/debug/raw/fv_dmi_cdc/fv_mut_ack_twice.log
 mut_pulse_stage0	prove	FAIL	XFAIL:PLANTED	1	[9 asserts, 9 covers in model] props: a_cdc_hside_done	logs/debug/raw/fv_dmi_cdc/fv_mut_pulse_stage0.log
-mut_dtm_payload_moves	prove	FAIL	XFAIL:PLANTED	10	[9 asserts, 9 covers in model] props: a_req_payload_held	logs/debug/raw/fv_dmi_cdc/fv_mut_dtm_payload_moves.log
+mut_dtm_payload_moves	prove	FAIL	XFAIL:PLANTED	11	[9 asserts, 9 covers in model] props: a_req_payload_held	logs/debug/raw/fv_dmi_cdc/fv_mut_dtm_payload_moves.log

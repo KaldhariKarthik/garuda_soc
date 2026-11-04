@@ -281,8 +281,23 @@ DMA does not use bursts.
 **[N-7.3]** When `REMAINING` reaches zero: `COMPLETE` sets, `ACTIVE` clears, hardware clears
 `EN`, and `dma_complete_o[n]` asserts if `IE_COMP` is set.
 
-**[N-7.4]** `dma_complete_o[n]` is level and stays asserted until `ICLR` clears `COMPLETE`.
-This matches the CLIC's level-triggered contract (`GARUDA-CLIC-SPEC-001` §7.2).
+**[N-7.4]** `dma_complete_o[n]` is level and stays asserted until `ICLR` clears `COMPLETE`,
+or until the channel is armed again with `CNT` ≠ 0 (arming starts a new transfer with
+`COMPLETE` clear, so `COMPLETE` always means `REMAINING` = 0; DMA-18). This matches the CLIC's
+level-triggered contract (`GARUDA-CLIC-SPEC-001` §7.2).
+
+**[N-7.4a]** (Track A rulings, 2026-11-01) Stopping and re-arming:
+- `EN` = 0 aborts the transfer at the next beat boundary; `SAR`, `DAR` and `REMAINING` keep the
+  values of that point. Setting `EN` again starts a NEW transfer of `CNT` beats from the
+  current `SAR` / `DAR`; to resume the aborted one, write `CNT` = `REMAINING` first (DMA-11).
+- A beat already in progress when the channel is re-armed finishes on the bus but does not
+  count in the new transfer: `REMAINING`, `SAR`, `DAR`, `COMPLETE` and `ERROR` are the new
+  transfer's (DMA-9).
+- A beat uses the `SIZE`, `SAR`, `DAR` and `MODE` it was started with; a `CR` write during a
+  beat (including the stop `CR` = 0) takes effect at the next beat (DMA-14).
+- `SAR` and `DAR` are checked, region (R-9) and alignment to `SIZE`, before the read: a bad
+  `SAR` ends the beat with `ERRPHASE` = read, a bad `DAR` with `ERRPHASE` = write, and no AHB
+  transfer is made (DMA-10, DMA-12).
 
 ### 7.2 Modes
 
@@ -307,6 +322,11 @@ nothing over the P2M/M2P datapath.
 
 **[N-7.7]** `dma_req_i[n]` is level: the peripheral asserts it while it has data (P2M) or
 space (M2P), and deasserts when the beat has been taken.
+
+**[N-7.7a]** (DMA-15, DMA-19) `dma_ack_o[n]` pulses only for beats of a peripheral mode (P2M,
+M2P); an M2M beat, which no peripheral requested, gives no acknowledge. One beat serves one
+request assertion: a request that falls and rises again while the channel's own beat is still on
+the bus is served by that beat (a compliant peripheral holds its request until the acknowledge).
 
 **[N-7.8]** `dma_ack_o[n]` is a pulse two `hclk` cycles wide (one `pclk` period; D-16,
 erratum DMA-7), asserted when a beat completes successfully. The `pclk`-domain peripheral
@@ -345,6 +365,10 @@ global error state.
 **[N-7.15]** `REMAINING` freezing rather than zeroing means firmware can compute exactly
 which address failed: `SAR` and `DAR` also hold their values at the point of failure, since
 they are only incremented on a successful beat.
+
+**[N-7.15a]** (DMA-16) In P2M, the read has already taken the item from the peripheral when
+the write fails: that item is lost. Firmware that must not lose data re-reads the peripheral
+state after an error; the next beat after a re-arm takes the next item.
 
 **[N-7.16]** The channel is not automatically retried. A bus error from a DMA channel means
 a bad address in `SAR`/`DAR`, which is a firmware bug, and retrying a bad address forever is

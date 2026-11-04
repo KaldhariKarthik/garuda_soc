@@ -22,4 +22,4 @@ require = ['tb_dma_top: checks=64 +FAIL=0']
 # because today's engine reads the source first. 31 = 1 (step 5, DAR in ISRAM)
 # + 6 (step 10, DAR in Boot ROM/ISRAM on every channel) + 24 (step 13, the
 # ICLR-vs-ERROR sweep, which uses the late refusal to time its error).
-known = [['a_no_read_before_refusal', 31, 'DMA-10']]
+known = []   # DMA-12 (working ID DMA-10) fixed 2026-11-01: the refusal comes before any read

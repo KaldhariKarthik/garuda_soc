@@ -1,4 +1,4 @@
-garuda-run 1  suite units_spec  block dsu  2026-11-03T22:03:13+05:30
+garuda-run 1  suite units_spec  block dsu  2026-11-03T22:56:48+05:30
 design dfab0bbf08f64ba296587f7ee71298a9fbaad266  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
 
 PASS    OK                      tb_dsu_overflow_flag_spec        

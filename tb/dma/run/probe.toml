@@ -1,8 +1,9 @@
 # DMA defect reproducers (Track A, DMA plan D1): tb/dma/tb_dma_probe.sv, one row per
-# case. Each case checks the specified behaviour, so it fails on today's RTL exactly
-# while its defect is open (xfail with the bug ID and the reason it must fail for)
-# and passes once fixed. dma_sva is bound, so the DMA-10/DMA-11 rows also show the
-# detector firing: these rows are the negative control of those properties.
+# case. Each case checks the specified behaviour, so it failed while its defect was open
+# (xfail with the bug ID) and passes once fixed. Since the DMA rulings (branch
+# a/dma-rulings, 2026-11-01) every row passes and is a regression test; the comment on
+# each row says how it failed before. The formal negative controls of the fixed defects
+# are the mut_dma*_revert tasks in tb/dma/formal/dma.toml.
 # Run: make -f flow/mk/track_a_run.mk dma_probe
 [suite]
 block = "dma"
@@ -18,12 +19,12 @@ timeout = 600
 
 [[test]]
 name     = "probe_dma9"
-fail_reason = '^\[FAIL\] \[DMA-9\] \[F20\] EN set again continues'
+# fixed 2026-11-01 (DMA-11 ruling: before, the case expected a resume from REMAINING)
 plusargs = ["+CASE=dma9"]
 
 [[test]]
 name     = "probe_dma10"
-fail_reason = 'Assertion failed in \S*a_no_read_before_refusal'
+# fixed 2026-11-01 (DMA-12: failed by a_no_read_before_refusal)
 plusargs = ["+CASE=dma10"]
 
 [[test]]
@@ -32,28 +33,28 @@ plusargs = ["+CASE=r9_sar"]
 
 [[test]]
 name     = "probe_dma11a"
-fail_reason = 'Assertion failed in \S*a_remaining_complete_consistent'
+# fixed 2026-11-01 (DMA-9: failed by a_remaining_complete_consistent)
 plusargs = ["+CASE=dma11a"]
 
 [[test]]
 name     = "probe_dma11b"
-fail_reason = 'Assertion failed in \S*a_beat_belongs_to_arm'
+# fixed 2026-11-01 (DMA-9: failed by a_beat_belongs_to_arm)
 plusargs = ["+CASE=dma11b"]
 
 [[test]]
 name     = "probe_unaligned"
 plusargs = ["+CASE=unaligned"]
-fail_reason = 'Assertion failed in \S*a_haddr_aligned'
+# fixed 2026-11-01 (DMA-10: failed by a_haddr_aligned)
 
 [[test]]
 name     = "probe_stop_size"
-fail_reason = 'Assertion failed in \S*a_beat_size_atomic'
+# fixed 2026-11-01 (DMA-14: failed by a_beat_size_atomic)
 plusargs = ["+CASE=stop_size"]
 
 [[test]]
 name     = "probe_m2m_ack"
 plusargs = ["+CASE=m2m_ack"]
-fail_reason = '^\[FAIL\] \[DMA-15\]'
+# fixed 2026-11-01 (DMA-15: failed with [FAIL] [DMA-15])
 
 [[test]]
 name     = "probe_ack"

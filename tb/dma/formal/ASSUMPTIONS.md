@@ -39,7 +39,8 @@ that uses one says so in `rtl/dma/dma_props_a.sv`.
 ## Property selection
 
 Each task picks its properties with `chformal` in its `script` (no ifdefs in
-`dma_props_a.sv`): the proof tasks leave out the open-bug detectors (DMA-10, DMA-11,
-DMA-13, DMA-14, including `a_write_data`, which fails through DMA-14 and DMA-13) and
-the pclk-timing properties; each `*_find` task and each negative control keeps only
-the properties it is about, so a FAIL cannot come from another property.
+`dma_props_a.sv`): the proof tasks keep every property except the pclk-timing
+ones. Until the DMA rulings (2026-11-01) they left out the open-bug detectors and a
+`*_find` task found each open defect; since then each fixed defect has a
+`mut_dma*_revert` control. Each control keeps only the properties it is about, so a
+FAIL cannot come from another property.

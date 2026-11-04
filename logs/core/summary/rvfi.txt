@@ -1,4 +1,4 @@
-garuda-run 1  suite rvfi  block core  2026-11-03T21:41:43+05:30
+garuda-run 1  suite rvfi  block core  2026-11-03T22:37:25+05:30
 design dfab0bbf08f64ba296587f7ee71298a9fbaad266  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
 
 PASS    OK                      rv_t_core_mret_buserr     

@@ -74,7 +74,7 @@ plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_basic.hex"]
 # its known entry was removed on 2026-10-15 (a/track-a on 167aa93).
 known = [
   # dma_sva (bound 2026-10-12): step 12 refuses DAR 0x8000 (ISRAM) after reading the source
-  ['a_no_read_before_refusal', 1, "DMA-10"],
+  # DMA-12 (working ID DMA-10) fixed 2026-11-01: a_no_read_before_refusal no longer fires
 ]
 [[test]]
 name = "t_chip_wdt"

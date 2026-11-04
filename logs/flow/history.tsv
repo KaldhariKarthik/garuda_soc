@@ -484,29 +484,55 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-01T18:33:47+05:30	dcf6f7d4335a	True	negctl_cosim	N_irq_drop	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike
 2026-11-01T18:33:47+05:30	dcf6f7d4335a	True	negctl_cosim	N_irq_extra	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
 2026-11-01T18:33:48+05:30	dcf6f7d4335a	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[30 asserts, 24 covers in model] model has 30 assert(s), manifest wants >= 1000
-2026-11-03T22:28:50+05:30	dfab0bbf08f6	True	selftest	pass	1	PASS	OK	
-2026-11-03T22:28:50+05:30	dfab0bbf08f6	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
-2026-11-03T22:28:50+05:30	dfab0bbf08f6	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
-2026-11-03T22:28:50+05:30	dfab0bbf08f6	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
-2026-11-03T22:28:50+05:30	dfab0bbf08f6	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
-2026-11-03T22:28:50+05:30	dfab0bbf08f6	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
-2026-11-03T22:28:50+05:30	dfab0bbf08f6	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
-2026-11-03T22:28:50+05:30	dfab0bbf08f6	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
-2026-11-03T22:28:50+05:30	dfab0bbf08f6	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
-2026-11-03T22:28:50+05:30	dfab0bbf08f6	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
-2026-11-03T22:28:50+05:30	dfab0bbf08f6	True	selftest	sva_liveness	1	PASS	OK	
-2026-11-03T22:28:50+05:30	dfab0bbf08f6	True	selftest	known_exact	1	PASS	OK	
-2026-11-03T22:28:50+05:30	dfab0bbf08f6	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
-2026-11-03T22:28:53+05:30	dfab0bbf08f6	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
-2026-11-03T22:28:56+05:30	dfab0bbf08f6	True	selftest_reason	wrong_reason	1	FAIL	UNEXPECTED	1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
-2026-11-03T22:29:00+05:30	dfab0bbf08f6	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
-2026-11-03T22:29:04+05:30	dfab0bbf08f6	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 6 [FAIL] line(s); 7 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_props_a.sv:62: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_
-2026-11-03T22:29:08+05:30	dfab0bbf08f6	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 3 [FAIL] line(s); 4 assertion failure(s); 1 %Error line(s) | first: [378000] %Error: core_units_sva.sv:28: Assertion failed in tb_boot.dut.u_clic.u_clic_ctrl_sva.a_take: [
-2026-11-03T22:29:11+05:30	dfab0bbf08f6	True	negctl_elem	E_clic_ctrl_no_preempt	1	FAIL	XFAIL:PLANTED	pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
-2026-11-03T22:29:16+05:30	dfab0bbf08f6	True	negctl_cosim	N_rd	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
-2026-11-03T22:29:16+05:30	dfab0bbf08f6	True	negctl_cosim	N_store	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
-2026-11-03T22:29:16+05:30	dfab0bbf08f6	True	negctl_cosim	N_pc	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
-2026-11-03T22:29:16+05:30	dfab0bbf08f6	True	negctl_cosim	N_trap	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
-2026-11-03T22:29:16+05:30	dfab0bbf08f6	True	negctl_cosim	N_irq_drop	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike
-2026-11-03T22:29:16+05:30	dfab0bbf08f6	True	negctl_cosim	N_irq_extra	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
-2026-11-03T22:29:17+05:30	dfab0bbf08f6	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[30 asserts, 24 covers in model] model has 30 assert(s), manifest wants >= 1000
+2026-11-03T21:16:05+05:30	dcf6f7d4335a	True	selftest	pass	1	PASS	OK	
+2026-11-03T21:16:05+05:30	dcf6f7d4335a	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-11-03T21:16:05+05:30	dcf6f7d4335a	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-11-03T21:16:05+05:30	dcf6f7d4335a	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-11-03T21:16:05+05:30	dcf6f7d4335a	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-11-03T21:16:05+05:30	dcf6f7d4335a	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-11-03T21:16:05+05:30	dcf6f7d4335a	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-11-03T21:16:05+05:30	dcf6f7d4335a	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-11-03T21:16:05+05:30	dcf6f7d4335a	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-11-03T21:16:05+05:30	dcf6f7d4335a	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-11-03T21:16:05+05:30	dcf6f7d4335a	True	selftest	sva_liveness	1	PASS	OK	
+2026-11-03T21:16:05+05:30	dcf6f7d4335a	True	selftest	known_exact	1	PASS	OK	
+2026-11-03T21:16:05+05:30	dcf6f7d4335a	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-11-03T21:16:08+05:30	dcf6f7d4335a	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-11-03T21:16:11+05:30	dcf6f7d4335a	True	selftest_reason	wrong_reason	1	FAIL	UNEXPECTED	1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
+2026-11-03T21:16:15+05:30	dcf6f7d4335a	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-11-03T21:16:18+05:30	dcf6f7d4335a	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 6 [FAIL] line(s); 7 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_props_a.sv:62: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_
+2026-11-03T21:16:22+05:30	dcf6f7d4335a	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 3 [FAIL] line(s); 4 assertion failure(s); 1 %Error line(s) | first: [378000] %Error: core_units_sva.sv:28: Assertion failed in tb_boot.dut.u_clic.u_clic_ctrl_sva.a_take: [
+2026-11-03T21:16:25+05:30	dcf6f7d4335a	True	negctl_elem	E_clic_ctrl_no_preempt	1	FAIL	XFAIL:PLANTED	pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+2026-11-03T21:16:30+05:30	dcf6f7d4335a	True	negctl_cosim	N_rd	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-11-03T21:16:30+05:30	dcf6f7d4335a	True	negctl_cosim	N_store	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-11-03T21:16:30+05:30	dcf6f7d4335a	True	negctl_cosim	N_pc	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-11-03T21:16:30+05:30	dcf6f7d4335a	True	negctl_cosim	N_trap	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-11-03T21:16:30+05:30	dcf6f7d4335a	True	negctl_cosim	N_irq_drop	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike
+2026-11-03T21:16:30+05:30	dcf6f7d4335a	True	negctl_cosim	N_irq_extra	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-11-03T21:16:31+05:30	dcf6f7d4335a	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[30 asserts, 24 covers in model] model has 30 assert(s), manifest wants >= 1000
+2026-11-03T23:07:36+05:30	dfab0bbf08f6	True	selftest	pass	1	PASS	OK	
+2026-11-03T23:07:36+05:30	dfab0bbf08f6	True	selftest	fail_line	1	FAIL	XFAIL:PLANTED	1 [FAIL] line(s) | first: [FAIL] planted check failure
+2026-11-03T23:07:36+05:30	dfab0bbf08f6	True	selftest	assert_fail	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [35000] %Error: runner_selftest.sv:21: Assertion failed in runner_selftest.a_planted: [SVA-PLANTED] planted assertion failure
+2026-11-03T23:07:36+05:30	dfab0bbf08f6	True	selftest	error	1	FAIL	XFAIL:PLANTED	1 assertion failure(s) | first: [55000] %Error: runner_selftest.sv:30: Assertion failed in runner_selftest: planted $error outside any assertion
+2026-11-03T23:07:36+05:30	dfab0bbf08f6	True	selftest	no_marker	1	FAIL	XFAIL:PLANTED	pass marker missing
+2026-11-03T23:07:36+05:30	dfab0bbf08f6	True	selftest	fatal	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: [55000] %Fatal: runner_selftest.sv:32: Assertion failed in runner_selftest: planted $fatal
+2026-11-03T23:07:36+05:30	dfab0bbf08f6	True	selftest	hang	1	FAIL	XFAIL:PLANTED	TIMEOUT after 5s; pass marker missing
+2026-11-03T23:07:36+05:30	dfab0bbf08f6	True	selftest	require_missing	1	FAIL	XFAIL:PLANTED	missing: /this line is never printed/
+2026-11-03T23:07:36+05:30	dfab0bbf08f6	True	selftest	forbid_present	1	FAIL	XFAIL:PLANTED	forbidden: /mode=pass/
+2026-11-03T23:07:36+05:30	dfab0bbf08f6	True	selftest	build_broken	1	BLOCKED	XBLOCK:PLANTED	%Error: tb/core/selftest/runner_selftest_broken.sv:5:5: syntax error, unexpected end, expecting ';'
+2026-11-03T23:07:36+05:30	dfab0bbf08f6	True	selftest	sva_liveness	1	PASS	OK	
+2026-11-03T23:07:36+05:30	dfab0bbf08f6	True	selftest	known_exact	1	PASS	OK	
+2026-11-03T23:07:36+05:30	dfab0bbf08f6	True	selftest	known_stale	1	FAIL	XFAIL:PLANTED	known /planted check failure/ (PLANTED) occurred 0 time(s), want 1
+2026-11-03T23:07:39+05:30	dfab0bbf08f6	True	selftest_xpass	pass	1	PASS	XPASS:PLANTED	
+2026-11-03T23:07:42+05:30	dfab0bbf08f6	True	selftest_reason	wrong_reason	1	FAIL	UNEXPECTED	1 [FAIL] line(s); fail_reason /this text never appears in the log/ not in the log | first: [FAIL] planted check failure
+2026-11-03T23:07:46+05:30	dfab0bbf08f6	True	negctl_prog	N1_add_to_sub	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=0000002b -> FAILED (test 21, 161 retired) ***
+2026-11-03T23:07:49+05:30	dfab0bbf08f6	True	negctl_t12	t_core_irq_nest_no_t12	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 6 [FAIL] line(s); 7 assertion failure(s); 1 %Error line(s) | first: [533000] %Error: csr_file_props_a.sv:62: Assertion failed in tb_boot.dut.u_csr.u_csr_sva.a_trap_pushes_
+2026-11-03T23:07:53+05:30	dfab0bbf08f6	True	negctl_preempt	t_core_preempt_no_knob	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 3 [FAIL] line(s); 4 assertion failure(s); 1 %Error line(s) | first: [378000] %Error: core_units_sva.sv:28: Assertion failed in tb_boot.dut.u_clic.u_clic_ctrl_sva.a_take: [
+2026-11-03T23:07:56+05:30	dfab0bbf08f6	True	negctl_elem	E_clic_ctrl_no_preempt	1	FAIL	XFAIL:PLANTED	pass marker missing; 446 [FAIL] line(s) | first: [FAIL] PREEMPT_DIS: no preemption in a handler: take=1 exp 0 (v=1 mie=1 pdis=1 lvl=200 thr=0 mil=40)
+2026-11-03T23:08:01+05:30	dfab0bbf08f6	True	negctl_cosim	N_rd	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-11-03T23:08:01+05:30	dfab0bbf08f6	True	negctl_cosim	N_store	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-11-03T23:08:01+05:30	dfab0bbf08f6	True	negctl_cosim	N_pc	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-11-03T23:08:01+05:30	dfab0bbf08f6	True	negctl_cosim	N_trap	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-11-03T23:08:01+05:30	dfab0bbf08f6	True	negctl_cosim	N_irq_drop	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 192 mismatch(es) against Spike
+2026-11-03T23:08:01+05:30	dfab0bbf08f6	True	negctl_cosim	N_irq_extra	1	FAIL	XFAIL:PLANTED	exit 1; 1 [FAIL] line(s); 1 assertion failure(s); 1 %Error line(s) | first: [FAIL] COSIM: 1 mismatch(es) against Spike
+2026-11-03T23:08:02+05:30	dfab0bbf08f6	True	fv_selftest	props_missing	-	ERROR	XFAIL:PLANTED	[30 asserts, 24 covers in model] model has 30 assert(s), manifest wants >= 1000
