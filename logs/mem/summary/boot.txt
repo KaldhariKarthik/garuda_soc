@@ -1,0 +1,32 @@
+garuda-run 1  suite boot  block mem  2026-11-03T22:07:23+05:30
+design dfab0bbf08f64ba296587f7ee71298a9fbaad266  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+
+PASS    OK                      boot_good        
+PASS    OK                      boot_good_data   
+PASS    OK                      crc_text_first   
+PASS    OK                      crc_text_last    
+PASS    OK                      crc_data         
+PASS    OK                      crc_hdr_magic    
+PASS    OK                      crc_hdr_textlen  
+PASS    OK                      crc_hdr_datalen  
+PASS    OK                      crc_hdr_entry    
+PASS    OK                      crc_hdr_textcrc  
+PASS    OK                      crc_hdr_datacrc  
+PASS    OK                      crc_hdr_hdrcrc   
+PASS    OK                      blank            
+PASS    OK                      hdr_textlen_big  
+PASS    OK                      hdr_textlen_odd  
+PASS    OK                      hdr_datalen_odd  
+PASS    OK                      hdr_datalen_big  
+PASS    OK                      hdr_entry_out    
+PASS    OK                      hdr_entry_odd    
+PASS    OK                      hdr_reserved     
+PASS    OK                      miso_low         
+PASS    OK                      miso_high        
+PASS    OK                      flash_stops      
+PASS    OK                      bus_error        
+
+PASS    24
+FAIL    0
+BLOCKED 0
+total   24

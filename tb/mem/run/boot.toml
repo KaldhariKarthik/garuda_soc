@@ -1,0 +1,173 @@
+# Boot ROM at chip level (memories vPlan F14-F24; Track A 2026-11-01). garuda_chip_top in tb_chip with
+# the real SPI flash model. Good boots: the image in flash boots itself (F14, F23 a_locked_at_entry,
+# F24 boot time). Faults (+MODE=bootfault): every one must end in RSTREASON.BOOTFAIL with ILOCK clear,
+# and the chip must still load and run a program over JTAG (F16): t_chip_boot_recovery checks that.
+# Images: make -f flow/mk/track_a_run.mk boot_images. Run: make -f flow/mk/track_a_run.mk mem_boot
+[suite]
+block = "mem"
+name  = "boot"
+kind  = "prog"
+xfail = "tb/mem/run/xfail.tsv"
+
+[bench]
+flist = "tb/soc/filelist_chip.f"
+top   = "tb_chip"
+# Declared exclusion (TOOL-21), as in tb/debug/run/chip.toml
+exclude = ["rtl/pwm/pwm_sva.sv"]
+
+[defaults]
+marker  = '^RESULT: PASSED'
+timeout = 1800
+cwd     = "root"
+known = []
+
+[[shim]]
+id = "SHIM-PULL"
+glob = "tb/soc/tb_chip.sv"
+match = '^(\s*)(pullup|pulldown) +\((weak|pull|strong)[01]\) +([^;]*;)(.*)$'
+replace = '\1\2 \4\5  // shim:SHIM-PULL strength dropped (Verilator 5.052)'
+lines = 4
+
+# F14 a good image boots; F23 ILOCK set at the first ISRAM fetch; F24 boot time printed
+[[test]]
+name = "boot_good"
+plusargs = ["+MODE=flash", "+TEST=sw/build/flash.hex", "+MAXUS=3000"]
+require = ['F23/F24: first ISRAM fetch at']
+
+# F14 with a DATA image: copied to DSRAM, DATA_CRC checked (t_chip_boot_data checks the 64 words)
+[[test]]
+name = "boot_good_data"
+plusargs = ["+MODE=flash", "+TEST=sw/build/flash_data.hex", "+MAXUS=4000"]
+require = ['F23/F24: first ISRAM fetch at']
+
+# F15 one bit flipped in the text image (first byte)
+[[test]]
+name = "crc_text_first"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=flip", "+FREGION=text", "+FOFF=0", "+FBIT=0", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F15 one bit flipped in the text image (last byte)
+[[test]]
+name = "crc_text_last"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=flip", "+FREGION=text", "+FOFF=663", "+FBIT=7", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F15 one bit flipped in the data image
+[[test]]
+name = "crc_data"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash_data.hex", "+FAULT=flip", "+FREGION=data", "+FOFF=100", "+FBIT=3", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F15 one bit flipped in header word 0 (magic)
+[[test]]
+name = "crc_hdr_magic"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=flip", "+FREGION=hdr", "+FOFF=0", "+FBIT=4", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F15 one bit flipped in header word 1 (textlen)
+[[test]]
+name = "crc_hdr_textlen"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=flip", "+FREGION=hdr", "+FOFF=4", "+FBIT=4", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F15 one bit flipped in header word 2 (datalen)
+[[test]]
+name = "crc_hdr_datalen"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=flip", "+FREGION=hdr", "+FOFF=8", "+FBIT=4", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F15 one bit flipped in header word 3 (entry); entry 0 -> 4 still lands inside ISRAM, only HDR_CRC (MEM-5) catches it
+[[test]]
+name = "crc_hdr_entry"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=flip", "+FREGION=hdr", "+FOFF=12", "+FBIT=2", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F15 one bit flipped in header word 4 (textcrc)
+[[test]]
+name = "crc_hdr_textcrc"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=flip", "+FREGION=hdr", "+FOFF=16", "+FBIT=4", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F15 one bit flipped in header word 5 (datacrc)
+[[test]]
+name = "crc_hdr_datacrc"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=flip", "+FREGION=hdr", "+FOFF=20", "+FBIT=4", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F15 one bit flipped in header word 6 (hdrcrc)
+[[test]]
+name = "crc_hdr_hdrcrc"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=flip", "+FREGION=hdr", "+FOFF=24", "+FBIT=4", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F17 an erased flash: MAGIC reads 0xFFFFFFFF
+[[test]]
+name = "blank"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=blank", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F18 TEXT_LEN above 64 KiB
+[[test]]
+name = "hdr_textlen_big"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=hdr", "+HWORD=1", "+HVAL=00010004", "+HFIXCRC", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F18 TEXT_LEN not word aligned
+[[test]]
+name = "hdr_textlen_odd"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=hdr", "+HWORD=1", "+HVAL=0000029a", "+HFIXCRC", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F18 DATA_LEN not word aligned
+[[test]]
+name = "hdr_datalen_odd"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=hdr", "+HWORD=2", "+HVAL=00000002", "+HFIXCRC", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F18 DATA_LEN 64 KiB: would overwrite the ROM's stack and mailbox at DSRAM 0xFF00 (MEM-3)
+[[test]]
+name = "hdr_datalen_big"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=hdr", "+HWORD=2", "+HVAL=00010000", "+HFIXCRC", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F18 ENTRY outside ISRAM
+[[test]]
+name = "hdr_entry_out"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=hdr", "+HWORD=3", "+HVAL=00010000", "+HFIXCRC", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F18 ENTRY not word aligned (MEM-4: before the fix it passed, ILOCK was set, then the jump trapped)
+[[test]]
+name = "hdr_entry_odd"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=hdr", "+HWORD=3", "+HVAL=00000002", "+HFIXCRC", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F18 reserved word 0x1C not zero (MEM-2)
+[[test]]
+name = "hdr_reserved"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=hdr", "+HWORD=7", "+HVAL=00000001", "+HFIXCRC", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F21 MISO held low: every word reads 0
+[[test]]
+name = "miso_low"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=miso0", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F21 MISO held high (also: chip select ignored / no flash): every word reads all ones
+[[test]]
+name = "miso_high"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=miso1", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F20/F21 the flash stops answering in the middle of the text image
+[[test]]
+name = "flash_stops"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=stop", "+FSTOP_US=500", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']
+
+# F20 a bus ERROR inside the ROM (first SPI-master access answers PSLVERR): [N-8.12] trap -> BOOTFAIL -> recovery (MEM-1)
+[[test]]
+name = "bus_error"
+plusargs = ["+MODE=bootfault", "+TEST=sw/build/t_chip_boot_recovery.hex", "+FLASH=sw/build/flash.hex", "+FAULT=buserr", "+MAXUS=20000"]
+require = ['BOOTFAIL set at']

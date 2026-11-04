@@ -1,0 +1,26 @@
+# garuda-run 1 suite=boot block=mem date=2026-11-03T22:07:23+05:30 design=dfab0bbf08f64ba296587f7ee71298a9fbaad266 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+boot_good	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	4.13	18				logs/mem/raw/boot/sim_boot_good_s1.log
+boot_good_data	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	7.72	18				logs/mem/raw/boot/sim_boot_good_data_s1.log
+crc_text_first	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	5.25	18				logs/mem/raw/boot/sim_crc_text_first_s1.log
+crc_text_last	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	5.25	18				logs/mem/raw/boot/sim_crc_text_last_s1.log
+crc_data	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	8.43	18				logs/mem/raw/boot/sim_crc_data_s1.log
+crc_hdr_magic	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	2.09	18				logs/mem/raw/boot/sim_crc_hdr_magic_s1.log
+crc_hdr_textlen	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.39	19				logs/mem/raw/boot/sim_crc_hdr_textlen_s1.log
+crc_hdr_datalen	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.39	19				logs/mem/raw/boot/sim_crc_hdr_datalen_s1.log
+crc_hdr_entry	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.39	19				logs/mem/raw/boot/sim_crc_hdr_entry_s1.log
+crc_hdr_textcrc	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.77	19				logs/mem/raw/boot/sim_crc_hdr_textcrc_s1.log
+crc_hdr_datacrc	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.95	19				logs/mem/raw/boot/sim_crc_hdr_datacrc_s1.log
+crc_hdr_hdrcrc	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.39	19				logs/mem/raw/boot/sim_crc_hdr_hdrcrc_s1.log
+blank	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.83	19				logs/mem/raw/boot/sim_blank_s1.log
+hdr_textlen_big	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.43	19				logs/mem/raw/boot/sim_hdr_textlen_big_s1.log
+hdr_textlen_odd	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.39	19				logs/mem/raw/boot/sim_hdr_textlen_odd_s1.log
+hdr_datalen_odd	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.83	19				logs/mem/raw/boot/sim_hdr_datalen_odd_s1.log
+hdr_datalen_big	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.51	19				logs/mem/raw/boot/sim_hdr_datalen_big_s1.log
+hdr_entry_out	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.39	19				logs/mem/raw/boot/sim_hdr_entry_out_s1.log
+hdr_entry_odd	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.53	19				logs/mem/raw/boot/sim_hdr_entry_odd_s1.log
+hdr_reserved	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	2.52	19				logs/mem/raw/boot/sim_hdr_reserved_s1.log
+miso_low	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.35	19				logs/mem/raw/boot/sim_miso_low_s1.log
+miso_high	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.61	19				logs/mem/raw/boot/sim_miso_high_s1.log
+flash_stops	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	5.27	19				logs/mem/raw/boot/sim_flash_stops_s1.log
+bus_error	PASS	OK	0	yes	0	0	0	-	547	0	EXCLUDED;SHIM-PULL	1	1.27	19				logs/mem/raw/boot/sim_bus_error_s1.log

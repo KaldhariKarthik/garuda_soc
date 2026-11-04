@@ -1,0 +1,12 @@
+# crc_vectors (memories vPlan F22): sw/bootrom/boot.c crc32_words vs zlib.crc32
+test	result	class	detail
+empty	PASS	OK	rom 00000000 zlib 00000000 (0 B)
+one word 0	PASS	OK	rom 2144df1c zlib 2144df1c (4 B)
+one word ones	PASS	OK	rom ffffffff zlib ffffffff (4 B)
+check string x4	PASS	OK	rom bdb0c0e4 zlib bdb0c0e4 (12 B)
+GARD header	PASS	OK	rom 7b536ee5 zlib 7b536ee5 (24 B)
+random 8 B	PASS	OK	rom 0b6ed8e2 zlib 0b6ed8e2 (8 B)
+random 64 B	PASS	OK	rom 8764decc zlib 8764decc (64 B)
+random 700 B	PASS	OK	rom bc08aef9 zlib bc08aef9 (700 B)
+random 4096 B	PASS	OK	rom 8b395591 zlib 8b395591 (4096 B)
+64 KiB pattern	PASS	OK	rom 3a3102b4 zlib 3a3102b4 (65536 B)
