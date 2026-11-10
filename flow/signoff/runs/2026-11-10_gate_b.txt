@@ -1,0 +1,67 @@
+tree 759af47, 2026-11-10 09:42, Xcelium 22.09 / irun 15.2
+check_tree: 1667 tracked files, 287 bug IDs, 0 problem(s)
+check_applicability: 146 own modules, 0 problem(s)
+static_lint   HAL errors=5  not waived=0  (log: sim/static/hal.log)
+hal_baseline: 79 rules, 747 findings; baseline 747; 0 rule(s) risen, 0 lower
+tb_crg         tb_crg: checks=43  FAIL=0 RESULT: PASSED 
+tb_clic        tb_clic: checks=24  FAIL=0 RESULT: PASSED 
+tb_timers      tb_timers: checks=27  FAIL=0 RESULT: PASSED 
+tb_apb_shim    tb_apb_shim: checks=26  FAIL=0 RESULT: PASSED 
+tb_spim        tb_spim: checks=27  FAIL=0 RESULT: PASSED 
+tb_uart        tb_uart: checks=117  FAIL=0 RESULT: PASSED 
+tb_i2c         tb_i2c: checks=93  FAIL=0 RESULT: PASSED 
+tb_gpio        tb_gpio: checks=26  FAIL=0 RESULT: PASSED 
+tb_pwm         tb_pwm: checks=60  FAIL=0 RESULT: PASSED 
+tb_spis        tb_spis: checks=74  FAIL=0 RESULT: PASSED 
+make -C sw all
+make[2]: Nothing to be done for 'all'.
+chip_basic     RESULT: PASSED 
+chip_irq       RESULT: PASSED 
+chip_wdt       RESULT: PASSED 
+chip_flash     RESULT: PASSED 
+chip_uart      RESULT: PASSED 
+chip_periph    RESULT: PASSED 
+chip_integ     RESULT: PASSED 
+chip_jtag      RESULT: PASSED 
+chip_swirq     RESULT: PASSED 
+uvm_clic  reg_s1 PASS
+uvm_clic  directed_s1 PASS
+uvm_clic  random_s1 PASS
+uvm_clic  random_s2 PASS
+uvm_clic  random_s3 PASS
+uvm_timers  reg_s1 PASS
+uvm_timers  directed_s1 PASS
+uvm_timers  random_s1 PASS
+uvm_timers  random_s2 PASS
+uvm_timers  random_s3 PASS
+uvm_pwm  reg_s1 PASS
+uvm_pwm  directed_s1 PASS
+uvm_pwm  random_s1 PASS
+uvm_pwm  random_s2 PASS
+uvm_pwm  random_s3 PASS
+uvm_gpio  reg_s1 PASS
+uvm_gpio  directed_s1 PASS
+uvm_gpio  random_s1 PASS
+uvm_gpio  random_s2 PASS
+uvm_gpio  random_s3 PASS
+uvm_crg  reg_s1 PASS
+uvm_crg  directed_s1 PASS
+uvm_crg  random_s1 PASS
+uvm_crg  random_s2 PASS
+uvm_crg  random_s3 PASS
+uvm_spis  reg_s1 PASS
+uvm_spis  directed_s1 PASS
+uvm_spis  random_s1 PASS
+uvm_spis  random_s2 PASS
+uvm_spis  random_s3 PASS
+uvm_i2c  reg_s1 PASS
+uvm_i2c  directed_s1 PASS
+uvm_i2c  random_s1 PASS
+uvm_i2c  random_s2 PASS
+uvm_i2c  random_s3 PASS
+uvm_uart  reg_s1 PASS
+uvm_uart  directed_s1 PASS
+uvm_uart  random_s1 PASS
+uvm_uart  random_s2 PASS
+uvm_uart  random_s3 PASS
+gate_b: PASS

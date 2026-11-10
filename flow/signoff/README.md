@@ -9,6 +9,23 @@ The 1-TOPS signoff workbook has gates G0 to G9 and keeps every row's evidence as
 | `g3/` | G3 Integration | boot ROM reproducibility (3.9); the `boot_sel` path (3.12) |
 | `runs/` | G4 to G6 | console output of `make gate_a`, `make gate_b` and `make regress_all`, one file per run, named by date |
 
+## Gates and flow stages
+
+The work is organised by the design flow in `flow/FLOW.md` (stages F0 to F16); the
+gates are filled from it. New evidence goes into the folder of its stage; the folders
+above stay as they are because the workbook rows already point at them.
+
+| Gate | Flow stages |
+|---|---|
+| G0 | F0 tools and environment |
+| G1 | F1 specification, F2 verification plan |
+| G2 | F3 RTL design (core), F4 static checks (core) |
+| G3 | F3 RTL design (integration), F4 static checks (chip) |
+| G4 | F5 block and unit verification, F6 core sanity |
+| G5 | F6 core verification, F8 core coverage |
+| G6 | F7 SoC verification, F8 regression and coverage, F9 RTL freeze |
+| G7 to G9 | F10 to F16, after the PDK |
+
 The specification documents the gates point at are in `Design_Docs/`. The verification plans are in `tb/*/GARUDA_*_vplan.csv`, mapped to the 1-TOPS phases in `flow/1_vplan/1TOPS_PHASES.md`. Bugs are in `Docs/bugs/`.
 
 ## Tags (item 0.6)

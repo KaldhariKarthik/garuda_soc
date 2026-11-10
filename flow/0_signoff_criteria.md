@@ -14,7 +14,7 @@ that meets all of them except formal is "closed for simulation" and says so.
 | 6 | Regression | every test passing over at least 20 seeds, no new failure in the last full run | vManager session |
 | 7 | Lint and clock-domain checks | 0 errors, or each one waived in writing | HAL; `flow/2_static/hal_waivers.txt` |
 | 8 | Register model | reset value, access policy and aliasing tests pass on every register | UVM register tests |
-| 9 | Formal, on the features the vPlan assigns to it | proved | SymbiYosys with z3 (installed in WSL 2026-10-12; `pipe_ctrl` proved, FV-2). JasperGold and IFV are not available. Whole-core properties wait for a whole-core formal run |
+| 9 | Formal, on the features the vPlan assigns to it | proved, or undetermined with the reason written next to the result | JasperGold FPV (licensed since 2026-10-05): `flow/formal/<block>/*_fpv.result.txt`; SymbiYosys for track A's earlier proofs |
 
 Priorities: **P1** the chip does the wrong thing or hangs; **P2** a specified
 feature does not work but there is a workaround; **P3** everything else.
@@ -22,6 +22,8 @@ feature does not work but there is a workaround; **P3** everything else.
 Check methods used in the plans: **sim** (UVM environment, constrained random or
 directed), **formal**, **GLS** (gate-level simulation), **silicon** (FPGA or the
 chip). A feature may list more than one.
+
+The stages these criteria belong to are in `flow/FLOW.md` (F5 for blocks, F8 for regression and coverage).
 
 Out of scope until there is a netlist: equivalence checking, gate-level
 simulation, DFT (stage 7) and the tape-out review (stage 8).
