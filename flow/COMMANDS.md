@@ -671,3 +671,49 @@ It prints and writes `flow/formal/gpio_unr.result.txt`: each waiver CONFIRMED, R
 - `Docs/bugs/archive/BUGS_HISTORY.md` section 1h: every defect found on 2026-10-04, the tool or test
   that found it, and its status.
 - `flow/2_static/hal_waivers.txt`: the lint and clock-domain items accepted.
+
+---
+
+## Replay by gate (Karthik types these; written 2026-11-10)
+
+The gates G0 to G3 were closed with these commands. Each line below was run in tcsh on
+2026-11-10 before it was written here, and "Look for" is what it printed then. Type them
+from the repository root, one line at a time. Afterwards put the date in the Replays
+table at the end of `flow/FLOW.md`.
+
+Start every replay with:
+
+    cd ~/garuda_soc
+    source /home/install/cshrc
+    set path = (/home/install/INCISIVE152/tools/bin $path)
+    mkdir -p sim/replay
+
+### G0, stage F0: the tools run
+
+| # | Type | Look for |
+|---|---|---|
+| R0.1 | `/home/install/XCELIUM2209/tools/bin/xrun -64bit -sv flow/signoff/g0/hello.sv -top tb_hello -xmlibdirname sim/replay/xcelium.d -l sim/replay/xrun.log` then `grep HELLO sim/replay/xrun.log` | `HELLO PASS` |
+| R0.2 | `/home/install/JASPER/bin/jg -allow_unsupported_OS -fpv -batch -no_jges -proj sim/replay/jg flow/signoff/g0/hello_jg.tcl` | `successfully checked out license "jasper_papp"`; `proven : 1 (100%)` |
+| R0.3 | `set path = (/home/vivado/2025.2/Vitis/gnu/riscv/linux_toolchain/lin64/bin $path)` then `riscv64-amd-linux-gnu-gcc -march=rv32im_zicsr -mabi=ilp32 -O2 -nostdlib -nostartfiles -static -T sw/common/link.ld sw/common/crt0.S flow/signoff/g0/hello_rv.c -o sim/replay/hello_rv.elf` then `file sim/replay/hello_rv.elf` | `ELF 32-bit LSB executable, UCB RISC-V` (two linker warnings about RWX segments and build-id are harmless) |
+| R0.4 | `/home/kkarthik/external/spike-inst/bin/spike --isa=rv32im_zicsr_zifencei_zicntr -m0x10000000:0x40000 --disable-dtb --priv=m --pmpregions=0 --triggers=0 --pc=0x10000000 --log-commits -l sw/riscv-tests/build/add.elf >& sim/replay/spike.log` then `echo $status` | `0` (the test wrote 1 to `tohost`: passed) |
+| R0.5 | `bash -c "source scripts/setup_env.sh && make regress_all" >& sim/replay/regress_all.log` (about 10 minutes) then `tail -1 sim/replay/regress_all.log` | `regress_all: PASS` |
+
+### G1, stages F1 and F2: the spec, the plan, the budget
+
+| # | Type | Look for |
+|---|---|---|
+| R1.1 | `vplanner -standalone &`, then File > Open `tb/clic/GARUDA_CLIC_vplan.csv` | every feature has a check method, an owner and coverage items |
+| R1.2 | `grep -n 0x305 Design_Docs/GARUDA-CORE-SPEC-001.md` | the spec: `mtvec` resets to `0x0000_0003` |
+| R1.3 | `grep -n MTVEC rtl/core/csr_file.v` | the RTL: BASE resets to 0 and the read returns `{mtvec_r[31:2], 2'b11}`, so MODE reads 3: the two agree |
+| R1.4 | `grep TRIAL_SYNTH flow/signoff/g1/out/summary.txt` | `kGE=113.3`, `flops=7925`: the gate budget of PHYS [N-6.4] |
+
+### G2 and G3, stages F3 and F4: integration and static checks
+
+| # | Type | Look for |
+|---|---|---|
+| R3.1 | `irun -hal -64bit -f rtl/soc/filelist_chip.f -top garuda_chip_top -define SYNTHESIS -nclibdirname sim/replay/INCA_hal -l sim/replay/hal.log -f flow/2_static/hal.f` then `python3 tools/hal_baseline.py --check sim/replay/hal.log` | `78 rules, 746 findings; baseline 746; 0 rule(s) risen, 0 lower` |
+| R3.2 | `setenv TOP garuda_chip_top`, `setenv FL rtl/soc/filelist_chip.f`, `setenv CLK refclk`, `setenv RST ext_rst_n`, `setenv OUT sim/replay/superlint`, then `/home/install/JASPER/bin/jg -allow_unsupported_OS -superlint -batch -no_jges -proj sim/replay/superlint_proj flow/2_static/superlint/superlint.tcl` (up to an hour) | the category table in `sim/replay/superlint/superlint_report.txt`; compare with `flow/2_static/superlint/chip/RESULTS.md` |
+| R3.3 | `/home/install/JASPER/bin/jg -allow_unsupported_OS -cdc -batch -no_jges -proj sim/replay/cdc flow/2_static/cdc/cdc_chip.tcl` then `wc -l flow/2_static/cdc/reports/violations.csv` | `1` (the header only: 0 unwaived crossings) |
+| R3.4 | `/home/install/GENUS211/bin/genus -batch -no_gui -files flow/signoff/g3/floating_nets.tcl -log sim/replay/genus_float` | `Normal exit.`; the reports in `flow/signoff/g3/out/` |
+| R3.5 | `setenv TOP trap_ctrl`, `setenv FL rtl/core/filelist_trap_ctrl_fv.f`, `setenv CLKS clk_i`, `setenv RSTS rst_n_i`, `setenv PROPS sim/replay/trap_ctrl_props.txt`, then `/home/install/JASPER/bin/jg -allow_unsupported_OS -fpv -batch -no_jges -proj sim/replay/trap_ctrl flow/formal/block_fpv.tcl` then `grep -c "^proven *assert" sim/replay/trap_ctrl_props.txt` | `10` (all ten trap-control assertions proven) |
+| R3.6 | `irun -64bit -uvm -uvmhome CDNS-1.2 -nclibdirname sim/replay/INCA_clic -f tb/clic/uvm/filelist_clic_uvm.f -top tb_clic_uvm +UVM_TESTNAME=clic_random_test -svseed 7 -l sim/replay/clic_random_s7.log` then `grep RESULT sim/replay/clic_random_s7.log` and `grep "UVM_ERROR :" sim/replay/clic_random_s7.log` | `RESULT: PASSED`, `UVM_ERROR :    0` |

@@ -44,7 +44,13 @@ reset -expression [list "!$RST"]
 check_superlint -init
 check_superlint -extract
 # a time limit per run: a block whose checks do not settle is reported, not waited for
-prove -all -time_limit 300s
+# TOOL-A11 (2026-11-10): with 300 s the result depended on how busy the machine was
+# (2026-11-03: 6 counterexamples and most checks never finished; 2026-11-10: 46). The
+# limit is SL_TIME seconds, 3600 by default; the summary below records what is left
+# undetermined, and RESULTS.md has to say it.
+set SL_TIME 3600
+if {[info exists ::env(SL_TIME)]} { set SL_TIME $::env(SL_TIME) }
+prove -all -time_limit ${SL_TIME}s
 
 # 5. the results
 check_superlint -report -file $OUT/superlint_report.txt -force
