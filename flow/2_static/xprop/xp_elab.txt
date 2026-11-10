@@ -1,0 +1,1526 @@
+
+XPROP options:
+-XPROP F -XVERBOSE -ENABLE_XP_SEMETHOD 
+
+
+XPROP:	X-propagation disabled for block
+	File: tb/models/i2c_slave_model.sv 
+	Line: 62
+	Reasons:
+		INVXPC: Case equality/inequality operator has been used in 'if' which is a behavioral construct. To enable Xprop, use xfile flag 'VL_ENABLE_CASEOP' - Line : 62
+
+XPROP:	X-propagation disabled for block
+	File: tb/models/i2c_slave_model.sv 
+	Line: 70
+	Reasons:
+		INVXPC: Case equality/inequality operator has been used in 'if' which is a behavioral construct. To enable Xprop, use xfile flag 'VL_ENABLE_CASEOP' - Line : 70
+
+XPROP:	FOX Mode Enabled for block
+	File: tb/models/i2c_slave_model.sv 
+	Line: 77
+		operator === cannot give X result - Line : 79
+		2 state destination cannot give X result(bit) - Line : 81
+
+XPROP:	FOX Mode Enabled for block
+	File: tb/models/i2c_slave_model.sv 
+	Line: 87
+		2 state destination cannot give X result(bit) - Line : 93
+
+XPROP:	X-propagation disabled for block
+	File: tb/models/i2c_slave_model.sv 
+	Line: 173
+	Reasons:
+		INVXPC: Event or Delay control in block. These set of delays cannot be enabled using 'SET VL_DELAYS ON' option. Refer documentation for details on what kind of details are supported - Line : 175
+
+XPROP:	X-propagation disabled for block
+	File: tb/models/i2c_slave_model.sv 
+	Line: 194
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 196
+		UNSXPC: Non logic datatype(real) - Line : 196
+
+XPROP:	X-propagation disabled for block
+	File: tb/models/i2c_slave_model.sv 
+	Line: 199
+	Reasons:
+		INVXPC: Case equality/inequality operator has been used in 'if' which is a behavioral construct. To enable Xprop, use xfile flag 'VL_ENABLE_CASEOP' - Line : 201
+
+XPROP:	FOX Mode Enabled for block
+	File: tb/ahb/ahb_lite_checker.v 
+	Line: 179
+
+XPROP:	FOX Mode Enabled for block
+	File: tb/ahb/ahb_lite_checker.v 
+	Line: 189
+
+XPROP:	X-propagation disabled for block
+	File: tb/ahb/ahb_lite_checker.v 
+	Line: 215
+	Reasons:
+		UNSXPC: Task/Function having side-effects called in block. Reason of side-effect : Non-local write - Line : 272
+
+XPROP:	FOX Mode Enabled for block
+	File: tb/ahb/ahb_lite_checker.v 
+	Line: 446
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/timers/timers_apb.v 
+	Line: 101
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/timers/timers_apb.v 
+	Line: 122
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/timers/timers_apb.v 
+	Line: 130
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/timers/timers_apb.v 
+	Line: 145
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb2apb/ahb2apb_sva.sv 
+	Line: 91
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb2apb/ahb2apb_sva.sv 
+	Line: 95
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb2apb/ahb2apb_sva.sv 
+	Line: 115
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb2apb/ahb2apb_sva.sv 
+	Line: 130
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_slave_mux.v 
+	Line: 86
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_slave_mux.v 
+	Line: 97
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_slave_mux.v 
+	Line: 117
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_decoder.v 
+	Line: 38
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dma/dma_arbiter.v 
+	Line: 24
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dma/dma_sva.sv 
+	Line: 197
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dma/dma_apb_slave.v 
+	Line: 73
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dma/dma_apb_slave.v 
+	Line: 99
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dma/dma_apb_slave.v 
+	Line: 117
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/core_vplan_sva.sv 
+	Line: 43
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/core_vplan_sva.sv 
+	Line: 77
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/core_vplan_sva.sv 
+	Line: 56
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/pipe_ctrl_sva.sv 
+	Line: 191
+		2 state destination cannot give X result(int) - Line : 192
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/trap_ctrl_props_a.sv 
+	Line: 85
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/csr_file_props_a.sv 
+	Line: 50
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/mem_wb_reg.v 
+	Line: 59
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/load_formatter.v 
+	Line: 33
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/load_formatter.v 
+	Line: 47
+
+XPROP:	X-propagation disabled for block
+	File: rtl/core/core_units2_sva.sv 
+	Line: 81
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 82
+		INVXPC: Blocking task or system task call in block - Line : 81
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsu/dsu_stall.v 
+	Line: 79
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsu/overflow_flag.v 
+	Line: 20
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsu/result_selector.v 
+	Line: 16
+
+XPROP:	X-propagation disabled for block
+	File: rtl/dsu/dsu_arith_sva.sv 
+	Line: 14
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 15
+		INVXPC: Blocking task or system task call in block - Line : 14
+
+XPROP:	X-propagation disabled for block
+	File: rtl/dsu/dsu_arith_sva.sv 
+	Line: 19
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 20
+		INVXPC: Blocking task or system task call in block - Line : 19
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsu/operand_router.v 
+	Line: 14
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsu/mac_unit.v 
+	Line: 127
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsu/mac_unit.v 
+	Line: 201
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsu/mac_unit.v 
+	Line: 235
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsu/mac_unit.v 
+	Line: 243
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsu/mac_cluster.v 
+	Line: 110
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsu/saturation_unit.v 
+	Line: 23
+
+XPROP:	X-propagation disabled for block
+	File: rtl/core/core_units3_sva.sv 
+	Line: 76
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 77
+		INVXPC: Blocking task or system task call in block - Line : 76
+
+XPROP:	X-propagation disabled for block
+	File: rtl/core/core_units2_sva.sv 
+	Line: 23
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 34
+		INVXPC: Blocking task or system task call in block - Line : 33
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/alu.v 
+	Line: 27
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/ex_stage.v 
+	Line: 181
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/core_units2_sva.sv 
+	Line: 55
+
+XPROP:	X-propagation disabled for block
+	File: rtl/core/core_units2_sva.sv 
+	Line: 59
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 60
+		INVXPC: Blocking task or system task call in block - Line : 59
+
+XPROP:	X-propagation disabled for block
+	File: rtl/core/core_units2_sva.sv 
+	Line: 70
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 71
+		INVXPC: Blocking task or system task call in block - Line : 70
+
+XPROP:	X-propagation disabled for block
+	File: rtl/core/core_units3_sva.sv 
+	Line: 58
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 60
+		INVXPC: Blocking task or system task call in block - Line : 58
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/core_units_sva.sv 
+	Line: 139
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/imm_gen.v 
+	Line: 43
+
+XPROP:	X-propagation disabled for block
+	File: rtl/core/decode_control_sva.sv 
+	Line: 39
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 40
+		INVXPC: Blocking task or system task call in block - Line : 39
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/core_units2_sva.sv 
+	Line: 123
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/core_units3_sva.sv 
+	Line: 36
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl_apb.v 
+	Line: 71
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl_apb.v 
+	Line: 78
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl_apb.v 
+	Line: 85
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl_apb.v 
+	Line: 90
+
+XPROP:	X-propagation disabled for block
+	File: rtl/clk_div/clk_div_sva.sv 
+	Line: 27
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 28
+		UNSXPC: Non logic datatype(real) - Line : 28
+
+XPROP:	X-propagation disabled for block
+	File: rtl/clk_div/clk_div_sva.sv 
+	Line: 37
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 40
+		INVXPC: Blocking task or system task call in block - Line : 39
+		INVXPC: Case equality/inequality operator has been used in 'if' which is a behavioral construct. To enable Xprop, use xfile flag 'VL_ENABLE_CASEOP' - Line : 37
+		UNSXPC: Non logic datatype(real) - Line : 39
+
+XPROP:	X-propagation disabled for block
+	File: rtl/clk_div/clk_div_sva.sv 
+	Line: 51
+	Reasons:
+		UNSXPC: Non logic datatype(real) - Line : 51
+
+XPROP:	X-propagation disabled for block
+	File: rtl/clk_div/clk_div_sva.sv 
+	Line: 74
+	Reasons:
+		UNSXPC: Non logic datatype(real) - Line : 74
+
+XPROP:	X-propagation disabled for block
+	File: rtl/clk_div/clk_div_sva.sv 
+	Line: 62
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 65
+		INVXPC: Blocking task or system task call in block - Line : 62
+		INVXPC: Event or Delay control in block. These set of delays cannot be enabled using 'SET VL_DELAYS ON' option. Refer documentation for details on what kind of details are supported - Line : 68
+		INVXPC: Case equality/inequality operator has been used in 'if' which is a behavioral construct. To enable Xprop, use xfile flag 'VL_ENABLE_CASEOP' - Line : 62
+		UNSXPC: Non logic datatype(real) - Line : 63
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/clk_div/clk_div_sva.sv 
+	Line: 81
+
+XPROP:	FOX Mode Enabled for block
+	File: tb/soc/tb_chip.sv 
+	Line: 87
+
+XPROP:	FOX Mode Enabled for block
+	File: tb/soc/tb_chip.sv 
+	Line: 136
+
+XPROP:	X-propagation disabled for block
+	File: tb/soc/tb_chip.sv 
+	Line: 146
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 147
+		UNSXPC: Task/Function having side-effects called in block. Reason of side-effect : Non-local write - Line : 147
+
+XPROP:	FOX Mode Enabled for block
+	File: tb/soc/tb_chip.sv 
+	Line: 184
+
+XPROP:	X-propagation disabled for block
+	File: tb/soc/tb_chip.sv 
+	Line: 190
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 209
+		INVXPC: Event or Delay control in block. These set of delays cannot be enabled using 'SET VL_DELAYS ON' option. Refer documentation for details on what kind of details are supported - Line : 217
+		UNSXPC: Large size Array; Use -XPELSA to enable - Line : 208
+		UNSXPC: Task/Function having side-effects called in block. Reason of side-effect : Function calling another side-effect function - Line : 222
+
+XPROP:	X-propagation disabled for block
+	File: tb/soc/tb_chip.sv 
+	Line: 239
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 255
+		INVXPC: Event or Delay control in block. These set of delays cannot be enabled using 'SET VL_DELAYS ON' option. Refer documentation for details on what kind of details are supported - Line : 240
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/pwm/garuda_pwm_top.v 
+	Line: 67
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/pwm/garuda_pwm_top.v 
+	Line: 120
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/pwm/garuda_pwm_top.v 
+	Line: 128
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/pwm/garuda_pwm_core.v 
+	Line: 76
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/pwm/garuda_pwm_core.v 
+	Line: 88
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/pwm/garuda_pwm_core.v 
+	Line: 110
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/pwm/garuda_pwm_core.v 
+	Line: 122
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_arbiter.v 
+	Line: 139
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_arbiter.v 
+	Line: 164
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_arbiter.v 
+	Line: 189
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsram/dsram_top.v 
+	Line: 59
+
+XPROP:	X-propagation disabled for block
+	File: rtl/dsram/dsram_top.v 
+	Line: 72
+	Reasons:
+		UNSXPC: Task/Function having side-effects called in block. Reason of side-effect : Non-local write - Line : 75
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsram/dsram_top.v 
+	Line: 85
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/clic/clic_apb.v 
+	Line: 59
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/clic/clic_apb.v 
+	Line: 71
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/garuda_core_top.v 
+	Line: 199
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/if_id.v 
+	Line: 46
+
+XPROP:	X-propagation disabled for block
+	File: rtl/core/id_ex.v 
+	Line: 114
+	Reasons:
+		UNSXPC: Task/Function having side-effects called in block. Reason of side-effect : Non-local write - Line : 115
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/ex_mem.v 
+	Line: 53
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/d_port_ahb_master.v 
+	Line: 99
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/d_port_ahb_master.v 
+	Line: 116
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/csr_file.v 
+	Line: 171
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/csr_file.v 
+	Line: 240
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/csr_file.v 
+	Line: 273
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/regfile.v 
+	Line: 37
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/branch_unit.v 
+	Line: 73
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/load_store_unit.v 
+	Line: 48
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/garuda_pc_gen.v 
+	Line: 44
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/garuda_prefetch_buffer.v 
+	Line: 67
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/trap_ctrl.v 
+	Line: 188
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/garuda_iport_ahb_master.v 
+	Line: 214
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/decode_control.v 
+	Line: 93
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsu/dsu_top.v 
+	Line: 114
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dma/dma_chan.v 
+	Line: 93
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/ahb_mem_slave_if.v 
+	Line: 99
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/ahb_mem_slave_if.v 
+	Line: 107
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/ahb_mem_slave_if.v 
+	Line: 129
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/ahb_mem_slave_if.v 
+	Line: 153
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/ahb_mem_slave_if.v 
+	Line: 191
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/ahb_mem_slave_if.v 
+	Line: 99
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/ahb_mem_slave_if.v 
+	Line: 107
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/ahb_mem_slave_if.v 
+	Line: 129
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/ahb_mem_slave_if.v 
+	Line: 153
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/ahb_mem_slave_if.v 
+	Line: 191
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb2apb/ahb2apb_bridge.v 
+	Line: 95
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb2apb/ahb2apb_bridge.v 
+	Line: 127
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/clk_div/clk_div.v 
+	Line: 67
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/clk_div/clk_div.v 
+	Line: 73
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/clk_div/clk_div.v 
+	Line: 90
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/clk_div/clk_div.v 
+	Line: 77
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/clk_div/clk_div.v 
+	Line: 81
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/clk_div/clk_div.v 
+	Line: 99
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/clk_div/clk_div.v 
+	Line: 105
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/clk_div/clk_div.v 
+	Line: 128
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/clk_div/clk_div.v 
+	Line: 137
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl.v 
+	Line: 101
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl.v 
+	Line: 117
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl.v 
+	Line: 152
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl.v 
+	Line: 172
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl.v 
+	Line: 174
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl.v 
+	Line: 176
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl.v 
+	Line: 178
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl.v 
+	Line: 182
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl.v 
+	Line: 184
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 138
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 156
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 175
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 189
+
+XPROP:	X-propagation disabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 203
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 205
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 210
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 138
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 156
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 189
+
+XPROP:	X-propagation disabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 203
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 205
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 210
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/spi_master/garuda_spim_top.v 
+	Line: 86
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/uart/garuda_uart_top.v 
+	Line: 96
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/uart/garuda_uart_top.v 
+	Line: 127
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 138
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 156
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 175
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 189
+
+XPROP:	X-propagation disabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 203
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 205
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 210
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/uart/garuda_uart_top.v 
+	Line: 96
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/uart/garuda_uart_top.v 
+	Line: 127
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 138
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 156
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 175
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 189
+
+XPROP:	X-propagation disabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 203
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 205
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 210
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/uart/garuda_uart_top.v 
+	Line: 96
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/uart/garuda_uart_top.v 
+	Line: 127
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 138
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 156
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 175
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 189
+
+XPROP:	X-propagation disabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 203
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 205
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 210
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/i2c/garuda_i2c_top.v 
+	Line: 147
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/i2c/garuda_i2c_top.v 
+	Line: 158
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/i2c/garuda_i2c_top.v 
+	Line: 173
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/i2c/garuda_i2c_top.v 
+	Line: 247
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 138
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 156
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 175
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 189
+
+XPROP:	X-propagation disabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 203
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 205
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 210
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 138
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 156
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 175
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 189
+
+XPROP:	X-propagation disabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 203
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 205
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 210
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/spi_slave/garuda_spis_top.v 
+	Line: 115
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/spi_slave/garuda_spis_top.v 
+	Line: 135
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 138
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 156
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 175
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 189
+
+XPROP:	X-propagation disabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 203
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 205
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/common/garuda_apb_shim.v 
+	Line: 210
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/core/core_clk_gate.v 
+	Line: 45
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dma/dma_engine.v 
+	Line: 119
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_master_mux.v 
+	Line: 105
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_master_mux.v 
+	Line: 145
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_master_mux.v 
+	Line: 155
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_master_port.v 
+	Line: 151
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_default_slave.v 
+	Line: 74
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_default_slave.v 
+	Line: 82
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb2apb/ahb2apb_apb_fsm.v 
+	Line: 61
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/timers/mtime.v 
+	Line: 38
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/timers/wdt.v 
+	Line: 55
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/timers/wdt.v 
+	Line: 77
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/debug/jtag_tap.v 
+	Line: 40
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/debug/jtag_tap.v 
+	Line: 64
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/debug/jtag_tap.v 
+	Line: 82
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/debug/dtm.v 
+	Line: 56
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/debug/dmi_cdc.v 
+	Line: 50
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/debug/dmi_cdc.v 
+	Line: 58
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/debug/dmi_cdc.v 
+	Line: 65
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/debug/debug_module.v 
+	Line: 124
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/debug/debug_module.v 
+	Line: 147
+
+XPROP:	X-propagation disabled for block
+	File: rtl/debug/debug_module.v 
+	Line: 159
+	Reasons:
+		UNSXPC: Task/Function having side-effects called in block. Reason of side-effect : Non-local write - Line : 233
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/debug/sba_master.v 
+	Line: 46
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/spi_slave/garuda_spis_core.v 
+	Line: 55
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/spi_slave/garuda_spis_core.v 
+	Line: 72
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/spi_slave/garuda_spis_core.v 
+	Line: 79
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/spi_slave/garuda_spis_core.v 
+	Line: 92
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/spi_slave/garuda_spis_core.v 
+	Line: 124
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dma/dma_props_a.sv 
+	Line: 125
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dma/dma_props_a.sv 
+	Line: 138
+
+XPROP:	X-propagation disabled for block
+	File: rtl/dma/dma_props_a.sv 
+	Line: 149
+	Reasons:
+		UNSXPC: Return statement in if/case block - Line : 152
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dma/dma_props_a.sv 
+	Line: 223
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dma/dma_props_a.sv 
+	Line: 256
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_ic_props_a.sv 
+	Line: 109
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_ic_props_a.sv 
+	Line: 112
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_ic_props_a.sv 
+	Line: 115
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_ic_props_a.sv 
+	Line: 139
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_ic_props_a.sv 
+	Line: 164
+
+XPROP:	X-propagation disabled for block
+	File: rtl/clic/clic_sva.sv 
+	Line: 145
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 146
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/uart/garuda_uart_sva.sv 
+	Line: 78
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/i2c/garuda_i2c_sva.sv 
+	Line: 48
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/i2c/garuda_i2c_sva.sv 
+	Line: 93
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/i2c/garuda_i2c_sva.sv 
+	Line: 107
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/gpio/gpio_sva.sv 
+	Line: 31
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/spi_slave/garuda_spis_sva.sv 
+	Line: 66
+
+XPROP:	FOX Mode Enabled for block
+	File: tb/models/spi_flash_model.sv 
+	Line: 56
+		2 state destination cannot give X result(int) - Line : 57
+
+XPROP:	FOX Mode Enabled for block
+	File: tb/models/spi_flash_model.sv 
+	Line: 59
+		2 state destination cannot give X result(int) - Line : 61
+
+XPROP:	X-propagation disabled for block
+	File: tb/models/spi_flash_model.sv 
+	Line: 69
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 70
+		UNSXPC: Non logic datatype(real) - Line : 75
+
+XPROP:	FOX Mode Enabled for block
+	File: tb/models/spi_flash_model.sv 
+	Line: 101
+		2 state destination cannot give X result(int) - Line : 109
+
+XPROP:	X-propagation disabled for block
+	File: tb/models/spi_flash_model.sv 
+	Line: 124
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 124
+
+XPROP:	X-propagation disabled for block
+	File: rtl/mem/sram_wrapper.v 
+	Line: 80
+	Reasons:
+		UNSXPC: Large size Array; Use -XPELSA to enable - Line : 83
+
+XPROP:	X-propagation disabled for block
+	File: rtl/mem/sram_wrapper.v 
+	Line: 80
+	Reasons:
+		UNSXPC: Large size Array; Use -XPELSA to enable - Line : 83
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/mem_sva.sv 
+	Line: 45
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/mem_sva.sv 
+	Line: 118
+
+XPROP:	X-propagation disabled for block
+	File: rtl/mem/mem_sva.sv 
+	Line: 119
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 121
+		UNSXPC: Dynamic datatype in LHS - Line : 126
+
+XPROP:	X-propagation disabled for block
+	File: rtl/mem/sram_wrapper.v 
+	Line: 80
+	Reasons:
+		UNSXPC: Large size Array; Use -XPELSA to enable - Line : 83
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/mem_sva.sv 
+	Line: 45
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/mem/mem_sva.sv 
+	Line: 118
+
+XPROP:	X-propagation disabled for block
+	File: rtl/mem/mem_sva.sv 
+	Line: 119
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 121
+		UNSXPC: Dynamic datatype in LHS - Line : 126
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/dsu/dsu_sva.sv 
+	Line: 74
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_interconnect_sva.sv 
+	Line: 93
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/ahb/ahb_interconnect_sva.sv 
+	Line: 103
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl_sva.sv 
+	Line: 39
+
+XPROP:	X-propagation disabled for block
+	File: rtl/reset_ctrl/reset_ctrl_sva.sv 
+	Line: 70
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 70
+
+XPROP:	X-propagation disabled for block
+	File: rtl/reset_ctrl/reset_ctrl_sva.sv 
+	Line: 79
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 81
+		INVXPC: Event or Delay control in block. These set of delays cannot be enabled using 'SET VL_DELAYS ON' option. Refer documentation for details on what kind of details are supported - Line : 80
+
+XPROP:	X-propagation disabled for block
+	File: rtl/reset_ctrl/reset_ctrl_sva.sv 
+	Line: 88
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 88
+		UNSXPC: Non logic datatype(real) - Line : 88
+
+XPROP:	X-propagation disabled for block
+	File: rtl/reset_ctrl/reset_ctrl_sva.sv 
+	Line: 89
+	Reasons:
+		INVXPC: Blocking task or system task call in block - Line : 89
+		UNSXPC: Non logic datatype(real) - Line : 89
+
+XPROP:	X-propagation disabled for block
+	File: rtl/reset_ctrl/reset_ctrl_sva.sv 
+	Line: 90
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 90
+
+XPROP:	X-propagation disabled for block
+	File: rtl/reset_ctrl/reset_ctrl_sva.sv 
+	Line: 92
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 92
+
+XPROP:	X-propagation disabled for block
+	File: rtl/reset_ctrl/reset_ctrl_sva.sv 
+	Line: 94
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 94
+
+XPROP:	X-propagation disabled for block
+	File: rtl/reset_ctrl/reset_ctrl_sva.sv 
+	Line: 96
+	Reasons:
+		INVXPC: Assertion or Property in block - Line : 96
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/reset_ctrl/reset_ctrl_sva.sv 
+	Line: 125
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	Line: 189
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	Line: 194
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	Line: 204
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	Line: 245
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	Line: 231
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	Line: 252
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	Line: 266
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	Line: 288
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	Line: 302
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	Line: 312
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	Line: 318
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	Line: 326
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	Line: 352
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_byte_ctrl.sv 
+	Line: 167
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_byte_ctrl.sv 
+	Line: 176
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/opencores/i2c/src/i2c_master_byte_ctrl.sv 
+	Line: 191
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv 
+	Line: 40
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv 
+	Line: 60
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv 
+	Line: 83
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv 
+	Line: 49
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv 
+	Line: 88
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv 
+	Line: 73
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv 
+	Line: 49
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv 
+	Line: 88
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv 
+	Line: 73
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv 
+	Line: 48
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv 
+	Line: 62
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv 
+	Line: 154
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv 
+	Line: 183
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv 
+	Line: 60
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv 
+	Line: 74
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv 
+	Line: 186
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv 
+	Line: 211
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv 
+	Line: 224
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv 
+	Line: 261
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv 
+	Line: 201
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv 
+	Line: 274
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv 
+	Line: 328
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv 
+	Line: 47
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv 
+	Line: 57
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv 
+	Line: 121
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv 
+	Line: 51
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv 
+	Line: 61
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv 
+	Line: 112
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_clkgen.sv 
+	Line: 31
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_clkgen.sv 
+	Line: 56
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv 
+	Line: 49
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv 
+	Line: 88
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv 
+	Line: 73
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv 
+	Line: 49
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv 
+	Line: 88
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv 
+	Line: 73
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_spi_master/src/spi_master_apb_if.sv 
+	Line: 84
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_spi_master/src/spi_master_apb_if.sv 
+	Line: 183
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_controller.sv 
+	Line: 150
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_controller.sv 
+	Line: 193
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_controller.sv 
+	Line: 518
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv 
+	Line: 119
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv 
+	Line: 133
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv 
+	Line: 167
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv 
+	Line: 208
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv 
+	Line: 145
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv 
+	Line: 169
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv 
+	Line: 184
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv 
+	Line: 209
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv 
+	Line: 242
+
+XPROP:	FOX Mode Enabled for block
+	File: rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv 
+	Line: 525
+xmelab: *W,XPARRD: Array corruption feature has not been enabled for Verilog/SV in X-Propagation. To enable this feature, set xfile flag VL_INVALID_IDX_FOX/VL_OUTOFRANGE_IDX_FOX for FOX Mode Array Corruption or xfile flag VL_INVALID_IDX_CAT/VL_OUTOFRANGE_IDX_CAT for CAT Mode Array Corruption.
+xmelab: *W,XPWDIS: There are blocks in the design which have not been enabled for Xprop. See xp_elab.log for details.
+
+XPROP METRICS FOR VERILOG:
+		Total modules in environment                             = 162
+		Total instances in environment                           = 243
+		Total modules enabled using xfile/xprop                  = 162
+		Total instances enabled using xfile/xprop                = 243
+		Total always blocks in xprop enabled hierarchy           = 414
+		Total xprop enabled always block in xprop enabled hierarchy = 361
+		Total xprop enabled always block with x-edge enabled in xprop enabled hierarchy   = 272
+		Total always block which are edge sensitive in xprop enabled hierarchy   = 305
+		Module cover percentage(162/162)                           = 100.00%
+		Instance cover percentage(243/243)                         = 100.00%
+		Block cover percentage(361/414)                            = 87.20%
+		FF cover percentage(272/305)                               = 89.18%

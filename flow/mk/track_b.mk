@@ -95,7 +95,7 @@ docs:                                         ## regenerate the .docx exports (n
 #   static_lint   HAL lint on the whole chip; fails on any error that is not in
 #                 flow/2_static/hal_waivers.txt (matched by rule and file:line)
 #   static_cdc    HAL clock-domain check on debug_top, the one async boundary
-#   static_xprop  all eight chip programs with X-propagation (xrun -xprop F)
+#   static_xprop  all nine chip programs with X-propagation (xrun -xprop F)
 # HAL is the Incisive 15.2 one: the Xcelium 22.09 HAL does not run here.
 # =============================================================================
 static: static_lint static_cdc static_xprop      ## lint + clock-domain check + X-propagation
@@ -146,8 +146,9 @@ static_xprop: sw
 	 for t in "basic:+MODE=basic +TEST=sw/build/t_chip_basic.hex" "irq:+MODE=irq +TEST=sw/build/t_chip_irq.hex" \
 	          "wdt:+MODE=wdt +TEST=sw/build/t_chip_wdt.hex" "jtag:+MODE=jtag +TEST=sw/build/t_chip_jtag.hex +MAXUS=1500" \
 	          "flash:+MODE=flash +TEST=sw/build/flash.hex +MAXUS=3000" "uart:+MODE=basic +TEST=sw/build/t_chip_uart.hex" \
-	          "periph:+MODE=basic +TEST=sw/build/t_chip_periph.hex +MAXUS=1200" "integ:+MODE=basic +TEST=sw/build/t_chip_integ.hex +MAXUS=4000"; do \
-	   n=$${t%%:*}; a=$${t#*:}; \
+	          "periph:+MODE=basic +TEST=sw/build/t_chip_periph.hex +MAXUS=1200" "integ:+MODE=basic +TEST=sw/build/t_chip_integ.hex +MAXUS=4000" \
+	          "swirq:+MODE=basic +TEST=sw/build/t_chip_swirq.hex"; do \
+	   n=$${t%%:*}; a=$${t#*:}; rm -f $(SIM_DIR)/xprop/chip_$$n.log; \
 	   $(XRUN) -64bit -f tb/soc/filelist_chip.f -top tb_chip -xprop F $$a \
 	       -xmlibdirname $(SIM_DIR)/xprop/xcelium.d -l $(SIM_DIR)/xprop/chip_$$n.log > /dev/null 2>&1; \
 	   if grep -q 'RESULT: PASSED' $(SIM_DIR)/xprop/chip_$$n.log && ! grep -qE '\*[EF],' $(SIM_DIR)/xprop/chip_$$n.log; \
