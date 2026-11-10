@@ -1,20 +1,23 @@
 top: dma_top
 children: dma_apb_slave dma_arbiter dma_chan dma_engine
 script: flow/formal/dma/dma_fpv.tcl
-proved: 485 of 486 assertions
-tool: JasperGold Apps 2022.09p002, 2026-11-04 (after the rulings D-32)
+proved: 486 of 486 assertions
+tool: JasperGold Apps 2022.09p002, 2026-11-10 (after the rulings D-32 and the APB environment fix)
 
 dma_sva.sv and dma_props_a.sv together, with the APB environment now constrained to
 legal transfers on pclk (access after setup, one-pclk access, inputs change only at a
-pclk edge: clock -rate). 485 proven, 1 counterexample, 428 covers covered, 6 covers
+pclk edge: clock -rate). 486 proven, 428 covers covered, 6 covers
 unreachable.
   - DMA-9 and DMA-10, the 13 counterexamples of 2026-10-15, are fixed and proven
     (a_rem_no_underflow, a_complete_consistent in all six channels; a_haddr_aligned).
   - DMA-12 (a_no_read_before_refusal), DMA-14 (a_beat_size_atomic) and DMA-15
     (a_done_gives_ack, a_ack_with_done) hold.
-  - Open: a_strobe_once (dma_props_a.sv), a 2-cycle counterexample in the APB-strobe
-    environment of the formal setup; the same rule holds in tb_dma, the UVM
-    environment and tb_dma_apb_slave_unit. To be traced.
+  - a_strobe_once (dma_props_a.sv) is proven since 2026-11-10. Its counterexample was
+    the formal environment, not the DMA: the APB inputs could leave reset in the middle of
+    an access, and the pclk-clocked |=> assumptions of dma_sva.sv are checked only at the
+    next pclk edge, so a trace could end one hclk before them with a second access phase
+    at a new address. dma_fpv.tcl now adds a reset-phase assumption (APB idle) and the
+    same APB rules on hclk with |-> (TOOL-A10).
   - Unreachable covers: c_reset_idle/ra/rd/wa/wd (the setup resets only at the start)
     and g_prio[0].c_contest.
 

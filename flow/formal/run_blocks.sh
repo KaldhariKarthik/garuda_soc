@@ -10,7 +10,7 @@ timers  |timers_top      |rtl/timers/filelist.f      |hclk_i pclk_i:2 |hreset_n_
 reset   |reset_ctrl      |rtl/reset_ctrl/filelist.f  |hclk_i aon_clk_i pclk_i:2 |ext_rst_n_i |reset_ctrl_apb|DEFS=FORMAL APB=pclk_i APBRST=preset_n_o
 pwm     |garuda_pwm_top  |rtl/pwm/filelist.f         |pclk_i          |preset_n_i |garuda_pwm_core|APB=pclk_i
 gpio    |garuda_gpio_top |rtl/gpio/filelist.f        |pclk_i          |preset_n_i ||APB=pclk_i
-i2c     |garuda_i2c_top  |rtl/i2c/filelist.f         |pclk_i          |preset_n_i ||APB=pclk_i
+i2c     |garuda_i2c_top  |rtl/i2c/filelist.f         |pclk_i          |preset_n_i ||DEFS=FORMAL APB=pclk_i
 spis    |garuda_spis_top |rtl/spi_slave/filelist.f   |pclk_i          |preset_n_i |garuda_spis_core|APB=pclk_i
 shim    |garuda_apb_shim |rtl/common/filelist_shim_fv.f |pclk_i       |preset_n_i ||APB=pclk_i
 if_id   |if_id           |rtl/core/filelist_pipe_regs_fv.f |clk_i   |rst_n_i ||
@@ -39,6 +39,7 @@ echo "$TABLE" | while IFS='|' read -r name top fl clks rsts kids extra; do
     [ -n "$*" ] && [[ "$want" != *" $name "* ]] && continue
     top=$(echo $top); fl=$(echo $fl); kids=$(echo $kids)
     mkdir -p flow/formal/$name sim/formal_$name
+    rm -f sim/formal_$name/props.txt     # a failed run must not report the last run's results (TOOL-A10)
     ( [ -n "$extra" ] && eval "export $extra"
       TOP=$top FL=$fl CLKS="$clks" RSTS="$rsts" PROPS=sim/formal_$name/props.txt \
         timeout 1500 $JG -allow_unsupported_OS -fpv -batch -no_jges -proj sim/formal_$name/jgproject \

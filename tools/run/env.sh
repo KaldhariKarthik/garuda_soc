@@ -23,6 +23,14 @@ export GARUDA_TOOLS=${GARUDA_TOOLS:-$HOME/tools}
 if [ -f /opt/rh/gcc-toolset-12/enable ]; then
     # shellcheck disable=SC1091
     source /opt/rh/gcc-toolset-12/enable
+elif [ -x /opt/rh/gcc-toolset-13/root/usr/bin/g++ ]; then
+    # TOOL-A10 (2026-11-10): the lab machine has gcc-toolset-13 only. Its 64-bit
+    # libatomic is not installed, so link against the empty shim, as
+    # scripts/setup_open_tools.sh does.
+    export PATH="/opt/rh/gcc-toolset-13/root/usr/bin:$PATH"
+    if [ -f "$HOME/external/shim/libatomic.a" ]; then
+        export LIBRARY_PATH="$HOME/external/shim${LIBRARY_PATH:+:$LIBRARY_PATH}"
+    fi
 fi
 
 # Rocky 8's python3 is 3.6; the flow scripts need >= 3.11 (tomllib).
@@ -35,6 +43,12 @@ ln -sfn "$(command -v "$PYTHON")" "$GARUDA_ROOT/.garuda_bin/python3"
 export PATH="$GARUDA_ROOT/.garuda_bin:$GARUDA_TOOLS/verilator/bin:$GARUDA_TOOLS/iverilog/bin:$GARUDA_TOOLS/riscv/bin:$GARUDA_TOOLS/spike/bin:$GARUDA_TOOLS/dtc/bin:$PATH"
 
 export OSS_CAD=${OSS_CAD:-$GARUDA_TOOLS/oss-cad-suite}
+# TOOL-A10: on the lab machine the pinned Verilator 5.052 is in ~/.local/verilator
+if [ ! -x "$GARUDA_TOOLS/verilator/bin/verilator" ] && [ -x "$HOME/.local/verilator/bin/verilator" ]; then
+    export PATH="$HOME/.local/verilator/bin:$PATH"
+    export VERILATOR=${VERILATOR:-$HOME/.local/verilator/bin/verilator}
+    export VERILATOR_COV=${VERILATOR_COV:-$HOME/.local/verilator/bin/verilator_coverage}
+fi
 export VERILATOR=${VERILATOR:-$GARUDA_TOOLS/verilator/bin/verilator}
 export VERILATOR_COV=${VERILATOR_COV:-$GARUDA_TOOLS/verilator/bin/verilator_coverage}
 
