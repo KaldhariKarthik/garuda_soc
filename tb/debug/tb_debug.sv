@@ -41,8 +41,20 @@ module tb_debug;
     reg         ovf = 0;
 
     wire [31:0] haddr, hwdata, hrdata;
-    wire [1:0]  htrans;
-    wire        hwrite, hready, hresp;
+    wire [1:0]  htrans, htrans_m;
+    wire        hwrite, hready, hresp, hready_m;
+
+    // ---- arbitration, as the chip interconnect does it (1-TOPS G4, mutant debug M8) --
+    // On the chip the SBA shares the bus with the core and the DMA: while it is
+    // not granted its address phase is not taken (the slaves see IDLE) and it
+    // sees HREADY low, so it must hold the address. With arb_on the bench
+    // withholds the grant on random cycles; off, the SBA always owns the bus.
+    reg arb_on = 1'b0, gnt = 1'b1;
+    integer arb_stalls = 0;
+    always @(posedge hclk) gnt <= arb_on ? ($urandom_range(0, 2) != 0) : 1'b1;
+    always @(posedge hclk) if (rst_n && htrans_m[1] && !gnt) arb_stalls = arb_stalls + 1;
+    assign htrans   = (htrans_m[1] && !gnt) ? 2'b00 : htrans_m;   // what the slaves see
+    assign hready_m = (htrans_m[1] && !gnt) ? 1'b0  : hready;     // what the SBA sees
     wire [2:0]  hsize, hburst;
 
     debug_top dut (
@@ -50,8 +62,8 @@ module tb_debug;
         .hclk_i(hclk), .dm_rst_n_i(rst_n), .ndmreset_o(ndmreset), .hartreset_o(hartreset),
         .halt_req_o(), .halt_safe_i(1'b1),     // RDC-1: no core here, always at a safe point
         .dsu_acc0_i(acc0), .dsu_acc1_i(acc1), .dsu_acc2_i(acc2), .dsu_ovf_i(ovf),
-        .haddr_o(haddr), .htrans_o(htrans), .hwrite_o(hwrite), .hsize_o(hsize),
-        .hburst_o(hburst), .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready),
+        .haddr_o(haddr), .htrans_o(htrans_m), .hwrite_o(hwrite), .hsize_o(hsize),
+        .hburst_o(hburst), .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready_m),
         .hresp_i(hresp));
 
     // ---- slaves: ISRAM (real, locked) + DSRAM model --------------------------------
@@ -324,6 +336,13 @@ module tb_debug;
         dmr(7'h10, r); check(r[29] && r[0], "dmcontrol reads back hartreset");
         dmw(7'h10, 32'h0000_0001);
         #200 check(!hartreset, "writing hartreset = 0 releases the hart");
+        // dmactive = 0 while the hart is held: the DM is in reset and must let go
+        // of the hart at once, not a cycle later (DBG-3; mutant debug M7)
+        dmw(7'h10, 32'h2000_0001);
+        #200 check(hartreset, "hartreset held again before the DM is deactivated");
+        dmw(7'h10, 32'h0000_0000);
+        #200 check(!hartreset, "[DBG-3] dmactive = 0 releases hartreset");
+        dmw(7'h10, 32'h0000_0001);
         dmw(7'h38, (2 << 17) | (1 << 16));                      // a DM register to watch across ndmreset
         dmw(7'h10, 32'h0000_0003);                              // ndmreset
         #200 check(ndmreset && !hartreset, "[N-7.14] ndmreset is a level out to reset_ctrl");
@@ -375,6 +394,20 @@ module tb_debug;
         for (i = 0; i < 8; i++) begin dmr(7'h3C, r); if (r !== 32'h1000_0000 + i) ok = 0; end
         check(ok, "[N-6.5] readonaddr + readondata streams 8 words, one DMI read each");
 
+        // ---- SBA without the grant on random cycles (mutant debug M8) ------------------
+        arb_on = 1; x0 = arb_stalls;
+        dmw(7'h38, (2 << 17) | (1 << 16));                      // word, autoincrement
+        dmw(7'h39, 32'h2000_0400);
+        for (i = 0; i < 8; i++) dmw(7'h3C, 32'hA0B0_0400 + i);
+        ok = 1; for (i = 0; i < 8; i++) if (u_dsram.bd_read(32'h2000_0400 + 4*i) !== 32'hA0B0_0400 + i) ok = 0;
+        dmw(7'h38, (1 << 20) | (2 << 17) | (1 << 16) | (1 << 15));
+        dmw(7'h39, 32'h2000_0400);
+        for (i = 0; i < 8; i++) begin dmr(7'h3C, r); if (r !== 32'hA0B0_0400 + i) ok = 0; end
+        arb_on = 0;
+        dmr(7'h38, r);
+        check(ok && r[14:12] == 0 && arb_stalls > x0,
+              "SBA writes and reads correct while the grant is withheld on random cycles (address held)");
+
         // ---- errors --------------------------------------------------------------------
         dmw(7'h38, (2 << 17));
         x0 = n_xfer;
@@ -382,6 +415,16 @@ module tb_debug;
         dmr(7'h38, r); check(r[14:12] == 2 && n_xfer == x0, "[N-7.6] misaligned sbaddress0 -> sberror 2, no transfer issued");
         dmw(7'h38, (2 << 17) | (7 << 12));                      // W1C
         dmr(7'h38, r); check(r[14:12] == 0, "sberror is W1C");
+        // the same refusal on the two read paths (mutants debug M5b, M5c)
+        x0 = n_xfer;
+        dmw(7'h38, (1 << 20) | (2 << 17));                      // sbreadonaddr
+        dmw(7'h39, 32'h2000_0106);
+        dmr(7'h38, r); check(r[14:12] == 2 && n_xfer == x0, "[N-7.6] misaligned sbaddress0 with sbreadonaddr -> sberror 2, no read");
+        dmw(7'h38, (2 << 17) | (7 << 12));
+        dmw(7'h38, (2 << 17) | (1 << 15));                      // sbreadondata
+        dmr(7'h3C, r);
+        dmr(7'h38, r); check(r[14:12] == 2 && n_xfer == x0, "[N-7.6] sbdata0 read at a misaligned sbaddress0 with sbreadondata -> sberror 2, no read");
+        dmw(7'h38, (2 << 17) | (7 << 12));
         dmw(7'h38, (0 << 17));                                  // sbaccess = 8-bit
         dmw(7'h39, 32'h2000_0100); dmw(7'h3C, 32'h1);
         dmr(7'h38, r); check(r[14:12] == 3, "[N-6.6] unsupported size -> sberror 3");

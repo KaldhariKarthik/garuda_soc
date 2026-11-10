@@ -170,6 +170,20 @@ module tb_mem_subsystem;
         check(u_m.r_data[3] == 32'hCDEF_ABFF, "byte + half lanes merge (through the write buffer)");
         check(u_m.r_data[5][31:16] == 16'hB000, "Boot ROM halfword read is legal [N-7.5]");
 
+        // ---- bypass merges only the parked write's lanes (1-TOPS G4, mutant mem M2) ----
+        // A byte write whose idle lanes carry other data (AHB allows any value
+        // there), read back at once: the write parks behind the read, and only
+        // lane 0 may come from the buffer.
+        clr();
+        go(32'h2000_0210, 1, 32'h1122_3344, W);
+        go(32'h2000_0210, 1, 32'hEEDD_CCAA, B);
+        go(32'h2000_0210, 0, 0, W);
+        go(32'h2000_0212, 1, 32'h5566_7788, H);
+        go(32'h2000_0210, 0, 0, W);
+        drain();
+        check(u_m.r_data[2] == 32'h1122_33AA, "write-buffer bypass merges only the byte written (lanes 1-3 from the array)");
+        check(u_m.r_data[4] == 32'h5566_33AA, "write-buffer bypass merges only the halfword written (lanes 0-1 from the array)");
+
         // ---- errors ------------------------------------------------------------------
         clr();
         go(32'h2000_0301, 0, 0, W);            // misaligned word

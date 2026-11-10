@@ -1,7 +1,7 @@
 U1 SPIM-3 fix removed                          assertions: a_cs_exclusive                                     bench: FAIL
 U2 SPIM-4 fix removed                          assertions: a_single_bit_mode                                  bench: FAIL
 M1 MISO on sdi0                                assertions: none                                               bench: FAIL
-M2 poll may write                              assertions: none                                               bench: pass
+M2 poll may write                              assertions: a_poll_is_status_read,a_single_bit_mode            bench: FAIL
 M3 chip selects swapped                        assertions: a_cs_exclusive                                     bench: FAIL
 M4 poll blocks the bus                         assertions: a_poll_never_blocks                                bench: pass
-spim: 6 mutants; assertions caught 4, bench caught 4
+spim: 6 mutants; assertions caught 5, bench caught 5

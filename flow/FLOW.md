@@ -15,8 +15,8 @@ F10 to F16 are listed so the whole flow is visible; nothing in them is planned y
 | F2 | Verification plan | vPlanner; `tb/*/GARUDA_*_vplan.csv` | G1 1.14 | done |
 | F3 | RTL design: core, peripherals, SoC integration | editor; HAL for every change | G2 2.1 to 2.10, 2.14 to 2.17; G3 3.1 to 3.13, 3.17 to 3.22 | done except 3.10 (SRAM macros wait for the PDK) |
 | F4 | Static checks: lint, CDC, RDC, X-propagation, coding rules | HAL; JasperGold Superlint and CDC; xrun `-xprop` | G2 2.11 to 2.13; G3 3.14 to 3.16 | done 2026-11-10 (`core_lint.md`, `coding_rules.md`, `xprop/`, Superlint rerun at one hour per group); X-propagation reaches every block of design logic (two tasks inlined by ruling, proven equivalent by LEC) |
-| F5 | Block and unit verification: UVM, bound SVA, formal, mutation | xrun / irun; JasperGold FPV and UNR; Verilator for mutants | G4 4.1 to 4.9, 4.15, 4.16 | in progress |
-| F6 | Core verification: ISA tests, Spike lockstep, random programs, benchmarks | irun; Spike; riscv-dv | G4 4.10 to 4.14; G5 5.1 to 5.7, 5.10 | in progress |
+| F5 | Block and unit verification: UVM, bound SVA, formal, mutation | xrun / irun; JasperGold FPV and UNR; Verilator for mutants | G4 4.1 to 4.9, 4.15, 4.16 | core units done 2026-11-10 (`flow/3_unit/`); every mutant set killed; block coverage closure carried to F8 |
+| F6 | Core verification: ISA tests, Spike lockstep, random programs, benchmarks | irun; Spike; riscv-dv | G4 4.10 to 4.14; G5 5.1 to 5.7, 5.10 | G4 rows done 2026-11-10; G5 next |
 | F7 | SoC verification: without the core, then the whole chip with C programs | irun; UVM; `sw/chip` | G6 6.1 to 6.14, 6.18 | in progress |
 | F8 | Regression and coverage closure; bug curve | vManager; IMC; JasperGold UNR | G5 5.8, 5.9; G6 6.15 to 6.17 | in progress |
 | F9 | **RTL freeze**: review and tag | git | G6 6.19 | not started; **end of the current plan** |
@@ -109,9 +109,36 @@ triggered, no open P1 or P2, regression over 20 seeds, lint, register tests, for
 the assigned features. Where a mutant set exists, every mutant killed.
 **Outputs.** `tb/<block>/` benches and `tb/<block>/uvm/`; `rtl/*/*_sva.sv`;
 `flow/formal/<block>/*_fpv.result.txt`; `flow/cov/<block>_exclusions.tcl`;
-`flow/mutation/`, `logs/dma/evidence/`; `Docs/coverage/COVERAGE_BY_BLOCK.md`.
-A per-block exit table is added here as G4 is worked.
+`flow/mutation/`, `flow/mutation/results/`, `logs/dma/evidence/`;
+`Docs/coverage/COVERAGE_BY_BLOCK.md`; `flow/3_unit/` (core units, G4).
 **Rows.** G4 4.1 to 4.9, 4.15, 4.16.
+
+**Exit table by block (2026-11-10).** Bench: the block's own runs in `make regress_all`,
+`gate_a` and `gate_b` on 2026-11-10. Formal: `flow/formal/<block>/*.result.txt`. Mutants:
+planted defects killed, `flow/mutation/results/` (DMA `logs/dma/evidence/dma_mut_2026-11-10.txt`,
+DSU `logs/dsu/evidence/dsu_mut_2026-10-11.txt`); an "equivalent" mutant is proven so in
+JasperGold. Coverage: statement / toggle / functional from IMC, 2026-10-16
+(`Docs/coverage/COVERAGE_BY_BLOCK.md`), "w" = after the written waivers; it is
+measured again at F8. No block has an open P1 or P2 bug.
+
+| Block | Bench | Formal | Mutants | Coverage (stmt / toggle / functional) | Still to do for F5 exit |
+|---|---|---|---|---|---|
+| RV32IM core | 21 unit benches x 20 seeds, 63 ISA tests, 112 programs in step with Spike | every unit proof full; `core_all` 69/70 | no set (the new `forward_unit` bench kills 2 of 2) | 97.6% / 84.6% / 90.8%; units in `flow/3_unit/core_units.md` | core coverage with waivers (G5 5.8, 5.9) |
+| DSU | pass | 20/20 | 7 of 7 | 100% / 95.6% / 60.0% | functional coverage; TB-42, TB-45 |
+| AHB interconnect | pass (802 checks) | 20/20 | 8 of 8 | 98.6% / 69.1% / 71.8% | toggle and functional holes, waivers |
+| AHB to APB bridge | pass | 17/17 | 8 of 8 | 93.0% / 78.3% / 38.4% | functional coverage, waivers |
+| Memories | pass | 13/13; D-SRAM bank 2/2 | 7 of 7, 1 equivalent | 85.7% / 92.8% / 77.2% | statement holes, waivers |
+| DMA | pass, and its UVM bench | 486 proven | 24 of 24, 1 equivalent | 99.1% / 60.3% / 75.8% | toggle and functional holes, waivers |
+| Debug | pass | 26/26 | 10 of 10 | 96.5% / 77.1% / 90.0% | holes, waivers |
+| CLIC | pass (UVM) | 76/76 | no set | 100% / 100% w / 100% | none |
+| Timers and watchdog | pass (UVM) | 26/26 | no set | 100% / 100% w / 100% | none |
+| Clock divider and reset | pass (UVM) | `reset` 14/17 (3 undetermined) | no set | 100% / 100% w / 100% | the 3 reset-duration proofs |
+| PWM | pass (UVM) | 56/56 | no set | 100% w / 100% w / 100% | none |
+| GPIO | pass (UVM) | 25/25 | no set | 100% w / 100% w / 100% | none |
+| UART | pass (UVM) | 38/38 | no set | 83.1% / 66.7% / 98.1% | coverage and waivers |
+| I2C | pass (UVM) | 47/49 (2 undetermined) | no set | 100% w / 100% w / 100% | the 2 undetermined proofs |
+| SPI master | pass | 34/34 | 6 of 6 | 67.3% / 54.5% / 39.1% (directed only) | coverage: UVM runs into the merge |
+| SPI slave | pass (UVM) | 38/38 | no set | 100% w / 100% w / 100% | none |
 
 ## F6 Core verification
 
@@ -188,3 +215,4 @@ Each gate already closed is replayed by Karthik from `flow/COMMANDS.md`, "Replay
 | G0 | F0 | |
 | G1 | F1, F2 | |
 | G2, G3 | F3, F4 | |
+| G4 | F5, F6 (unit level) | |

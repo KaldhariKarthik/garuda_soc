@@ -7,6 +7,11 @@
 // registers with a read side effect, e.g. the machine timer's shadow latch or
 // a 16550 RBR pop). Word accesses only - the bridge rejects anything else
 // before it reaches a peripheral.
+// Between transfers PADDR, PWRITE and PWDATA keep the last transfer's values,
+// as the bridge's capture registers do (rtl/ahb2apb/ahb2apb_bridge.v
+// addr_cap / write_cap / wdata_cap): after a write PWRITE stays 1 while PSEL
+// is low. Until 2026-11-10 PWRITE went back to 0, which hid planted defect
+// SPIM M2 (an idle STATUS poll that obeys PWRITE).
 // =============================================================================
 interface garuda_apb_bfm (input logic pclk, input logic preset_n);
     logic        psel = 0, penable = 0, pwrite = 0;
@@ -19,7 +24,7 @@ interface garuda_apb_bfm (input logic pclk, input logic preset_n);
         @(posedge pclk); #0.1 psel = 1; pwrite = 1; paddr = a; pwdata = d; penable = 0;
         @(posedge pclk); #0.1 penable = 1;
         @(posedge pclk); err = pslverr;
-        #0.1 psel = 0; penable = 0; pwrite = 0;
+        #0.1 psel = 0; penable = 0;           // PADDR, PWRITE, PWDATA held, as the bridge does
     endtask
 
     task automatic read(input [11:0] a, output [31:0] d, output bit err);

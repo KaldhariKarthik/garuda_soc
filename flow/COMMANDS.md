@@ -720,3 +720,15 @@ Start every replay with:
 | R3.7 | `make static_xprop` | nine lines `static_xprop  chip_<program> PASS`, from `chip_basic` to `chip_swirq` (about 25 seconds); `flow/2_static/xprop/README.md` |
 | R3.8 | `grep -cE '^hal\w+: \*[EW],[A-Z0-9]+ \(\./rtl/core/' sim/replay/hal.log` (after R3.1) | `108`, the core findings of `flow/2_static/core_lint.md` (row 2.12) |
 | R3.9 | `make synth` then `cat sim/genus_garuda_chip_top/latches.rpt` | `GENUS_LATCHES 1` and `u_core/u_soc_u_core_u_cg_en_l_reg`, the clock-gate latch (row 2.11, `flow/2_static/coding_rules.md`) |
+
+### G4, stages F5 and F6 (unit level): the core units, hazards, mutants
+
+| # | Type | Look for |
+|---|---|---|
+| R4.1 | `irun -64bit -coverage functional -covoverwrite -covworkdir sim/replay/cov_dec -nclibdirname sim/replay/INCA_dec -f tb/core/filelist_decode_control.f -top tb_top -l sim/replay/decode.log` then `grep -e TOTAL_CYCLES -e COVERAGE sim/replay/decode.log` | `PASS=3211  FAIL=0`, both coverage lines `100.00 %` (row 4.2: every opcode x funct3 x funct7, FENCE and FENCE.I) |
+| R4.2 | `irun -64bit -nclibdirname sim/replay/INCA_fwd -f tb/core/filelist_forward_unit.f -top tb_top -svseed 7 -l sim/replay/fwd.log` then `grep CHECKS sim/replay/fwd.log` | `CHECKS=5088  PASS=5088  FAIL=0` (row 4.8, the forwarding unit's new bench) |
+| R4.3 | `irun -64bit -nclibdirname sim/replay/INCA_alu -f tb/core/filelist_alu.f -top tb_top -svseed 13 -l sim/replay/alu_s13.log` then `grep CHECKS sim/replay/alu_s13.log` | `CHECKS=2317  PASS=2317  FAIL=0`; any seed passes (row 4.9, `flow/3_unit/seeds_2026-11-10.txt`) |
+| R4.4 | `irun -64bit -nclibdirname sim/replay/INCA_boot -f tb/soc/filelist_boot.f -top tb_boot +HEX=sw/build/t_hazard.hex +MAXCYC=200000 +QUIET +IWAIT=2 +IRAND=1 +DWAIT=3 +DRAND=1 +SEED=5 -l sim/replay/hazard.log` then `grep TOHOST sim/replay/hazard.log` | `TOHOST=1 -> PASSED (293 instructions retired` (row 4.13, 35 hazard cases under random wait states; build the image first with `make sw`) |
+| R4.5 | `make csr_map` | last line `csr_map: RTL vs contract 0 mismatch(es); RTL vs Spike 0 unexplained difference(s) -> PASS` (row 4.15) |
+| R4.6 | `python3.12 tools/mutate.py flow/mutation/spim_mutants.py` | six lines, each with an assertion named or `bench: FAIL`: every planted defect is caught (`flow/mutation/README.md`) |
+| R4.7 | `/home/install/JASPER/bin/jg -allow_unsupported_OS -fpv -batch -no_jges -proj sim/replay/dsram_bank flow/formal/mem/dsram_bank_fpv.tcl >& sim/replay/dsram_bank.log` then `cat sim/formal_dsram_bank/props.txt` | two `proven` and two `covered`: mutant mem M8 can never be seen on a legal AHB bus |
