@@ -1,0 +1,11 @@
+M1 TAP: TLR does not select IDCODE             assertions: a_tap_tlr_idcode                                   bench: FAIL
+M2 TAP: Select-IR with TMS stays               assertions: a_tap_five_tms                                     bench: FAIL
+M3 DTM: busy not sticky (DBG-1 back)           assertions: a_dtm_busy_sticky                                  bench: FAIL
+M4 DTM: request while busy                     assertions: a_dtm_no_req_when_sticky                           bench: FAIL
+M5 DM: unaligned SBDATA0-write address not refused assertions: a_dm_start_legal,a_sba_aligned                     bench: FAIL
+M5b DM: unaligned read-on-address not refused  assertions: none                                               bench: pass
+M5c DM: unaligned read-on-data not refused     assertions: none                                               bench: pass
+M6 DM: no autoincrement                        assertions: a_dm_autoinc                                       bench: FAIL
+M7 DM: inactive DM still resets the hart       assertions: none                                               bench: pass
+M8 SBA: address dropped before acceptance      assertions: none                                               bench: pass
+debug: 10 mutants; assertions caught 6, bench caught 6

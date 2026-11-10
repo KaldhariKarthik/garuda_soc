@@ -32,7 +32,7 @@ CTESTS  = ctest1
 ATESTS  = boot6 dsu_flag2 t_loadbranch t_mem t_clic t_cov \
           t_buserr t_irq t_wfi t_flush t_dsu t_mtip \
           t_hold_flush_matrix t_dsu_b2b \
-          t_lead1_mret_buserr t_lead2_wfi_buserr
+          t_lead1_mret_buserr t_lead2_wfi_buserr t_hazard t_cov_fault t_cov_csr
 
 ALL     = $(addprefix $(BUILD)/,$(addsuffix .hex,$(CTESTS) $(ATESTS)))
 

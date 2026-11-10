@@ -1,0 +1,6 @@
+name                                     Block                Expression           Toggle               Fsm Average          Fsm Covered          Assertion            CoverGroup Average   CoverGroup Covered   
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+$unit                                    n/a                  n/a                  n/a                  n/a                  n/a                  n/a                  100.00%              100.00% (29/29)      
+tb_top                                   100.00% (5/5)        n/a                  100.00% (1/1)        n/a                  n/a                  n/a                  n/a                  n/a                  
+mul32_if                                 n/a                  n/a                  99.00% (99/100)      n/a                  n/a                  100.00% (4/4)        n/a                  n/a                  
+mul32                                    n/a                  n/a                  99.57% (232/233)     n/a                  n/a                  n/a                  n/a                  n/a                  

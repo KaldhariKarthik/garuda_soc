@@ -134,7 +134,7 @@ sw_open:
 	$(MAKE) -s -C sw $(addprefix build/,$(addsuffix .hex,ctest1 boot6 dsu_flag2 t_loadbranch t_mem \
 	    t_clic t_cov t_buserr t_irq t_wfi t_flush t_dsu t_mtip t_hold_flush_matrix t_dsu_b2b \
 	    t_core_mret_buserr t_core_wfi_buserr t_core_ctl t_core_ctl_arch t_core_irq_nest t_core_preempt t_perf_mix \
-	    t_cov_fault t_cov_csr t_cov_illegal t_cov_dsu t_cov_rereset t_cov_irq t_cov_misfetch t_exc_priority t_dsu_macsat_rd t_dsu_gate t_cov_vplan t_cov_wfi_mti t_dsu_ovf_raw)); \
+	    t_cov_fault t_cov_csr t_cov_illegal t_cov_dsu t_cov_rereset t_cov_irq t_cov_misfetch t_exc_priority t_dsu_macsat_rd t_dsu_gate t_cov_vplan t_cov_wfi_mti t_dsu_ovf_raw t_hazard)); \
 	echo "ISA images : $$(ls sw/riscv-tests/build/*.hex | wc -l) (elf: $$(ls sw/riscv-tests/build/*.elf | wc -l))"; \
 	echo "sw/tests   : $$(ls sw/build/*.hex | wc -l) hex"
 

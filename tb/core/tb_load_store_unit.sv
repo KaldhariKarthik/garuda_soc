@@ -296,6 +296,17 @@ class lsu_monitor;
             ignore_bins byte_cannot_misalign =
                 binsof(cp_size.byte_) && binsof(cp_misaligned) intersect {1};
         }
+        // 1-TOPS G4 row 4.7: the store side of the same matrix, and every
+        // load size in both signednesses at every offset (RV32 has no LWU, so
+        // word x unsigned is not an encoding).
+        cp_store_mis: coverpoint vif.store_mis;
+        x_size_store_mis: cross cp_size, cp_store_mis {
+            ignore_bins byte_cannot_misalign =
+                binsof(cp_size.byte_) && binsof(cp_store_mis) intersect {1};
+        }
+        x_size_off_sign: cross cp_size, cp_offset, cp_unsigned {
+            ignore_bins no_lwu = binsof(cp_size.word) && binsof(cp_unsigned) intersect {1};
+        }
         cp_store_data: coverpoint vif.rs2_data {
             bins zero  = {32'h0000_0000};
             bins ones  = {32'hFFFF_FFFF};

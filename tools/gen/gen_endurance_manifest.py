@@ -36,7 +36,7 @@ xfail = "tb/core/run/xfail.tsv"
 [bench]
 flist = "tb/soc/filelist_boot_cosim.f"
 top   = "tb_boot"
-vl_flags = ["-CFLAGS", "-I$GARUDA_TOOLS/spike/include", "-LDFLAGS", "-L$GARUDA_TOOLS/spike/lib -lriscv -Wl,-rpath,$GARUDA_TOOLS/spike/lib"]
+vl_flags = ["-CFLAGS", "-I$GARUDA_SPIKE/include", "-LDFLAGS", "-L$GARUDA_SPIKE/lib -lriscv -Wl,-rpath,$GARUDA_SPIKE/lib"]
 
 [defaults]
 marker    = 'TOHOST=1 -> PASSED'

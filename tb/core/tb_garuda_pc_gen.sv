@@ -238,6 +238,16 @@ module tb_top;
         sb.chk("back_to_back", "pc",       vif.pc,       32'h6000_0000);
         sb.chk("back_to_back", "fetch_pc", vif.fetch_pc, 32'h6000_0000);
 
+        // 1-TOPS G4 row 4.1: a halfword-aligned redirect target. pc_gen loads
+        // it as given (the misaligned-target trap is raised in EX, CORE T-1);
+        // then back to an aligned target, so bit 1 toggles both ways.
+        step(1, 32'h6000_0402, 0, 0, 32'd0);
+        sb.chk("redirect_halfword", "pc",       vif.pc,       32'h6000_0402);
+        sb.chk("redirect_halfword", "fetch_pc", vif.fetch_pc, 32'h6000_0402);
+        step(1, 32'h6000_0400, 0, 0, 32'd0);
+        sb.chk("redirect_realign", "pc",       vif.pc,       32'h6000_0400);
+        sb.chk("redirect_realign", "fetch_pc", vif.fetch_pc, 32'h6000_0400);
+
         // address 0 is not special-cased
         step(1, 32'h0000_0000, 0, 0, 32'd0);
         sb.chk("redirect_to_zero", "pc", vif.pc, 32'h0000_0000);

@@ -1,0 +1,9 @@
+M1 error lasts one cycle                       assertions: a_err_two_cycles                                   bench: FAIL
+M2 absent window starts an APB transfer        assertions: a_bad_no_request,a_penable_needs_psel,a_psel_present bench: FAIL
+M3 timeout one cycle late                      assertions: a_timeout_counter                                  bench: pass
+M4 write data present on a read                assertions: a_read_wdata_zero                                  bench: pass
+M5 PENABLE together with PSEL                  assertions: a_setup_then_access                                bench: FAIL
+M6 capture moves during the transfer           assertions: a_capture_stable                                   bench: FAIL
+M7 slave error answered OKAY                   assertions: a_slverr_to_error                                  bench: FAIL
+M8 two windows selected                        assertions: a_psel_onehot                                      bench: FAIL
+bridge: 8 mutants; assertions caught 8, bench caught 6

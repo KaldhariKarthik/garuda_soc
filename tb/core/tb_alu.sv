@@ -265,6 +265,23 @@ class alu_generator;
                 end
             add_seq("toggle_patterns", q);
         end
+        // 7b) 1-TOPS G4 row 4.4: every operation on every pair of operand
+        //     corners (0, 0x7FFF_FFFF, 0x8000_0000, -1), and every shift by
+        //     0, 1, 31, 32 and 33 on a corner value
+        begin
+            alu_cycle q[$];
+            bit [31:0] corner[$] = '{32'h0000_0000, 32'h7FFF_FFFF, 32'h8000_0000, 32'hFFFF_FFFF};
+            bit [3:0]  ops[$]    = '{`ALU_ADD, `ALU_SUB, `ALU_AND, `ALU_OR, `ALU_XOR, `ALU_SLL,
+                                     `ALU_SRL, `ALU_SRA, `ALU_SLT, `ALU_SLTU, `ALU_PASSB};
+            bit [31:0] shamt[$]  = '{32'd0, 32'd1, 32'd31, 32'd32, 32'd33};
+            foreach (ops[o]) foreach (corner[i]) foreach (corner[j])
+                q.push_back(mk(AK_RANDOM, corner[i], corner[j], ops[o]));
+            foreach (ops[o]) if (ops[o] inside {`ALU_SLL, `ALU_SRL, `ALU_SRA})
+                foreach (corner[i]) foreach (shamt[k])
+                    q.push_back(mk(AK_SHIFT_BOUNDARY, corner[i], shamt[k], ops[o]));
+            add_seq("operand_corners", q);
+        end
+
         // 8) CRV sequences
         for (int s = 0; s < num_random_seqs; s++) begin
             alu_cycle q[$];
@@ -317,10 +334,35 @@ class alu_monitor;
         // The shift-amount masking corner: 0, 31, and >=32 must all be hit.
         cp_shamt: coverpoint vif.op_b[5:0] iff (vif.alu_op inside {`ALU_SLL, `ALU_SRL, `ALU_SRA}) {
             bins zero      = {0};
-            bins low       = {[1:30]};
+            bins one       = {1};
+            bins low       = {[2:30]};
             bins max_valid = {31};
             bins wraps     = {[32:63]};      // must alias back onto 0..31
         }
+        // 1-TOPS G4 row 4.4: every shift by 0, 1, 31 and >31, on each of the
+        // three shifts; every operation on each of the four operand corners.
+        cp_shift_op: coverpoint vif.alu_op iff (vif.alu_op inside {`ALU_SLL, `ALU_SRL, `ALU_SRA}) {
+            bins sll = {`ALU_SLL}; bins srl = {`ALU_SRL}; bins sra = {`ALU_SRA};
+        }
+        x_shift_amount: cross cp_shift_op, cp_shamt;
+        cp_op_used: coverpoint vif.alu_op {
+            bins add = {`ALU_ADD};  bins sub  = {`ALU_SUB};
+            bins and_ = {`ALU_AND}; bins or_  = {`ALU_OR};
+            bins xor_ = {`ALU_XOR}; bins sll  = {`ALU_SLL};
+            bins srl  = {`ALU_SRL}; bins sra  = {`ALU_SRA};
+            bins slt  = {`ALU_SLT}; bins sltu = {`ALU_SLTU};
+            bins passb = {`ALU_PASSB};
+        }
+        cp_a_corner: coverpoint vif.op_a {
+            bins zero = {32'h0000_0000}; bins int_max = {32'h7FFF_FFFF};
+            bins int_min = {32'h8000_0000}; bins minus_one = {32'hFFFF_FFFF};
+        }
+        cp_b_corner: coverpoint vif.op_b {
+            bins zero = {32'h0000_0000}; bins int_max = {32'h7FFF_FFFF};
+            bins int_min = {32'h8000_0000}; bins minus_one = {32'hFFFF_FFFF};
+        }
+        x_op_a_corner: cross cp_op_used, cp_a_corner;
+        x_op_b_corner: cross cp_op_used, cp_b_corner;
         cp_a_sign: coverpoint vif.op_a[31];
         cp_b_sign: coverpoint vif.op_b[31];
         // Signed/unsigned divergence is only interesting when the operand

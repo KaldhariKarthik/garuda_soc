@@ -40,9 +40,28 @@ export PYTHON=${PYTHON:-python3.12}
 mkdir -p "$GARUDA_ROOT/.garuda_bin"
 ln -sfn "$(command -v "$PYTHON")" "$GARUDA_ROOT/.garuda_bin/python3"
 
-export PATH="$GARUDA_ROOT/.garuda_bin:$GARUDA_TOOLS/verilator/bin:$GARUDA_TOOLS/iverilog/bin:$GARUDA_TOOLS/riscv/bin:$GARUDA_TOOLS/spike/bin:$GARUDA_TOOLS/dtc/bin:$PATH"
+# Spike install (bin, include, lib: the co-simulation links against libriscv).
+# TOOL-A13 (2026-11-10): on the lab machine it is ~/external/spike-inst, not
+# $GARUDA_TOOLS/spike; the manifests name it as $GARUDA_SPIKE.
+if [ -z "${GARUDA_SPIKE:-}" ]; then
+    GARUDA_SPIKE=$GARUDA_TOOLS/spike
+    [ ! -d "$GARUDA_SPIKE/include/riscv" ] && [ -d "$HOME/external/spike-inst/include/riscv" ] \
+        && GARUDA_SPIKE=$HOME/external/spike-inst
+fi
+export GARUDA_SPIKE
+
+export PATH="$GARUDA_ROOT/.garuda_bin:$GARUDA_TOOLS/verilator/bin:$GARUDA_TOOLS/iverilog/bin:$GARUDA_TOOLS/riscv/bin:$GARUDA_SPIKE/bin:$GARUDA_TOOLS/dtc/bin:$PATH"
 
 export OSS_CAD=${OSS_CAD:-$GARUDA_TOOLS/oss-cad-suite}
+# TOOL-A13: on the lab machine the suite is ~/external/oss-cad-suite
+if [ ! -d "$OSS_CAD/bin" ] && [ -d "$HOME/external/oss-cad-suite/bin" ]; then
+    export OSS_CAD=$HOME/external/oss-cad-suite
+fi
+# Verilator's randomize() calls an SMT solver (z3 by default). The suite's z3
+# is named by full path so the suite itself stays off PATH.
+if [ -z "${VERILATOR_SOLVER:-}" ] && ! command -v z3 > /dev/null 2>&1 && [ -x "$OSS_CAD/bin/z3" ]; then
+    export VERILATOR_SOLVER="$OSS_CAD/bin/z3 --in"
+fi
 # TOOL-A10: on the lab machine the pinned Verilator 5.052 is in ~/.local/verilator
 if [ ! -x "$GARUDA_TOOLS/verilator/bin/verilator" ] && [ -x "$HOME/.local/verilator/bin/verilator" ]; then
     export PATH="$HOME/.local/verilator/bin:$PATH"
@@ -52,7 +71,11 @@ fi
 export VERILATOR=${VERILATOR:-$GARUDA_TOOLS/verilator/bin/verilator}
 export VERILATOR_COV=${VERILATOR_COV:-$GARUDA_TOOLS/verilator/bin/verilator_coverage}
 
-export RISCV_BIN=${RISCV_BIN_OPEN:-$GARUDA_TOOLS/riscv/bin}
-export RISCV_PREFIX=${RISCV_PREFIX_OPEN:-riscv-none-elf-}
-export SPIKE=${SPIKE_OPEN:-$GARUDA_TOOLS/spike/bin/spike}
+# TOOL-A13: the xPack GCC is set only where it is installed; otherwise RISCV_BIN
+# is left as it is (scripts/setup_env.sh, or sw/toolchain.mk's own search).
+if [ -n "${RISCV_BIN_OPEN:-}" ] || [ -x "$GARUDA_TOOLS/riscv/bin/riscv-none-elf-gcc" ]; then
+    export RISCV_BIN=${RISCV_BIN_OPEN:-$GARUDA_TOOLS/riscv/bin}
+    export RISCV_PREFIX=${RISCV_PREFIX_OPEN:-riscv-none-elf-}
+fi
+export SPIKE=${SPIKE_OPEN:-$GARUDA_SPIKE/bin/spike}
 export RISCV_TESTS=${RISCV_TESTS_OPEN:-$GARUDA_TOOLS/src/riscv-tests}

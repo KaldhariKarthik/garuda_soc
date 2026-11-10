@@ -76,3 +76,13 @@ plusargs = ["+MAXCYC=200000", "+QUIET", "+IRQ_AT=3000"]
 name = "t_cov_wfi_mti"
 hex = "sw/build/t_cov_wfi_mti.hex"
 plusargs = ["+MAXCYC=200000", "+QUIET", "+MTIP_AT=600"]
+
+# 1-TOPS G4 4.13 and 4.6: RAW / WAR / WAW / control / structural hazards and MUL
+# under the load-use interlock, under random wait states on both ports
+[[test]]
+name = "t_hazard"
+hex = "sw/build/t_hazard.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IWAIT=2", "+IRAND=1", "+DWAIT=3", "+DRAND=1", "+SEED=5"]
+[[test]]
+name = "t_hazard_nowait"
+hex = "sw/build/t_hazard.hex"

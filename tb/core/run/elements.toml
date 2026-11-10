@@ -40,6 +40,9 @@ flist = "tb/core/filelist_garuda_if_stage_top.f"
 name = "E_alu"
 flist = "tb/core/filelist_alu.f"
 [[test]]
+name = "E_forward_unit"
+flist = "tb/core/filelist_forward_unit.f"
+[[test]]
 name = "E_mul32"
 flist = "tb/core/filelist_mul32.f"
 [[test]]

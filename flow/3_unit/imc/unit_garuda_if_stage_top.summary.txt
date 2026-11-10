@@ -1,0 +1,8 @@
+name                                     Block                Expression           Toggle               Fsm Average          Fsm Covered          Assertion            CoverGroup Average   CoverGroup Covered   
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+tb_top                                   93.52% (101/108)     66.67% (10/15)       66.02% (68/103)      n/a                  n/a                  n/a                  100.00%              100.00% (22/22)      
+if_top_if                                n/a                  n/a                  72.90% (156/214)     n/a                  n/a                  100.00% (5/5)        n/a                  n/a                  
+garuda_if_stage_top                      n/a                  n/a                  78.68% (251/319)     n/a                  n/a                  n/a                  n/a                  n/a                  
+garuda_pc_gen                            100.00% (10/10)      n/a                  93.23% (124/133)     n/a                  n/a                  n/a                  n/a                  n/a                  
+garuda_iport_ahb_master                  100.00% (19/19)      100.00% (9/9)        78.39% (243/310)     n/a                  n/a                  n/a                  n/a                  n/a                  
+garuda_prefetch_buffer                   100.00% (15/15)      n/a                  91.22% (135/148)     n/a                  n/a                  n/a                  n/a                  n/a                  

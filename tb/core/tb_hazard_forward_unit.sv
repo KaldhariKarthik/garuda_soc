@@ -344,6 +344,17 @@ class hazard_monitor;
             ignore_bins stall_without_mem_read_unreachable =
                 binsof(cp_stall) intersect {1} && binsof(cp_mem_read) intersect {0};
         }
+        // 1-TOPS G4 row 4.8: which source register the EX-stage producer
+        // matches (none, rs1, rs2, both), for an ALU producer (no stall, the
+        // value is forwarded) and for a load (stall), and the x0 producer
+        // that must never stall.
+        cp_collide: coverpoint {(vif.ex_rd == vif.rs1_idx), (vif.ex_rd == vif.rs2_idx)} iff (vif.ex_rd != 0) {
+            bins none = {2'b00}; bins rs2_only = {2'b01}; bins rs1_only = {2'b10}; bins both = {2'b11};
+        }
+        x_collide_producer: cross cp_collide, cp_mem_read;
+        cp_x0_load: coverpoint (vif.rs1_idx == 0 || vif.rs2_idx == 0) iff (vif.ex_rd == 0 && vif.ex_mem_read) {
+            bins x0_source = {1};
+        }
     endgroup
 
     function new(virtual hazard_if vif);

@@ -1,0 +1,103 @@
+<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+<> User: kkarthik
+
+Host: cadence-ws
+
+Report date: Tue 10 Nov 2026 16:16:32 IST
+
+Report options: -detail -metrics covergroup -out rep/core_cg_vplan.txt -type garuda_cov_vplan
+
+Coverage database path: /home/kkarthik/garuda_soc/sim/g4/cov_work/scope/merged_core
+
+Coverage model files: /home/kkarthik/garuda_soc/sim/g4/cov_work/scope/merged_core/icc_68be6ac5_00cd3815.ucm
+
+Coverage data files: /home/kkarthik/garuda_soc/sim/g4/cov_work/scope/merged_core/icc_68be6ac5_00cd3815.ucd
+
+CCF files:  None
+
+
+Coverage database date: Tue 10 Nov 2026 16:06:04 IST
+
+*** There were no refinement files applied ***
+
+  <>
+<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+
+Coverage Table Legend
+---------------------
+  EXCL   excluded using refinement rule
+  P-EXCL excluded from parent
+  U-EXCL excluded and unreachable by IEV
+  T-EXCL excluded from type
+  S-EXCL smart excluded using refinement rule
+  EXCL(S) smart indirect excluded
+  EMPTY  all children are excluded
+  CONST  marked constant during simulation
+  IGN    marked ignored during simulation
+  UNG    marked ungradeable during simulation
+  DES    marked deselected during simulation
+  UNR    marked unreachable by IEV
+
+
+Uncovered CoverGroup Detail Report, Type Based
+==============================================
+
+Type name: garuda_cov_vplan
+File name: /home/kkarthik/garuda_soc/tb/cov/garuda_cov_vplan.sv
+Number of uncovered cover bins: 38 of 246
+
+Name                           Average, Covered Grade         Line  Source Code                    
+---------------------------------------------------------------------------------------------------
+cg_isa                         83.33%, 83.33% (30/36)         79    covergroup cg_isa with function sample(bit [2:0] a, bit [2:0] b); 
+|--cp_operand_corner           83.33% (30/36)                 80    cp_operand_corner: coverpoint {a, b} { 
+| |--ab[4]                     0.00% (0/1)                    81    bins ab[] = {6'o00, 6'o01, 6'o02, 6'o03, 6'o04, 6'o05, 6'o10, 6'o11, 6'o12, 6'o13, 6'o14, 6'o15, 
+| |--ab[11]                    0.00% (0/1)                    81    bins ab[] = {6'o00, 6'o01, 6'o02, 6'o03, 6'o04, 6'o05, 6'o10, 6'o11, 6'o12, 6'o13, 6'o14, 6'o15, 
+| |--ab[19]                    0.00% (0/1)                    81    bins ab[] = {6'o00, 6'o01, 6'o02, 6'o03, 6'o04, 6'o05, 6'o10, 6'o11, 6'o12, 6'o13, 6'o14, 6'o15, 
+| |--ab[20]                    0.00% (0/1)                    81    bins ab[] = {6'o00, 6'o01, 6'o02, 6'o03, 6'o04, 6'o05, 6'o10, 6'o11, 6'o12, 6'o13, 6'o14, 6'o15, 
+| |--ab[34]                    0.00% (0/1)                    81    bins ab[] = {6'o00, 6'o01, 6'o02, 6'o03, 6'o04, 6'o05, 6'o10, 6'o11, 6'o12, 6'o13, 6'o14, 6'o15, 
+| |--ab[44]                    0.00% (0/1)                    81    bins ab[] = {6'o00, 6'o01, 6'o02, 6'o03, 6'o04, 6'o05, 6'o10, 6'o11, 6'o12, 6'o13, 6'o14, 6'o15, 
+cg_csr_op                      87.50%, 65.38% (34/52)         113   covergroup cg_csr_op with function sample(int grp, bit [2:0] op, int counter_wr); 
+|--x_addr_op                   50.00% (18/36)                 116   x_addr_op: cross cp_grp, cp_op; 
+| |--m_cnt,rc                  0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--m_cnt,rwi                 0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--m_cnt,rsi                 0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--m_cnt,rci                 0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--u_cnt,rwi                 0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--id_ro,rc                  0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--id_ro,rwi                 0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--id_ro,rsi                 0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--id_ro,rci                 0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--dsu,rw                    0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--dsu,rc                    0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--dsu,rwi                   0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--dsu,rsi                   0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--dsu,rci                   0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--rz,rc                     0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--rz,rwi                    0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--rz,rsi                    0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+| |--rz,rci                    0.00% (0/1)                    116   x_addr_op: cross cp_grp, cp_op; 
+cg_trap_x                      50.00%, 66.67% (4/6)           121   covergroup cg_trap_x with function sample(int what, int gap); 
+|--cp_x_cause_younger          50.00% (1/2)                   122   cp_x_cause_younger: coverpoint what iff (what >= 0 && what < 2) { bins over_illegal = {0}; bins over_fetch_fault = {1}; } 
+| |--over_fetch_fault          0.00% (0/1)                    122   cp_x_cause_younger: coverpoint what iff (what >= 0 && what < 2) { bins over_illegal = {0}; bins over_fetch_fault = {1}; } 
+|--cp_fetch_err_flushed        0.00% (0/1)                    123   cp_fetch_err_flushed: coverpoint what iff (what == 2) { bins squashed = {2}; } 
+| |--squashed                  0.00% (0/1)                    123   cp_fetch_err_flushed: coverpoint what iff (what == 2) { bins squashed = {2}; } 
+cg_irq                         57.14%, 54.55% (6/11)          128   covergroup cg_irq with function sample(int what, int klass_in_ex); 
+|--x_insn_class                71.43% (5/7)                   129   x_insn_class: coverpoint klass_in_ex iff (what == 0) { 
+| |--mul                       0.00% (0/1)                    130   bins alu = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5}; bins bubble = {6}; } 
+| |--bubble                    0.00% (0/1)                    130   bins alu = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5}; bins bubble = {6}; } 
+|--cp_mti_with_clic            0.00% (0/3)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
+| |--both_pending              0.00% (0/1)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
+| |--clic_taken                0.00% (0/1)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
+| |--mti_taken                 0.00% (0/1)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
+cg_pipe_pair                   95.37%, 89.58% (43/48)         147   covergroup cg_pipe_pair with function sample(bit [2:0] prev, bit [2:0] cur); 
+|--x_class_pair                86.11% (31/36)                 150   x_class_pair: cross cp_prev, cp_cur; 
+| |--k[3],k[2]                 0.00% (0/1)                    150   x_class_pair: cross cp_prev, cp_cur; 
+| |--k[3],k[5]                 0.00% (0/1)                    150   x_class_pair: cross cp_prev, cp_cur; 
+| |--k[4],k[3]                 0.00% (0/1)                    150   x_class_pair: cross cp_prev, cp_cur; 
+| |--k[5],k[1]                 0.00% (0/1)                    150   x_class_pair: cross cp_prev, cp_cur; 
+| |--k[5],k[3]                 0.00% (0/1)                    150   x_class_pair: cross cp_prev, cp_cur; 
+cg_wfi                         87.50%, 81.82% (9/11)          152   covergroup cg_wfi with function sample(bit mti, bit mie_v, int asleep); 
+|--x_wake_mie                  50.00% (2/4)                   155   x_wake_mie: cross cp_src, cp_mie; 
+| |--clic,auto[0]              0.00% (0/1)                    155   x_wake_mie: cross cp_src, cp_mie; 
+| |--mti,auto[1]               0.00% (0/1)                    155   x_wake_mie: cross cp_src, cp_mie; 
+

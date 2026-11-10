@@ -70,12 +70,25 @@ module garuda_cov (
             bins store  = {7'b0100011};  bins op_imm= {7'b0010011};
             bins op_reg = {7'b0110011};  bins system= {7'b1110011};
             bins custom0= {7'b0001011};
+            bins misc_mem = {7'b0001111};   // FENCE, FENCE.I (1-TOPS G4 4.14)
         }
         cp_funct3: coverpoint funct3;
         // Only the combinations that actually exist are interesting; a full
         // cross would demand bins for encodings the ISA does not define.
+        // The reserved funct3 values (1-TOPS G4 4.2 / 4.14) decode illegal and
+        // are verified one by one by the decode unit bench (cg_encoding,
+        // tb/core/tb_decode_control.sv); at core level they are not
+        // instructions. CUSTOM0 defines funct3 000 (R-type) and 001 (MACSHIFT)
+        // only (rtl/dsu/dsu_stall.v).
         x_op_f3: cross cp_opcode, cp_funct3 {
             ignore_bins non_f3 = binsof(cp_opcode) intersect {7'b0110111, 7'b0010111, 7'b1101111};
+            ignore_bins rsv_jalr   = binsof(cp_opcode.jalr)   && binsof(cp_funct3) intersect {[1:7]};
+            ignore_bins rsv_branch = binsof(cp_opcode.branch) && binsof(cp_funct3) intersect {2, 3};
+            ignore_bins rsv_load   = binsof(cp_opcode.load)   && binsof(cp_funct3) intersect {3, 6, 7};
+            ignore_bins rsv_store  = binsof(cp_opcode.store)  && binsof(cp_funct3) intersect {[3:7]};
+            ignore_bins rsv_system = binsof(cp_opcode.system) && binsof(cp_funct3) intersect {4};
+            ignore_bins rsv_custom = binsof(cp_opcode.custom0) && binsof(cp_funct3) intersect {[2:7]};
+            ignore_bins rsv_fence  = binsof(cp_opcode.misc_mem) && binsof(cp_funct3) intersect {[2:7]};
         }
     endgroup
 

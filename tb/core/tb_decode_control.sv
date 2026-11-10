@@ -65,6 +65,7 @@ interface decode_if (input bit clk);
     logic         branch, jal, jalr, mul_en, dsu_en, csr_en;
     logic [2:0]  csr_op;
     logic         is_system, illegal_instr;
+    logic         fencei;
     logic [2:0]  imm_sel;
 
     // A1: every raw field is a pure bit-slice of instr_i - if these ever
@@ -116,7 +117,7 @@ interface decode_if (input bit clk);
     property p_illegal_forces_inert_bundle;
         @(posedge clk)
         illegal_instr |-> (!reg_write && !mem_read && !mem_write && !branch && !jal && !jalr &&
-                            !mul_en && !dsu_en && !csr_en);
+                            !mul_en && !dsu_en && !csr_en && !fencei);
     endproperty
     a_illegal_inert: assert property (p_illegal_forces_inert_bundle)
         else $error("[SVA-FAIL] an illegal instruction left a side-effecting control bit asserted");
@@ -125,7 +126,7 @@ interface decode_if (input bit clk);
     property p_no_x_propagation;
         @(posedge clk) (!$isunknown(instr)) |->
         (!$isunknown({reg_write, mem_read, mem_write, mem_to_reg, alu_src, alu_a_pc, alu_op,
-                      branch, jal, jalr, mul_en, dsu_en, csr_en, csr_op, is_system, illegal_instr, imm_sel}));
+                      branch, jal, jalr, mul_en, dsu_en, csr_en, csr_op, is_system, illegal_instr, fencei, imm_sel}));
     endproperty
     a_no_x_propagation: assert property (p_no_x_propagation)
         else $error("[SVA-FAIL] the control bundle went unknown while instr_i was fully known");
@@ -150,6 +151,7 @@ typedef enum bit [6:0] {
     OPC_REG      = 7'b0110011,
     OPC_SYSTEM   = 7'b1110011,
     OPC_CUSTOM0  = 7'b0001011,
+    OPC_MISC_MEM = 7'b0001111,   // FENCE, FENCE.I (rtl ERRATA C-2, C-3)
     OPC_RESERVED = 7'b1111111
 } riscv_opcode_e;
 
@@ -163,7 +165,7 @@ class decode_cycle;
         op dist {
             OPC_LUI :/ 8, OPC_AUIPC :/ 8, OPC_JAL :/ 8, OPC_JALR :/ 8,
             OPC_BRANCH :/ 10, OPC_LOAD :/ 10, OPC_STORE :/ 10, OPC_IMM :/ 12,
-            OPC_REG :/ 12, OPC_SYSTEM :/ 10, OPC_CUSTOM0 :/ 8, OPC_RESERVED :/ 6
+            OPC_REG :/ 12, OPC_SYSTEM :/ 10, OPC_CUSTOM0 :/ 8, OPC_MISC_MEM :/ 6, OPC_RESERVED :/ 6
         };
     }
     constraint c_reg_ranges { rd_val inside {[0:31]}; rs1_val inside {[0:31]}; rs2_val inside {[0:31]}; }
@@ -266,6 +268,12 @@ class decode_generator;
         begin
             decode_cycle q[$];
             q.push_back(mk(OPC_RESERVED, 3'b000, 7'h0, 5'd1, 5'd2, 5'd3));
+            // bits [1:0] != 11: a 16-bit (C extension) encoding, which RV32IM
+            // without C must reject; and the all-zero word, defined illegal
+            q.push_back(mk(riscv_opcode_e'(7'b0000000), 3'b000, 7'h0, 5'd0, 5'd0, 5'd0));
+            q.push_back(mk(riscv_opcode_e'(7'b0010001), 3'b010, 7'h0, 5'd1, 5'd2, 5'd3));
+            q.push_back(mk(riscv_opcode_e'(7'b0110010), 3'b100, 7'h0, 5'd1, 5'd2, 5'd3));
+            q.push_back(mk(riscv_opcode_e'(7'b1100000), 3'b000, 7'h0, 5'd1, 5'd2, 5'd3));
             add_seq("reserved_opcode", q);
         end
 
@@ -301,6 +309,47 @@ class decode_generator;
             add_seq("reserved_funct7", q);
         end
 
+        // 8c) 1-TOPS G4 row 4.2: one directed decode for every opcode x funct3
+        //     (legal and reserved), every OP funct3 x funct7 class, both
+        //     shift-immediates x funct7 class, and the SYSTEM funct3=000 words.
+        //     funct7 is part of the encoding only for OP and the shift-
+        //     immediates; elsewhere bits 31:25 are immediate or CSR address.
+        begin
+            decode_cycle q[$];
+            riscv_opcode_e f3_ops[$] = '{OPC_JALR, OPC_BRANCH, OPC_LOAD, OPC_STORE, OPC_IMM,
+                                         OPC_REG, OPC_SYSTEM, OPC_MISC_MEM, OPC_CUSTOM0};
+            foreach (f3_ops[k])
+                for (int f3 = 0; f3 < 8; f3++) q.push_back(mk(f3_ops[k], f3[2:0], 7'h0, 5'd5, 5'd6, 5'd7));
+            add_seq("exh_opcode_funct3", q);
+        end
+        begin
+            decode_cycle q[$];
+            bit [6:0] f7s[$] = '{7'b0000000, 7'b0100000, 7'b0000001, 7'b0000010, 7'b1000000};
+            foreach (f7s[k])
+                for (int f3 = 0; f3 < 8; f3++) q.push_back(mk(OPC_REG, f3[2:0], f7s[k], 5'd5, 5'd6, 5'd7));
+            foreach (f7s[k]) begin
+                q.push_back(mk(OPC_IMM, 3'b001, f7s[k], 5'd5, 5'd6, 5'd7));
+                q.push_back(mk(OPC_IMM, 3'b101, f7s[k], 5'd5, 5'd6, 5'd7));
+            end
+            add_seq("exh_funct3_funct7", q);
+        end
+        begin
+            decode_cycle q[$];
+            // {funct7, rs2} is imm[11:0]: ECALL 000, EBREAK 001, MRET 302, WFI 105
+            q.push_back(mk(OPC_SYSTEM, 3'b000, 7'b0000000, 5'd0, 5'd0, 5'd0));   // ECALL
+            q.push_back(mk(OPC_SYSTEM, 3'b000, 7'b0000000, 5'd0, 5'd0, 5'd1));   // EBREAK
+            q.push_back(mk(OPC_SYSTEM, 3'b000, 7'b0011000, 5'd0, 5'd0, 5'd2));   // MRET
+            q.push_back(mk(OPC_SYSTEM, 3'b000, 7'b0001000, 5'd0, 5'd0, 5'd5));   // WFI
+            // near misses, all illegal on an M-mode-only core without debug mode
+            q.push_back(mk(OPC_SYSTEM, 3'b000, 7'b0000000, 5'd0, 5'd0, 5'd2));   // URET
+            q.push_back(mk(OPC_SYSTEM, 3'b000, 7'b0001000, 5'd0, 5'd0, 5'd2));   // SRET
+            q.push_back(mk(OPC_SYSTEM, 3'b000, 7'b0111101, 5'd0, 5'd0, 5'd18));  // DRET
+            q.push_back(mk(OPC_SYSTEM, 3'b000, 7'b0000000, 5'd1, 5'd0, 5'd0));   // ECALL, rd=1
+            q.push_back(mk(OPC_SYSTEM, 3'b000, 7'b0000000, 5'd0, 5'd1, 5'd1));   // EBREAK, rs1=1
+            q.push_back(mk(OPC_SYSTEM, 3'b100, 7'b0000000, 5'd0, 5'd0, 5'd0));   // funct3=100
+            add_seq("system_words", q);
+        end
+
         // 9) CONSTRAINED-RANDOM sequences
         for (int s = 0; s < num_random_seqs; s++) begin
             decode_cycle q[$];
@@ -330,6 +379,7 @@ typedef struct packed {
     bit         branch, jal, jalr, mul_en, dsu_en, csr_en;
     bit [2:0]  csr_op;
     bit         is_system, illegal;
+    bit         fencei;
     bit [2:0]  imm_sel;
 } decode_result_t;
 
@@ -445,6 +495,17 @@ class decode_ref_model;
         return r;
     endfunction
 
+    // FENCE is a no-op (one hart, no store buffer, no cache); FENCE.I raises
+    // fencei, which ID turns into a redirect to PC+4 (rtl ERRATA C-2, C-3).
+    // Every other funct3 is reserved.
+    static function decode_result_t decode_misc_mem(bit [2:0] f3);
+        decode_result_t r = base_defaults();
+        if      (f3 == 3'b000) ;
+        else if (f3 == 3'b001) r.fencei = 1;
+        else                   r.illegal = 1;
+        return r;
+    endfunction
+
     static function decode_result_t decode_custom0();
         decode_result_t r = base_defaults();
         r.dsu_en = 1;
@@ -488,6 +549,7 @@ class decode_ref_model;
                 return r;
             end
             OPC_CUSTOM0: return decode_custom0();
+            OPC_MISC_MEM: return decode_misc_mem(f3);
             default:     return decode_illegal();
         endcase
     endfunction
@@ -501,7 +563,8 @@ class decode_ref_model;
         bit [2:0] f3     = instr[14:12];
         bit [6:0] f7     = instr[31:25];
         bit legal_op = opcode inside {OPC_LUI, OPC_AUIPC, OPC_JAL, OPC_JALR, OPC_BRANCH,
-                                       OPC_LOAD, OPC_STORE, OPC_IMM, OPC_REG, OPC_SYSTEM, OPC_CUSTOM0};
+                                       OPC_LOAD, OPC_STORE, OPC_IMM, OPC_REG, OPC_SYSTEM, OPC_CUSTOM0,
+                                       OPC_MISC_MEM};
         if (!legal_op) return 2'd1;
         if (opcode == OPC_REG) begin
             if (f7 == 7'b0000001 && f3[2]) return 2'd3;
@@ -542,6 +605,7 @@ class decode_monitor;
             bins op_jalr = {OPC_JALR}; bins op_branch = {OPC_BRANCH}; bins op_load = {OPC_LOAD};
             bins op_store = {OPC_STORE}; bins op_imm = {OPC_IMM}; bins op_reg = {OPC_REG};
             bins op_system = {OPC_SYSTEM}; bins op_custom = {OPC_CUSTOM0}; bins op_reserved = {OPC_RESERVED};
+            bins op_misc_mem = {OPC_MISC_MEM};
         }
         cp_alu_op: coverpoint vif.alu_op iff (!vif.illegal_instr) {
             bins b_add={`ALU_ADD}; bins b_sub={`ALU_SUB}; bins b_and={`ALU_AND}; bins b_or={`ALU_OR};
@@ -583,10 +647,39 @@ class decode_monitor;
         }
     endgroup
 
+    // 1-TOPS G4 row 4.2: opcode x funct3 x funct7. funct7 matters only on OP
+    // and on the two shift-immediates, so it is crossed there and nowhere
+    // else; every opcode that has a funct3 field is crossed with all eight
+    // values (the reserved ones must decode illegal). f7_cls: 0 = 0000000,
+    // 1 = 0100000, 2 = 0000001 (M), 3 = any other value.
+    bit [1:0] f7_cls_cov;
+    bit [2:0] sys_word_cov;
+    covergroup cg_encoding;
+        cp_op: coverpoint vif.instr[6:0] {
+            bins jalr = {OPC_JALR}; bins branch = {OPC_BRANCH}; bins load = {OPC_LOAD};
+            bins store = {OPC_STORE}; bins op_imm = {OPC_IMM}; bins op_reg = {OPC_REG};
+            bins system = {OPC_SYSTEM}; bins misc_mem = {OPC_MISC_MEM}; bins custom0 = {OPC_CUSTOM0};
+        }
+        cp_f3: coverpoint vif.instr[14:12];
+        x_op_f3: cross cp_op, cp_f3;
+        cp_reg_f3: coverpoint vif.instr[14:12] iff (vif.instr[6:0] == OPC_REG);
+        cp_reg_f7: coverpoint f7_cls_cov iff (vif.instr[6:0] == OPC_REG);
+        x_reg_f3_f7: cross cp_reg_f3, cp_reg_f7;
+        cp_sh_f3: coverpoint vif.instr[14:12] iff (vif.instr[6:0] == OPC_IMM) {
+            bins slli = {3'b001}; bins srli_srai = {3'b101};
+        }
+        cp_sh_f7: coverpoint f7_cls_cov iff (vif.instr[6:0] == OPC_IMM);
+        x_shift_f7: cross cp_sh_f3, cp_sh_f7;
+        cp_sys_word: coverpoint sys_word_cov iff (vif.instr[6:0] == OPC_SYSTEM && vif.instr[14:12] == 3'b000) {
+            bins ecall = {0}; bins ebreak = {1}; bins mret = {2}; bins wfi = {3}; bins other = {4};
+        }
+    endgroup
+
     function new(virtual decode_if vif);
         this.vif = vif;
         cov_ref = new();
         cg_decode = new();
+        cg_encoding = new();
     endfunction
 
     task sample_one(output decode_result_t actual);
@@ -596,10 +689,24 @@ class decode_monitor;
             mem_to_reg: vif.mem_to_reg, alu_src: vif.alu_src, alu_a_pc: vif.alu_a_pc,
             alu_op: vif.alu_op, branch: vif.branch, jal: vif.jal, jalr: vif.jalr,
             mul_en: vif.mul_en, dsu_en: vif.dsu_en, csr_en: vif.csr_en, csr_op: vif.csr_op,
-            is_system: vif.is_system, illegal: vif.illegal_instr, imm_sel: vif.imm_sel
+            is_system: vif.is_system, illegal: vif.illegal_instr, fencei: vif.fencei, imm_sel: vif.imm_sel
         };
         illegal_cause_cov = cov_ref.classify_illegal_cause(vif.instr);
         cg_decode.sample();
+        case (vif.instr[31:25])
+            7'b0000000: f7_cls_cov = 0;
+            7'b0100000: f7_cls_cov = 1;
+            7'b0000001: f7_cls_cov = 2;
+            default:    f7_cls_cov = 3;
+        endcase
+        case (vif.instr)
+            32'h0000_0073: sys_word_cov = 0;
+            32'h0010_0073: sys_word_cov = 1;
+            32'h3020_0073: sys_word_cov = 2;
+            32'h1050_0073: sys_word_cov = 3;
+            default:       sys_word_cov = 4;
+        endcase
+        cg_encoding.sample();
     endtask
 endclass
 
@@ -672,6 +779,7 @@ class decode_env;
         $display("\n============ DECODE_CONTROL UNIT TB SUMMARY ============");
         $display(" SEQUENCES=%0d  TOTAL_CYCLES=%0d  PASS=%0d  FAIL=%0d", gen.seq_q.size(), total_cycles, sb.pass_cnt, sb.fail_cnt);
         $display(" FUNCTIONAL COVERAGE = %0.2f %%", mon.cg_decode.get_coverage());
+        $display(" ENCODING COVERAGE   = %0.2f %% (opcode x funct3 x funct7, row 4.2)", mon.cg_encoding.get_coverage());
         if (sb.fail_cnt == 0)
             $display(" RESULT: ALL CHECKS PASSED");
         else
@@ -725,6 +833,7 @@ module tb_top;
         .csr_op_o        (vif.csr_op),
         .is_system_o     (vif.is_system),
         .illegal_instr_o (vif.illegal_instr),
+        .fencei_o        (vif.fencei),
         .imm_sel_o       (vif.imm_sel)
     );
 

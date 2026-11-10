@@ -226,6 +226,19 @@ class br_generator;
             q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, `BR_BGEU, 32'd5, 32'd5, 1,0,0,0));
             add_seq("comparator_all_funct3", q);
         end
+        // 1b) 1-TOPS G4 row 4.5: the full compare matrix. Every funct3 on
+        //     every relation of rs1 to rs2: equal, less and greater with the
+        //     signs agreeing, and the two mixed-sign pairs where the signed and
+        //     the unsigned answers differ; with both predictions.
+        begin
+            br_cycle q[$];
+            bit [2:0]  f3s[$] = '{`BR_BEQ, `BR_BNE, `BR_BLT, `BR_BGE, `BR_BLTU, `BR_BGEU};
+            bit [31:0] a[$]   = '{32'd7, 32'd3, 32'd9, 32'hFFFF_FFFE, 32'hFFFF_FFFF, 32'h8000_0000, 32'h7FFF_FFFF};
+            bit [31:0] b[$]   = '{32'd7, 32'd9, 32'd3, 32'hFFFF_FFFF, 32'hFFFF_FFFE, 32'h7FFF_FFFF, 32'h8000_0000};
+            foreach (f3s[f]) foreach (a[i]) for (int p = 0; p < 2; p++)
+                q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, f3s[f], a[i], b[i], 1,0,0,p[0]));
+            add_seq("compare_matrix", q);
+        end
         // 2) correct predictions in both directions cost nothing (C06)
         begin
             br_cycle q[$];
@@ -310,6 +323,7 @@ endclass
 class br_monitor;
     virtual branch_if vif;
 
+    bit [2:0] rel_cov;   // relation of rs1 to rs2, for cp_rel below
     covergroup cg_branch;
         cp_f3: coverpoint vif.funct3 iff (vif.branch) {
             bins beq = {`BR_BEQ};   bins bne  = {`BR_BNE};
@@ -336,6 +350,13 @@ class br_monitor;
                 binsof(cp_kind.none_) && binsof(cp_misalign) intersect {1};
         }
         cp_imm_sign: coverpoint vif.imm[31] iff (vif.branch);  // fwd vs backward
+        // 1-TOPS G4 row 4.5: funct3 x relation of rs1 to rs2, signed and
+        // unsigned. rel_cov: 0 equal, 1 less both ways, 2 greater both ways,
+        // 3 less signed / greater unsigned, 4 greater signed / less unsigned.
+        cp_rel: coverpoint rel_cov iff (vif.branch) {
+            bins eq = {0}; bins lt = {1}; bins gt = {2}; bins lt_s_gt_u = {3}; bins gt_s_lt_u = {4};
+        }
+        x_f3_rel: cross cp_f3, cp_rel;
     endgroup
 
     function new(virtual branch_if vif);
@@ -350,6 +371,10 @@ class br_monitor;
         r.redirect   = vif.redirect;
         r.target     = vif.redirect_target;
         r.misaligned = vif.target_misaligned;
+        if (vif.rs1_fwd == vif.rs2_fwd)                rel_cov = 0;
+        else if ($signed(vif.rs1_fwd) < $signed(vif.rs2_fwd))
+                 rel_cov = (vif.rs1_fwd < vif.rs2_fwd) ? 1 : 3;
+        else     rel_cov = (vif.rs1_fwd > vif.rs2_fwd) ? 2 : 4;
         cg_branch.sample();
     endtask
 endclass

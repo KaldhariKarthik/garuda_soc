@@ -1,0 +1,60 @@
+name                                     Block                Expression           Toggle               Fsm Average          Fsm Covered          Assertion            
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+tb_ex_smoke                              94.83% (55/58)       n/a                  48.24% (287/595)     n/a                  n/a                  n/a                  
+tb_exmem_ifid                            91.18% (31/34)       n/a                  18.75% (66/352)      n/a                  n/a                  n/a                  
+tb_trap_ctrl                             97.69% (127/130)     n/a                  29.25% (129/441)     n/a                  n/a                  n/a                  
+tb_pipe_ctrl                             94.23% (49/52)       n/a                  23.08% (36/156)      n/a                  n/a                  n/a                  
+tb_id_ex_fwd                             91.11% (41/45)       n/a                  27.52% (60/218)      n/a                  n/a                  n/a                  
+tb_csr_file                              94.37% (67/71)       n/a                  26.30% (76/289)      n/a                  n/a                  n/a                  
+pipe_ctrl                                n/a                  n/a                  22.15% (35/158)      n/a                  n/a                  n/a                  
+tb_csr_file_t12                          97.98% (97/99)       n/a                  14.04% (56/399)      n/a                  n/a                  n/a                  
+csr_file                                 66.18% (45/68)       73.33% (11/15)       26.50% (260/981)     n/a                  n/a                  n/a                  
+ex_mem                                   100.00% (7/7)        n/a                  20.27% (45/222)      n/a                  n/a                  n/a                  
+ex_stage                                 75.00% (6/8)         n/a                  60.56% (579/956)     n/a                  n/a                  n/a                  
+forward_unit                             n/a                  100.00% (12/12)      100.00% (28/28)      n/a                  n/a                  n/a                  
+trap_ctrl                                85.71% (6/7)         n/a                  32.08% (179/558)     n/a                  n/a                  n/a                  
+if_id                                    100.00% (7/7)        n/a                  16.91% (23/136)      n/a                  n/a                  n/a                  
+id_ex                                    100.00% (7/7)        n/a                  10.38% (49/472)      n/a                  n/a                  n/a                  
+clic_ctrl                                n/a                  n/a                  96.46% (109/113)     n/a                  n/a                  n/a                  
+alu                                      100.00% (13/13)      n/a                  100.00% (105/105)    n/a                  n/a                  n/a                  
+fwd_if                                   n/a                  n/a                  100.00% (27/27)      n/a                  n/a                  100.00% (3/3)        
+if_top_if                                n/a                  n/a                  72.90% (156/214)     n/a                  n/a                  100.00% (5/5)        
+imm_gen_if                               n/a                  n/a                  98.48% (130/132)     n/a                  n/a                  100.00% (7/7)        
+iport_if                                 n/a                  n/a                  73.27% (159/217)     n/a                  n/a                  100.00% (6/6)        
+tb_top                                   100.00% (5/5)        100.00% (9/9)        75.00% (219/292)     n/a                  n/a                  n/a                  
+mem_stage_if                             n/a                  n/a                  95.47% (316/331)     n/a                  n/a                  100.00% (8/8)        
+memwb_if                                 n/a                  n/a                  100.00% (119/119)    n/a                  n/a                  100.00% (5/5)        
+mul32                                    n/a                  n/a                  99.57% (232/233)     n/a                  n/a                  n/a                  
+pc_gen_if                                n/a                  n/a                  96.24% (128/133)     n/a                  n/a                  100.00% (6/6)        
+pfb_if                                   n/a                  n/a                  96.45% (136/141)     n/a                  n/a                  100.00% (6/6)        
+regfile_if                               n/a                  n/a                  99.12% (113/114)     n/a                  n/a                  100.00% (6/6)        
+id_stage_if                              n/a                  n/a                  98.28% (342/348)     n/a                  n/a                  100.00% (7/7)        
+hazard_if                                n/a                  n/a                  100.00% (18/18)      n/a                  n/a                  100.00% (6/6)        
+branch_if                                n/a                  n/a                  98.33% (236/240)     n/a                  n/a                  100.00% (16/16)      
+csr_file_props_a                         100.00% (3/3)        n/a                  32.30% (73/226)      n/a                  n/a                  75.00% (15/20)       
+decode_if                                n/a                  n/a                  100.00% (83/83)      n/a                  n/a                  100.00% (7/7)        
+dport_if                                 n/a                  n/a                  94.52% (138/146)     n/a                  n/a                  100.00% (7/7)        
+id_stage                                 n/a                  n/a                  98.22% (553/563)     n/a                  n/a                  n/a                  
+alu_if                                   n/a                  n/a                  100.00% (101/101)    n/a                  n/a                  100.00% (6/6)        
+branch_predict                           n/a                  n/a                  96.09% (221/230)     n/a                  n/a                  n/a                  
+branch_unit                              100.00% (8/8)        n/a                  98.15% (266/271)     n/a                  n/a                  n/a                  
+csr_rw_if                                n/a                  n/a                  93.97% (109/116)     n/a                  n/a                  100.00% (5/5)        
+d_port_ahb_master                        92.31% (12/13)       100.00% (6/6)        96.62% (143/148)     100.00%              100.00% (4/4)        n/a                  
+decode_control                           96.92% (63/65)       100.00% (20/20)      100.00% (117/117)    n/a                  n/a                  n/a                  
+garuda_if_stage_top                      n/a                  n/a                  78.68% (251/319)     n/a                  n/a                  n/a                  
+mul32_if                                 n/a                  n/a                  99.00% (99/100)      n/a                  n/a                  100.00% (4/4)        
+mem_wb_reg                               100.00% (5/5)        n/a                  100.00% (81/81)      n/a                  n/a                  n/a                  
+mem_stage                                n/a                  n/a                  96.07% (391/407)     n/a                  n/a                  n/a                  
+lsu_if                                   n/a                  n/a                  99.05% (104/105)     n/a                  n/a                  100.00% (6/6)        
+load_fmt_if                              n/a                  n/a                  100.00% (70/70)      n/a                  n/a                  100.00% (7/7)        
+hazard_forward_unit                      n/a                  n/a                  100.00% (17/17)      n/a                  n/a                  n/a                  
+garuda_pc_gen                            100.00% (10/10)      n/a                  96.24% (128/133)     n/a                  n/a                  n/a                  
+csr_rw                                   n/a                  n/a                  98.26% (113/115)     n/a                  n/a                  n/a                  
+load_store_unit                          100.00% (4/4)        n/a                  99.07% (106/107)     n/a                  n/a                  n/a                  
+load_formatter                           100.00% (14/14)      n/a                  100.00% (96/96)      n/a                  n/a                  n/a                  
+wb_stage                                 n/a                  n/a                  100.00% (76/76)      n/a                  n/a                  n/a                  
+garuda_iport_ahb_master                  100.00% (19/19)      100.00% (9/9)        78.39% (243/310)     n/a                  n/a                  n/a                  
+dsu_top                                  n/a                  n/a                  28.22% (81/287)      n/a                  n/a                  n/a                  
+imm_gen                                  100.00% (8/8)        n/a                  86.69% (280/323)     n/a                  n/a                  n/a                  
+regfile                                  100.00% (3/3)        100.00% (11/11)      99.44% (177/178)     n/a                  n/a                  n/a                  
+garuda_prefetch_buffer                   100.00% (15/15)      n/a                  96.62% (143/148)     n/a                  n/a                  n/a                  

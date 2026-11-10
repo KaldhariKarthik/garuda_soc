@@ -1,0 +1,77 @@
+<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+<> User: kkarthik
+
+Host: cadence-ws
+
+Report date: Tue 10 Nov 2026 16:16:32 IST
+
+Report options: -detail -metrics covergroup -out rep/core_cg_garuda_cov.txt -type garuda_cov
+
+Coverage database path: /home/kkarthik/garuda_soc/sim/g4/cov_work/scope/merged_core
+
+Coverage model files: /home/kkarthik/garuda_soc/sim/g4/cov_work/scope/merged_core/icc_68be6ac5_00cd3815.ucm
+
+Coverage data files: /home/kkarthik/garuda_soc/sim/g4/cov_work/scope/merged_core/icc_68be6ac5_00cd3815.ucd
+
+CCF files:  None
+
+
+Coverage database date: Tue 10 Nov 2026 16:06:04 IST
+
+*** There were no refinement files applied ***
+
+  <>
+<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+
+Coverage Table Legend
+---------------------
+  EXCL   excluded using refinement rule
+  P-EXCL excluded from parent
+  U-EXCL excluded and unreachable by IEV
+  T-EXCL excluded from type
+  S-EXCL smart excluded using refinement rule
+  EXCL(S) smart indirect excluded
+  EMPTY  all children are excluded
+  CONST  marked constant during simulation
+  IGN    marked ignored during simulation
+  UNG    marked ungradeable during simulation
+  DES    marked deselected during simulation
+  UNR    marked unreachable by IEV
+
+
+Uncovered CoverGroup Detail Report, Type Based
+==============================================
+
+Type name: garuda_cov
+File name: /home/kkarthik/garuda_soc/tb/cov/garuda_cov.sv
+Number of uncovered cover bins: 19 of 229
+
+Name                           Average, Covered Grade         Line  Source Code                    
+---------------------------------------------------------------------------------------------------
+cg_hazard                      97.92%, 96.77% (30/31)         141   covergroup cg_hazard @(posedge clk_i iff rst_n_i); 
+|--x_fwd_under_stall           83.33% (5/6)                   156   x_fwd_under_stall: cross cp_fwd_a, cp_ms; 
+| |--exmem,auto[1]             0.00% (0/1)                    156   x_fwd_under_stall: cross cp_fwd_a, cp_ms; 
+cg_ahb                         97.50%, 96.30% (26/27)         187   covergroup cg_ahb @(posedge clk_i iff rst_n_i); 
+|--x_d_trans_wait              75.00% (3/4)                   196   x_d_trans_wait: cross cp_d_trans, cp_d_wait; 
+| |--nonseq,wait_state         0.00% (0/1)                    196   x_d_trans_wait: cross cp_d_trans, cp_d_wait; 
+cg_dsu                         84.67%, 63.83% (30/47)         241   covergroup cg_dsu @(posedge clk_i iff (rst_n_i && xe_valid && xe_dsu_en)); 
+|--cp_f5                       70.00% (7/10)                  243   cp_f5: coverpoint dsu_funct5 { 
+| |--macsub                    0.00% (0/1)                    244   bins mac_sel={5'd0}; bins macsub={5'd1}; bins macabs={5'd2}; 
+| |--macabs                    0.00% (0/1)                    244   bins mac_sel={5'd0}; bins macsub={5'd1}; bins macabs={5'd2}; 
+| |--macdot                    0.00% (0/1)                    245   bins macdot={5'd3};  bins macload={5'd4}; bins macclear={5'd5}; 
+|--x_op_acc                    53.33% (16/30)                 251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--macsub,fx                 0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--macsub,fy                 0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--macsub,mag                0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--macabs,fx                 0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--macabs,fy                 0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--macabs,mag                0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--macdot,fx                 0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--macdot,fy                 0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--macdot,mag                0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--macsat,mag                0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--rd_hi,fy                  0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--rd_hi,mag                 0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--macshift,fx               0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+| |--macshift,mag              0.00% (0/1)                    251   x_op_acc: cross cp_f5, cp_acc;      // the 30 legal combinations 
+

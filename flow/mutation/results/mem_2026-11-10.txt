@@ -1,0 +1,9 @@
+M1 read bypass ignores the write buffer        assertions: a_data_integrity                                   bench: FAIL
+M2 bypass takes all lanes                      assertions: none                                               bench: pass
+M3 parked write uses the wrong word            assertions: a_data_integrity                                   bench: FAIL
+M4 halfword lanes swapped                      assertions: a_byte_lanes,a_data_integrity                      bench: FAIL
+M5 misaligned word accepted                    assertions: a_misaligned_refused                               bench: FAIL
+M6 lock ignored                                assertions: a_lock_refused                                     bench: FAIL
+M7 one-cycle ERROR                             assertions: a_misaligned_refused                               bench: FAIL
+M8 DSRAM read bank not registered              assertions: none                                               bench: pass
+mem: 8 mutants; assertions caught 6, bench caught 6

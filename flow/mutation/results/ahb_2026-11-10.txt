@@ -1,0 +1,9 @@
+M1 SBA outranks the DMA                        assertions: a_prio_dma                                         bench: FAIL
+M2 grant not held on a wait                    assertions: a_addr_phase_stable,a_grant_held                   bench: FAIL
+M3 HWDATA follows the address owner (AHB-1)    assertions: a_hwdata_owner                                     bench: FAIL
+M4 orphan SEQ not broken (AHB-3)               assertions: a_no_orphan_seq                                    bench: FAIL
+M5 bridge granule moved                        assertions: a_hsel_map                                         bench: FAIL
+M6 default slave one-cycle ERROR               assertions: a_default_error                                    bench: FAIL
+M7 ungranted master sees HREADY                assertions: a_ungranted_waits                                  bench: FAIL
+M8 hrdata leaks to a non-owner                 assertions: a_quiet                                            bench: pass
+ahb: 8 mutants; assertions caught 8, bench caught 7

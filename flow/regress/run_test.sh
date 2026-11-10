@@ -26,6 +26,11 @@ source scripts/setup_env.sh > /dev/null
 export PATH=/home/install/INCISIVE152/tools/bin:$PATH
 
 LOG="$OUT/irun.log"
+# SVSEED=<n>: the seed of every randomize() and $urandom (1-TOPS G4 4.9 seed sweep)
+SEEDOPT=""; [ -n "${SVSEED:-}" ] && SEEDOPT="-svseed $SVSEED"
+# a fresh library every run: one left from an older tree can hold a second
+# tb_boot (:v next to :sv) and stop elaboration (TOOL-A13)
+rm -rf "$OUT/INCA_libs" "$LOG"
 COMMON="-64bit -nclibdirname $OUT/INCA_libs -l $LOG \
         -coverage all -cov_cgsample -covoverwrite -covworkdir $OUT/cov_work -covscope garuda -covtest $T"
 ARGS=""; MARK="RESULT: +PASSED|ALL CHECKS PASSED"; LOCKSTEP=""
@@ -59,6 +64,10 @@ case "$T" in
   unit_*)      FL=tb/core/filelist_${T#unit_}.f;   TOP=cov_${T#unit_}; MARK="\[PASS\]|ALL CHECKS PASSED|RESULT: +PASSED"
                printf 'module %s;\n    tb_top u_tb ();\nendmodule\n' "$TOP" > "$OUT/cov_top.sv"
                ARGS="$OUT/cov_top.sv" ;;
+  # the older core benches (plain Verilog, each top named after its bench, so
+  # IMC merges them without the tb_top clash above): smoke_<filelist name>
+  smoke_idex_fwd) FL=tb/core/filelist_idex_fwd.f;  TOP=tb_id_ex_fwd ;;
+  smoke_*)     FL=tb/core/filelist_${T#smoke_}.f;  TOP=tb_${T#smoke_} ;;
   dsu)         FL=tb/dsu/filelist_dsu_top.f;       TOP=tb_dsu_top
                python3 tools/gen/DSU_gen.py --count "${DSU_TESTS:-400}" --seed "${DSU_SEED:-1}" --outdir "$OUT" | tail -1
                ARGS="+STIM=$OUT/dsu_stim.mem +EXP=$OUT/dsu_expected.mem"; MARK="RESULT +: PASSED" ;;
@@ -82,6 +91,8 @@ case "$T" in
                  t_clic)   x="+IRQ_EVERY=40 +IRQ_SWEEP=1" ;;
                  t_mtip)   x="+MTIP_AT=300" ;;
                  t_hold_flush_matrix) x="+IRQ_EVERY=61 +DWAIT=2 +DRAND=1 +SEED=3" ;;
+                 t_hazard) x="${HZ_ARGS-+IWAIT=2 +IRAND=1 +DWAIT=3 +DRAND=1 +SEED=${SEED:-5}}" ;;   # G4 4.13
+                 t_hazard_nowait) n=t_hazard; x="" ;;   # G4 4.13: back to back, every load-use pair stalls
                  *)        x="" ;;
                esac
                ARGS="+HEX=sw/build/$n.hex +COMMIT=$OUT/commit.log +COVTAG=$OUT/fcov +MAXCYC=400000 +QUIET $x"
@@ -99,7 +110,7 @@ case "$T" in
   *) echo "[FAIL] run_test.sh: unknown test '$T'"; echo "GARUDA_RESULT: FAIL $T"; exit 1 ;;
 esac
 
-irun $COMMON -f "$FL" -top "$TOP" $ARGS
+irun $COMMON $SEEDOPT -f "$FL" -top "$TOP" $ARGS
 
 fail=0
 grep -qE "$MARK" "$LOG"                               || { echo "[FAIL] $T: pass marker not found in the log"; fail=1; }

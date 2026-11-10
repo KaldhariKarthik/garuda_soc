@@ -100,12 +100,13 @@ test_prefetch:       ; $(call run_tb_elem,garuda_prefetch_buffer)
 test_iport:          ; $(call run_tb_elem,garuda_iport_ahb_master)
 test_dport:          ; $(call run_tb_elem,d_port_ahb_master)
 test_mem_stage:      ; $(call run_tb_elem,mem_stage)
+test_forward_unit:   ; $(call run_tb_elem,forward_unit)
 test_if_stage:       ; $(call run_tb_elem,garuda_if_stage_top)
 
 # Every core element with its own TB, in block-diagram order:
 # IF -> EX -> MEM -> WB -> CONTROL.
 test_elements: test_pc_gen test_prefetch test_iport test_if_stage \
-               test_alu test_mul32 test_branch_unit test_csr_rw \
+               test_alu test_forward_unit test_mul32 test_branch_unit test_csr_rw \
                test_lsu test_load_fmt test_dport test_mem_stage \
                test_memwb test_clic_ctrl
 

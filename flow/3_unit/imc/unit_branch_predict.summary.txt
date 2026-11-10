@@ -1,0 +1,6 @@
+name                                     Block                Expression           Toggle               Fsm Average          Fsm Covered          Assertion            CoverGroup Average   CoverGroup Covered   
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+$unit                                    n/a                  n/a                  n/a                  n/a                  n/a                  n/a                  100.00%              100.00% (27/27)      
+tb_top                                   100.00% (5/5)        n/a                  100.00% (1/1)        n/a                  n/a                  n/a                  n/a                  n/a                  
+branch_if                                n/a                  n/a                  96.30% (130/135)     n/a                  n/a                  100.00% (9/9)        n/a                  n/a                  
+branch_predict                           n/a                  n/a                  96.09% (221/230)     n/a                  n/a                  n/a                  n/a                  n/a                  

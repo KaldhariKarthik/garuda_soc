@@ -1,0 +1,27 @@
+1-TOPS G4 row 4.9: every core unit bench over seeds 1..20 (irun 15.2, -svseed <n>, coverage on)
+tree 45aef55 + the G4 bench changes, 2026-11-10; command: SVSEED=<n> flow/regress/run_test.sh unit_<name>
+
+bench                            passed / run
+unit_decode_control              20 / 20
+unit_imm_gen                     20 / 20
+unit_reg_file                    20 / 20
+unit_branch_predict              20 / 20
+unit_hazard_forward_unit         20 / 20
+unit_id_stage                    20 / 20
+unit_alu                         20 / 20
+unit_mul32                       20 / 20
+unit_branch_unit                 20 / 20
+unit_csr_rw                      20 / 20
+unit_clic_ctrl                   20 / 20
+unit_load_store_unit             20 / 20
+unit_load_formatter              20 / 20
+unit_mem_wb_reg                  20 / 20
+unit_garuda_pc_gen               20 / 20
+unit_garuda_prefetch_buffer      20 / 20
+unit_garuda_iport_ahb_master     20 / 20
+unit_d_port_ahb_master           20 / 20
+unit_mem_stage                   20 / 20
+unit_garuda_if_stage_top         20 / 20
+unit_forward_unit                20 / 20
+
+total: 420 / 420

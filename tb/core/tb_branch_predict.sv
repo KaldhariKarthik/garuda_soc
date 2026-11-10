@@ -40,6 +40,8 @@ interface branch_if (input bit clk);
     logic [31:0] imm_j;
     logic         branch;
     logic         jal;
+    logic         bp_dis;     // mgarudactl.BP_DIS (CORE-4)
+    logic         fencei;     // FENCE.I from decode (ERRATUM C-3)
     logic         predict_taken;
     logic         redirect_valid;
     logic [31:0] redirect_target;
@@ -66,7 +68,7 @@ interface branch_if (input bit clk);
     //     bubble every iteration.
     property p_backward_branch_taken;
         @(posedge clk)
-        (branch && imm_b[31] && !jal) |-> (predict_taken && redirect_valid && (redirect_target == (pc + imm_b)));
+        (branch && imm_b[31] && !jal && !bp_dis && !fencei) |-> (predict_taken && redirect_valid && (redirect_target == (pc + imm_b)));
     endproperty
     a_backward_taken: assert property (p_backward_branch_taken)
         else $error("[SVA-FAIL] backward branch (imm_b[31]=1) failed to predict taken and redirect");
@@ -82,10 +84,17 @@ interface branch_if (input bit clk);
     // A5: illegal-state check - with neither a branch nor a jump decoded,
     //     nothing can legitimately ask fetch to redirect.
     property p_no_op_no_redirect;
-        @(posedge clk) (!branch && !jal) |-> !redirect_valid;
+        @(posedge clk) (!branch && !jal && !fencei) |-> !redirect_valid;
     endproperty
     a_no_op_no_redirect: assert property (p_no_op_no_redirect)
         else $error("[SVA-FAIL] redirect asserted with neither branch_i nor jal_i");
+
+    // A5b: BP_DIS (CORE-4): no branch is predicted taken while it is set.
+    a_bp_dis_not_taken: assert property (@(posedge clk) bp_dis |-> !predict_taken)
+        else $error("[SVA-FAIL] a branch was predicted taken with BP_DIS set");
+    // A5c: FENCE.I (ERRATUM C-3) redirects to the next instruction.
+    a_fencei_pc4: assert property (@(posedge clk) fencei |-> (redirect_valid && redirect_target == pc + 32'd4))
+        else $error("[SVA-FAIL] FENCE.I did not redirect to pc+4");
 
     // A6: predict_taken_o must never be derivable from jal_i by mistake -
     //     it is only meaningful in the context of a branch.
@@ -122,6 +131,15 @@ class branch_cycle;
     rand bit [31:0] imm_j_val;
     rand bit         branch_val;
     rand bit         jal_val;
+    // 1-TOPS G4 row 4.16: the predictor-disable bit and FENCE.I. Decode never
+    // raises FENCE.I together with a branch or a JAL.
+    rand bit         bp_dis_val;
+    rand bit         fencei_val;
+    constraint c_ctl {
+        bp_dis_val dist { 0 :/ 8, 1 :/ 2 };
+        fencei_val dist { 0 :/ 9, 1 :/ 1 };
+        fencei_val -> (!branch_val && !jal_val);
+    }
 
     constraint c_alignment { pc_val[1:0] == 2'b00; imm_b_val[0] == 1'b0; imm_j_val[0] == 1'b0; }
 
@@ -268,6 +286,24 @@ class branch_generator;
             add_seq("stress_repeated_jal", q);
         end
 
+        // 1-TOPS G4 row 4.16: BP_DIS predicts every branch not taken and leaves
+        // JAL alone; FENCE.I redirects to pc+4 (and wraps like any target)
+        begin
+            branch_cycle q[$], t;
+            t = mk(BK_BACKWARD_BRANCH, 32'h0000_0100, -32'sd8, 32'h0, 1'b1, 1'b0); t.bp_dis_val = 1; q.push_back(t);
+            t = mk(BK_FORWARD_BRANCH,  32'h0000_0100,  32'sd8, 32'h0, 1'b1, 1'b0); t.bp_dis_val = 1; q.push_back(t);
+            t = mk(BK_JAL,             32'h0000_0200, 32'h0, 32'sd64, 1'b0, 1'b1); t.bp_dis_val = 1; q.push_back(t);
+            t = mk(BK_JAL_AND_BRANCH,  32'h0000_0300, -32'sd8, 32'sd64, 1'b1, 1'b1); t.bp_dis_val = 1; q.push_back(t);
+            add_seq("bp_dis", q);
+        end
+        begin
+            branch_cycle q[$], t;
+            t = mk(BK_IDLE, 32'h0000_0400, 32'h0, 32'h0, 1'b0, 1'b0); t.fencei_val = 1; q.push_back(t);
+            t = mk(BK_IDLE, 32'h0000_0400, -32'sd8, 32'sd64, 1'b0, 1'b0); t.fencei_val = 1; t.bp_dis_val = 1; q.push_back(t);
+            t = mk(BK_IDLE, 32'hFFFF_FFFC, 32'h0, 32'h0, 1'b0, 1'b0); t.fencei_val = 1; q.push_back(t);
+            add_seq("fencei_redirect", q);
+        end
+
         // 9) Alternating taken/not-taken (stress)
         begin
             branch_cycle q[$];
@@ -310,15 +346,18 @@ class branch_ref_model;
     // Returns {predict_taken, redirect_valid, redirect_target} for this
     // cycle's inputs. Stateless (no register-ordering subtlety) - kept as
     // a "step" for structural parity with the rest of this test set.
+    // BP_DIS (CORE-4): every branch predicted not taken; JAL unaffected.
+    // FENCE.I (ERRATUM C-3): redirect to pc+4, ranked above the other targets.
     function automatic void step(bit [31:0] pc, bit [31:0] imm_b, bit [31:0] imm_j, bit branch_v, bit jal_v,
+                                  bit bp_dis, bit fencei,
                                   output bit predict_taken, output bit redirect_valid, output bit [31:0] target);
-        redirect_kind_e k = classify(branch_v, jal_v, imm_b[31]);
-        predict_taken  = branch_v & imm_b[31];
-        redirect_valid = (k != RK_NONE);
+        redirect_kind_e k = classify(branch_v, jal_v, imm_b[31] & !bp_dis);
+        predict_taken  = branch_v & imm_b[31] & !bp_dis;
+        redirect_valid = (k != RK_NONE) || fencei;
         // The target adder always fires, even when nothing asks for a
         // redirect - the RTL drives SOME value on id_redirect_target_o
         // unconditionally, gated for meaning only by id_redirect_valid_o.
-        target = jal_v ? (pc + imm_j) : (pc + imm_b);
+        target = fencei ? (pc + 32'd4) : jal_v ? (pc + imm_j) : (pc + imm_b);
     endfunction
 endclass
 
@@ -339,6 +378,8 @@ class branch_driver;
         vif.imm_j  <= ij;
         vif.branch <= br;
         vif.jal    <= jl;
+        vif.bp_dis <= c.bp_dis_val;
+        vif.fencei <= c.fencei_val;
     endtask
 endclass
 
@@ -360,6 +401,14 @@ class branch_monitor;
         cp_predict_taken: coverpoint vif.predict_taken;
         cp_redirect_valid: coverpoint vif.redirect_valid;
         cross cp_branch, cp_jal;
+        // 1-TOPS G4 row 4.16: both predictor directions with the predictor on
+        // and off, JAL with it off, and FENCE.I
+        cp_dir: coverpoint {vif.jal, vif.branch, vif.imm_b[31]} iff (!vif.fencei) {
+            bins backward = {3'b011}; bins forward = {3'b010}; bins jal = {3'b100, 3'b101, 3'b110, 3'b111};
+        }
+        cp_bp_dis: coverpoint vif.bp_dis;
+        x_dir_bp_dis: cross cp_dir, cp_bp_dis;
+        cp_fencei: coverpoint vif.fencei;
     endgroup
 
     function new(virtual branch_if vif);
@@ -388,7 +437,7 @@ class branch_scoreboard;
     task check(string seq_name, int cycle_idx, branch_cycle c, bit [31:0] pc_v, bit [31:0] ib, bit [31:0] ij,
                bit br, bit jl, branch_result actual, ref branch_ref_model model);
         bit exp_predict_taken, exp_redirect_valid; bit [31:0] exp_target;
-        model.step(pc_v, ib, ij, br, jl, exp_predict_taken, exp_redirect_valid, exp_target);
+        model.step(pc_v, ib, ij, br, jl, c.bp_dis_val, c.fencei_val, exp_predict_taken, exp_redirect_valid, exp_target);
 
         if ((actual.predict_taken === exp_predict_taken) &&
             (actual.redirect_valid === exp_redirect_valid) &&
@@ -485,16 +534,15 @@ module tb_top;
     branch_if vif(clk);
 
     branch_predict dut (
-        .bp_dis_i             (1'b0),            // CORE-4 (mgarudactl): predictor on
+        .bp_dis_i             (vif.bp_dis),      // CORE-4 (mgarudactl)
         .pc_i                 (vif.pc),
         .imm_b_i              (vif.imm_b),
         .imm_j_i              (vif.imm_j),
         .branch_i             (vif.branch),
         .jal_i                (vif.jal),
         // ERRATUM C-3 added fencei_i (FENCE.I redirects to pc+4 to flush the
-        // prefetch buffer). Tied low: this TB predates it and drives no
-        // FENCE.I. Left floating it reads as X and poisons id_redirect_valid_o.
-        .fencei_i             (1'b0),
+        // prefetch buffer); driven since 1-TOPS G4 row 4.16 (2026-11-10).
+        .fencei_i             (vif.fencei),
         .predict_taken_o      (vif.predict_taken),
         .id_redirect_valid_o  (vif.redirect_valid),
         .id_redirect_target_o (vif.redirect_target)
@@ -504,6 +552,7 @@ module tb_top;
 
     initial begin
         vif.pc = 32'h0; vif.imm_b = 32'h0; vif.imm_j = 32'h0; vif.branch = 1'b0; vif.jal = 1'b0;
+        vif.bp_dis = 1'b0; vif.fencei = 1'b0;
         repeat (3) @(posedge clk);
 
         test = new(vif, 10, 200);

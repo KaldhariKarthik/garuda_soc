@@ -44,7 +44,7 @@ group garuda {
             test unit_csr_rw {}; test unit_clic_ctrl {}; test unit_load_store_unit {};
             test unit_load_formatter {}; test unit_mem_wb_reg {}; test unit_garuda_pc_gen {};
             test unit_garuda_prefetch_buffer {}; test unit_garuda_iport_ahb_master {}; test unit_d_port_ahb_master {};
-            test unit_mem_stage {}; test unit_garuda_if_stage_top {};
+            test unit_mem_stage {}; test unit_garuda_if_stage_top {}; test unit_forward_unit {};
         };
         group core_dsu {
             test dsu {};
@@ -70,6 +70,7 @@ group garuda {
             test san_t_cov {}; test san_t_mtip {};
             test san_t_hold_flush_matrix {}; test san_t_dsu_b2b {};
             test san_t_lead1_mret_buserr {}; test san_t_lead2_wfi_buserr {};
+            test san_t_hazard {}; test san_t_hazard_nowait {}; test san_t_cov_fault {}; test san_t_cov_csr {};
         };
     };
 

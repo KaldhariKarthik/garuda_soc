@@ -1,0 +1,8 @@
+name                                     Block                Expression           Toggle               Fsm Average          Fsm Covered          Assertion            CoverGroup Average   CoverGroup Covered   
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+tb_top                                   100.00% (128/128)    n/a                  50.00% (1/2)         n/a                  n/a                  n/a                  100.00%              100.00% (60/60)      
+mem_stage_if                             n/a                  n/a                  95.47% (316/331)     n/a                  n/a                  100.00% (8/8)        n/a                  n/a                  
+mem_stage                                n/a                  n/a                  96.07% (391/407)     n/a                  n/a                  n/a                  n/a                  n/a                  
+load_store_unit                          100.00% (4/4)        n/a                  99.07% (106/107)     n/a                  n/a                  n/a                  n/a                  n/a                  
+d_port_ahb_master                        92.31% (12/13)       100.00% (6/6)        96.62% (143/148)     100.00%              100.00% (4/4)        n/a                  n/a                  n/a                  
+load_formatter                           100.00% (14/14)      n/a                  100.00% (96/96)      n/a                  n/a                  n/a                  n/a                  n/a                  

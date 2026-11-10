@@ -1,0 +1,10 @@
+top: dsram_top (sram_wrapper black-boxed)
+script: flow/formal/mem/dsram_bank_fpv.tcl
+proved: 2/2, 2/2 covers covered (one assumption: m_hready_own, AHB HREADY in the slave's own data phase)
+tool: JasperGold Apps 2022.09p002, 2026-11-10, tree 45aef55
+purpose: flow/mutation/mem_mutants.py M8 (DSRAM read bank loaded on writes too) is EQUIVALENT: rd_bank_q is read only in a read data phase, which always follows a read access.
+
+proven       assert  <embedded>::a_rd_dp_after_read
+proven       assert  <embedded>::a_rd_bank_is_last_read
+covered      cover   <embedded>::c_rd_dp_after_write
+covered      cover   <embedded>::c_bank_change

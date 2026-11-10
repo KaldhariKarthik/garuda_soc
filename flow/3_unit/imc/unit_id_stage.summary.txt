@@ -1,0 +1,11 @@
+name                                     Block                Expression           Toggle               Fsm Average          Fsm Covered          Assertion            CoverGroup Average   CoverGroup Covered   
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+$unit                                    n/a                  n/a                  n/a                  n/a                  n/a                  n/a                  100.00%              100.00% (154/154)    
+tb_top                                   100.00% (6/6)        n/a                  100.00% (1/1)        n/a                  n/a                  n/a                  n/a                  n/a                  
+id_stage_if                              n/a                  n/a                  98.28% (342/348)     n/a                  n/a                  100.00% (7/7)        n/a                  n/a                  
+id_stage                                 n/a                  n/a                  98.22% (553/563)     n/a                  n/a                  n/a                  n/a                  n/a                  
+decode_control                           84.62% (55/65)       75.00% (15/20)       99.15% (116/117)     n/a                  n/a                  n/a                  n/a                  n/a                  
+imm_gen                                  100.00% (8/8)        n/a                  86.69% (280/323)     n/a                  n/a                  n/a                  n/a                  n/a                  
+regfile                                  100.00% (3/3)        100.00% (11/11)      99.44% (177/178)     n/a                  n/a                  n/a                  n/a                  n/a                  
+branch_predict                           n/a                  n/a                  95.22% (219/230)     n/a                  n/a                  n/a                  n/a                  n/a                  
+hazard_forward_unit                      n/a                  n/a                  100.00% (17/17)      n/a                  n/a                  n/a                  n/a                  n/a                  

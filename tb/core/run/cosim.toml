@@ -11,7 +11,7 @@ xfail = "tb/core/run/xfail.tsv"
 [bench]
 flist = "tb/soc/filelist_boot_cosim.f"
 top   = "tb_boot"
-vl_flags = ["-CFLAGS", "-I$GARUDA_TOOLS/spike/include", "-LDFLAGS", "-L$GARUDA_TOOLS/spike/lib -lriscv -Wl,-rpath,$GARUDA_TOOLS/spike/lib"]
+vl_flags = ["-CFLAGS", "-I$GARUDA_SPIKE/include", "-LDFLAGS", "-L$GARUDA_SPIKE/lib -lriscv -Wl,-rpath,$GARUDA_SPIKE/lib"]
 
 [defaults]
 marker   = 'TOHOST=1 -> PASSED'
@@ -83,6 +83,26 @@ hex  = "sw/build/t_dsu_b2b.hex"
 plusargs = ["+MAXCYC=200000", "+QUIET"]
 
 [[test]]
+name = "cs_t_dsu_gate"
+hex  = "sw/build/t_dsu_gate.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IRQ_AT=3000"]
+
+[[test]]
+name = "cs_t_cov_wfi_mti"
+hex  = "sw/build/t_cov_wfi_mti.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+MTIP_AT=600"]
+
+[[test]]
+name = "cs_t_hazard"
+hex  = "sw/build/t_hazard.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IWAIT=2", "+IRAND=1", "+DWAIT=3", "+DRAND=1", "+SEED=5"]
+
+[[test]]
+name = "cs_t_hazard_nowait"
+hex  = "sw/build/t_hazard.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET"]
+
+[[test]]
 name = "cs_boot6"
 hex  = "sw/build/boot6.hex"
 plusargs = ["+MAXCYC=2000", "+QUIET"]
@@ -148,6 +168,16 @@ hex  = "sw/build/t_core_preempt.hex"
 plusargs = ["+MAXCYC=100000", "+QUIET", "+IWAIT=2", "+DWAIT=2"]
 
 [[test]]
+name = "cs_t_exc_priority"
+hex  = "sw/build/t_exc_priority.hex"
+plusargs = ["+MAXCYC=100000", "+QUIET"]
+
+[[test]]
+name = "cs_t_exc_priority_w3"
+hex  = "sw/build/t_exc_priority.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+IWAIT=3", "+DWAIT=3"]
+
+[[test]]
 name = "cs_t_cov_fault"
 hex  = "sw/build/t_cov_fault.hex"
 plusargs = ["+MAXCYC=200000", "+QUIET"]
@@ -170,6 +200,11 @@ plusargs = ["+MAXCYC=200000", "+QUIET"]
 [[test]]
 name = "cs_t_cov_dsu"
 hex  = "sw/build/t_cov_dsu.hex"
+plusargs = ["+MAXCYC=8000000", "+QUIET"]
+
+[[test]]
+name = "cs_t_dsu_ovf_raw"
+hex  = "sw/build/t_dsu_ovf_raw.hex"
 plusargs = ["+MAXCYC=8000000", "+QUIET"]
 
 [[test]]
@@ -206,3 +241,13 @@ plusargs = ["+MAXCYC=100000", "+QUIET", "+IWAIT=2", "+DWAIT=2"]
 name = "cs_t_cov_misfetch_d3"
 hex  = "sw/build/t_cov_misfetch.hex"
 plusargs = ["+MAXCYC=100000", "+QUIET", "+DWAIT=3"]
+
+[[test]]
+name = "cs_t_cov_vplan"
+hex  = "sw/build/t_cov_vplan.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET"]
+
+[[test]]
+name = "cs_t_cov_vplan_w2"
+hex  = "sw/build/t_cov_vplan.hex"
+plusargs = ["+MAXCYC=400000", "+QUIET", "+IWAIT=2", "+DWAIT=2"]

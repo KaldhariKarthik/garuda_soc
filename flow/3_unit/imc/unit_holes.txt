@@ -1,0 +1,2617 @@
+alu                        blk 100.00% (13/13)    expr n/a                tog 100.00% (105/105)    fsm n/a
+branch_predict             blk n/a                expr n/a                tog 96.09% (221/230)     fsm n/a
+      TOG   pc_i[1]                      none     CT-PCALIGN-branch_predict
+      TOG   pc_i[0]                      none     CT-PCALIGN-branch_predict
+      TOG   imm_b_i[0]                   none     CT-PCBIT0-branch_predict
+      TOG   imm_j_i[0]                   none     CT-PCBIT0-branch_predict
+      TOG   id_redirect_target_o[0]      none     CT-PCBIT0-branch_predict
+      TOG   branch_target[0]             none     CT-PCBIT0-branch_predict
+      TOG   jal_target[0]                none     CT-PCBIT0-branch_predict
+      TOG   fencei_target[1]             none     CT-FENCEI-branch_predict
+      TOG   fencei_target[0]             none     CT-FENCEI-branch_predict
+branch_unit                blk 100.00% (8/8)      expr n/a                tog 98.15% (266/271)     fsm n/a
+      TOG   pc[1]                        none     CT-PCALIGN-branch_unit
+      TOG   pc[0]                        none     CT-PCALIGN-branch_unit
+      TOG   fallthrough[1]               none     CT-PCALIGN-branch_unit
+      TOG   fallthrough[0]               none     CT-PCALIGN-branch_unit
+      TOG   jalr_target[0]               none     CT-PCBIT0-branch_unit
+clic_ctrl                  blk n/a                expr n/a                tog 96.46% (109/113)     fsm n/a
+      TOG   mtvec_i[1]                   none     CT-MTVECBASE-clic_ctrl
+      TOG   mtvec_i[0]                   none     CT-MTVECBASE-clic_ctrl
+      TOG   vector_target_o[1]           none     CT-MTVECBASE-clic_ctrl
+      TOG   vector_target_o[0]           none     CT-MTVECBASE-clic_ctrl
+csr_file                   blk 66.18% (45/68)     expr 73.33% (11/15)     tog 26.50% (260/981)     fsm n/a
+      BLOCK line 175 (a case item of) MVENDORID: rdata = 32'd0;  NOT WAIVED
+      BLOCK line 176 (a case item of) MARCHID:   rdata = 32'd0;  NOT WAIVED
+      BLOCK line 177 (a case item of) MIMPID:    rdata = 32'h0000_0110;      // Rev 1.1  NOT WAIVED
+      BLOCK line 183 (a case item of) MEPC:      rdata = mepc_r;  NOT WAIVED
+      BLOCK line 185 (a case item of) MTVAL:     rdata = mtval_r;  NOT WAIVED
+      BLOCK line 190 (a case item of) MINTTHRESH:rdata = {24'd0, mintthresh_r};  NOT WAIVED
+      BLOCK line 191 (a case item of) MCYCLE:    rdata = mcycle_r[31:0];  NOT WAIVED
+      BLOCK line 192 (a case item of) MCYCLEH:   rdata = mcycle_r[63:32];  NOT WAIVED
+      BLOCK line 194 (a case item of) MINSTRETH: rdata = instret_arch[63:32];  NOT WAIVED
+      BLOCK line 196 (a case item of) MGARUDACTL:rdata = {28'd0, ctl_r};                // CORE-4  NOT WAIVED
+      BLOCK line 197 (a case item of) CYCLE:     rdata = mcycle_r[31:0];       // Zicntr read-only  NOT WAIVED
+      BLOCK line 198 (a case item of) CYCLEH:    rdata = mcycle_r[63:32];  NOT WAIVED
+      BLOCK line 199 (a case item of) INSTRET:   rdata = instret_arch[31:0];  NOT WAIVED
+      BLOCK line 200 (a case item of) INSTRETH:  rdata = instret_arch[63:32];  NOT WAIVED
+      BLOCK line 283 (true part of) if      (wr_ok && csr_addr_i == MCYCLE)  mcycle_r[31:0]  <=   NOT WAIVED
+      BLOCK line 284 (true part of) else if (wr_ok && csr_addr_i == MCYCLEH) mcycle_r[63:32] <=   NOT WAIVED
+      BLOCK line 287 (true part of) minstret_r <= {instret_arch[63:32], nextv(instret_arch[31:0]  NOT WAIVED
+      BLOCK line 290 (true part of) minstret_r <= {nextv(instret_arch[63:32], csr_wdata_i, csr_o  NOT WAIVED
+      BLOCK line 325 (a case item of) MEPC:     mepc_r     <= nextv(mepc_r,     csr_wdata_i, csr_o  NOT WAIVED
+      BLOCK line 327 (a case item of) MTVAL:    mtval_r    <= nextv(mtval_r,    csr_wdata_i, csr_o  NOT WAIVED
+      BLOCK line 329 (a case item of) MINTTHRESH: mintthresh_r <= mintthresh_next[7:0];  NOT WAIVED
+      BLOCK line 330 (a case item of) MGARUDACTL: ctl_r <= ctl_next[3:0];                      //   NOT WAIVED
+      BLOCK line 331 (a case item of) default: ; // counters/RO handled elsewhere or ignored  NOT WAIVED
+      EXPR  line 283 66.67% (2/3) wr_ok && (csr_addr_i == MCYCLE)
+      EXPR  line 284 66.67% (2/3) wr_ok && (csr_addr_i == MCYCLEH)
+      EXPR  line 286 66.67% (2/3) wr_ok && (csr_addr_i == MINSTRET)
+      EXPR  line 289 66.67% (2/3) wr_ok && (csr_addr_i == MINSTRETH)
+      TOG   commit_i                     none     NOT WAIVED
+      TOG   csr_addr_i[9]                no fall  NOT WAIVED
+      TOG   csr_addr_i[8]                no fall  NOT WAIVED
+      TOG   csr_rdata_o[27]              no fall  NOT WAIVED
+      TOG   csr_rdata_o[26]              none     NOT WAIVED
+      TOG   csr_rdata_o[25]              none     NOT WAIVED
+      TOG   csr_rdata_o[24]              none     NOT WAIVED
+      TOG   csr_rdata_o[18]              none     NOT WAIVED
+      TOG   csr_rdata_o[17]              none     NOT WAIVED
+      TOG   csr_rdata_o[16]              none     NOT WAIVED
+      TOG   csr_rdata_o[10]              none     NOT WAIVED
+      TOG   csr_rdata_o[9]               none     NOT WAIVED
+      TOG   ret_mem_i                    none     NOT WAIVED
+      TOG   clic_level_i[2]              none     NOT WAIVED
+      TOG   clic_level_i[1]              none     NOT WAIVED
+      TOG   clic_level_i[0]              none     NOT WAIVED
+      TOG   trap_pc_i[31]                no fall  NOT WAIVED
+      TOG   trap_pc_i[30]                none     NOT WAIVED
+      TOG   trap_pc_i[29]                no fall  NOT WAIVED
+      TOG   trap_pc_i[28]                no fall  NOT WAIVED
+      TOG   trap_pc_i[27]                no fall  NOT WAIVED
+      TOG   trap_pc_i[26]                none     NOT WAIVED
+      TOG   trap_pc_i[25]                no fall  NOT WAIVED
+      TOG   trap_pc_i[24]                none     NOT WAIVED
+      TOG   trap_pc_i[23]                no fall  NOT WAIVED
+      TOG   trap_pc_i[22]                none     NOT WAIVED
+      TOG   trap_pc_i[21]                no fall  NOT WAIVED
+      TOG   trap_pc_i[20]                none     NOT WAIVED
+      TOG   trap_pc_i[19]                no fall  NOT WAIVED
+      TOG   trap_pc_i[18]                none     NOT WAIVED
+      TOG   trap_pc_i[17]                no fall  NOT WAIVED
+      TOG   trap_pc_i[16]                none     NOT WAIVED
+      TOG   trap_pc_i[15]                none     NOT WAIVED
+      TOG   trap_pc_i[14]                none     NOT WAIVED
+      TOG   trap_pc_i[13]                none     NOT WAIVED
+      TOG   trap_pc_i[12]                none     NOT WAIVED
+      TOG   trap_pc_i[11]                none     NOT WAIVED
+      TOG   trap_pc_i[10]                none     NOT WAIVED
+      TOG   trap_pc_i[9]                 none     NOT WAIVED
+      TOG   trap_pc_i[8]                 no fall  NOT WAIVED
+      TOG   trap_pc_i[7]                 none     NOT WAIVED
+      TOG   trap_pc_i[6]                 none     NOT WAIVED
+      TOG   trap_pc_i[5]                 none     NOT WAIVED
+      TOG   trap_pc_i[4]                 none     NOT WAIVED
+      TOG   trap_pc_i[3]                 none     NOT WAIVED
+      TOG   trap_pc_i[2]                 none     NOT WAIVED
+      TOG   trap_pc_i[1]                 none     CT-PCALIGN-csr_file
+      TOG   trap_pc_i[0]                 none     CT-PCALIGN-csr_file
+      TOG   trap_cause_i[30]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[29]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[28]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[27]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[26]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[25]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[24]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[23]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[22]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[21]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[20]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[19]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[18]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[17]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[16]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[15]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[14]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[13]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[12]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[11]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[10]             none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[9]              none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[8]              none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[7]              none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[6]              none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[5]              none     CT-CAUSE-csr_file
+      TOG   trap_cause_i[4]              none     NOT WAIVED
+      TOG   trap_cause_i[3]              none     NOT WAIVED
+      TOG   trap_tval_i[31]              none     NOT WAIVED
+      TOG   trap_tval_i[30]              none     NOT WAIVED
+      TOG   trap_tval_i[29]              none     NOT WAIVED
+      TOG   trap_tval_i[28]              none     NOT WAIVED
+      TOG   trap_tval_i[27]              none     NOT WAIVED
+      TOG   trap_tval_i[26]              none     NOT WAIVED
+      TOG   trap_tval_i[25]              none     NOT WAIVED
+      TOG   trap_tval_i[24]              none     NOT WAIVED
+      TOG   trap_tval_i[23]              none     NOT WAIVED
+      TOG   trap_tval_i[22]              none     NOT WAIVED
+      TOG   trap_tval_i[21]              none     NOT WAIVED
+      TOG   trap_tval_i[20]              none     NOT WAIVED
+      TOG   trap_tval_i[19]              none     NOT WAIVED
+      TOG   trap_tval_i[18]              none     NOT WAIVED
+      TOG   trap_tval_i[17]              none     NOT WAIVED
+      TOG   trap_tval_i[16]              none     NOT WAIVED
+      TOG   trap_tval_i[15]              no fall  NOT WAIVED
+      TOG   trap_tval_i[14]              none     NOT WAIVED
+      TOG   trap_tval_i[13]              no fall  NOT WAIVED
+      TOG   trap_tval_i[12]              no fall  NOT WAIVED
+      TOG   trap_tval_i[11]              no fall  NOT WAIVED
+      TOG   trap_tval_i[10]              none     NOT WAIVED
+      TOG   trap_tval_i[9]               no fall  NOT WAIVED
+      TOG   trap_tval_i[8]               no fall  NOT WAIVED
+      TOG   trap_tval_i[7]               no fall  NOT WAIVED
+      TOG   trap_tval_i[6]               none     NOT WAIVED
+      TOG   trap_tval_i[5]               no fall  NOT WAIVED
+      TOG   trap_tval_i[4]               no fall  NOT WAIVED
+      TOG   trap_tval_i[3]               no fall  NOT WAIVED
+      TOG   trap_tval_i[2]               none     NOT WAIVED
+      TOG   trap_tval_i[1]               no fall  NOT WAIVED
+      TOG   trap_tval_i[0]               no fall  NOT WAIVED
+      TOG   mtvec_o[31]                  none     NOT WAIVED
+      TOG   mtvec_o[30]                  none     NOT WAIVED
+      TOG   mtvec_o[29]                  none     NOT WAIVED
+      TOG   mtvec_o[28]                  no fall  NOT WAIVED
+      TOG   mtvec_o[27]                  none     NOT WAIVED
+      TOG   mtvec_o[26]                  none     NOT WAIVED
+      TOG   mtvec_o[25]                  none     NOT WAIVED
+      TOG   mtvec_o[24]                  none     NOT WAIVED
+      TOG   mtvec_o[23]                  none     NOT WAIVED
+      TOG   mtvec_o[22]                  none     NOT WAIVED
+      TOG   mtvec_o[21]                  none     NOT WAIVED
+      TOG   mtvec_o[20]                  none     NOT WAIVED
+      TOG   mtvec_o[19]                  none     NOT WAIVED
+      TOG   mtvec_o[18]                  none     NOT WAIVED
+      TOG   mtvec_o[17]                  none     NOT WAIVED
+      TOG   mtvec_o[16]                  none     NOT WAIVED
+      TOG   mtvec_o[15]                  none     NOT WAIVED
+      TOG   mtvec_o[14]                  none     NOT WAIVED
+      TOG   mtvec_o[13]                  none     NOT WAIVED
+      TOG   mtvec_o[12]                  none     NOT WAIVED
+      TOG   mtvec_o[11]                  none     NOT WAIVED
+      TOG   mtvec_o[10]                  none     NOT WAIVED
+      TOG   mtvec_o[9]                   none     NOT WAIVED
+      TOG   mtvec_o[8]                   no fall  NOT WAIVED
+      TOG   mtvec_o[7]                   none     NOT WAIVED
+      TOG   mtvec_o[6]                   none     NOT WAIVED
+      TOG   mtvec_o[5]                   none     NOT WAIVED
+      TOG   mtvec_o[4]                   none     NOT WAIVED
+      TOG   mtvec_o[3]                   none     NOT WAIVED
+      TOG   mtvec_o[2]                   none     NOT WAIVED
+      TOG   mtvec_o[1]                   none     CT-MTVECBASE-csr_file
+      TOG   mtvec_o[0]                   none     CT-MTVECBASE-csr_file
+      TOG   mepc_o[31]                   no fall  NOT WAIVED
+      TOG   mepc_o[30]                   none     NOT WAIVED
+      TOG   mepc_o[29]                   no fall  NOT WAIVED
+      TOG   mepc_o[27]                   no fall  NOT WAIVED
+      TOG   mepc_o[26]                   none     NOT WAIVED
+      TOG   mepc_o[25]                   no fall  NOT WAIVED
+      TOG   mepc_o[24]                   none     NOT WAIVED
+      TOG   mepc_o[23]                   no fall  NOT WAIVED
+      TOG   mepc_o[22]                   none     NOT WAIVED
+      TOG   mepc_o[21]                   no fall  NOT WAIVED
+      TOG   mepc_o[20]                   none     NOT WAIVED
+      TOG   mepc_o[19]                   no fall  NOT WAIVED
+      TOG   mepc_o[18]                   none     NOT WAIVED
+      TOG   mepc_o[17]                   no fall  NOT WAIVED
+      TOG   mepc_o[16]                   none     NOT WAIVED
+      TOG   mepc_o[15]                   none     NOT WAIVED
+      TOG   mepc_o[14]                   none     NOT WAIVED
+      TOG   mepc_o[13]                   none     NOT WAIVED
+      TOG   mepc_o[12]                   none     NOT WAIVED
+      TOG   mepc_o[11]                   none     NOT WAIVED
+      TOG   mepc_o[10]                   none     NOT WAIVED
+      TOG   mepc_o[9]                    none     NOT WAIVED
+      TOG   mepc_o[7]                    none     NOT WAIVED
+      TOG   mepc_o[6]                    none     NOT WAIVED
+      TOG   mepc_o[5]                    none     NOT WAIVED
+      TOG   mepc_o[4]                    none     NOT WAIVED
+      TOG   mepc_o[3]                    none     NOT WAIVED
+      TOG   mepc_o[2]                    none     NOT WAIVED
+      TOG   mepc_o[1]                    none     CT-PCALIGN-csr_file
+      TOG   mepc_o[0]                    none     CT-PCALIGN-csr_file
+      TOG   mintthresh_o[7]              none     NOT WAIVED
+      TOG   mintthresh_o[6]              none     NOT WAIVED
+      TOG   mintthresh_o[5]              none     NOT WAIVED
+      TOG   mintthresh_o[4]              none     NOT WAIVED
+      TOG   mintthresh_o[3]              none     NOT WAIVED
+      TOG   mintthresh_o[2]              none     NOT WAIVED
+      TOG   mintthresh_o[1]              none     NOT WAIVED
+      TOG   mintthresh_o[0]              none     NOT WAIVED
+      TOG   mintstatus_mil_o[2]          none     NOT WAIVED
+      TOG   mintstatus_mil_o[1]          none     NOT WAIVED
+      TOG   mintstatus_mil_o[0]          none     NOT WAIVED
+      TOG   mti_pending_o                none     NOT WAIVED
+      TOG   mgarudactl_o[3]              none     NOT WAIVED
+      TOG   mgarudactl_o[2]              none     NOT WAIVED
+      TOG   mgarudactl_o[1]              none     NOT WAIVED
+      TOG   mgarudactl_o[0]              none     NOT WAIVED
+      TOG   is_readzero                  none     NOT WAIVED
+      TOG   mtvec_r[31]                  none     NOT WAIVED
+      TOG   mtvec_r[30]                  none     NOT WAIVED
+      TOG   mtvec_r[29]                  none     NOT WAIVED
+      TOG   mtvec_r[28]                  no fall  NOT WAIVED
+      TOG   mtvec_r[27]                  none     NOT WAIVED
+      TOG   mtvec_r[26]                  none     NOT WAIVED
+      TOG   mtvec_r[25]                  none     NOT WAIVED
+      TOG   mtvec_r[24]                  none     NOT WAIVED
+      TOG   mtvec_r[23]                  none     NOT WAIVED
+      TOG   mtvec_r[22]                  none     NOT WAIVED
+      TOG   mtvec_r[21]                  none     NOT WAIVED
+      TOG   mtvec_r[20]                  none     NOT WAIVED
+      TOG   mtvec_r[19]                  none     NOT WAIVED
+      TOG   mtvec_r[18]                  none     NOT WAIVED
+      TOG   mtvec_r[17]                  none     NOT WAIVED
+      TOG   mtvec_r[16]                  none     NOT WAIVED
+      TOG   mtvec_r[15]                  none     NOT WAIVED
+      TOG   mtvec_r[14]                  none     NOT WAIVED
+      TOG   mtvec_r[13]                  none     NOT WAIVED
+      TOG   mtvec_r[12]                  none     NOT WAIVED
+      TOG   mtvec_r[11]                  none     NOT WAIVED
+      TOG   mtvec_r[10]                  none     NOT WAIVED
+      TOG   mtvec_r[9]                   none     NOT WAIVED
+      TOG   mtvec_r[8]                   no fall  NOT WAIVED
+      TOG   mtvec_r[7]                   none     NOT WAIVED
+      TOG   mtvec_r[6]                   none     NOT WAIVED
+      TOG   mtvec_r[5]                   none     NOT WAIVED
+      TOG   mtvec_r[4]                   none     NOT WAIVED
+      TOG   mtvec_r[3]                   none     NOT WAIVED
+      TOG   mtvec_r[2]                   none     NOT WAIVED
+      TOG   mtvec_r[1]                   none     NOT WAIVED
+      TOG   mtvec_r[0]                   none     NOT WAIVED
+      TOG   mie_r[31]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[30]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[29]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[28]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[27]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[26]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[25]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[24]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[23]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[22]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[21]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[20]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[19]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[18]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[17]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[16]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[15]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[14]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[13]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[12]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[11]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[10]                    none     CT-MIEWARL-csr_file
+      TOG   mie_r[9]                     none     CT-MIEWARL-csr_file
+      TOG   mie_r[8]                     none     CT-MIEWARL-csr_file
+      TOG   mie_r[7]                     no fall  NOT WAIVED
+      TOG   mie_r[6]                     none     CT-MIEWARL-csr_file
+      TOG   mie_r[5]                     none     CT-MIEWARL-csr_file
+      TOG   mie_r[4]                     none     CT-MIEWARL-csr_file
+      TOG   mie_r[3]                     none     CT-MIEWARL-csr_file
+      TOG   mie_r[2]                     none     CT-MIEWARL-csr_file
+      TOG   mie_r[1]                     none     CT-MIEWARL-csr_file
+      TOG   mie_r[0]                     none     CT-MIEWARL-csr_file
+      TOG   mepc_r[31]                   no fall  NOT WAIVED
+      TOG   mepc_r[30]                   none     NOT WAIVED
+      TOG   mepc_r[29]                   no fall  NOT WAIVED
+      TOG   mepc_r[27]                   no fall  NOT WAIVED
+      TOG   mepc_r[26]                   none     NOT WAIVED
+      TOG   mepc_r[25]                   no fall  NOT WAIVED
+      TOG   mepc_r[24]                   none     NOT WAIVED
+      TOG   mepc_r[23]                   no fall  NOT WAIVED
+      TOG   mepc_r[22]                   none     NOT WAIVED
+      TOG   mepc_r[21]                   no fall  NOT WAIVED
+      TOG   mepc_r[20]                   none     NOT WAIVED
+      TOG   mepc_r[19]                   no fall  NOT WAIVED
+      TOG   mepc_r[18]                   none     NOT WAIVED
+      TOG   mepc_r[17]                   no fall  NOT WAIVED
+      TOG   mepc_r[16]                   none     NOT WAIVED
+      TOG   mepc_r[15]                   none     NOT WAIVED
+      TOG   mepc_r[14]                   none     NOT WAIVED
+      TOG   mepc_r[13]                   none     NOT WAIVED
+      TOG   mepc_r[12]                   none     NOT WAIVED
+      TOG   mepc_r[11]                   none     NOT WAIVED
+      TOG   mepc_r[10]                   none     NOT WAIVED
+      TOG   mepc_r[9]                    none     NOT WAIVED
+      TOG   mepc_r[7]                    none     NOT WAIVED
+      TOG   mepc_r[6]                    none     NOT WAIVED
+      TOG   mepc_r[5]                    none     NOT WAIVED
+      TOG   mepc_r[4]                    none     NOT WAIVED
+      TOG   mepc_r[3]                    none     NOT WAIVED
+      TOG   mepc_r[2]                    none     NOT WAIVED
+      TOG   mepc_r[1]                    none     CT-PCALIGN-csr_file
+      TOG   mepc_r[0]                    none     CT-PCALIGN-csr_file
+      TOG   mcause_r[30]                 none     NOT WAIVED
+      TOG   mcause_r[29]                 none     NOT WAIVED
+      TOG   mcause_r[28]                 none     NOT WAIVED
+      TOG   mcause_r[27]                 none     NOT WAIVED
+      TOG   mcause_r[26]                 none     NOT WAIVED
+      TOG   mcause_r[25]                 none     NOT WAIVED
+      TOG   mcause_r[24]                 none     NOT WAIVED
+      TOG   mcause_r[23]                 none     NOT WAIVED
+      TOG   mcause_r[18]                 none     NOT WAIVED
+      TOG   mcause_r[17]                 none     NOT WAIVED
+      TOG   mcause_r[16]                 none     NOT WAIVED
+      TOG   mcause_r[15]                 none     NOT WAIVED
+      TOG   mcause_r[14]                 none     NOT WAIVED
+      TOG   mcause_r[13]                 none     NOT WAIVED
+      TOG   mcause_r[12]                 none     NOT WAIVED
+      TOG   mcause_r[11]                 none     NOT WAIVED
+      TOG   mcause_r[10]                 none     NOT WAIVED
+      TOG   mcause_r[9]                  none     NOT WAIVED
+      TOG   mcause_r[8]                  none     NOT WAIVED
+      TOG   mcause_r[7]                  none     NOT WAIVED
+      TOG   mcause_r[6]                  none     NOT WAIVED
+      TOG   mcause_r[5]                  none     NOT WAIVED
+      TOG   mcause_r[4]                  none     NOT WAIVED
+      TOG   mcause_r[3]                  none     NOT WAIVED
+      TOG   mtval_r[31]                  none     NOT WAIVED
+      TOG   mtval_r[30]                  none     NOT WAIVED
+      TOG   mtval_r[29]                  none     NOT WAIVED
+      TOG   mtval_r[28]                  none     NOT WAIVED
+      TOG   mtval_r[27]                  none     NOT WAIVED
+      TOG   mtval_r[26]                  none     NOT WAIVED
+      TOG   mtval_r[25]                  none     NOT WAIVED
+      TOG   mtval_r[24]                  none     NOT WAIVED
+      TOG   mtval_r[23]                  none     NOT WAIVED
+      TOG   mtval_r[22]                  none     NOT WAIVED
+      TOG   mtval_r[21]                  none     NOT WAIVED
+      TOG   mtval_r[20]                  none     NOT WAIVED
+      TOG   mtval_r[19]                  none     NOT WAIVED
+      TOG   mtval_r[18]                  none     NOT WAIVED
+      TOG   mtval_r[17]                  none     NOT WAIVED
+      TOG   mtval_r[16]                  none     NOT WAIVED
+      TOG   mtval_r[15]                  no fall  NOT WAIVED
+      TOG   mtval_r[14]                  none     NOT WAIVED
+      TOG   mtval_r[13]                  no fall  NOT WAIVED
+      TOG   mtval_r[12]                  no fall  NOT WAIVED
+      TOG   mtval_r[11]                  no fall  NOT WAIVED
+      TOG   mtval_r[10]                  none     NOT WAIVED
+      TOG   mtval_r[9]                   no fall  NOT WAIVED
+      TOG   mtval_r[8]                   no fall  NOT WAIVED
+      TOG   mtval_r[7]                   no fall  NOT WAIVED
+      TOG   mtval_r[6]                   none     NOT WAIVED
+      TOG   mtval_r[5]                   no fall  NOT WAIVED
+      TOG   mtval_r[4]                   no fall  NOT WAIVED
+      TOG   mtval_r[3]                   no fall  NOT WAIVED
+      TOG   mtval_r[2]                   none     NOT WAIVED
+      TOG   mtval_r[1]                   no fall  NOT WAIVED
+      TOG   mtval_r[0]                   no fall  NOT WAIVED
+      TOG   mscratch_r[27]               none     NOT WAIVED
+      TOG   mscratch_r[26]               none     NOT WAIVED
+      TOG   mscratch_r[25]               none     NOT WAIVED
+      TOG   mscratch_r[24]               none     NOT WAIVED
+      TOG   mscratch_r[23]               no fall  NOT WAIVED
+      TOG   mscratch_r[22]               no fall  NOT WAIVED
+      TOG   mscratch_r[21]               no fall  NOT WAIVED
+      TOG   mscratch_r[20]               no fall  NOT WAIVED
+      TOG   mscratch_r[19]               none     NOT WAIVED
+      TOG   mscratch_r[18]               none     NOT WAIVED
+      TOG   mscratch_r[17]               none     NOT WAIVED
+      TOG   mscratch_r[16]               none     NOT WAIVED
+      TOG   mscratch_r[15]               no fall  NOT WAIVED
+      TOG   mscratch_r[14]               no fall  NOT WAIVED
+      TOG   mscratch_r[13]               no fall  NOT WAIVED
+      TOG   mscratch_r[12]               no fall  NOT WAIVED
+      TOG   mscratch_r[11]               none     NOT WAIVED
+      TOG   mscratch_r[10]               none     NOT WAIVED
+      TOG   mscratch_r[9]                none     NOT WAIVED
+      TOG   mscratch_r[8]                none     NOT WAIVED
+      TOG   mscratch_r[7]                no fall  NOT WAIVED
+      TOG   mscratch_r[6]                no fall  NOT WAIVED
+      TOG   mscratch_r[5]                no fall  NOT WAIVED
+      TOG   mscratch_r[4]                no fall  NOT WAIVED
+      TOG   mscratch_r[3]                no fall  NOT WAIVED
+      TOG   mscratch_r[2]                no fall  NOT WAIVED
+      TOG   mscratch_r[1]                no fall  NOT WAIVED
+      TOG   mscratch_r[0]                no fall  NOT WAIVED
+      TOG   mintthresh_r[7]              none     NOT WAIVED
+      TOG   mintthresh_r[6]              none     NOT WAIVED
+      TOG   mintthresh_r[5]              none     NOT WAIVED
+      TOG   mintthresh_r[4]              none     NOT WAIVED
+      TOG   mintthresh_r[3]              none     NOT WAIVED
+      TOG   mintthresh_r[2]              none     NOT WAIVED
+      TOG   mintthresh_r[1]              none     NOT WAIVED
+      TOG   mintthresh_r[0]              none     NOT WAIVED
+      TOG   mil_r[2]                     none     NOT WAIVED
+      TOG   mil_r[1]                     none     NOT WAIVED
+      TOG   mil_r[0]                     none     NOT WAIVED
+      TOG   ctl_r[3]                     none     NOT WAIVED
+      TOG   ctl_r[2]                     none     NOT WAIVED
+      TOG   ctl_r[1]                     none     NOT WAIVED
+      TOG   ctl_r[0]                     none     NOT WAIVED
+      TOG   mcycle_r[63]                 none     NOT WAIVED
+      TOG   mcycle_r[62]                 none     NOT WAIVED
+      TOG   mcycle_r[61]                 none     NOT WAIVED
+      TOG   mcycle_r[60]                 none     NOT WAIVED
+      TOG   mcycle_r[59]                 none     NOT WAIVED
+      TOG   mcycle_r[58]                 none     NOT WAIVED
+      TOG   mcycle_r[57]                 none     NOT WAIVED
+      TOG   mcycle_r[56]                 none     NOT WAIVED
+      TOG   mcycle_r[55]                 none     NOT WAIVED
+      TOG   mcycle_r[54]                 none     NOT WAIVED
+      TOG   mcycle_r[53]                 none     NOT WAIVED
+      TOG   mcycle_r[52]                 none     NOT WAIVED
+      TOG   mcycle_r[51]                 none     NOT WAIVED
+      TOG   mcycle_r[50]                 none     NOT WAIVED
+      TOG   mcycle_r[49]                 none     NOT WAIVED
+      TOG   mcycle_r[48]                 none     NOT WAIVED
+      TOG   mcycle_r[47]                 none     NOT WAIVED
+      TOG   mcycle_r[46]                 none     NOT WAIVED
+      TOG   mcycle_r[45]                 none     NOT WAIVED
+      TOG   mcycle_r[44]                 none     NOT WAIVED
+      TOG   mcycle_r[43]                 none     NOT WAIVED
+      TOG   mcycle_r[42]                 none     NOT WAIVED
+      TOG   mcycle_r[41]                 none     NOT WAIVED
+      TOG   mcycle_r[40]                 none     NOT WAIVED
+      TOG   mcycle_r[39]                 none     NOT WAIVED
+      TOG   mcycle_r[38]                 none     NOT WAIVED
+      TOG   mcycle_r[37]                 none     NOT WAIVED
+      TOG   mcycle_r[36]                 none     NOT WAIVED
+      TOG   mcycle_r[35]                 none     NOT WAIVED
+      TOG   mcycle_r[34]                 none     NOT WAIVED
+      TOG   mcycle_r[33]                 none     NOT WAIVED
+      TOG   mcycle_r[32]                 none     NOT WAIVED
+      TOG   mcycle_r[31]                 none     NOT WAIVED
+      TOG   mcycle_r[30]                 none     NOT WAIVED
+      TOG   mcycle_r[29]                 none     NOT WAIVED
+      TOG   mcycle_r[28]                 none     NOT WAIVED
+      TOG   mcycle_r[27]                 none     NOT WAIVED
+      TOG   mcycle_r[26]                 none     NOT WAIVED
+      TOG   mcycle_r[25]                 none     NOT WAIVED
+      TOG   mcycle_r[24]                 none     NOT WAIVED
+      TOG   mcycle_r[23]                 none     NOT WAIVED
+      TOG   mcycle_r[22]                 none     NOT WAIVED
+      TOG   mcycle_r[21]                 none     NOT WAIVED
+      TOG   mcycle_r[20]                 none     NOT WAIVED
+      TOG   mcycle_r[19]                 none     NOT WAIVED
+      TOG   mcycle_r[18]                 none     NOT WAIVED
+      TOG   mcycle_r[17]                 none     NOT WAIVED
+      TOG   mcycle_r[16]                 none     NOT WAIVED
+      TOG   mcycle_r[15]                 none     NOT WAIVED
+      TOG   mcycle_r[14]                 none     NOT WAIVED
+      TOG   mcycle_r[13]                 none     NOT WAIVED
+      TOG   mcycle_r[12]                 none     NOT WAIVED
+      TOG   mcycle_r[11]                 none     NOT WAIVED
+      TOG   mcycle_r[10]                 none     NOT WAIVED
+      TOG   mcycle_r[9]                  none     NOT WAIVED
+      TOG   mcycle_r[8]                  none     NOT WAIVED
+      TOG   mcycle_r[7]                  none     NOT WAIVED
+      TOG   mcycle_r[6]                  none     NOT WAIVED
+      TOG   mcycle_r[5]                  none     NOT WAIVED
+      TOG   minstret_r[63]               none     NOT WAIVED
+      TOG   minstret_r[62]               none     NOT WAIVED
+      TOG   minstret_r[61]               none     NOT WAIVED
+      TOG   minstret_r[60]               none     NOT WAIVED
+      TOG   minstret_r[59]               none     NOT WAIVED
+      TOG   minstret_r[58]               none     NOT WAIVED
+      TOG   minstret_r[57]               none     NOT WAIVED
+      TOG   minstret_r[56]               none     NOT WAIVED
+      TOG   minstret_r[55]               none     NOT WAIVED
+      TOG   minstret_r[54]               none     NOT WAIVED
+      TOG   minstret_r[53]               none     NOT WAIVED
+      TOG   minstret_r[52]               none     NOT WAIVED
+      TOG   minstret_r[51]               none     NOT WAIVED
+      TOG   minstret_r[50]               none     NOT WAIVED
+      TOG   minstret_r[49]               none     NOT WAIVED
+      TOG   minstret_r[48]               none     NOT WAIVED
+      TOG   minstret_r[47]               none     NOT WAIVED
+      TOG   minstret_r[46]               none     NOT WAIVED
+      TOG   minstret_r[45]               none     NOT WAIVED
+      TOG   minstret_r[44]               none     NOT WAIVED
+      TOG   minstret_r[43]               none     NOT WAIVED
+      TOG   minstret_r[42]               none     NOT WAIVED
+      TOG   minstret_r[41]               none     NOT WAIVED
+      TOG   minstret_r[40]               none     NOT WAIVED
+      TOG   minstret_r[39]               none     NOT WAIVED
+      TOG   minstret_r[38]               none     NOT WAIVED
+      TOG   minstret_r[37]               none     NOT WAIVED
+      TOG   minstret_r[36]               none     NOT WAIVED
+      TOG   minstret_r[35]               none     NOT WAIVED
+      TOG   minstret_r[34]               none     NOT WAIVED
+      TOG   minstret_r[33]               none     NOT WAIVED
+      TOG   minstret_r[32]               none     NOT WAIVED
+      TOG   minstret_r[31]               none     NOT WAIVED
+      TOG   minstret_r[30]               none     NOT WAIVED
+      TOG   minstret_r[29]               none     NOT WAIVED
+      TOG   minstret_r[28]               none     NOT WAIVED
+      TOG   minstret_r[27]               none     NOT WAIVED
+      TOG   minstret_r[26]               none     NOT WAIVED
+      TOG   minstret_r[25]               none     NOT WAIVED
+      TOG   minstret_r[24]               none     NOT WAIVED
+      TOG   minstret_r[23]               none     NOT WAIVED
+      TOG   minstret_r[22]               none     NOT WAIVED
+      TOG   minstret_r[21]               none     NOT WAIVED
+      TOG   minstret_r[20]               none     NOT WAIVED
+      TOG   minstret_r[19]               none     NOT WAIVED
+      TOG   minstret_r[18]               none     NOT WAIVED
+      TOG   minstret_r[17]               none     NOT WAIVED
+      TOG   minstret_r[16]               none     NOT WAIVED
+      TOG   minstret_r[15]               none     NOT WAIVED
+      TOG   minstret_r[14]               none     NOT WAIVED
+      TOG   minstret_r[13]               none     NOT WAIVED
+      TOG   minstret_r[12]               none     NOT WAIVED
+      TOG   minstret_r[11]               none     NOT WAIVED
+      TOG   minstret_r[10]               none     NOT WAIVED
+      TOG   minstret_r[9]                none     NOT WAIVED
+      TOG   minstret_r[8]                none     NOT WAIVED
+      TOG   minstret_r[7]                none     NOT WAIVED
+      TOG   minstret_r[6]                none     NOT WAIVED
+      TOG   minstret_r[5]                none     NOT WAIVED
+      TOG   minstret_r[4]                none     NOT WAIVED
+      TOG   minstret_r[3]                none     NOT WAIVED
+      TOG   minstret_r[2]                none     NOT WAIVED
+      TOG   minstret_r[1]                none     NOT WAIVED
+      TOG   minstret_r[0]                no fall  NOT WAIVED
+      TOG   instret_arch[63]             none     NOT WAIVED
+      TOG   instret_arch[62]             none     NOT WAIVED
+      TOG   instret_arch[61]             none     NOT WAIVED
+      TOG   instret_arch[60]             none     NOT WAIVED
+      TOG   instret_arch[59]             none     NOT WAIVED
+      TOG   instret_arch[58]             none     NOT WAIVED
+      TOG   instret_arch[57]             none     NOT WAIVED
+      TOG   instret_arch[56]             none     NOT WAIVED
+      TOG   instret_arch[55]             none     NOT WAIVED
+      TOG   instret_arch[54]             none     NOT WAIVED
+      TOG   instret_arch[53]             none     NOT WAIVED
+      TOG   instret_arch[52]             none     NOT WAIVED
+      TOG   instret_arch[51]             none     NOT WAIVED
+      TOG   instret_arch[50]             none     NOT WAIVED
+      TOG   instret_arch[49]             none     NOT WAIVED
+      TOG   instret_arch[48]             none     NOT WAIVED
+      TOG   instret_arch[47]             none     NOT WAIVED
+      TOG   instret_arch[46]             none     NOT WAIVED
+      TOG   instret_arch[45]             none     NOT WAIVED
+      TOG   instret_arch[44]             none     NOT WAIVED
+      TOG   instret_arch[43]             none     NOT WAIVED
+      TOG   instret_arch[42]             none     NOT WAIVED
+      TOG   instret_arch[41]             none     NOT WAIVED
+      TOG   instret_arch[40]             none     NOT WAIVED
+      TOG   instret_arch[39]             none     NOT WAIVED
+      TOG   instret_arch[38]             none     NOT WAIVED
+      TOG   instret_arch[37]             none     NOT WAIVED
+      TOG   instret_arch[36]             none     NOT WAIVED
+      TOG   instret_arch[35]             none     NOT WAIVED
+      TOG   instret_arch[34]             none     NOT WAIVED
+      TOG   instret_arch[33]             none     NOT WAIVED
+      TOG   instret_arch[32]             none     NOT WAIVED
+      TOG   instret_arch[31]             none     NOT WAIVED
+      TOG   instret_arch[30]             none     NOT WAIVED
+      TOG   instret_arch[29]             none     NOT WAIVED
+      TOG   instret_arch[28]             none     NOT WAIVED
+      TOG   instret_arch[27]             none     NOT WAIVED
+      TOG   instret_arch[26]             none     NOT WAIVED
+      TOG   instret_arch[25]             none     NOT WAIVED
+      TOG   instret_arch[24]             none     NOT WAIVED
+      TOG   instret_arch[23]             none     NOT WAIVED
+      TOG   instret_arch[22]             none     NOT WAIVED
+      TOG   instret_arch[21]             none     NOT WAIVED
+      TOG   instret_arch[20]             none     NOT WAIVED
+      TOG   instret_arch[19]             none     NOT WAIVED
+      TOG   instret_arch[18]             none     NOT WAIVED
+      TOG   instret_arch[17]             none     NOT WAIVED
+      TOG   instret_arch[16]             none     NOT WAIVED
+      TOG   instret_arch[15]             none     NOT WAIVED
+      TOG   instret_arch[14]             none     NOT WAIVED
+      TOG   instret_arch[13]             none     NOT WAIVED
+      TOG   instret_arch[12]             none     NOT WAIVED
+      TOG   instret_arch[11]             none     NOT WAIVED
+      TOG   instret_arch[10]             none     NOT WAIVED
+      TOG   instret_arch[9]              none     NOT WAIVED
+      TOG   instret_arch[8]              none     NOT WAIVED
+      TOG   instret_arch[7]              none     NOT WAIVED
+      TOG   instret_arch[6]              none     NOT WAIVED
+      TOG   instret_arch[5]              none     NOT WAIVED
+      TOG   instret_arch[4]              none     NOT WAIVED
+      TOG   instret_arch[3]              none     NOT WAIVED
+      TOG   instret_arch[2]              none     NOT WAIVED
+      TOG   mstatus_val[31]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[30]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[29]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[28]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[27]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[26]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[25]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[24]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[23]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[22]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[21]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[20]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[19]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[18]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[17]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[16]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[15]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[14]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[13]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[12]              none     CT-CSRLAYOUT-csr_file,NOT WAIVED
+      TOG   mstatus_val[11]              none     CT-CSRLAYOUT-csr_file,NOT WAIVED
+      TOG   mstatus_val[10]              none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[9]               none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[8]               none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[6]               none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[5]               none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[4]               none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[2]               none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[1]               none     CT-CSRLAYOUT-csr_file
+      TOG   mstatus_val[0]               none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[31]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[30]                 none     CT-CSRLAYOUT-csr_file,NOT WAIVED
+      TOG   misa_val[29]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[28]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[27]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[26]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[25]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[24]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[23]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[22]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[21]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[20]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[19]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[18]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[17]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[16]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[15]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[14]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[13]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[12]                 none     CT-CSRLAYOUT-csr_file,NOT WAIVED
+      TOG   misa_val[11]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[10]                 none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[9]                  none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[8]                  none     CT-CSRLAYOUT-csr_file,NOT WAIVED
+      TOG   misa_val[7]                  none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[6]                  none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[5]                  none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[4]                  none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[3]                  none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[2]                  none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[1]                  none     CT-CSRLAYOUT-csr_file
+      TOG   misa_val[0]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[31]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[30]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[29]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[28]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[27]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[26]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[25]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[24]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[23]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[22]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[21]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[20]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[19]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[18]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[17]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[16]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[15]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[14]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[13]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[12]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[11]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[10]           none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[9]            none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[8]            none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_val[2]            none     NOT WAIVED
+      TOG   mintstatus_val[1]            none     NOT WAIVED
+      TOG   mintstatus_val[0]            none     NOT WAIVED
+      TOG   mintstatus_std_val[26]       none     NOT WAIVED
+      TOG   mintstatus_std_val[25]       none     NOT WAIVED
+      TOG   mintstatus_std_val[24]       none     NOT WAIVED
+      TOG   mintstatus_std_val[23]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[22]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[21]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[20]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[19]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[18]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[17]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[16]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[15]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[14]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[13]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[12]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[11]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[10]       none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[9]        none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[8]        none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[7]        none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[6]        none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[5]        none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[4]        none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[3]        none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[2]        none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[1]        none     CT-CSRLAYOUT-csr_file
+      TOG   mintstatus_std_val[0]        none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[31]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[30]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[29]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[28]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[27]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[26]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[25]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[24]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[23]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[22]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[21]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[20]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[19]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[18]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[17]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[16]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[15]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[14]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[13]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[12]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[11]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[10]                  none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[9]                   none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[8]                   none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[6]                   none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[5]                   none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[4]                   none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[3]                   none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[2]                   none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[1]                   none     CT-CSRLAYOUT-csr_file
+      TOG   mip_val[0]                   none     CT-CSRLAYOUT-csr_file
+      TOG   rdata[27]                    no fall  NOT WAIVED
+      TOG   rdata[26]                    none     NOT WAIVED
+      TOG   rdata[25]                    none     NOT WAIVED
+      TOG   rdata[24]                    none     NOT WAIVED
+      TOG   rdata[18]                    none     NOT WAIVED
+      TOG   rdata[17]                    none     NOT WAIVED
+      TOG   rdata[16]                    none     NOT WAIVED
+      TOG   rdata[10]                    none     NOT WAIVED
+      TOG   rdata[9]                     none     NOT WAIVED
+csr_rw                     blk n/a                expr n/a                tog 98.26% (113/115)     fsm n/a
+      TOG   instr[3]                     none     NOT WAIVED
+      TOG   instr[2]                     none     NOT WAIVED
+d_port_ahb_master          blk 92.31% (12/13)     expr 100.00% (6/6)      tog 96.62% (143/148)     fsm 100.00%
+      BLOCK line 140 (a case item of) default: state <= S_ADDR;  CW-003
+      TOG   rst_n_i                      no fall  NOT WAIVED
+      TOG   hsize_i[2]                   none     CT-DBUS-d_port_ahb_master
+      TOG   d_htrans_o[0]                none     CT-DBUS-d_port_ahb_master
+      TOG   d_hsize_o[2]                 none     CT-DBUS-d_port_ahb_master
+      TOG   state[1]                     none     CW-005
+decode_control             blk 96.92% (63/65)     expr 100.00% (20/20)    tog 100.00% (117/117)    fsm n/a
+      BLOCK line 216 (a case item of) default: illegal_instr_o = 1'b1;  CW-006
+      BLOCK line 243 (a case item of) default: illegal_instr_o = 1'b1;  CW-006
+ex_mem                     blk 100.00% (7/7)      expr n/a                tog 20.27% (45/222)      fsm n/a
+      TOG   rst_n_i                      no fall  NOT WAIVED
+      TOG   flush_i                      no fall  NOT WAIVED
+      TOG   ex_result_i[31]              no rise  NOT WAIVED
+      TOG   ex_result_i[30]              no rise  NOT WAIVED
+      TOG   ex_result_i[29]              none     NOT WAIVED
+      TOG   ex_result_i[28]              none     NOT WAIVED
+      TOG   ex_result_i[27]              no rise  NOT WAIVED
+      TOG   ex_result_i[26]              none     NOT WAIVED
+      TOG   ex_result_i[25]              no rise  NOT WAIVED
+      TOG   ex_result_i[24]              none     NOT WAIVED
+      TOG   ex_result_i[23]              no rise  NOT WAIVED
+      TOG   ex_result_i[22]              no rise  NOT WAIVED
+      TOG   ex_result_i[21]              no rise  NOT WAIVED
+      TOG   ex_result_i[20]              no rise  NOT WAIVED
+      TOG   ex_result_i[19]              no rise  NOT WAIVED
+      TOG   ex_result_i[18]              no rise  NOT WAIVED
+      TOG   ex_result_i[17]              no rise  NOT WAIVED
+      TOG   ex_result_i[16]              none     NOT WAIVED
+      TOG   ex_result_i[14]              none     NOT WAIVED
+      TOG   ex_result_i[12]              no rise  NOT WAIVED
+      TOG   ex_result_i[10]              none     NOT WAIVED
+      TOG   ex_result_i[8]               none     NOT WAIVED
+      TOG   ex_result_i[6]               none     NOT WAIVED
+      TOG   ex_result_i[4]               no rise  NOT WAIVED
+      TOG   ex_result_i[2]               no rise  NOT WAIVED
+      TOG   ex_result_i[0]               none     NOT WAIVED
+      TOG   store_data_i[31]             none     NOT WAIVED
+      TOG   store_data_i[30]             none     NOT WAIVED
+      TOG   store_data_i[29]             none     NOT WAIVED
+      TOG   store_data_i[28]             none     NOT WAIVED
+      TOG   store_data_i[27]             none     NOT WAIVED
+      TOG   store_data_i[26]             none     NOT WAIVED
+      TOG   store_data_i[25]             none     NOT WAIVED
+      TOG   store_data_i[24]             none     NOT WAIVED
+      TOG   store_data_i[23]             none     NOT WAIVED
+      TOG   store_data_i[22]             none     NOT WAIVED
+      TOG   store_data_i[21]             none     NOT WAIVED
+      TOG   store_data_i[20]             none     NOT WAIVED
+      TOG   store_data_i[19]             none     NOT WAIVED
+      TOG   store_data_i[18]             none     NOT WAIVED
+      TOG   store_data_i[17]             none     NOT WAIVED
+      TOG   store_data_i[16]             none     NOT WAIVED
+      TOG   store_data_i[15]             none     NOT WAIVED
+      TOG   store_data_i[14]             none     NOT WAIVED
+      TOG   store_data_i[13]             none     NOT WAIVED
+      TOG   store_data_i[12]             none     NOT WAIVED
+      TOG   store_data_i[11]             none     NOT WAIVED
+      TOG   store_data_i[10]             none     NOT WAIVED
+      TOG   store_data_i[9]              none     NOT WAIVED
+      TOG   store_data_i[8]              none     NOT WAIVED
+      TOG   store_data_i[7]              none     NOT WAIVED
+      TOG   store_data_i[6]              none     NOT WAIVED
+      TOG   store_data_i[5]              none     NOT WAIVED
+      TOG   store_data_i[4]              none     NOT WAIVED
+      TOG   store_data_i[3]              none     NOT WAIVED
+      TOG   store_data_i[2]              none     NOT WAIVED
+      TOG   store_data_i[1]              none     NOT WAIVED
+      TOG   store_data_i[0]              none     NOT WAIVED
+      TOG   funct3_i[2]                  none     NOT WAIVED
+      TOG   funct3_i[1]                  none     NOT WAIVED
+      TOG   funct3_i[0]                  none     NOT WAIVED
+      TOG   rd_i[4]                      none     NOT WAIVED
+      TOG   rd_i[3]                      none     NOT WAIVED
+      TOG   rd_i[2]                      none     NOT WAIVED
+      TOG   rd_i[1]                      none     NOT WAIVED
+      TOG   rd_i[0]                      none     NOT WAIVED
+      TOG   pc_i[31]                     no rise  NOT WAIVED
+      TOG   pc_i[30]                     none     NOT WAIVED
+      TOG   pc_i[29]                     none     NOT WAIVED
+      TOG   pc_i[28]                     none     NOT WAIVED
+      TOG   pc_i[27]                     none     NOT WAIVED
+      TOG   pc_i[26]                     none     NOT WAIVED
+      TOG   pc_i[25]                     none     NOT WAIVED
+      TOG   pc_i[24]                     none     NOT WAIVED
+      TOG   pc_i[23]                     none     NOT WAIVED
+      TOG   pc_i[22]                     none     NOT WAIVED
+      TOG   pc_i[21]                     none     NOT WAIVED
+      TOG   pc_i[20]                     none     NOT WAIVED
+      TOG   pc_i[19]                     none     NOT WAIVED
+      TOG   pc_i[18]                     none     NOT WAIVED
+      TOG   pc_i[17]                     none     NOT WAIVED
+      TOG   pc_i[16]                     none     NOT WAIVED
+      TOG   pc_i[15]                     none     NOT WAIVED
+      TOG   pc_i[14]                     none     NOT WAIVED
+      TOG   pc_i[13]                     none     NOT WAIVED
+      TOG   pc_i[12]                     none     NOT WAIVED
+      TOG   pc_i[11]                     none     NOT WAIVED
+      TOG   pc_i[10]                     none     NOT WAIVED
+      TOG   pc_i[9]                      none     NOT WAIVED
+      TOG   pc_i[8]                      none     NOT WAIVED
+      TOG   pc_i[7]                      none     NOT WAIVED
+      TOG   pc_i[6]                      no rise  NOT WAIVED
+      TOG   pc_i[5]                      none     NOT WAIVED
+      TOG   pc_i[4]                      none     NOT WAIVED
+      TOG   pc_i[3]                      none     NOT WAIVED
+      TOG   pc_i[2]                      none     NOT WAIVED
+      TOG   pc_i[1]                      none     CT-PCALIGN-ex_mem
+      TOG   pc_i[0]                      none     CT-PCALIGN-ex_mem
+      TOG   mem_read_i                   none     NOT WAIVED
+      TOG   mem_write_i                  none     NOT WAIVED
+      TOG   mem_to_reg_i                 none     NOT WAIVED
+      TOG   reg_write_i                  none     NOT WAIVED
+      TOG   valid_i                      none     NOT WAIVED
+      TOG   ex_result_o[29]              none     NOT WAIVED
+      TOG   ex_result_o[28]              none     NOT WAIVED
+      TOG   ex_result_o[26]              none     NOT WAIVED
+      TOG   ex_result_o[24]              none     NOT WAIVED
+      TOG   ex_result_o[16]              none     NOT WAIVED
+      TOG   ex_result_o[14]              none     NOT WAIVED
+      TOG   ex_result_o[10]              none     NOT WAIVED
+      TOG   ex_result_o[8]               none     NOT WAIVED
+      TOG   ex_result_o[6]               none     NOT WAIVED
+      TOG   ex_result_o[0]               none     NOT WAIVED
+      TOG   store_data_o[31]             none     NOT WAIVED
+      TOG   store_data_o[30]             none     NOT WAIVED
+      TOG   store_data_o[29]             none     NOT WAIVED
+      TOG   store_data_o[28]             none     NOT WAIVED
+      TOG   store_data_o[27]             none     NOT WAIVED
+      TOG   store_data_o[26]             none     NOT WAIVED
+      TOG   store_data_o[25]             none     NOT WAIVED
+      TOG   store_data_o[24]             none     NOT WAIVED
+      TOG   store_data_o[23]             none     NOT WAIVED
+      TOG   store_data_o[22]             none     NOT WAIVED
+      TOG   store_data_o[21]             none     NOT WAIVED
+      TOG   store_data_o[20]             none     NOT WAIVED
+      TOG   store_data_o[19]             none     NOT WAIVED
+      TOG   store_data_o[18]             none     NOT WAIVED
+      TOG   store_data_o[17]             none     NOT WAIVED
+      TOG   store_data_o[16]             none     NOT WAIVED
+      TOG   store_data_o[15]             none     NOT WAIVED
+      TOG   store_data_o[14]             none     NOT WAIVED
+      TOG   store_data_o[13]             none     NOT WAIVED
+      TOG   store_data_o[11]             none     NOT WAIVED
+      TOG   store_data_o[10]             none     NOT WAIVED
+      TOG   store_data_o[8]              none     NOT WAIVED
+      TOG   store_data_o[7]              none     NOT WAIVED
+      TOG   store_data_o[6]              none     NOT WAIVED
+      TOG   store_data_o[3]              none     NOT WAIVED
+      TOG   store_data_o[1]              none     NOT WAIVED
+      TOG   store_data_o[0]              none     NOT WAIVED
+      TOG   funct3_o[2]                  none     NOT WAIVED
+      TOG   funct3_o[0]                  none     NOT WAIVED
+      TOG   rd_o[4]                      none     NOT WAIVED
+      TOG   rd_o[1]                      none     NOT WAIVED
+      TOG   rd_o[0]                      none     NOT WAIVED
+      TOG   pc_o[30]                     none     NOT WAIVED
+      TOG   pc_o[29]                     none     NOT WAIVED
+      TOG   pc_o[28]                     none     NOT WAIVED
+      TOG   pc_o[27]                     none     NOT WAIVED
+      TOG   pc_o[26]                     none     NOT WAIVED
+      TOG   pc_o[25]                     none     NOT WAIVED
+      TOG   pc_o[24]                     none     NOT WAIVED
+      TOG   pc_o[23]                     none     NOT WAIVED
+      TOG   pc_o[22]                     none     NOT WAIVED
+      TOG   pc_o[21]                     none     NOT WAIVED
+      TOG   pc_o[20]                     none     NOT WAIVED
+      TOG   pc_o[19]                     none     NOT WAIVED
+      TOG   pc_o[18]                     none     NOT WAIVED
+      TOG   pc_o[17]                     none     NOT WAIVED
+      TOG   pc_o[16]                     none     NOT WAIVED
+      TOG   pc_o[15]                     none     NOT WAIVED
+      TOG   pc_o[14]                     none     NOT WAIVED
+      TOG   pc_o[13]                     none     NOT WAIVED
+      TOG   pc_o[12]                     none     NOT WAIVED
+      TOG   pc_o[11]                     none     NOT WAIVED
+      TOG   pc_o[10]                     none     NOT WAIVED
+      TOG   pc_o[9]                      none     NOT WAIVED
+      TOG   pc_o[8]                      none     NOT WAIVED
+      TOG   pc_o[7]                      none     NOT WAIVED
+      TOG   pc_o[5]                      none     NOT WAIVED
+      TOG   pc_o[4]                      none     NOT WAIVED
+      TOG   pc_o[3]                      none     NOT WAIVED
+      TOG   pc_o[2]                      none     NOT WAIVED
+      TOG   pc_o[1]                      none     CT-PCALIGN-ex_mem
+      TOG   pc_o[0]                      none     CT-PCALIGN-ex_mem
+      TOG   mem_write_o                  none     NOT WAIVED
+      TOG   valid_o                      none     NOT WAIVED
+ex_stage                   blk 75.00% (6/8)       expr n/a                tog 60.56% (579/956)     fsm n/a
+      BLOCK line 184 (a case item of) `FWD_MEMWB: rs1_fwd = memwb_fwd_data;  NOT WAIVED
+      BLOCK line 188 (a case item of) `FWD_EXMEM: rs2_fwd = exmem_fwd_data;  NOT WAIVED
+      TOG   rst_n                        no fall  NOT WAIVED
+      TOG   pc[31]                       none     NOT WAIVED
+      TOG   pc[30]                       none     NOT WAIVED
+      TOG   pc[29]                       none     NOT WAIVED
+      TOG   pc[28]                       none     NOT WAIVED
+      TOG   pc[27]                       none     NOT WAIVED
+      TOG   pc[26]                       none     NOT WAIVED
+      TOG   pc[25]                       none     NOT WAIVED
+      TOG   pc[24]                       none     NOT WAIVED
+      TOG   pc[23]                       none     NOT WAIVED
+      TOG   pc[22]                       none     NOT WAIVED
+      TOG   pc[21]                       none     NOT WAIVED
+      TOG   pc[20]                       none     NOT WAIVED
+      TOG   pc[19]                       none     NOT WAIVED
+      TOG   pc[18]                       none     NOT WAIVED
+      TOG   pc[17]                       none     NOT WAIVED
+      TOG   pc[16]                       none     NOT WAIVED
+      TOG   pc[15]                       none     NOT WAIVED
+      TOG   pc[14]                       none     NOT WAIVED
+      TOG   pc[11]                       none     NOT WAIVED
+      TOG   pc[10]                       none     NOT WAIVED
+      TOG   pc[9]                        none     NOT WAIVED
+      TOG   pc[8]                        none     NOT WAIVED
+      TOG   pc[7]                        none     NOT WAIVED
+      TOG   pc[6]                        none     NOT WAIVED
+      TOG   pc[5]                        none     NOT WAIVED
+      TOG   pc[4]                        none     NOT WAIVED
+      TOG   pc[3]                        none     NOT WAIVED
+      TOG   pc[2]                        none     NOT WAIVED
+      TOG   pc[1]                        none     CT-PCALIGN-ex_stage
+      TOG   pc[0]                        none     CT-PCALIGN-ex_stage
+      TOG   instr[31]                    none     NOT WAIVED
+      TOG   instr[30]                    none     NOT WAIVED
+      TOG   instr[27]                    none     NOT WAIVED
+      TOG   instr[26]                    none     NOT WAIVED
+      TOG   instr[25]                    none     NOT WAIVED
+      TOG   instr[24]                    none     NOT WAIVED
+      TOG   instr[23]                    none     NOT WAIVED
+      TOG   instr[21]                    none     NOT WAIVED
+      TOG   instr[18]                    none     NOT WAIVED
+      TOG   instr[16]                    none     NOT WAIVED
+      TOG   instr[13]                    none     NOT WAIVED
+      TOG   instr[11]                    none     NOT WAIVED
+      TOG   instr[10]                    none     NOT WAIVED
+      TOG   instr[9]                     none     NOT WAIVED
+      TOG   instr[3]                     none     NOT WAIVED
+      TOG   instr[2]                     none     NOT WAIVED
+      TOG   imm[3]                       none     NOT WAIVED
+      TOG   imm[0]                       none     NOT WAIVED
+      TOG   rd[4]                        none     NOT WAIVED
+      TOG   rd[3]                        none     NOT WAIVED
+      TOG   rd[2]                        none     NOT WAIVED
+      TOG   rd[1]                        none     NOT WAIVED
+      TOG   rd[0]                        none     NOT WAIVED
+      TOG   funct3[2]                    none     NOT WAIVED
+      TOG   reg_write                    no fall  NOT WAIVED
+      TOG   mem_to_reg                   none     NOT WAIVED
+      TOG   pc_op_a                      none     NOT WAIVED
+      TOG   alu_op[3]                    no fall  NOT WAIVED
+      TOG   jal                          none     NOT WAIVED
+      TOG   dsu_en                       none     NOT WAIVED
+      TOG   csr_op[1]                    none     NOT WAIVED
+      TOG   fwd_a_sel[1]                 none     NOT WAIVED
+      TOG   fwd_b_sel[0]                 none     NOT WAIVED
+      TOG   exmem_fwd_data[31]           none     NOT WAIVED
+      TOG   exmem_fwd_data[30]           none     NOT WAIVED
+      TOG   exmem_fwd_data[29]           none     NOT WAIVED
+      TOG   exmem_fwd_data[28]           none     NOT WAIVED
+      TOG   exmem_fwd_data[27]           none     NOT WAIVED
+      TOG   exmem_fwd_data[26]           none     NOT WAIVED
+      TOG   exmem_fwd_data[25]           none     NOT WAIVED
+      TOG   exmem_fwd_data[24]           none     NOT WAIVED
+      TOG   exmem_fwd_data[23]           none     NOT WAIVED
+      TOG   exmem_fwd_data[22]           none     NOT WAIVED
+      TOG   exmem_fwd_data[21]           none     NOT WAIVED
+      TOG   exmem_fwd_data[20]           none     NOT WAIVED
+      TOG   exmem_fwd_data[19]           none     NOT WAIVED
+      TOG   exmem_fwd_data[18]           none     NOT WAIVED
+      TOG   exmem_fwd_data[17]           none     NOT WAIVED
+      TOG   exmem_fwd_data[16]           none     NOT WAIVED
+      TOG   exmem_fwd_data[15]           none     NOT WAIVED
+      TOG   exmem_fwd_data[14]           none     NOT WAIVED
+      TOG   exmem_fwd_data[13]           none     NOT WAIVED
+      TOG   exmem_fwd_data[12]           none     NOT WAIVED
+      TOG   exmem_fwd_data[11]           none     NOT WAIVED
+      TOG   exmem_fwd_data[10]           none     NOT WAIVED
+      TOG   exmem_fwd_data[9]            none     NOT WAIVED
+      TOG   exmem_fwd_data[8]            none     NOT WAIVED
+      TOG   exmem_fwd_data[7]            none     NOT WAIVED
+      TOG   exmem_fwd_data[6]            none     NOT WAIVED
+      TOG   exmem_fwd_data[5]            none     NOT WAIVED
+      TOG   exmem_fwd_data[4]            none     NOT WAIVED
+      TOG   exmem_fwd_data[3]            none     NOT WAIVED
+      TOG   exmem_fwd_data[1]            none     NOT WAIVED
+      TOG   memwb_fwd_data[31]           none     NOT WAIVED
+      TOG   memwb_fwd_data[30]           none     NOT WAIVED
+      TOG   memwb_fwd_data[29]           none     NOT WAIVED
+      TOG   memwb_fwd_data[28]           none     NOT WAIVED
+      TOG   memwb_fwd_data[27]           none     NOT WAIVED
+      TOG   memwb_fwd_data[26]           none     NOT WAIVED
+      TOG   memwb_fwd_data[25]           none     NOT WAIVED
+      TOG   memwb_fwd_data[24]           none     NOT WAIVED
+      TOG   memwb_fwd_data[23]           none     NOT WAIVED
+      TOG   memwb_fwd_data[22]           none     NOT WAIVED
+      TOG   memwb_fwd_data[21]           none     NOT WAIVED
+      TOG   memwb_fwd_data[20]           none     NOT WAIVED
+      TOG   memwb_fwd_data[19]           none     NOT WAIVED
+      TOG   memwb_fwd_data[18]           none     NOT WAIVED
+      TOG   memwb_fwd_data[17]           none     NOT WAIVED
+      TOG   memwb_fwd_data[16]           none     NOT WAIVED
+      TOG   memwb_fwd_data[15]           none     NOT WAIVED
+      TOG   memwb_fwd_data[13]           none     NOT WAIVED
+      TOG   memwb_fwd_data[11]           none     NOT WAIVED
+      TOG   memwb_fwd_data[8]            none     NOT WAIVED
+      TOG   memwb_fwd_data[7]            none     NOT WAIVED
+      TOG   memwb_fwd_data[2]            none     NOT WAIVED
+      TOG   memwb_fwd_data[1]            none     NOT WAIVED
+      TOG   memwb_fwd_data[0]            none     NOT WAIVED
+      TOG   csr_rdata[29]                none     NOT WAIVED
+      TOG   csr_rdata[28]                none     NOT WAIVED
+      TOG   csr_rdata[27]                none     NOT WAIVED
+      TOG   csr_rdata[25]                none     NOT WAIVED
+      TOG   csr_rdata[22]                none     NOT WAIVED
+      TOG   csr_rdata[20]                none     NOT WAIVED
+      TOG   csr_rdata[18]                none     NOT WAIVED
+      TOG   csr_rdata[16]                none     NOT WAIVED
+      TOG   csr_rdata[15]                none     NOT WAIVED
+      TOG   csr_rdata[14]                none     NOT WAIVED
+      TOG   csr_rdata[13]                none     NOT WAIVED
+      TOG   csr_rdata[12]                none     NOT WAIVED
+      TOG   csr_rdata[11]                none     NOT WAIVED
+      TOG   csr_rdata[10]                none     NOT WAIVED
+      TOG   csr_rdata[9]                 none     NOT WAIVED
+      TOG   csr_rdata[8]                 none     NOT WAIVED
+      TOG   csr_rdata[7]                 none     NOT WAIVED
+      TOG   csr_rdata[6]                 none     NOT WAIVED
+      TOG   csr_rdata[5]                 none     NOT WAIVED
+      TOG   csr_rdata[4]                 none     NOT WAIVED
+      TOG   csr_rdata[3]                 none     NOT WAIVED
+      TOG   csr_rdata[2]                 none     NOT WAIVED
+      TOG   csr_rdata[1]                 none     NOT WAIVED
+      TOG   csr_clear_overflow           none     NOT WAIVED
+      TOG   ex_squash                    none     NOT WAIVED
+      TOG   csr_addr[11]                 none     NOT WAIVED
+      TOG   csr_addr[10]                 none     NOT WAIVED
+      TOG   csr_addr[7]                  none     NOT WAIVED
+      TOG   csr_addr[6]                  none     NOT WAIVED
+      TOG   csr_addr[5]                  none     NOT WAIVED
+      TOG   csr_addr[4]                  none     NOT WAIVED
+      TOG   csr_addr[3]                  none     NOT WAIVED
+      TOG   csr_addr[1]                  none     NOT WAIVED
+      TOG   csr_op_out[1]                none     NOT WAIVED
+      TOG   rd_out[4]                    none     NOT WAIVED
+      TOG   rd_out[3]                    none     NOT WAIVED
+      TOG   rd_out[2]                    none     NOT WAIVED
+      TOG   rd_out[1]                    none     NOT WAIVED
+      TOG   rd_out[0]                    none     NOT WAIVED
+      TOG   reg_write_out                no fall  NOT WAIVED
+      TOG   mem_to_reg_out               none     NOT WAIVED
+      TOG   ex_redirect_target[3]        none     NOT WAIVED
+      TOG   ex_redirect_target[0]        none     NOT WAIVED
+      TOG   dsu_illegal_instr            none     NOT WAIVED
+      TOG   dsu_busy                     none     NOT WAIVED
+      TOG   dsu_overflow                 none     NOT WAIVED
+      TOG   dsu_ovf_pending              none     NOT WAIVED
+      TOG   dbg_acc_0[47]                none     NOT WAIVED
+      TOG   dbg_acc_0[46]                none     NOT WAIVED
+      TOG   dbg_acc_0[45]                none     NOT WAIVED
+      TOG   dbg_acc_0[44]                none     NOT WAIVED
+      TOG   dbg_acc_0[43]                none     NOT WAIVED
+      TOG   dbg_acc_0[42]                none     NOT WAIVED
+      TOG   dbg_acc_0[41]                none     NOT WAIVED
+      TOG   dbg_acc_0[40]                none     NOT WAIVED
+      TOG   dbg_acc_0[39]                none     NOT WAIVED
+      TOG   dbg_acc_0[38]                none     NOT WAIVED
+      TOG   dbg_acc_0[37]                none     NOT WAIVED
+      TOG   dbg_acc_0[36]                none     NOT WAIVED
+      TOG   dbg_acc_0[35]                none     NOT WAIVED
+      TOG   dbg_acc_0[34]                none     NOT WAIVED
+      TOG   dbg_acc_0[33]                none     NOT WAIVED
+      TOG   dbg_acc_0[32]                none     NOT WAIVED
+      TOG   dbg_acc_0[31]                none     NOT WAIVED
+      TOG   dbg_acc_0[30]                none     NOT WAIVED
+      TOG   dbg_acc_0[29]                none     NOT WAIVED
+      TOG   dbg_acc_0[28]                none     NOT WAIVED
+      TOG   dbg_acc_0[27]                none     NOT WAIVED
+      TOG   dbg_acc_0[26]                none     NOT WAIVED
+      TOG   dbg_acc_0[25]                none     NOT WAIVED
+      TOG   dbg_acc_0[24]                none     NOT WAIVED
+      TOG   dbg_acc_0[23]                none     NOT WAIVED
+      TOG   dbg_acc_0[22]                none     NOT WAIVED
+      TOG   dbg_acc_0[21]                none     NOT WAIVED
+      TOG   dbg_acc_0[20]                none     NOT WAIVED
+      TOG   dbg_acc_0[19]                none     NOT WAIVED
+      TOG   dbg_acc_0[18]                none     NOT WAIVED
+      TOG   dbg_acc_0[17]                none     NOT WAIVED
+      TOG   dbg_acc_0[16]                none     NOT WAIVED
+      TOG   dbg_acc_0[15]                none     NOT WAIVED
+      TOG   dbg_acc_0[14]                none     NOT WAIVED
+      TOG   dbg_acc_0[13]                none     NOT WAIVED
+      TOG   dbg_acc_0[12]                none     NOT WAIVED
+      TOG   dbg_acc_0[11]                none     NOT WAIVED
+      TOG   dbg_acc_0[10]                none     NOT WAIVED
+      TOG   dbg_acc_0[9]                 none     NOT WAIVED
+      TOG   dbg_acc_0[8]                 none     NOT WAIVED
+      TOG   dbg_acc_0[7]                 none     NOT WAIVED
+      TOG   dbg_acc_0[6]                 none     NOT WAIVED
+      TOG   dbg_acc_0[5]                 none     NOT WAIVED
+      TOG   dbg_acc_0[4]                 none     NOT WAIVED
+      TOG   dbg_acc_0[3]                 none     NOT WAIVED
+      TOG   dbg_acc_0[2]                 none     NOT WAIVED
+      TOG   dbg_acc_0[1]                 none     NOT WAIVED
+      TOG   dbg_acc_0[0]                 none     NOT WAIVED
+      TOG   dbg_acc_1[47]                none     NOT WAIVED
+      TOG   dbg_acc_1[46]                none     NOT WAIVED
+      TOG   dbg_acc_1[45]                none     NOT WAIVED
+      TOG   dbg_acc_1[44]                none     NOT WAIVED
+      TOG   dbg_acc_1[43]                none     NOT WAIVED
+      TOG   dbg_acc_1[42]                none     NOT WAIVED
+      TOG   dbg_acc_1[41]                none     NOT WAIVED
+      TOG   dbg_acc_1[40]                none     NOT WAIVED
+      TOG   dbg_acc_1[39]                none     NOT WAIVED
+      TOG   dbg_acc_1[38]                none     NOT WAIVED
+      TOG   dbg_acc_1[37]                none     NOT WAIVED
+      TOG   dbg_acc_1[36]                none     NOT WAIVED
+      TOG   dbg_acc_1[35]                none     NOT WAIVED
+      TOG   dbg_acc_1[34]                none     NOT WAIVED
+      TOG   dbg_acc_1[33]                none     NOT WAIVED
+      TOG   dbg_acc_1[32]                none     NOT WAIVED
+      TOG   dbg_acc_1[31]                none     NOT WAIVED
+      TOG   dbg_acc_1[30]                none     NOT WAIVED
+      TOG   dbg_acc_1[29]                none     NOT WAIVED
+      TOG   dbg_acc_1[28]                none     NOT WAIVED
+      TOG   dbg_acc_1[27]                none     NOT WAIVED
+      TOG   dbg_acc_1[26]                none     NOT WAIVED
+      TOG   dbg_acc_1[25]                none     NOT WAIVED
+      TOG   dbg_acc_1[24]                none     NOT WAIVED
+      TOG   dbg_acc_1[23]                none     NOT WAIVED
+      TOG   dbg_acc_1[22]                none     NOT WAIVED
+      TOG   dbg_acc_1[21]                none     NOT WAIVED
+      TOG   dbg_acc_1[20]                none     NOT WAIVED
+      TOG   dbg_acc_1[19]                none     NOT WAIVED
+      TOG   dbg_acc_1[18]                none     NOT WAIVED
+      TOG   dbg_acc_1[17]                none     NOT WAIVED
+      TOG   dbg_acc_1[16]                none     NOT WAIVED
+      TOG   dbg_acc_1[15]                none     NOT WAIVED
+      TOG   dbg_acc_1[14]                none     NOT WAIVED
+      TOG   dbg_acc_1[13]                none     NOT WAIVED
+      TOG   dbg_acc_1[12]                none     NOT WAIVED
+      TOG   dbg_acc_1[11]                none     NOT WAIVED
+      TOG   dbg_acc_1[10]                none     NOT WAIVED
+      TOG   dbg_acc_1[9]                 none     NOT WAIVED
+      TOG   dbg_acc_1[8]                 none     NOT WAIVED
+      TOG   dbg_acc_1[7]                 none     NOT WAIVED
+      TOG   dbg_acc_1[6]                 none     NOT WAIVED
+      TOG   dbg_acc_1[5]                 none     NOT WAIVED
+      TOG   dbg_acc_1[4]                 none     NOT WAIVED
+      TOG   dbg_acc_1[3]                 none     NOT WAIVED
+      TOG   dbg_acc_1[2]                 none     NOT WAIVED
+      TOG   dbg_acc_1[1]                 none     NOT WAIVED
+      TOG   dbg_acc_1[0]                 none     NOT WAIVED
+      TOG   dbg_acc_2[47]                none     NOT WAIVED
+      TOG   dbg_acc_2[46]                none     NOT WAIVED
+      TOG   dbg_acc_2[45]                none     NOT WAIVED
+      TOG   dbg_acc_2[44]                none     NOT WAIVED
+      TOG   dbg_acc_2[43]                none     NOT WAIVED
+      TOG   dbg_acc_2[42]                none     NOT WAIVED
+      TOG   dbg_acc_2[41]                none     NOT WAIVED
+      TOG   dbg_acc_2[40]                none     NOT WAIVED
+      TOG   dbg_acc_2[39]                none     NOT WAIVED
+      TOG   dbg_acc_2[38]                none     NOT WAIVED
+      TOG   dbg_acc_2[37]                none     NOT WAIVED
+      TOG   dbg_acc_2[36]                none     NOT WAIVED
+      TOG   dbg_acc_2[35]                none     NOT WAIVED
+      TOG   dbg_acc_2[34]                none     NOT WAIVED
+      TOG   dbg_acc_2[33]                none     NOT WAIVED
+      TOG   dbg_acc_2[32]                none     NOT WAIVED
+      TOG   dbg_acc_2[31]                none     NOT WAIVED
+      TOG   dbg_acc_2[30]                none     NOT WAIVED
+      TOG   dbg_acc_2[29]                none     NOT WAIVED
+      TOG   dbg_acc_2[28]                none     NOT WAIVED
+      TOG   dbg_acc_2[27]                none     NOT WAIVED
+      TOG   dbg_acc_2[26]                none     NOT WAIVED
+      TOG   dbg_acc_2[25]                none     NOT WAIVED
+      TOG   dbg_acc_2[24]                none     NOT WAIVED
+      TOG   dbg_acc_2[23]                none     NOT WAIVED
+      TOG   dbg_acc_2[22]                none     NOT WAIVED
+      TOG   dbg_acc_2[21]                none     NOT WAIVED
+      TOG   dbg_acc_2[20]                none     NOT WAIVED
+      TOG   dbg_acc_2[19]                none     NOT WAIVED
+      TOG   dbg_acc_2[18]                none     NOT WAIVED
+      TOG   dbg_acc_2[17]                none     NOT WAIVED
+      TOG   dbg_acc_2[16]                none     NOT WAIVED
+      TOG   dbg_acc_2[15]                none     NOT WAIVED
+      TOG   dbg_acc_2[14]                none     NOT WAIVED
+      TOG   dbg_acc_2[13]                none     NOT WAIVED
+      TOG   dbg_acc_2[12]                none     NOT WAIVED
+      TOG   dbg_acc_2[11]                none     NOT WAIVED
+      TOG   dbg_acc_2[10]                none     NOT WAIVED
+      TOG   dbg_acc_2[9]                 none     NOT WAIVED
+      TOG   dbg_acc_2[8]                 none     NOT WAIVED
+      TOG   dbg_acc_2[7]                 none     NOT WAIVED
+      TOG   dbg_acc_2[6]                 none     NOT WAIVED
+      TOG   dbg_acc_2[5]                 none     NOT WAIVED
+      TOG   dbg_acc_2[4]                 none     NOT WAIVED
+      TOG   dbg_acc_2[3]                 none     NOT WAIVED
+      TOG   dbg_acc_2[2]                 none     NOT WAIVED
+      TOG   dbg_acc_2[1]                 none     NOT WAIVED
+      TOG   dbg_acc_2[0]                 none     NOT WAIVED
+      TOG   dsu_rd_data[31]              none     NOT WAIVED
+      TOG   dsu_rd_data[30]              none     NOT WAIVED
+      TOG   dsu_rd_data[29]              none     NOT WAIVED
+      TOG   dsu_rd_data[28]              none     NOT WAIVED
+      TOG   dsu_rd_data[27]              none     NOT WAIVED
+      TOG   dsu_rd_data[26]              none     NOT WAIVED
+      TOG   dsu_rd_data[25]              none     NOT WAIVED
+      TOG   dsu_rd_data[24]              none     NOT WAIVED
+      TOG   dsu_rd_data[23]              none     NOT WAIVED
+      TOG   dsu_rd_data[22]              none     NOT WAIVED
+      TOG   dsu_rd_data[21]              none     NOT WAIVED
+      TOG   dsu_rd_data[20]              none     NOT WAIVED
+      TOG   dsu_rd_data[19]              none     NOT WAIVED
+      TOG   dsu_rd_data[18]              none     NOT WAIVED
+      TOG   dsu_rd_data[17]              none     NOT WAIVED
+      TOG   dsu_rd_data[16]              none     NOT WAIVED
+      TOG   dsu_rd_data[15]              none     NOT WAIVED
+      TOG   dsu_rd_data[14]              none     NOT WAIVED
+      TOG   dsu_rd_data[13]              none     NOT WAIVED
+      TOG   dsu_rd_data[12]              none     NOT WAIVED
+      TOG   dsu_rd_data[11]              none     NOT WAIVED
+      TOG   dsu_rd_data[10]              none     NOT WAIVED
+      TOG   dsu_rd_data[9]               none     NOT WAIVED
+      TOG   dsu_rd_data[8]               none     NOT WAIVED
+      TOG   dsu_rd_data[7]               none     NOT WAIVED
+      TOG   dsu_rd_data[6]               none     NOT WAIVED
+      TOG   dsu_rd_data[5]               none     NOT WAIVED
+      TOG   dsu_rd_data[4]               none     NOT WAIVED
+      TOG   dsu_rd_data[3]               none     NOT WAIVED
+      TOG   dsu_rd_data[2]               none     NOT WAIVED
+      TOG   dsu_rd_data[1]               none     NOT WAIVED
+      TOG   dsu_rd_data[0]               none     NOT WAIVED
+      TOG   dsu_rd_valid                 none     NOT WAIVED
+      TOG   dsu_rd_addr[4]               none     NOT WAIVED
+      TOG   dsu_rd_addr[3]               none     NOT WAIVED
+      TOG   dsu_rd_addr[2]               none     NOT WAIVED
+      TOG   dsu_rd_addr[1]               none     NOT WAIVED
+      TOG   dsu_rd_addr[0]               none     NOT WAIVED
+      TOG   link[31]                     none     NOT WAIVED
+      TOG   link[30]                     none     NOT WAIVED
+      TOG   link[29]                     none     NOT WAIVED
+      TOG   link[28]                     none     NOT WAIVED
+      TOG   link[27]                     none     NOT WAIVED
+      TOG   link[26]                     none     NOT WAIVED
+      TOG   link[25]                     none     NOT WAIVED
+      TOG   link[24]                     none     NOT WAIVED
+      TOG   link[23]                     none     NOT WAIVED
+      TOG   link[22]                     none     NOT WAIVED
+      TOG   link[21]                     none     NOT WAIVED
+      TOG   link[20]                     none     NOT WAIVED
+      TOG   link[19]                     none     NOT WAIVED
+      TOG   link[18]                     none     NOT WAIVED
+      TOG   link[17]                     none     NOT WAIVED
+      TOG   link[16]                     none     NOT WAIVED
+      TOG   link[15]                     none     NOT WAIVED
+      TOG   link[14]                     none     NOT WAIVED
+      TOG   link[11]                     none     NOT WAIVED
+      TOG   link[10]                     none     NOT WAIVED
+      TOG   link[9]                      none     NOT WAIVED
+      TOG   link[8]                      none     NOT WAIVED
+      TOG   link[7]                      none     NOT WAIVED
+      TOG   link[6]                      none     NOT WAIVED
+      TOG   link[5]                      none     NOT WAIVED
+      TOG   link[4]                      none     NOT WAIVED
+      TOG   link[3]                      none     NOT WAIVED
+      TOG   link[2]                      none     NOT WAIVED
+      TOG   link[1]                      none     CT-PCALIGN-ex_stage
+      TOG   link[0]                      none     CT-PCALIGN-ex_stage
+forward_unit               blk n/a                expr 100.00% (12/12)    tog 100.00% (28/28)      fsm n/a
+garuda_if_stage_top        blk n/a                expr n/a                tog 78.68% (251/319)     fsm n/a
+      TOG   rst_n_i                      no fall  NOT WAIVED
+      TOG   i_haddr_o[1]                 none     CT-PCALIGN-garuda_if_stage_top
+      TOG   i_haddr_o[0]                 none     CT-PCALIGN-garuda_if_stage_top
+      TOG   i_hsize_o[2]                 none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hsize_o[1]                 none     CT-IBUS-garuda_if_stage_top,NOT WAIVED
+      TOG   i_hsize_o[0]                 none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hburst_o[2]                none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hburst_o[1]                none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hburst_o[0]                none     CT-IBUS-garuda_if_stage_top,NOT WAIVED
+      TOG   i_hprot_o[3]                 none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hprot_o[2]                 none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hprot_o[1]                 none     CT-IBUS-garuda_if_stage_top,NOT WAIVED
+      TOG   i_hprot_o[0]                 none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwrite_o                   none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[31]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[30]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[29]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[28]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[27]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[26]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[25]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[24]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[23]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[22]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[21]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[20]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[19]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[18]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[17]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[16]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[15]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[14]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[13]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[12]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[11]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[10]               none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[9]                none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[8]                none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[7]                none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[6]                none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[5]                none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[4]                none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[3]                none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[2]                none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[1]                none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hwdata_o[0]                none     CT-IBUS-garuda_if_stage_top
+      TOG   i_hrdata_i[17]               none     NOT WAIVED
+      TOG   i_hrdata_i[16]               none     NOT WAIVED
+      TOG   i_hrdata_i[1]                none     NOT WAIVED
+      TOG   i_hrdata_i[0]                none     NOT WAIVED
+      TOG   instr_o[17]                  none     NOT WAIVED
+      TOG   instr_o[16]                  no fall  NOT WAIVED
+      TOG   instr_o[1]                   no rise  NOT WAIVED
+      TOG   instr_o[0]                   no rise  NOT WAIVED
+      TOG   instr_pc_o[1]                none     CT-PCALIGN-garuda_if_stage_top
+      TOG   instr_pc_o[0]                none     CT-PCALIGN-garuda_if_stage_top
+      TOG   redirect_pc_i[1]             none     NOT WAIVED
+      TOG   redirect_pc_i[0]             none     CT-PCBIT0-garuda_if_stage_top
+      TOG   fetch_stop_i                 none     NOT WAIVED
+      TOG   pf_dis_i                     none     NOT WAIVED
+      TOG   fetch_pc[1]                  none     NOT WAIVED
+      TOG   fetch_pc[0]                  none     CT-PCBIT0-garuda_if_stage_top
+      TOG   data_instr[17]               none     NOT WAIVED
+      TOG   data_instr[16]               none     NOT WAIVED
+      TOG   data_instr[1]                none     NOT WAIVED
+      TOG   data_instr[0]                none     NOT WAIVED
+      TOG   data_pc[1]                   none     CT-PCALIGN-garuda_if_stage_top
+      TOG   data_pc[0]                   none     CT-PCALIGN-garuda_if_stage_top
+garuda_iport_ahb_master    blk 100.00% (19/19)    expr 100.00% (9/9)      tog 78.39% (243/310)     fsm n/a
+      TOG   rst_n_i                      no fall  NOT WAIVED
+      TOG   fetch_pc_i[1]                none     NOT WAIVED
+      TOG   fetch_pc_i[0]                none     CT-PCBIT0-garuda_iport_ahb_master
+      TOG   stop_i                       none     NOT WAIVED
+      TOG   pf_dis_i                     none     NOT WAIVED
+      TOG   i_haddr_o[1]                 none     CT-PCALIGN-garuda_iport_ahb_master
+      TOG   i_haddr_o[0]                 none     CT-PCALIGN-garuda_iport_ahb_master
+      TOG   i_hsize_o[2]                 none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hsize_o[1]                 none     CT-IBUS-garuda_iport_ahb_master,NOT WAIVED
+      TOG   i_hsize_o[0]                 none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hburst_o[2]                none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hburst_o[1]                none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hburst_o[0]                none     CT-IBUS-garuda_iport_ahb_master,NOT WAIVED
+      TOG   i_hprot_o[3]                 none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hprot_o[2]                 none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hprot_o[1]                 none     CT-IBUS-garuda_iport_ahb_master,NOT WAIVED
+      TOG   i_hprot_o[0]                 none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwrite_o                   none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[31]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[30]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[29]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[28]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[27]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[26]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[25]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[24]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[23]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[22]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[21]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[20]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[19]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[18]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[17]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[16]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[15]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[14]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[13]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[12]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[11]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[10]               none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[9]                none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[8]                none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[7]                none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[6]                none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[5]                none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[4]                none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[3]                none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[2]                none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[1]                none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hwdata_o[0]                none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_hrdata_i[17]               none     NOT WAIVED
+      TOG   i_hrdata_i[16]               none     NOT WAIVED
+      TOG   i_hrdata_i[1]                none     NOT WAIVED
+      TOG   i_hrdata_i[0]                none     NOT WAIVED
+      TOG   data_instr_o[17]             none     NOT WAIVED
+      TOG   data_instr_o[16]             none     NOT WAIVED
+      TOG   data_instr_o[1]              none     NOT WAIVED
+      TOG   data_instr_o[0]              none     NOT WAIVED
+      TOG   data_pc_o[1]                 none     CT-PCALIGN-garuda_iport_ahb_master
+      TOG   data_pc_o[0]                 none     CT-PCALIGN-garuda_iport_ahb_master
+      TOG   addr_pc[1]                   none     CT-PCALIGN-garuda_iport_ahb_master
+      TOG   addr_pc[0]                   none     CT-PCALIGN-garuda_iport_ahb_master
+      TOG   outstanding_pc[1]            none     CT-PCALIGN-garuda_iport_ahb_master
+      TOG   outstanding_pc[0]            none     CT-PCALIGN-garuda_iport_ahb_master
+      TOG   occ_plus_landing[3]          none     CT-IPCOUNT-garuda_iport_ahb_master
+      TOG   occ_after_pop[3]             none     CT-IPCOUNT-garuda_iport_ahb_master
+      TOG   projected_occ[3]             none     CT-IPCOUNT-garuda_iport_ahb_master
+garuda_pc_gen              blk 100.00% (10/10)    expr n/a                tog 96.24% (128/133)     fsm n/a
+      TOG   redirect_pc_i[0]             none     CT-PCBIT0-garuda_pc_gen
+      TOG   commit_pc_i[1]               none     CT-PCALIGN-garuda_pc_gen
+      TOG   commit_pc_i[0]               none     CT-PCALIGN-garuda_pc_gen
+      TOG   pc_o[0]                      none     CT-PCALIGN-garuda_pc_gen
+      TOG   fetch_pc_o[0]                none     CT-PCBIT0-garuda_pc_gen
+garuda_prefetch_buffer     blk 100.00% (15/15)    expr n/a                tog 96.62% (143/148)     fsm n/a
+      TOG   rst_n_i                      no fall  NOT WAIVED
+      TOG   wr_pc_i[1]                   none     CT-PCALIGN-garuda_prefetch_buffer
+      TOG   wr_pc_i[0]                   none     CT-PCALIGN-garuda_prefetch_buffer
+      TOG   instr_pc_o[1]                none     CT-PCALIGN-garuda_prefetch_buffer
+      TOG   instr_pc_o[0]                none     CT-PCALIGN-garuda_prefetch_buffer
+hazard_forward_unit        blk n/a                expr n/a                tog 100.00% (17/17)      fsm n/a
+id_ex                      blk 100.00% (7/7)      expr n/a                tog 10.38% (49/472)      fsm n/a
+      TOG   rst_n_i                      no fall  NOT WAIVED
+      TOG   flush_i                      no fall  NOT WAIVED
+      TOG   pc_i[31]                     no rise  NOT WAIVED
+      TOG   pc_i[30]                     none     NOT WAIVED
+      TOG   pc_i[29]                     no rise  NOT WAIVED
+      TOG   pc_i[28]                     no fall  NOT WAIVED
+      TOG   pc_i[27]                     no rise  NOT WAIVED
+      TOG   pc_i[26]                     none     NOT WAIVED
+      TOG   pc_i[25]                     no rise  NOT WAIVED
+      TOG   pc_i[24]                     no fall  NOT WAIVED
+      TOG   pc_i[23]                     no rise  NOT WAIVED
+      TOG   pc_i[22]                     none     NOT WAIVED
+      TOG   pc_i[21]                     no rise  NOT WAIVED
+      TOG   pc_i[20]                     no fall  NOT WAIVED
+      TOG   pc_i[19]                     no rise  NOT WAIVED
+      TOG   pc_i[18]                     none     NOT WAIVED
+      TOG   pc_i[17]                     no rise  NOT WAIVED
+      TOG   pc_i[16]                     no fall  NOT WAIVED
+      TOG   pc_i[15]                     none     NOT WAIVED
+      TOG   pc_i[14]                     none     NOT WAIVED
+      TOG   pc_i[13]                     no fall  NOT WAIVED
+      TOG   pc_i[12]                     none     NOT WAIVED
+      TOG   pc_i[11]                     none     NOT WAIVED
+      TOG   pc_i[10]                     none     NOT WAIVED
+      TOG   pc_i[9]                      no fall  NOT WAIVED
+      TOG   pc_i[8]                      none     NOT WAIVED
+      TOG   pc_i[7]                      none     NOT WAIVED
+      TOG   pc_i[6]                      none     NOT WAIVED
+      TOG   pc_i[5]                      no fall  NOT WAIVED
+      TOG   pc_i[4]                      none     NOT WAIVED
+      TOG   pc_i[3]                      none     NOT WAIVED
+      TOG   pc_i[2]                      none     NOT WAIVED
+      TOG   pc_i[1]                      no fall  CT-PCALIGN-id_ex
+      TOG   pc_i[0]                      none     CT-PCALIGN-id_ex
+      TOG   instr_i[31]                  none     NOT WAIVED
+      TOG   instr_i[30]                  none     NOT WAIVED
+      TOG   instr_i[29]                  none     NOT WAIVED
+      TOG   instr_i[28]                  none     NOT WAIVED
+      TOG   instr_i[27]                  none     NOT WAIVED
+      TOG   instr_i[26]                  none     NOT WAIVED
+      TOG   instr_i[25]                  none     NOT WAIVED
+      TOG   instr_i[24]                  none     NOT WAIVED
+      TOG   instr_i[23]                  none     NOT WAIVED
+      TOG   instr_i[22]                  none     NOT WAIVED
+      TOG   instr_i[21]                  none     NOT WAIVED
+      TOG   instr_i[20]                  none     NOT WAIVED
+      TOG   instr_i[19]                  none     NOT WAIVED
+      TOG   instr_i[18]                  none     NOT WAIVED
+      TOG   instr_i[17]                  none     NOT WAIVED
+      TOG   instr_i[16]                  none     NOT WAIVED
+      TOG   instr_i[15]                  none     NOT WAIVED
+      TOG   instr_i[14]                  none     NOT WAIVED
+      TOG   instr_i[13]                  none     NOT WAIVED
+      TOG   instr_i[12]                  none     NOT WAIVED
+      TOG   instr_i[11]                  none     NOT WAIVED
+      TOG   instr_i[10]                  none     NOT WAIVED
+      TOG   instr_i[9]                   none     NOT WAIVED
+      TOG   instr_i[8]                   none     NOT WAIVED
+      TOG   instr_i[7]                   none     NOT WAIVED
+      TOG   instr_i[6]                   none     NOT WAIVED
+      TOG   instr_i[5]                   none     NOT WAIVED
+      TOG   instr_i[4]                   none     NOT WAIVED
+      TOG   instr_i[3]                   none     NOT WAIVED
+      TOG   instr_i[2]                   none     NOT WAIVED
+      TOG   instr_i[1]                   none     NOT WAIVED
+      TOG   instr_i[0]                   none     NOT WAIVED
+      TOG   rs1_data_i[31]               none     NOT WAIVED
+      TOG   rs1_data_i[30]               none     NOT WAIVED
+      TOG   rs1_data_i[29]               none     NOT WAIVED
+      TOG   rs1_data_i[28]               none     NOT WAIVED
+      TOG   rs1_data_i[27]               none     NOT WAIVED
+      TOG   rs1_data_i[26]               none     NOT WAIVED
+      TOG   rs1_data_i[25]               none     NOT WAIVED
+      TOG   rs1_data_i[24]               none     NOT WAIVED
+      TOG   rs1_data_i[23]               none     NOT WAIVED
+      TOG   rs1_data_i[22]               none     NOT WAIVED
+      TOG   rs1_data_i[21]               none     NOT WAIVED
+      TOG   rs1_data_i[20]               none     NOT WAIVED
+      TOG   rs1_data_i[19]               none     NOT WAIVED
+      TOG   rs1_data_i[18]               none     NOT WAIVED
+      TOG   rs1_data_i[17]               none     NOT WAIVED
+      TOG   rs1_data_i[16]               none     NOT WAIVED
+      TOG   rs1_data_i[15]               none     NOT WAIVED
+      TOG   rs1_data_i[14]               none     NOT WAIVED
+      TOG   rs1_data_i[13]               none     NOT WAIVED
+      TOG   rs1_data_i[12]               none     NOT WAIVED
+      TOG   rs1_data_i[11]               none     NOT WAIVED
+      TOG   rs1_data_i[10]               none     NOT WAIVED
+      TOG   rs1_data_i[9]                none     NOT WAIVED
+      TOG   rs1_data_i[8]                none     NOT WAIVED
+      TOG   rs1_data_i[7]                none     NOT WAIVED
+      TOG   rs1_data_i[6]                none     NOT WAIVED
+      TOG   rs1_data_i[5]                none     NOT WAIVED
+      TOG   rs1_data_i[4]                none     NOT WAIVED
+      TOG   rs1_data_i[3]                none     NOT WAIVED
+      TOG   rs1_data_i[2]                none     NOT WAIVED
+      TOG   rs1_data_i[1]                none     NOT WAIVED
+      TOG   rs1_data_i[0]                none     NOT WAIVED
+      TOG   rs2_data_i[31]               none     NOT WAIVED
+      TOG   rs2_data_i[30]               none     NOT WAIVED
+      TOG   rs2_data_i[29]               none     NOT WAIVED
+      TOG   rs2_data_i[28]               none     NOT WAIVED
+      TOG   rs2_data_i[27]               none     NOT WAIVED
+      TOG   rs2_data_i[26]               none     NOT WAIVED
+      TOG   rs2_data_i[25]               none     NOT WAIVED
+      TOG   rs2_data_i[24]               none     NOT WAIVED
+      TOG   rs2_data_i[23]               none     NOT WAIVED
+      TOG   rs2_data_i[22]               none     NOT WAIVED
+      TOG   rs2_data_i[21]               none     NOT WAIVED
+      TOG   rs2_data_i[20]               none     NOT WAIVED
+      TOG   rs2_data_i[19]               none     NOT WAIVED
+      TOG   rs2_data_i[18]               none     NOT WAIVED
+      TOG   rs2_data_i[17]               none     NOT WAIVED
+      TOG   rs2_data_i[16]               none     NOT WAIVED
+      TOG   rs2_data_i[15]               none     NOT WAIVED
+      TOG   rs2_data_i[14]               none     NOT WAIVED
+      TOG   rs2_data_i[13]               none     NOT WAIVED
+      TOG   rs2_data_i[12]               none     NOT WAIVED
+      TOG   rs2_data_i[11]               none     NOT WAIVED
+      TOG   rs2_data_i[10]               none     NOT WAIVED
+      TOG   rs2_data_i[9]                none     NOT WAIVED
+      TOG   rs2_data_i[8]                none     NOT WAIVED
+      TOG   rs2_data_i[7]                none     NOT WAIVED
+      TOG   rs2_data_i[6]                none     NOT WAIVED
+      TOG   rs2_data_i[5]                none     NOT WAIVED
+      TOG   rs2_data_i[4]                none     NOT WAIVED
+      TOG   rs2_data_i[3]                none     NOT WAIVED
+      TOG   rs2_data_i[2]                none     NOT WAIVED
+      TOG   rs2_data_i[1]                none     NOT WAIVED
+      TOG   rs2_data_i[0]                none     NOT WAIVED
+      TOG   rs1_fwd_i[31]                none     NOT WAIVED
+      TOG   rs1_fwd_i[30]                none     NOT WAIVED
+      TOG   rs1_fwd_i[29]                none     NOT WAIVED
+      TOG   rs1_fwd_i[28]                none     NOT WAIVED
+      TOG   rs1_fwd_i[27]                none     NOT WAIVED
+      TOG   rs1_fwd_i[26]                none     NOT WAIVED
+      TOG   rs1_fwd_i[25]                none     NOT WAIVED
+      TOG   rs1_fwd_i[24]                none     NOT WAIVED
+      TOG   rs1_fwd_i[23]                none     NOT WAIVED
+      TOG   rs1_fwd_i[22]                none     NOT WAIVED
+      TOG   rs1_fwd_i[21]                none     NOT WAIVED
+      TOG   rs1_fwd_i[20]                none     NOT WAIVED
+      TOG   rs1_fwd_i[19]                none     NOT WAIVED
+      TOG   rs1_fwd_i[18]                none     NOT WAIVED
+      TOG   rs1_fwd_i[17]                none     NOT WAIVED
+      TOG   rs1_fwd_i[16]                none     NOT WAIVED
+      TOG   rs1_fwd_i[15]                none     NOT WAIVED
+      TOG   rs1_fwd_i[14]                none     NOT WAIVED
+      TOG   rs1_fwd_i[13]                none     NOT WAIVED
+      TOG   rs1_fwd_i[12]                none     NOT WAIVED
+      TOG   rs1_fwd_i[11]                none     NOT WAIVED
+      TOG   rs1_fwd_i[10]                none     NOT WAIVED
+      TOG   rs1_fwd_i[9]                 none     NOT WAIVED
+      TOG   rs1_fwd_i[8]                 none     NOT WAIVED
+      TOG   rs1_fwd_i[7]                 none     NOT WAIVED
+      TOG   rs1_fwd_i[6]                 none     NOT WAIVED
+      TOG   rs1_fwd_i[5]                 none     NOT WAIVED
+      TOG   rs1_fwd_i[4]                 none     NOT WAIVED
+      TOG   rs1_fwd_i[3]                 none     NOT WAIVED
+      TOG   rs1_fwd_i[2]                 none     NOT WAIVED
+      TOG   rs1_fwd_i[1]                 none     NOT WAIVED
+      TOG   rs1_fwd_i[0]                 none     NOT WAIVED
+      TOG   rs2_fwd_i[31]                none     NOT WAIVED
+      TOG   rs2_fwd_i[30]                none     NOT WAIVED
+      TOG   rs2_fwd_i[29]                none     NOT WAIVED
+      TOG   rs2_fwd_i[28]                none     NOT WAIVED
+      TOG   rs2_fwd_i[27]                none     NOT WAIVED
+      TOG   rs2_fwd_i[26]                none     NOT WAIVED
+      TOG   rs2_fwd_i[25]                none     NOT WAIVED
+      TOG   rs2_fwd_i[24]                none     NOT WAIVED
+      TOG   rs2_fwd_i[23]                none     NOT WAIVED
+      TOG   rs2_fwd_i[22]                none     NOT WAIVED
+      TOG   rs2_fwd_i[21]                none     NOT WAIVED
+      TOG   rs2_fwd_i[20]                none     NOT WAIVED
+      TOG   rs2_fwd_i[19]                none     NOT WAIVED
+      TOG   rs2_fwd_i[18]                none     NOT WAIVED
+      TOG   rs2_fwd_i[17]                none     NOT WAIVED
+      TOG   rs2_fwd_i[16]                none     NOT WAIVED
+      TOG   rs2_fwd_i[15]                none     NOT WAIVED
+      TOG   rs2_fwd_i[14]                none     NOT WAIVED
+      TOG   rs2_fwd_i[13]                none     NOT WAIVED
+      TOG   rs2_fwd_i[12]                none     NOT WAIVED
+      TOG   rs2_fwd_i[11]                none     NOT WAIVED
+      TOG   rs2_fwd_i[10]                none     NOT WAIVED
+      TOG   rs2_fwd_i[9]                 none     NOT WAIVED
+      TOG   rs2_fwd_i[8]                 none     NOT WAIVED
+      TOG   rs2_fwd_i[7]                 none     NOT WAIVED
+      TOG   rs2_fwd_i[6]                 none     NOT WAIVED
+      TOG   rs2_fwd_i[5]                 none     NOT WAIVED
+      TOG   rs2_fwd_i[4]                 none     NOT WAIVED
+      TOG   rs2_fwd_i[3]                 none     NOT WAIVED
+      TOG   rs2_fwd_i[2]                 none     NOT WAIVED
+      TOG   rs2_fwd_i[1]                 none     NOT WAIVED
+      TOG   rs2_fwd_i[0]                 none     NOT WAIVED
+      TOG   imm_i[31]                    none     NOT WAIVED
+      TOG   imm_i[30]                    none     NOT WAIVED
+      TOG   imm_i[29]                    none     NOT WAIVED
+      TOG   imm_i[28]                    none     NOT WAIVED
+      TOG   imm_i[27]                    none     NOT WAIVED
+      TOG   imm_i[26]                    none     NOT WAIVED
+      TOG   imm_i[25]                    none     NOT WAIVED
+      TOG   imm_i[24]                    none     NOT WAIVED
+      TOG   imm_i[23]                    none     NOT WAIVED
+      TOG   imm_i[22]                    none     NOT WAIVED
+      TOG   imm_i[21]                    none     NOT WAIVED
+      TOG   imm_i[20]                    none     NOT WAIVED
+      TOG   imm_i[19]                    none     NOT WAIVED
+      TOG   imm_i[18]                    none     NOT WAIVED
+      TOG   imm_i[17]                    none     NOT WAIVED
+      TOG   imm_i[16]                    none     NOT WAIVED
+      TOG   imm_i[15]                    none     NOT WAIVED
+      TOG   imm_i[14]                    none     NOT WAIVED
+      TOG   imm_i[13]                    none     NOT WAIVED
+      TOG   imm_i[12]                    none     NOT WAIVED
+      TOG   imm_i[11]                    none     NOT WAIVED
+      TOG   imm_i[10]                    none     NOT WAIVED
+      TOG   imm_i[9]                     none     NOT WAIVED
+      TOG   imm_i[8]                     none     NOT WAIVED
+      TOG   imm_i[7]                     none     NOT WAIVED
+      TOG   imm_i[6]                     none     NOT WAIVED
+      TOG   imm_i[5]                     none     NOT WAIVED
+      TOG   imm_i[4]                     none     NOT WAIVED
+      TOG   imm_i[3]                     none     NOT WAIVED
+      TOG   imm_i[2]                     none     NOT WAIVED
+      TOG   imm_i[1]                     none     NOT WAIVED
+      TOG   imm_i[0]                     none     NOT WAIVED
+      TOG   rs1_idx_i[4]                 none     NOT WAIVED
+      TOG   rs1_idx_i[3]                 none     NOT WAIVED
+      TOG   rs1_idx_i[2]                 none     NOT WAIVED
+      TOG   rs1_idx_i[1]                 none     NOT WAIVED
+      TOG   rs1_idx_i[0]                 none     NOT WAIVED
+      TOG   rs2_idx_i[4]                 none     NOT WAIVED
+      TOG   rs2_idx_i[3]                 none     NOT WAIVED
+      TOG   rs2_idx_i[2]                 none     NOT WAIVED
+      TOG   rs2_idx_i[1]                 none     NOT WAIVED
+      TOG   rs2_idx_i[0]                 none     NOT WAIVED
+      TOG   rd_i[4]                      none     NOT WAIVED
+      TOG   rd_i[3]                      no fall  NOT WAIVED
+      TOG   rd_i[2]                      no rise  NOT WAIVED
+      TOG   rd_i[1]                      no rise  NOT WAIVED
+      TOG   rd_i[0]                      none     NOT WAIVED
+      TOG   funct3_i[2]                  none     NOT WAIVED
+      TOG   funct3_i[1]                  none     NOT WAIVED
+      TOG   funct3_i[0]                  none     NOT WAIVED
+      TOG   reg_write_i                  none     NOT WAIVED
+      TOG   mem_read_i                   none     NOT WAIVED
+      TOG   mem_write_i                  none     NOT WAIVED
+      TOG   mem_to_reg_i                 none     NOT WAIVED
+      TOG   alu_src_i                    none     NOT WAIVED
+      TOG   pc_op_a_i                    none     NOT WAIVED
+      TOG   alu_op_i[3]                  none     NOT WAIVED
+      TOG   alu_op_i[2]                  none     NOT WAIVED
+      TOG   alu_op_i[1]                  none     NOT WAIVED
+      TOG   alu_op_i[0]                  none     NOT WAIVED
+      TOG   branch_i                     none     NOT WAIVED
+      TOG   jal_i                        none     NOT WAIVED
+      TOG   jalr_i                       none     NOT WAIVED
+      TOG   predicted_taken_i            none     NOT WAIVED
+      TOG   mul_en_i                     none     NOT WAIVED
+      TOG   dsu_en_i                     none     NOT WAIVED
+      TOG   csr_en_i                     none     NOT WAIVED
+      TOG   csr_imm_i                    none     NOT WAIVED
+      TOG   csr_op_i[1]                  none     NOT WAIVED
+      TOG   csr_op_i[0]                  none     NOT WAIVED
+      TOG   is_system_i                  none     NOT WAIVED
+      TOG   illegal_instr_dec_i          none     NOT WAIVED
+      TOG   fault_i                      none     NOT WAIVED
+      TOG   valid_i                      none     NOT WAIVED
+      TOG   pc_o[30]                     none     NOT WAIVED
+      TOG   pc_o[26]                     none     NOT WAIVED
+      TOG   pc_o[22]                     none     NOT WAIVED
+      TOG   pc_o[18]                     none     NOT WAIVED
+      TOG   pc_o[15]                     none     NOT WAIVED
+      TOG   pc_o[14]                     none     NOT WAIVED
+      TOG   pc_o[12]                     none     NOT WAIVED
+      TOG   pc_o[11]                     none     NOT WAIVED
+      TOG   pc_o[10]                     none     NOT WAIVED
+      TOG   pc_o[8]                      none     NOT WAIVED
+      TOG   pc_o[7]                      none     NOT WAIVED
+      TOG   pc_o[6]                      none     NOT WAIVED
+      TOG   pc_o[4]                      none     NOT WAIVED
+      TOG   pc_o[3]                      none     NOT WAIVED
+      TOG   pc_o[2]                      none     NOT WAIVED
+      TOG   pc_o[0]                      none     CT-PCALIGN-id_ex
+      TOG   instr_o[29]                  none     NOT WAIVED
+      TOG   instr_o[24]                  none     NOT WAIVED
+      TOG   instr_o[22]                  none     NOT WAIVED
+      TOG   instr_o[20]                  none     NOT WAIVED
+      TOG   instr_o[17]                  none     NOT WAIVED
+      TOG   instr_o[14]                  none     NOT WAIVED
+      TOG   instr_o[8]                   none     NOT WAIVED
+      TOG   instr_o[1]                   none     NOT WAIVED
+      TOG   instr_o[0]                   none     NOT WAIVED
+      TOG   rs1_data_o[31]               none     NOT WAIVED
+      TOG   rs1_data_o[30]               none     NOT WAIVED
+      TOG   rs1_data_o[29]               none     NOT WAIVED
+      TOG   rs1_data_o[28]               none     NOT WAIVED
+      TOG   rs1_data_o[27]               none     NOT WAIVED
+      TOG   rs1_data_o[26]               none     NOT WAIVED
+      TOG   rs1_data_o[25]               none     NOT WAIVED
+      TOG   rs1_data_o[24]               none     NOT WAIVED
+      TOG   rs1_data_o[23]               none     NOT WAIVED
+      TOG   rs1_data_o[22]               none     NOT WAIVED
+      TOG   rs1_data_o[21]               none     NOT WAIVED
+      TOG   rs1_data_o[20]               none     NOT WAIVED
+      TOG   rs1_data_o[19]               none     NOT WAIVED
+      TOG   rs1_data_o[18]               none     NOT WAIVED
+      TOG   rs1_data_o[17]               none     NOT WAIVED
+      TOG   rs1_data_o[16]               none     NOT WAIVED
+      TOG   rs1_data_o[15]               none     NOT WAIVED
+      TOG   rs1_data_o[14]               none     NOT WAIVED
+      TOG   rs1_data_o[13]               none     NOT WAIVED
+      TOG   rs1_data_o[12]               none     NOT WAIVED
+      TOG   rs1_data_o[11]               none     NOT WAIVED
+      TOG   rs1_data_o[10]               none     NOT WAIVED
+      TOG   rs1_data_o[9]                none     NOT WAIVED
+      TOG   rs1_data_o[8]                none     NOT WAIVED
+      TOG   rs1_data_o[7]                none     NOT WAIVED
+      TOG   rs1_data_o[6]                none     NOT WAIVED
+      TOG   rs1_data_o[5]                none     NOT WAIVED
+      TOG   rs1_data_o[4]                none     NOT WAIVED
+      TOG   rs1_data_o[3]                none     NOT WAIVED
+      TOG   rs1_data_o[2]                none     NOT WAIVED
+      TOG   rs1_data_o[1]                none     NOT WAIVED
+      TOG   rs1_data_o[0]                none     NOT WAIVED
+      TOG   rs2_data_o[31]               none     NOT WAIVED
+      TOG   rs2_data_o[30]               none     NOT WAIVED
+      TOG   rs2_data_o[29]               none     NOT WAIVED
+      TOG   rs2_data_o[28]               none     NOT WAIVED
+      TOG   rs2_data_o[27]               none     NOT WAIVED
+      TOG   rs2_data_o[26]               none     NOT WAIVED
+      TOG   rs2_data_o[25]               none     NOT WAIVED
+      TOG   rs2_data_o[24]               none     NOT WAIVED
+      TOG   rs2_data_o[23]               none     NOT WAIVED
+      TOG   rs2_data_o[22]               none     NOT WAIVED
+      TOG   rs2_data_o[21]               none     NOT WAIVED
+      TOG   rs2_data_o[20]               none     NOT WAIVED
+      TOG   rs2_data_o[19]               none     NOT WAIVED
+      TOG   rs2_data_o[18]               none     NOT WAIVED
+      TOG   rs2_data_o[17]               none     NOT WAIVED
+      TOG   rs2_data_o[16]               none     NOT WAIVED
+      TOG   rs2_data_o[15]               none     NOT WAIVED
+      TOG   rs2_data_o[14]               none     NOT WAIVED
+      TOG   rs2_data_o[13]               none     NOT WAIVED
+      TOG   rs2_data_o[12]               none     NOT WAIVED
+      TOG   rs2_data_o[11]               none     NOT WAIVED
+      TOG   rs2_data_o[10]               none     NOT WAIVED
+      TOG   rs2_data_o[9]                none     NOT WAIVED
+      TOG   rs2_data_o[8]                none     NOT WAIVED
+      TOG   rs2_data_o[7]                none     NOT WAIVED
+      TOG   rs2_data_o[6]                none     NOT WAIVED
+      TOG   rs2_data_o[5]                none     NOT WAIVED
+      TOG   rs2_data_o[4]                none     NOT WAIVED
+      TOG   rs2_data_o[3]                none     NOT WAIVED
+      TOG   rs2_data_o[2]                none     NOT WAIVED
+      TOG   rs2_data_o[1]                none     NOT WAIVED
+      TOG   rs2_data_o[0]                none     NOT WAIVED
+      TOG   imm_o[31]                    none     NOT WAIVED
+      TOG   imm_o[30]                    none     NOT WAIVED
+      TOG   imm_o[29]                    none     NOT WAIVED
+      TOG   imm_o[28]                    none     NOT WAIVED
+      TOG   imm_o[27]                    none     NOT WAIVED
+      TOG   imm_o[26]                    none     NOT WAIVED
+      TOG   imm_o[25]                    none     NOT WAIVED
+      TOG   imm_o[24]                    none     NOT WAIVED
+      TOG   imm_o[23]                    none     NOT WAIVED
+      TOG   imm_o[22]                    none     NOT WAIVED
+      TOG   imm_o[21]                    none     NOT WAIVED
+      TOG   imm_o[20]                    none     NOT WAIVED
+      TOG   imm_o[19]                    none     NOT WAIVED
+      TOG   imm_o[18]                    none     NOT WAIVED
+      TOG   imm_o[17]                    none     NOT WAIVED
+      TOG   imm_o[16]                    none     NOT WAIVED
+      TOG   imm_o[15]                    none     NOT WAIVED
+      TOG   imm_o[14]                    none     NOT WAIVED
+      TOG   imm_o[13]                    none     NOT WAIVED
+      TOG   imm_o[12]                    none     NOT WAIVED
+      TOG   imm_o[11]                    none     NOT WAIVED
+      TOG   imm_o[10]                    none     NOT WAIVED
+      TOG   imm_o[9]                     none     NOT WAIVED
+      TOG   imm_o[8]                     none     NOT WAIVED
+      TOG   imm_o[7]                     none     NOT WAIVED
+      TOG   imm_o[6]                     none     NOT WAIVED
+      TOG   imm_o[5]                     none     NOT WAIVED
+      TOG   imm_o[4]                     none     NOT WAIVED
+      TOG   imm_o[3]                     none     NOT WAIVED
+      TOG   imm_o[2]                     none     NOT WAIVED
+      TOG   imm_o[1]                     none     NOT WAIVED
+      TOG   imm_o[0]                     none     NOT WAIVED
+      TOG   rs1_idx_o[4]                 none     NOT WAIVED
+      TOG   rs1_idx_o[3]                 none     NOT WAIVED
+      TOG   rs1_idx_o[2]                 none     NOT WAIVED
+      TOG   rs1_idx_o[1]                 none     NOT WAIVED
+      TOG   rs1_idx_o[0]                 none     NOT WAIVED
+      TOG   rs2_idx_o[4]                 none     NOT WAIVED
+      TOG   rs2_idx_o[3]                 none     NOT WAIVED
+      TOG   rs2_idx_o[2]                 none     NOT WAIVED
+      TOG   rs2_idx_o[1]                 none     NOT WAIVED
+      TOG   rs2_idx_o[0]                 none     NOT WAIVED
+      TOG   rd_o[4]                      none     NOT WAIVED
+      TOG   funct3_o[2]                  none     NOT WAIVED
+      TOG   funct3_o[1]                  none     NOT WAIVED
+      TOG   funct3_o[0]                  none     NOT WAIVED
+      TOG   mem_write_o                  none     NOT WAIVED
+      TOG   mem_to_reg_o                 none     NOT WAIVED
+      TOG   alu_src_o                    none     NOT WAIVED
+      TOG   pc_op_a_o                    none     NOT WAIVED
+      TOG   alu_op_o[3]                  none     NOT WAIVED
+      TOG   alu_op_o[2]                  none     NOT WAIVED
+      TOG   alu_op_o[1]                  none     NOT WAIVED
+      TOG   alu_op_o[0]                  none     NOT WAIVED
+      TOG   branch_o                     none     NOT WAIVED
+      TOG   jal_o                        none     NOT WAIVED
+      TOG   jalr_o                       none     NOT WAIVED
+      TOG   mul_en_o                     none     NOT WAIVED
+      TOG   csr_en_o                     none     NOT WAIVED
+      TOG   csr_imm_o                    none     NOT WAIVED
+      TOG   csr_op_o[1]                  none     NOT WAIVED
+      TOG   csr_op_o[0]                  none     NOT WAIVED
+      TOG   is_system_o                  none     NOT WAIVED
+      TOG   illegal_instr_dec_o          none     NOT WAIVED
+      TOG   fault_o                      none     NOT WAIVED
+      TOG   valid_o                      none     NOT WAIVED
+id_stage                   blk n/a                expr n/a                tog 98.22% (553/563)     fsm n/a
+      TOG   rst_n_i                      no fall  NOT WAIVED
+      TOG   if_id_pc_i[1]                none     CT-PCALIGN-id_stage
+      TOG   if_id_pc_i[0]                none     CT-PCALIGN-id_stage
+      TOG   bp_dis_i                     none     NOT WAIVED
+      TOG   pc_o[1]                      none     CT-PCALIGN-id_stage
+      TOG   pc_o[0]                      none     CT-PCALIGN-id_stage
+      TOG   id_redirect_target_o[0]      none     CT-PCBIT0-id_stage
+      TOG   fencei_w                     none     NOT WAIVED
+      TOG   imm_b_w[0]                   none     CT-PCBIT0-id_stage
+      TOG   imm_j_w[0]                   none     CT-PCBIT0-id_stage
+if_id                      blk 100.00% (7/7)      expr n/a                tog 16.91% (23/136)      fsm n/a
+      TOG   rst_n_i                      no fall  NOT WAIVED
+      TOG   flush_i                      no fall  NOT WAIVED
+      TOG   instr_i[31]                  none     NOT WAIVED
+      TOG   instr_i[30]                  none     NOT WAIVED
+      TOG   instr_i[29]                  none     NOT WAIVED
+      TOG   instr_i[28]                  none     NOT WAIVED
+      TOG   instr_i[27]                  none     NOT WAIVED
+      TOG   instr_i[26]                  none     NOT WAIVED
+      TOG   instr_i[25]                  none     NOT WAIVED
+      TOG   instr_i[24]                  none     NOT WAIVED
+      TOG   instr_i[23]                  no rise  NOT WAIVED
+      TOG   instr_i[22]                  none     NOT WAIVED
+      TOG   instr_i[21]                  no rise  NOT WAIVED
+      TOG   instr_i[20]                  none     NOT WAIVED
+      TOG   instr_i[19]                  none     NOT WAIVED
+      TOG   instr_i[18]                  none     NOT WAIVED
+      TOG   instr_i[17]                  none     NOT WAIVED
+      TOG   instr_i[16]                  none     NOT WAIVED
+      TOG   instr_i[15]                  no fall  NOT WAIVED
+      TOG   instr_i[14]                  no rise  NOT WAIVED
+      TOG   instr_i[13]                  no fall  NOT WAIVED
+      TOG   instr_i[12]                  none     NOT WAIVED
+      TOG   instr_i[11]                  no fall  NOT WAIVED
+      TOG   instr_i[9]                   no fall  NOT WAIVED
+      TOG   instr_i[8]                   no fall  NOT WAIVED
+      TOG   instr_i[7]                   none     NOT WAIVED
+      TOG   instr_i[5]                   no fall  NOT WAIVED
+      TOG   instr_i[4]                   none     NOT WAIVED
+      TOG   instr_i[3]                   no fall  NOT WAIVED
+      TOG   instr_i[1]                   none     NOT WAIVED
+      TOG   instr_i[0]                   none     NOT WAIVED
+      TOG   pc_i[31]                     none     NOT WAIVED
+      TOG   pc_i[30]                     none     NOT WAIVED
+      TOG   pc_i[29]                     none     NOT WAIVED
+      TOG   pc_i[28]                     none     NOT WAIVED
+      TOG   pc_i[27]                     none     NOT WAIVED
+      TOG   pc_i[26]                     none     NOT WAIVED
+      TOG   pc_i[25]                     none     NOT WAIVED
+      TOG   pc_i[24]                     none     NOT WAIVED
+      TOG   pc_i[23]                     none     NOT WAIVED
+      TOG   pc_i[22]                     none     NOT WAIVED
+      TOG   pc_i[21]                     none     NOT WAIVED
+      TOG   pc_i[20]                     none     NOT WAIVED
+      TOG   pc_i[19]                     none     NOT WAIVED
+      TOG   pc_i[18]                     none     NOT WAIVED
+      TOG   pc_i[17]                     none     NOT WAIVED
+      TOG   pc_i[16]                     none     NOT WAIVED
+      TOG   pc_i[15]                     none     NOT WAIVED
+      TOG   pc_i[14]                     none     NOT WAIVED
+      TOG   pc_i[13]                     none     NOT WAIVED
+      TOG   pc_i[12]                     none     NOT WAIVED
+      TOG   pc_i[11]                     none     NOT WAIVED
+      TOG   pc_i[10]                     none     NOT WAIVED
+      TOG   pc_i[9]                      none     NOT WAIVED
+      TOG   pc_i[8]                      none     NOT WAIVED
+      TOG   pc_i[7]                      none     NOT WAIVED
+      TOG   pc_i[6]                      none     NOT WAIVED
+      TOG   pc_i[5]                      none     NOT WAIVED
+      TOG   pc_i[4]                      none     NOT WAIVED
+      TOG   pc_i[3]                      none     NOT WAIVED
+      TOG   pc_i[2]                      none     NOT WAIVED
+      TOG   pc_i[1]                      none     CT-PCALIGN-if_id
+      TOG   pc_i[0]                      none     CT-PCALIGN-if_id
+      TOG   fault_i                      none     NOT WAIVED
+      TOG   instr_o[31]                  none     NOT WAIVED
+      TOG   instr_o[30]                  none     NOT WAIVED
+      TOG   instr_o[29]                  none     NOT WAIVED
+      TOG   instr_o[28]                  none     NOT WAIVED
+      TOG   instr_o[27]                  none     NOT WAIVED
+      TOG   instr_o[26]                  none     NOT WAIVED
+      TOG   instr_o[25]                  none     NOT WAIVED
+      TOG   instr_o[24]                  none     NOT WAIVED
+      TOG   instr_o[22]                  none     NOT WAIVED
+      TOG   instr_o[20]                  none     NOT WAIVED
+      TOG   instr_o[19]                  none     NOT WAIVED
+      TOG   instr_o[18]                  none     NOT WAIVED
+      TOG   instr_o[17]                  none     NOT WAIVED
+      TOG   instr_o[16]                  none     NOT WAIVED
+      TOG   instr_o[4]                   none     NOT WAIVED
+      TOG   instr_o[1]                   none     NOT WAIVED
+      TOG   instr_o[0]                   none     NOT WAIVED
+      TOG   pc_o[31]                     none     NOT WAIVED
+      TOG   pc_o[30]                     none     NOT WAIVED
+      TOG   pc_o[29]                     none     NOT WAIVED
+      TOG   pc_o[27]                     none     NOT WAIVED
+      TOG   pc_o[26]                     none     NOT WAIVED
+      TOG   pc_o[25]                     none     NOT WAIVED
+      TOG   pc_o[24]                     none     NOT WAIVED
+      TOG   pc_o[23]                     none     NOT WAIVED
+      TOG   pc_o[22]                     none     NOT WAIVED
+      TOG   pc_o[21]                     none     NOT WAIVED
+      TOG   pc_o[20]                     none     NOT WAIVED
+      TOG   pc_o[19]                     none     NOT WAIVED
+      TOG   pc_o[18]                     none     NOT WAIVED
+      TOG   pc_o[17]                     none     NOT WAIVED
+      TOG   pc_o[16]                     none     NOT WAIVED
+      TOG   pc_o[15]                     none     NOT WAIVED
+      TOG   pc_o[14]                     none     NOT WAIVED
+      TOG   pc_o[13]                     none     NOT WAIVED
+      TOG   pc_o[12]                     none     NOT WAIVED
+      TOG   pc_o[11]                     none     NOT WAIVED
+      TOG   pc_o[10]                     none     NOT WAIVED
+      TOG   pc_o[9]                      none     NOT WAIVED
+      TOG   pc_o[8]                      none     NOT WAIVED
+      TOG   pc_o[7]                      none     NOT WAIVED
+      TOG   pc_o[6]                      none     NOT WAIVED
+      TOG   pc_o[5]                      none     NOT WAIVED
+      TOG   pc_o[4]                      none     NOT WAIVED
+      TOG   pc_o[3]                      none     NOT WAIVED
+      TOG   pc_o[2]                      none     NOT WAIVED
+      TOG   pc_o[1]                      none     CT-PCALIGN-if_id
+      TOG   pc_o[0]                      none     CT-PCALIGN-if_id
+      TOG   fault_o                      none     NOT WAIVED
+imm_gen                    blk 100.00% (8/8)      expr n/a                tog 86.69% (280/323)     fsm n/a
+      TOG   imm_b_o[0]                   none     CT-PCBIT0-imm_gen
+      TOG   imm_j_o[0]                   none     CT-PCBIT0-imm_gen
+      TOG   imm_b_f[0]                   none     CT-PCBIT0-imm_gen
+      TOG   imm_u_f[11]                  none     CT-IMMENC-imm_gen
+      TOG   imm_u_f[10]                  none     CT-IMMENC-imm_gen
+      TOG   imm_u_f[9]                   none     CT-IMMENC-imm_gen
+      TOG   imm_u_f[8]                   none     CT-IMMENC-imm_gen
+      TOG   imm_u_f[7]                   none     CT-IMMENC-imm_gen
+      TOG   imm_u_f[6]                   none     CT-IMMENC-imm_gen
+      TOG   imm_u_f[5]                   none     CT-IMMENC-imm_gen
+      TOG   imm_u_f[4]                   none     CT-IMMENC-imm_gen
+      TOG   imm_u_f[3]                   none     CT-IMMENC-imm_gen
+      TOG   imm_u_f[2]                   none     CT-IMMENC-imm_gen
+      TOG   imm_u_f[1]                   none     CT-IMMENC-imm_gen
+      TOG   imm_u_f[0]                   none     CT-IMMENC-imm_gen
+      TOG   imm_j_f[0]                   none     CT-PCBIT0-imm_gen
+      TOG   imm_csr_f[31]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[30]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[29]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[28]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[27]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[26]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[25]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[24]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[23]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[22]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[21]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[20]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[19]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[18]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[17]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[16]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[15]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[14]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[13]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[12]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[11]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[10]                none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[9]                 none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[8]                 none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[7]                 none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[6]                 none     CT-IMMENC-imm_gen
+      TOG   imm_csr_f[5]                 none     CT-IMMENC-imm_gen
+load_formatter             blk 100.00% (14/14)    expr n/a                tog 100.00% (96/96)      fsm n/a
+load_store_unit            blk 100.00% (4/4)      expr n/a                tog 99.07% (106/107)     fsm n/a
+      TOG   hsize_o[2]                   none     CT-DBUS-load_store_unit
+mem_stage                  blk n/a                expr n/a                tog 96.07% (391/407)     fsm n/a
+      TOG   rst_n_i                      no fall  NOT WAIVED
+      TOG   pc_i[1]                      none     CT-PCALIGN-mem_stage
+      TOG   pc_i[0]                      none     CT-PCALIGN-mem_stage
+      TOG   d_htrans_o[0]                none     CT-DBUS-mem_stage
+      TOG   d_hsize_o[2]                 none     CT-DBUS-mem_stage
+      TOG   d_hburst_o[2]                none     CT-DBUS-mem_stage
+      TOG   d_hburst_o[1]                none     CT-DBUS-mem_stage
+      TOG   d_hburst_o[0]                none     CT-DBUS-mem_stage
+      TOG   d_hprot_o[3]                 none     CT-DBUS-mem_stage
+      TOG   d_hprot_o[2]                 none     CT-DBUS-mem_stage
+      TOG   d_hprot_o[1]                 none     CT-DBUS-mem_stage,NOT WAIVED
+      TOG   d_hprot_o[0]                 none     CT-DBUS-mem_stage,NOT WAIVED
+      TOG   mem_exception_pc_o[1]        none     CT-PCALIGN-mem_stage
+      TOG   mem_exception_pc_o[0]        none     CT-PCALIGN-mem_stage
+      TOG   mem_exception_cause_o[3]     none     CT-MEMCAUSE-mem_stage
+      TOG   hsize_w[2]                   none     CT-DBUS-mem_stage
+mem_wb_reg                 blk 100.00% (5/5)      expr n/a                tog 100.00% (81/81)      fsm n/a
+mul32                      blk n/a                expr n/a                tog 99.57% (232/233)     fsm n/a
+      TOG   funct3[2]                    none     NOT WAIVED
+pipe_ctrl                  blk n/a                expr n/a                tog 22.15% (35/158)      fsm n/a
+      TOG   id_redirect_target_i[31]     none     NOT WAIVED
+      TOG   id_redirect_target_i[30]     none     NOT WAIVED
+      TOG   id_redirect_target_i[29]     none     NOT WAIVED
+      TOG   id_redirect_target_i[28]     none     NOT WAIVED
+      TOG   id_redirect_target_i[27]     none     NOT WAIVED
+      TOG   id_redirect_target_i[26]     none     NOT WAIVED
+      TOG   id_redirect_target_i[25]     none     NOT WAIVED
+      TOG   id_redirect_target_i[24]     none     NOT WAIVED
+      TOG   id_redirect_target_i[23]     none     NOT WAIVED
+      TOG   id_redirect_target_i[22]     none     NOT WAIVED
+      TOG   id_redirect_target_i[21]     none     NOT WAIVED
+      TOG   id_redirect_target_i[20]     none     NOT WAIVED
+      TOG   id_redirect_target_i[19]     none     NOT WAIVED
+      TOG   id_redirect_target_i[18]     none     NOT WAIVED
+      TOG   id_redirect_target_i[17]     none     NOT WAIVED
+      TOG   id_redirect_target_i[16]     none     NOT WAIVED
+      TOG   id_redirect_target_i[15]     none     NOT WAIVED
+      TOG   id_redirect_target_i[14]     none     NOT WAIVED
+      TOG   id_redirect_target_i[13]     none     NOT WAIVED
+      TOG   id_redirect_target_i[12]     none     NOT WAIVED
+      TOG   id_redirect_target_i[11]     none     NOT WAIVED
+      TOG   id_redirect_target_i[10]     none     NOT WAIVED
+      TOG   id_redirect_target_i[9]      none     NOT WAIVED
+      TOG   id_redirect_target_i[8]      none     NOT WAIVED
+      TOG   id_redirect_target_i[7]      none     NOT WAIVED
+      TOG   id_redirect_target_i[6]      none     NOT WAIVED
+      TOG   id_redirect_target_i[5]      none     NOT WAIVED
+      TOG   id_redirect_target_i[4]      none     NOT WAIVED
+      TOG   id_redirect_target_i[3]      none     NOT WAIVED
+      TOG   id_redirect_target_i[2]      none     NOT WAIVED
+      TOG   id_redirect_target_i[1]      none     NOT WAIVED
+      TOG   id_redirect_target_i[0]      none     CT-PCBIT0-pipe_ctrl,NOT WAIVED
+      TOG   ex_redirect_target_i[31]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[30]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[29]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[28]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[27]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[26]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[25]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[24]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[23]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[22]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[21]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[20]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[19]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[18]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[17]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[16]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[15]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[14]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[13]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[12]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[11]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[10]     none     NOT WAIVED
+      TOG   ex_redirect_target_i[9]      none     NOT WAIVED
+      TOG   ex_redirect_target_i[8]      none     NOT WAIVED
+      TOG   ex_redirect_target_i[7]      none     NOT WAIVED
+      TOG   ex_redirect_target_i[6]      none     NOT WAIVED
+      TOG   ex_redirect_target_i[5]      none     NOT WAIVED
+      TOG   ex_redirect_target_i[4]      none     NOT WAIVED
+      TOG   ex_redirect_target_i[3]      none     NOT WAIVED
+      TOG   ex_redirect_target_i[2]      none     NOT WAIVED
+      TOG   ex_redirect_target_i[1]      none     NOT WAIVED
+      TOG   ex_redirect_target_i[0]      none     NOT WAIVED
+      TOG   trap_redirect_target_i[31]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[30]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[29]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[28]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[27]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[26]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[25]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[24]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[23]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[22]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[21]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[20]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[19]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[18]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[17]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[16]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[15]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[14]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[13]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[12]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[11]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[10]   none     NOT WAIVED
+      TOG   trap_redirect_target_i[9]    none     NOT WAIVED
+      TOG   trap_redirect_target_i[8]    none     NOT WAIVED
+      TOG   trap_redirect_target_i[7]    none     NOT WAIVED
+      TOG   trap_redirect_target_i[6]    none     NOT WAIVED
+      TOG   trap_redirect_target_i[5]    none     NOT WAIVED
+      TOG   trap_redirect_target_i[4]    none     NOT WAIVED
+      TOG   trap_redirect_target_i[3]    none     NOT WAIVED
+      TOG   trap_redirect_target_i[2]    none     NOT WAIVED
+      TOG   trap_redirect_target_i[1]    none     CT-MTVECBASE-pipe_ctrl,NOT WAIVED
+      TOG   trap_redirect_target_i[0]    none     CT-MTVECBASE-pipe_ctrl,NOT WAIVED
+      TOG   if_redirect_pc_o[31]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[30]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[29]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[28]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[27]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[26]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[25]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[24]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[23]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[22]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[21]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[20]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[19]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[18]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[17]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[16]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[15]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[14]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[11]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[10]         none     NOT WAIVED
+      TOG   if_redirect_pc_o[7]          none     NOT WAIVED
+      TOG   if_redirect_pc_o[6]          none     NOT WAIVED
+      TOG   if_redirect_pc_o[3]          none     NOT WAIVED
+      TOG   if_redirect_pc_o[2]          none     NOT WAIVED
+      TOG   bus_idle_i                   none     NOT WAIVED
+      TOG   wfi_settled_i                none     NOT WAIVED
+      TOG   quiescent_o                  none     NOT WAIVED
+regfile                    blk 100.00% (3/3)      expr 100.00% (11/11)    tog 99.44% (177/178)     fsm n/a
+      TOG   rst_n_i                      no fall  NOT WAIVED
+trap_ctrl                  blk 85.71% (6/7)       expr n/a                tog 32.08% (179/558)     fsm n/a
+      BLOCK line 191 (true part of) else if (wfi_active & wake_cond)           wfi_active <= 1'b  NOT WAIVED
+      TOG   idex_pc_i[31]                none     NOT WAIVED
+      TOG   idex_pc_i[30]                none     NOT WAIVED
+      TOG   idex_pc_i[29]                none     NOT WAIVED
+      TOG   idex_pc_i[27]                none     NOT WAIVED
+      TOG   idex_pc_i[26]                none     NOT WAIVED
+      TOG   idex_pc_i[25]                none     NOT WAIVED
+      TOG   idex_pc_i[24]                none     NOT WAIVED
+      TOG   idex_pc_i[23]                none     NOT WAIVED
+      TOG   idex_pc_i[22]                none     NOT WAIVED
+      TOG   idex_pc_i[21]                none     NOT WAIVED
+      TOG   idex_pc_i[20]                none     NOT WAIVED
+      TOG   idex_pc_i[19]                none     NOT WAIVED
+      TOG   idex_pc_i[18]                none     NOT WAIVED
+      TOG   idex_pc_i[17]                none     NOT WAIVED
+      TOG   idex_pc_i[16]                none     NOT WAIVED
+      TOG   idex_pc_i[14]                none     NOT WAIVED
+      TOG   idex_pc_i[10]                none     NOT WAIVED
+      TOG   idex_pc_i[5]                 none     NOT WAIVED
+      TOG   idex_pc_i[4]                 none     NOT WAIVED
+      TOG   idex_pc_i[3]                 none     NOT WAIVED
+      TOG   idex_pc_i[1]                 none     CT-PCALIGN-trap_ctrl
+      TOG   idex_pc_i[0]                 none     CT-PCALIGN-trap_ctrl
+      TOG   idex_instr_i[24]             none     NOT WAIVED
+      TOG   idex_instr_i[17]             none     NOT WAIVED
+      TOG   idex_instr_i[14]             none     NOT WAIVED
+      TOG   idex_instr_i[8]              none     NOT WAIVED
+      TOG   idex_instr_i[1]              none     NOT WAIVED
+      TOG   idex_instr_i[0]              none     NOT WAIVED
+      TOG   idex_valid_i                 none     NOT WAIVED
+      TOG   ex_dsu_illegal_i             none     NOT WAIVED
+      TOG   ex_csr_illegal_i             none     NOT WAIVED
+      TOG   ex_store_misalign_i          none     NOT WAIVED
+      TOG   ex_addr_i[31]                none     NOT WAIVED
+      TOG   ex_addr_i[30]                none     NOT WAIVED
+      TOG   ex_addr_i[29]                none     NOT WAIVED
+      TOG   ex_addr_i[28]                none     NOT WAIVED
+      TOG   ex_addr_i[27]                none     NOT WAIVED
+      TOG   ex_addr_i[26]                none     NOT WAIVED
+      TOG   ex_addr_i[25]                none     NOT WAIVED
+      TOG   ex_addr_i[24]                none     NOT WAIVED
+      TOG   ex_addr_i[23]                none     NOT WAIVED
+      TOG   ex_addr_i[22]                none     NOT WAIVED
+      TOG   ex_addr_i[21]                none     NOT WAIVED
+      TOG   ex_addr_i[20]                none     NOT WAIVED
+      TOG   ex_addr_i[19]                none     NOT WAIVED
+      TOG   ex_addr_i[18]                none     NOT WAIVED
+      TOG   ex_addr_i[17]                none     NOT WAIVED
+      TOG   ex_addr_i[16]                none     NOT WAIVED
+      TOG   ex_addr_i[15]                none     NOT WAIVED
+      TOG   ex_addr_i[14]                none     NOT WAIVED
+      TOG   ex_addr_i[12]                none     NOT WAIVED
+      TOG   ex_addr_i[11]                none     NOT WAIVED
+      TOG   ex_addr_i[10]                none     NOT WAIVED
+      TOG   ex_addr_i[9]                 none     NOT WAIVED
+      TOG   ex_addr_i[8]                 none     NOT WAIVED
+      TOG   ex_addr_i[7]                 none     NOT WAIVED
+      TOG   ex_addr_i[6]                 none     NOT WAIVED
+      TOG   ex_addr_i[5]                 none     NOT WAIVED
+      TOG   ex_addr_i[4]                 none     NOT WAIVED
+      TOG   ex_addr_i[3]                 none     NOT WAIVED
+      TOG   ex_addr_i[2]                 none     NOT WAIVED
+      TOG   ex_fetch_misalign_i          none     NOT WAIVED
+      TOG   ex_fetch_target_i[31]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[30]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[29]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[28]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[27]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[26]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[25]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[24]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[23]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[22]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[21]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[20]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[19]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[18]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[17]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[16]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[15]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[14]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[13]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[12]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[11]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[10]        none     NOT WAIVED
+      TOG   ex_fetch_target_i[9]         none     NOT WAIVED
+      TOG   ex_fetch_target_i[8]         none     NOT WAIVED
+      TOG   ex_fetch_target_i[7]         none     NOT WAIVED
+      TOG   ex_fetch_target_i[6]         none     NOT WAIVED
+      TOG   ex_fetch_target_i[5]         none     NOT WAIVED
+      TOG   ex_fetch_target_i[4]         none     NOT WAIVED
+      TOG   ex_fetch_target_i[3]         none     NOT WAIVED
+      TOG   ex_fetch_target_i[2]         none     NOT WAIVED
+      TOG   ex_fetch_target_i[1]         none     NOT WAIVED
+      TOG   ex_fetch_target_i[0]         none     NOT WAIVED
+      TOG   mem_exc_cause_i[3]           none     CT-MEMCAUSE-trap_ctrl
+      TOG   mem_exc_pc_i[31]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[30]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[29]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[28]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[27]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[26]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[25]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[24]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[23]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[22]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[21]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[20]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[19]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[18]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[17]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[16]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[15]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[11]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[10]             none     NOT WAIVED
+      TOG   mem_exc_pc_i[9]              none     NOT WAIVED
+      TOG   mem_exc_pc_i[8]              none     NOT WAIVED
+      TOG   mem_exc_pc_i[7]              none     NOT WAIVED
+      TOG   mem_exc_pc_i[6]              none     NOT WAIVED
+      TOG   mem_exc_pc_i[5]              none     NOT WAIVED
+      TOG   mem_exc_pc_i[4]              none     NOT WAIVED
+      TOG   mem_exc_pc_i[3]              none     NOT WAIVED
+      TOG   mem_exc_pc_i[2]              none     NOT WAIVED
+      TOG   mem_exc_pc_i[1]              none     CT-PCALIGN-trap_ctrl
+      TOG   mem_exc_pc_i[0]              none     CT-PCALIGN-trap_ctrl
+      TOG   mem_exc_tval_i[31]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[30]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[29]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[28]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[27]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[26]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[25]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[24]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[23]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[22]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[21]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[20]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[19]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[18]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[17]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[16]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[15]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[11]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[10]           none     NOT WAIVED
+      TOG   mem_exc_tval_i[9]            none     NOT WAIVED
+      TOG   mem_exc_tval_i[8]            none     NOT WAIVED
+      TOG   mem_exc_tval_i[7]            none     NOT WAIVED
+      TOG   mem_exc_tval_i[6]            none     NOT WAIVED
+      TOG   mem_exc_tval_i[5]            none     NOT WAIVED
+      TOG   mem_exc_tval_i[4]            none     NOT WAIVED
+      TOG   mem_exc_tval_i[1]            none     NOT WAIVED
+      TOG   mem_exc_tval_i[0]            none     NOT WAIVED
+      TOG   clic_wake_cond_i             none     NOT WAIVED
+      TOG   clic_irq_id_i[4]             none     NOT WAIVED
+      TOG   clic_irq_id_i[3]             none     NOT WAIVED
+      TOG   clic_irq_lvl_i[7]            none     NOT WAIVED
+      TOG   clic_irq_lvl_i[6]            none     NOT WAIVED
+      TOG   clic_irq_lvl_i[5]            none     NOT WAIVED
+      TOG   clic_irq_lvl_i[4]            none     NOT WAIVED
+      TOG   clic_irq_lvl_i[3]            none     NOT WAIVED
+      TOG   clic_irq_lvl_i[1]            none     NOT WAIVED
+      TOG   clic_vector_target_i[30]     none     NOT WAIVED
+      TOG   clic_vector_target_i[29]     none     NOT WAIVED
+      TOG   clic_vector_target_i[27]     none     NOT WAIVED
+      TOG   clic_vector_target_i[26]     none     NOT WAIVED
+      TOG   clic_vector_target_i[25]     none     NOT WAIVED
+      TOG   clic_vector_target_i[24]     none     NOT WAIVED
+      TOG   clic_vector_target_i[23]     none     NOT WAIVED
+      TOG   clic_vector_target_i[22]     none     NOT WAIVED
+      TOG   clic_vector_target_i[21]     none     NOT WAIVED
+      TOG   clic_vector_target_i[20]     none     NOT WAIVED
+      TOG   clic_vector_target_i[19]     none     NOT WAIVED
+      TOG   clic_vector_target_i[18]     none     NOT WAIVED
+      TOG   clic_vector_target_i[17]     none     NOT WAIVED
+      TOG   clic_vector_target_i[16]     none     NOT WAIVED
+      TOG   clic_vector_target_i[15]     none     NOT WAIVED
+      TOG   clic_vector_target_i[14]     none     NOT WAIVED
+      TOG   clic_vector_target_i[13]     none     NOT WAIVED
+      TOG   clic_vector_target_i[12]     none     NOT WAIVED
+      TOG   clic_vector_target_i[11]     none     NOT WAIVED
+      TOG   clic_vector_target_i[10]     none     NOT WAIVED
+      TOG   clic_vector_target_i[9]      none     NOT WAIVED
+      TOG   clic_vector_target_i[8]      none     NOT WAIVED
+      TOG   clic_vector_target_i[7]      none     NOT WAIVED
+      TOG   clic_vector_target_i[6]      none     NOT WAIVED
+      TOG   clic_vector_target_i[5]      none     NOT WAIVED
+      TOG   clic_vector_target_i[4]      none     NOT WAIVED
+      TOG   clic_vector_target_i[3]      none     NOT WAIVED
+      TOG   clic_vector_target_i[2]      none     NOT WAIVED
+      TOG   clic_vector_target_i[1]      none     CT-MTVECBASE-trap_ctrl
+      TOG   clic_vector_target_i[0]      none     CT-MTVECBASE-trap_ctrl
+      TOG   mtvec_i[31]                  none     NOT WAIVED
+      TOG   mtvec_i[30]                  none     NOT WAIVED
+      TOG   mtvec_i[29]                  none     NOT WAIVED
+      TOG   mtvec_i[28]                  none     NOT WAIVED
+      TOG   mtvec_i[27]                  none     NOT WAIVED
+      TOG   mtvec_i[26]                  none     NOT WAIVED
+      TOG   mtvec_i[25]                  none     NOT WAIVED
+      TOG   mtvec_i[24]                  none     NOT WAIVED
+      TOG   mtvec_i[23]                  none     NOT WAIVED
+      TOG   mtvec_i[22]                  none     NOT WAIVED
+      TOG   mtvec_i[21]                  none     NOT WAIVED
+      TOG   mtvec_i[20]                  none     NOT WAIVED
+      TOG   mtvec_i[19]                  none     NOT WAIVED
+      TOG   mtvec_i[18]                  none     NOT WAIVED
+      TOG   mtvec_i[17]                  none     NOT WAIVED
+      TOG   mtvec_i[16]                  none     NOT WAIVED
+      TOG   mtvec_i[15]                  none     NOT WAIVED
+      TOG   mtvec_i[14]                  none     NOT WAIVED
+      TOG   mtvec_i[13]                  none     NOT WAIVED
+      TOG   mtvec_i[12]                  none     NOT WAIVED
+      TOG   mtvec_i[11]                  none     NOT WAIVED
+      TOG   mtvec_i[10]                  none     NOT WAIVED
+      TOG   mtvec_i[9]                   none     NOT WAIVED
+      TOG   mtvec_i[8]                   none     NOT WAIVED
+      TOG   mtvec_i[7]                   none     NOT WAIVED
+      TOG   mtvec_i[6]                   none     NOT WAIVED
+      TOG   mtvec_i[5]                   none     NOT WAIVED
+      TOG   mtvec_i[4]                   none     NOT WAIVED
+      TOG   mtvec_i[3]                   none     NOT WAIVED
+      TOG   mtvec_i[2]                   none     NOT WAIVED
+      TOG   mtvec_i[1]                   none     CT-MTVECBASE-trap_ctrl
+      TOG   mtvec_i[0]                   none     CT-MTVECBASE-trap_ctrl
+      TOG   mepc_i[31]                   none     NOT WAIVED
+      TOG   mepc_i[30]                   none     NOT WAIVED
+      TOG   mepc_i[29]                   none     NOT WAIVED
+      TOG   mepc_i[28]                   none     NOT WAIVED
+      TOG   mepc_i[27]                   none     NOT WAIVED
+      TOG   mepc_i[26]                   none     NOT WAIVED
+      TOG   mepc_i[25]                   none     NOT WAIVED
+      TOG   mepc_i[24]                   none     NOT WAIVED
+      TOG   mepc_i[23]                   none     NOT WAIVED
+      TOG   mepc_i[22]                   none     NOT WAIVED
+      TOG   mepc_i[21]                   none     NOT WAIVED
+      TOG   mepc_i[20]                   none     NOT WAIVED
+      TOG   mepc_i[19]                   none     NOT WAIVED
+      TOG   mepc_i[18]                   none     NOT WAIVED
+      TOG   mepc_i[17]                   none     NOT WAIVED
+      TOG   mepc_i[16]                   none     NOT WAIVED
+      TOG   mepc_i[15]                   none     NOT WAIVED
+      TOG   mepc_i[14]                   none     NOT WAIVED
+      TOG   mepc_i[13]                   none     NOT WAIVED
+      TOG   mepc_i[12]                   none     NOT WAIVED
+      TOG   mepc_i[11]                   none     NOT WAIVED
+      TOG   mepc_i[10]                   none     NOT WAIVED
+      TOG   mepc_i[9]                    none     NOT WAIVED
+      TOG   mepc_i[8]                    none     NOT WAIVED
+      TOG   mepc_i[7]                    none     NOT WAIVED
+      TOG   mepc_i[6]                    none     NOT WAIVED
+      TOG   mepc_i[5]                    none     NOT WAIVED
+      TOG   mepc_i[4]                    none     NOT WAIVED
+      TOG   mepc_i[3]                    none     NOT WAIVED
+      TOG   mepc_i[2]                    none     NOT WAIVED
+      TOG   mepc_i[1]                    none     CT-PCALIGN-trap_ctrl
+      TOG   mepc_i[0]                    none     CT-PCALIGN-trap_ctrl
+      TOG   clic_level_o[7]              none     NOT WAIVED
+      TOG   clic_level_o[6]              none     NOT WAIVED
+      TOG   clic_level_o[5]              none     NOT WAIVED
+      TOG   clic_level_o[4]              none     NOT WAIVED
+      TOG   clic_level_o[3]              none     NOT WAIVED
+      TOG   clic_level_o[1]              none     NOT WAIVED
+      TOG   trap_pc_o[31]                none     NOT WAIVED
+      TOG   trap_pc_o[30]                none     NOT WAIVED
+      TOG   trap_pc_o[29]                none     NOT WAIVED
+      TOG   trap_pc_o[27]                none     NOT WAIVED
+      TOG   trap_pc_o[26]                none     NOT WAIVED
+      TOG   trap_pc_o[25]                none     NOT WAIVED
+      TOG   trap_pc_o[24]                none     NOT WAIVED
+      TOG   trap_pc_o[23]                none     NOT WAIVED
+      TOG   trap_pc_o[22]                none     NOT WAIVED
+      TOG   trap_pc_o[21]                none     NOT WAIVED
+      TOG   trap_pc_o[20]                none     NOT WAIVED
+      TOG   trap_pc_o[19]                none     NOT WAIVED
+      TOG   trap_pc_o[18]                none     NOT WAIVED
+      TOG   trap_pc_o[17]                none     NOT WAIVED
+      TOG   trap_pc_o[16]                none     NOT WAIVED
+      TOG   trap_pc_o[10]                none     NOT WAIVED
+      TOG   trap_pc_o[5]                 none     NOT WAIVED
+      TOG   trap_pc_o[4]                 none     NOT WAIVED
+      TOG   trap_pc_o[3]                 none     NOT WAIVED
+      TOG   trap_pc_o[1]                 none     CT-PCALIGN-trap_ctrl
+      TOG   trap_pc_o[0]                 none     CT-PCALIGN-trap_ctrl
+      TOG   trap_cause_o[30]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[29]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[28]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[27]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[26]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[25]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[24]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[23]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[22]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[21]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[20]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[19]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[18]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[17]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[16]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[15]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[14]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[13]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[12]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[11]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[10]             none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[9]              none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[8]              none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[7]              none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[6]              none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[5]              none     CT-CAUSE-trap_ctrl
+      TOG   trap_cause_o[4]              none     NOT WAIVED
+      TOG   trap_tval_o[29]              none     NOT WAIVED
+      TOG   trap_tval_o[24]              none     NOT WAIVED
+      TOG   trap_tval_o[22]              none     NOT WAIVED
+      TOG   trap_tval_o[20]              none     NOT WAIVED
+      TOG   trap_tval_o[17]              none     NOT WAIVED
+      TOG   trap_redirect_target_o[30]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[29]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[27]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[26]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[25]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[24]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[23]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[22]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[21]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[20]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[19]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[18]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[17]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[16]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[15]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[13]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[12]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[11]   none     NOT WAIVED
+      TOG   trap_redirect_target_o[9]    none     NOT WAIVED
+      TOG   trap_redirect_target_o[8]    none     NOT WAIVED
+      TOG   trap_redirect_target_o[7]    none     NOT WAIVED
+      TOG   trap_redirect_target_o[5]    none     NOT WAIVED
+      TOG   trap_redirect_target_o[4]    none     NOT WAIVED
+      TOG   trap_redirect_target_o[3]    none     NOT WAIVED
+      TOG   trap_redirect_target_o[1]    none     CT-MTVECBASE-trap_ctrl
+      TOG   trap_redirect_target_o[0]    none     CT-MTVECBASE-trap_ctrl
+      TOG   e6                           none     NOT WAIVED
+      TOG   e0                           none     NOT WAIVED
+      TOG   ex_tval[29]                  none     NOT WAIVED
+      TOG   ex_tval[24]                  none     NOT WAIVED
+      TOG   ex_tval[22]                  none     NOT WAIVED
+      TOG   ex_tval[20]                  none     NOT WAIVED
+      TOG   ex_tval[17]                  none     NOT WAIVED
+      TOG   ex_tval[14]                  none     NOT WAIVED
+      TOG   mtvec_base[31]               none     NOT WAIVED
+      TOG   mtvec_base[30]               none     NOT WAIVED
+      TOG   mtvec_base[29]               none     NOT WAIVED
+      TOG   mtvec_base[28]               none     NOT WAIVED
+      TOG   mtvec_base[27]               none     NOT WAIVED
+      TOG   mtvec_base[26]               none     NOT WAIVED
+      TOG   mtvec_base[25]               none     NOT WAIVED
+      TOG   mtvec_base[24]               none     NOT WAIVED
+      TOG   mtvec_base[23]               none     NOT WAIVED
+      TOG   mtvec_base[22]               none     NOT WAIVED
+      TOG   mtvec_base[21]               none     NOT WAIVED
+      TOG   mtvec_base[20]               none     NOT WAIVED
+      TOG   mtvec_base[19]               none     NOT WAIVED
+      TOG   mtvec_base[18]               none     NOT WAIVED
+      TOG   mtvec_base[17]               none     NOT WAIVED
+      TOG   mtvec_base[16]               none     NOT WAIVED
+      TOG   mtvec_base[15]               none     NOT WAIVED
+      TOG   mtvec_base[14]               none     NOT WAIVED
+      TOG   mtvec_base[13]               none     NOT WAIVED
+      TOG   mtvec_base[12]               none     NOT WAIVED
+      TOG   mtvec_base[11]               none     NOT WAIVED
+      TOG   mtvec_base[10]               none     NOT WAIVED
+      TOG   mtvec_base[9]                none     NOT WAIVED
+      TOG   mtvec_base[8]                none     NOT WAIVED
+      TOG   mtvec_base[7]                none     NOT WAIVED
+      TOG   mtvec_base[6]                none     NOT WAIVED
+      TOG   mtvec_base[5]                none     NOT WAIVED
+      TOG   mtvec_base[4]                none     NOT WAIVED
+      TOG   mtvec_base[3]                none     NOT WAIVED
+      TOG   mtvec_base[2]                none     NOT WAIVED
+      TOG   mtvec_base[1]                none     CT-MTVECBASE-trap_ctrl
+      TOG   mtvec_base[0]                none     CT-MTVECBASE-trap_ctrl
+wb_stage                   blk n/a                expr n/a                tog 100.00% (76/76)      fsm n/a
