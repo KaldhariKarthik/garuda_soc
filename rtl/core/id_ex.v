@@ -94,26 +94,33 @@ module id_ex (
     output reg         fault_o,
     output reg         valid_o
 );
-    // Control fields that must be NOP-safe in a bubble.
-    task set_bubble;
-        begin
+    // A bubble: control fields NOP-safe, data a NOP (addi x0,x0,0). Written out twice, for
+    // reset and for flush, rather than as a task: Xcelium switches X-propagation off for a
+    // block that calls a task writing registers outside it (flow/2_static/xprop/README.md,
+    // ruling 2026-11-10). The two lists must stay identical.
+    always @(posedge clk_i or negedge rst_n_i) begin
+        if (!rst_n_i) begin
             reg_write_o<=1'b0; mem_read_o<=1'b0; mem_write_o<=1'b0; mem_to_reg_o<=1'b0;
             branch_o<=1'b0; jal_o<=1'b0; jalr_o<=1'b0; predicted_taken_o<=1'b0;
             mul_en_o<=1'b0; dsu_en_o<=1'b0; csr_en_o<=1'b0;
             is_system_o<=1'b0; illegal_instr_dec_o<=1'b0; fault_o<=1'b0;
             valid_o<=1'b0;                  // a bubble never retires
-
-            // data + benign ctrl -> NOP (addi x0,x0,0)
             instr_o<=32'h0000_0013; alu_op_o<=4'h0; alu_src_o<=1'b0; pc_op_a_o<=1'b0;
             csr_imm_o<=1'b0; csr_op_o<=2'b00;
             rd_o<=5'd0; rs1_idx_o<=5'd0; rs2_idx_o<=5'd0; funct3_o<=3'd0;
             pc_o<=32'd0; rs1_data_o<=32'd0; rs2_data_o<=32'd0; imm_o<=32'd0;
         end
-    endtask
-
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i)      set_bubble;
-        else if (flush_i)  set_bubble;          // flush strictly > stall (Sec.11.4)
+        else if (flush_i) begin             // flush strictly > stall (Sec.11.4)
+            reg_write_o<=1'b0; mem_read_o<=1'b0; mem_write_o<=1'b0; mem_to_reg_o<=1'b0;
+            branch_o<=1'b0; jal_o<=1'b0; jalr_o<=1'b0; predicted_taken_o<=1'b0;
+            mul_en_o<=1'b0; dsu_en_o<=1'b0; csr_en_o<=1'b0;
+            is_system_o<=1'b0; illegal_instr_dec_o<=1'b0; fault_o<=1'b0;
+            valid_o<=1'b0;                  // a bubble never retires
+            instr_o<=32'h0000_0013; alu_op_o<=4'h0; alu_src_o<=1'b0; pc_op_a_o<=1'b0;
+            csr_imm_o<=1'b0; csr_op_o<=2'b00;
+            rd_o<=5'd0; rs1_idx_o<=5'd0; rs2_idx_o<=5'd0; funct3_o<=3'd0;
+            pc_o<=32'd0; rs1_data_o<=32'd0; rs2_data_o<=32'd0; imm_o<=32'd0;
+        end
         else if (stall_i) begin
             // ---------------------------------------------------------------
             // ERRATUM F-1 (found by tb_boot / riscv-tests sw,sh,sb,ld_st,st_ld)

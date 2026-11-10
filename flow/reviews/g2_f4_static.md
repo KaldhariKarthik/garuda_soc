@@ -38,7 +38,7 @@ two hours and can be skipped if its report is read instead).
 
 | # | Question | Answer | Settled |
 |---|---|---|---|
-| 1 | X-propagation does not reach `rtl/core/id_ex.v` (task `set_bubble`) or the register block of `rtl/debug/debug_module.v` (task `kick`). Write the two task bodies inline so the check covers them (RTL change, then `gate_a`, `gate_b`, `static_xprop`), or accept the gap in writing? | | |
+| 1 | X-propagation does not reach `rtl/core/id_ex.v` (task `set_bubble`) or the register block of `rtl/debug/debug_module.v` (task `kick`). Write the two task bodies inline so the check covers them (RTL change, then `gate_a`, `gate_b`, `static_xprop`), or accept the gap in writing? | Inline both (Karthik, ruled in the session of 2026-11-10). Done; LEC equivalent; see `flow/2_static/xprop/README.md` | yes |
 
 ## 4. Changes asked for
 

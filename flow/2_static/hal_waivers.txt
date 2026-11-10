@@ -100,7 +100,7 @@ vendored = in third-party IP that is not edited (D-22); open = an open finding, 
 
 --- idiom
   TIELOG  W own 26  vendored 33   output tied to a constant: reserved register bits read 0, PREADY tied high (a peripheral never stalls), unused vendored ports
-  ULCMPE  W own 19  vendored 37   comparison against an unsized literal or a parameter; widths checked in the 3-tool lint, overflow decided by Superlint
+  ULCMPE  W own 18  vendored 37   comparison against an unsized literal or a parameter; widths checked in the 3-tool lint, overflow decided by Superlint
   IMPDTC  W own 6   vendored 32   implicit signed/unsigned conversion of a literal or a signed shift; ALU and DSU, covered by the ISA tests and the DSU model
   MULNBA  W own 25  vendored 11   default-then-override: a register assigned a default and again later in the same block; the last assignment wins, intended
   UELOPR  W own 8   vendored 28   increment by 1'b1 on a wider counter; wrap is decided by Superlint ASG_AR_OVFL

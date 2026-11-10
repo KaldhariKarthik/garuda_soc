@@ -14,7 +14,7 @@ F10 to F16 are listed so the whole flow is visible; nothing in them is planned y
 | F1 | Specification and architecture freeze | documents in `Design_Docs/` | G1 1.1 to 1.13, 1.15 | done |
 | F2 | Verification plan | vPlanner; `tb/*/GARUDA_*_vplan.csv` | G1 1.14 | done |
 | F3 | RTL design: core, peripherals, SoC integration | editor; HAL for every change | G2 2.1 to 2.10, 2.14 to 2.17; G3 3.1 to 3.13, 3.17 to 3.22 | done except 3.10 (SRAM macros wait for the PDK) |
-| F4 | Static checks: lint, CDC, RDC, X-propagation, coding rules | HAL; JasperGold Superlint and CDC; xrun `-xprop` | G2 2.11 to 2.13; G3 3.14 to 3.16 | done 2026-11-10 (`core_lint.md`, `coding_rules.md`, `xprop/`, Superlint rerun at one hour per group); X-propagation does not reach two blocks (`id_ex`, debug module), waiting for a ruling |
+| F4 | Static checks: lint, CDC, RDC, X-propagation, coding rules | HAL; JasperGold Superlint and CDC; xrun `-xprop` | G2 2.11 to 2.13; G3 3.14 to 3.16 | done 2026-11-10 (`core_lint.md`, `coding_rules.md`, `xprop/`, Superlint rerun at one hour per group); X-propagation reaches every block of design logic (two tasks inlined by ruling, proven equivalent by LEC) |
 | F5 | Block and unit verification: UVM, bound SVA, formal, mutation | xrun / irun; JasperGold FPV and UNR; Verilator for mutants | G4 4.1 to 4.9, 4.15, 4.16 | in progress |
 | F6 | Core verification: ISA tests, Spike lockstep, random programs, benchmarks | irun; Spike; riscv-dv | G4 4.10 to 4.14; G5 5.1 to 5.7, 5.10 | in progress |
 | F7 | SoC verification: without the core, then the whole chip with C programs | irun; UVM; `sw/chip` | G6 6.1 to 6.14, 6.18 | in progress |

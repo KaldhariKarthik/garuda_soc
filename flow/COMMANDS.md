@@ -711,7 +711,7 @@ Start every replay with:
 
 | # | Type | Look for |
 |---|---|---|
-| R3.1 | `irun -hal -64bit -f rtl/soc/filelist_chip.f -top garuda_chip_top -define SYNTHESIS -nclibdirname sim/replay/INCA_hal -l sim/replay/hal.log -f flow/2_static/hal.f` then `python3 tools/hal_baseline.py --check sim/replay/hal.log` | `78 rules, 746 findings; baseline 746; 0 rule(s) risen, 0 lower` |
+| R3.1 | `irun -hal -64bit -f rtl/soc/filelist_chip.f -top garuda_chip_top -define SYNTHESIS -nclibdirname sim/replay/INCA_hal -l sim/replay/hal.log -f flow/2_static/hal.f` then `python3 tools/hal_baseline.py --check sim/replay/hal.log` | `78 rules, 745 findings; baseline 745; 0 rule(s) risen, 0 lower` |
 | R3.2 | `setenv TOP garuda_chip_top`, `setenv FL rtl/soc/filelist_chip.f`, `setenv CLK refclk`, `setenv RST ext_rst_n`, `setenv OUT sim/replay/superlint`, then `/home/install/JASPER/bin/jg -allow_unsupported_OS -superlint -batch -no_jges -proj sim/replay/superlint_proj flow/2_static/superlint/superlint.tcl` (about two hours: one hour for each of the two slow check groups) | `[4]     Total                   77` in `sim/replay/superlint/superlint_report.txt` (5 floating bus, 38 dead code, 34 overflow); compare with `flow/2_static/superlint/chip/RESULTS.md` |
 | R3.3 | `/home/install/JASPER/bin/jg -allow_unsupported_OS -cdc -batch -no_jges -proj sim/replay/cdc flow/2_static/cdc/cdc_chip.tcl` then `wc -l flow/2_static/cdc/reports/violations.csv` | `1` (the header only: 0 unwaived crossings) |
 | R3.4 | `/home/install/GENUS211/bin/genus -batch -no_gui -files flow/signoff/g3/floating_nets.tcl -log sim/replay/genus_float` | `Normal exit.`; the reports in `flow/signoff/g3/out/` |

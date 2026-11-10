@@ -53,6 +53,8 @@ What "undetermined" means here:
   and JasperGold UNR decides it there before any waiver. Reading the 609 here would repeat
   that work.
 
+Karthik accepted both on 2026-11-10 (`Docs/DECISIONS.md`, D-33).
+
 ## Floating bus (5)
 
 `tdo`, `i2c_scl`, `i2c_sda`, `gpio0/1` and `spis_miso` float whenever their output enable is 0.

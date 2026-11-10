@@ -1,0 +1,59 @@
+                          CONFORMAL (R)
+                   Version 21.10-s300 (22-Aug-2021) (64 bit executable)
+   Copyright (c) Cadence Design Systems, Inc., 1997-2021. All Rights Reserved
+
+
+This program is proprietary and confidential information belonging to
+Cadence Design Systems, Inc., and may be used and disclosed only as authorized
+in a license agreement controlling such use and disclosure.
+
+// Warning: This version is 1905 days old. You can download the latest version from http://downloads.cadence.com.
+
+// Command: read design -sv -define SYNTHESIS sim/lec_inline/id_ex_old.v -golden
+// Parsing file sim/lec_inline/id_ex_old.v ...
+// Golden root module is set to 'id_ex'
+// Warning: (RTL25) Non-automatic task/function (occurrence:1)
+// Note: (VLG9.2) The `define macro is used (occurrence:1)
+// Warning: (DIR6.1) Ignored compiler directive is detected (occurrence:1)
+// Warning: (DIR6.2) Supported compiler directive is detected (occurrence:2)
+// Note: Read VERILOG design successfully
+CPU time     : 0.16    seconds
+Elapse time  : 5       seconds
+Memory usage : 95.53   M bytes
+// Command: read design -sv -define SYNTHESIS rtl/core/id_ex.v -revised
+// Parsing file rtl/core/id_ex.v ...
+// Revised root module is set to 'id_ex'
+// Note: (VLG9.2) The `define macro is used (occurrence:1)
+// Warning: (DIR6.1) Ignored compiler directive is detected (occurrence:1)
+// Warning: (DIR6.2) Supported compiler directive is detected (occurrence:2)
+// Note: Read VERILOG design successfully
+// Command: set system mode lec
+// Processing Golden ...
+// Modeling Golden ...
+// Processing Revised ...
+// Modeling Revised ...
+// Mapping key points ...
+================================================================================
+Mapped points: SYSTEM class
+--------------------------------------------------------------------------------
+Mapped points     PI     PO     DFF       Total   
+--------------------------------------------------------------------------------
+Golden            270    202    202       674     
+--------------------------------------------------------------------------------
+Revised           270    202    202       674     
+================================================================================
+// Command: add compared points -all
+// 404 compared points added to compare list
+// Command: compare
+================================================================================
+Compared points      PO     DFF       Total   
+--------------------------------------------------------------------------------
+Equivalent           202    202       404     
+================================================================================
+// Command: report compare data -summary
+================================================================================
+Compared points      PO     DFF       Total   
+--------------------------------------------------------------------------------
+Equivalent           202    202       404     
+================================================================================
+// Command: exit -force

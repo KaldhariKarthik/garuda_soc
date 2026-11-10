@@ -1,0 +1,79 @@
+                          CONFORMAL (R)
+                   Version 21.10-s300 (22-Aug-2021) (64 bit executable)
+   Copyright (c) Cadence Design Systems, Inc., 1997-2021. All Rights Reserved
+
+
+This program is proprietary and confidential information belonging to
+Cadence Design Systems, Inc., and may be used and disclosed only as authorized
+in a license agreement controlling such use and disclosure.
+
+// Warning: This version is 1905 days old. You can download the latest version from http://downloads.cadence.com.
+
+// Command: read design -sv -define SYNTHESIS sim/lec_inline/debug_module_old.v -golden
+// Parsing file sim/lec_inline/debug_module_old.v ...
+// Golden root module is set to 'debug_module'
+// Warning: (RTL1.2) Variable/signal is assigned by multiple non-blocking assignments (occurrence:10)
+// Warning: (RTL1.5b) Potential loss of RHS msb or carry-out bit (occurrence:2)
+// Note: (RTL5.5a) Default case item with non-X assignment(s) (occurrence:1)
+// Note: (RTL5.7) Default case item with inconsistent assignment(s). (occurrence:2)
+// Warning: (RTL7.11b) Unsigned reference with index/part selection to a signed variable (occurrence:1)
+// Note: (VLG9.2) The `define macro is used (occurrence:1)
+// Warning: (DIR6.1) Ignored compiler directive is detected (occurrence:1)
+// Warning: (DIR6.2) Supported compiler directive is detected (occurrence:2)
+// Note: Read VERILOG design successfully
+// Command: read design -sv -define SYNTHESIS rtl/debug/debug_module.v -revised
+// Parsing file rtl/debug/debug_module.v ...
+// Revised root module is set to 'debug_module'
+// Warning: (RTL1.2) Variable/signal is assigned by multiple non-blocking assignments (occurrence:10)
+// Warning: (RTL1.5b) Potential loss of RHS msb or carry-out bit (occurrence:2)
+// Note: (RTL5.5a) Default case item with non-X assignment(s) (occurrence:1)
+// Note: (RTL5.7) Default case item with inconsistent assignment(s). (occurrence:2)
+// Warning: (RTL7.11b) Unsigned reference with index/part selection to a signed variable (occurrence:1)
+// Note: (VLG9.2) The `define macro is used (occurrence:1)
+// Warning: (DIR6.1) Ignored compiler directive is detected (occurrence:1)
+// Warning: (DIR6.2) Supported compiler directive is detected (occurrence:2)
+// Note: Read VERILOG design successfully
+// Command: set system mode lec
+// Processing Golden ...
+// Modeling Golden ...
+// Processing Revised ...
+// Modeling Revised ...
+// Mapping key points ...
+================================================================================
+Mapped points: SYSTEM class
+--------------------------------------------------------------------------------
+Mapped points     PI     PO     DFF       Total   
+--------------------------------------------------------------------------------
+Golden            225    102    179       506     
+--------------------------------------------------------------------------------
+Revised           225    102    179       506     
+================================================================================
+Unmapped points:
+================================================================================
+Golden:
+--------------------------------------------------------------------------------
+Unmapped points   DFF       Total   
+--------------------------------------------------------------------------------
+Unreachable       96        96      
+================================================================================
+Revised:
+--------------------------------------------------------------------------------
+Unmapped points   DFF       Total   
+--------------------------------------------------------------------------------
+Unreachable       96        96      
+================================================================================
+// Command: add compared points -all
+// 281 compared points added to compare list
+// Command: compare
+================================================================================
+Compared points      PO     DFF       Total   
+--------------------------------------------------------------------------------
+Equivalent           102    179       281     
+================================================================================
+// Command: report compare data -summary
+================================================================================
+Compared points      PO     DFF       Total   
+--------------------------------------------------------------------------------
+Equivalent           102    179       281     
+================================================================================
+// Command: exit -force

@@ -636,6 +636,19 @@ Evidence:
 
 ---
 
+## D-33 — Rulings of 2026-11-10: the flow, I2C PRESCALE, X-propagation, Superlint
+
+**Decided 2026-11-10 (owner)**, in the working session of that day.
+
+| Subject | Ruling | Kind of change |
+|---|---|---|
+| The flow | The industry RTL-to-GDS flow is kept under the 1-TOPS workbook: work goes gate by gate, each gate in flow-stage order, with the flow's extra outputs added. Front-end only, stopping at RTL freeze (F9) until the PDK arrives. Claude runs; Karthik reviews and replays a short command list per gate. | `flow/FLOW.md`, `flow/COMMANDS.md` |
+| I2C-11 | The smallest supported PRESCALE is 61 (I2C spec [N-6.1a]). Below it the OpenCores controller can repeat a command, because its SCL filter delay is longer than a bit phase. | spec, chip programs |
+| X-propagation | The two tasks that kept X-propagation out of design logic (`set_bubble` in `id_ex.v`, `kick` in `debug_module.v`) are written inline. Proven equivalent by Conformal LEC. | RTL, no change of behaviour |
+| Superlint, undetermined checks | The 14 overflow checks and 609 dead-code statements left undetermined after one hour per check group are accepted at F4; dead code is decided at F8, by code coverage and JasperGold UNR, before any waiver. | none |
+
+---
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. None blocks RTL.

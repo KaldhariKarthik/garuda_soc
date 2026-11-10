@@ -462,11 +462,9 @@ XPROP:	FOX Mode Enabled for block
 	File: rtl/core/if_id.v 
 	Line: 46
 
-XPROP:	X-propagation disabled for block
+XPROP:	FOX Mode Enabled for block
 	File: rtl/core/id_ex.v 
-	Line: 114
-	Reasons:
-		UNSXPC: Task/Function having side-effects called in block. Reason of side-effect : Non-local write - Line : 115
+	Line: 101
 
 XPROP:	FOX Mode Enabled for block
 	File: rtl/core/ex_mem.v 
@@ -990,13 +988,7 @@ XPROP:	FOX Mode Enabled for block
 
 XPROP:	FOX Mode Enabled for block
 	File: rtl/debug/debug_module.v 
-	Line: 147
-
-XPROP:	X-propagation disabled for block
-	File: rtl/debug/debug_module.v 
-	Line: 159
-	Reasons:
-		UNSXPC: Task/Function having side-effects called in block. Reason of side-effect : Non-local write - Line : 233
+	Line: 152
 
 XPROP:	FOX Mode Enabled for block
 	File: rtl/debug/sba_master.v 
@@ -1517,10 +1509,10 @@ XPROP METRICS FOR VERILOG:
 		Total modules enabled using xfile/xprop                  = 162
 		Total instances enabled using xfile/xprop                = 243
 		Total always blocks in xprop enabled hierarchy           = 414
-		Total xprop enabled always block in xprop enabled hierarchy = 361
-		Total xprop enabled always block with x-edge enabled in xprop enabled hierarchy   = 272
+		Total xprop enabled always block in xprop enabled hierarchy = 363
+		Total xprop enabled always block with x-edge enabled in xprop enabled hierarchy   = 274
 		Total always block which are edge sensitive in xprop enabled hierarchy   = 305
 		Module cover percentage(162/162)                           = 100.00%
 		Instance cover percentage(243/243)                         = 100.00%
-		Block cover percentage(361/414)                            = 87.20%
-		FF cover percentage(272/305)                               = 89.18%
+		Block cover percentage(363/414)                            = 87.68%
+		FF cover percentage(274/305)                               = 89.84%

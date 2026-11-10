@@ -143,18 +143,11 @@ module debug_module #(
     end
     assign halt_req_o = halt_requested & ~grant_q;
 
-    // start an SBA access if nothing is wrong ([N-7.6])
-    task automatic kick(input w);
-        begin
-            if (sbaccess != 3'd2)       sberror <= 3'd3;
-            else if (sbaddr[1:0] != 0)  sberror <= 3'd2;
-            else begin
-                sba_start_o   <= 1'b1;
-                sba_write_o   <= w;
-                pending_write <= w;
-            end
-        end
-    endtask
+    // An SBA access starts only if nothing is wrong ([N-7.6]): sbaccess must be 2 (32-bit),
+    // else sberror = 3; the address must be word-aligned, else sberror = 2. The check is
+    // written out at each of its three places (SBADDR0 write, SBDATA0 write, SBDATA0 read)
+    // rather than as a task: Xcelium switches X-propagation off for a block that calls a
+    // task writing registers outside it (flow/2_static/xprop/README.md, ruling 2026-11-10).
 
     always @(posedge hclk_i or negedge dm_rst_n_i) begin
         if (!dm_rst_n_i) begin
@@ -219,7 +212,7 @@ module debug_module #(
                         else begin
                             sbaddr <= wdata_i;
                             if (sbreadonaddr && sberror == 0 && !sbbusyerror) begin
-                                // kick() checks the NEW address
+                                // the check uses the NEW address
                                 if (sbaccess != 3'd2)     sberror <= 3'd3;
                                 else if (wdata_i[1:0] != 0) sberror <= 3'd2;
                                 else begin sba_start_o <= 1'b1; sba_write_o <= 1'b0; pending_write <= 1'b0; end
@@ -230,7 +223,11 @@ module debug_module #(
                         if (sbbusy) sbbusyerror <= 1'b1;
                         else begin
                             sbdata <= wdata_i;
-                            if (sberror == 0 && !sbbusyerror) kick(1'b1);
+                            if (sberror == 0 && !sbbusyerror) begin
+                                if (sbaccess != 3'd2)       sberror <= 3'd3;
+                                else if (sbaddr[1:0] != 2'b00) sberror <= 3'd2;
+                                else begin sba_start_o <= 1'b1; sba_write_o <= 1'b1; pending_write <= 1'b1; end
+                            end
                         end
                     end
                     default: ;
@@ -248,7 +245,11 @@ module debug_module #(
                         rdata_o <= sbdata;
                         if (!dmactive) ;                  // DBG-3: no side effects in reset
                         else if (sbbusy) sbbusyerror <= 1'b1;
-                        else if (sbreadondata && sberror == 0 && !sbbusyerror) kick(1'b0);
+                        else if (sbreadondata && sberror == 0 && !sbbusyerror) begin
+                            if (sbaccess != 3'd2)       sberror <= 3'd3;
+                            else if (sbaddr[1:0] != 2'b00) sberror <= 3'd2;
+                            else begin sba_start_o <= 1'b1; sba_write_o <= 1'b0; pending_write <= 1'b0; end
+                        end
                     end
                     A_ACC0L: begin rdata_o <= dsu_acc0_i[31:0]; hold0 <= dsu_acc0_i; end
                     A_ACC0H:       rdata_o <= {16'd0, hold0[47:32]};

@@ -203,7 +203,7 @@ module trap_ctrl #(
     // -----------------------------------------------------------------------
     // trap_pc_o uses idex_pc_i for an interrupt ("resume @ EX instr"), but
     // interrupt entry was not gated on EX actually HOLDING an instruction.
-    // id_ex.set_bubble writes pc_o <= 32'd0, so an interrupt arriving while
+    // An id_ex bubble writes pc_o <= 32'd0, so an interrupt arriving while
     // ID/EX was a bubble - which happens constantly, e.g. in the shadow of
     // every taken branch - latched mepc = 0. MRET then returned to address 0,
     // which is outside the memory map, and the core fell into an endless
