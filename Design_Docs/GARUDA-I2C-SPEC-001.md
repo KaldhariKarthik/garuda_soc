@@ -178,8 +178,12 @@ never one that overruns the mode's limit. Recommended values at `pclk` = 125 MHz
 | Standard (≤100 kHz) | 249 | 94.5 kHz |
 | Fast (≤400 kHz) | 61 | 373.1 kHz |
 
-**[N-6.1a] The smallest usable `PRESCALE` is 3** (found 2026-10-14, bug entry I2C-8).
-The block reads its own SDA back through four flops and the spike filter. With
+**[N-6.1a] The smallest supported `PRESCALE` is 61**, the fast-mode value (ruling of
+2026-11-10, bug entry I2C-11). Firmware writes a value of 61 or more before the first
+command and never a smaller one. Below it the vendored bit controller is not reliable,
+for two reasons found in turn:
+
+- **Below 3 (I2C-8, 2026-10-14).** The block reads its own SDA back through four flops and the spike filter. With
 `PRESCALE` 0, 1 or 2 a bit is shorter than that path: the block compares what it
 sent with a level that is one bit old, reports **arbitration lost** on its own
 first bit, and releases both lines. Nothing reaches the bus. The reset value of
@@ -187,6 +191,21 @@ first bit, and releases both lines. Nothing reaches the bus. The reset value of
 below 3 would be an SCL above 6 MHz at `pclk` = 125 MHz, which no I2C mode
 allows, so the limit costs nothing. After such an attempt the block works as
 soon as `PRESCALE` is legal (clear `IRQSTAT[1]`, send a STOP).
+- **From 3 to about 25, found by JasperGold on 2026-11-10 (I2C-11).** The bit controller's
+  clock-synchronisation detector (`scl_sync`, meant for a second master pulling SCL low)
+  watches the *filtered* SCL. The spike filter samples every `PRESCALE/4 + 1` pclk and
+  votes over three samples, so its delay is about `0.75 × PRESCALE + 7` pclk, longer than
+  one bit phase (`PRESCALE + 1`) at small values. The block then sees its own earlier
+  pull-down arrive late, takes it for another master, reloads its divider early, and runs
+  its last command a second time. A repeated STOP takes the acknowledge meant for the next
+  command's START, so the next byte goes out with no START and with SDA moving while SCL is
+  high. Counterexamples at `PRESCALE` 3 and 8, with a slave stretching the clock.
+
+61 is the lowest value with a real I2C speed (373 kHz, fast mode), far above both limits,
+so the rule costs nothing. The formal run takes it as an assumption
+(`assume_prescale_legal`). The block bench and the UVM environment still run some tests
+below 61 on purpose, to keep simulation short and as out-of-spec stress; they are not
+firmware.
 
 **[N-6.1b] Change `PRESCALE` with `EN` clear.** The bit controller reloads its
 divider only when the count it is on runs out. With `EN` set, a new value takes
@@ -224,6 +243,15 @@ refuses to produce a STOP.
 `PRESCALE` write changed the bit timing inside a bit, and a `TIMEOUT` of 0 disabled the
 countdown already running, so a wedged slave could hold `TIP` for ever (R-8). `CTRL` stays
 writable: `EN` = 0 and `ABORT` are the ways to stop a transfer ([N-6.3], [N-7.5]).
+
+**[N-6.2f]** A `CMD` with `RD` or `WR` and without `STA` continues this master's own
+transfer: firmware writes it only after a `CMD` with `STA` of its own has completed, and
+before a `STO` has completed, arbitration was lost (`STATUS.AL`), or the transfer was
+aborted, timed out or disabled. This is what the table's "send a further byte" means.
+Written on an idle bus, the block pulls SCL low and changes SDA in the same `pclk`, so the
+bus can see a false START (I2C-11, found by JasperGold 2026-11-04 as a counterexample of
+`a_sda_stable_scl_high`). The formal run takes this rule as an assumption
+(`assume_byte_continues_own`), as it takes [N-6.1a] for `PRESCALE`.
 
 **[N-6.2c]** A `CMD` with none of `RD`, `WR` and `STO` (`STA` alone, `NACK`
 alone, or 0) has nothing to put on the bus. It is refused in the same way: ignored,

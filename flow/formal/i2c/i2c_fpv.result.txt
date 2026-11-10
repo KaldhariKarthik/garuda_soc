@@ -1,13 +1,21 @@
 top: garuda_i2c_top
 children: 
 script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh i2c)
-proved: 46/49
-tool: JasperGold Apps 2022.09p002, 2026-11-04
+proved: 47/49
+tool: JasperGold Apps 2022.09p002, 2026-11-10
 
 clocks: pclk_i             resets: preset_n_i 
-covers: 60, not covered: 1
+covers: 66, not covered: 10
 assertions not proved:
-  cex garuda_i2c_top.u_i2c_sva.a_al_releases
   undetermined garuda_i2c_top.u_i2c_sva.a_tip_bounded
-  cex garuda_i2c_top.u_i2c_sva.a_sda_stable_scl_high
+  undetermined garuda_i2c_top.u_i2c_sva.a_sda_stable_scl_high
+  cover undetermined: garuda_i2c_top.u_shim.u_shim_sva.g_evt[3].a_shim_capture:precondition1
+  cover undetermined: garuda_i2c_top.u_shim.u_shim_sva.g_evt[3].a_shim_set_beats_clear:precondition1
+  cover undetermined: garuda_i2c_top.u_shim.u_shim_sva.g_evt[3].a_shim_sticky:precondition1
+  cover undetermined: garuda_i2c_top.u_shim.u_shim_sva.g_evt[3].c_shim_evt
+  cover undetermined: garuda_i2c_top.u_shim.u_shim_sva.g_evt[3].c_shim_clear
   cover unreachable: garuda_i2c_top.u_shim.u_shim_sva.a_shim_reset:precondition1
+  cover undetermined: garuda_i2c_top.u_i2c_sva.assume_byte_continues_own:precondition1
+  cover undetermined: garuda_i2c_top.u_i2c_sva.c_byte_continues_own
+  cover undetermined: garuda_i2c_top.u_i2c_sva.a_sda_stable_scl_high:precondition1
+  cover undetermined: garuda_i2c_top.u_i2c_sva.g_evt[3].a_set_beats_clear:precondition1

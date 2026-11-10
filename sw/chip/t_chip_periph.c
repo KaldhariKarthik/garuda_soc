@@ -64,7 +64,7 @@ int main(void)
     PREG(GARUDA_APB_BASE_PWM, 0x008u) = 0u;         /* motors off again */
 
     /* 4: I2C reaches the slave model on the board - a full register write */
-    PREG(GARUDA_APB_BASE_I2C, 0x000u) = 24u;        /* PRESCALE: fast, for sim */
+    PREG(GARUDA_APB_BASE_I2C, 0x000u) = 61u;        /* PRESCALE: the smallest supported, [N-6.1a] */
     PREG(GARUDA_APB_BASE_I2C, 0x018u) = 20000u;     /* TIMEOUT */
     PREG(GARUDA_APB_BASE_I2C, 0x004u) = 1u;         /* EN */
     {

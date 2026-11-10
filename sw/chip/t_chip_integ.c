@@ -200,7 +200,7 @@ int main(void)
     MARK(45);
     clic_only(GARUDA_CLIC_ID_I2C);
     before = total_hits();
-    PREG(I2C, 0x000u) = 24u;                        /* PRESCALE: fast, for sim */
+    PREG(I2C, 0x000u) = 61u;                        /* PRESCALE: the smallest supported, [N-6.1a] */
     PREG(I2C, 0x018u) = 20000u;                     /* TIMEOUT */
     PREG(I2C, 0x004u) = 1u;                         /* EN */
     PREG(I2C, IRQSTAT) = 0xFu;
