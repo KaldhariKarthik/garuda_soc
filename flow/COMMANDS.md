@@ -732,3 +732,17 @@ Start every replay with:
 | R4.5 | `make csr_map` | last line `csr_map: RTL vs contract 0 mismatch(es); RTL vs Spike 0 unexplained difference(s) -> PASS` (row 4.15) |
 | R4.6 | `python3.12 tools/mutate.py flow/mutation/spim_mutants.py` | six lines, each with an assertion named or `bench: FAIL`: every planted defect is caught (`flow/mutation/README.md`) |
 | R4.7 | `/home/install/JASPER/bin/jg -allow_unsupported_OS -fpv -batch -no_jges -proj sim/replay/dsram_bank flow/formal/mem/dsram_bank_fpv.tcl >& sim/replay/dsram_bank.log` then `cat sim/formal_dsram_bank/props.txt` | two `proven` and two `covered`: mutant mem M8 can never be seen on a legal AHB bus |
+
+### G5, stages F6 and F8 for the core: Xcelium runs against Spike, benchmarks, core coverage
+
+Run in tcsh on 2026-11-11. R5.1 to R5.4 use Xcelium (`xrun`, from `source /home/install/cshrc`);
+R5.5 and R5.6 use irun 15.2 and IMC (the `set path` line at the top). Record: `flow/4_core/core_g5.md`.
+
+| # | Type | Look for |
+|---|---|---|
+| R5.1 | `make archtest_xrun` | last line `archtest_xrun: 59 of 59 PASS, every signature matches Spike` (row 5.3; about 6 minutes; 15 lines name ARCH-DEV-1, the one accepted difference) |
+| R5.2 | `make riscv_dv DV_TESTS=illegal DV_SEEDS=3` | three lines `PASS      MATCH` and `riscv_dv: all programs PASSED and MATCH Spike` (rows 5.4, 5.5; `DV_SEEDS=100` with no `DV_TESTS` is the 1000-seed run, about 1.5 hours) |
+| R5.3 | `make regress_rand SEED=7` | `PASS=66 FAIL=0`: every ISA test under random 0..8 wait states on both ports, each also MATCH with Spike (row 5.6) |
+| R5.4 | `make bench` | `BENCH coremark PASS ... CoreMark/MHz=1.668`, `BENCH dhrystone PASS ... DMIPS/MHz=0.323`, two `LOCKSTEP ... MATCH` lines, `bench: PASS` (row 5.7; about 10 minutes) |
+| R5.5 | `bash flow/regress/run_test.sh prog_halt__t_core_hartreset_timeout` | `GARUDA_RESULT: PASS prog_halt__t_core_hartreset_timeout`: one row of a core manifest run under irun with coverage (the new `prog_*` tests of `garuda.vsif`) |
+| R5.6 | `imc -exec flow/cov/core_g5_merge.tcl -logfile sim/replay/imc_g5.log` then `grep -e "exclusions applied" -e "^csr_file " sim/replay/imc_g5.log sim/cov_g5/type_raw.txt sim/cov_g5/type_waived.txt` | `exclusions applied: 586, not applied: 0`; `csr_file` toggle `79.00% (775/981)` raw and `100.00% (775/775/206)` with the waivers (row 5.9). Needs every run of `flow/cov/core_g5_runs.txt` in `sim/run_test/` first (the vManager session, or `run_test.sh` per line) |

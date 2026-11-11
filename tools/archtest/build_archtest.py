@@ -14,7 +14,13 @@ compares it with Spike's.
 import glob, json, os, re, subprocess, sys
 R = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 T = os.environ.get("GARUDA_TOOLS", os.path.expanduser("~/tools"))
-AT = os.path.join(T, "src", "riscv-arch-test-3.10.0", "riscv-test-suite")
+# riscv-arch-test 3.10.0: $ARCHTEST_ROOT, else ~/tools/src (Track A machine), else
+# ~/external (lab machine, TOOL-A13)
+AT = os.environ.get("ARCHTEST_ROOT") or next(
+    (d for d in (os.path.join(T, "src", "riscv-arch-test-3.10.0"),
+                 os.path.expanduser("~/external/riscv-arch-test-3.10.0")) if os.path.isdir(d)),
+    os.path.join(T, "src", "riscv-arch-test-3.10.0"))
+AT = os.path.join(AT, "riscv-test-suite")
 CC = os.path.join(os.environ.get("RISCV_BIN", f"{T}/riscv/bin"), os.environ.get("RISCV_PREFIX", "riscv-none-elf-"))
 OUT = os.path.join(R, "logs", "core", "raw", "archtest_build")
 os.makedirs(OUT, exist_ok=True)
@@ -28,8 +34,11 @@ for suite, keep in SUITES.items():
         txt = open(src).read()
         defs = set(re.findall(r"def\s+([A-Za-z_0-9]+)\s*=\s*([A-Za-z_0-9]+)", txt))
         elf, bin_, hexf = (os.path.join(OUT, name + e) for e in (".elf", ".bin", ".hex"))
+        # -fno-pic -no-pie --build-id=none: the defaults of a bare-metal GCC. The lab's
+        # Vitis GCC is a Linux one: without them `la` becomes a GOT access and a
+        # build-id note lands in front of the code at the reset vector (TOOL-A15)
         cmd = [CC + "gcc", "-march=rv32i_zmmul_zicsr_zifencei", "-mabi=ilp32", "-static", "-mcmodel=medany",
-               "-fvisibility=hidden", "-mno-relax", "-nostdlib", "-nostartfiles", "-T", f"{R}/tb/core/archtest/env/link.ld",
+               "-fvisibility=hidden", "-mno-relax", "-fno-pic", "-no-pie", "-Wl,--build-id=none", "-nostdlib", "-nostartfiles", "-T", f"{R}/tb/core/archtest/env/link.ld",
                "-I", f"{R}/tb/core/archtest/env", "-I", f"{AT}/env", "-DXLEN=32",
                *[f"-D{k}={v}" for k, v in sorted(defs)], src, "-o", elf]
         p = subprocess.run(cmd, capture_output=True, text=True)

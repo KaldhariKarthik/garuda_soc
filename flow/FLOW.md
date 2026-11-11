@@ -16,9 +16,9 @@ F10 to F16 are listed so the whole flow is visible; nothing in them is planned y
 | F3 | RTL design: core, peripherals, SoC integration | editor; HAL for every change | G2 2.1 to 2.10, 2.14 to 2.17; G3 3.1 to 3.13, 3.17 to 3.22 | done except 3.10 (SRAM macros wait for the PDK) |
 | F4 | Static checks: lint, CDC, RDC, X-propagation, coding rules | HAL; JasperGold Superlint and CDC; xrun `-xprop` | G2 2.11 to 2.13; G3 3.14 to 3.16 | done 2026-11-10 (`core_lint.md`, `coding_rules.md`, `xprop/`, Superlint rerun at one hour per group); X-propagation reaches every block of design logic (two tasks inlined by ruling, proven equivalent by LEC) |
 | F5 | Block and unit verification: UVM, bound SVA, formal, mutation | xrun / irun; JasperGold FPV and UNR; Verilator for mutants | G4 4.1 to 4.9, 4.15, 4.16 | core units done 2026-11-10 (`flow/3_unit/`); every mutant set killed; block coverage closure carried to F8 |
-| F6 | Core verification: ISA tests, Spike lockstep, random programs, benchmarks | irun; Spike; riscv-dv | G4 4.10 to 4.14; G5 5.1 to 5.7, 5.10 | G4 rows done 2026-11-10; G5 next |
+| F6 | Core verification: ISA tests, Spike lockstep, random programs, benchmarks | Xcelium, irun; Spike; riscv-dv | G4 4.10 to 4.14; G5 5.1 to 5.7, 5.10 | done 2026-11-11 (`flow/4_core/core_g5.md`): arch-test 59/59 and 1000 riscv-dv seeds on Xcelium against Spike, random waits, CoreMark and Dhrystone |
 | F7 | SoC verification: without the core, then the whole chip with C programs | irun; UVM; `sw/chip` | G6 6.1 to 6.14, 6.18 | in progress |
-| F8 | Regression and coverage closure; bug curve | vManager; IMC; JasperGold UNR | G5 5.8, 5.9; G6 6.15 to 6.17 | in progress |
+| F8 | Regression and coverage closure; bug curve | vManager; IMC; JasperGold UNR | G5 5.8, 5.9; G6 6.15 to 6.17 | core code coverage at the bar with waivers (5.9, 2026-11-11); core functional 96.1%, 30 bins open (5.8); SoC not started |
 | F9 | **RTL freeze**: review and tag | git | G6 6.19 | not started; **end of the current plan** |
 | F10 | Synthesis and timing constraints | Genus; `flow/constraints/garuda.sdc` | G7 | waits for the PDK (a 45 nm trial exists: `flow/signoff/g1/`) |
 | F11 | DFT: scan, MBIST, boundary scan | Modus | G7 | waits for the PDK |
@@ -148,8 +148,8 @@ reference model, under random programs, interrupts and bus waits.
 **Exit.** ISA tests pass in lockstep with Spike; riscv-dv seeds pass (1000 agreed);
 trap and privileged tests pass; memory-latency randomisation passes; CoreMark and
 Dhrystone run and report a score per MHz; core bug list closed.
-**Outputs.** `sw/riscv-tests/`, `tools/lockstep.py`; riscv-dv runs; `sw/bench/` (to be
-written); `Docs/bugs/track_a.md`.
+**Outputs.** `sw/riscv-tests/`, `tools/lockstep.py`; riscv-dv runs; `sw/bench/`;
+`flow/4_core/`; `Docs/bugs/track_a.md`.
 **Rows.** G4 4.10 to 4.14; G5 5.1 to 5.7, 5.10.
 
 ## F7 SoC verification
@@ -201,9 +201,9 @@ New evidence is written into the folder of its stage.
 | F3 | `rtl/`, `flow/signoff/g3/` |
 | F4 | `flow/2_static/`, `flow/signoff/g3/` |
 | F5 | `flow/formal/`, `flow/cov/`, `flow/mutation/`, `tb/<block>/`, `logs/<block>/evidence/` |
-| F6 | `sw/riscv-tests/`, `tools/lockstep.py`, `flow/nightly/` |
+| F6 | `sw/riscv-tests/`, `tools/lockstep.py`, `flow/nightly/`, `flow/4_core/` |
 | F7 | `tb/soc/`, `sw/chip/`, `flow/signoff/runs/` |
-| F8 | `flow/regress/`, `flow/cov/`, `Docs/coverage/`, `flow/nightly/` |
+| F8 | `flow/regress/`, `flow/cov/`, `Docs/coverage/`, `flow/nightly/`, `flow/4_core/imc/` |
 | F9 | `flow/reviews/`, `flow/signoff/runs/` |
 
 ## Replays
@@ -216,3 +216,4 @@ Each gate already closed is replayed by Karthik from `flow/COMMANDS.md`, "Replay
 | G1 | F1, F2 | |
 | G2, G3 | F3, F4 | |
 | G4 | F5, F6 (unit level) | |
+| G5 | F6, F8 (core) | |

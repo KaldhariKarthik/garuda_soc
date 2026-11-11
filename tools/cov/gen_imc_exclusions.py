@@ -18,6 +18,10 @@ per bit and instance, with the waiver's reason as the comment:
 import sys, os, re, collections, tomllib
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 blk = sys.argv[1]
+# --type: write <blk>_exclusions_type.tcl, one `exclude -type <module>` per waived
+# signal instead of one per instance, for a report merged across benches by module
+# type (the core in tb_boot and tb_core_halt, and its unit benches; G5 5.9)
+BY_TYPE = "--type" in sys.argv[2:]
 cfg = tomllib.load(open(os.path.join(ROOT, f"tb/{blk}/cov/cov.toml"), "rb"))
 inst = dict(cfg.get("imc_instances", {}))
 
@@ -59,7 +63,10 @@ def tcl_esc(s):
     return s.replace("[", "\\[").replace("]", "\\]")
 
 def comment(s):
-    return s.replace('"', "'")
+    # the comment goes inside Tcl double quotes: [ ] $ \ would be substituted, and
+    # IMC then drops the whole exclusion ("invalid command name", TOOL-A16)
+    s = s.replace('"', "'").replace("\\", "\\\\")
+    return s.replace("[", "\\[").replace("]", "\\]").replace("$", "\\$")
 
 out = [f"# " + "=" * 77,
        f"# {blk}_exclusions.tcl - coverage waivers for the {blk.upper()} (GENERATED, do not edit:",
@@ -90,9 +97,9 @@ for w in wv:
             sig = lab.rsplit(":", 1)[0]
             bits[sig] = 1
         out.append(f"# {w['id']} ({cat}): {comment(w['evidence'])}")
-        for i in inst.get(mod, [mod]):
+        for i in ([mod] if BY_TYPE else inst.get(mod, [mod])):
             for sig in bits:
-                out.append(f'exclude -inst {tcl_esc(i)} -toggle {tcl_esc(sig)} -comment "{comment(w["reason"])}"')
+                out.append(f'exclude {"-type" if BY_TYPE else "-inst"} {tcl_esc(i)} -toggle {tcl_esc(sig)} -comment "{comment(w["reason"])}"')
                 n += 1
     else:
         out.append(f"# {w['id']} ({cat}, {met}) TO COMPLETE IN IMC: {w['file']} {w['match']}")
@@ -104,6 +111,11 @@ for w in wv:
             out.append(f'# exclude -inst {tcl_esc(i)} {kind} -comment "{comment(w["reason"])}"')
 if skipped:
     out.append(f"# not exported (category tool: Verilator defects, IMC measures these points): {', '.join(skipped)}")
-p = os.path.join(ROOT, f"flow/cov/{blk}_exclusions.tcl")
+p = os.path.join(ROOT, f"flow/cov/{blk}_exclusions{'_type' if BY_TYPE else ''}.tcl")
+if BY_TYPE:
+    out = [l.replace("Instances are written from the DUT top", "Module types, not instances (--type); the DUT top is")
+            .replace(f"python3 tools/cov/gen_imc_exclusions.py {blk}", f"python3 tools/cov/gen_imc_exclusions.py {blk} --type")
+            .replace(f"flow/cov/{blk}_report.tcl maps that top onto the simulation's instance path.",
+                     "applied with `report -type` (flow/cov/core_g5_merge.tcl).") for l in out]
 open(p, "w").write("\n".join(out) + "\n")
 print(f"{os.path.relpath(p, ROOT)}: {n} toggle exclusion(s), {len(skipped)} tool waiver(s) not exported")

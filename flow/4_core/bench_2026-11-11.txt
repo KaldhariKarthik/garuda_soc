@@ -1,0 +1,99 @@
+1-TOPS 5.7: CoreMark and Dhrystone on Xcelium 22.09, tb_boot, zero wait states (sw/bench/README.md)
+date: 2026-11-11; tree: garuda_soc @ b1e33d7 plus the uncommitted G5 changes of that day; command: make bench (tcsh, source /home/install/cshrc)
+
+BENCH dhrystone PASS  runs=500 values_checked=18 cycles=881074 instret=426038 CPI=2.068 cycles/run=1762.1 DMIPS/MHz=0.323
+BENCH coremark PASS  iterations=20 cycles=11988191 instret=6297136 CPI=1.904 CoreMark/MHz=1.668
+BENCH dhrystone PASS  runs=500 values_checked=18 cycles=50331648 instret=16777216 CPI=3.000 (fake timer: lockstep build, no score)
+LOCKSTEP dhrystone_ls MATCH: 504322 instructions identical; 49611 stores, 0 traps, 0 CSR instructions (0 with a value) identical
+BENCH coremark PASS  iterations=2 cycles=50331648 instret=16777216 CPI=3.000 (fake timer: lockstep build, no score)
+LOCKSTEP coremark_ls MATCH: 675869 instructions identical; 32185 stores, 0 traps, 0 CSR instructions (0 with a value) identical
+bench: PASS
+
+==== coremark: program output (sim/bench/coremark.report.txt) ====
+2K performance run parameters for coremark.
+CoreMark Size    : 666
+Total ticks      : 11988143
+Total time (secs): 11
+Iterations/Sec   : 1
+Iterations       : 20
+Compiler version : GCC13.4.0
+Compiler flags   : -O2 -march=rv32i_zmmul_zicsr
+Memory location  : STACK
+seedcrc          : 0xe9f5
+[0]crclist       : 0xe714
+[0]crcmatrix     : 0x1fd7
+[0]crcstate      : 0x8e3a
+[0]crcfinal      : 0x4983
+Correct operation validated. See README.md for run and reporting rules.
+------------------------------------------------------------------------
+BENCH coremark PASS  iterations=20 cycles=11988191 instret=6297136 CPI=1.904 CoreMark/MHz=1.668
+
+==== dhrystone: program output (sim/bench/dhrystone.report.txt) ====
+
+Dhrystone Benchmark, Version C, Version 2.2
+Program compiled without 'register' attribute
+Using rdcycle(), HZ=1000000
+
+Trying 500 runs through Dhrystone:
+Final values of the variables used in the benchmark:
+
+Int_Glob:            5
+        should be:   5
+Bool_Glob:           1
+        should be:   1
+Ch_1_Glob:           A
+        should be:   A
+Ch_2_Glob:           B
+        should be:   B
+Arr_1_Glob[8]:       7
+        should be:   7
+Arr_2_Glob[8][7]:    510
+        should be:   Number_Of_Runs + 10
+Ptr_Glob->
+  Ptr_Comp:          268697376
+        should be:   (implementation-dependent)
+  Discr:             0
+        should be:   0
+  Enum_Comp:         2
+        should be:   2
+  Int_Comp:          17
+        should be:   17
+  Str_Comp:          DHRYSTONE PROGRAM, SOME STRING
+        should be:   DHRYSTONE PROGRAM, SOME STRING
+Next_Ptr_Glob->
+  Ptr_Comp:          268697376
+        should be:   (implementation-dependent), same as above
+  Discr:             0
+        should be:   0
+  Enum_Comp:         1
+        should be:   1
+  Int_Comp:          18
+        should be:   18
+  Str_Comp:          DHRYSTONE PROGRAM, SOME STRING
+        should be:   DHRYSTONE PROGRAM, SOME STRING
+Int_1_Loc:           5
+        should be:   5
+Int_2_Loc:           13
+        should be:   13
+Int_3_Loc:           7
+        should be:   7
+Enum_Loc:            1
+        should be:   1
+Str_1_Loc:           DHRYSTONE PROGRAM, 1'ST STRING
+        should be:   DHRYSTONE PROGRAM, 1'ST STRING
+Str_2_Loc:           DHRYSTONE PROGRAM, 2'ND STRING
+        should be:   DHRYSTONE PROGRAM, 2'ND STRING
+
+Microseconds for one run through Dhrystone: 1762
+Dhrystones per Second:                      567
+------------------------------------------------------------------------
+BENCH dhrystone PASS  runs=500 values_checked=18 cycles=881074 instret=426038 CPI=2.068 cycles/run=1762.1 DMIPS/MHz=0.323
+
+==== the same with wait states: make bench SIM_DIR=sim/w23 BENCH_ARGS="+IWAIT=2 +DWAIT=3" ====
+BENCH dhrystone PASS  runs=500 values_checked=18 cycles=1936167 instret=426038 CPI=4.545 cycles/run=3872.3 DMIPS/MHz=0.147
+BENCH coremark PASS  iterations=20 cycles=26695399 instret=6297136 CPI=4.239 CoreMark/MHz=0.749
+BENCH dhrystone PASS  runs=500 values_checked=18 cycles=50331648 instret=16777216 CPI=3.000 (fake timer: lockstep build, no score)
+LOCKSTEP dhrystone_ls MATCH: 504322 instructions identical; 49611 stores, 0 traps, 0 CSR instructions (0 with a value) identical
+BENCH coremark PASS  iterations=2 cycles=50331648 instret=16777216 CPI=3.000 (fake timer: lockstep build, no score)
+LOCKSTEP coremark_ls MATCH: 675869 instructions identical; 32185 stores, 0 traps, 0 CSR instructions (0 with a value) identical
+bench: PASS

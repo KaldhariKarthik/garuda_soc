@@ -37,6 +37,7 @@ sim/
 # Bare-metal software build outputs (regenerate with `make sw` / `make isa_tests`)
 sw/build/
 sw/riscv-tests/build/
+sw/bench/build/
 *.spike.log
 
 # DSU vector generator outputs when run without --outdir (BUGS 1f)

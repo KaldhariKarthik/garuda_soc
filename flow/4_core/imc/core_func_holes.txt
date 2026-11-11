@@ -1,0 +1,295 @@
+<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+<> User: kkarthik
+
+Host: cadence-ws
+
+Report date: Wed 11 Nov 2026 22:34:43 IST
+
+Report options: -detail -metrics covergroup -out sim/cov_g5/func_type_holes.txt -type -uncovered
+
+Coverage database path: /home/kkarthik/garuda_soc/sim/cov_g5/merged
+
+Coverage model files: /home/kkarthik/garuda_soc/sim/cov_g5/merged/icc_00833092_338f78b5.ucm
+
+Coverage data files: /home/kkarthik/garuda_soc/sim/cov_g5/merged/icc_00833092_338f78b5.ucd
+
+CCF files:  None
+
+
+Coverage database date: Tue 10 Nov 2026 15:45:05 IST
+
+*** There were no refinement files applied ***
+
+ <>
+<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+
+Coverage Table Legend
+---------------------
+  EXCL   excluded using refinement rule
+  P-EXCL excluded from parent
+  U-EXCL excluded and unreachable by IEV
+  T-EXCL excluded from type
+  S-EXCL smart excluded using refinement rule
+  EXCL(S) smart indirect excluded
+  EMPTY  all children are excluded
+  CONST  marked constant during simulation
+  IGN    marked ignored during simulation
+  UNG    marked ungradeable during simulation
+  DES    marked deselected during simulation
+  UNR    marked unreachable by IEV
+
+
+Uncovered CoverGroup Detail Report, Type Based
+==============================================
+
+Type name: dsu_cov
+File name: /home/kkarthik/garuda_soc/tb/dsu/dsu_cov.sv
+Number of uncovered cover bins: 129 of 320
+
+Name                           Average, Covered Grade         Line  Source Code                    
+---------------------------------------------------------------------------------------------------
+cg_instr                       93.25%, 59.55% (184/309)       47    covergroup cg_instr @(posedge clk iff take); 
+|--x_arith_operands            37.76% (74/196)                66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[ZERO],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[ZERO],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[ZERO],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[ZERO],auto[NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[ZERO],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[ZERO],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[ONE],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[ONE],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[ONE],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[ONE],auto[POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[ONE],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[ONE],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[MINUS_ONE],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[MINUS_ONE],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[MINUS_ONE],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[MINUS_ONE],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[NEG],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[NEG],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[NEG],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[MAX_POS],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[MAX_POS],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[MAX_POS],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[MAX_POS],auto[POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[MAX_POS],auto[NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[MAX_POS],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[MIN_NEG],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[MIN_NEG],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MAC],auto[MIN_NEG],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[ZERO],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[ZERO],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[ZERO],auto[NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[ZERO],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[ZERO],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[ONE],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[ONE],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[ONE],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[ONE],auto[NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[ONE],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[ONE],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MINUS_ONE],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MINUS_ONE],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MINUS_ONE],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MINUS_ONE],auto[POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MINUS_ONE],auto[NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MINUS_ONE],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MINUS_ONE],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[POS],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[POS],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[POS],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[POS],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[NEG],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MAX_POS],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MAX_POS],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MAX_POS],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MAX_POS],auto[POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MAX_POS],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MIN_NEG],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MIN_NEG],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MIN_NEG],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACSUB],auto[MIN_NEG],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[ZERO],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[ZERO],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[ZERO],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[ZERO],auto[POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[ZERO],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[ZERO],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[ONE],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[ONE],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[ONE],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[ONE],auto[POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[ONE],auto[NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[ONE],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[ONE],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[MINUS_ONE],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[MINUS_ONE],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[MINUS_ONE],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[MINUS_ONE],auto[POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[MINUS_ONE],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[MINUS_ONE],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[POS],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[POS],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[POS],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[NEG],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[NEG],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[MAX_POS],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[MAX_POS],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[MAX_POS],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[MAX_POS],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[MIN_NEG],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACABS],auto[MIN_NEG],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[ZERO],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[ZERO],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[ZERO],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[ZERO],auto[POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[ZERO],auto[NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[ZERO],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[ONE],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[ONE],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[ONE],auto[POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[ONE],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[ONE],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MINUS_ONE],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MINUS_ONE],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MINUS_ONE],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MINUS_ONE],auto[NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MINUS_ONE],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MINUS_ONE],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[POS],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[POS],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[NEG],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[NEG],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MAX_POS],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MAX_POS],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MAX_POS],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MAX_POS],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MAX_POS],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MIN_NEG],auto[ZERO] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MIN_NEG],auto[ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MIN_NEG],auto[MINUS_ONE] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MIN_NEG],auto[NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MIN_NEG],auto[MAX_POS] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+| |--auto[MACDOT],auto[MIN_NEG],auto[MIN_NEG] 0.00% (0/1)                    66    x_arith_operands: cross cp_op, cp_rs1, cp_rs2 { ignore_bins na = !binsof(cp_op) intersect {MAC, MACSUB, MACABS, MACDOT}; } 
+|--x_op_accstate               93.75% (30/32)                 67    x_op_accstate: cross cp_op, cp_acc_state { ignore_bins na = binsof(cp_op) intersect {ILLEGAL, MACLOAD, MACCLEAR}; } 
+| |--auto[MACSUB],above_32bit  0.00% (0/1)                    67    x_op_accstate: cross cp_op, cp_acc_state { ignore_bins na = binsof(cp_op) intersect {ILLEGAL, MACLOAD, MACCLEAR}; } 
+| |--auto[MACABS],above_32bit  0.00% (0/1)                    67    x_op_accstate: cross cp_op, cp_acc_state { ignore_bins na = binsof(cp_op) intersect {ILLEGAL, MACLOAD, MACCLEAR}; } 
+|--x_shift                     87.50% (7/8)                   68    x_shift: cross cp_shift_amt, cp_shift_dir; 
+| |--zero,auto[1]              0.00% (0/1)                    68    x_shift: cross cp_shift_amt, cp_shift_dir; 
+cg_events                      70.00%, 63.64% (7/11)          74    covergroup cg_events @(posedge clk iff rst_n); 
+|--cp_flush_busy               0.00% (0/3)                    79    cp_flush_busy: coverpoint {flush, dsu_busy} { bins flush_while_busy = {2'b11}; bins flush_idle = {2'b10}; bins busy = {2'b01}; } 
+| |--flush_while_busy          0.00% (0/1)                    79    cp_flush_busy: coverpoint {flush, dsu_busy} { bins flush_while_busy = {2'b11}; bins flush_idle = {2'b10}; bins busy = {2'b01}; } 
+| |--flush_idle                0.00% (0/1)                    79    cp_flush_busy: coverpoint {flush, dsu_busy} { bins flush_while_busy = {2'b11}; bins flush_idle = {2'b10}; bins busy = {2'b01}; } 
+| |--busy                      0.00% (0/1)                    79    cp_flush_busy: coverpoint {flush, dsu_busy} { bins flush_while_busy = {2'b11}; bins flush_idle = {2'b10}; bins busy = {2'b01}; } 
+|--cp_back_to_back             50.00% (1/2)                   80    cp_back_to_back: coverpoint (take && dsu_busy); 
+| |--auto[1]                   0.00% (0/1)                    80    cp_back_to_back: coverpoint (take && dsu_busy); 
+
+Type name: dsu_cov_vplan
+File name: /home/kkarthik/garuda_soc/tb/dsu/dsu_cov_vplan.sv
+Number of uncovered cover bins: 18 of 142
+
+Name                           Average, Covered Grade         Line  Source Code                    
+---------------------------------------------------------------------------------------------------
+cg_dsu_mac                     99.17%, 96.97% (32/33)         48    covergroup cg_dsu_mac with function sample(bit sub, bit sa, bit sb, bit [1:0] s); 
+|--x_op_signs_acc              95.83% (23/24)                 53    x_op_signs_acc: cross cp_op, cp_sa, cp_sb, cp_acc; 
+| |--macsub,auto[1],auto[1],fx 0.00% (0/1)                    53    x_op_signs_acc: cross cp_op, cp_sa, cp_sb, cp_acc; 
+cg_dsu_ovf                     62.50%, 34.62% (9/26)          69    covergroup cg_dsu_ovf with function sample(bit [1:0] a, bit neg, int op); 
+|--cp_op                       33.33% (1/3)                   72    cp_op:  coverpoint op { bins mac_sel = {0}; bins macsub = {1}; bins macdot = {3}; } 
+| |--mac_sel                   0.00% (0/1)                    72    cp_op:  coverpoint op { bins mac_sel = {0}; bins macsub = {1}; bins macdot = {3}; } 
+| |--macsub                    0.00% (0/1)                    72    cp_op:  coverpoint op { bins mac_sel = {0}; bins macsub = {1}; bins macdot = {3}; } 
+|--x_acc_dir_op                16.67% (3/18)                  73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--fx,positive,mac_sel       0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--fx,positive,macsub        0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--fx,negative,mac_sel       0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--fx,negative,macsub        0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--fx,negative,macdot        0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--fy,positive,mac_sel       0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--fy,positive,macsub        0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--fy,positive,macdot        0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--fy,negative,mac_sel       0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--fy,negative,macsub        0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--mag,positive,mac_sel      0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--mag,positive,macsub       0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--mag,negative,mac_sel      0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--mag,negative,macsub       0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+| |--mag,negative,macdot       0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
+
+Type name: garuda_cov
+File name: /home/kkarthik/garuda_soc/tb/cov/garuda_cov.sv
+Number of uncovered cover bins: 1 of 229
+
+Name                           Average, Covered Grade         Line  Source Code                    
+---------------------------------------------------------------------------------------------------
+cg_hazard                      97.92%, 96.77% (30/31)         141   covergroup cg_hazard @(posedge clk_i iff rst_n_i); 
+|--x_fwd_under_stall           83.33% (5/6)                   156   x_fwd_under_stall: cross cp_fwd_a, cp_ms; 
+| |--exmem,auto[1]             0.00% (0/1)                    156   x_fwd_under_stall: cross cp_fwd_a, cp_ms; 
+
+Type name: garuda_core_cov_ext
+File name: /home/kkarthik/garuda_soc/tb/cov/garuda_core_cov_ext.sv
+Number of uncovered cover bins: 21 of 181
+
+Name                           Average, Covered Grade         Line  Source Code                    
+---------------------------------------------------------------------------------------------------
+cg_csr                         94.66%, 87.62% (92/105)        50    covergroup cg_csr @(posedge clk_i iff (rst_n_i && csr_en && csr_op != 2'b00 && (csr_commit || csr_illegal))); 
+|--x_csr_op                    83.33% (45/54)                 57    x_csr_op: cross cp_csr, cp_op; 
+| |--auto[MISA],rc             0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
+| |--auto[MIP],rw              0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
+| |--auto[MIP],rc              0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
+| |--auto[MNXTI],rw            0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
+| |--auto[MNXTI],rc            0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
+| |--auto[MINTSTATUS],rw       0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
+| |--auto[MINTSTATUS],rc       0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
+| |--auto[MINTSTATUS_STD],rw   0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
+| |--auto[MINTSTATUS_STD],rc   0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
+|--x_csr_illegal               84.62% (22/26)                 61    x_csr_illegal: cross cp_csr, cp_illegal { 
+| |--auto[MIP],auto[1]         0.00% (0/1)                    61    x_csr_illegal: cross cp_csr, cp_illegal { 
+| |--auto[MNXTI],auto[1]       0.00% (0/1)                    61    x_csr_illegal: cross cp_csr, cp_illegal { 
+| |--auto[MINTSTATUS],auto[1]  0.00% (0/1)                    61    x_csr_illegal: cross cp_csr, cp_illegal { 
+| |--auto[MINTSTATUS_STD],auto[1] 0.00% (0/1)                    61    x_csr_illegal: cross cp_csr, cp_illegal { 
+cg_irq                         81.50%, 80.77% (21/26)         69    covergroup cg_irq @(posedge clk_i iff (rst_n_i && tr_enter && tr_is_int)); 
+|--cp_id                       70.00% (7/10)                  71    cp_id: coverpoint clic_id { bins dma_done[] = {[1:6]}; bins dma_err = {[8:13]}; bins spis = {14}; 
+| |--dma_done[2]               0.00% (0/1)                    71    cp_id: coverpoint clic_id { bins dma_done[] = {[1:6]}; bins dma_err = {[8:13]}; bins spis = {14}; 
+| |--spis                      0.00% (0/1)                    71    cp_id: coverpoint clic_id { bins dma_done[] = {[1:6]}; bins dma_err = {[8:13]}; bins spis = {14}; 
+| |--timer_mti                 0.00% (0/1)                    72    bins periph = {[15:22]}; bins timer_mti = {0}; } 
+|--cp_threshold                50.00% (1/2)                   76    cp_threshold: coverpoint (mintthresh != 8'd0) { bins off = {0}; bins set = {1}; } 
+| |--set                       0.00% (0/1)                    76    cp_threshold: coverpoint (mintthresh != 8'd0) { bins off = {0}; bins set = {1}; } 
+|--x_level_nesting             87.50% (7/8)                   77    x_level_nesting: cross cp_level, cp_nesting; 
+| |--lowest,nested             0.00% (0/1)                    77    x_level_nesting: cross cp_level, cp_nesting; 
+cg_sleep                       58.33%, 57.14% (4/7)           91    covergroup cg_sleep @(posedge clk_i iff (rst_n_i && q_d && !quiescent)); 
+|--cp_len                      66.67% (2/3)                   94    cp_len: coverpoint sleep_len { bins one = {1}; bins short_ = {[2:15]}; bins long_ = {[16:255]}; } 
+| |--one                       0.00% (0/1)                    94    cp_len: coverpoint sleep_len { bins one = {1}; bins short_ = {[2:15]}; bins long_ = {[16:255]}; } 
+|--cp_woken_by                 50.00% (2/4)                   95    cp_woken_by: coverpoint {clic_wake_cond, mti_pending} { bins clic = {2'b10}; bins timer = {2'b01}; bins both = {2'b11}; bins other = {2'b00}; } 
+| |--both                      0.00% (0/1)                    95    cp_woken_by: coverpoint {clic_wake_cond, mti_pending} { bins clic = {2'b10}; bins timer = {2'b01}; bins both = {2'b11}; bins other = {2'b00}; } 
+| |--other                     0.00% (0/1)                    95    cp_woken_by: coverpoint {clic_wake_cond, mti_pending} { bins clic = {2'b10}; bins timer = {2'b01}; bins both = {2'b11}; bins other = {2'b00}; } 
+
+Type name: garuda_cov_ext
+File name: /home/kkarthik/garuda_soc/tb/cov/garuda_cov_ext.sv
+Number of uncovered cover bins: 2 of 107
+
+Name                           Average, Covered Grade         Line  Source Code                    
+---------------------------------------------------------------------------------------------------
+cg_pipe                        90.48%, 90.48% (19/21)         87    covergroup cg_pipe @(posedge clk_i iff rst_n_i); 
+|--cp_ifid                     66.67% (2/3)                   91    cp_ifid:  coverpoint {ifid_s, ifid_f}   { bins hold = {2'b10}; bins flush = {2'b01}; bins hold_flush = {2'b11}; } 
+| |--hold_flush                0.00% (0/1)                    91    cp_ifid:  coverpoint {ifid_s, ifid_f}   { bins hold = {2'b10}; bins flush = {2'b01}; bins hold_flush = {2'b11}; } 
+|--cp_idex                     66.67% (2/3)                   92    cp_idex:  coverpoint {idex_s, idex_f}   { bins hold = {2'b10}; bins flush = {2'b01}; bins hold_flush = {2'b11}; } 
+| |--hold_flush                0.00% (0/1)                    92    cp_idex:  coverpoint {idex_s, idex_f}   { bins hold = {2'b10}; bins flush = {2'b01}; bins hold_flush = {2'b11}; } 
+
+Type name: garuda_cov_vplan
+File name: /home/kkarthik/garuda_soc/tb/cov/garuda_cov_vplan.sv
+Number of uncovered cover bins: 6 of 246
+
+Name                           Average, Covered Grade         Line  Source Code                    
+---------------------------------------------------------------------------------------------------
+cg_irq                         57.14%, 54.55% (6/11)          128   covergroup cg_irq with function sample(int what, int klass_in_ex); 
+|--x_insn_class                71.43% (5/7)                   129   x_insn_class: coverpoint klass_in_ex iff (what == 0) { 
+| |--mul                       0.00% (0/1)                    130   bins alu = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5}; bins bubble = {6}; } 
+| |--bubble                    0.00% (0/1)                    130   bins alu = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5}; bins bubble = {6}; } 
+|--cp_mti_with_clic            0.00% (0/3)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
+| |--both_pending              0.00% (0/1)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
+| |--clic_taken                0.00% (0/1)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
+| |--mti_taken                 0.00% (0/1)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
+cg_wfi                         93.75%, 90.91% (10/11)         152   covergroup cg_wfi with function sample(bit mti, bit mie_v, int asleep); 
+|--x_wake_mie                  75.00% (3/4)                   155   x_wake_mie: cross cp_src, cp_mie; 
+| |--clic,auto[0]              0.00% (0/1)                    155   x_wake_mie: cross cp_src, cp_mie; 
+

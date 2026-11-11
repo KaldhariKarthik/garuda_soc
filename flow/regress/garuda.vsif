@@ -46,6 +46,12 @@ group garuda {
             test unit_garuda_prefetch_buffer {}; test unit_garuda_iport_ahb_master {}; test unit_d_port_ahb_master {};
             test unit_mem_stage {}; test unit_garuda_if_stage_top {}; test unit_forward_unit {};
         };
+        // the plain-Verilog benches of the pipeline registers and control (G4 section 2);
+        // tb_core_halt needs an image and runs as prog_halt__* below
+        group core_smokes {
+            test smoke_ex_smoke {}; test smoke_exmem_ifid {}; test smoke_idex_fwd {}; test smoke_pipe_ctrl {};
+            test smoke_trap_ctrl {}; test smoke_csr_file {}; test smoke_csr_file_t12 {};
+        };
         group core_dsu {
             test dsu {};
         };
@@ -71,6 +77,45 @@ group garuda {
             test san_t_hold_flush_matrix {}; test san_t_dsu_b2b {};
             test san_t_lead1_mret_buserr {}; test san_t_lead2_wfi_buserr {};
             test san_t_hazard {}; test san_t_hazard_nowait {}; test san_t_cov_fault {}; test san_t_cov_csr {};
+        };
+        // G5 5.5, 5.8: three seeds of every riscv-dv test for coverage (run_test.sh dv_*;
+        // `make riscv_dv` builds them and compares each with Spike first)
+        group core_riscv_dv {
+            test dv_arith_s1 {}; test dv_arith_s2 {}; test dv_arith_s3 {};
+            test dv_rand_instr_s1 {}; test dv_rand_instr_s2 {}; test dv_rand_instr_s3 {};
+            test dv_jump_stress_s1 {}; test dv_jump_stress_s2 {}; test dv_jump_stress_s3 {};
+            test dv_loop_s1 {}; test dv_loop_s2 {}; test dv_loop_s3 {};
+            test dv_rand_jump_s1 {}; test dv_rand_jump_s2 {}; test dv_rand_jump_s3 {};
+            test dv_mmu_stress_s1 {}; test dv_mmu_stress_s2 {}; test dv_mmu_stress_s3 {};
+            test dv_no_fence_s1 {}; test dv_no_fence_s2 {}; test dv_no_fence_s3 {};
+            test dv_illegal_s1 {}; test dv_illegal_s2 {}; test dv_illegal_s3 {};
+            test dv_ebreak_s1 {}; test dv_ebreak_s2 {}; test dv_ebreak_s3 {};
+            test dv_unaligned_s1 {}; test dv_unaligned_s2 {}; test dv_unaligned_s3 {};
+        };
+        // G5 5.8, 5.9: the core programs that until 2026-11-11 ran only on the open
+        // flow; each is one row of tb/core/run/<suite>.toml (run_test.sh prog_*)
+        group core_programs {
+            test prog_sanity__t_dsu_gate {}; test prog_sanity__t_cov_wfi_mti {};
+            test prog_directed__t_core_mret_buserr {}; test prog_directed__t_core_mret_buserr_w2 {};
+            test prog_directed__t_core_wfi_buserr {}; test prog_directed__t_core_wfi_buserr_w2 {};
+            test prog_directed__t_core_ctl {}; test prog_directed__t_core_ctl_w3 {};
+            test prog_directed__t_core_irq_nest {}; test prog_directed__t_core_irq_nest_w2 {};
+            test prog_directed__t_core_preempt {}; test prog_directed__t_core_preempt_w2 {};
+            test prog_directed__t_exc_priority {}; test prog_directed__t_exc_priority_w3 {};
+            test prog_covtests__t_cov_fault_w3 {}; test prog_covtests__t_cov_illegal {};
+            test prog_covtests__t_cov_dsu {}; test prog_covtests__t_dsu_ovf_raw {};
+            test prog_covtests__t_cov_rereset {}; test prog_covtests__t_cov_rereset_w2 {};
+            test prog_covtests__t_cov_irq {}; test prog_covtests__t_cov_irq_w2 {};
+            test prog_covtests__t_cov_misfetch {}; test prog_covtests__t_cov_misfetch_w2 {};
+            // t_dsu_macsat_rd left out: it checks MACSAT as the pre-D-32 spec had it and fails
+            // by design (DSU-15, tb/core/run/xfail.tsv) until it is rewritten to the ruled spec
+            test prog_covtests__t_cov_misfetch_d3 {};
+            test prog_covtests__t_cov_vplan {}; test prog_covtests__t_cov_vplan_w2 {};
+            test prog_extra__boot6 {}; test prog_extra__ctest1 {}; test prog_extra__dsu_flag2 {};
+            test prog_perf__perf_nowait {}; test prog_perf__perf_w2 {}; test prog_perf__perf_rand {};
+            test prog_halt__t_core_hartreset_s1 {}; test prog_halt__t_core_hartreset_s2 {};
+            test prog_halt__t_core_hartreset_s3 {}; test prog_halt__t_core_hartreset_timeout {};
+            test prog_csr__t12_level_stack {};
         };
     };
 

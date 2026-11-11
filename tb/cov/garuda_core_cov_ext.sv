@@ -42,7 +42,12 @@ module garuda_core_cov_ext (
         12'hFB1: which = MINTSTATUS_STD; 12'hB00, 12'hB80, 12'hB02, 12'hB82: which = COUNTERS_M;
         12'hC00, 12'hC80, 12'hC02, 12'hC82: which = COUNTERS_U; 12'hF11, 12'hF12, 12'hF13, 12'hF14: which = IDS;
         12'hBC0: which = DSU_OVF; default: which = UNIMPL; endcase
-    covergroup cg_csr @(posedge clk_i iff (rst_n_i && csr_en && csr_commit && csr_op != 2'b00));
+    // Sampled on the cycle a CSR access commits, OR is refused: a refused access
+    // (csr_illegal) raises the illegal-instruction trap, which squashes EX, so
+    // csr_commit is 0 in exactly that cycle. Gated on csr_commit alone, as it was
+    // until 2026-11-11, cp_illegal = 1 and every write to a read-only CSR could
+    // never be sampled (TB-B5).
+    covergroup cg_csr @(posedge clk_i iff (rst_n_i && csr_en && csr_op != 2'b00 && (csr_commit || csr_illegal)));
         option.per_instance = 1;
         cp_csr: coverpoint which;
         cp_op: coverpoint csr_op { bins rw = {2'b01}; bins rs = {2'b10}; bins rc = {2'b11}; }
@@ -50,7 +55,14 @@ module garuda_core_cov_ext (
         cp_illegal: coverpoint csr_illegal;
         // every CSR read and written each way; the read-only ones refused when written
         x_csr_op: cross cp_csr, cp_op;
-        x_csr_illegal: cross cp_csr, cp_illegal;
+        // csr_file.v illegal_csr_o: only a write to a read-only CSR (the IDs, mintstatus,
+        // mnxti, dsu_ovf, mip, the user counters) or any access to an unimplemented
+        // address is refused; a writable CSR is never refused
+        x_csr_illegal: cross cp_csr, cp_illegal {
+            ignore_bins writable_never_refused =
+                binsof(cp_csr) intersect {MSTATUS, MISA, MIE, MTVEC, MSCRATCH, MEPC, MCAUSE, MTVAL,
+                                          MINTTHRESH, COUNTERS_M} && binsof(cp_illegal) intersect {1'b1};
+        }
     endgroup
 
     // ---- interrupts -------------------------------------------------------------

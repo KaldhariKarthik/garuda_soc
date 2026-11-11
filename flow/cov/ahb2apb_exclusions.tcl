@@ -24,11 +24,11 @@
 #   evidence: PROVEN a_win_cap_legal, as CB-WIN12
 # exclude -inst ahb2apb_bridge.u_fsm -expression <IMC id> -comment "Same guard as CB-WIN12: (win_i < 12) is never false."
 # CT-SIZE2-ahb2apb_bridge (constant): literal rtl/core/garuda_iport_ahb_master.v:89, rtl/core/load_store_unit.v:32, rtl/debug/sba_master.v:42, rtl/dma/dma_engine.v {1'b0, size}
-exclude -inst ahb2apb_bridge -toggle hsize_i\[2\] -comment "The AHB is 32 bits wide: HSIZE <= word, so HSIZE[2] is 0 on the shared bus."
+exclude -inst ahb2apb_bridge -toggle hsize_i\[2\] -comment "The AHB is 32 bits wide: HSIZE <= word, so HSIZE\[2\] is 0 on the shared bus."
 # CT-TOCNT-ahb2apb_apb_fsm (constant): PROVEN fv_apb / fv_apb_div a_to_cnt_max (rtl/ahb2apb/ahb2apb_sva.sv)
 exclude -inst ahb2apb_bridge.u_fsm -toggle to_cnt\[4\] -comment "The 5-bit timeout counter stops at TIMEOUT-1 = 15, so bit 4 is never set."
 # CT-WORDALIGN-ahb2apb_bridge (constant): PROVEN fv_apb a_subword_no_apb; AHB-Lite alignment rule checked by ahb_lite_checker on every master port; GARUDA masters: BUS-E (a_iport_pc_aligned PROVEN), the LSU traps misaligned accesses
-exclude -inst ahb2apb_bridge -toggle addr_cap\[0\] -comment "Only word transfers reach APB (sub-word is rejected, a_subword_no_apb PROVEN) and an AHB-Lite word transfer is word-aligned, so the captured address and PADDR bits [1:0] are 0."
-exclude -inst ahb2apb_bridge -toggle addr_cap\[1\] -comment "Only word transfers reach APB (sub-word is rejected, a_subword_no_apb PROVEN) and an AHB-Lite word transfer is word-aligned, so the captured address and PADDR bits [1:0] are 0."
-exclude -inst ahb2apb_bridge -toggle paddr_o\[0\] -comment "Only word transfers reach APB (sub-word is rejected, a_subword_no_apb PROVEN) and an AHB-Lite word transfer is word-aligned, so the captured address and PADDR bits [1:0] are 0."
-exclude -inst ahb2apb_bridge -toggle paddr_o\[1\] -comment "Only word transfers reach APB (sub-word is rejected, a_subword_no_apb PROVEN) and an AHB-Lite word transfer is word-aligned, so the captured address and PADDR bits [1:0] are 0."
+exclude -inst ahb2apb_bridge -toggle addr_cap\[0\] -comment "Only word transfers reach APB (sub-word is rejected, a_subword_no_apb PROVEN) and an AHB-Lite word transfer is word-aligned, so the captured address and PADDR bits \[1:0\] are 0."
+exclude -inst ahb2apb_bridge -toggle addr_cap\[1\] -comment "Only word transfers reach APB (sub-word is rejected, a_subword_no_apb PROVEN) and an AHB-Lite word transfer is word-aligned, so the captured address and PADDR bits \[1:0\] are 0."
+exclude -inst ahb2apb_bridge -toggle paddr_o\[0\] -comment "Only word transfers reach APB (sub-word is rejected, a_subword_no_apb PROVEN) and an AHB-Lite word transfer is word-aligned, so the captured address and PADDR bits \[1:0\] are 0."
+exclude -inst ahb2apb_bridge -toggle paddr_o\[1\] -comment "Only word transfers reach APB (sub-word is rejected, a_subword_no_apb PROVEN) and an AHB-Lite word transfer is word-aligned, so the captured address and PADDR bits \[1:0\] are 0."

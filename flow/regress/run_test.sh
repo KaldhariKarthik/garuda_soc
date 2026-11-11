@@ -97,6 +97,21 @@ case "$T" in
                esac
                ARGS="+HEX=sw/build/$n.hex +COMMIT=$OUT/commit.log +COVTAG=$OUT/fcov +MAXCYC=400000 +QUIET $x"
                MARK="TOHOST=1 -> PASSED" ;;
+  # any row of a core manifest, tb/core/run/<suite>.toml, as the open flow runs it
+  # (G5 5.8, 5.9): prog_<suite>__<test>, e.g. prog_covtests__t_cov_irq_w2
+  prog_*)      sets=$(env -u LD_LIBRARY_PATH python3.12 tools/regress/toml_test.py "${T#prog_}") \
+                 || { echo "[FAIL] run_test.sh: $T"; echo "GARUDA_RESULT: FAIL $T"; exit 1; }
+               eval "$sets"
+               [ "$TOP" = tb_boot ] && ARGS="$ARGS +COMMIT=$OUT/commit.log +COVTAG=$OUT/fcov" ;;
+  # a riscv-dv program as `make riscv_dv` left it in sim/riscv_dv/asm (G5 5.5, 5.8):
+  # dv_<test>_s<seed>, e.g. dv_rand_instr_s3. Run `make riscv_dv` first; it already
+  # compared every program with Spike, so this run is for coverage.
+  dv_*)        n=${T#dv_}; FL=tb/soc/filelist_boot_cov.f; TOP=tb_boot
+               e=sim/riscv_dv/asm/$n.elf
+               [ -f "$e" ] || { echo "[FAIL] run_test.sh: $e not built (make riscv_dv)"; echo "GARUDA_RESULT: FAIL $T"; exit 1; }
+               th=$(${RISCV_BIN}/${RISCV_PREFIX}nm "$e" | awk '$3=="tohost"{print $1}')
+               ARGS="+HEX=sim/riscv_dv/asm/$n.hex +TOHOST=$th +COMMIT=$OUT/commit.log +COVTAG=$OUT/fcov +MAXCYC=600000 +QUIET"
+               MARK="TOHOST=1 -> PASSED" ;;
   # ---- stage 6: the chip from the pins --------------------------------------
   chip_*)      m=${T#chip_}; FL=tb/soc/filelist_chip_cov.f; TOP=tb_chip; MARK="RESULT: +PASSED"
                case "$m" in

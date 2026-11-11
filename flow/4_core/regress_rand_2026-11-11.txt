@@ -1,0 +1,183 @@
+1-TOPS 5.6: memory-latency randomisation on Xcelium 22.09, tb_boot; every run also compared with Spike instruction by instruction (scripts/run_regression.sh)
+date: 2026-11-11; tree: garuda_soc @ b1e33d7 plus the uncommitted G5 changes of that day (no RTL change); tcsh, source /home/install/cshrc
+
+== 1. make regress_wait: fixed waits, I-port 2, D-port 3, 66 ISA tests
+TEST         TOHOST     LOCKSTEP   AHB-I/D   NOTE
+----------------------------------------------------------------------
+add          PASS       MATCH      0/0       
+addi         PASS       MATCH      0/0       
+and          PASS       MATCH      0/0       
+andi         PASS       MATCH      0/0       
+auipc        PASS       MATCH      0/0       
+beq          PASS       MATCH      0/0       
+bge          PASS       MATCH      0/0       
+bgeu         PASS       MATCH      0/0       
+blt          PASS       MATCH      0/0       
+bltu         PASS       MATCH      0/0       
+bne          PASS       MATCH      0/0       
+fence_i      PASS       MATCH      0/0       
+jal          PASS       MATCH      0/0       
+jalr         PASS       MATCH      0/0       
+lb           PASS       MATCH      0/0       
+lbu          PASS       MATCH      0/0       
+ld_st        PASS       MATCH      0/0       
+lh           PASS       MATCH      0/0       
+lhu          PASS       MATCH      0/0       
+lui          PASS       MATCH      0/0       
+lw           PASS       MATCH      0/0       
+mul          PASS       MATCH      0/0       
+mulh         PASS       MATCH      0/0       
+mulhsu       PASS       MATCH      0/0       
+mulhu        PASS       MATCH      0/0       
+or           PASS       MATCH      0/0       
+ori          PASS       MATCH      0/0       
+p-csr        PASS       MATCH      0/0       
+p-csr_readzero PASS       MATCH      0/0       
+p-csr_warl   PASS       MATCH      0/0       
+p-div        PASS       n/a        0/0       
+p-divu       PASS       n/a        0/0       
+p-illegal    PASS       MATCH      0/0       
+p-lh-misaligned PASS       MATCH      0/0       
+p-lw-misaligned PASS       MATCH      0/0       
+p-ma_addr    PASS       MATCH      0/0       
+p-ma_data    PASS       MATCH      0/0       
+p-ma_fetch   PASS       MATCH      0/0       
+p-mcsr       PASS       n/a        0/0       
+p-minstret   PASS       MATCH      0/0       
+p-rem        PASS       n/a        0/0       
+p-remu       PASS       n/a        0/0       
+p-sbreak     PASS       n/a        0/0       
+p-scall      PASS       MATCH      0/0       
+p-shamt      PASS       MATCH      0/0       
+p-sh-misaligned PASS       MATCH      0/0       
+p-sw-misaligned PASS       MATCH      0/0       
+p-zicntr     PASS       MATCH      0/0       
+sb           PASS       MATCH      0/0       
+sh           PASS       MATCH      0/0       
+simple       PASS       MATCH      0/0       
+sll          PASS       MATCH      0/0       
+slli         PASS       MATCH      0/0       
+slt          PASS       MATCH      0/0       
+slti         PASS       MATCH      0/0       
+sltiu        PASS       MATCH      0/0       
+sltu         PASS       MATCH      0/0       
+sra          PASS       MATCH      0/0       
+srai         PASS       MATCH      0/0       
+srl          PASS       MATCH      0/0       
+srli         PASS       MATCH      0/0       
+st_ld        PASS       MATCH      0/0       
+sub          PASS       MATCH      0/0       
+sw           PASS       MATCH      0/0       
+xor          PASS       MATCH      0/0       
+xori         PASS       MATCH      0/0       
+----------------------------------------------------------------------
+PASS=66 FAIL=0
+
+== 2. make regress_rand SEED=1..20: every I and D access waits a random 0..8 cycles (+IWAIT=8 +DWAIT=8 +IRAND=1 +DRAND=1), 66 ISA tests per seed
+seed 1: PASS=66 FAIL=0 
+seed 2: PASS=66 FAIL=0 
+seed 3: PASS=66 FAIL=0 
+seed 4: PASS=66 FAIL=0 
+seed 5: PASS=66 FAIL=0 
+seed 6: PASS=66 FAIL=0 
+seed 7: PASS=66 FAIL=0 
+seed 8: PASS=66 FAIL=0 
+seed 9: PASS=66 FAIL=0 
+seed 10: PASS=66 FAIL=0 
+seed 11: PASS=66 FAIL=0 
+seed 12: PASS=66 FAIL=0 
+seed 13: PASS=66 FAIL=0 
+seed 14: PASS=66 FAIL=0 
+seed 15: PASS=66 FAIL=0 
+seed 16: PASS=66 FAIL=0 
+seed 17: PASS=66 FAIL=0 
+seed 18: PASS=66 FAIL=0 
+seed 19: PASS=66 FAIL=0 
+seed 20: PASS=66 FAIL=0 
+total: 20 x 66 = 1320 runs, 1320 PASS and MATCH
+
+-- seed 1 in full:
+TEST         TOHOST     LOCKSTEP   AHB-I/D   NOTE
+----------------------------------------------------------------------
+add          PASS       MATCH      0/0       
+addi         PASS       MATCH      0/0       
+and          PASS       MATCH      0/0       
+andi         PASS       MATCH      0/0       
+auipc        PASS       MATCH      0/0       
+beq          PASS       MATCH      0/0       
+bge          PASS       MATCH      0/0       
+bgeu         PASS       MATCH      0/0       
+blt          PASS       MATCH      0/0       
+bltu         PASS       MATCH      0/0       
+bne          PASS       MATCH      0/0       
+fence_i      PASS       MATCH      0/0       
+jal          PASS       MATCH      0/0       
+jalr         PASS       MATCH      0/0       
+lb           PASS       MATCH      0/0       
+lbu          PASS       MATCH      0/0       
+ld_st        PASS       MATCH      0/0       
+lh           PASS       MATCH      0/0       
+lhu          PASS       MATCH      0/0       
+lui          PASS       MATCH      0/0       
+lw           PASS       MATCH      0/0       
+mul          PASS       MATCH      0/0       
+mulh         PASS       MATCH      0/0       
+mulhsu       PASS       MATCH      0/0       
+mulhu        PASS       MATCH      0/0       
+or           PASS       MATCH      0/0       
+ori          PASS       MATCH      0/0       
+p-csr        PASS       MATCH      0/0       
+p-csr_readzero PASS       MATCH      0/0       
+p-csr_warl   PASS       MATCH      0/0       
+p-div        PASS       n/a        0/0       
+p-divu       PASS       n/a        0/0       
+p-illegal    PASS       MATCH      0/0       
+p-lh-misaligned PASS       MATCH      0/0       
+p-lw-misaligned PASS       MATCH      0/0       
+p-ma_addr    PASS       MATCH      0/0       
+p-ma_data    PASS       MATCH      0/0       
+p-ma_fetch   PASS       MATCH      0/0       
+p-mcsr       PASS       n/a        0/0       
+p-minstret   PASS       MATCH      0/0       
+p-rem        PASS       n/a        0/0       
+p-remu       PASS       n/a        0/0       
+p-sbreak     PASS       n/a        0/0       
+p-scall      PASS       MATCH      0/0       
+p-shamt      PASS       MATCH      0/0       
+p-sh-misaligned PASS       MATCH      0/0       
+p-sw-misaligned PASS       MATCH      0/0       
+p-zicntr     PASS       MATCH      0/0       
+sb           PASS       MATCH      0/0       
+sh           PASS       MATCH      0/0       
+simple       PASS       MATCH      0/0       
+sll          PASS       MATCH      0/0       
+slli         PASS       MATCH      0/0       
+slt          PASS       MATCH      0/0       
+slti         PASS       MATCH      0/0       
+sltiu        PASS       MATCH      0/0       
+sltu         PASS       MATCH      0/0       
+sra          PASS       MATCH      0/0       
+srai         PASS       MATCH      0/0       
+srl          PASS       MATCH      0/0       
+srli         PASS       MATCH      0/0       
+st_ld        PASS       MATCH      0/0       
+sub          PASS       MATCH      0/0       
+sw           PASS       MATCH      0/0       
+xor          PASS       MATCH      0/0       
+xori         PASS       MATCH      0/0       
+----------------------------------------------------------------------
+PASS=66 FAIL=0
+
+== 3. flush and back-pressure programs under the same random waits, seeds 1..10:
+   HEXDIR=sw/build RUNDIR=sim/stress_rand MAXCYC=600000 EXTRA_ARGS='+IWAIT=8 +DWAIT=8 +IRAND=1 +DRAND=1 +SEED=<n>' bash scripts/run_regression.sh t_flush t_hazard t_mem t_loadbranch
+seed 1: PASS=4 FAIL=0 
+seed 2: PASS=4 FAIL=0 
+seed 3: PASS=4 FAIL=0 
+seed 4: PASS=4 FAIL=0 
+seed 5: PASS=4 FAIL=0 
+seed 6: PASS=4 FAIL=0 
+seed 7: PASS=4 FAIL=0 
+seed 8: PASS=4 FAIL=0 
+seed 9: PASS=4 FAIL=0 
+seed 10: PASS=4 FAIL=0 
+total: 10 x 4 = 40 runs, 40 PASS and MATCH

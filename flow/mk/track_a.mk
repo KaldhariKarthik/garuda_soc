@@ -170,8 +170,61 @@ riscv_dv:                                        ## random programs in lockstep 
 	   done; done; \
 	 if [ -s $$D/.fail ]; then n=$$(wc -l < $$D/.fail); rm -f $$D/.fail; echo "riscv_dv: $$n program(s) FAILED"; exit 1; else echo "riscv_dv: all programs PASSED and MATCH Spike"; fi
 
+# =============================================================================
+# riscv-arch-test 3.10.0 on Xcelium (1-TOPS 5.3, stage F6): I, Zmmul multiply,
+# Zifencei and privilege suites; each test's signature against Spike's
+# (tools/archtest/sigcheck.py). Same tests as the open flow's core_archtest.
+#   make archtest_xrun
+# =============================================================================
+archtest_xrun:                                   ## riscv-arch-test on Xcelium, signatures against Spike
+	@D=$(SIM_DIR)/archtest_xrun; B=logs/core/raw/archtest_build; mkdir -p $$D; rm -f $$D/.fail; \
+	 RISCV_BIN=$(dir $(RISCV_GNU)) RISCV_PREFIX=$(notdir $(RISCV_GNU))- python3.12 tools/archtest/build_archtest.py > $$D/build.log 2>&1 \
+	   || { echo "archtest_xrun: build failed, see $$D/build.log"; exit 1; }; \
+	 $(XRUN) -f tb/soc/filelist_boot_mem2m.f -top tb_boot -xmlibdirname $$D/rtl.d -snapshot garuda_boot -elaborate -l $$D/elab.log > /dev/null 2>&1; \
+	 if grep -qE '^(xrun|xmelab|xmvlog): \*[EF]' $$D/elab.log; then echo "archtest_xrun: RTL did not elaborate, see $$D/elab.log"; exit 1; fi; \
+	 printf "%-30s %-6s %s\n" TEST RTL SIGNATURE; \
+	 for e in $$B/*.elf; do t=$$(basename $$e .elf); \
+	   eval $$($(RISCV_GNU)-nm $$e | awk '$$3=="begin_signature"{print "sb="$$1} $$3=="end_signature"{print "se="$$1} $$3=="tohost"{print "th="$$1}'); \
+	   rm -f $$D/$$t.signature; \
+	   $(XRUN) -R -xmlibdirname $$D/rtl.d -snapshot garuda_boot -l $$D/$$t.run.log +HEX=$$B/$$t.hex +COMMIT=$$D/$$t.commit.log \
+	      +MAXCYC=3000000 +QUIET +TOHOST=$$th +SIGFILE=$$D/$$t.signature +SIGBEGIN=$$sb +SIGEND=$$se > /dev/null 2>&1; \
+	   if grep -q 'TOHOST=1 -> PASSED' $$D/$$t.run.log && grep -q 'AHB-PROTOCOL: iport=0 dport=0' $$D/$$t.run.log; then r=PASS; else r=FAIL; fi; \
+	   s=$$(SPIKE=$(SPIKE) python3.12 tools/archtest/sigcheck.py $$e $$D/$$t.signature 2>&1); \
+	   if [ $$? -eq 0 ]; then v=MATCH; else v=DIFFER; fi; s=$$(echo "$$s" | tail -1); \
+	   printf "%-30s %-6s %-7s %s\n" $$t $$r $$v "$$s"; \
+	   if [ $$r != PASS ] || [ $$v != MATCH ]; then echo F >> $$D/.fail; fi; \
+	 done; \
+	 n=$$(ls $$B/*.elf | wc -l); \
+	 if [ -s $$D/.fail ]; then echo "archtest_xrun: $$(wc -l < $$D/.fail) of $$n FAILED"; rm -f $$D/.fail; exit 1; \
+	 else echo "archtest_xrun: $$n of $$n PASS, every signature matches Spike"; fi
+
+# =============================================================================
+# CoreMark and Dhrystone on Xcelium (1-TOPS 5.7, stage F6): sw/bench/README.md.
+# Timed images give the score per MHz (tools/bench_report.py); the _ls images
+# (fake timer) are compared with Spike instruction by instruction.
+#   make bench          BENCH_ARGS="+IWAIT=2 +DWAIT=3" for the score with waits
+# =============================================================================
+BENCH_ARGS ?=
+bench:                                           ## CoreMark + Dhrystone: score per MHz, lockstep with Spike
+	@D=$(SIM_DIR)/bench; S=sw/bench/build; mkdir -p $$D; rm -f $$D/.fail; \
+	 $(MAKE) --no-print-directory -C sw/bench > $$D/build.log 2>&1 || { echo "bench: build failed, see $$D/build.log"; exit 1; }; \
+	 $(XRUN) -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname $$D/rtl.d -snapshot garuda_boot -elaborate -l $$D/elab.log > /dev/null 2>&1; \
+	 if grep -qE '^(xrun|xmelab|xmvlog): \*[EF]' $$D/elab.log; then echo "bench: RTL did not elaborate, see $$D/elab.log"; exit 1; fi; \
+	 for t in dhrystone coremark dhrystone_ls coremark_ls; do \
+	   th=$$($(RISCV_GNU)-nm $$S/$$t.elf | awk '$$3=="tohost"{print $$1}'); rm -f $$D/$$t.sig; \
+	   $(XRUN) -R -xmlibdirname $$D/rtl.d -snapshot garuda_boot -l $$D/$$t.run.log +HEX=$$S/$$t.hex +COMMIT=$$D/$$t.commit.log \
+	      +TOHOST=$$th +MAXCYC=40000000 +QUIET +SIGFILE=$$D/$$t.sig +SIGBEGIN=10030000 +SIGEND=10034000 $(BENCH_ARGS) > /dev/null 2>&1; \
+	   grep -q 'TOHOST=1 -> PASSED' $$D/$$t.run.log && grep -q 'AHB-PROTOCOL: iport=0 dport=0' $$D/$$t.run.log || { echo "$$t: RTL run FAILED, see $$D/$$t.run.log"; echo F >> $$D/.fail; }; \
+	   python3 tools/bench_report.py $$D/$$t.sig > $$D/$$t.report.txt 2>&1 || echo F >> $$D/.fail; tail -1 $$D/$$t.report.txt; \
+	   case $$t in *_ls) \
+	     ls=$$(python3 tools/lockstep.py --rtl $$D/$$t.commit.log --elf $$S/$$t.elf --spike-log $$D/$$t.spike.log --spike $(SPIKE) --tohost $$th --max 3 2>&1); \
+	     rm -f $$D/$$t.spike.log; echo "$$ls" | grep -E '^(MATCH|DIVERGE)' | sed "s/^/LOCKSTEP $$t /"; \
+	     echo "$$ls" | grep -q '^MATCH' || echo F >> $$D/.fail;; esac; \
+	 done; \
+	 if [ -s $$D/.fail ]; then rm -f $$D/.fail; echo "bench: FAILED"; exit 1; else echo "bench: PASS"; fi
+
 # Which CSR addresses exist on the core and which on Spike: all 4096 read on both.
-csr_map:                                         ## CSR existence, RTL against Spike
+csr_map:                                        ## CSR existence, RTL against Spike
 	@D=$(SIM_DIR)/csr_map; mkdir -p $$D; python3 tools/csr_map.py gen $$D/csr_sweep.S; \
 	 $(RISCV_GNU)-gcc -march=rv32im_zicsr -mabi=ilp32 -mno-relax -fno-pic -static -nostdlib -nostartfiles -Wa,--no-warn \
 	    -T sw/common/link.ld -no-pie -Wl,--no-warn-rwx-segments $$D/csr_sweep.S -o $$D/csr_sweep.elf 2> $$D/build.log; \
