@@ -16,7 +16,20 @@ proc pd_libs {} {
 }
 
 proc pd_read_libs {} {
+    if {[pd_corners] ne ""} {
+        foreach c [pd_corners] { foreach l [pd_corner_libs $c] { read_liberty $l } }
+        return
+    }
     foreach l [pd_libs] { read_liberty $l }
+}
+
+# Multi-corner (PD-13): PD_CORNERS, e.g. "WC TC BC"; empty = one corner, as before.
+proc pd_corners {} {
+    if {[info exists ::env(PD_CORNERS)]} { return $::env(PD_CORNERS) }
+    return ""
+}
+proc pd_corner_libs {c} {
+    return $::env(PD_LIBS_$c)
 }
 
 # The DIVSEL scenarios this run checks, e.g. {div2 div4 div8 div16}.
@@ -37,7 +50,20 @@ proc pd_define_scenes {} {
         set_mode $m
         set_propagated_clock [all_clocks]
     }
-    foreach m [pd_modes] { define_scene $m -mode $m -liberty $libs }
+    if {[pd_corners] eq ""} {
+        foreach m [pd_modes] { define_scene $m -mode $m -liberty $libs }
+    } else {
+        # PD_SCENES (optional): only these <mode>_<corner> scenes, to bound the
+        # memory of the repair (PD-13: 4 scenes of two corners took 8 GiB).
+        set only {}
+        if {[info exists ::env(PD_SCENES)]} { set only $::env(PD_SCENES) }
+        foreach m [pd_modes] {
+            foreach c [pd_corners] {
+                if {$only ne "" && [lsearch -exact $only ${m}_$c] < 0} { continue }
+                define_scene ${m}_$c -mode $m -liberty [pd_corner_libs $c]
+            }
+        }
+    }
 }
 
 proc pd_rc {} {
@@ -48,10 +74,10 @@ proc pd_rc {} {
 # A scene is named after its mode (pd_define_scenes).
 proc pd_scene_summary {tag} {
     puts "=== $tag"
-    puts [format "%-8s %12s %12s %12s %12s" scene setup_wns setup_tns hold_wns hold_tns]
+    puts [format "%-10s %12s %12s %12s %12s" scene setup_wns setup_tns hold_wns hold_tns]
     foreach s [sta::scenes] {
         set n [sta::scene_property $s name]
-        puts [format "%-8s %12s %12s %12s %12s" $n \
+        puts [format "%-10s %12s %12s %12s %12s" $n \
             [sta::format_time [sta::worst_slack_scene $s max] 2] \
             [sta::format_time [sta::total_negative_slack_scene_cmd $s max] 2] \
             [sta::format_time [sta::worst_slack_scene $s min] 2] \

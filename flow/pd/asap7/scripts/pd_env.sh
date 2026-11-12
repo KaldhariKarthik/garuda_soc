@@ -73,6 +73,22 @@ for _v in LIB_FILES ADDITIONAL_LIBS PLATFORM_DIR DONT_USE_CELLS; do
 done
 unset _v _val
 
+# Multi-corner (PD-13), only when PD_CORNERS is set, e.g. "WC TC BC" (SS, TT,
+# FF): PD_LIBS_<corner> = that corner's standard-cell libraries plus the memory
+# blocks' <block>_<corner>.lib (run_block_libs.sh). Without PD_CORNERS every
+# step reads LIB_FILES and ADDITIONAL_LIBS, as before.
+PD_CORNERS=${PD_CORNERS:-}
+export PD_CORNERS
+for _c in $PD_CORNERS; do
+    _std=$(orfs_make "print-${_c}_NLDM_LIB_FILES" 2> /dev/null | tail -1 | sed "s/^${_c}_NLDM_LIB_FILES *[:=]* *//")
+    _blk=""
+    for _l in $ADDITIONAL_LIBS; do
+        case $_l in *_typ.lib) _blk="$_blk ${_l%_typ.lib}_${_c}.lib" ;; *) _blk="$_blk $_l" ;; esac
+    done
+    export "PD_LIBS_$_c=$_std$_blk"
+done
+unset _c _std _blk _l
+
 if [ -z "$LIB_FILES" ] || [ ! -d "$PLATFORM_DIR" ]; then
     echo "pd_env.sh: ORFS did not resolve LIB_FILES / PLATFORM_DIR for $PD_CONFIG" >&2
     return 1 2> /dev/null || exit 1
