@@ -17,6 +17,8 @@ REFCLK_PS = 2000          # 500 MHz: ADR-0001, CLKRST R-1, yaml clocks.refclk
 TCK_PS = 50000            # <= 20 MHz: yaml clocks.tck.freq_mhz_max
 IO_PCT = 0.30             # PROVISIONAL I/O budget, see section 7 of the output
 DERIVED_UNC_PS = 150      # ASSUMPTION: derived-clock setup uncertainty (= refclk's PHYS 5.2 value)
+HOLD_UNC_PS = 30          # ASSUMPTION (2026-11-12, PD-12): hold uncertainty on every clock
+OCV_EARLY, OCV_LATE = 0.95, 1.05   # ASSUMPTION (PD-12): flat on-chip-variation derate, cells and nets
 
 # DIVSEL (= sel_act_q) -> hclk source leg; t1 = refclk/2, t2 = /4, t3 = /8, t4 = /16
 MODES = {
@@ -84,8 +86,22 @@ create_generated_clock -name pclk -source [get_ports refclk] -edges {{{p_edges}}
 # ---- 4b. derived-clock uncertainty: ASSUMPTION, provisional. No project
 #      document gives one; the only stated value is refclk's 0.15 ns setup
 #      (PHYS 5.2), reused here for every derived clock at the user's direction
-#      (2026-10-13). Setup only, as PHYS states it; no hold uncertainty is set.
+#      (2026-10-13). Setup only here, as PHYS states it; hold: section 4c.
 set_clock_uncertainty -setup {unc} [get_clocks {{aon_clk clk_t2 clk_t3 clk_t4 hclk pclk}}]
+
+# ---- 4c. hold robustness: ASSUMPTION, provisional (2026-11-12, PD-12). The
+#      first routed run met hold by +1.79 ps with no hold margin of any kind.
+#      (a) {hunc} ps hold uncertainty on every clock: the residual clock skew
+#          that CTS estimates and extraction then changes, and a guard band.
+#      (b) flat on-chip variation: launch and data paths late x{ocv_late}, early
+#          x{ocv_early}, on cell and net delays. ASAP7 has no AOCV/POCV tables;
+#          the common pre-PDK practice is a flat 5 to 10 % derate.
+#      Common clock path pessimism is removed by the tool (CRPR).
+set_clock_uncertainty -hold {hunc} [all_clocks]
+set_timing_derate -early -cell_delay {ocv_early}
+set_timing_derate -late  -cell_delay {ocv_late}
+set_timing_derate -early -net_delay  {ocv_early}
+set_timing_derate -late  -net_delay  {ocv_late}
 
 # aon_clk, clk_t2..t4, hclk, pclk and the core's gated clock (AND of hclk and
 # the core_clk_gate latch; gating check inferred by the tool) are ONE
@@ -176,6 +192,7 @@ def main():
             refclk=REFCLK_PS, tck=TCK_PS, leg=leg,
             qn0=1 - int(sel[1]), qn1=1 - int(sel[0]),
             hclk_ps=hclk_ps, io_pct=IO_PCT, unc=DERIVED_UNC_PS,
+            hunc=HOLD_UNC_PS, ocv_early=OCV_EARLY, ocv_late=OCV_LATE,
             h_edges=f"1 {1 + div} {1 + 2 * div}",
             p_edges=f"1 {1 + 2 * div} {1 + 4 * div}",
             tck_io=int(TCK_PS * IO_PCT), pclk_io=int(pclk_ps * IO_PCT))

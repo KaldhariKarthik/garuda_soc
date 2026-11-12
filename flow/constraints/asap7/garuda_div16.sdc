@@ -56,8 +56,22 @@ create_generated_clock -name pclk -source [get_ports refclk] -edges {1 33 65} \
 # ---- 4b. derived-clock uncertainty: ASSUMPTION, provisional. No project
 #      document gives one; the only stated value is refclk's 0.15 ns setup
 #      (PHYS 5.2), reused here for every derived clock at the user's direction
-#      (2026-10-13). Setup only, as PHYS states it; no hold uncertainty is set.
+#      (2026-10-13). Setup only here, as PHYS states it; hold: section 4c.
 set_clock_uncertainty -setup 150 [get_clocks {aon_clk clk_t2 clk_t3 clk_t4 hclk pclk}]
+
+# ---- 4c. hold robustness: ASSUMPTION, provisional (2026-11-12, PD-12). The
+#      first routed run met hold by +1.79 ps with no hold margin of any kind.
+#      (a) 30 ps hold uncertainty on every clock: the residual clock skew
+#          that CTS estimates and extraction then changes, and a guard band.
+#      (b) flat on-chip variation: launch and data paths late x1.05, early
+#          x0.95, on cell and net delays. ASAP7 has no AOCV/POCV tables;
+#          the common pre-PDK practice is a flat 5 to 10 % derate.
+#      Common clock path pessimism is removed by the tool (CRPR).
+set_clock_uncertainty -hold 30 [all_clocks]
+set_timing_derate -early -cell_delay 0.95
+set_timing_derate -late  -cell_delay 1.05
+set_timing_derate -early -net_delay  0.95
+set_timing_derate -late  -net_delay  1.05
 
 # aon_clk, clk_t2..t4, hclk, pclk and the core's gated clock (AND of hclk and
 # the core_clk_gate latch; gating check inferred by the tool) are ONE
