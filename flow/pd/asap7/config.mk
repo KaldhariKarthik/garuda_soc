@@ -16,6 +16,10 @@
 # written into the repo or into the ORFS tree.
 # =============================================================================
 export PLATFORM    = asap7
+# Implementation corner (D-35, PD-13, 2026-11-12): SS ("WC") is the setup corner, so synthesis,
+# placement, CTS and the route repairs see the SS libraries; hold is repaired at FF after CTS by
+# flow/pd/asap7/scripts/run_mm_hold.sh with PD_CORNERS. pnr_r1..r7 used the platform default, FF ("BC").
+export CORNER ?= WC
 # P2 (applied 2026-10-13): the core-only flow synthesises garuda_chip_core, which has
 # no tri-states. garuda_chip_top is the pin-level wrapper whose tri-state
 # lines become pad cells.
