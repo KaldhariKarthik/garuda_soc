@@ -649,6 +649,20 @@ Evidence:
 
 ---
 
+## D-34 — Clock divider: t2, t3 and t4 clocked by t1 (PD-11)
+
+**Decided 2026-11-12 (owner) · Raised by** PD-9 and the mentor's hold-robustness task
+
+The owner approved the change of the divider from a ripple chain to three flops on t1 and its
+commit to `main`; another team member verifies it on xrun. Options considered: (1) all divider
+flops on refclk: rejected, it breaks [N-7.19]/[R-10] (refclk reaches one flop only); (2) a
+single clock with clock enables for every block: rejected for now, it changes most blocks and
+removes the clock-power saving of DIVSEL; (3) keep the ripple chain and repair hold in every mode:
+works (pnr_r7) but costs buffers and leaves the mode-dependent latency. Chosen: t2..t4 on t1,
+cycle-identical waveforms.
+
+---
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. None blocks RTL.

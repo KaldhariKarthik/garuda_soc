@@ -9,23 +9,33 @@
 //
 //   refclk 500 MHz ──▶ [÷2 toggle] ─ t1 (250 MHz) ─▶ aon_clk_o, and DIV2 source
 //                           │
-//                           └─▶ [÷2]─ t2 ─▶ [÷2]─ t3 ─▶ [÷2]─ t4   (ripple)
+//                           └─▶ [3-bit counter clocked by t1] ─ t2, t3, t4
 //
 //   hclk_o = one of t1/t2/t3/t4 (DIV 2/4/8/16), switched glitch-free
 //   pclk_o = hclk ÷ 2 toggle flop, 50% duty (blocking assignment: SIM-1, below)
 //   pclk_phase_o = 1 on the hclk cycle whose closing edge raises pclk (own flop)
 //
 // -----------------------------------------------------------------------------
-// WHY A RIPPLE CHAIN (and not a counter)
+// WHY t2..t4 ARE A COUNTER ON t1 (and not on refclk, and not a ripple chain)
 // -----------------------------------------------------------------------------
 // [N-7.19]/[R-10]: the refclk net may reach exactly one flop, the pad-adjacent
 // toggle `u_t1`. Everything else is clocked by its output or slower. A 4-bit
 // counter on refclk would put four flops and an adder on the 500 MHz net.
 //
-// Every toggle flop changes on the RISING edge of its source, so every rising
-// edge of t2/t3/t4 coincides with a rising edge of t1 (and of refclk). That is
-// what makes hclk/pclk a synchronous multi-frequency set at any DIVSEL: every
-// pclk rising edge is an hclk rising edge ([N-7.4]).
+// CHANGE PD-11 (2026-11-12). t2, t3 and t4 were a ripple chain: t3 was clocked
+// by t2 and t4 by t3. Each stage added one clock-to-Q and one clock buffer
+// stage to the clock it made, so in the ASAP7 run hclk at DIV16 arrived
+// ~535 ps after aon_clk (t1) and aon_clk -> hclk/pclk paths failed hold at
+// DIV4/8/16 only (PD-9). Now all three are flops on t1, so t2, t3 and t4 come
+// out of the same clock edge with the same insertion delay at every DIVSEL.
+// The waveforms are the same as the ripple chain's, cycle for cycle: t2
+// toggles on every t1 rising edge; t3 toggles on the t1 edge where t2 rises
+// (t2 was 0); t4 toggles on the edge where t3 rises (t2 and t3 were 0).
+//
+// Every flop changes on a RISING edge of t1, so every rising edge of t2/t3/t4
+// coincides with a rising edge of t1 (and of refclk). That is what makes
+// hclk/pclk a synchronous multi-frequency set at any DIVSEL: every pclk rising
+// edge is an hclk rising edge ([N-7.4]).
 //
 // -----------------------------------------------------------------------------
 // GLITCH-FREE RATIO CHANGE ([N-7.5])
@@ -68,19 +78,19 @@ module clk_div (
         if (!raw_rst_n_i) t1_q <= 1'b0;
         else              t1_q <= ~t1_q;
 
-    // ---- programmable further division, clocked from t1 and below ------------
+    // ---- programmable further division, all three flops clocked by t1 -------
+    // (PD-11: was a ripple chain t1 -> t2 -> t3 -> t4; same waveforms.)
     reg t2_q, t3_q, t4_q;
     always @(posedge t1_q or negedge raw_rst_n_i)
-        if (!raw_rst_n_i) t2_q <= 1'b0;
-        else              t2_q <= ~t2_q;
-
-    always @(posedge t2_q or negedge raw_rst_n_i)
-        if (!raw_rst_n_i) t3_q <= 1'b0;
-        else              t3_q <= ~t3_q;
-
-    always @(posedge t3_q or negedge raw_rst_n_i)
-        if (!raw_rst_n_i) t4_q <= 1'b0;
-        else              t4_q <= ~t4_q;
+        if (!raw_rst_n_i) begin
+            t2_q <= 1'b0;
+            t3_q <= 1'b0;
+            t4_q <= 1'b0;
+        end else begin
+            t2_q <= ~t2_q;
+            t3_q <= t3_q ^ ~t2_q;               // toggles where t2 rises
+            t4_q <= t4_q ^ (~t2_q & ~t3_q);     // toggles where t3 rises
+        end
 
     // ---- ratio select --------------------------------------------------------
     // div_sel_i comes from a pclk-domain register. It is first registered on
