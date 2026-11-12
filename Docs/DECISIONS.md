@@ -663,6 +663,24 @@ cycle-identical waveforms.
 
 ---
 
+## D-35 — ASAP7 run pnr_r8: corner, margins, memories (decisions taken for the mentor's tasks)
+
+**Decided 2026-11-12 (by Claude under the owner's standing instruction to decide minor points; the
+owner reviews) · Raised by** the mentor's five tasks after pnr_r7
+
+| Decision | Chosen | Not chosen, and why |
+|---|---|---|
+| Hold margin | 30 ps hold uncertainty on every clock | 0 (no robustness); 50 ps and more (too pessimistic for ASAP7's fast cells before a PDK) |
+| On-chip variation | flat ±5 %, cell and net delays | none; 10 % (the upper end; would add setup pressure at SS with no PDK data to justify it); AOCV/POCV (no tables in ASAP7) |
+| Implementation corner | SS (`CORNER=WC`), hold repaired at FF afterwards | FF as in pnr_r7 (SS setup was -898 ps); TT (neither worst case) |
+| Repair scenes | 6: div2_WC, div16_WC, div2/4/8/16_BC | all 12 (two-corner scenes took 4.5 to 8 GiB and grew); FF only (no setup protection at SS) |
+| Memories | keep the hardened mock macros | FakeRAM2.0 (no write mask, placeholder timing, 1,327 µm tall for our shapes); ASAP7 `fakeram7_*` (largest 2048x39, no write mask: about 68 macros and an `sram_wrapper` change) |
+| Power workload | `t_chip_integ`, RTL simulation, SAIF | default activity only (not realistic); gate-level simulation (the mock macros hold no data, so firmware cannot run) |
+| Residual FF hold (-3.67 ps, 12 endpoints) | reported, not repaired after route | a post-route ECO (inside the 30 ps margin; real margin about +26 ps) |
+| RISC-V compiler | installed xPack 15.2.0-1 in `~/tools` (user space) | hand-written machine code (the boot ROM is C) |
+
+---
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. None blocks RTL.
