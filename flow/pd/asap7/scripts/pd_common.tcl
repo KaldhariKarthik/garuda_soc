@@ -45,10 +45,12 @@ proc pd_sdc {mode} {
 # The clocks are propagated: every caller runs after CTS.
 proc pd_define_scenes {} {
     set libs [pd_libs]
-    foreach m [pd_modes] {
-        read_sdc -mode $m [pd_sdc $m]
-        set_mode $m
-        set_propagated_clock [all_clocks]
+    if {[pd_corners] eq ""} {
+        foreach m [pd_modes] {
+            read_sdc -mode $m [pd_sdc $m]
+            set_mode $m
+            set_propagated_clock [all_clocks]
+        }
     }
     if {[pd_corners] eq ""} {
         foreach m [pd_modes] { define_scene $m -mode $m -liberty $libs }
@@ -60,7 +62,13 @@ proc pd_define_scenes {} {
         foreach m [pd_modes] {
             foreach c [pd_corners] {
                 if {$only ne "" && [lsearch -exact $only ${m}_$c] < 0} { continue }
-                define_scene ${m}_$c -mode $m -liberty [pd_corner_libs $c]
+                # One mode PER SCENE (PD-13): two scenes that shared a mode across
+                # corners gave wrong slacks (div2_WC hold -320 ps where one scene
+                # alone gives +0.31; div2_BC -567 against -69).
+                read_sdc -mode ${m}_$c [pd_sdc $m]
+                set_mode ${m}_$c
+                set_propagated_clock [all_clocks]
+                define_scene ${m}_$c -mode ${m}_$c -liberty [pd_corner_libs $c]
             }
         }
     }
