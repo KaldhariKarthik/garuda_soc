@@ -15,6 +15,13 @@
 #   4. run_sta.sh <variant> route      every DIVSEL scenario on the routed
 #      database, then qor.py for the run's one-page summary.
 #
+# Corners (PD-13, the pnr_r8 flow; on when PD_CORNERS is set, e.g. "WC TC BC"):
+#   - before step 2, run_block_libs.sh writes each memory block's model per corner;
+#   - step 2 repairs hold over PD_MM_SCENES (default: div2_WC div16_WC and the four
+#     FF scenes), to MMHOLD_MARGIN ps of positive slack (default 10);
+#   - step 4 runs STA of every mode at every corner, after CTS and after route,
+#     then run_validate.sh; with PD_SAIF=<activity.saif>, run_power.sh at TT.
+#
 # --from copies a finished run's results up to CTS (the pnr_r7 pattern:
 # "pnr_r6 up to CTS, then the new hold repair"), dropping every 5_*/6_* file.
 #
@@ -77,14 +84,33 @@ if [ -n "$FROM" ]; then
         mv -f "$PD_RESULTS/4_cts_div2only.odb" "$PD_RESULTS/4_cts.odb"
     fi
 else
-    to_cts() { orfs_make NUM_CORES="$CORES" cts > "$PD_LOGS/run_pnr_cts.log" 2>&1; }
+    # the hardened memory blocks first (BLOCKS), then the core up to CTS
+    to_cts() { orfs_make NUM_CORES="$CORES" build_macros > "$PD_LOGS/run_pnr_cts.log" 2>&1 \
+               && orfs_make NUM_CORES="$CORES" cts >> "$PD_LOGS/run_pnr_cts.log" 2>&1; }
     step "ORFS synth..cts (log run_pnr_cts.log)" to_cts \
         || { say "ORFS failed before CTS: $PD_LOGS/run_pnr_cts.log"; exit 1; }
 fi
 
-# ---- 2. multi-mode hold repair ------------------------------------------------
+# ---- 2. multi-mode (and multi-corner) hold repair ------------------------------
+PD_CORNERS=${PD_CORNERS:-}
+PD_MM_SCENES=${PD_MM_SCENES:-"div2_WC div16_WC div2_BC div4_BC div8_BC div16_BC"}
+MMHOLD_MARGIN=${MMHOLD_MARGIN:-10}
+export MMHOLD_MARGIN
+if [ -n "$PD_CORNERS" ]; then
+    step "memory block models per corner ($PD_CORNERS)" "$here/run_block_libs.sh" "$V" "$PD_CORNERS" \
+        || { say "run_block_libs failed"; exit 1; }
+fi
 if [ $MMHOLD -eq 1 ]; then
-    step "multi-mode hold repair" "$here/run_mm_hold.sh" "$V" || { say "mm_hold failed"; exit 1; }
+    if [ -n "$PD_CORNERS" ]; then
+        mmc=$(echo $PD_MM_SCENES | tr ' ' '\n' | sed 's/.*_//' | sort -u | tr '\n' ' ')
+        step "hold repair over $PD_MM_SCENES (margin $MMHOLD_MARGIN ps)" \
+            env PD_CORNERS="$mmc" PD_SCENES="$PD_MM_SCENES" "$here/run_mm_hold.sh" "$V" \
+            || { say "mm_hold failed"; exit 1; }
+        step "STA after CTS, every mode and corner" env PD_CORNERS="$PD_CORNERS" "$here/run_sta.sh" "$V" cts \
+            || say "STA after CTS reported a failed scene"
+    else
+        step "multi-mode hold repair" "$here/run_mm_hold.sh" "$V" || { say "mm_hold failed"; exit 1; }
+    fi
 fi
 
 # ---- 3. route .. GDS under the memory guard --------------------------------
@@ -133,7 +159,15 @@ else
 fi
 
 # ---- 4. sign-off style checks of the exploratory run ---------------------------
-step "STA, every DIVSEL scenario" "$here/run_sta.sh" "$V" route || say "STA reported a failed scenario"
+step "STA, every DIVSEL scenario${PD_CORNERS:+ and corner}" env PD_CORNERS="$PD_CORNERS" "$here/run_sta.sh" "$V" route \
+    || say "STA reported a failed scenario"
+if [ -n "$PD_CORNERS" ]; then
+    step "validation (clock tree, limits, DRC, congestion)" "$here/run_validate.sh" "$V" "$PD_CORNERS" \
+        || say "validation failed"
+    if [ -n "${PD_SAIF:-}" ]; then
+        step "power at TT from $PD_SAIF" "$here/run_power.sh" "$V" TC "$PD_SAIF" || say "power failed"
+    fi
+fi
 if [ -f "$here/qor.py" ]; then
     step "QoR summary" python3 "$here/qor.py" "$V" || true
 fi

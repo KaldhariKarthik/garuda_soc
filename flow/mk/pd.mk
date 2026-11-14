@@ -24,6 +24,8 @@ PD_VIEW    ?= all
 PD_CORES   ?= 8
 PD_FALLBACK_CORES ?= 6
 PD_FROM    ?=
+# corners (PD-13): make pd_pnr V=r PD_CORNERS="WC TC BC" [PD_SAIF=<activity.saif>]
+export PD_CORNERS PD_MM_SCENES MMHOLD_MARGIN PD_SAIF
 
 .PHONY: help_pd pd_need_v pd_pnr pd_pnr_dry pd_mmhold pd_sta pd_skew pd_phase pd_shot pd_qor pd_runs pd_check
 

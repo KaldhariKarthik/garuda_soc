@@ -26,7 +26,13 @@ estimate_parasitics -placement
 pd_scene_summary before
 report_checks -path_delay min -group_path_count 3 -format end -sort_by_slack
 
-repair_timing -hold -verbose
+# MMHOLD_MARGIN (ps, optional): repair to this much positive hold slack, so routing and
+# extraction cannot take a scene below 0 (pnr_r8: -2.52 ps after CTS became -3.67 ps after route).
+if {[info exists ::env(MMHOLD_MARGIN)] && $::env(MMHOLD_MARGIN) ne ""} {
+    repair_timing -hold -hold_margin $::env(MMHOLD_MARGIN) -verbose
+} else {
+    repair_timing -hold -verbose
+}
 detailed_placement
 check_placement -verbose
 estimate_parasitics -placement

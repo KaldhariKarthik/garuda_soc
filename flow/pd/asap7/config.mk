@@ -70,5 +70,11 @@ export MACRO_PLACEMENT_TCL = $(GARUDA_ROOT)/flow/pd/asap7/macro_place.tcl
 # delay buffers on the aon_clk branch feeding the hclk mux, skewing hclk/pclk
 # against aon_clk and creating ~1700 hold violations (and an OpenROAD crash in
 # hold repair, TOOL-18). The aon/hclk/pclk trees must stay latency-aligned.
+# Not -balance_levels: it was tried for the hclk spread (PD-15) and this OpenROAD reports it
+# obsolete (CTS-0132); it changed nothing (pnr_r9, Docs/logs/pd/PD_LOG_2026-11-14.md).
 export CTS_ARGS ?= -sink_clustering_enable -repair_clock_nets -no_insertion_delay
+# Over-fix slew and capacitance by 20 % in every repair_design (PD-15: pnr_r8 had 86 max-slew
+# violations at SS after route, on long single wires to the boot ROM and nets of 33 to 41 loads).
+export SLEW_MARGIN ?= 20
+export CAP_MARGIN  ?= 20
 export PLACE_DENSITY ?= 0.45
