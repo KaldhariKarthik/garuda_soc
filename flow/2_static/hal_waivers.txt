@@ -91,7 +91,7 @@ vendored = in third-party IP that is not edited (D-22); open = an open finding, 
   EDGMIX  W own 2   vendored 0    both edges: the glitch-free select of clk_div and the TDO of the JTAG TAP (IEEE 1149.1)
   GTDCLK  W own 2   vendored 0    clock gating: the pclk toggle flop and the core clock gate
   RSTUCL  W own 2   vendored 0    the I2C core reset also gates a command in logic: documented at garuda_i2c_top.v, [N-6.2b]
-  CDFDAT  W own 1   vendored 0    a clock used as data: the toggle flop and the pclk phase
+  CDFDAT  W own 3   vendored 0    a clock used as data in clk_div since D-34 (PD-11, e246afa): t2..t4 are clocks of the output mux and also the state of the t1-clocked counter (t3_q, t4_q next state; sel_act_q loads at their all-low point)
   LATBAS  W own 1   vendored 0    core_clk_gate: the behavioural ICG latch, replaced by the library cell in the physical flow
   LATINF  W own 1   vendored 0    core_clk_gate: the same latch; the only one in the chip (make local_synth gates it)
   LENCPI  W own 1   vendored 0    the ICG enable is not a primary input: the same latch

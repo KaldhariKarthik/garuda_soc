@@ -661,6 +661,12 @@ removes the clock-power saving of DIVSEL; (3) keep the ripple chain and repair h
 works (pnr_r7) but costs buffers and leaves the mode-dependent latency. Chosen: t2..t4 on t1,
 cycle-identical waveforms.
 
+**Verified on Xcelium 2026-11-15** (rebased tree `b45fae7` on `aa103a0`): `tb_crg` 43 of 43 checks,
+`uvm_crg` 5 of 5 runs, all nine chip programs with X-propagation, `gate_a` PASS. HAL lint
+(`gate_b` `static_lint`) reports two more CDFDAT findings (1 to 3: `t3_q`, `t4_q`, `sel_act_q`,
+a clock used as data), the expected effect of t2..t4 being both divided clocks and counter
+state; accepted in `flow/2_static/hal_baseline.txt` and `hal_waivers.txt`.
+
 ---
 
 ## D-35 — ASAP7 run pnr_r8: corner, margins, memories (decisions taken for the mentor's tasks)
