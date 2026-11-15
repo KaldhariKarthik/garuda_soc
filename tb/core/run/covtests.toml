@@ -47,9 +47,9 @@ name = "t_cov_irq_ids"
 hex  = "sw/build/t_cov_irq_ids.hex"
 plusargs = ["+MAXCYC=200000", "+QUIET"]
 
-# the same with a fetch stop raised at each WFI and withdrawn, with no hart reset, in
-# the first cycle the core is quiescent (a cancelled debugger halt): the replay of a
-# JasperGold trace; the core must stay asleep until its wake (G5 5.8)
+# the same with a fetch stop raised at each WFI and withdrawn, with no hart reset, as
+# the core goes quiet (a cancelled debugger halt): in part J (clock gating off) the core
+# leaves the quiescent state with no wake source (G5 5.8, cp_woken_by "other")
 [[test]]
 name = "t_cov_irq_ids_fstop"
 hex  = "sw/build/t_cov_irq_ids.hex"
@@ -111,13 +111,12 @@ name = "t_cov_misfetch_d3"
 hex  = "sw/build/t_cov_misfetch.hex"
 plusargs = ["+MAXCYC=100000", "+QUIET", "+DWAIT=3"]
 
-# DSU vPlan F06 / DSU-15 (open, ruling): MACSAT must return the accumulator saturated
-# to Q1.15 in rd[15:0]; the RTL writes no rd and clamps to int32 in place
+# DSU vPlan F06 / DSU-15 (ruled D-32): MACSAT clamps the accumulator in place to int32,
+# sets dsu_ovf when it clamps, writes no register (rewritten 2026-11-15, G5)
 [[test]]
 name = "t_dsu_macsat_rd"
 hex  = "sw/build/t_dsu_macsat_rd.hex"
 plusargs = ["+MAXCYC=20000", "+QUIET"]
-fail_reason = 'TOHOST=0000000[fF] -> FAILED'
 
 # core vPlan coverage stimulus (Track A wrap-up 2026-10-12): operand corners, class
 # pairs, load-use consumers, CSR ops on every group, traps at the end of memory

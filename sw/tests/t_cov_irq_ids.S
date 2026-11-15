@@ -17,6 +17,10 @@
 #   G  WFI woken one to eight cycles after the request is armed (short sleeps)
 #   I  a WFI reached by a jump (the jump empties the prefetch buffer), woken by a
 #      CLIC request 40 cycles later: the core sleeps with a part-filled buffer
+#   J  the same with mgarudactl.CG_DIS = 1 (no clock gating: the clock runs in WFI).
+#      Run with tb_boot +FSTOP_ON_WFI=1 (t_cov_irq_ids_fstop), the fetch port starts
+#      again while the core waits and the core leaves the quiescent state with no
+#      wake source (cg_sleep cp_woken_by "other"; JasperGold c_wake_other_cgdis)
 #   H  an interrupt armed 1..8 retired instructions ahead (IRQ_ARM) lands on a
 #      run of MULs, then on a run of load-use pairs: taken with a MUL, and with
 #      a load-use bubble, in EX (cg_irq x_insn_class mul, bubble)
@@ -30,6 +34,7 @@
 #define IRQ_ARM    0x1000F20C
 #define IRQ_ARMC   0x1000F214
 #define MINTTHRESH 0x347
+#define MGARUDACTL 0x7C0
 
 .macro raise id, lvl
     li      t0, IRQ_SET
@@ -178,6 +183,26 @@ _start:
     nop
     li      t0, IRQ_CLR
     sw      zero, 0(t0)
+
+    # ---- J: WFI after a jump with clock gating off -------------------------------------
+    li      t0, 8
+    csrw    MGARUDACTL, t0              # CG_DIS
+    li      t0, IRQ_STAGE
+    li      t1, (60 << 8) | 20
+    sw      t1, 0(t0)
+    li      t0, IRQ_ARMC
+    li      t1, 40
+    sw      t1, 0(t0)
+    nop
+    nop
+    nop
+    nop
+    j       4f
+4:  wfi
+    nop
+    li      t0, IRQ_CLR
+    sw      zero, 0(t0)
+    csrw    MGARUDACTL, zero
 
     # ---- H: interrupts landing on MULs and on load-use bubbles ---------------------
     csrsi   mstatus, 8                  # MIE on

@@ -1,9 +1,10 @@
 # Core verification: the G5 record (flow stages F6 and F8 for the core)
 
 1-TOPS gate G5, rows 5.3 to 5.9 (5.1, 5.2 and 5.10 closed on 2026-11-03 and 2026-11-04).
-Worked on 2026-11-11 on tree `b1e33d7` (rows 5.3 to 5.7, 5.9) and on 2026-11-15 on `78bd7cc`
-(row 5.8, and the coverage merge again with it), plus the changes listed in section 3. No RTL
-changed.
+Worked on 2026-11-11 on tree `b1e33d7` (rows 5.3 to 5.7, 5.9), on 2026-11-15 on `78bd7cc`
+(row 5.8, and the coverage merge again with it) and on 2026-11-16 on `f8434ca` (the vManager
+session, the vPlan back-annotation, the last bin proven and covered, MACSAT), plus the changes
+listed in section 3. No RTL changed.
 
 Simulator: Xcelium 22.09 (`xrun`) for every row of this page, each program compared with
 Spike 1.1.1-dev (`~/external/spike-inst`) instruction by instruction (`tools/lockstep.py`)
@@ -20,8 +21,8 @@ G5 rows.
 | 5.5 | 1000 seeds with a stable pass rate | `riscv_dv_1000_2026-11-11.txt` | **1000 of 1000** pass and match Spike: 10 tests x 100 seeds (arithmetic, random instructions, jumps, loops, memory stress, no-fence, illegal instructions, EBREAK, misaligned access). 11.3 M instructions, 1.59 M stores, 24 587 traps and 974 731 CSR instructions identical to Spike. Pass rate 100% over every test and seed. |
 | 5.6 | Random AHB waits 0..8 on I and D; flush and backpressure stress | `make regress_wait`; `make regress_rand SEED=1..20`; `scripts/run_regression.sh` on the flush programs; `regress_rand_2026-11-11.txt` | Fixed waits (I 2, D 3): 66 of 66. Random 0..8 waits on every I and D access: 20 seeds x 66 ISA tests, **1320 of 1320**; flush and back-pressure programs (`t_flush`, `t_hazard`, `t_mem`, `t_loadbranch`) under the same random waits, 10 seeds, **40 of 40**. Every run also matches Spike instruction by instruction. With interrupts on top of the waits, `t_hold_flush_matrix` (`IRQ_EVERY=61`, random D waits) and `t_hazard` (random waits) are in the coverage session (section 4). |
 | 5.7 | Dhrystone and CoreMark run with correct results; score per MHz recorded | `sw/bench/`; `make bench`; `bench_2026-11-11.txt` | Both run to completion and pass their own checks (CoreMark: "Correct operation validated", CRCs of the 2K performance run; Dhrystone: 18 of 18 "should be" values). Their fake-timer builds match Spike: CoreMark 675 869 and Dhrystone 504 322 instructions identical. Scores in section 2. |
-| 5.8 | Core functional coverage goals met | `imc/core_func_by_type.txt`; `flow/formal/core/cov_g5_unr.result.txt` | **100%: 760 of 760 bins** of the four core covergroups, by module type over 189 runs (2026-11-15), from 91.7% / 84.6% at G4 and 96.1% on 2026-11-11. Closed by two new programs and the bench options they need, two coverage-model fixes, and three `ignore_bins`, each with its reason in the covergroup (section 4). |
-| 5.9 | Core code coverage >= 95%, every exclusion with a reason | `flow/cov/core_g5_merge.tcl`; `imc/core_code_raw.txt`, `imc/core_code_waived.txt`; `tb/core/cov/core_waivers.toml` | 189 core runs (2026-11-15; 178 on 2026-11-11, the same figures) merged in IMC by module type. Raw: statement 99.0% (290/293), expression 100% (73/73), toggle 93.9% (8883/9456), FSM 100%. With the written waivers: **100% on all four** (578 toggle bits and 3 defensive `default:` arms, each with its reason and evidence in `core_waivers.toml`; 586 exclusions applied, 0 dropped). The waivers' `reviewer` field still reads `pending`: section 4. |
+| 5.8 | Core functional coverage goals met | `imc/core_func_by_type.txt`; `vplan_g5_2026-11-16.txt`; `flow/formal/core/cov_g5_unr.result.txt` | **100%: 761 of 761 bins** of the four core covergroups, by module type over the 190 core runs of one vManager session of `garuda.vsif` (2026-11-16), from 91.7% / 84.6% at G4 and 96.1% on 2026-11-11; the same in IMC and on the vPlan in vManager. Closed by two new programs (one run twice, with `+FSTOP_ON_WFI`) and the bench options they need, two coverage-model fixes, and two `ignore_bins`, both PROVEN unreachable in JasperGold; the one bin reachable only with clock gating off is covered, its boundary PROVEN (section 4). |
+| 5.9 | Core code coverage >= 95%, every exclusion with a reason | `flow/cov/core_g5_merge.tcl`; `imc/core_code_raw.txt`, `imc/core_code_waived.txt`; `vplan_g5_2026-11-16.txt`; `tb/core/cov/core_waivers.toml` | The 190 core runs of the vManager session (2026-11-16; 189 on 2026-11-15 and 178 on 2026-11-11, the same figures) merged in IMC by module type. Raw: statement 99.0% (290/293), expression 100% (73/73), toggle 93.9% (8883/9456), FSM 100%. With the written waivers: **100% on all four** (578 toggle bits and 3 defensive `default:` arms, each with its reason and evidence in `core_waivers.toml`; 586 exclusions applied, 0 dropped). On the vPlan in vManager, with the same waivers loaded as a refinement file: 9245 of 9245 code items of the 31 modules. The waivers' `reviewer` field still reads `pending`: section 4. |
 
 ## 2. Performance (5.7), read before RTL freeze
 
@@ -55,22 +56,46 @@ predicted-taken branch costs one bubble, a mispredict or JALR two.
 | New `sw/tests/t_cov_csr_ro.S`, `sw/tests/t_cov_irq_ids.S` (rows in `tb/core/run/covtests.toml`, `garuda.vsif`, `sw/Makefile`) | 5.8: refused writes to the read-only CSRs; the interrupt and sleep corners (section 4). |
 | `tb/soc/tb_boot.sv`: IRQ_ARMC bit 31 raises MTIP with the timed CLIC request; `+FSTOP_ON_WFI=1` | 5.8: both wake sources in the same cycle while asleep; the replay of the JasperGold wake trace (section 4). Existing programs are unaffected (IRQ_ARMC counts are small, the option is off by default); `gate_a`, `gate_b`, the 112 co-simulation programs pass. |
 | `tb/cov/garuda_core_cov_ext.sv` (`cg_irq` timer bin), `tb/cov/garuda_cov_ext.sv` (bind of `cg_pipe`) | TB-B6, section 4. |
-| `ignore_bins` in `garuda_core_cov_ext.sv`, `garuda_cov.sv`, `garuda_cov_vplan.sv`; `flow/formal/core/cov_g5_unr.tcl` | The three bins that cannot be hit, section 4. |
+| `ignore_bins` in `garuda_cov.sv`, `garuda_cov_vplan.sv`; `flow/formal/core/cov_g5_unr.tcl` | The two bins that cannot be hit, PROVEN; the boundary of the CG_DIS bin, section 4. |
+| `sw/tests/t_dsu_macsat_rd.S` rewritten; its XFAIL removed (`tb/core/run/xfail.tsv`); back in `garuda.vsif` and `core_g5_runs.txt` | DSU-15: the test checked the pre-D-32 MACSAT. |
+| `sw/tests/t_cov_irq_ids.S` part J (WFI with `mgarudactl.CG_DIS = 1`); row `t_cov_irq_ids_fstop`; `flow/formal/core/cov_g5_unr.tcl` restated (`a_wake_needs_cond_cg`, cover `c_wake_other_cgdis`) | The "woken by neither source" bin: covered, not excluded (section 4). |
+| New `flow/1_vplan/garuda_core_g5.csv`, `flow/regress/vplan_g5.tcl`; `flow/cov/core_g5_merge.tcl` (`G5_RUNFILE`, saves `core_g5.vRefine`) | The vManager session and the vPlan back-annotated (section 4); TOOL-A17. |
 | `tools/cov/gen_imc_exclusions.py` (escaping, `--type`), four regenerated exclusion files, `flow/cov/core_exclusions_type.tcl`, `flow/cov/core_g5_merge.tcl`, `flow/cov/core_g5_runs.txt` | TOOL-A16, section 4; the core merge by module type. |
 | `tools/archtest/build_archtest.py`, target `archtest_xrun` | TOOL-A15: the suite was not found on the lab machine, and with the Vitis GCC 11 of 59 tests did not link and the rest started with a build-id note at the reset vector (0 instructions retired). Fixed; `tb/core/run/archtest.toml` unchanged. |
 
 ## 4. Core coverage (5.8, 5.9)
 
-**The session.** Every core test of `flow/regress/garuda.vsif` under irun 15.2 with coverage,
-189 runs on 2026-11-15 (`flow/cov/core_g5_runs.txt`): 21 unit benches, 7 smoke benches, the
-DSU bench, 63 ISA tests, 18 sanity programs, 41 core programs (`prog_<suite>__<test>` tests,
-each one row of `tb/core/run/<suite>.toml` through `tools/regress/toml_test.py`: the 38 that
-until 2026-11-11 ran only on the open flow and the 3 new rows of section 3), 30 riscv-dv programs (`dv_<test>_s<seed>`) and the 8 chip
-programs (the same core inside the chip). All 189 pass. Merged in IMC by module type
-(`flow/cov/core_g5_merge.tcl`), so a module's numbers count every bench that instantiates it.
+**The session.** One vManager session of the whole `flow/regress/garuda.vsif` under irun 15.2
+with coverage, 2026-11-16 (`garuda_soc.kkarthik.26_11_16_00_50_59_9738`, 206 runs, 8 at a time,
+7 minutes): **206 of 206 pass**, each run's log ending `GARUDA_RESULT: PASS` and vManager's scan
+of it (`local_vsof.txt`, `garuda.flt`) `finished` with no error (only warnings and notes).
+On this host vManager's own session view never shows the runs as ended (TOOL-A17), so the run
+results are read from each run and the coverage is collected separately; `flow/COMMANDS.md`
+R5.9. A second session the same night (`garuda_soc.kkarthik.26_11_16_04_16_59_0537`, launched from
+tcsh with the R5.9 commands as written) gave the same: 206 of 206 pass, 761/761, the waived code
+figures below, the vPlan at 100%. The 190 core runs of it (the other 16 are the block and integration benches): 21 unit
+benches, 7 smoke benches, the DSU bench, 63 ISA tests, 18 sanity programs, 42 core programs
+(`prog_<suite>__<test>` tests, each one row of `tb/core/run/<suite>.toml` through
+`tools/regress/toml_test.py`: the 38 that until 2026-11-11 ran only on the open flow, the 3
+new rows of section 3 and `t_dsu_macsat_rd`), 30 riscv-dv programs (`dv_<test>_s<seed>`) and the 8 chip programs (the
+same core inside the chip): the same tests as `flow/cov/core_g5_runs.txt`. Merged in IMC by
+module type (`flow/cov/core_g5_merge.tcl`, `G5_RUNFILE` naming the session's coverage
+directories), so a module's numbers count every bench that instantiates it.
 
-Left out: `t_dsu_macsat_rd`, which checks MACSAT as the spec had it before ruling D-32 and
-fails by design (DSU-15, `tb/core/run/xfail.tsv`); it is to be rewritten to the ruled spec.
+**The vPlan in vManager.** `flow/1_vplan/garuda_core_g5.csv` maps rows 5.8 and 5.9 onto what
+measures them: 5.8 onto the four covergroup modules (their functional coverage by type), 5.9 onto
+each of the 31 core modules (every code metric). `flow/regress/vplan_g5.tcl` loads it with the
+session's coverage and the waivers (IMC saves the applied exclusions as `sim/cov_g5/core_g5.vRefine`)
+and writes the report: **5.8 761/761, 5.9 9245/9245, the plan 100%** (`vplan_g5_2026-11-16.txt`).
+The vPlan counts the type-level bins only; mapped without `(functional)` it also counts each
+covergroup instance's own copy, and those are not all hit in every instance (91% then), which is
+not the measure of 5.8.
+
+`t_dsu_macsat_rd`, left out on 2026-11-11 because it still checked MACSAT as the spec had it
+before ruling D-32 (DSU-15), was rewritten on 2026-11-15 to the ruled spec: the accumulator
+clamped in place to int32 (positive and negative), `dsu_ovf` set only when it clamps, and the
+instruction's rd field (x5) not written. It passes on Xcelium and Verilator, fails with its case
+code when an expected value is planted wrong, and is back in the session and the merge.
 
 **Code (5.9), per module after the waivers:** every one of the 31 core modules at 100%
 statement, expression and toggle (`imc/core_code_waived.txt`). The modules with the most
@@ -84,15 +109,16 @@ point constant, unreachable or not connected, 10 are `ignore` entries that mirro
 `reviewer` field still reads `pending`, so the review of `core_waivers.toml` is part of this
 gate's review record.
 
-**Functional (5.8), by covergroup type, 2026-11-15:**
+**Functional (5.8), by covergroup type, 2026-11-16** (760/760 on 2026-11-15, before the
+"woken by neither source" bin went back in as a covered bin):
 
 | Covergroup | Bins | On 2026-11-11 |
 |---|---|---|
 | `garuda_cov` | 100% (228/228) | 228/229 |
 | `garuda_cov_vplan` | 100% (245/245) | 240/246 |
 | `garuda_cov_ext` | 100% (107/107) | 105/107 |
-| `garuda_core_cov_ext` | 100% (180/180) | 160/181 |
-| **core total** | **100% (760/760)** | 733/763 |
+| `garuda_core_cov_ext` | 100% (181/181) | 160/181 |
+| **core total** | **100% (761/761)** | 733/763 |
 
 The 30 holes of 2026-11-11, and what closed each:
 
@@ -105,18 +131,21 @@ The 30 holes of 2026-11-11, and what closed each:
 | D-port NONSEQ in a wait state | hit by the new programs on tb_boot (the chip runs not needed) |
 | forwarding from EX/MEM while MEM stalls | `ignore_bins`: **PROVEN** unreachable, `a_no_exmem_fwd_stall` (`flow/formal/core/cov_g5_unr.tcl`; cover `c_fwd_exmem` reached, so not vacuous) |
 | an interrupt taken with a bubble in EX | `ignore_bins`: **PROVEN** unreachable, `a_int_needs_ex_instr` (trap_ctrl takes interrupts only with `idex_valid_i`, ERRATUM T-4) |
-| woken by neither source | `ignore_bins`, **not formally proven**: see below |
+| woken by neither source | new `t_cov_irq_ids` part J with tb_boot `+FSTOP_ON_WFI=1` (`t_cov_irq_ids_fstop`): reachable only with clock gating off; see below |
 
-**Woken by neither source.** The core leaves the quiescent state only when `wfi_hold` drops,
-and that needs a wake (`trap_ctrl.v` `wfi_hold_o`). Every flop that could otherwise end it is on
-the gated clock, whose enable is `~quiescent`. JasperGold nevertheless gives a counterexample
-to `a_wake_needs_cond` through the debug fetch stop: the stop is released in the first
-quiescent cycle and the I-port, a gated-clock register, fetches in the next one, which needs a
-gated edge after the gate has closed. The same input sequence in simulation, with the latch
-gate of `core_clk_gate.v` (tb_boot `+FSTOP_ON_WFI=1`, test `t_cov_irq_ids_fstop`), keeps the
-core asleep until its wake. So the bin is excluded with this reasoning, and the formal proof is
-open: it needs a JasperGold setup that models the latch gate exactly
-(`flow/formal/core/cov_g5_unr.result.txt`). **The reviewer should rule on this exclusion.**
+**Woken by neither source.** First taken to be impossible, then shown reachable by
+JasperGold. With the clock gate in use, the core leaves the quiescent state only when
+`wfi_hold` drops, which needs a wake (`trap_ctrl.v`): **PROVEN** on the whole core,
+`a_wake_needs_cond_cg`. But software can switch the gate off (`mgarudactl.CG_DIS = 1`, CORE-4):
+the clock then keeps running in WFI, and if the fetch port starts again (here, the debug fetch
+stop released while the core waits) the bus is no longer idle and `quiescent` falls with no
+wake source. JasperGold's first counterexample was that path (its free instruction stream had
+set CG_DIS; cover `c_wake_other_cgdis`). Harmless: with the gate off, `quiescent` gates
+nothing. `t_cov_irq_ids` part J runs a WFI with CG_DIS = 1, and tb_boot `+FSTOP_ON_WFI=1` raises
+the fetch stop when the WFI enters IF/ID and releases it as the core goes quiet: the bin is hit
+(`t_cov_irq_ids_fstop`). So this bin is covered, not excluded. (Before the CG_DIS register was
+seen in the trace, the first form of this record put the counterexample down to the clock-gate
+model; that was wrong.)
 
 **A defect in the coverage model, fixed (TB-B5).** `cg_csr` sampled only when a CSR access
 commits; a refused access traps and is squashed in EX, so it never commits, and every bin of
@@ -132,8 +161,4 @@ bins above.
 
 ## 5. Open in G5
 
-- The formal proof of the "woken by neither source" exclusion (section 4).
-- `t_dsu_macsat_rd` to be rewritten to the ruled MACSAT (DSU-15), then back in the session.
-- The vManager session of the whole `garuda.vsif` (today's session was run test by test with
-  the same `run_test.sh` vManager calls) and the merged coverage back-annotated on the vPlan.
 - Review: `flow/reviews/g5_f6_core.md`, with `core_waivers.toml` read by the reviewer.

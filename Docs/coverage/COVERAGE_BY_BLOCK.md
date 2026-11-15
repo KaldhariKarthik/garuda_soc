@@ -14,7 +14,7 @@ Written by `tools/gen/cov_chart.py` on 2026-10-16 from IMC 15.2 reports, tree `b
 
 | Block | Track | Measured on | Statement | Expression | Toggle | FSM | Functional | Assertions triggered | Waivers |
 |---|---|---|---|---|---|---|---|---|---|
-| RV32IM core | A | 189 core runs of `garuda.vsif` merged by module type, 2026-11-15 (`flow/4_core/core_g5.md`) | 99.0% (290/293); 100% waived | 100.0% (73/73) | 93.9% (8883/9456); 100% waived | 100.0% (4/4) | 100.0% (760/760), 3 `ignore_bins` | not re-measured | 581 (`tb/core/cov/core_waivers.toml`) |
+| RV32IM core | A | 190 core runs of one vManager session of `garuda.vsif` merged by module type, 2026-11-16 (`flow/4_core/core_g5.md`; the same on the vPlan in vManager) | 99.0% (290/293); 100% waived | 100.0% (73/73) | 93.9% (8883/9456); 100% waived | 100.0% (4/4) | 100.0% (761/761), 2 `ignore_bins` (proven) | not re-measured | 581 (`tb/core/cov/core_waivers.toml`) |
 | DSU | A | all directed tests, merged | 100.0% (63/63) | none | 95.6% (3601/3765) | none | 60.0% (192/320) | none | none written |
 | AHB interconnect | A | all directed tests, merged | 98.6% (72/73) | 100.0% (9/9) | 69.1% (1086/1572) | 100.0% (7/7) | 71.8% (102/142) | 94.6% (35/37) | none written |
 | AHB to APB bridge | A | all directed tests, merged | 93.0% (40/43) | 81.8% (9/11) | 78.3% (1100/1404) | 89.3% (25/28) | 38.4% (53/138) | 96.7% (29/30) | none written |

@@ -18,7 +18,7 @@ F10 to F16 are listed so the whole flow is visible; nothing in them is planned y
 | F5 | Block and unit verification: UVM, bound SVA, formal, mutation | xrun / irun; JasperGold FPV and UNR; Verilator for mutants | G4 4.1 to 4.9, 4.15, 4.16 | core units done 2026-11-10 (`flow/3_unit/`); every mutant set killed; block coverage closure carried to F8 |
 | F6 | Core verification: ISA tests, Spike lockstep, random programs, benchmarks | Xcelium, irun; Spike; riscv-dv | G4 4.10 to 4.14; G5 5.1 to 5.7, 5.10 | done 2026-11-11 (`flow/4_core/core_g5.md`): arch-test 59/59 and 1000 riscv-dv seeds on Xcelium against Spike, random waits, CoreMark and Dhrystone |
 | F7 | SoC verification: without the core, then the whole chip with C programs | irun; UVM; `sw/chip` | G6 6.1 to 6.14, 6.18 | in progress |
-| F8 | Regression and coverage closure; bug curve | vManager; IMC; JasperGold UNR | G5 5.8, 5.9; G6 6.15 to 6.17 | core code coverage at the bar with waivers (5.9, 2026-11-11); core functional 100% (5.8, 2026-11-15; one exclusion awaits a formal proof); SoC not started |
+| F8 | Regression and coverage closure; bug curve | vManager; IMC; JasperGold UNR | G5 5.8, 5.9; G6 6.15 to 6.17 | core done 2026-11-16: one vManager session of `garuda.vsif`, 206/206 pass; core functional 761/761 (5.8; two exclusions, both proven in JasperGold) and code 100% with waivers (5.9), back-annotated on the G5 vPlan in vManager (`flow/4_core/vplan_g5_2026-11-16.txt`; TOOL-A17); SoC not started |
 | F9 | **RTL freeze**: review and tag | git | G6 6.19 | not started; **end of the current plan** |
 | F10 | Synthesis and timing constraints | Genus; `flow/constraints/garuda.sdc` | G7 | waits for the PDK (a 45 nm trial exists: `flow/signoff/g1/`) |
 | F11 | DFT: scan, MBIST, boundary scan | Modus | G7 | waits for the PDK |
@@ -203,7 +203,7 @@ New evidence is written into the folder of its stage.
 | F5 | `flow/formal/`, `flow/cov/`, `flow/mutation/`, `tb/<block>/`, `logs/<block>/evidence/` |
 | F6 | `sw/riscv-tests/`, `tools/lockstep.py`, `flow/nightly/`, `flow/4_core/` |
 | F7 | `tb/soc/`, `sw/chip/`, `flow/signoff/runs/` |
-| F8 | `flow/regress/`, `flow/cov/`, `Docs/coverage/`, `flow/nightly/`, `flow/4_core/imc/` |
+| F8 | `flow/regress/`, `flow/cov/`, `Docs/coverage/`, `flow/nightly/`, `flow/4_core/imc/`, `flow/4_core/vplan_g5_2026-11-16.txt`, `flow/1_vplan/garuda_core_g5.csv` |
 | F9 | `flow/reviews/`, `flow/signoff/runs/` |
 
 ## Replays

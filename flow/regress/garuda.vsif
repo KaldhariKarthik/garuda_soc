@@ -107,9 +107,7 @@ group garuda {
             test prog_covtests__t_cov_rereset {}; test prog_covtests__t_cov_rereset_w2 {};
             test prog_covtests__t_cov_irq {}; test prog_covtests__t_cov_irq_w2 {};
             test prog_covtests__t_cov_misfetch {}; test prog_covtests__t_cov_misfetch_w2 {};
-            // t_dsu_macsat_rd left out: it checks MACSAT as the pre-D-32 spec had it and fails
-            // by design (DSU-15, tb/core/run/xfail.tsv) until it is rewritten to the ruled spec
-            test prog_covtests__t_cov_misfetch_d3 {};
+            test prog_covtests__t_cov_misfetch_d3 {}; test prog_covtests__t_dsu_macsat_rd {};
             test prog_covtests__t_cov_vplan {}; test prog_covtests__t_cov_vplan_w2 {};
             test prog_extra__boot6 {}; test prog_extra__ctest1 {}; test prog_extra__dsu_flag2 {};
             test prog_perf__perf_nowait {}; test prog_perf__perf_w2 {}; test prog_perf__perf_rand {};

@@ -513,11 +513,12 @@ The whole regression through vManager:
 
 ```bash
 vmanager -local sim/vm_db &                   # GUI: Regression > Launch > flow/regress/garuda.vsif
-# or without the GUI (119 runs, 8 at a time, about 8 minutes):
-vmanager -local $PWD/sim/vm_db -execcmd "launch -wait flow/regress/garuda.vsif"
-# the batch client can sit idle after the last run; count the results and Ctrl-C:
-cat sim/vm_sessions/*/chain_0/run_*/local_log.log | grep -c 'GARUDA_RESULT: PASS'    # 119
-cat sim/vm_sessions/*/chain_0/run_*/local_log.log | grep    'GARUDA_RESULT: FAIL'    # nothing
+# or without the GUI (206 runs, 8 at a time, about 7 minutes); returns at once, the runs go on:
+vmanager -local sim/vm_db -batch -launch flow/regress/garuda.vsif
+# vManager never marks the runs as ended on this host (TOOL-A17; `launch -wait` never returns),
+# so read each run's own result once the session's master has exited:
+grep -c 'Master exits' sim/vm_sessions/<session>/chain_0/master.log            # 1 when done
+find sim/vm_sessions/<session> -name local_log.log | xargs grep -ah '^GARUDA_RESULT' | awk '{print $2}' | sort | uniq -c   # 206 PASS
 ```
 
 Groups in `flow/regress/garuda.vsif`: `block` (stage 3), `core` (stage 4: unit
@@ -736,7 +737,7 @@ Start every replay with:
 ### G5, stages F6 and F8 for the core: Xcelium runs against Spike, benchmarks, core coverage
 
 Run in tcsh on 2026-11-11. R5.1 to R5.4 use Xcelium (`xrun`, from `source /home/install/cshrc`);
-R5.5 and R5.6 use irun 15.2 and IMC (the `set path` line at the top). Record: `flow/4_core/core_g5.md`.
+R5.5 to R5.10 use irun 15.2, IMC and vManager 15.2 (the `set path` line at the top); R5.9 and R5.10 added on 2026-11-16. Record: `flow/4_core/core_g5.md`.
 
 | # | Type | Look for |
 |---|---|---|
@@ -745,6 +746,8 @@ R5.5 and R5.6 use irun 15.2 and IMC (the `set path` line at the top). Record: `f
 | R5.3 | `make regress_rand SEED=7` | `PASS=66 FAIL=0`: every ISA test under random 0..8 wait states on both ports, each also MATCH with Spike (row 5.6) |
 | R5.4 | `make bench` | `BENCH coremark PASS ... CoreMark/MHz=1.668`, `BENCH dhrystone PASS ... DMIPS/MHz=0.323`, two `LOCKSTEP ... MATCH` lines, `bench: PASS` (row 5.7; about 10 minutes) |
 | R5.5 | `bash flow/regress/run_test.sh prog_halt__t_core_hartreset_timeout` | `GARUDA_RESULT: PASS prog_halt__t_core_hartreset_timeout`: one row of a core manifest run under irun with coverage (the new `prog_*` tests of `garuda.vsif`) |
-| R5.6 | `imc -exec flow/cov/core_g5_merge.tcl -logfile sim/replay/imc_g5.log` then `grep -e "exclusions applied" -e "^csr_file " sim/replay/imc_g5.log sim/cov_g5/type_raw.txt sim/cov_g5/type_waived.txt` | `exclusions applied: 586, not applied: 0`; `csr_file` toggle `79.00% (775/981)` raw and `100.00% (775/775/206)` with the waivers (row 5.9). Needs every run of `flow/cov/core_g5_runs.txt` in `sim/run_test/` first (the vManager session, or `run_test.sh` per line) |
+| R5.6 | after R5.9: `setenv G5_RUNFILE sim/cov_g5/session_runs.txt` then `imc -exec flow/cov/core_g5_merge.tcl -logfile sim/replay/imc_g5.log` then `grep -e "runs merged" -e "exclusions applied" -e "^csr_file " sim/replay/imc_g5.log sim/cov_g5/type_raw.txt sim/cov_g5/type_waived.txt` | `runs merged from: sim/cov_g5/session_runs.txt`; `exclusions applied: 586, not applied: 0`; `csr_file` toggle `79.00% (775/981)` raw and `100.00% (775/775/206)` with the waivers (row 5.9). Without `G5_RUNFILE` it merges `flow/cov/core_g5_runs.txt`, the same tests run one by one with `run_test.sh` into `sim/run_test/`; those must be run again after any change to a program or a covergroup |
 | R5.7 | `bash flow/regress/run_test.sh prog_covtests__t_cov_irq_ids` then `bash flow/regress/run_test.sh prog_covtests__t_cov_csr_ro` | `GARUDA_RESULT: PASS` twice: the two programs written for row 5.8 (interrupt and sleep corners; refused writes to the read-only CSRs) |
-| R5.8 | after R5.6: `grep -e "^garuda_cov" -e "^garuda_core_cov_ext" sim/cov_g5/func_type.txt` | four lines, each `100.00%`: 228/228, 107/107, 245/245, 180/180 (row 5.8) |
+| R5.8 | after R5.6: `grep -e "^garuda_cov" -e "^garuda_core_cov_ext" sim/cov_g5/func_type.txt` | four lines, each `100.00%`: 228/228, 107/107, 245/245, 181/181 (row 5.8; 180/180 before 2026-11-16, when the "woken by neither source" bin went back in) |
+| R5.9 | `setenv GARUDA_ROOT $cwd` then `mkdir -p sim/vm_g5 sim/cov_g5` then `vmanager -local sim/vm_db -batch -launch flow/regress/garuda.vsif`; about 7 minutes later `grep -c "Master exits" sim/vm_sessions/<session>/chain_0/master.log`; then `ln -sfn $cwd/sim/vm_sessions/<session>/chain_0/garuda sim/vm_g5/session` then `grep -rah --include=local_log.log "^GARUDA_RESULT" sim/vm_g5/session/ > sim/vm_g5/results.txt` then `grep -c "GARUDA_RESULT: PASS" sim/vm_g5/results.txt` then `find -L sim/vm_g5/session -type d -path "*/cov_work/garuda/*" -not -name "tb_*" > sim/cov_g5/session_runs.txt` then `wc -l sim/cov_g5/session_runs.txt` | `Session garuda_soc.kkarthik.<date> started` (that name is `<session>`); the launch returns at once and the runs go on; `1` once the session's master has exited; `206` PASS; `190` core and chip runs (the 16 `tb_*` block and integration benches left out). The session view in vManager stays `in_progress` (TOOL-A17) |
+| R5.10 | after R5.6: `vmanager -local sim/vm_db -batch -init flow/regress/vplan_g5.tcl` then `grep -o "[0-9]* / [0-9]* ([0-9.]*%)" sim/vm_g5/vplan/index.html` | `10006 / 10006 (100%)` twice: the G5 vPlan in vManager, 5.8 761/761 and 5.9 9245/9245 with the waivers (open `sim/vm_g5/vplan/index.html` for the tree; `flow/4_core/vplan_g5_2026-11-16.txt`) |

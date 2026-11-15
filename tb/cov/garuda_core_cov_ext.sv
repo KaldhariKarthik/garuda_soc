@@ -98,14 +98,12 @@ module garuda_core_cov_ext (
         option.per_instance = 1;
         // how long the core slept before it woke, and what woke it
         cp_len: coverpoint sleep_len { bins one = {1}; bins short_ = {[2:15]}; bins long_ = {[16:255]}; }
-        // "other" (neither) is not expected: the core leaves the quiescent state only when
-        // wfi_hold drops, which needs a wake (trap_ctrl.v wfi_hold_o); every flop that
-        // could otherwise end it is on the gated clock, closed in the cycle quiescent
-        // rises (core_clk_gate). NOT formally proven: JasperGold finds a trace through the
-        // debug fetch stop that simulation of the same inputs does not reproduce
-        // (flow/formal/core/cov_g5_unr.result.txt; G5 5.8, flow/4_core/core_g5.md).
+        // "other" (neither): only with mgarudactl.CG_DIS = 1, when the clock runs in WFI and
+        // the fetch port starts again (t_cov_irq_ids part J, tb_boot +FSTOP_ON_WFI=1); with
+        // the gate in use only a wake ends the quiescent state (PROVEN a_wake_needs_cond_cg,
+        // flow/formal/core/cov_g5_unr.tcl; G5 5.8)
         cp_woken_by: coverpoint {clic_wake_cond, mti_pending} { bins clic = {2'b10}; bins timer = {2'b01}; bins both = {2'b11};
-                                                                ignore_bins other = {2'b00}; }
+                                                                bins other = {2'b00}; }
     endgroup
 
     // ---- write-back and the register file ---------------------------------------------

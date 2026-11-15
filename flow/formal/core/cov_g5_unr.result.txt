@@ -1,28 +1,27 @@
 script: flow/formal/core/cov_g5_unr.tcl (whole core garuda_core_top, file list rtl/core/filelist_core.f,
         AHB-Lite slave environment flow/formal/core/ahb_slave_env.sv)
 tool:   JasperGold Apps 2022.09p002, 2026-11-15
-purpose: three bins of the core covergroups that cannot be hit (1-TOPS G5 5.8, flow/4_core/core_g5.md)
+purpose: three bins of the core functional covergroups (1-TOPS G5 5.8, flow/4_core/core_g5.md section 4)
 
+assert     proven         a_wake_needs_cond_cg   $fell(quiescent) |-> (clic_wake_cond | csr_mti_pending | mgarudactl.CG_DIS)
 assert     proven         a_no_exmem_fwd_stall   mem_stall |-> fwd_a_sel != EX/MEM
 assert     proven         a_int_needs_ex_instr   interrupt taken |-> xe_valid
-assert     cex            a_wake_needs_cond      $fell(quiescent) |-> (clic_wake_cond | csr_mti_pending)
 cover      covered        c_wake                 $fell(quiescent)
 cover      covered        c_fwd_exmem            fwd_a_sel == EX/MEM
 cover      covered        c_mem_stall            mem_stall
 cover      covered        c_int_taken            an interrupt is taken
+cover      covered        c_wake_other_cgdis     $fell(quiescent) with neither a CLIC wake nor a timer pending
 
-a_wake_needs_cond, the counterexample (11 cycles): the debug fetch stop halt_req_i is high
-while the core goes to sleep in a WFI with room in its prefetch buffer, and drops in the first
-quiescent cycle; in the next cycle the I-port presents a fetch (i_htrans NONSEQ), bus_idle
-falls and the core leaves the quiescent state with neither a CLIC wake nor a timer pending.
-i_htrans_o is a register on the gated clock (garuda_iport_ahb_master.v), and the gate enable
-is ~quiescent (garuda_core_top.v core_clk_gate en_i), so the trace needs one gated-clock edge
-after quiescent rose. A run with `clock -both_edges clk_i` and every core input held over the
-falling edge (sim/jg_cov_g5/cex2.tcl, not committed) also gives a trace, in which halt_req_i
-rises again in the cycle the fetch appears.
-Simulation (irun 15.2, the behavioural latch gate of core_clk_gate.v) of the same input
-sequence -- tb_boot +FSTOP_ON_WFI=1 on t_cov_irq_ids, the stop released in the first
-quiescent cycle with 2 free buffer entries -- shows the gate enable latch at 0 in that cycle
-and the core asleep until its CLIC wake (cp_woken_by "other" not hit).
-Status: not proven. The bin is an ignore_bins with the reasoning above; a JasperGold setup
-that models the latch gate exactly (or the library ICG cell) is the open item.
+Use:
+- a_no_exmem_fwd_stall, a_int_needs_ex_instr: the two ignore_bins of 5.8 (garuda_cov.sv
+  x_fwd_under_stall {exmem, stall}; garuda_cov_vplan.sv x_insn_class "bubble"). The covers
+  show the antecedents happen, so neither proof is vacuous.
+- a_wake_needs_cond_cg and c_wake_other_cgdis: cg_sleep cp_woken_by "other" is reachable,
+  but only with mgarudactl.CG_DIS = 1 (no clock gating): the clock runs in WFI, the fetch
+  port starts again (in the trace, when the debug fetch stop is released) and quiescent falls
+  with no wake source. The bin is covered by t_cov_irq_ids part J (tb_boot +FSTOP_ON_WFI=1).
+
+History: the first form of the wake check, without the CG_DIS term, failed with an 11-cycle
+counterexample. Before the CG_DIS bit was read from that trace (csr_ctl = 0x9), the failure
+was put down to the clock-gate model and the bin excluded; it was then restated, proven, and
+the bin covered by a test, all on 2026-11-15.

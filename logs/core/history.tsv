@@ -13923,3 +13923,9 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-15T09:54:42+05:30	78bd7cc95031	False	cosim	sw	1	PASS	OK	
 2026-11-15T09:54:42+05:30	78bd7cc95031	False	cosim	xor	1	PASS	OK	
 2026-11-15T09:54:42+05:30	78bd7cc95031	False	cosim	xori	1	PASS	OK	
+2026-11-15T10:34:13+05:30	f8434ca6b74e	False	covtests	t_cov_irq_ids	1	PASS	OK	
+2026-11-15T10:34:13+05:30	f8434ca6b74e	False	covtests	t_cov_irq_ids_fstop	1	PASS	OK	
+2026-11-15T10:34:13+05:30	f8434ca6b74e	False	covtests	t_dsu_macsat_rd	1	PASS	OK	
+2026-11-16T04:30:33+05:30	f8434ca6b74e	False	covtests	t_cov_irq_ids	1	PASS	OK	
+2026-11-16T04:30:33+05:30	f8434ca6b74e	False	covtests	t_cov_irq_ids_fstop	1	PASS	OK	
+2026-11-16T04:30:33+05:30	f8434ca6b74e	False	covtests	t_dsu_macsat_rd	1	PASS	OK	

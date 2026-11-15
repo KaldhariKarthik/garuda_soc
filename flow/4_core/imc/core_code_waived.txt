@@ -1,129 +1,117 @@
 name                                     Block                Expression           Toggle               Fsm Average          Fsm Covered          
 --------------------------------------------------------------------------------------------------------------------------------------------------
-tb_ex_smoke                              94.83% (55/58)       n/a                  48.24% (287/595)     n/a                  n/a                  
-tb_exmem_ifid                            91.18% (31/34)       n/a                  18.75% (66/352)      n/a                  n/a                  
-tb_id_ex_fwd                             91.11% (41/45)       n/a                  27.52% (60/218)      n/a                  n/a                  
-tb_csr_file                              94.37% (67/71)       n/a                  26.30% (76/289)      n/a                  n/a                  
-tb_pipe_ctrl                             94.23% (49/52)       n/a                  23.08% (36/156)      n/a                  n/a                  
 tb_trap_ctrl                             97.69% (127/130)     n/a                  29.25% (129/441)     n/a                  n/a                  
+tb_pipe_ctrl                             94.23% (49/52)       n/a                  23.08% (36/156)      n/a                  n/a                  
+tb_id_ex_fwd                             91.11% (41/45)       n/a                  27.52% (60/218)      n/a                  n/a                  
+tb_exmem_ifid                            91.18% (31/34)       n/a                  18.75% (66/352)      n/a                  n/a                  
+tb_ex_smoke                              94.83% (55/58)       n/a                  48.24% (287/595)     n/a                  n/a                  
+tb_csr_file                              94.37% (67/71)       n/a                  26.30% (76/289)      n/a                  n/a                  
 tb_boot                                  86.23% (213/247)     76.79% (86/112)      3.15% (545/17289)    n/a                  n/a                  
-tb_dsu_top                               68.82% (64/93)       41.86% (18/43)       5.30% (459/8663)     n/a                  n/a                  
-trap_ctrl                                100.00% (7/7)        n/a                  100.00% (515/515/43) n/a                  n/a                  
-csr_file                                 100.00% (68/68)      100.00% (15/15)      100.00% (775/775/206) n/a                  n/a                  
-ex_mem                                   100.00% (7/7)        n/a                  100.00% (218/218/4)  n/a                  n/a                  
-ex_stage                                 100.00% (8/8)        n/a                  100.00% (952/952/4)  n/a                  n/a                  
-tb_csr_file_t12                          97.98% (97/99)       n/a                  14.04% (56/399)      n/a                  n/a                  
-pipe_ctrl                                n/a                  n/a                  100.00% (155/155/3)  n/a                  n/a                  
-tb_core_halt                             85.94% (55/64)       60.00% (6/10)        25.19% (163/647)     n/a                  n/a                  
 tb_chip                                  91.23% (104/114)     41.67% (5/12)        1.72% (23/1341)      n/a                  n/a                  
-tb_top                                   100.00% (5/5)        100.00% (9/9)        75.00% (219/292)     n/a                  n/a                  
-if_id                                    100.00% (7/7)        n/a                  100.00% (132/132/4)  n/a                  n/a                  
-id_ex                                    100.00% (7/7)        n/a                  100.00% (469/469/3)  n/a                  n/a                  
-clic_ctrl                                n/a                  n/a                  100.00% (109/109/4)  n/a                  n/a                  
-garuda_core_top                          100.00% (9/9)        n/a                  100.00% (1745/1745/105) n/a                  n/a                  
+tb_core_halt                             85.94% (55/64)       60.00% (6/10)        25.19% (163/647)     n/a                  n/a                  
+tb_csr_file_t12                          97.98% (97/99)       n/a                  14.04% (56/399)      n/a                  n/a                  
+tb_dsu_top                               68.82% (64/93)       41.86% (18/43)       5.30% (459/8663)     n/a                  n/a                  
+dsu_top                                  100.00% (5/5)        n/a                  100.00% (575/575)    n/a                  n/a                  
+tb_top                                   100.00% (6/6)        100.00% (9/9)        75.00% (219/292)     n/a                  n/a                  
 garuda_chip_top                          n/a                  n/a                  73.81% (31/42)       n/a                  n/a                  
+garuda_core_top                          100.00% (9/9)        n/a                  100.00% (1745/1745/105) n/a                  n/a                  
 decode_if                                n/a                  n/a                  100.00% (83/83)      n/a                  n/a                  
-pc_gen_if                                n/a                  n/a                  96.24% (128/133)     n/a                  n/a                  
-csr_file_props_a                         100.00% (3/3)        n/a                  76.99% (174/226)     n/a                  n/a                  
-pfb_if                                   n/a                  n/a                  96.45% (136/141)     n/a                  n/a                  
-iport_if                                 n/a                  n/a                  73.27% (159/217)     n/a                  n/a                  
 regfile_if                               n/a                  n/a                  99.12% (113/114)     n/a                  n/a                  
-imm_gen_if                               n/a                  n/a                  98.48% (130/132)     n/a                  n/a                  
-mem_stage_if                             n/a                  n/a                  95.47% (316/331)     n/a                  n/a                  
-if_top_if                                n/a                  n/a                  72.90% (156/214)     n/a                  n/a                  
+pfb_if                                   n/a                  n/a                  96.45% (136/141)     n/a                  n/a                  
+pc_gen_if                                n/a                  n/a                  96.24% (128/133)     n/a                  n/a                  
 memwb_if                                 n/a                  n/a                  100.00% (119/119)    n/a                  n/a                  
-core_clk_gate                            100.00% (3/3)        n/a                  100.00% (4/4/1)      n/a                  n/a                  
+mem_stage_if                             n/a                  n/a                  95.47% (316/331)     n/a                  n/a                  
+iport_if                                 n/a                  n/a                  73.27% (159/217)     n/a                  n/a                  
+imm_gen_if                               n/a                  n/a                  98.48% (130/132)     n/a                  n/a                  
+if_top_if                                n/a                  n/a                  72.90% (156/214)     n/a                  n/a                  
+id_stage_if                              n/a                  n/a                  98.28% (342/348)     n/a                  n/a                  
 dport_if                                 n/a                  n/a                  94.52% (138/146)     n/a                  n/a                  
 dsu_decoder                              n/a                  n/a                  100.00% (142/142)    n/a                  n/a                  
 hazard_if                                n/a                  n/a                  100.00% (18/18)      n/a                  n/a                  
 fwd_if                                   n/a                  n/a                  100.00% (27/27)      n/a                  n/a                  
 garuda_chip_core                         n/a                  n/a                  54.99% (435/791)     n/a                  n/a                  
-id_stage_if                              n/a                  n/a                  98.28% (342/348)     n/a                  n/a                  
 branch_if                                n/a                  n/a                  98.33% (236/240)     n/a                  n/a                  
-lsu_if                                   n/a                  n/a                  99.05% (104/105)     n/a                  n/a                  
-decode_control                           100.00% (63/63/2)    100.00% (20/20)      100.00% (117/117)    n/a                  n/a                  
-branch_predict                           n/a                  n/a                  100.00% (221/221/9)  n/a                  n/a                  
-mem_wb_reg                               100.00% (5/5)        n/a                  100.00% (81/81)      n/a                  n/a                  
-csr_rw_if                                n/a                  n/a                  93.97% (109/116)     n/a                  n/a                  
-garuda_if_stage_top                      n/a                  n/a                  100.00% (268/268/51) n/a                  n/a                  
-garuda_iport_ahb_master                  100.00% (19/19)      100.00% (9/9)        100.00% (253/253/57) n/a                  n/a                  
-d_port_ahb_master                        100.00% (12/12/1)    100.00% (6/6)        100.00% (144/144/4)  100.00%              100.00% (4/4)        
-garuda_pc_gen                            100.00% (10/10)      n/a                  100.00% (128/128/5)  n/a                  n/a                  
-mem_stage                                n/a                  n/a                  100.00% (392/392/15) n/a                  n/a                  
-garuda_prefetch_buffer                   100.00% (15/15)      n/a                  100.00% (144/144/4)  n/a                  n/a                  
-load_fmt_if                              n/a                  n/a                  100.00% (70/70)      n/a                  n/a                  
-forward_unit                             n/a                  100.00% (12/12)      100.00% (28/28)      n/a                  n/a                  
-hazard_forward_unit                      n/a                  n/a                  100.00% (17/17)      n/a                  n/a                  
-imm_gen                                  100.00% (8/8)        n/a                  100.00% (280/280/43) n/a                  n/a                  
-id_stage                                 n/a                  n/a                  100.00% (556/556/7)  n/a                  n/a                  
-mul32_if                                 n/a                  n/a                  99.00% (99/100)      n/a                  n/a                  
+core_clk_gate                            100.00% (3/3)        n/a                  100.00% (4/4/1)      n/a                  n/a                  
 saturation_unit                          100.00% (5/5)        n/a                  63.36% (166/262)     n/a                  n/a                  
+csr_rw_if                                n/a                  n/a                  93.97% (109/116)     n/a                  n/a                  
+mul32_if                                 n/a                  n/a                  99.00% (99/100)      n/a                  n/a                  
 alu_if                                   n/a                  n/a                  100.00% (101/101)    n/a                  n/a                  
-regfile                                  100.00% (3/3)        100.00% (11/11)      100.00% (178/178)    n/a                  n/a                  
+garuda_if_stage_top                      n/a                  n/a                  100.00% (268/268/51) n/a                  n/a                  
+lsu_if                                   n/a                  n/a                  99.05% (104/105)     n/a                  n/a                  
 clk_div                                  88.00% (22/25)       n/a                  60.87% (14/23)       n/a                  n/a                  
-csr_rw                                   n/a                  n/a                  100.00% (115/115)    n/a                  n/a                  
-mul32                                    n/a                  n/a                  100.00% (233/233)    n/a                  n/a                  
-alu                                      100.00% (13/13)      n/a                  100.00% (105/105)    n/a                  n/a                  
-wb_stage                                 n/a                  n/a                  100.00% (76/76)      n/a                  n/a                  
+load_fmt_if                              n/a                  n/a                  100.00% (70/70)      n/a                  n/a                  
 mac_cluster                              100.00% (5/5)        n/a                  100.00% (527/527)    n/a                  n/a                  
-branch_unit                              100.00% (8/8)        n/a                  100.00% (266/266/5)  n/a                  n/a                  
+garuda_pc_gen                            100.00% (10/10)      n/a                  100.00% (128/128/5)  n/a                  n/a                  
 clk_div_sva                              96.30% (26/27)       56.25% (9/16)        42.86% (6/14)        n/a                  n/a                  
-load_store_unit                          100.00% (4/4)        n/a                  100.00% (106/106/1)  n/a                  n/a                  
-load_formatter                           100.00% (14/14)      n/a                  100.00% (96/96)      n/a                  n/a                  
-reset_ctrl                               97.06% (33/34)       100.00% (3/3)        65.19% (103/158)     n/a                  n/a                  
-dsu_top                                  100.00% (5/5)        n/a                  100.00% (575/575)    n/a                  n/a                  
 mac_unit                                 100.00% (24/24)      n/a                  95.32% (1038/1089)   n/a                  n/a                  
 garuda_pc_gen_sva                        n/a                  n/a                  96.99% (129/133)     n/a                  n/a                  
+reset_ctrl                               97.06% (33/34)       100.00% (3/3)        65.19% (103/158)     n/a                  n/a                  
+garuda_iport_ahb_master                  100.00% (19/19)      100.00% (9/9)        100.00% (253/253/57) n/a                  n/a                  
 operand_router                           100.00% (5/5)        n/a                  98.77% (161/163)     n/a                  n/a                  
 reset_ctrl_apb                           94.74% (18/19)       90.00% (9/10)        54.95% (61/111)      n/a                  n/a                  
-garuda_iport_sva                         100.00% (5/5)        n/a                  89.74% (105/117)     n/a                  n/a                  
 reset_ctrl_sva                           100.00% (10/10)      n/a                  69.39% (34/49)       n/a                  n/a                  
+garuda_iport_sva                         100.00% (5/5)        n/a                  89.74% (105/117)     n/a                  n/a                  
 mult_16x16                               n/a                  n/a                  100.00% (64/64)      n/a                  n/a                  
 iport_ctl_sva                            n/a                  n/a                  92.86% (39/42)       n/a                  n/a                  
-mult_16x16_sva                           100.00% (2/2)        n/a                  100.00% (64/64)      n/a                  n/a                  
 garuda_spim_top                          100.00% (5/5)        100.00% (3/3)        80.94% (225/278)     n/a                  n/a                  
-garuda_apb_shim                          93.55% (29/31)       92.31% (12/13)       96.39% (187/194)     n/a                  n/a                  
+mult_16x16_sva                           100.00% (2/2)        n/a                  100.00% (64/64)      n/a                  n/a                  
 csa_3to2                                 n/a                  n/a                  99.18% (243/245)     n/a                  n/a                  
-garuda_prefetch_buffer_sva               100.00% (11/11)      100.00% (6/6)        97.22% (140/144)     n/a                  n/a                  
+garuda_apb_shim                          93.55% (29/31)       92.31% (12/13)       96.39% (187/194)     n/a                  n/a                  
+garuda_prefetch_buffer                   100.00% (15/15)      n/a                  100.00% (144/144/4)  n/a                  n/a                  
 kogge_stone_49                           n/a                  n/a                  98.65% (146/148)     n/a                  n/a                  
+garuda_prefetch_buffer_sva               100.00% (11/11)      100.00% (6/6)        97.22% (140/144)     n/a                  n/a                  
 garuda_apb_shim_sva                      n/a                  100.00% (3/3)        91.89% (68/74)       n/a                  n/a                  
+if_id                                    100.00% (7/7)        n/a                  100.00% (132/132/4)  n/a                  n/a                  
 kogge_stone_49_sva                       100.00% (2/2)        n/a                  98.65% (146/148)     n/a                  n/a                  
 if_id_sva                                n/a                  n/a                  97.06% (132/136)     n/a                  n/a                  
-garuda_apb_shim_cov                      n/a                  n/a                  86.49% (32/37)       n/a                  n/a                  
 mac_unit_sva                             100.00% (3/3)        n/a                  96.36% (106/110)     n/a                  n/a                  
+garuda_apb_shim_cov                      n/a                  n/a                  86.49% (32/37)       n/a                  n/a                  
+id_stage                                 n/a                  n/a                  100.00% (556/556/7)  n/a                  n/a                  
 apb_spi_master                           34.88% (15/43)       10.00% (2/20)        44.95% (209/465)     16.67%               16.67% (2/12)        
 barrel_shifter                           n/a                  n/a                  100.00% (279/279)    n/a                  n/a                  
-spi_master_apb_if                        91.30% (21/23)       100.00% (4/4)        47.47% (169/356)     n/a                  n/a                  
+decode_control                           100.00% (63/63/2)    100.00% (20/20)      100.00% (117/117)    n/a                  n/a                  
 readback_mux                             n/a                  n/a                  100.00% (114/114)    n/a                  n/a                  
-result_selector                          100.00% (5/5)        n/a                  100.00% (130/130)    n/a                  n/a                  
-decode_control_sva                       100.00% (3/3)        n/a                  100.00% (96/96)      n/a                  n/a                  
+spi_master_apb_if                        91.30% (21/23)       100.00% (4/4)        47.47% (169/356)     n/a                  n/a                  
 spi_master_fifo                          93.10% (27/29)       73.68% (14/19)       87.78% (79/90)       n/a                  n/a                  
+decode_control_sva                       100.00% (3/3)        n/a                  100.00% (96/96)      n/a                  n/a                  
+result_selector                          100.00% (5/5)        n/a                  100.00% (130/130)    n/a                  n/a                  
 spi_master_controller                    49.37% (39/79)       35.29% (6/17)        27.50% (88/320)      43.75%               35.71% (10/28)       
+imm_gen                                  100.00% (8/8)        n/a                  100.00% (280/280/43) n/a                  n/a                  
 overflow_flag                            100.00% (7/7)        n/a                  100.00% (9/9)        n/a                  n/a                  
-dsu_stall                                100.00% (7/7)        n/a                  100.00% (25/25)      n/a                  n/a                  
+regfile                                  100.00% (3/3)        100.00% (11/11)      100.00% (178/178)    n/a                  n/a                  
 spi_master_clkgen                        100.00% (13/13)      100.00% (3/3)        26.53% (13/49)       n/a                  n/a                  
-spi_master_tx                            86.36% (19/22)       83.33% (5/6)         42.71% (82/192)      100.00%              100.00% (4/4)        
+dsu_stall                                100.00% (7/7)        n/a                  100.00% (25/25)      n/a                  n/a                  
 regfile_sva                              100.00% (5/5)        100.00% (3/3)        91.72% (133/145)     n/a                  n/a                  
+spi_master_tx                            86.36% (19/22)       83.33% (5/6)         42.71% (82/192)      100.00%              100.00% (4/4)        
 dsu_sva                                  100.00% (1/1)        n/a                  100.00% (222/222)    n/a                  n/a                  
 spi_master_rx                            70.97% (22/31)       n/a                  63.02% (121/192)     41.67%               40.00% (4/10)        
 dsu_top_sva                              71.43% (5/7)         n/a                  95.30% (345/362)     n/a                  n/a                  
-branch_predict_sva                       100.00% (3/3)        n/a                  96.27% (129/134)     n/a                  n/a                  
+branch_predict                           n/a                  n/a                  100.00% (221/221/9)  n/a                  n/a                  
 garuda_spim_sva                          n/a                  n/a                  75.93% (82/108)      n/a                  n/a                  
 dsu_cov                                  100.00% (30/30)      n/a                  95.81% (297/310)     n/a                  n/a                  
+branch_predict_sva                       100.00% (3/3)        n/a                  96.27% (129/134)     n/a                  n/a                  
+hazard_forward_unit                      n/a                  n/a                  100.00% (17/17)      n/a                  n/a                  
 dsu_cov_vplan                            100.00% (49/49)      100.00% (9/9)        99.65% (285/286)     n/a                  n/a                  
 garuda_i2c_top                           89.47% (51/57)       n/a                  61.54% (184/299)     n/a                  n/a                  
-hazard_forward_unit_sva                  100.00% (2/2)        n/a                  100.00% (17/17)      n/a                  n/a                  
 i2c_master_byte_ctrl                     83.93% (47/56)       n/a                  61.04% (47/77)       78.03%               76.47% (13/17)       
+hazard_forward_unit_sva                  100.00% (2/2)        n/a                  100.00% (17/17)      n/a                  n/a                  
 i2c_master_bit_ctrl                      96.15% (75/78)       50.00% (2/4)         58.65% (61/104)      100.00%              100.00% (39/39)      
+id_ex                                    100.00% (7/7)        n/a                  100.00% (469/469/3)  n/a                  n/a                  
 garuda_i2c_sva                           100.00% (20/20)      77.78% (7/9)         34.48% (40/116)      n/a                  n/a                  
 id_ex_sva                                n/a                  n/a                  97.73% (172/176)     n/a                  n/a                  
+forward_unit                             n/a                  100.00% (12/12)      100.00% (28/28)      n/a                  n/a                  
 forward_unit_sva                         75.00% (3/4)         100.00% (8/8)        100.00% (26/26)      n/a                  n/a                  
 garuda_uart_top                          100.00% (10/10)      n/a                  73.79% (152/206)     n/a                  n/a                  
+ex_stage                                 100.00% (8/8)        n/a                  100.00% (952/952/4)  n/a                  n/a                  
 apb_uart_sv                              89.29% (25/28)       100.00% (8/8)        64.15% (102/159)     n/a                  n/a                  
+alu                                      100.00% (13/13)      n/a                  100.00% (105/105)    n/a                  n/a                  
 uart_rx                                  72.73% (56/77)       100.00% (6/6)        55.43% (51/92)       58.33%               57.14% (8/14)        
+mul32                                    n/a                  n/a                  100.00% (233/233)    n/a                  n/a                  
+branch_unit                              100.00% (8/8)        n/a                  100.00% (266/266/5)  n/a                  n/a                  
 uart_tx                                  77.36% (41/53)       n/a                  56.79% (46/81)       58.33%               57.14% (8/14)        
-io_generic_fifo                          86.21% (25/29)       73.68% (14/19)       63.04% (29/46)       n/a                  n/a                  
 branch_unit_sva                          100.00% (11/11)      n/a                  98.84% (170/172)     n/a                  n/a                  
+io_generic_fifo                          86.21% (25/29)       73.68% (14/19)       63.04% (29/46)       n/a                  n/a                  
+csr_rw                                   n/a                  n/a                  100.00% (115/115)    n/a                  n/a                  
 uart_interrupt                           55.17% (16/29)       n/a                  21.05% (8/38)        n/a                  n/a                  
 garuda_uart_sva                          100.00% (5/5)        n/a                  65.88% (56/85)       n/a                  n/a                  
 csr_rw_sva                               100.00% (2/2)        n/a                  100.00% (109/109)    n/a                  n/a                  
@@ -137,14 +125,26 @@ pwm_sva                                  n/a                  n/a               
 garuda_spis_top                          90.32% (28/31)       n/a                  68.97% (160/232)     n/a                  n/a                  
 garuda_spis_core                         100.00% (31/31)      100.00% (6/6)        58.49% (31/53)       n/a                  n/a                  
 garuda_spis_sva                          100.00% (7/7)        n/a                  79.55% (35/44)       n/a                  n/a                  
+ex_mem                                   100.00% (7/7)        n/a                  100.00% (218/218/4)  n/a                  n/a                  
 ex_mem_sva                               n/a                  n/a                  98.15% (212/216)     n/a                  n/a                  
+mem_stage                                n/a                  n/a                  100.00% (392/392/15) n/a                  n/a                  
+load_store_unit                          100.00% (4/4)        n/a                  100.00% (106/106/1)  n/a                  n/a                  
 load_store_unit_sva                      100.00% (3/3)        n/a                  99.06% (105/106)     n/a                  n/a                  
+d_port_ahb_master                        100.00% (12/12/1)    100.00% (6/6)        100.00% (144/144/4)  100.00%              100.00% (4/4)        
 d_port_sva                               n/a                  n/a                  97.93% (142/145)     n/a                  n/a                  
+load_formatter                           100.00% (14/14)      n/a                  100.00% (96/96)      n/a                  n/a                  
+mem_wb_reg                               100.00% (5/5)        n/a                  100.00% (81/81)      n/a                  n/a                  
+wb_stage                                 n/a                  n/a                  100.00% (76/76)      n/a                  n/a                  
+csr_file                                 100.00% (68/68)      100.00% (15/15)      100.00% (775/775/206) n/a                  n/a                  
 garuda_soc_top                           n/a                  n/a                  56.51% (1094/1936)   n/a                  n/a                  
 csr_file_sva                             n/a                  n/a                  85.78% (181/211)     n/a                  n/a                  
+csr_file_props_a                         100.00% (3/3)        n/a                  76.99% (174/226)     n/a                  n/a                  
+clic_ctrl                                n/a                  n/a                  100.00% (109/109/4)  n/a                  n/a                  
 clic_ctrl_sva                            100.00% (1/1)        n/a                  95.70% (89/93)       n/a                  n/a                  
+trap_ctrl                                100.00% (7/7)        n/a                  100.00% (515/515/43) n/a                  n/a                  
 trap_ctrl_sva                            n/a                  n/a                  84.77% (384/453)     n/a                  n/a                  
 trap_ctrl_props_a                        100.00% (3/3)        n/a                  83.78% (155/185)     n/a                  n/a                  
+pipe_ctrl                                n/a                  n/a                  100.00% (155/155/3)  n/a                  n/a                  
 pipe_ctrl_sva                            97.56% (40/41)       95.00% (38/40)       97.56% (80/82)       n/a                  n/a                  
 core_ctl_sva                             n/a                  n/a                  100.00% (19/19)      n/a                  n/a                  
 core_vplan_sva                           95.24% (20/21)       100.00% (8/8)        92.65% (63/68)       n/a                  n/a                  

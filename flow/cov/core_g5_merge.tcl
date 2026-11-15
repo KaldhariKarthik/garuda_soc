@@ -8,10 +8,17 @@
 # so a unit bench's corner cases count for the core.
 # flow/cov/core_g5_runs.txt: every core test of garuda.vsif (units, smokes, DSU, ISA,
 # sanity, core programs, riscv-dv) and the 8 chip programs (the same core, inside the
-# chip); t_dsu_macsat_rd left out (DSU-15 xfail).
+# chip), as run one by one with flow/regress/run_test.sh. To merge the runs of a vManager
+# session of garuda.vsif instead, list their cov_work directories in a file and name it in
+# G5_RUNFILE (flow/COMMANDS.md R5.9).
+# The exclusions applied are saved as sim/cov_g5/core_g5.vRefine, so vManager shows the
+# vPlan with the same waivers (flow/regress/vplan_g5.tcl).
 # Raw numbers first, then with the written waivers of tb/core/cov/core_waivers.toml applied per module type
 # (flow/cov/core_exclusions_type.tcl, python3.12 tools/cov/gen_imc_exclusions.py core --type).
-merge -runfile flow/cov/core_g5_runs.txt -out sim/cov_g5/merged -overwrite -initial_model union_all -message 1
+set runfile flow/cov/core_g5_runs.txt
+if {[info exists ::env(G5_RUNFILE)]} { set runfile $::env(G5_RUNFILE) }
+puts "runs merged from: $runfile"
+merge -runfile $runfile -out sim/cov_g5/merged -overwrite -initial_model union_all -message 1
 load -run sim/cov_g5/merged
 report -summary -type -metrics block:expression:toggle:fsm -out sim/cov_g5/type_raw.txt
 report -detail -metrics covergroup -out sim/cov_g5/func_cov.txt
@@ -33,6 +40,8 @@ puts "exclusions applied: $n, not applied: $bad"
 exclude -type decode_control -block 32 -comment "CW-006: default arm of case(funct3) at decode_control.v:216; the case lists all eight values, reached only by an X funct3"
 exclude -type decode_control -block 47 -comment "CW-006: default arm of case(funct3) at decode_control.v:243; the case lists all eight values, reached only by an X funct3"
 exclude -type d_port_ahb_master -block 13 -comment "CW-003: default arm of the D-port FSM at d_port_ahb_master.v:140; state is S_ADDR or S_DATA (PROVEN a_dport_state_legal)"
+catch {file delete sim/cov_g5/core_g5.vRefine}
+save -refinement sim/cov_g5/core_g5.vRefine
 report -summary -type -metrics block:expression:toggle:fsm -out sim/cov_g5/type_waived.txt
 report -detail -type -metrics block:expression:toggle -uncovered -out sim/cov_g5/type_holes.txt
 exit

@@ -90,10 +90,10 @@ module tb_boot;
     // (halt_req_i), and have it low again, with no hart reset, in the first cycle the
     // core is quiescent -- a debugger halt request withdrawn before it is granted.
     // The core sleeps with room in its prefetch buffer while the stop is released.
-    // This is the input sequence of a JasperGold trace in which the core leaves the
-    // quiescent state with no wake source (flow/formal/core/cov_g5_unr.tcl); in
-    // simulation, with the latch clock gate closing in the cycle quiescent rises, the
-    // core stays asleep until its wake (G5 5.8, cg_sleep cp_woken_by "other").
+    // With mgarudactl.CG_DIS = 1 the clock runs in WFI, the fetch port starts again
+    // and the core leaves the quiescent state with no wake source (G5 5.8, cg_sleep
+    // cp_woken_by "other", t_cov_irq_ids part J; JasperGold c_wake_other_cgdis in
+    // flow/formal/core/cov_g5_unr.tcl). With the gate in use it stays asleep.
     // Fetch stop is invisible to the architecture. Off by default.
     integer      fstop_len, fstop_cnt;
     reg          fstop;
