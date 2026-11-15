@@ -22,6 +22,7 @@ module garuda_core_cov_ext (
     input wire [31:0] csr_wdata,
     // interrupts and traps
     input wire        tr_enter, tr_is_int, tr_mret, clic_take_cond, clic_wake_cond,
+    input wire [31:0] tr_cause,
     input wire [4:0]  clic_id,
     input wire [7:0]  clic_lvl, mil, mintthresh,
     input wire        mie, mti_pending,
@@ -68,8 +69,13 @@ module garuda_core_cov_ext (
     // ---- interrupts -------------------------------------------------------------
     covergroup cg_irq @(posedge clk_i iff (rst_n_i && tr_enter && tr_is_int));
         option.per_instance = 1;
-        cp_id: coverpoint clic_id { bins dma_done[] = {[1:6]}; bins dma_err = {[8:13]}; bins spis = {14};
-                                    bins periph = {[15:22]}; bins timer_mti = {0}; }
+        // which interrupt was taken: a CLIC one by its id, the timer by its cause (7).
+        // Until 2026-11-11 the timer was a clic_id == 0 bin, but on an MTI clic_id is
+        // just whatever id the CLIC input carries, so that bin measured the bench.
+        cp_id: coverpoint clic_id iff (tr_cause[30:0] != 31'd7) {
+                                    bins dma_done[] = {[1:6]}; bins dma_err = {[8:13]}; bins spis = {14};
+                                    bins periph = {[15:22]}; }
+        cp_mti: coverpoint (tr_cause[30:0] == 31'd7) { bins timer_mti = {1'b1}; }
         cp_level: coverpoint clic_lvl { bins lowest = {[1:63]}; bins low = {[64:127]}; bins high = {[128:254]}; bins top = {255}; }
         // [N-14.3] preemption: taken while another interrupt is already active
         cp_nesting: coverpoint (mil != 8'd0) { bins first = {0}; bins nested = {1}; }
@@ -92,7 +98,14 @@ module garuda_core_cov_ext (
         option.per_instance = 1;
         // how long the core slept before it woke, and what woke it
         cp_len: coverpoint sleep_len { bins one = {1}; bins short_ = {[2:15]}; bins long_ = {[16:255]}; }
-        cp_woken_by: coverpoint {clic_wake_cond, mti_pending} { bins clic = {2'b10}; bins timer = {2'b01}; bins both = {2'b11}; bins other = {2'b00}; }
+        // "other" (neither) is not expected: the core leaves the quiescent state only when
+        // wfi_hold drops, which needs a wake (trap_ctrl.v wfi_hold_o); every flop that
+        // could otherwise end it is on the gated clock, closed in the cycle quiescent
+        // rises (core_clk_gate). NOT formally proven: JasperGold finds a trace through the
+        // debug fetch stop that simulation of the same inputs does not reproduce
+        // (flow/formal/core/cov_g5_unr.result.txt; G5 5.8, flow/4_core/core_g5.md).
+        cp_woken_by: coverpoint {clic_wake_cond, mti_pending} { bins clic = {2'b10}; bins timer = {2'b01}; bins both = {2'b11};
+                                                                ignore_bins other = {2'b00}; }
     endgroup
 
     // ---- write-back and the register file ---------------------------------------------
@@ -110,7 +123,7 @@ bind garuda_core_top garuda_core_cov_ext u_cov_ext (
     .clk_i(clk_i), .rst_n_i(rst_n_i),
     .csr_en(ex_csr_en_out), .csr_commit(ex_commit), .csr_illegal(csr_illegal),
     .csr_addr(ex_csr_addr_w), .csr_op(ex_csr_op_out), .csr_wdata(ex_csr_wdata),
-    .tr_enter(tr_enter), .tr_is_int(tr_is_int), .tr_mret(tr_mret),
+    .tr_enter(tr_enter), .tr_is_int(tr_is_int), .tr_mret(tr_mret), .tr_cause(tr_cause),
     .clic_take_cond(clic_take_cond), .clic_wake_cond(clic_wake_cond),
     .clic_id(clic_id), .clic_lvl(clic_lvl), .mil(csr_mil), .mintthresh(csr_mintthresh),
     .mie(csr_mstatus_mie), .mti_pending(csr_mti_pending),

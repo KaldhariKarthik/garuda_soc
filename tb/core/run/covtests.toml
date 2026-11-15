@@ -33,6 +33,28 @@ name = "t_cov_csr"
 hex  = "sw/build/t_cov_csr.hex"
 plusargs = ["+MAXCYC=200000", "+QUIET"]
 
+# G5 5.8: CSRRW and CSRRC on mip, mnxti and both mintstatus addresses are refused;
+# CSRRC from x0 and misa are not (cg_csr x_csr_op, x_csr_illegal)
+[[test]]
+name = "t_cov_csr_ro"
+hex  = "sw/build/t_cov_csr_ro.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET"]
+
+# G5 5.8: CLIC ids 2 and 14, a threshold, low-level nesting, MTI with CLIC pending,
+# WFI woken with MIE = 0, both sources at once, short sleeps
+[[test]]
+name = "t_cov_irq_ids"
+hex  = "sw/build/t_cov_irq_ids.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET"]
+
+# the same with a fetch stop raised at each WFI and withdrawn, with no hart reset, in
+# the first cycle the core is quiescent (a cancelled debugger halt): the replay of a
+# JasperGold trace; the core must stay asleep until its wake (G5 5.8)
+[[test]]
+name = "t_cov_irq_ids_fstop"
+hex  = "sw/build/t_cov_irq_ids.hex"
+plusargs = ["+MAXCYC=200000", "+QUIET", "+FSTOP_ON_WFI=1"]
+
 # illegal encodings per opcode class
 [[test]]
 name = "t_cov_illegal"

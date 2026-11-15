@@ -15,8 +15,10 @@
 //      0x1000_F20C IRQ_ARM   N: raise the STAGED request after N more retired
 //                            instructions (deterministic timing)
 //      0x1000_F210 IRQ_STAGE [4:0] id, [15:8] level of the staged request
-//      0x1000_F214 IRQ_ARMC  N: raise the STAGED request N cycles from now
-//                            (for wake-from-WFI tests: nothing retires while asleep)
+//      0x1000_F214 IRQ_ARMC  [30:0] N: raise the STAGED request N cycles from now
+//                            (for wake-from-WFI tests: nothing retires while asleep);
+//                            [31] = 1: raise MTIP in the same cycle (both pending at
+//                            once while asleep, t_cov_irq_ids, G5 5.8)
 //    The device ORs with the plusarg-driven sources (+IRQ_AT, +MTIP_AT ...).
 // -----------------------------------------------------------------------------
 // =============================================================================
@@ -84,6 +86,17 @@ module tb_boot;
     integer      maxcyc, maxinstr, iwait, dwait;
     integer      dbgfrom, dbgto;
     integer      irq_at, irq_id, irq_lvl, irq_shv, irq_every, seed;
+    // +FSTOP_ON_WFI=1: when a WFI enters IF/ID, raise the core's fetch stop
+    // (halt_req_i), and have it low again, with no hart reset, in the first cycle the
+    // core is quiescent -- a debugger halt request withdrawn before it is granted.
+    // The core sleeps with room in its prefetch buffer while the stop is released.
+    // This is the input sequence of a JasperGold trace in which the core leaves the
+    // quiescent state with no wake source (flow/formal/core/cov_g5_unr.tcl); in
+    // simulation, with the latch clock gate closing in the cycle quiescent rises, the
+    // core stays asleep until its wake (G5 5.8, cg_sleep cp_woken_by "other").
+    // Fetch stop is invisible to the architecture. Off by default.
+    integer      fstop_len, fstop_cnt;
+    reg          fstop;
     integer      irq_sweep;
     integer      irand, drand;
     integer      err_en; reg [31:0] err_base, err_size;
@@ -190,11 +203,26 @@ module tb_boot;
         else if (d_htrans[1] && d_hwrite && d_hready && d_haddr == 32'h1000_F100) mtip <= 1'b0;
         else if (mtip_at > 0 && cyc == mtip_at) mtip <= 1'b1;
     end
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin fstop <= 1'b0; fstop_cnt <= 0; end
+        else if (fstop_len > 0 && !fstop && fstop_cnt == 0 && dut.fd_valid && dut.fd_instr == 32'h1050_0073) begin
+            fstop <= 1'b1; fstop_cnt <= 64;                                   // at most 64 cycles
+            $display("tb_boot: fetch stop at cycle %0d (WFI in IF/ID)", cyc);
+        end else if (fstop) begin
+            // drop it so that it is low IN the first quiescent cycle: quiescent rises with
+            // wfi_q2, one cycle after wfi_q1 (the I-port answers the stop a cycle later,
+            // so the bus is still idle in that cycle)
+            if ((dut.tr_wfi_hold && dut.wfi_q1 && !dut.wfi_q2) || dut.quiescent || fstop_cnt <= 1) begin
+                fstop <= 1'b0; fstop_cnt <= -1;
+            end
+            else fstop_cnt <= fstop_cnt - 1;
+        end else if (fstop_cnt < 0 && !(dut.fd_valid && dut.fd_instr == 32'h1050_0073)) fstop_cnt <= 0;
+    end
     // ---- TEST DEVICE (P0.8): see the header -----------------------------------
     localparam [31:0] DEV_IRQ_SET = 32'h1000_F200, DEV_IRQ_CLR = 32'h1000_F204,
                       DEV_MTIP    = 32'h1000_F208, DEV_IRQ_ARM = 32'h1000_F20C,
                       DEV_IRQ_STG = 32'h1000_F210, DEV_IRQ_ARMC = 32'h1000_F214;
-    reg        dev_irq_req, dev_mtip, dev_armed, dev_armed_c;
+    reg        dev_irq_req, dev_mtip, dev_armed, dev_armed_c, dev_arm_mtip;
     integer    dev_arm_cyc;
     reg [4:0]  dev_irq_id, dev_stg_id;
     reg [7:0]  dev_irq_lvl, dev_stg_lvl;
@@ -202,7 +230,7 @@ module tb_boot;
     wire       dev_wr = rst_n && u_mem.b_dv && u_mem.b_dw && u_mem.d_hready_o;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            dev_irq_req <= 1'b0; dev_mtip <= 1'b0; dev_armed <= 1'b0; dev_armed_c <= 1'b0; dev_arm_cyc <= 0;
+            dev_irq_req <= 1'b0; dev_mtip <= 1'b0; dev_armed <= 1'b0; dev_armed_c <= 1'b0; dev_arm_cyc <= 0; dev_arm_mtip <= 1'b0;
             dev_irq_id <= 5'd0; dev_irq_lvl <= 8'd0; dev_stg_id <= 5'd0; dev_stg_lvl <= 8'd0;
             dev_arm_at <= 0;
         end else begin
@@ -214,6 +242,7 @@ module tb_boot;
             // core sleeps in WFI, so a wake-up test cannot use IRQ_ARM)
             if (dev_armed_c && cyc >= dev_arm_cyc) begin
                 dev_irq_req <= 1'b1; dev_irq_id <= dev_stg_id; dev_irq_lvl <= dev_stg_lvl;
+                if (dev_arm_mtip) dev_mtip <= 1'b1;
                 dev_armed_c <= 1'b0;
             end
             if (dev_wr) begin
@@ -223,7 +252,7 @@ module tb_boot;
                     DEV_MTIP:    dev_mtip    <= d_hwdata[0];
                     DEV_IRQ_STG: begin dev_stg_id <= d_hwdata[4:0]; dev_stg_lvl <= d_hwdata[15:8]; end
                     DEV_IRQ_ARM: begin dev_armed <= 1'b1; dev_arm_at <= ninstr + d_hwdata; end
-                    DEV_IRQ_ARMC: begin dev_armed_c <= 1'b1; dev_arm_cyc <= cyc + d_hwdata; end
+                    DEV_IRQ_ARMC: begin dev_armed_c <= 1'b1; dev_arm_cyc <= cyc + d_hwdata[30:0]; dev_arm_mtip <= d_hwdata[31]; end
                     default: ;
                 endcase
             end
@@ -236,7 +265,7 @@ module tb_boot;
 
     garuda_core_top #(.RESET_VECTOR(BASE_ADDR)) dut (
         .clk_i(clk), .core_rst_n_i(rst_n), .hartreset_n_i(1'b1),
-        .halt_req_i(1'b0), .halt_safe_o(),             // no debugger here (RDC-1 ports)
+        .halt_req_i(fstop), .halt_safe_o(),            // no debugger; +FSTOP_ON_WFI drives the fetch stop (RDC-1 ports)
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize),
         .i_hburst_o(i_hburst), .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite),
         .i_hwdata_o(i_hwdata), .i_hrdata_i(i_hrdata), .i_hready_i(i_hready),
@@ -601,6 +630,7 @@ module tb_boot;
         if (!$value$plusargs("ERR_BASE=%h", err_base)) err_base  = 32'h1002_0000;
         if (!$value$plusargs("ERR_SIZE=%h", err_size)) err_size  = 32'h0000_1000;
         if (!$value$plusargs("SEED=%d", seed))         seed      = 1;
+        if (!$value$plusargs("FSTOP_ON_WFI=%d", fstop_len)) fstop_len = 0;
         begin : seed_rng
             integer dummy;
             dummy = $random(seed);      // seed the wait-state RNG reproducibly

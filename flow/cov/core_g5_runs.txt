@@ -176,3 +176,14 @@ sim/run_test/prog_halt__t_core_hartreset_s2/cov_work/garuda/prog_halt__t_core_ha
 sim/run_test/prog_halt__t_core_hartreset_s3/cov_work/garuda/prog_halt__t_core_hartreset_s3
 sim/run_test/prog_halt__t_core_hartreset_timeout/cov_work/garuda/prog_halt__t_core_hartreset_timeout
 sim/run_test/prog_csr__t12_level_stack/cov_work/garuda/prog_csr__t12_level_stack
+sim/run_test/prog_covtests__t_cov_csr_ro/cov_work/garuda/prog_covtests__t_cov_csr_ro
+sim/run_test/prog_covtests__t_cov_irq_ids/cov_work/garuda/prog_covtests__t_cov_irq_ids
+sim/run_test/prog_covtests__t_cov_irq_ids_fstop/cov_work/garuda/prog_covtests__t_cov_irq_ids_fstop
+sim/run_test/chip_basic/cov_work/garuda/chip_basic
+sim/run_test/chip_irq/cov_work/garuda/chip_irq
+sim/run_test/chip_wdt/cov_work/garuda/chip_wdt
+sim/run_test/chip_flash/cov_work/garuda/chip_flash
+sim/run_test/chip_uart/cov_work/garuda/chip_uart
+sim/run_test/chip_periph/cov_work/garuda/chip_periph
+sim/run_test/chip_integ/cov_work/garuda/chip_integ
+sim/run_test/chip_jtag/cov_work/garuda/chip_jtag

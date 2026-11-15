@@ -153,7 +153,13 @@ module garuda_cov (
             bins ms_only = binsof(cp_lu) intersect {0} && binsof(cp_ms) intersect {1};
             bins neither = binsof(cp_lu) intersect {0} && binsof(cp_ms) intersect {0};
         }
-        x_fwd_under_stall: cross cp_fwd_a, cp_ms;
+        // EX/MEM is never a forwarding source while MEM waits on the D-port: a waiting
+        // EX/MEM holds a load or a store, a store writes no register and a load's
+        // consumer is split off by the load-use bubble. PROVEN a_no_exmem_fwd_stall
+        // (flow/formal/core/cov_g5_unr.tcl, G5 5.8).
+        x_fwd_under_stall: cross cp_fwd_a, cp_ms {
+            ignore_bins exmem_while_stalled = binsof(cp_fwd_a.exmem) && binsof(cp_ms) intersect {1};
+        }
     endgroup
 
     // ---------------------------------------------------------------------

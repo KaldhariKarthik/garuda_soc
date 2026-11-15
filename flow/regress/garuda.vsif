@@ -102,7 +102,7 @@ group garuda {
             test prog_directed__t_core_irq_nest {}; test prog_directed__t_core_irq_nest_w2 {};
             test prog_directed__t_core_preempt {}; test prog_directed__t_core_preempt_w2 {};
             test prog_directed__t_exc_priority {}; test prog_directed__t_exc_priority_w3 {};
-            test prog_covtests__t_cov_fault_w3 {}; test prog_covtests__t_cov_illegal {};
+            test prog_covtests__t_cov_fault_w3 {}; test prog_covtests__t_cov_csr_ro {}; test prog_covtests__t_cov_irq_ids {}; test prog_covtests__t_cov_irq_ids_fstop {}; test prog_covtests__t_cov_illegal {};
             test prog_covtests__t_cov_dsu {}; test prog_covtests__t_dsu_ovf_raw {};
             test prog_covtests__t_cov_rereset {}; test prog_covtests__t_cov_rereset_w2 {};
             test prog_covtests__t_cov_irq {}; test prog_covtests__t_cov_irq_w2 {};

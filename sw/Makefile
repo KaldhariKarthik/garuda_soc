@@ -37,7 +37,8 @@ ATESTS  = boot6 dsu_flag2 t_loadbranch t_mem t_clic t_cov \
 # session (flow/regress/garuda.vsif, prog_* tests) finds every image (G5 5.8, 5.9)
 ATESTS += t_core_mret_buserr t_core_wfi_buserr t_core_ctl t_core_ctl_arch t_core_irq_nest \
           t_core_preempt t_perf_mix t_cov_illegal t_cov_dsu t_cov_rereset t_cov_irq \
-          t_cov_misfetch t_exc_priority t_dsu_macsat_rd t_dsu_gate t_cov_vplan t_cov_wfi_mti t_dsu_ovf_raw
+          t_cov_misfetch t_exc_priority t_dsu_macsat_rd t_dsu_gate t_cov_vplan t_cov_wfi_mti t_dsu_ovf_raw \
+          t_cov_csr_ro t_cov_irq_ids
 
 ALL     = $(addprefix $(BUILD)/,$(addsuffix .hex,$(CTESTS) $(ATESTS)))
 

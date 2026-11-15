@@ -7,7 +7,8 @@
 # it (the core inside tb_boot and tb_core_halt, the units and smokes on their own),
 # so a unit bench's corner cases count for the core.
 # flow/cov/core_g5_runs.txt: every core test of garuda.vsif (units, smokes, DSU, ISA,
-# sanity, core programs, riscv-dv), t_dsu_macsat_rd left out (DSU-15 xfail).
+# sanity, core programs, riscv-dv) and the 8 chip programs (the same core, inside the
+# chip); t_dsu_macsat_rd left out (DSU-15 xfail).
 # Raw numbers first, then with the written waivers of tb/core/cov/core_waivers.toml applied per module type
 # (flow/cov/core_exclusions_type.tcl, python3.12 tools/cov/gen_imc_exclusions.py core --type).
 merge -runfile flow/cov/core_g5_runs.txt -out sim/cov_g5/merged -overwrite -initial_model union_all -message 1
@@ -15,6 +16,8 @@ load -run sim/cov_g5/merged
 report -summary -type -metrics block:expression:toggle:fsm -out sim/cov_g5/type_raw.txt
 report -detail -metrics covergroup -out sim/cov_g5/func_cov.txt
 report -summary -metrics covergroup -out sim/cov_g5/func_sum.txt
+report -summary -type -metrics covergroup -out sim/cov_g5/func_type.txt
+report -detail -type -metrics covergroup -uncovered -out sim/cov_g5/func_type_holes.txt
 set f [open flow/cov/core_exclusions_type.tcl r]
 set n 0; set bad 0
 foreach line [split [read $f] "\n"] {

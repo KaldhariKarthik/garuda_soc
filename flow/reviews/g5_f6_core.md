@@ -6,7 +6,7 @@ the reviewer's.
 
 | | |
 |---|---|
-| Block or task | 1-TOPS G5 rows 5.3 to 5.9 (5.8 still open); the core coverage merge and its waivers |
+| Block or task | 1-TOPS G5 rows 5.3 to 5.9; the core coverage merge, its waivers and the three `ignore_bins` of 5.8 |
 | Author (track) | Claude (both tracks) |
 | Reviewer (track) | Karthik |
 | Commit reviewed | |
@@ -24,13 +24,15 @@ the reviewer's.
 | Benchmarks | `sw/bench/README.md`, `sw/bench/rt/`, `sw/bench/coremark/core_portme.c`, `tools/bench_report.py`, `flow/4_core/bench_2026-11-11.txt` | |
 | Core coverage | `flow/cov/core_g5_merge.tcl`, `flow/cov/core_g5_runs.txt`, `flow/4_core/imc/` | |
 | **The 67 core waivers (reviewer field `pending`)** | `tb/core/cov/core_waivers.toml`, `tb/core/formal/cov_const_sva.sv` | |
-| Covergroup fix | `tb/cov/garuda_core_cov_ext.sv` (`cg_csr`) | |
+| Covergroup fixes | `tb/cov/garuda_core_cov_ext.sv` (`cg_csr`, `cg_irq`), `tb/cov/garuda_cov_ext.sv` (bind of `cg_pipe`) | |
+| Row 5.8 programs and bench options | `sw/tests/t_cov_csr_ro.S`, `sw/tests/t_cov_irq_ids.S`; `tb/soc/tb_boot.sv` (IRQ_ARMC bit 31, `+FSTOP_ON_WFI`) | |
+| **The three `ignore_bins` of 5.8; rule on "woken by neither", which is not formally proven** | `flow/4_core/core_g5.md` section 4; `flow/formal/core/cov_g5_unr.tcl`, `.result.txt` | |
 | Session changes | `flow/regress/run_test.sh` (`prog_*`, `dv_*`), `tools/regress/toml_test.py`, `flow/regress/garuda.vsif` | |
-| Bug entries | `Docs/bugs/track_a.md` TOOL-A15, TOOL-A16; `Docs/bugs/track_b.md` TB-B5 | |
+| Bug entries | `Docs/bugs/track_a.md` TOOL-A15, TOOL-A16; `Docs/bugs/track_b.md` TB-B5, TB-B6 | |
 
 ## 2. What was run by the reviewer
 
-From `flow/COMMANDS.md`, "Replay by gate", rows R5.1 to R5.6.
+From `flow/COMMANDS.md`, "Replay by gate", rows R5.1 to R5.8.
 
 | Command | Result |
 |---|---|

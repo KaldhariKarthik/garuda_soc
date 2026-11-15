@@ -1,5 +1,5 @@
-garuda-run 1  suite cosim  block core  2026-10-15T21:42:53+05:30
-design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+garuda-run 1  suite cosim  block core  2026-11-15T09:54:42+05:30
+design 78bd7cc950317b83167e190b13eabebbd0ac0cc3  rtl/ clean  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
 
 PASS    OK                      cs_t_loadbranch           
 PASS    OK                      cs_t_flush                
@@ -13,6 +13,10 @@ PASS    OK                      cs_t_cov
 PASS    OK                      cs_t_mtip                 
 PASS    OK                      cs_t_hold_flush_matrix    
 PASS    OK                      cs_t_dsu_b2b              
+PASS    OK                      cs_t_dsu_gate             
+PASS    OK                      cs_t_cov_wfi_mti          
+PASS    OK                      cs_t_hazard               
+PASS    OK                      cs_t_hazard_nowait        
 PASS    OK                      cs_boot6                  
 PASS    OK                      cs_ctest1                 
 PASS    OK                      cs_dsu_flag2              
@@ -26,11 +30,14 @@ PASS    OK                      cs_t_core_irq_nest
 PASS    OK                      cs_t_core_irq_nest_w2     
 PASS    OK                      cs_t_core_preempt         
 PASS    OK                      cs_t_core_preempt_w2      
+PASS    OK                      cs_t_exc_priority         
+PASS    OK                      cs_t_exc_priority_w3      
 PASS    OK                      cs_t_cov_fault            
 PASS    OK                      cs_t_cov_fault_w3         
 PASS    OK                      cs_t_cov_csr              
 PASS    OK                      cs_t_cov_illegal          
 PASS    OK                      cs_t_cov_dsu              
+PASS    OK                      cs_t_dsu_ovf_raw          
 PASS    OK                      cs_t_cov_rereset          
 PASS    OK                      cs_t_cov_rereset_w2       
 PASS    OK                      cs_t_cov_irq              
@@ -38,6 +45,8 @@ PASS    OK                      cs_t_cov_irq_w2
 PASS    OK                      cs_t_cov_misfetch         
 PASS    OK                      cs_t_cov_misfetch_w2      
 PASS    OK                      cs_t_cov_misfetch_d3      
+PASS    OK                      cs_t_cov_vplan            
+PASS    OK                      cs_t_cov_vplan_w2         
 PASS    OK                      add                       
 PASS    OK                      addi                      
 PASS    OK                      and                       
@@ -77,6 +86,7 @@ PASS    OK                      p-ma_addr
 PASS    OK                      p-ma_data                 
 PASS    OK                      p-ma_fetch                
 PASS    OK                      p-mcsr                    
+PASS    OK                      p-minstret                
 PASS    OK                      p-rem                     
 PASS    OK                      p-remu                    
 PASS    OK                      p-sbreak                  
@@ -104,7 +114,7 @@ PASS    OK                      sw
 PASS    OK                      xor                       
 PASS    OK                      xori                      
 
-PASS    102
+PASS    112
 FAIL    0
 BLOCKED 0
-total   102
+total   112

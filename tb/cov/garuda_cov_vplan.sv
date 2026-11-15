@@ -126,8 +126,12 @@ module garuda_cov_vplan (
 
     // ---- F18 / F20 / F23 ---------------------------------------------------------------
     covergroup cg_irq with function sample(int what, int klass_in_ex);
+        // "bubble": an interrupt is taken only with a real instruction in EX (trap_ctrl.v
+        // take_int / take_mti & idex_valid_i, ERRATUM T-4; PROVEN a_int_needs_ex_instr,
+        // flow/formal/core/cov_g5_unr.tcl, G5 5.8)
         x_insn_class: coverpoint klass_in_ex iff (what == 0) {
-            bins alu = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5}; bins bubble = {6}; }
+            bins alu = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5};
+            ignore_bins bubble = {6}; }
         cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; }
         cp_with_exception: coverpoint what iff (what == 4) { bins exception_wins = {4}; }
     endgroup

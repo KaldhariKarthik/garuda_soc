@@ -3,15 +3,15 @@
 
 Host: cadence-ws
 
-Report date: Wed 11 Nov 2026 22:34:43 IST
+Report date: Sun 15 Nov 2026 09:53:13 IST
 
 Report options: -detail -metrics covergroup -out sim/cov_g5/func_type_holes.txt -type -uncovered
 
 Coverage database path: /home/kkarthik/garuda_soc/sim/cov_g5/merged
 
-Coverage model files: /home/kkarthik/garuda_soc/sim/cov_g5/merged/icc_00833092_338f78b5.ucm
+Coverage model files: /home/kkarthik/garuda_soc/sim/cov_g5/merged/icc_29491ef1_02a72ff7.ucm
 
-Coverage data files: /home/kkarthik/garuda_soc/sim/cov_g5/merged/icc_00833092_338f78b5.ucd
+Coverage data files: /home/kkarthik/garuda_soc/sim/cov_g5/merged/icc_29491ef1_02a72ff7.ucd
 
 CCF files:  None
 
@@ -41,6 +41,25 @@ Coverage Table Legend
 
 Uncovered CoverGroup Detail Report, Type Based
 ==============================================
+
+Type name: garuda_apb_shim_cov
+File name: /home/kkarthik/garuda_soc/tb/common/garuda_apb_shim_cov.sv
+Number of uncovered cover bins: 6 of 42
+
+Name                           Average, Covered Grade         Line  Source Code                    
+---------------------------------------------------------------------------------------------------
+cg_access                      90.97%, 84.00% (21/25)         22    covergroup cg_access @(posedge pclk_i iff (preset_n_i && access)); 
+|--x_target_dir                83.33% (5/6)                   28    x_target_dir: cross cp_target, cp_dir; 
+| |--hole,auto[1]              0.00% (0/1)                    28    x_target_dir: cross cp_target, cp_dir; 
+|--x_tail_dir                  62.50% (5/8)                   29    x_tail_dir: cross cp_tail, cp_dir; 
+| |--irqen,auto[0]             0.00% (0/1)                    29    x_tail_dir: cross cp_tail, cp_dir; 
+| |--dmactl,auto[0]            0.00% (0/1)                    29    x_tail_dir: cross cp_tail, cp_dir; 
+| |--id,auto[1]                0.00% (0/1)                    29    x_tail_dir: cross cp_tail, cp_dir; 
+cg_dma                         72.22%, 71.43% (5/7)           40    covergroup cg_dma @(posedge pclk_i iff (preset_n_i && (dma_ack_i || dma_req_o))); 
+|--cp_mode                     66.67% (2/3)                   42    cp_mode: coverpoint dmactl_q { bins rx = {1}; bins tx = {2}; bins both = {3}; } 
+| |--both                      0.00% (0/1)                    42    cp_mode: coverpoint dmactl_q { bins rx = {1}; bins tx = {2}; bins both = {3}; } 
+|--cp_holdoff                  50.00% (1/2)                   44    cp_holdoff: coverpoint holdoff_q; 
+| |--auto[1]                   0.00% (0/1)                    44    cp_holdoff: coverpoint holdoff_q; 
 
 Type name: dsu_cov
 File name: /home/kkarthik/garuda_soc/tb/dsu/dsu_cov.sv
@@ -215,81 +234,26 @@ cg_dsu_ovf                     62.50%, 34.62% (9/26)          69    covergroup c
 | |--mag,negative,macsub       0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
 | |--mag,negative,macdot       0.00% (0/1)                    73    x_acc_dir_op: cross cp_acc, cp_dir, cp_op; 
 
-Type name: garuda_cov
-File name: /home/kkarthik/garuda_soc/tb/cov/garuda_cov.sv
-Number of uncovered cover bins: 1 of 229
+Type name: chip_cov
+File name: /home/kkarthik/garuda_soc/tb/soc/chip_cov.sv
+Number of uncovered cover bins: 8 of 58
 
 Name                           Average, Covered Grade         Line  Source Code                    
 ---------------------------------------------------------------------------------------------------
-cg_hazard                      97.92%, 96.77% (30/31)         141   covergroup cg_hazard @(posedge clk_i iff rst_n_i); 
-|--x_fwd_under_stall           83.33% (5/6)                   156   x_fwd_under_stall: cross cp_fwd_a, cp_ms; 
-| |--exmem,auto[1]             0.00% (0/1)                    156   x_fwd_under_stall: cross cp_fwd_a, cp_ms; 
-
-Type name: garuda_core_cov_ext
-File name: /home/kkarthik/garuda_soc/tb/cov/garuda_core_cov_ext.sv
-Number of uncovered cover bins: 21 of 181
-
-Name                           Average, Covered Grade         Line  Source Code                    
----------------------------------------------------------------------------------------------------
-cg_csr                         94.66%, 87.62% (92/105)        50    covergroup cg_csr @(posedge clk_i iff (rst_n_i && csr_en && csr_op != 2'b00 && (csr_commit || csr_illegal))); 
-|--x_csr_op                    83.33% (45/54)                 57    x_csr_op: cross cp_csr, cp_op; 
-| |--auto[MISA],rc             0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
-| |--auto[MIP],rw              0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
-| |--auto[MIP],rc              0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
-| |--auto[MNXTI],rw            0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
-| |--auto[MNXTI],rc            0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
-| |--auto[MINTSTATUS],rw       0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
-| |--auto[MINTSTATUS],rc       0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
-| |--auto[MINTSTATUS_STD],rw   0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
-| |--auto[MINTSTATUS_STD],rc   0.00% (0/1)                    57    x_csr_op: cross cp_csr, cp_op; 
-|--x_csr_illegal               84.62% (22/26)                 61    x_csr_illegal: cross cp_csr, cp_illegal { 
-| |--auto[MIP],auto[1]         0.00% (0/1)                    61    x_csr_illegal: cross cp_csr, cp_illegal { 
-| |--auto[MNXTI],auto[1]       0.00% (0/1)                    61    x_csr_illegal: cross cp_csr, cp_illegal { 
-| |--auto[MINTSTATUS],auto[1]  0.00% (0/1)                    61    x_csr_illegal: cross cp_csr, cp_illegal { 
-| |--auto[MINTSTATUS_STD],auto[1] 0.00% (0/1)                    61    x_csr_illegal: cross cp_csr, cp_illegal { 
-cg_irq                         81.50%, 80.77% (21/26)         69    covergroup cg_irq @(posedge clk_i iff (rst_n_i && tr_enter && tr_is_int)); 
-|--cp_id                       70.00% (7/10)                  71    cp_id: coverpoint clic_id { bins dma_done[] = {[1:6]}; bins dma_err = {[8:13]}; bins spis = {14}; 
-| |--dma_done[2]               0.00% (0/1)                    71    cp_id: coverpoint clic_id { bins dma_done[] = {[1:6]}; bins dma_err = {[8:13]}; bins spis = {14}; 
-| |--spis                      0.00% (0/1)                    71    cp_id: coverpoint clic_id { bins dma_done[] = {[1:6]}; bins dma_err = {[8:13]}; bins spis = {14}; 
-| |--timer_mti                 0.00% (0/1)                    72    bins periph = {[15:22]}; bins timer_mti = {0}; } 
-|--cp_threshold                50.00% (1/2)                   76    cp_threshold: coverpoint (mintthresh != 8'd0) { bins off = {0}; bins set = {1}; } 
-| |--set                       0.00% (0/1)                    76    cp_threshold: coverpoint (mintthresh != 8'd0) { bins off = {0}; bins set = {1}; } 
-|--x_level_nesting             87.50% (7/8)                   77    x_level_nesting: cross cp_level, cp_nesting; 
-| |--lowest,nested             0.00% (0/1)                    77    x_level_nesting: cross cp_level, cp_nesting; 
-cg_sleep                       58.33%, 57.14% (4/7)           91    covergroup cg_sleep @(posedge clk_i iff (rst_n_i && q_d && !quiescent)); 
-|--cp_len                      66.67% (2/3)                   94    cp_len: coverpoint sleep_len { bins one = {1}; bins short_ = {[2:15]}; bins long_ = {[16:255]}; } 
-| |--one                       0.00% (0/1)                    94    cp_len: coverpoint sleep_len { bins one = {1}; bins short_ = {[2:15]}; bins long_ = {[16:255]}; } 
-|--cp_woken_by                 50.00% (2/4)                   95    cp_woken_by: coverpoint {clic_wake_cond, mti_pending} { bins clic = {2'b10}; bins timer = {2'b01}; bins both = {2'b11}; bins other = {2'b00}; } 
-| |--both                      0.00% (0/1)                    95    cp_woken_by: coverpoint {clic_wake_cond, mti_pending} { bins clic = {2'b10}; bins timer = {2'b01}; bins both = {2'b11}; bins other = {2'b00}; } 
-| |--other                     0.00% (0/1)                    95    cp_woken_by: coverpoint {clic_wake_cond, mti_pending} { bins clic = {2'b10}; bins timer = {2'b01}; bins both = {2'b11}; bins other = {2'b00}; } 
-
-Type name: garuda_cov_ext
-File name: /home/kkarthik/garuda_soc/tb/cov/garuda_cov_ext.sv
-Number of uncovered cover bins: 2 of 107
-
-Name                           Average, Covered Grade         Line  Source Code                    
----------------------------------------------------------------------------------------------------
-cg_pipe                        90.48%, 90.48% (19/21)         87    covergroup cg_pipe @(posedge clk_i iff rst_n_i); 
-|--cp_ifid                     66.67% (2/3)                   91    cp_ifid:  coverpoint {ifid_s, ifid_f}   { bins hold = {2'b10}; bins flush = {2'b01}; bins hold_flush = {2'b11}; } 
-| |--hold_flush                0.00% (0/1)                    91    cp_ifid:  coverpoint {ifid_s, ifid_f}   { bins hold = {2'b10}; bins flush = {2'b01}; bins hold_flush = {2'b11}; } 
-|--cp_idex                     66.67% (2/3)                   92    cp_idex:  coverpoint {idex_s, idex_f}   { bins hold = {2'b10}; bins flush = {2'b01}; bins hold_flush = {2'b11}; } 
-| |--hold_flush                0.00% (0/1)                    92    cp_idex:  coverpoint {idex_s, idex_f}   { bins hold = {2'b10}; bins flush = {2'b01}; bins hold_flush = {2'b11}; } 
-
-Type name: garuda_cov_vplan
-File name: /home/kkarthik/garuda_soc/tb/cov/garuda_cov_vplan.sv
-Number of uncovered cover bins: 6 of 246
-
-Name                           Average, Covered Grade         Line  Source Code                    
----------------------------------------------------------------------------------------------------
-cg_irq                         57.14%, 54.55% (6/11)          128   covergroup cg_irq with function sample(int what, int klass_in_ex); 
-|--x_insn_class                71.43% (5/7)                   129   x_insn_class: coverpoint klass_in_ex iff (what == 0) { 
-| |--mul                       0.00% (0/1)                    130   bins alu = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5}; bins bubble = {6}; } 
-| |--bubble                    0.00% (0/1)                    130   bins alu = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5}; bins bubble = {6}; } 
-|--cp_mti_with_clic            0.00% (0/3)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
-| |--both_pending              0.00% (0/1)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
-| |--clic_taken                0.00% (0/1)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
-| |--mti_taken                 0.00% (0/1)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
-cg_wfi                         93.75%, 90.91% (10/11)         152   covergroup cg_wfi with function sample(bit mti, bit mie_v, int asleep); 
-|--x_wake_mie                  75.00% (3/4)                   155   x_wake_mie: cross cp_src, cp_mie; 
-| |--clic,auto[0]              0.00% (0/1)                    155   x_wake_mie: cross cp_src, cp_mie; 
+cg_dma                         75.00%, 87.50% (7/8)           41    covergroup cg_dma @(posedge hclk iff (hreset_n && (|dma_ack))); 
+|--cp_req_still_high           50.00% (1/2)                   44    cp_req_still_high: coverpoint |(dma_req & dma_ack); 
+| |--auto[1]                   0.00% (0/1)                    44    cp_req_still_high: coverpoint |(dma_req & dma_ack); 
+cg_reset                       60.00%, 60.00% (3/5)           49    covergroup cg_reset @(posedge aon_clk iff (reason != reason_d)); 
+|--cp_cause                    60.00% (3/5)                   51    cp_cause: coverpoint reason { bins ext = {4'b0001}; bins wdt = {4'b0010}; bins ndm = {4'b0100}; bins sw = {4'b1000}; bins cleared = {4'b0000}; } 
+| |--ndm                       0.00% (0/1)                    51    cp_cause: coverpoint reason { bins ext = {4'b0001}; bins wdt = {4'b0010}; bins ndm = {4'b0100}; bins sw = {4'b1000}; bins cleared = {4'b0000}; } 
+| |--sw                        0.00% (0/1)                    51    cp_cause: coverpoint reason { bins ext = {4'b0001}; bins wdt = {4'b0010}; bins ndm = {4'b0100}; bins sw = {4'b1000}; bins cleared = {4'b0000}; } 
+cg_misc                        81.25%, 77.27% (17/22)         53    covergroup cg_misc @(posedge hclk iff hreset_n); 
+|--cp_ratio                    25.00% (1/4)                   58    cp_ratio: coverpoint div_act { bins div2 = {0}; bins div4 = {1}; bins div8 = {2}; bins div16 = {3}; } 
+| |--div4                      0.00% (0/1)                    58    cp_ratio: coverpoint div_act { bins div2 = {0}; bins div4 = {1}; bins div8 = {2}; bins div16 = {3}; } 
+| |--div8                      0.00% (0/1)                    58    cp_ratio: coverpoint div_act { bins div2 = {0}; bins div4 = {1}; bins div8 = {2}; bins div16 = {3}; } 
+| |--div16                     0.00% (0/1)                    58    cp_ratio: coverpoint div_act { bins div2 = {0}; bins div4 = {1}; bins div8 = {2}; bins div16 = {3}; } 
+|--cp_ratio_change             50.00% (1/2)                   59    cp_ratio_change: coverpoint div_busy; 
+| |--auto[1]                   0.00% (0/1)                    59    cp_ratio_change: coverpoint div_busy; 
+|--cp_gpio_out                 75.00% (3/4)                   60    cp_gpio_out: coverpoint gpio_oe; 
+| |--auto[2]                   0.00% (0/1)                    60    cp_gpio_out: coverpoint gpio_oe; 
 

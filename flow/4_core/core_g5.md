@@ -1,7 +1,9 @@
 # Core verification: the G5 record (flow stages F6 and F8 for the core)
 
 1-TOPS gate G5, rows 5.3 to 5.9 (5.1, 5.2 and 5.10 closed on 2026-11-03 and 2026-11-04).
-Worked on 2026-11-11 on tree `b1e33d7` plus the changes listed in section 3. No RTL changed.
+Worked on 2026-11-11 on tree `b1e33d7` (rows 5.3 to 5.7, 5.9) and on 2026-11-15 on `78bd7cc`
+(row 5.8, and the coverage merge again with it), plus the changes listed in section 3. No RTL
+changed.
 
 Simulator: Xcelium 22.09 (`xrun`) for every row of this page, each program compared with
 Spike 1.1.1-dev (`~/external/spike-inst`) instruction by instruction (`tools/lockstep.py`)
@@ -18,8 +20,8 @@ G5 rows.
 | 5.5 | 1000 seeds with a stable pass rate | `riscv_dv_1000_2026-11-11.txt` | **1000 of 1000** pass and match Spike: 10 tests x 100 seeds (arithmetic, random instructions, jumps, loops, memory stress, no-fence, illegal instructions, EBREAK, misaligned access). 11.3 M instructions, 1.59 M stores, 24 587 traps and 974 731 CSR instructions identical to Spike. Pass rate 100% over every test and seed. |
 | 5.6 | Random AHB waits 0..8 on I and D; flush and backpressure stress | `make regress_wait`; `make regress_rand SEED=1..20`; `scripts/run_regression.sh` on the flush programs; `regress_rand_2026-11-11.txt` | Fixed waits (I 2, D 3): 66 of 66. Random 0..8 waits on every I and D access: 20 seeds x 66 ISA tests, **1320 of 1320**; flush and back-pressure programs (`t_flush`, `t_hazard`, `t_mem`, `t_loadbranch`) under the same random waits, 10 seeds, **40 of 40**. Every run also matches Spike instruction by instruction. With interrupts on top of the waits, `t_hold_flush_matrix` (`IRQ_EVERY=61`, random D waits) and `t_hazard` (random waits) are in the coverage session (section 4). |
 | 5.7 | Dhrystone and CoreMark run with correct results; score per MHz recorded | `sw/bench/`; `make bench`; `bench_2026-11-11.txt` | Both run to completion and pass their own checks (CoreMark: "Correct operation validated", CRCs of the 2K performance run; Dhrystone: 18 of 18 "should be" values). Their fake-timer builds match Spike: CoreMark 675 869 and Dhrystone 504 322 instructions identical. Scores in section 2. |
-| 5.8 | Core functional coverage goals met | `imc/core_func_by_type.txt`, `imc/core_func_holes.txt` | **open**: 96.1% (733 of 763 bins) by module type over the 178 core runs, from 91.7% / 84.6% at G4 (section 4). 30 bins left, listed in section 4 with what closes each. |
-| 5.9 | Core code coverage >= 95%, every exclusion with a reason | `flow/cov/core_g5_merge.tcl`; `imc/core_code_raw.txt`, `imc/core_code_waived.txt`; `tb/core/cov/core_waivers.toml` | 178 core runs merged in IMC by module type. Raw: statement 99.0% (290/293), expression 100% (73/73), toggle 93.9% (8883/9456), FSM 100%. With the written waivers: **100% on all four** (578 toggle bits and 3 defensive `default:` arms, each with its reason and evidence in `core_waivers.toml`; 586 exclusions applied, 0 dropped). The waivers' `reviewer` field still reads `pending`: section 4. |
+| 5.8 | Core functional coverage goals met | `imc/core_func_by_type.txt`; `flow/formal/core/cov_g5_unr.result.txt` | **100%: 760 of 760 bins** of the four core covergroups, by module type over 189 runs (2026-11-15), from 91.7% / 84.6% at G4 and 96.1% on 2026-11-11. Closed by two new programs and the bench options they need, two coverage-model fixes, and three `ignore_bins`, each with its reason in the covergroup (section 4). |
+| 5.9 | Core code coverage >= 95%, every exclusion with a reason | `flow/cov/core_g5_merge.tcl`; `imc/core_code_raw.txt`, `imc/core_code_waived.txt`; `tb/core/cov/core_waivers.toml` | 189 core runs (2026-11-15; 178 on 2026-11-11, the same figures) merged in IMC by module type. Raw: statement 99.0% (290/293), expression 100% (73/73), toggle 93.9% (8883/9456), FSM 100%. With the written waivers: **100% on all four** (578 toggle bits and 3 defensive `default:` arms, each with its reason and evidence in `core_waivers.toml`; 586 exclusions applied, 0 dropped). The waivers' `reviewer` field still reads `pending`: section 4. |
 
 ## 2. Performance (5.7), read before RTL freeze
 
@@ -50,18 +52,22 @@ predicted-taken branch costs one bubble, a mispredict or JALR two.
 | `sw/bench/rt/crt0_bench.S` zeroes x1..x31 | The register file has no reset (CORE spec, ID). The first lockstep of Dhrystone diverged at instruction 10674: `bench_printf` saved and reloaded s1..s6 that were never written, X on the RTL and 0 on Spike. Not an RTL fault; riscv-tests' benchmark start-up does the same. |
 | `flow/regress/run_test.sh` (`prog_*`, `dv_*`), `tools/regress/toml_test.py`, `flow/regress/garuda.vsif` (groups `core_smokes`, `core_riscv_dv`, `core_programs`), `sw/Makefile` (18 programs) | Every core program in the Cadence coverage session, from the same manifests as the open flow. `smoke_core_halt` left the list (it needs an image; the halt bench runs as `prog_halt__*`). |
 | `tb/cov/garuda_core_cov_ext.sv` | TB-B5, section 4. |
+| New `sw/tests/t_cov_csr_ro.S`, `sw/tests/t_cov_irq_ids.S` (rows in `tb/core/run/covtests.toml`, `garuda.vsif`, `sw/Makefile`) | 5.8: refused writes to the read-only CSRs; the interrupt and sleep corners (section 4). |
+| `tb/soc/tb_boot.sv`: IRQ_ARMC bit 31 raises MTIP with the timed CLIC request; `+FSTOP_ON_WFI=1` | 5.8: both wake sources in the same cycle while asleep; the replay of the JasperGold wake trace (section 4). Existing programs are unaffected (IRQ_ARMC counts are small, the option is off by default); `gate_a`, `gate_b`, the 112 co-simulation programs pass. |
+| `tb/cov/garuda_core_cov_ext.sv` (`cg_irq` timer bin), `tb/cov/garuda_cov_ext.sv` (bind of `cg_pipe`) | TB-B6, section 4. |
+| `ignore_bins` in `garuda_core_cov_ext.sv`, `garuda_cov.sv`, `garuda_cov_vplan.sv`; `flow/formal/core/cov_g5_unr.tcl` | The three bins that cannot be hit, section 4. |
 | `tools/cov/gen_imc_exclusions.py` (escaping, `--type`), four regenerated exclusion files, `flow/cov/core_exclusions_type.tcl`, `flow/cov/core_g5_merge.tcl`, `flow/cov/core_g5_runs.txt` | TOOL-A16, section 4; the core merge by module type. |
 | `tools/archtest/build_archtest.py`, target `archtest_xrun` | TOOL-A15: the suite was not found on the lab machine, and with the Vitis GCC 11 of 59 tests did not link and the rest started with a build-id note at the reset vector (0 instructions retired). Fixed; `tb/core/run/archtest.toml` unchanged. |
 
 ## 4. Core coverage (5.8, 5.9)
 
-**The session.** Every core test of `flow/regress/garuda.vsif`, 178 runs under irun 15.2 with
-coverage (`flow/cov/core_g5_runs.txt`): 21 unit benches, 7 smoke benches, the DSU bench, 63
-ISA tests, 18 sanity programs, 38 core programs that until today ran only on the open flow
-(new `prog_<suite>__<test>` tests, each one row of `tb/core/run/<suite>.toml` through
-`tools/regress/toml_test.py`) and 30 riscv-dv programs (`dv_<test>_s<seed>`). All 178 pass.
-Merged in IMC by module type (`flow/cov/core_g5_merge.tcl`), so a module's numbers count
-every bench that instantiates it.
+**The session.** Every core test of `flow/regress/garuda.vsif` under irun 15.2 with coverage,
+189 runs on 2026-11-15 (`flow/cov/core_g5_runs.txt`): 21 unit benches, 7 smoke benches, the
+DSU bench, 63 ISA tests, 18 sanity programs, 41 core programs (`prog_<suite>__<test>` tests,
+each one row of `tb/core/run/<suite>.toml` through `tools/regress/toml_test.py`: the 38 that
+until 2026-11-11 ran only on the open flow and the 3 new rows of section 3), 30 riscv-dv programs (`dv_<test>_s<seed>`) and the 8 chip
+programs (the same core inside the chip). All 189 pass. Merged in IMC by module type
+(`flow/cov/core_g5_merge.tcl`), so a module's numbers count every bench that instantiates it.
 
 Left out: `t_dsu_macsat_rd`, which checks MACSAT as the spec had it before ruling D-32 and
 fails by design (DSU-15, `tb/core/run/xfail.tsv`); it is to be rewritten to the ruled spec.
@@ -78,18 +84,39 @@ point constant, unreachable or not connected, 10 are `ignore` entries that mirro
 `reviewer` field still reads `pending`, so the review of `core_waivers.toml` is part of this
 gate's review record.
 
-**Functional (5.8), by covergroup type:**
+**Functional (5.8), by covergroup type, 2026-11-15:**
 
-| Covergroup | Bins | Left |
+| Covergroup | Bins | On 2026-11-11 |
 |---|---|---|
-| `garuda_cov` | 99.6% (228/229) | forwarding from EX/MEM while MEM stalls |
-| `garuda_cov_vplan` | 97.6% (240/246) | a MUL and a bubble as load-use partners; MTI together with a CLIC interrupt (both pending, each taken); a CLIC wake with MIE = 0 |
-| `garuda_cov_ext` | 98.1% (105/107) | IF/ID and ID/EX held and flushed in the same cycle |
-| `garuda_core_cov_ext` | 88.4% (160/181) | writes to the read-only CSRs `mip`, `mnxti`, `mintstatus` (both addresses) and `misa` with RC (13 bins); CLIC ids 2 (DMA), SPIS and 0 (timer MTI); a non-zero `mintthresh`; the lowest level nested; a one-cycle sleep; woken by both or by neither |
-| **core total** | **96.1% (733/763)** | 30 bins |
+| `garuda_cov` | 100% (228/228) | 228/229 |
+| `garuda_cov_vplan` | 100% (245/245) | 240/246 |
+| `garuda_cov_ext` | 100% (107/107) | 105/107 |
+| `garuda_core_cov_ext` | 100% (180/180) | 160/181 |
+| **core total** | **100% (760/760)** | 733/763 |
 
-Each needs either a program that reaches it or, where the combination cannot happen, a
-reason in the covergroup (`ignore_bins` with the spec reference), as `x_csr_illegal` got today.
+The 30 holes of 2026-11-11, and what closed each:
+
+| Bins | Closed by |
+|---|---|
+| 13: CSRRW / CSRRC on `mip`, `mnxti`, `mintstatus` at both addresses, refused; CSRRC on `misa` | new `t_cov_csr_ro`: the eight writes trap with cause 2, `mtval` = the instruction, the CSR unchanged; CSRRC from x0 and on `misa` do not trap |
+| CLIC ids 2 and 14; taken with `mintthresh` set; the lowest level nested; MTI with a CLIC request pending (both pending, CLIC taken first, MTI taken under the threshold); a CLIC wake with MIE = 0; a one-cycle sleep; woken by both sources; an interrupt with a MUL in EX | new `t_cov_irq_ids` (parts A to I), with tb_boot's IRQ_ARMC bit 31 for "both sources in the same cycle while asleep" |
+| timer MTI taken | TB-B6 (1): the bin was keyed on `clic_id == 0`, which measured the bench; now its own coverpoint on the trap cause |
+| IF/ID and ID/EX held and flushed in one cycle | TB-B6 (2): bound to the hold requests instead of the stall outputs (`hold & ~flush`); both hit in the session |
+| D-port NONSEQ in a wait state | hit by the new programs on tb_boot (the chip runs not needed) |
+| forwarding from EX/MEM while MEM stalls | `ignore_bins`: **PROVEN** unreachable, `a_no_exmem_fwd_stall` (`flow/formal/core/cov_g5_unr.tcl`; cover `c_fwd_exmem` reached, so not vacuous) |
+| an interrupt taken with a bubble in EX | `ignore_bins`: **PROVEN** unreachable, `a_int_needs_ex_instr` (trap_ctrl takes interrupts only with `idex_valid_i`, ERRATUM T-4) |
+| woken by neither source | `ignore_bins`, **not formally proven**: see below |
+
+**Woken by neither source.** The core leaves the quiescent state only when `wfi_hold` drops,
+and that needs a wake (`trap_ctrl.v` `wfi_hold_o`). Every flop that could otherwise end it is on
+the gated clock, whose enable is `~quiescent`. JasperGold nevertheless gives a counterexample
+to `a_wake_needs_cond` through the debug fetch stop: the stop is released in the first
+quiescent cycle and the I-port, a gated-clock register, fetches in the next one, which needs a
+gated edge after the gate has closed. The same input sequence in simulation, with the latch
+gate of `core_clk_gate.v` (tb_boot `+FSTOP_ON_WFI=1`, test `t_cov_irq_ids_fstop`), keeps the
+core asleep until its wake. So the bin is excluded with this reasoning, and the formal proof is
+open: it needs a JasperGold setup that models the latch gate exactly
+(`flow/formal/core/cov_g5_unr.result.txt`). **The reviewer should rule on this exclusion.**
 
 **A defect in the coverage model, fixed (TB-B5).** `cg_csr` sampled only when a CSR access
 commits; a refused access traps and is squashed in EX, so it never commits, and every bin of
@@ -100,9 +127,13 @@ a refused access was unreachable. It now samples on commit or refusal, and the i
 been applied in IMC (Tcl ran the `[...]` in their comments); the same fault was in the AHB,
 bridge and DMA files. The earlier figures "with waivers" were therefore too low, never too high.
 
+**Two more defects in the coverage model, fixed (TB-B6):** the timer bin and the hold-and-flush
+bins above.
+
 ## 5. Open in G5
 
-- 5.8: the 30 functional bins above.
+- The formal proof of the "woken by neither source" exclusion (section 4).
+- `t_dsu_macsat_rd` to be rewritten to the ruled MACSAT (DSU-15), then back in the session.
 - The vManager session of the whole `garuda.vsif` (today's session was run test by test with
   the same `run_test.sh` vManager calls) and the merged coverage back-annotated on the vPlan.
 - Review: `flow/reviews/g5_f6_core.md`, with `core_waivers.toml` read by the reviewer.

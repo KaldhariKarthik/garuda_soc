@@ -245,7 +245,9 @@ endmodule
 // Attach to the core without touching the RTL.
 bind garuda_core_top garuda_cov_ext u_cov_ext_a (
     .clk_i(clk_i), .rst_n_i(rst_n_i),
-    .ifid_s(pc_ifid_s), .ifid_f(pc_ifid_f), .idex_s(pc_idex_s), .idex_f(pc_idex_f),
+    // the HOLD requests, not pipe_ctrl's stall outputs: a stall output is hold & ~flush,
+    // so with it the hold_flush bins could never be hit (TB-B5, 2026-11-15)
+    .ifid_s(u_pipe.hold_pc_ifid), .ifid_f(pc_ifid_f), .idex_s(u_pipe.hold_id_ex), .idex_f(pc_idex_f),
     .exmem_s(pc_exmem_s), .exmem_f(pc_exmem_f), .mwb_f(pc_mwb_f),
     .mem_stall(mem_stall), .dsu_busy(ex_dsu_busy), .load_use(id_load_use), .wfi_hold(tr_wfi_hold),
     .id_redir(id_redir_v), .ex_redir(ex_redirect), .tr_redir(tr_redir_v),
