@@ -8,7 +8,7 @@
 `ifndef SYNTHESIS
 `ifndef __ICARUS__
 module garuda_iport_sva #(parameter FIFO_DEPTH = 4) (
-    input wire clk_i, rst_n_i, redirect_i, fifo_rd_en_i,
+    input wire gclk, core_rst_n, redirect_i, fifo_rd_en_i,
     input wire [31:0] fetch_pc_i, input wire [2:0] fifo_occupancy_i,
     input wire [31:0] i_haddr_o, input wire [1:0] i_htrans_o, input wire [2:0] i_hsize_o, i_hburst_o,
     input wire i_hwrite_o, i_hready_i, i_hresp_i, fetch_issue_o, data_valid_o
@@ -17,37 +17,37 @@ module garuda_iport_sva #(parameter FIFO_DEPTH = 4) (
     // cycles. (The fetch PC is NOT always aligned: a jump to a misaligned target puts it there for a
     // cycle while the cause-0 trap takes over, T-1 and riscv-tests ma_fetch; the IF-stage proof
     // states what the core supplies instead, see flow/formal/run_blocks.sh if_stage.)
-    assume_occ_bound: assume property (@(posedge clk_i) disable iff (!rst_n_i) fifo_occupancy_i <= FIFO_DEPTH);
-    assume_slave_err2: assume property (@(posedge clk_i) disable iff (!rst_n_i) (i_hresp_i && !i_hready_i) |=> (i_hresp_i && i_hready_i));
+    assume_occ_bound: assume property (@(posedge gclk) disable iff (!core_rst_n) fifo_occupancy_i <= FIFO_DEPTH);
+    assume_slave_err2: assume property (@(posedge gclk) disable iff (!core_rst_n) (i_hresp_i && !i_hready_i) |=> (i_hresp_i && i_hready_i));
 
     // AHB-Lite, instruction fetch: read only, words, INCR bursts
-    a_ip_fixed: assert property (@(posedge clk_i) disable iff (!rst_n_i) !i_hwrite_o && i_hsize_o == 3'b010 && i_hburst_o == 3'b001 )
+    a_ip_fixed: assert property (@(posedge gclk) disable iff (!core_rst_n) !i_hwrite_o && i_hsize_o == 3'b010 && i_hburst_o == 3'b001 )
         else $error("[SVA-FAIL] a_ip_fixed: the I-port is not a word-read INCR master");
-    a_ip_no_busy: assert property (@(posedge clk_i) disable iff (!rst_n_i) i_htrans_o != 2'b01 )
+    a_ip_no_busy: assert property (@(posedge gclk) disable iff (!core_rst_n) i_htrans_o != 2'b01 )
         else $error("[SVA-FAIL] a_ip_no_busy: BUSY issued");
-    a_ip_aligned: assert property (@(posedge clk_i) disable iff (!rst_n_i) i_htrans_o[1] |-> i_haddr_o[1:0] == 2'b00 )
+    a_ip_aligned: assert property (@(posedge gclk) disable iff (!core_rst_n) i_htrans_o[1] |-> i_haddr_o[1:0] == 2'b00 )
         else $error("[SVA-FAIL] a_ip_aligned: an unaligned fetch");
     // an address phase is held until accepted (a redirect does not withdraw it)
-    a_ip_addr_stable: assert property (@(posedge clk_i) disable iff (!rst_n_i)
+    a_ip_addr_stable: assert property (@(posedge gclk) disable iff (!core_rst_n)
         (i_htrans_o[1] && !i_hready_i) |=> ($stable(i_haddr_o) && $stable(i_htrans_o)) )
         else $error("[SVA-FAIL] a_ip_addr_stable: the fetch address phase changed before acceptance");
     // a SEQ beat is the next word after the last accepted beat, inside the same 1 KB (AHB-Lite 3.5)
     reg [31:0] last_addr; reg last_v;
-    always @(posedge clk_i or negedge rst_n_i)
-        if (!rst_n_i) last_v <= 1'b0;
+    always @(posedge gclk or negedge core_rst_n)
+        if (!core_rst_n) last_v <= 1'b0;
         else if (i_hready_i) begin last_v <= i_htrans_o[1]; last_addr <= i_haddr_o; end
-    a_ip_seq_next_word: assert property (@(posedge clk_i) disable iff (!rst_n_i)
+    a_ip_seq_next_word: assert property (@(posedge gclk) disable iff (!core_rst_n)
         i_htrans_o == 2'b11 |-> (last_v && i_haddr_o == last_addr + 32'd4 && i_haddr_o[9:0] != 10'd0) )
         else $error("[SVA-FAIL] a_ip_seq_next_word: a SEQ beat that is not the next word of the burst");
     // nothing is accepted into the prefetch buffer when it is full and not being read
-    a_ip_no_overflow: assert property (@(posedge clk_i) disable iff (!rst_n_i)
+    a_ip_no_overflow: assert property (@(posedge gclk) disable iff (!core_rst_n)
         data_valid_o |-> (fifo_occupancy_i < FIFO_DEPTH || fifo_rd_en_i) )
         else $error("[SVA-FAIL] a_ip_no_overflow: an instruction delivered into a full prefetch buffer");
     // a redirect discards: no instruction is delivered in the cycle of a redirect
-    a_ip_redirect_quiet: assert property (@(posedge clk_i) disable iff (!rst_n_i) redirect_i |-> !data_valid_o )
+    a_ip_redirect_quiet: assert property (@(posedge gclk) disable iff (!core_rst_n) redirect_i |-> !data_valid_o )
         else $error("[SVA-FAIL] a_ip_redirect_quiet: an instruction delivered in the cycle of a redirect");
-    c_ip_seq: cover property (@(posedge clk_i) i_htrans_o == 2'b11 && i_hready_i);
-    c_ip_redirect_in_wait: cover property (@(posedge clk_i) redirect_i && i_htrans_o[1] && !i_hready_i);
+    c_ip_seq: cover property (@(posedge gclk) i_htrans_o == 2'b11 && i_hready_i);
+    c_ip_redirect_in_wait: cover property (@(posedge gclk) redirect_i && i_htrans_o[1] && !i_hready_i);
 endmodule
 
 module branch_predict_sva (
@@ -78,7 +78,7 @@ module csr_rw_sva (
             else $error("[SVA-FAIL] a_csr_fields: CSR address or operand is not the ISA's (uimm zero-extended)");
 endmodule
 
-bind garuda_iport_ahb_master garuda_iport_sva #(.FIFO_DEPTH(FIFO_DEPTH)) u_iport_sva (.*);
+bind iport_master garuda_iport_sva #(.FIFO_DEPTH(FIFO_DEPTH)) u_iport_sva (.*);
 bind branch_predict branch_predict_sva u_bp_sva (.*);
 bind csr_rw csr_rw_sva u_csr_rw_sva (.*);
 `endif

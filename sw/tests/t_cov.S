@@ -8,7 +8,7 @@
 #     executed. Each section below names the module and line it closes.
 #
 #  B. TOGGLE coverage. This is where the real shortfall is: clic_ctrl,
-#     garuda_if_stage_top, garuda_pc_gen and trap_ctrl have ZERO uncovered
+#     if_stage_top, garuda_pc_gen and trap_ctrl have ZERO uncovered
 #     blocks yet score 56-80%, because toggle coverage demands every bit of
 #     every bus go both 0->1 and 1->0. Ordinary test programs use small
 #     constants and low addresses, so the upper bits of 32-bit datapaths never

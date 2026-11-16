@@ -609,12 +609,12 @@ module tb_top;
     mac_cluster_if vif(clk);
 
     mac_cluster dut (
-        .clk(clk), .rst_n(vif.rst_n),
-        .rs1(vif.rs1), .rs2(vif.rs2),
+        .gclk(clk), .core_rst_n(vif.rst_n),
+        .rs1_val(vif.rs1), .rs2_val(vif.rs2),
         .control(vif.control), .acc_sel(vif.acc_sel),
         .sat_writeback(vif.sat_writeback), .sat_writeback_en(vif.sat_writeback_en),
         .cluster_out(vif.cluster_out), .overflow(vif.overflow),
-        .dbg_acc_0(vif.dbg_acc_0), .dbg_acc_1(vif.dbg_acc_1), .dbg_acc_2(vif.dbg_acc_2)
+        .dbg_acc_fx(vif.dbg_acc_0), .dbg_acc_fy(vif.dbg_acc_1), .dbg_acc_mag(vif.dbg_acc_2)
     );
 
     cluster_test test;

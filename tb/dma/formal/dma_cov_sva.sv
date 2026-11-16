@@ -64,6 +64,6 @@ module dma_cov_sva #(
 endmodule
 
 bind dma_top dma_cov_sva #(.PRIO(PRIO)) u_dma_cov_sva (
-    .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .eligible(eligible), .grant_valid(grant_valid),
+    .hclk_i(hclk), .hreset_n_i(hreset_n), .eligible(eligible), .grant_valid(grant_valid),
     .grant_ch(grant_ch), .err_phase(err_phase), .stat(stat), .ack_cnt(u_eng.ack_cnt));
 `endif

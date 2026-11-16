@@ -39,7 +39,7 @@ puts "exclusions applied: $n, not applied: $bad"
 # these modules changes, check the numbers against that report again.
 exclude -type decode_control -block 32 -comment "CW-006: default arm of case(funct3) at decode_control.v:216; the case lists all eight values, reached only by an X funct3"
 exclude -type decode_control -block 47 -comment "CW-006: default arm of case(funct3) at decode_control.v:243; the case lists all eight values, reached only by an X funct3"
-exclude -type d_port_ahb_master -block 13 -comment "CW-003: default arm of the D-port FSM at d_port_ahb_master.v:140; state is S_ADDR or S_DATA (PROVEN a_dport_state_legal)"
+exclude -type dport_master -block 13 -comment "CW-003: default arm of the D-port FSM at dport_master.v:140; state is S_ADDR or S_DATA (PROVEN a_dport_state_legal)"
 catch {file delete sim/cov_g5/core_g5.vRefine}
 save -refinement sim/cov_g5/core_g5.vRefine
 report -summary -type -metrics block:expression:toggle:fsm -out sim/cov_g5/type_waived.txt

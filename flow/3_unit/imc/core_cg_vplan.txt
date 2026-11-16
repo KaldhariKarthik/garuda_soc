@@ -83,8 +83,8 @@ cg_trap_x                      50.00%, 66.67% (4/6)           121   covergroup c
 | |--squashed                  0.00% (0/1)                    123   cp_fetch_err_flushed: coverpoint what iff (what == 2) { bins squashed = {2}; } 
 cg_irq                         57.14%, 54.55% (6/11)          128   covergroup cg_irq with function sample(int what, int klass_in_ex); 
 |--x_insn_class                71.43% (5/7)                   129   x_insn_class: coverpoint klass_in_ex iff (what == 0) { 
-| |--mul                       0.00% (0/1)                    130   bins alu = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5}; bins bubble = {6}; } 
-| |--bubble                    0.00% (0/1)                    130   bins alu = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5}; bins bubble = {6}; } 
+| |--mul                       0.00% (0/1)                    130   bins alu_unit = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5}; bins bubble = {6}; } 
+| |--bubble                    0.00% (0/1)                    130   bins alu_unit = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5}; bins bubble = {6}; } 
 |--cp_mti_with_clic            0.00% (0/3)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
 | |--both_pending              0.00% (0/1)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 
 | |--clic_taken                0.00% (0/1)                    131   cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; } 

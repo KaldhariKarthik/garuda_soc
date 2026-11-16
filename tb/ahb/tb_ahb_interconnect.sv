@@ -102,7 +102,7 @@ module tb_ahb_interconnect;
     wire        m0_hresp,  m1_hresp,  m2_hresp;
 
     // M0 stands in for the CPU I-Port: HPROT = 4'b0010 (opcode, privileged),
-    // matching garuda_iport_ahb_master.v exactly.
+    // matching iport_master.v exactly.
     ahb_lite_master_bfm #(.HPROT(4'b0010)) u_m0 (
         .hclk_i(hclk), .hreset_n_i(hreset_n),
         .haddr_o(m0_haddr), .htrans_o(m0_htrans), .hwrite_o(m0_hwrite),
@@ -218,7 +218,7 @@ module tb_ahb_interconnect;
     // DUT
     // -----------------------------------------------------------------------
     ahb_interconnect u_ic (
-        .hclk_i(hclk), .hreset_n_i(hreset_n),
+        .hclk(hclk), .hreset_n(hreset_n),
 
         .i_haddr_i(m0_haddr), .i_htrans_i(m0_htrans), .i_hwrite_i(m0_hwrite),
         .i_hsize_i(m0_hsize), .i_hburst_i(m0_hburst), .i_hprot_i(m0_hprot),
@@ -684,7 +684,7 @@ module tb_ahb_interconnect;
         clear_rsp();
         // 64 back-to-back I-Port beats: gap 0 everywhere means the BFM presents
         // a new address phase on EVERY cycle, which is exactly what
-        // garuda_iport_ahb_master does on straight-line code at 1 IPC.
+        // iport_master does on straight-line code at 1 IPC.
         u_m0.push_xfer(32'h0000_0800, 1'b0, 32'h0, SZ_W, BURST_INCR, T_NONSEQ, 8'd0);
         for (i = 1; i < 64; i = i + 1)
             u_m0.push_xfer(32'h0000_0800 + i*4, 1'b0, 32'h0, SZ_W, BURST_INCR, T_SEQ, 8'd0);

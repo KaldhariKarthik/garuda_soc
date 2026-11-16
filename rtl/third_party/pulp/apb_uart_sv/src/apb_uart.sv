@@ -13,8 +13,8 @@ module apb_uart_sv
     parameter APB_ADDR_WIDTH = 12  //APB slaves are 4KB by default
 )
 (
-    input  logic                      CLK,
-    input  logic                      RSTN,
+    input  logic                      pclk,
+    input  logic                      preset_n,
     /* verilator lint_off UNUSED */
     input  logic [APB_ADDR_WIDTH-1:0] PADDR,
     /* lint_on */
@@ -78,8 +78,8 @@ module apb_uart_sv
     // TODO: check that stop bits are really not necessary here
     uart_rx uart_rx_i
     (
-        .clk_i              ( CLK                           ),
-        .rstn_i             ( RSTN                          ),
+        .pclk              ( pclk                           ),
+        .preset_n             ( preset_n                          ),
         .rx_i               ( rx_i                          ),
         .cfg_en_i           ( 1'b1                          ),
         .cfg_div_i          ( {regs_q[DLM + 'd8], regs_q[DLL + 'd8]}    ),
@@ -103,8 +103,8 @@ module apb_uart_sv
 
     uart_tx uart_tx_i
     (
-        .clk_i              ( CLK                           ),
-        .rstn_i             ( RSTN                          ),
+        .pclk              ( pclk                           ),
+        .preset_n             ( preset_n                          ),
         .tx_o               ( tx_o                          ),
         /* verilator lint_off PINCONNECTEMPTY */
         .busy_o             (                               ),
@@ -127,8 +127,8 @@ module apb_uart_sv
     )
     uart_rx_fifo_i
     (
-        .clk_i              ( CLK                           ),
-        .rstn_i             ( RSTN                          ),
+        .pclk              ( pclk                           ),
+        .preset_n             ( preset_n                          ),
 
         .clr_i              ( rx_fifo_clr_q                 ),
 
@@ -150,8 +150,8 @@ module apb_uart_sv
     )
     uart_tx_fifo_i
     (
-        .clk_i              ( CLK                           ),
-        .rstn_i             ( RSTN                          ),
+        .pclk              ( pclk                           ),
+        .preset_n             ( preset_n                          ),
 
         .clr_i              ( tx_fifo_clr_q                 ),
 
@@ -174,8 +174,8 @@ module apb_uart_sv
     )
     uart_interrupt_i
     (
-        .clk_i              ( CLK                           ),
-        .rstn_i             ( RSTN                          ),
+        .pclk              ( pclk                           ),
+        .preset_n             ( preset_n                          ),
 
 
         .IER_i              ( regs_q[IER][2:0]              ), // interrupt enable register
@@ -325,13 +325,13 @@ module apb_uart_sv
     end
 
     // synchronouse part
-    always_ff @(posedge CLK, negedge RSTN)
+    always_ff @(posedge pclk, negedge preset_n)
     begin
-        if(~RSTN)
+        if(~preset_n)
         begin
 
             // GARUDA patch 0001 (UART-4): entry 0 had no reset value, so the
-            // flop needed RSTN as a data enable (reset in the data path).
+            // flop needed preset_n as a data enable (reset in the data path).
             regs_q[RBR]       <= 8'h0;
             regs_q[IER]       <= 8'h0;
             regs_q[IIR]       <= 8'h1;

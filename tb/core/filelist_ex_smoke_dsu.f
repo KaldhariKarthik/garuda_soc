@@ -7,7 +7,7 @@
 -incdir rtl/common
 -incdir rtl/core
 -incdir rtl/dsu
-rtl/core/alu.v
+rtl/core/alu_unit.v
 rtl/core/mul32.v
 rtl/core/branch_unit.v
 rtl/core/csr_rw.v

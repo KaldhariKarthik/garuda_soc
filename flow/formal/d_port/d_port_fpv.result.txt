@@ -1,4 +1,4 @@
-top: d_port_ahb_master
+top: dport_master
 children: 
 script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh d_port)
 proved: 7/7

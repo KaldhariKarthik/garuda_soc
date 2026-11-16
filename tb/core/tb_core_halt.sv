@@ -47,11 +47,11 @@ module tb_core_halt;
     // The core's reset as on the chip (D-36): reset_ctrl's core_rst_sync, cleared by the
     // bench reset, and falling one clock after the Debug Module's hartreset grant.
     wire        core_rst_n;
-    core_rst_sync u_core_rst_sync (.hclk_i(clk), .clr_i(~rst_n), .hartreset_req_i(dm_hartreset),
-                                   .core_rst_n_o(core_rst_n));
+    core_rst_sync u_core_rst_sync (.hclk(clk), .core_clr(~rst_n), .hartreset_req_i(dm_hartreset),
+                                   .core_rst_n(core_rst_n));
 
     garuda_core_top #(.RESET_VECTOR(BASE)) dut (
-        .clk_i(clk), .core_rst_n_i(core_rst_n),
+        .hclk(clk), .core_rst_n(core_rst_n),
         .halt_req_i(halt_req), .halt_safe_o(halt_safe),
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize),
         .i_hburst_o(i_hburst), .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite),
@@ -102,7 +102,7 @@ module tb_core_halt;
     localparam int HT = 1024;
 `endif
     debug_module #(.HALT_TIMEOUT(HT)) u_dm (
-        .hclk_i(clk), .dm_rst_n_i(rst_n),
+        .hclk(clk), .dm_rst_n(rst_n),
         .req_i(dmi_req), .addr_i(dmi_addr), .wdata_i(dmi_wdata), .op_i(dmi_op),
         .rdata_o(dmi_rdata), .done_o(dmi_done),
         .ndmreset_o(ndmreset), .hartreset_o(dm_hartreset),

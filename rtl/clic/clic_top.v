@@ -23,14 +23,14 @@
 // =============================================================================
 
 module clic_top #(
-    parameter integer N       = 32,
+    parameter integer NUM_SRC       = 32,
     parameter [31:0]  IE_MASK = 32'h00FF_FF7E,
     parameter integer SWI_ID  = 32'd23        // = GARUDA_CLIC_ID_SOFTWARE, checked in clic_sva
 )(
-    input  wire          hclk_i,
-    input  wire          hreset_n_i,
-    input  wire          pclk_i,
-    input  wire          preset_n_i,
+    input  wire          hclk,
+    input  wire          hreset_n,
+    input  wire          pclk,
+    input  wire          preset_n,
 
     // ---- APB slave, window 10 ----------------------------------------------
     input  wire          psel_i,
@@ -43,7 +43,7 @@ module clic_top #(
     output wire          pslverr_o,
 
     // ---- sources (hclk domain, level) ----------------------------------------
-    input  wire [N-1:0]  irq_src_i,
+    input  wire [NUM_SRC-1:0]  irq_src_i,
 
     // ---- to the core ------------------------------------------------------------
     output wire          clic_irq_valid_o,
@@ -51,25 +51,25 @@ module clic_top #(
     output wire [7:0]    clic_irq_level_o
 );
 
-    wire [N-1:0]   ie;
-    wire [N*8-1:0] level;
+    wire [NUM_SRC-1:0]   ie;
+    wire [NUM_SRC*8-1:0] level;
     wire           swi;
     // The software interrupt joins the sources inside this block; the SoC ties
     // irq_src_i[SWI_ID] low. It is then a level source like any other.
-    wire [N-1:0]   src = irq_src_i | ({{(N-1){1'b0}}, swi} << SWI_ID);
+    wire [NUM_SRC-1:0]   src = irq_src_i | ({{(NUM_SRC-1){1'b0}}, swi} << SWI_ID);
 
-    clic_apb #(.N(N), .IE_MASK(IE_MASK)) u_apb (
-        .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+    clic_apb #(.NUM_SRC(NUM_SRC), .IE_MASK(IE_MASK)) u_apb (
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
         .pending_i(src), .ie_o(ie), .level_o(level), .swi_o(swi));
 
-    clic_select #(.N(N)) u_sel (
+    clic_select #(.NUM_SRC(NUM_SRC)) u_sel (
         .cand_i(src & ie), .level_i(level),
         .valid_o(clic_irq_valid_o), .id_o(clic_irq_id_o), .level_o(clic_irq_level_o));
 
-    wire _unused = |{hclk_i, hreset_n_i};
+    wire _unused = |{hclk, hreset_n};
 
 endmodule
 

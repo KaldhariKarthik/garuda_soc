@@ -27,8 +27,8 @@
 // =============================================================================
 
 module mem_wb_reg (
-    input  wire        clk_i,
-    input  wire        rst_n_i,
+    input  wire        gclk,
+    input  wire        core_rst_n,
 
     // Pipeline control
     input  wire        flush_i,        // bubble: trap flush OR MEM wait state
@@ -56,8 +56,8 @@ module mem_wb_reg (
     //
     // This register has no hold path by design (bubble-on-wait, never hold --
     // see the note above), so there are only three branches, not four.
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             // Reset -> no writeback
             wb_data_o   <= 32'd0;
             rd_o        <= 5'd0;

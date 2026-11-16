@@ -86,13 +86,13 @@ module tb_dsu_top;
     wire [47:0] dbg_acc_0, dbg_acc_1, dbg_acc_2;
 
     dsu_top dut (
-        .clk(clk), .rst_n(rst_n), .flush(flush),
-        .dsu_en(dsu_en), .instr(instr), .rs1(rs1), .rs2(rs2),
+        .gclk(clk), .core_rst_n(rst_n), .flush(flush),
+        .dsu_en(dsu_en), .instr(instr), .rs1_val(rs1), .rs2_val(rs2),
         .csr_clear_overflow(csr_clear_overflow),
         .dsu_busy(dsu_busy), .dsu_rd_data(dsu_rd_data),
         .dsu_rd_valid(dsu_rd_valid), .dsu_rd_addr(dsu_rd_addr),
         .dsu_overflow(dsu_overflow), .illegal_instr(illegal_instr),
-        .dbg_acc_0(dbg_acc_0), .dbg_acc_1(dbg_acc_1), .dbg_acc_2(dbg_acc_2)
+        .dbg_acc_fx(dbg_acc_0), .dbg_acc_fy(dbg_acc_1), .dbg_acc_mag(dbg_acc_2)
     );
 
     integer cyc = 0;

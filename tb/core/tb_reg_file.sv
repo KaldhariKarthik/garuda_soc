@@ -4,7 +4,7 @@
 // (ID-stage architectural register file, Sec. 5.3, Sec. 7.4)
 //
 // UNLIKE the purely-combinational units in this set (decode_control,
-// imm_gen, branch_predict, hazard_forward_unit), regfile.v IS SEQUENTIAL:
+// imm_gen, branch_predict, hazard_fwd_unit), regfile.v IS SEQUENTIAL:
 // it has real registered state (the 31-entry storage array). Verifying it
 // correctly requires the same cycle-accurate-sequence + stateful-
 // reference-model discipline as dsu_stall.v.
@@ -512,8 +512,8 @@ module tb_top;
     regfile_if vif(clk);
 
     regfile dut (
-        .clk_i          (clk),
-        .rst_n_i        (vif.rst_n),
+        .gclk          (clk),
+        .core_rst_n        (vif.rst_n),
         .rs1_idx_i      (vif.rs1_idx),
         .rs2_idx_i      (vif.rs2_idx),
         .wb_reg_write_i (vif.wb_write),

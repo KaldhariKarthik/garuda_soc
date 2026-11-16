@@ -25,8 +25,8 @@
 `include "core_ex_defs.vh"
 
 module csr_file (
-    input  wire        clk_i,
-    input  wire        rst_n_i,
+    input  wire        gclk,
+    input  wire        core_rst_n,
 
     // ---- EX read/modify/write seam ----
     input  wire        csr_en_i,
@@ -64,7 +64,7 @@ module csr_file (
 
     // Machine-timer interrupt pending AND locally enabled (mie.MTIE). Deliberately
     // NOT gated by mstatus.MIE: trap_ctrl applies the global enable for taking the
-    // trap, and uses this ungated form for the MIE-independent WFI wake (Sec.14.5),
+    // trap, and uses this ungated form for the MIE_CSR-independent WFI wake (Sec.14.5),
     // mirroring the clic_ctrl take_cond / wake_cond split.
     output wire        mti_pending_o,
 
@@ -74,7 +74,7 @@ module csr_file (
     // ---------------- addresses (Sec. 13.2) ----------------
     localparam MISA=12'h301, MVENDORID=12'hF11, MARCHID=12'hF12, MIMPID=12'hF13,
                MHARTID=12'hF14, MSTATUS=12'h300, MTVEC=12'h305,
-               MIE=12'h304, MIP=12'h344, MEPC=12'h341, MCAUSE=12'h342, MTVAL=12'h343,
+               MIE_CSR=12'h304, MIP_CSR=12'h344, MEPC=12'h341, MCAUSE=12'h342, MTVAL=12'h343,
                MSCRATCH=12'h340, MINTTHRESH=12'h347, MNXTI=12'h345,
                // CORE-SPEC Rev 3.0 §6.1 places mintstatus at 0x346; the ratified
                // CLIC address 0xFB1 is kept as a read-only alias (D-15).
@@ -102,7 +102,7 @@ module csr_file (
     // ERRATUM C-16 (2026-10-05, found by tools/csr_map.py; fixed 2026-10-11)
     // ---------------------------------------------------------------------------
     // The privileged specification the core spec cites (v1.12) defines these on
-    // every RV32 M-mode hart; each may read zero, but an access must not trap.
+    // every RV32 M-mode hart; each may read zero, but an csr_access must not trap.
     // GARUDA trapped on all 89 addresses, so software that probes them (an RTOS
     // reading mhpmcounters, a boot loader reading mconfigptr) took an
     // illegal-instruction trap. They are now read-zero: they read 0, writes are
@@ -180,8 +180,8 @@ module csr_file (
             MHARTID:   rdata = 32'd0;
             MSTATUS:   rdata = mstatus_val;
             MTVEC:     rdata = {mtvec_r[31:2], 2'b11};   // MODE hardwired to 3 (CLIC)
-            MIE:       rdata = mie_r;
-            MIP:       rdata = mip_val;
+            MIE_CSR:       rdata = mie_r;
+            MIP_CSR:       rdata = mip_val;
             MEPC:      rdata = mepc_r;
             MCAUSE:    rdata = mcause_r;
             MTVAL:     rdata = mtval_r;
@@ -223,17 +223,17 @@ module csr_file (
     wire is_ro = (csr_addr_i==MVENDORID)||(csr_addr_i==MARCHID)||(csr_addr_i==MIMPID)||
                  (csr_addr_i==MHARTID)||(csr_addr_i==MINTSTATUS)||
                  (csr_addr_i==MINTSTATUS_STD)||(csr_addr_i==MNXTI)||
-                 (csr_addr_i==DSU_OVF)||(csr_addr_i==MIP)||
+                 (csr_addr_i==DSU_OVF)||(csr_addr_i==MIP_CSR)||
                  // Zicntr shadows are read-only by architecture: writes go to
                  // the machine counters, never through these addresses.
                  (csr_addr_i==CYCLE)||(csr_addr_i==CYCLEH)||
                  (csr_addr_i==INSTRET)||(csr_addr_i==INSTRETH)||
                  // C-16: mconfigptr is read-only by its address (0xC00-0xFFF)
                  (csr_addr_i==MCONFIGPTR);
-    wire access      = csr_en_i && (csr_op_i != 2'b00);
-    wire is_write    = access && (csr_op_i == `CSR_RW ||
+    wire csr_access      = csr_en_i && (csr_op_i != 2'b00);
+    wire is_write    = csr_access && (csr_op_i == `CSR_RW ||
                                   ((csr_op_i==`CSR_RS||csr_op_i==`CSR_RC) && (csr_wdata_i!=32'd0)));
-    assign illegal_csr_o = access && (!implemented || (is_write && is_ro));
+    assign illegal_csr_o = csr_access && (!implemented || (is_write && is_ro));
 
     // dsu_ovf read clears overflow (Sec. 13.2)
     assign csr_clear_overflow_o = csr_en_i && commit_i && (csr_addr_i==DSU_OVF) && (csr_op_i!=2'b00);
@@ -258,7 +258,7 @@ module csr_file (
     // the CSR, squashed the instruction, and wrote it again on return, so a
     // `csrrw a0, mscratch, a0` swap lost the old mscratch. The write and the
     // clear now happen once, in the cycle the instruction leaves EX. Decode of
-    // an illegal access (illegal_csr_o) is not gated: it has to be visible to
+    // an illegal csr_access (illegal_csr_o) is not gated: it has to be visible to
     // trap_ctrl, which applies its own hold.
     wire wr_ok = is_write && !is_ro && implemented && commit_i;
     wire [31:0] mstatus_next    = nextv(mstatus_val, csr_wdata_i, csr_op_i);
@@ -272,8 +272,8 @@ module csr_file (
     assign mgarudactl_o    = ctl_r;          // CORE-4
     wire [31:0] ctl_next   = nextv({28'd0, ctl_r}, csr_wdata_i, csr_op_i);
 
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             mstatus_mie<=1'b0; mstatus_mpie<=1'b0;
             mtvec_r<=32'd0; mie_r<=32'd0; mepc_r<=32'd0;
             mcause_r<=32'd0; mtval_r<=32'd0; mscratch_r<=32'd0; mintthresh_r<=8'd0;
@@ -315,7 +315,7 @@ module csr_file (
                                     mstatus_mpie<= mstatus_next[7]; end
                     MTVEC:    mtvec_r    <= nextv(mtvec_r,    csr_wdata_i, csr_op_i);
                     // mie: only MTIE is implemented (CORE §6.1).
-                    MIE:      mie_r      <= nextv(mie_r,      csr_wdata_i, csr_op_i) & 32'h0000_0080;
+                    MIE_CSR:      mie_r      <= nextv(mie_r,      csr_wdata_i, csr_op_i) & 32'h0000_0080;
                     // ERRATUM T-15 (2026-10-05, found by riscv-tests local/csr_warl.S in
                     // lockstep with Spike). Only bit 0 was masked. GARUDA has no
                     // compressed instructions, so IALIGN is 32 and the privileged

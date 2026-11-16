@@ -34,5 +34,5 @@ module ahb_slave_env (
     env_err_second:  assume property (@(posedge clk) disable iff (!rst_n) (hresp && hready) |-> $past(hresp && !hready));
 endmodule
 
-bind garuda_core_top ahb_slave_env u_env_i (.clk(clk_i), .rst_n(core_rst_n_i), .htrans(i_htrans_o), .hready(i_hready_i), .hresp(i_hresp_i));
-bind garuda_core_top ahb_slave_env u_env_d (.clk(clk_i), .rst_n(core_rst_n_i), .htrans(d_htrans_o), .hready(d_hready_i), .hresp(d_hresp_i));
+bind garuda_core_top ahb_slave_env u_env_i (.clk(hclk), .rst_n(core_rst_n), .htrans(i_htrans_o), .hready(i_hready_i), .hresp(i_hresp_i));
+bind garuda_core_top ahb_slave_env u_env_d (.clk(hclk), .rst_n(core_rst_n), .htrans(d_htrans_o), .hready(d_hready_i), .hresp(d_hresp_i));

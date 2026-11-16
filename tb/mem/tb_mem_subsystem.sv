@@ -48,18 +48,18 @@ module tb_mem_subsystem;
     reg ilock = 0, is_sba = 0;
 
     isram_top u_isram (
-        .hclk_i(hclk), .hreset_n_i(hreset_n), .hsel_i(sel_i), .haddr_i(haddr),
+        .hclk(hclk), .hreset_n(hreset_n), .hsel_i(sel_i), .haddr_i(haddr),
         .htrans_i(htrans), .hwrite_i(hwrite), .hsize_i(hsize), .hburst_i(hburst),
         .hprot_i(hprot), .hwdata_i(hwdata), .hready_i(hready),
         .hrdata_o(rd_i), .hreadyout_o(ro_i), .hresp_o(re_i),
         .ilock_i(ilock), .hmaster_is_sba_i(is_sba));
     bootrom_top #(.INIT_FILE("")) u_rom (
-        .hclk_i(hclk), .hreset_n_i(hreset_n), .hsel_i(sel_r), .haddr_i(haddr),
+        .hclk(hclk), .hreset_n(hreset_n), .hsel_i(sel_r), .haddr_i(haddr),
         .htrans_i(htrans), .hwrite_i(hwrite), .hsize_i(hsize), .hburst_i(hburst),
         .hprot_i(hprot), .hwdata_i(hwdata), .hready_i(hready),
         .hrdata_o(rd_r), .hreadyout_o(ro_r), .hresp_o(re_r));
     dsram_top u_dsram (
-        .hclk_i(hclk), .hreset_n_i(hreset_n), .hsel_i(sel_d), .haddr_i(haddr),
+        .hclk(hclk), .hreset_n(hreset_n), .hsel_i(sel_d), .haddr_i(haddr),
         .htrans_i(htrans), .hwrite_i(hwrite), .hsize_i(hsize), .hburst_i(hburst),
         .hprot_i(hprot), .hwdata_i(hwdata), .hready_i(hready),
         .hrdata_o(rd_d), .hreadyout_o(ro_d), .hresp_o(re_d));

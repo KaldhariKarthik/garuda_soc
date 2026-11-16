@@ -2,7 +2,7 @@
 // tapeout_id_stage.sv
 // Tapeout-grade SV verification environment for GARUDA id_stage.v
 // (TOP WRAPPER instantiating all 5 ID-stage sub-blocks:
-//  decode_control, imm_gen, regfile, branch_predict, hazard_forward_unit -
+//  decode_control, imm_gen, regfile, branch_predict, hazard_fwd_unit -
 //  Sec. 5, Sec. 7, Sec. 11, Sec. 12)
 //
 // id_stage.v is a MIX of combinational logic (four of its five sub-
@@ -585,7 +585,7 @@ class id_stage_ref_model;
     // ---- branch prediction ----
     static function bit predict_taken(bit branch_v, bit [31:0] imm_b_v); return branch_v & imm_b_v[31]; endfunction
     // ERRATUM C-3: FENCE.I redirects to pc+4. The redirect IS the flush -
-    // garuda_prefetch_buffer drops everything on any redirect - so it must be
+    // prefetch_buf drops everything on any redirect - so it must be
     // modelled here or the DUT looks wrong on every FENCE.I.
     static function bit redirect_valid(bit branch_v, bit jal_v, bit fencei_v, bit [31:0] imm_b_v);
         return fencei_v | jal_v | predict_taken(branch_v, imm_b_v);
@@ -900,8 +900,8 @@ module tb_top;
 
     id_stage dut (
         .bp_dis_i              (1'b0),           // CORE-4 (mgarudactl): predictor on
-        .clk_i                 (clk),
-        .rst_n_i               (vif.rst_n),
+        .gclk                 (clk),
+        .core_rst_n               (vif.rst_n),
         .if_id_instr_i         (vif.if_id_instr),
         .if_id_pc_i            (vif.if_id_pc),
         .if_id_fault_i         (vif.if_id_fault),

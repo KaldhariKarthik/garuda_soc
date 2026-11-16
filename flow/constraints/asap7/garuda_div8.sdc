@@ -96,7 +96,7 @@ set_max_delay 16000 -ignore_clock_latency -from [get_clocks {aon_clk hclk pclk}]
 #      26 in u_reset_ctrl (ext_sync_q release synchroniser, stretch counter and
 #      request flops whose post-release value is held by ext_held for two aon
 #      cycles, RSTREASON, exth_q/extp_q 2-flop release synchronisers); 149 in u_soc.u_debug
-#      (jtag_tap/dtm/dmi_cdc por_n_i, tck domain, tck may be stopped). The pin
+#      (jtag_tap/debug_dtm/dmi_cdc por_n_i, tck domain, tck may be stopped). The pin
 #      has no clock (board supervisor, PHYS B-1), so recovery/removal from it
 #      cannot be timed. The exception is limited to those reset/set pins.
 #      They are named as the timing endpoints the port reaches, not as the

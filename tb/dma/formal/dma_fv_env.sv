@@ -80,6 +80,6 @@ module dma_fv_env #(
 endmodule
 
 bind dma_top dma_fv_env u_fv_env (
-    .clk(hclk_i), .hreset_n_i(hreset_n_i), .preset_n_i(preset_n_i),
+    .clk(hclk), .hreset_n_i(hreset_n), .preset_n_i(preset_n),
     .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i), .paddr_i(paddr_i),
     .pwdata_i(pwdata_i), .htrans_o(htrans_o), .hready_i(hready_i), .hresp_i(hresp_i));

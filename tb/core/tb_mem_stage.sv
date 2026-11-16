@@ -1,6 +1,6 @@
 // =============================================================================
 // tb_mem_stage.sv -- SV integration TB for rtl/core/mem_stage.v
-//                    (load_store_unit + d_port_ahb_master + load_formatter)
+//                    (load_store_unit + dport_master + load_formatter)
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 10 (memory stage and data port),
 //       Sec. 11.4 (D-port wait state), Sec. 13.2 (minstret retirement),
@@ -151,8 +151,8 @@ module tb_top;
     mem_stage_if vif(clk, rst_n);
 
     mem_stage dut (
-        .clk_i                 (clk),
-        .rst_n_i               (rst_n),
+        .gclk                 (clk),
+        .core_rst_n               (rst_n),
         .ex_result_i           (vif.ex_result),
         .rs2_data_i            (vif.rs2_data),
         .funct3_i              (vif.funct3),

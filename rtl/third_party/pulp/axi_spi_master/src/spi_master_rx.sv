@@ -10,8 +10,8 @@
 
 module spi_master_rx
 (
-    input  logic        clk,
-    input  logic        rstn,
+    input  logic        pclk,
+    input  logic        preset_n,
     input  logic        en,
     input  logic        rx_edge,
     output logic        rx_done,
@@ -118,9 +118,9 @@ module spi_master_rx
   end
 
 
-  always_ff @(posedge clk, negedge rstn)
+  always_ff @(posedge pclk, negedge preset_n)
   begin
-    if (rstn == 0)
+    if (preset_n == 0)
     begin
       counter      <= 0;
       counter_trgt <= 'h8;

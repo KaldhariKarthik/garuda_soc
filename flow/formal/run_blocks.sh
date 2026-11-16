@@ -6,7 +6,7 @@ cd "$(dirname "$0")/../.."
 JG=/home/install/JASPER/bin/jg
 TABLE='
 clic    |clic_top        |rtl/clic/filelist.f        |hclk_i pclk_i:2 |hreset_n_i preset_n_i |clic_apb clic_select|APB=pclk_i
-timers  |timers_top      |rtl/timers/filelist.f      |hclk_i pclk_i:2 |hreset_n_i preset_n_i ext_rst_n_i |mtime timers_apb wdt|APB=pclk_i
+timers  |timers_top      |rtl/timers/filelist.f      |hclk_i pclk_i:2 |hreset_n_i preset_n_i ext_rst_n_i |mtime timers_apb watchdog|APB=pclk_i
 reset   |reset_ctrl      |rtl/reset_ctrl/filelist.f  |hclk_i aon_clk_i pclk_i:2 |ext_rst_n_i |reset_ctrl_apb|DEFS=FORMAL APB=pclk_i APBRST=preset_n_o
 pwm     |garuda_pwm_top  |rtl/pwm/filelist.f         |pclk_i          |preset_n_i |garuda_pwm_core|APB=pclk_i
 gpio    |garuda_gpio_top |rtl/gpio/filelist.f        |pclk_i          |preset_n_i ||APB=pclk_i
@@ -17,19 +17,19 @@ if_id   |if_id           |rtl/core/filelist_pipe_regs_fv.f |clk_i   |rst_n_i ||
 id_ex   |id_ex           |rtl/core/filelist_pipe_regs_fv.f |clk_i   |rst_n_i ||
 ex_mem  |ex_mem          |rtl/core/filelist_pipe_regs_fv.f |clk_i   |rst_n_i ||
 clic_ctrl |clic_ctrl     |rtl/core/filelist_clic_ctrl_fv.f |clk_dummy |rst_dummy ||COMB=1
-d_port  |d_port_ahb_master |rtl/core/filelist_d_port_ahb_master_fv.f |clk_i |rst_n_i ||
+d_port  |dport_master |rtl/core/filelist_dport_master_fv.f |clk_i |rst_n_i ||
 csr_file |csr_file       |rtl/core/filelist_csr_file_fv.f |clk_i      |rst_n_i ||
 regfile |regfile         |rtl/core/filelist_regfile_fv.f |clk_i       |rst_n_i ||
 branch_unit |branch_unit  |rtl/core/filelist_branch_unit_fv.f |c |r ||COMB=1
 forward_unit |forward_unit |rtl/core/filelist_forward_unit_fv.f |c |r ||COMB=1
-hazard_forward_unit |hazard_forward_unit |rtl/core/filelist_hazard_forward_unit_fv.f |c |r ||COMB=1
+hazard_fwd_unit |hazard_fwd_unit |rtl/core/filelist_hazard_fwd_unit_fv.f |c |r ||COMB=1
 load_store_unit |load_store_unit |rtl/core/filelist_load_store_unit_fv.f |c |r ||COMB=1
 pc_gen  |garuda_pc_gen   |rtl/core/filelist_garuda_pc_gen_fv.f |clk_i |rst_n_i ||
-prefetch |garuda_prefetch_buffer |rtl/core/filelist_garuda_prefetch_buffer_fv.f |clk_i |rst_n_i ||
+prefetch |prefetch_buf |rtl/core/filelist_prefetch_buf_fv.f |clk_i |rst_n_i ||
 trap_ctrl |trap_ctrl     |rtl/core/filelist_trap_ctrl_fv.f |clk_i |rst_n_i ||
 branch_predict |branch_predict |rtl/core/filelist_branch_predict_fv.f |c |r ||COMB=1
 csr_rw  |csr_rw          |rtl/core/filelist_csr_rw_fv.f |c |r ||COMB=1
-if_stage |garuda_if_stage_top |rtl/core/filelist_if_stage_fv.f |clk_i |rst_n_i |garuda_pc_gen garuda_iport_ahb_master garuda_prefetch_buffer|ASSUMES_FILE=flow/formal/core/if_stage_assumes.txt
+if_stage |if_stage_top |rtl/core/filelist_if_stage_fv.f |clk_i |rst_n_i |garuda_pc_gen iport_master prefetch_buf|ASSUMES_FILE=flow/formal/core/if_stage_assumes.txt
 decode  |decode_control  |rtl/core/filelist_decode_fv.f |c |r ||COMB=1
 dsu     |dsu_top         |rtl/dsu/filelist.f         |clk             |rst_n |dsu_decoder dsu_stall overflow_flag mac_cluster operand_router readback_mux result_selector barrel_shifter|DEFS=FORMAL
 '

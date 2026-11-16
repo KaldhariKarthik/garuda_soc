@@ -18,8 +18,8 @@ module tb_pwm;
     wire       irq;
     wire [3:0] pwm;
 
-    garuda_pwm_top #(.BLOCK_NUM(8'd20), .NCH(4)) dut (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+    garuda_pwm_top #(.BLOCK_NUM(8'd20), .NUM_CHAN(4)) dut (
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(bfm.psel), .penable_i(bfm.penable), .pwrite_i(bfm.pwrite),
         .paddr_i(bfm.paddr), .pwdata_i(bfm.pwdata), .prdata_o(bfm.prdata),
         .pready_o(bfm.pready), .pslverr_o(bfm.pslverr),

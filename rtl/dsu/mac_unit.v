@@ -6,11 +6,11 @@
 `timescale 1ns / 1ps
 
 module mac_unit(
-    input wire         clk,
-    input wire         rst_n,
+    input wire         gclk,
+    input wire         core_rst_n,
     
-    input wire  [31:0] rs1,
-    input wire  [31:0] rs2,
+    input wire  [31:0] rs1_val,
+    input wire  [31:0] rs2_val,
     
     input wire         en,
     input wire         add_sub,
@@ -28,16 +28,16 @@ module mac_unit(
     output wire        pending_o           // a product folds into acc this cycle (DSU-14 interlock)
 );
 
-    wire [15:0] a0, b0, a1, b1;
+    wire [15:0] a_lo, b_lo, a_hi, b_hi;
     operand_router u_router (
-        .rs1 (rs1),
-        .rs2 (rs2),
+        .rs1_val (rs1_val),
+        .rs2_val (rs2_val),
         .abs_en (abs_en),
         .dot_en (dot_en),
-        .a0 (a0),
-        .b0 (b0),
-        .a1 (a1),
-        .b1 (b1)        
+        .a_lo (a_lo),
+        .b_lo (b_lo),
+        .a_hi (a_hi),
+        .b_hi (b_hi)        
     );       
     
     wire signed [31:0] product_a, product_b;
@@ -57,8 +57,8 @@ module mac_unit(
     //  previous wrapping of this paragraph made it report
     //  BADVLTPRAGMA "Unknown verilator comment" and ABORT -- which blocked
     //  whole-chip lint entirely, on a prose comment.)
-    mult_16x16 U_mult_a (.a (a0),  .b (b0), .p (product_a));
-    mult_16x16 U_mult_b (.a (a1),  .b (b1), .p (product_b));
+    mult_16x16 u_mult_a (.a (a_lo),  .b (b_lo), .p (product_a));
+    mult_16x16 u_mult_b (.a (a_hi),  .b (b_hi), .p (product_b));
     
     // -----------------------------------------------------------------------
     // ERRATUM OVF-1 (Docs/guides/ORACLES.md; closes OPEN-9) -- overflow flag wrong
@@ -104,13 +104,13 @@ module mac_unit(
     // -----------------------------------------------------------------------
     // sum_reg/carry_reg were gated by write_en, which is also the accumulator's
     // write enable. MACLOAD, MACCLEAR and MACSAT all assert it, so each of them
-    // latched the CSA1 output - the product of its own rs1/rs2 fields, which
+    // latched the CSA1 output - the product of its own rs1_val/rs2_val fields, which
     // are architecturally meaningless for those ops - into the pending-product
     // registers. The next accumulate to that accumulator then added that
     // garbage in. DSU_Golden.py records the symptom: "GOT FY = 63, EXPECTED 0
     // (63 = 7x9)", the operand fields of a clear.
     //
-    // It was masked only because DSU_gen.py drives rs1=rs2=0 for clear/load.
+    // It was masked only because DSU_gen.py drives rs1_val=rs2_val=0 for clear/load.
     // Real APF kernel code has no reason to.
     //
     // Two separate obligations, previously conflated:
@@ -124,8 +124,8 @@ module mac_unit(
     wire prod_en  =  en & ~clear & ~load & ~sat_writeback_en & ~flush;
     wire pend_clr = (clear | load | sat_writeback_en) & ~flush;
 
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             sum_reg   <= 49'b0;
             carry_reg <= 49'b0;
         end
@@ -164,7 +164,7 @@ module mac_unit(
     wire [47:0] adder_result = result_ext[47:0];
     wire        accum_ovf    = result_ext[48] ^ result_ext[47]; 
     
-    wire signed [47:0] rs1_sext = {{16{rs1[31]}}, rs1};
+    wire signed [47:0] rs1_sext = {{16{rs1_val[31]}}, rs1_val};
     reg  signed [47:0] acc_next;
 
     // -----------------------------------------------------------------------
@@ -175,9 +175,9 @@ module mac_unit(
     // acc_next mux below used the bare signals, while acc_we already fires on
     // `pending` alone. So with a product pending here and a MACCLEAR / MACLOAD
     // for a DIFFERENT accumulator in EX, this accumulator was written with 0
-    // (or with the other instruction's rs1) instead of acc + product:
+    // (or with the other instruction's rs1_val) instead of acc + product:
     //     MAC acc0 ; MACCLEAR acc1   ->  acc0 = 0
-    //     MAC acc0 ; MACLOAD  acc1   ->  acc0 = rs1
+    //     MAC acc0 ; MACLOAD  acc1   ->  acc0 = rs1_val
     // tb_dsu_top could not see it: it puts an idle cycle after every
     // instruction, so nothing is ever in EX while a product is being folded.
     //
@@ -232,16 +232,16 @@ module mac_unit(
     // folded in on schedule.
     // -----------------------------------------------------------------------
     reg pending;
-    always @(posedge clk or negedge rst_n) begin
-        if      (!rst_n) pending <= 1'b0;
+    always @(posedge gclk or negedge core_rst_n) begin
+        if      (!core_rst_n) pending <= 1'b0;
         else             pending <= prod_en;
     end
 
     wire acc_we = my_sat | my_load | my_clear | pending;
     assign pending_o = pending;
 
-    always @(posedge clk or negedge rst_n) begin
-        if      (!rst_n) acc <= 48'b0;
+    always @(posedge gclk or negedge core_rst_n) begin
+        if      (!core_rst_n) acc <= 48'b0;
         else if (acc_we) acc <= acc_next;
     end
     assign mac_out = acc;

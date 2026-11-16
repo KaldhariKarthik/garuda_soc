@@ -2,7 +2,7 @@
 `default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 11 : watchdog
-// wdt.v
+// watchdog.v
 //
 // Spec: GARUDA-TIMERS-SPEC-001 Rev 2.0 §6.2-§6.4, §7.5-§7.7, §9
 //
@@ -25,10 +25,10 @@
 //   The counter keeps running while the core is held in hartreset ([N-7.23]).
 // =============================================================================
 
-module wdt (
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
-    input  wire        ext_rst_n_i,     // ext-only reset (reset_ctrl.ext_hrst_n_o)
+module watchdog (
+    input  wire        hclk,
+    input  wire        hreset_n,
+    input  wire        ext_hrst_n,     // ext-only reset (reset_ctrl.ext_hrst_n)
 
     input  wire        wr_ctl_i,
     input  wire        wr_load_i,
@@ -52,8 +52,8 @@ module wdt (
 
     wire kick = wr_kick_i && (wdata_i == KICK_MAGIC);
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             en_q     <= 1'b0;
             warnen_q <= 1'b0;
             load_q   <= 32'hFFFF_FFFF;
@@ -74,9 +74,9 @@ module wdt (
     end
 
     // reset request: ext-only domain, cleared once the system reset is in force
-    always @(posedge hclk_i or negedge ext_rst_n_i) begin
-        if (!ext_rst_n_i)     rst_req_o <= 1'b0;
-        else if (!hreset_n_i) rst_req_o <= 1'b0;
+    always @(posedge hclk or negedge ext_hrst_n) begin
+        if (!ext_hrst_n)     rst_req_o <= 1'b0;
+        else if (!hreset_n) rst_req_o <= 1'b0;
         else if (en_q && ctr_q == 32'd0) rst_req_o <= 1'b1;
     end
 

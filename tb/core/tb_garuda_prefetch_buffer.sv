@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_garuda_prefetch_buffer.sv -- SV unit TB for rtl/core/garuda_prefetch_buffer.v
+// tb_garuda_prefetch_buffer.sv -- SV unit TB for rtl/core/prefetch_buf.v
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 6.3 (depth-4 circular FIFO, each
 //       entry tagged with its PC and fault bit) and Sec. 6.5 (whole-buffer
@@ -97,9 +97,9 @@ module tb_top;
 
     pfb_if vif(clk, rst_n);
 
-    garuda_prefetch_buffer dut (
-        .clk_i         (clk),
-        .rst_n_i       (rst_n),
+    prefetch_buf dut (
+        .gclk         (clk),
+        .core_rst_n       (rst_n),
         .redirect_i    (vif.redirect),
         .wr_en_i       (vif.wr_en),
         .wr_instr_i    (vif.wr_instr),
@@ -311,7 +311,7 @@ module tb_top;
         // ---- randomised soak against the reference FIFO ----------------
         // Writes are gated on "not full" because that is the master's
         // reservation contract (SVA A6); reads are gated on "not empty"
-        // because that is what fifo_rd_en does in garuda_if_stage_top.
+        // because that is what fifo_rd_en does in if_stage_top.
         repeat (2000) begin
             automatic bit rdir = ($urandom_range(0, 99) < 5);
             automatic bit we   = !rdir && (ref_fifo.size() < 4) && ($urandom_range(0, 99) < 60);

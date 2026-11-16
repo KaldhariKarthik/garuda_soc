@@ -24,9 +24,9 @@
 // =============================================================================
 
 module reset_ctrl_apb (
-    input  wire        pclk_i,
-    input  wire        preset_n_i,
-    input  wire        ext_prst_n_i,
+    input  wire        pclk,
+    input  wire        preset_n,
+    input  wire        ext_prst_n,
 
     input  wire        psel_i,
     input  wire        penable_i,
@@ -55,8 +55,8 @@ module reset_ctrl_apb (
                       A_CLKSTAT   = 12'h008,
                       A_MEMCTL    = 12'h020;
 
-    wire access = psel_i & penable_i;
-    wire wr     = access &  pwrite_i;
+    wire apb_access = psel_i & penable_i;
+    wire wr     = apb_access &  pwrite_i;
 
     wire hit = (paddr_i == A_RSTREASON) | (paddr_i == A_RSTCTL) |
                (paddr_i == A_CLKSTAT)   | (paddr_i == A_MEMCTL);
@@ -68,22 +68,22 @@ module reset_ctrl_apb (
 
     // ---- DIVSEL: survives every reset but the pin ---------------------------
     reg [1:0] div_sel_q;
-    always @(posedge pclk_i or negedge ext_prst_n_i)
-        if (!ext_prst_n_i)                  div_sel_q <= 2'b00;
+    always @(posedge pclk or negedge ext_prst_n)
+        if (!ext_prst_n)                  div_sel_q <= 2'b00;
         else if (wr && paddr_i == A_RSTCTL) div_sel_q <= pwdata_i[9:8];
     assign div_sel_o = div_sel_q;
 
     // ---- MEMCTL.ILOCK: RW1S, sticky -----------------------------------------
     reg ilock_q;
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i)                                    ilock_q <= 1'b0;
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n)                                    ilock_q <= 1'b0;
         else if (wr && paddr_i == A_MEMCTL && pwdata_i[0])  ilock_q <= 1'b1;
     assign ilock_o = ilock_q;
 
     // ---- boot_sel pin: asynchronous input, two-flop synchroniser ------------
     reg [1:0] bsel_q;
-    always @(posedge pclk_i or negedge ext_prst_n_i)
-        if (!ext_prst_n_i) bsel_q <= 2'b00;
+    always @(posedge pclk or negedge ext_prst_n)
+        if (!ext_prst_n) bsel_q <= 2'b00;
         else               bsel_q <= {bsel_q[0], boot_sel_i};
 
     // ---- read mux ----------------------------------------------------------
@@ -98,7 +98,7 @@ module reset_ctrl_apb (
     end
 
     assign pready_o  = 1'b1;
-    assign pslverr_o = access & ~hit;
+    assign pslverr_o = apb_access & ~hit;
 
 endmodule
 

@@ -12,8 +12,8 @@
 // =============================================================================
 
 module sba_master (
-    input  wire        hclk_i,
-    input  wire        hrst_n_i,
+    input  wire        hclk,
+    input  wire        dm_rst_n,
 
     input  wire        start_i,
     input  wire        write_i,
@@ -43,8 +43,8 @@ module sba_master (
     assign hburst_o = 3'b000;
     assign busy_o   = (st != S_IDLE);
 
-    always @(posedge hclk_i or negedge hrst_n_i) begin
-        if (!hrst_n_i) begin
+    always @(posedge hclk or negedge dm_rst_n) begin
+        if (!dm_rst_n) begin
             st <= S_IDLE; haddr_o <= 32'd0; htrans_o <= 2'b00; hwrite_o <= 1'b0;
             hwdata_o <= 32'd0; wbuf <= 32'd0; done_o <= 1'b0; err_o <= 1'b0; rdata_o <= 32'd0;
         end else begin

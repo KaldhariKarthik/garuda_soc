@@ -21,4 +21,4 @@ module core_fv_env (
 endmodule
 
 
-bind garuda_core_top core_fv_env u_fv_env (.clk_i(clk_i), .core_rst_n_i(core_rst_n_i));
+bind garuda_core_top core_fv_env u_fv_env (.clk_i(hclk), .core_rst_n_i(core_rst_n));

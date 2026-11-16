@@ -16,10 +16,10 @@ module tb_dsu_top_ovf_b2b;
     logic [31:0] instr = 0, rs1 = 0, rs2 = 0;
     wire dsu_busy, rd_valid, ovf, illegal;
     wire [31:0] rd_data; wire [4:0] rd_addr; wire [47:0] a0, a1, a2;
-    dsu_top dut (.clk(clk), .rst_n(rst_n), .flush(flush), .dsu_en(dsu_en), .instr(instr), .rs1(rs1), .rs2(rs2),
+    dsu_top dut (.gclk(clk), .core_rst_n(rst_n), .flush(flush), .dsu_en(dsu_en), .instr(instr), .rs1_val(rs1), .rs2_val(rs2),
                  .csr_clear_overflow(clr), .dsu_busy(dsu_busy), .dsu_rd_data(rd_data), .dsu_rd_valid(rd_valid),
                  .dsu_rd_addr(rd_addr), .dsu_overflow(ovf), .illegal_instr(illegal),
-                 .dbg_acc_0(a0), .dbg_acc_1(a1), .dbg_acc_2(a2));
+                 .dbg_acc_fx(a0), .dbg_acc_fy(a1), .dbg_acc_mag(a2));
     always #5 clk = ~clk;
     logic [1:0] acc = 2'd0;                                   // the accumulator under test
     function automatic [31:0] r(input [4:0] f5);              // R-type DSU on acc, rd = x5

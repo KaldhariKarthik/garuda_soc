@@ -66,12 +66,12 @@ if [ $ONLY_COMPILE = 0 ]; then
   irun -64bit -R -nclibdirname $D/INCA_tb_top_tb_core_filelist_branch_predict_f -covworkdir $D/cov_work -covdesign core -covtest units__U_branch_predict -svseed 1  -l $D/units__U_branch_predict.log > /dev/null 2>&1; if grep -Eq 'ALL CHECKS PASSED|^ RESULT: PASSED' $D/units__U_branch_predict.log; then v=PASS; PASSED+=("$D/cov_work/scope/units__U_branch_predict"); else v=FAIL; fi; echo -e "tb_top_tb_core_filelist_branch_predict_f\tunits__U_branch_predict\t$v\t$D/units__U_branch_predict.log" >> "$D/runs.tsv"
 fi
 
-# ---- bench tb_top  (tb/core/filelist_hazard_forward_unit.f, 1 tests)
+# ---- bench tb_top  (tb/core/filelist_hazard_fwd_unit.f, 1 tests)
 cat > $D/tb_top_tb_core_filelist_hazard_forward_unit_f.f <<'EOF'
 +incdir+rtl/common
 +incdir+rtl/core
 +define+GARUDA_REAL_RTL
-rtl/core/hazard_forward_unit.v
+rtl/core/hazard_fwd_unit.v
 tb/core/tb_hazard_forward_unit.sv
 EOF
 irun -64bit -sv -elaborate -access +r -timescale 1ns/1ps -f $D/tb_top_tb_core_filelist_hazard_forward_unit_f.f -top tb_top -nclibdirname $D/INCA_tb_top_tb_core_filelist_hazard_forward_unit_f $COV -l $D/tb_top_tb_core_filelist_hazard_forward_unit_f.compile.log || { echo "COMPILE FAILED: tb_top_tb_core_filelist_hazard_forward_unit_f (see $D/tb_top_tb_core_filelist_hazard_forward_unit_f.compile.log)"; }
@@ -88,7 +88,7 @@ rtl/core/decode_control.v
 rtl/core/imm_gen.v
 rtl/core/regfile.v
 rtl/core/branch_predict.v
-rtl/core/hazard_forward_unit.v
+rtl/core/hazard_fwd_unit.v
 rtl/core/id_stage.v
 tb/core/tb_id_stage.sv
 EOF
@@ -110,11 +110,11 @@ if [ $ONLY_COMPILE = 0 ]; then
   irun -64bit -R -nclibdirname $D/INCA_tb_top_tb_core_filelist_garuda_pc_gen_f -covworkdir $D/cov_work -covdesign core -covtest elements__E_garuda_pc_gen -svseed 1  -l $D/elements__E_garuda_pc_gen.log > /dev/null 2>&1; if grep -Eq 'ALL CHECKS PASSED|^ RESULT: PASSED' $D/elements__E_garuda_pc_gen.log; then v=PASS; PASSED+=("$D/cov_work/scope/elements__E_garuda_pc_gen"); else v=FAIL; fi; echo -e "tb_top_tb_core_filelist_garuda_pc_gen_f\telements__E_garuda_pc_gen\t$v\t$D/elements__E_garuda_pc_gen.log" >> "$D/runs.tsv"
 fi
 
-# ---- bench tb_top  (tb/core/filelist_garuda_prefetch_buffer.f, 1 tests)
+# ---- bench tb_top  (tb/core/filelist_prefetch_buf.f, 1 tests)
 cat > $D/tb_top_tb_core_filelist_garuda_prefetch_buffer_f.f <<'EOF'
 +incdir+rtl/common
 +incdir+rtl/core
-rtl/core/garuda_prefetch_buffer.v
+rtl/core/prefetch_buf.v
 tb/core/garuda_tb_pkg.sv
 tb/core/tb_garuda_prefetch_buffer.sv
 EOF
@@ -123,11 +123,11 @@ if [ $ONLY_COMPILE = 0 ]; then
   irun -64bit -R -nclibdirname $D/INCA_tb_top_tb_core_filelist_garuda_prefetch_buffer_f -covworkdir $D/cov_work -covdesign core -covtest elements__E_garuda_prefetch_buffer -svseed 1  -l $D/elements__E_garuda_prefetch_buffer.log > /dev/null 2>&1; if grep -Eq 'ALL CHECKS PASSED|^ RESULT: PASSED' $D/elements__E_garuda_prefetch_buffer.log; then v=PASS; PASSED+=("$D/cov_work/scope/elements__E_garuda_prefetch_buffer"); else v=FAIL; fi; echo -e "tb_top_tb_core_filelist_garuda_prefetch_buffer_f\telements__E_garuda_prefetch_buffer\t$v\t$D/elements__E_garuda_prefetch_buffer.log" >> "$D/runs.tsv"
 fi
 
-# ---- bench tb_top  (tb/core/filelist_garuda_iport_ahb_master.f, 1 tests)
+# ---- bench tb_top  (tb/core/filelist_iport_master.f, 1 tests)
 cat > $D/tb_top_tb_core_filelist_garuda_iport_ahb_master_f.f <<'EOF'
 +incdir+rtl/common
 +incdir+rtl/core
-rtl/core/garuda_iport_ahb_master.v
+rtl/core/iport_master.v
 tb/core/garuda_tb_pkg.sv
 tb/core/tb_garuda_iport_ahb_master.sv
 EOF
@@ -136,14 +136,14 @@ if [ $ONLY_COMPILE = 0 ]; then
   irun -64bit -R -nclibdirname $D/INCA_tb_top_tb_core_filelist_garuda_iport_ahb_master_f -covworkdir $D/cov_work -covdesign core -covtest elements__E_garuda_iport_ahb_master -svseed 1  -l $D/elements__E_garuda_iport_ahb_master.log > /dev/null 2>&1; if grep -Eq 'ALL CHECKS PASSED|^ RESULT: PASSED' $D/elements__E_garuda_iport_ahb_master.log; then v=PASS; PASSED+=("$D/cov_work/scope/elements__E_garuda_iport_ahb_master"); else v=FAIL; fi; echo -e "tb_top_tb_core_filelist_garuda_iport_ahb_master_f\telements__E_garuda_iport_ahb_master\t$v\t$D/elements__E_garuda_iport_ahb_master.log" >> "$D/runs.tsv"
 fi
 
-# ---- bench tb_top  (tb/core/filelist_garuda_if_stage_top.f, 1 tests)
+# ---- bench tb_top  (tb/core/filelist_if_stage_top.f, 1 tests)
 cat > $D/tb_top_tb_core_filelist_garuda_if_stage_top_f.f <<'EOF'
 +incdir+rtl/common
 +incdir+rtl/core
 rtl/core/garuda_pc_gen.v
-rtl/core/garuda_iport_ahb_master.v
-rtl/core/garuda_prefetch_buffer.v
-rtl/core/garuda_if_stage_top.v
+rtl/core/iport_master.v
+rtl/core/prefetch_buf.v
+rtl/core/if_stage_top.v
 tb/core/garuda_tb_pkg.sv
 tb/core/tb_garuda_if_stage_top.sv
 EOF
@@ -152,11 +152,11 @@ if [ $ONLY_COMPILE = 0 ]; then
   irun -64bit -R -nclibdirname $D/INCA_tb_top_tb_core_filelist_garuda_if_stage_top_f -covworkdir $D/cov_work -covdesign core -covtest elements__E_garuda_if_stage_top -svseed 1  -l $D/elements__E_garuda_if_stage_top.log > /dev/null 2>&1; if grep -Eq 'ALL CHECKS PASSED|^ RESULT: PASSED' $D/elements__E_garuda_if_stage_top.log; then v=PASS; PASSED+=("$D/cov_work/scope/elements__E_garuda_if_stage_top"); else v=FAIL; fi; echo -e "tb_top_tb_core_filelist_garuda_if_stage_top_f\telements__E_garuda_if_stage_top\t$v\t$D/elements__E_garuda_if_stage_top.log" >> "$D/runs.tsv"
 fi
 
-# ---- bench tb_top  (tb/core/filelist_alu.f, 1 tests)
+# ---- bench tb_top  (tb/core/filelist_alu_unit.f, 1 tests)
 cat > $D/tb_top_tb_core_filelist_alu_f.f <<'EOF'
 +incdir+rtl/common
 +incdir+rtl/core
-rtl/core/alu.v
+rtl/core/alu_unit.v
 tb/core/garuda_tb_pkg.sv
 tb/core/tb_alu.sv
 EOF
@@ -230,11 +230,11 @@ if [ $ONLY_COMPILE = 0 ]; then
   irun -64bit -R -nclibdirname $D/INCA_tb_top_tb_core_filelist_load_formatter_f -covworkdir $D/cov_work -covdesign core -covtest elements__E_load_formatter -svseed 1  -l $D/elements__E_load_formatter.log > /dev/null 2>&1; if grep -Eq 'ALL CHECKS PASSED|^ RESULT: PASSED' $D/elements__E_load_formatter.log; then v=PASS; PASSED+=("$D/cov_work/scope/elements__E_load_formatter"); else v=FAIL; fi; echo -e "tb_top_tb_core_filelist_load_formatter_f\telements__E_load_formatter\t$v\t$D/elements__E_load_formatter.log" >> "$D/runs.tsv"
 fi
 
-# ---- bench tb_top  (tb/core/filelist_d_port_ahb_master.f, 1 tests)
+# ---- bench tb_top  (tb/core/filelist_dport_master.f, 1 tests)
 cat > $D/tb_top_tb_core_filelist_d_port_ahb_master_f.f <<'EOF'
 +incdir+rtl/common
 +incdir+rtl/core
-rtl/core/d_port_ahb_master.v
+rtl/core/dport_master.v
 tb/core/garuda_tb_pkg.sv
 tb/core/tb_d_port_ahb_master.sv
 EOF
@@ -248,7 +248,7 @@ cat > $D/tb_top_tb_core_filelist_mem_stage_f.f <<'EOF'
 +incdir+rtl/common
 +incdir+rtl/core
 rtl/core/load_store_unit.v
-rtl/core/d_port_ahb_master.v
+rtl/core/dport_master.v
 rtl/core/load_formatter.v
 rtl/core/mem_stage.v
 tb/core/garuda_tb_pkg.sv
@@ -290,7 +290,7 @@ fi
 cat > $D/tb_ex_smoke_tb_core_filelist_ex_smoke_f.f <<'EOF'
 +incdir+rtl/common
 +incdir+rtl/core
-rtl/core/alu.v
+rtl/core/alu_unit.v
 rtl/core/mul32.v
 rtl/core/branch_unit.v
 rtl/core/csr_rw.v
@@ -308,7 +308,7 @@ cat > $D/tb_ex_smoke_tb_core_filelist_ex_smoke_dsu_f.f <<'EOF'
 +incdir+rtl/common
 +incdir+rtl/core
 +incdir+rtl/dsu
-rtl/core/alu.v
+rtl/core/alu_unit.v
 rtl/core/mul32.v
 rtl/core/branch_unit.v
 rtl/core/csr_rw.v
@@ -404,18 +404,18 @@ cat > $D/core_isa_tb_boot.f <<'EOF'
 +define+GARUDA_COV
 rtl/dsu/dsu_props_a.sv
 rtl/core/garuda_pc_gen.v
-rtl/core/garuda_iport_ahb_master.v
-rtl/core/garuda_prefetch_buffer.v
-rtl/core/garuda_if_stage_top.v
+rtl/core/iport_master.v
+rtl/core/prefetch_buf.v
+rtl/core/if_stage_top.v
 rtl/core/if_id.v
 rtl/core/decode_control.v
 rtl/core/imm_gen.v
 rtl/core/regfile.v
 rtl/core/branch_predict.v
-rtl/core/hazard_forward_unit.v
+rtl/core/hazard_fwd_unit.v
 rtl/core/id_stage.v
 rtl/core/id_ex.v
-rtl/core/alu.v
+rtl/core/alu_unit.v
 rtl/core/mul32.v
 rtl/core/branch_unit.v
 rtl/core/csr_rw.v
@@ -423,7 +423,7 @@ rtl/core/ex_stage.v
 rtl/core/forward_unit.v
 rtl/core/ex_mem.v
 rtl/core/load_store_unit.v
-rtl/core/d_port_ahb_master.v
+rtl/core/dport_master.v
 rtl/core/load_formatter.v
 rtl/core/mem_stage.v
 rtl/core/mem_wb_reg.v
@@ -539,18 +539,18 @@ cat > $D/core_isa_rand_tb_boot.f <<'EOF'
 +define+GARUDA_COV
 rtl/dsu/dsu_props_a.sv
 rtl/core/garuda_pc_gen.v
-rtl/core/garuda_iport_ahb_master.v
-rtl/core/garuda_prefetch_buffer.v
-rtl/core/garuda_if_stage_top.v
+rtl/core/iport_master.v
+rtl/core/prefetch_buf.v
+rtl/core/if_stage_top.v
 rtl/core/if_id.v
 rtl/core/decode_control.v
 rtl/core/imm_gen.v
 rtl/core/regfile.v
 rtl/core/branch_predict.v
-rtl/core/hazard_forward_unit.v
+rtl/core/hazard_fwd_unit.v
 rtl/core/id_stage.v
 rtl/core/id_ex.v
-rtl/core/alu.v
+rtl/core/alu_unit.v
 rtl/core/mul32.v
 rtl/core/branch_unit.v
 rtl/core/csr_rw.v
@@ -558,7 +558,7 @@ rtl/core/ex_stage.v
 rtl/core/forward_unit.v
 rtl/core/ex_mem.v
 rtl/core/load_store_unit.v
-rtl/core/d_port_ahb_master.v
+rtl/core/dport_master.v
 rtl/core/load_formatter.v
 rtl/core/mem_stage.v
 rtl/core/mem_wb_reg.v
@@ -674,18 +674,18 @@ cat > $D/core_sanity_tb_boot.f <<'EOF'
 +define+GARUDA_COV
 rtl/dsu/dsu_props_a.sv
 rtl/core/garuda_pc_gen.v
-rtl/core/garuda_iport_ahb_master.v
-rtl/core/garuda_prefetch_buffer.v
-rtl/core/garuda_if_stage_top.v
+rtl/core/iport_master.v
+rtl/core/prefetch_buf.v
+rtl/core/if_stage_top.v
 rtl/core/if_id.v
 rtl/core/decode_control.v
 rtl/core/imm_gen.v
 rtl/core/regfile.v
 rtl/core/branch_predict.v
-rtl/core/hazard_forward_unit.v
+rtl/core/hazard_fwd_unit.v
 rtl/core/id_stage.v
 rtl/core/id_ex.v
-rtl/core/alu.v
+rtl/core/alu_unit.v
 rtl/core/mul32.v
 rtl/core/branch_unit.v
 rtl/core/csr_rw.v
@@ -693,7 +693,7 @@ rtl/core/ex_stage.v
 rtl/core/forward_unit.v
 rtl/core/ex_mem.v
 rtl/core/load_store_unit.v
-rtl/core/d_port_ahb_master.v
+rtl/core/dport_master.v
 rtl/core/load_formatter.v
 rtl/core/mem_stage.v
 rtl/core/mem_wb_reg.v
@@ -758,18 +758,18 @@ cat > $D/core_extra_tb_boot.f <<'EOF'
 +define+GARUDA_COV
 rtl/dsu/dsu_props_a.sv
 rtl/core/garuda_pc_gen.v
-rtl/core/garuda_iport_ahb_master.v
-rtl/core/garuda_prefetch_buffer.v
-rtl/core/garuda_if_stage_top.v
+rtl/core/iport_master.v
+rtl/core/prefetch_buf.v
+rtl/core/if_stage_top.v
 rtl/core/if_id.v
 rtl/core/decode_control.v
 rtl/core/imm_gen.v
 rtl/core/regfile.v
 rtl/core/branch_predict.v
-rtl/core/hazard_forward_unit.v
+rtl/core/hazard_fwd_unit.v
 rtl/core/id_stage.v
 rtl/core/id_ex.v
-rtl/core/alu.v
+rtl/core/alu_unit.v
 rtl/core/mul32.v
 rtl/core/branch_unit.v
 rtl/core/csr_rw.v
@@ -777,7 +777,7 @@ rtl/core/ex_stage.v
 rtl/core/forward_unit.v
 rtl/core/ex_mem.v
 rtl/core/load_store_unit.v
-rtl/core/d_port_ahb_master.v
+rtl/core/dport_master.v
 rtl/core/load_formatter.v
 rtl/core/mem_stage.v
 rtl/core/mem_wb_reg.v
@@ -831,18 +831,18 @@ cat > $D/core_directed_tb_boot.f <<'EOF'
 +define+GARUDA_COV
 rtl/dsu/dsu_props_a.sv
 rtl/core/garuda_pc_gen.v
-rtl/core/garuda_iport_ahb_master.v
-rtl/core/garuda_prefetch_buffer.v
-rtl/core/garuda_if_stage_top.v
+rtl/core/iport_master.v
+rtl/core/prefetch_buf.v
+rtl/core/if_stage_top.v
 rtl/core/if_id.v
 rtl/core/decode_control.v
 rtl/core/imm_gen.v
 rtl/core/regfile.v
 rtl/core/branch_predict.v
-rtl/core/hazard_forward_unit.v
+rtl/core/hazard_fwd_unit.v
 rtl/core/id_stage.v
 rtl/core/id_ex.v
-rtl/core/alu.v
+rtl/core/alu_unit.v
 rtl/core/mul32.v
 rtl/core/branch_unit.v
 rtl/core/csr_rw.v
@@ -850,7 +850,7 @@ rtl/core/ex_stage.v
 rtl/core/forward_unit.v
 rtl/core/ex_mem.v
 rtl/core/load_store_unit.v
-rtl/core/d_port_ahb_master.v
+rtl/core/dport_master.v
 rtl/core/load_formatter.v
 rtl/core/mem_stage.v
 rtl/core/mem_wb_reg.v
@@ -925,18 +925,18 @@ cat > $D/tb_core_halt_tb_core_filelist_core_halt_cov_f.f <<'EOF'
 +incdir+rtl/dsu
 rtl/dsu/dsu_props_a.sv
 rtl/core/garuda_pc_gen.v
-rtl/core/garuda_iport_ahb_master.v
-rtl/core/garuda_prefetch_buffer.v
-rtl/core/garuda_if_stage_top.v
+rtl/core/iport_master.v
+rtl/core/prefetch_buf.v
+rtl/core/if_stage_top.v
 rtl/core/if_id.v
 rtl/core/decode_control.v
 rtl/core/imm_gen.v
 rtl/core/regfile.v
 rtl/core/branch_predict.v
-rtl/core/hazard_forward_unit.v
+rtl/core/hazard_fwd_unit.v
 rtl/core/id_stage.v
 rtl/core/id_ex.v
-rtl/core/alu.v
+rtl/core/alu_unit.v
 rtl/core/mul32.v
 rtl/core/branch_unit.v
 rtl/core/csr_rw.v
@@ -944,7 +944,7 @@ rtl/core/ex_stage.v
 rtl/core/forward_unit.v
 rtl/core/ex_mem.v
 rtl/core/load_store_unit.v
-rtl/core/d_port_ahb_master.v
+rtl/core/dport_master.v
 rtl/core/load_formatter.v
 rtl/core/mem_stage.v
 rtl/core/mem_wb_reg.v
@@ -1000,18 +1000,18 @@ cat > $D/core_csr_map_tb_boot.f <<'EOF'
 +define+GARUDA_COV
 rtl/dsu/dsu_props_a.sv
 rtl/core/garuda_pc_gen.v
-rtl/core/garuda_iport_ahb_master.v
-rtl/core/garuda_prefetch_buffer.v
-rtl/core/garuda_if_stage_top.v
+rtl/core/iport_master.v
+rtl/core/prefetch_buf.v
+rtl/core/if_stage_top.v
 rtl/core/if_id.v
 rtl/core/decode_control.v
 rtl/core/imm_gen.v
 rtl/core/regfile.v
 rtl/core/branch_predict.v
-rtl/core/hazard_forward_unit.v
+rtl/core/hazard_fwd_unit.v
 rtl/core/id_stage.v
 rtl/core/id_ex.v
-rtl/core/alu.v
+rtl/core/alu_unit.v
 rtl/core/mul32.v
 rtl/core/branch_unit.v
 rtl/core/csr_rw.v
@@ -1019,7 +1019,7 @@ rtl/core/ex_stage.v
 rtl/core/forward_unit.v
 rtl/core/ex_mem.v
 rtl/core/load_store_unit.v
-rtl/core/d_port_ahb_master.v
+rtl/core/dport_master.v
 rtl/core/load_formatter.v
 rtl/core/mem_stage.v
 rtl/core/mem_wb_reg.v
@@ -1071,18 +1071,18 @@ cat > $D/core_covtests_tb_boot.f <<'EOF'
 +define+GARUDA_COV
 rtl/dsu/dsu_props_a.sv
 rtl/core/garuda_pc_gen.v
-rtl/core/garuda_iport_ahb_master.v
-rtl/core/garuda_prefetch_buffer.v
-rtl/core/garuda_if_stage_top.v
+rtl/core/iport_master.v
+rtl/core/prefetch_buf.v
+rtl/core/if_stage_top.v
 rtl/core/if_id.v
 rtl/core/decode_control.v
 rtl/core/imm_gen.v
 rtl/core/regfile.v
 rtl/core/branch_predict.v
-rtl/core/hazard_forward_unit.v
+rtl/core/hazard_fwd_unit.v
 rtl/core/id_stage.v
 rtl/core/id_ex.v
-rtl/core/alu.v
+rtl/core/alu_unit.v
 rtl/core/mul32.v
 rtl/core/branch_unit.v
 rtl/core/csr_rw.v
@@ -1090,7 +1090,7 @@ rtl/core/ex_stage.v
 rtl/core/forward_unit.v
 rtl/core/ex_mem.v
 rtl/core/load_store_unit.v
-rtl/core/d_port_ahb_master.v
+rtl/core/dport_master.v
 rtl/core/load_formatter.v
 rtl/core/mem_stage.v
 rtl/core/mem_wb_reg.v

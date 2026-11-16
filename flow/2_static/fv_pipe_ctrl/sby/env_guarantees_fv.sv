@@ -7,7 +7,7 @@
 // properties of the modules that drive those inputs, each proved here with
 // its own inputs free:
 //
-//   G1 d_port_ahb_master: err_pulse_o and mem_stall_o are never high together
+//   G1 dport_master: err_pulse_o and mem_stall_o are never high together
 //      (an ERROR completes a data phase, which is exactly when the stall
 //      drops). In the core, mem_exc_valid = err_pulse & (load | store).
 //   G2 trap_ctrl: trap_squash_id_ex_o under mem_stall_i only for a MEM-point
@@ -33,8 +33,8 @@ module g1_dport (
     wire [2:0]  hsize;
     wire        hwrite, mem_stall, ok_done, err_pulse;
 
-    d_port_ahb_master u_dport (
-        .clk_i(clk_i), .rst_n_i(rst_n_i), .start_i(start_i), .hwrite_i(hwrite_i),
+    dport_master u_dport (
+        .gclk(clk_i), .core_rst_n(rst_n_i), .start_i(start_i), .hwrite_i(hwrite_i),
         .addr_i(addr_i), .hsize_i(hsize_i), .hwdata_i(hwdata_i),
         .d_haddr_o(haddr), .d_htrans_o(htrans), .d_hsize_o(hsize),
         .d_hwrite_o(hwrite), .d_hwdata_o(hwdata),
@@ -86,7 +86,7 @@ module g2_trap (
     wire [31:0] trap_pc, trap_cause, trap_tval, redir_t;
 
     trap_ctrl u_trap (
-        .clk_i(clk_i), .rst_n_i(rst_n_i),
+        .gclk(clk_i), .core_rst_n(rst_n_i),
         .idex_pc_i(idex_pc_i), .idex_instr_i(idex_instr_i), .idex_fault_i(idex_fault_i),
         .idex_illegal_dec_i(idex_illegal_dec_i), .idex_is_system_i(idex_is_system_i),
         .idex_valid_i(idex_valid_i), .ex_dsu_illegal_i(ex_dsu_illegal_i),

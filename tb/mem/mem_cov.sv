@@ -50,8 +50,8 @@ module mem_cov #(parameter integer AW = 14, parameter integer WRITABLE = 1) (
     cg_access ca = new();
 endmodule
 
-bind ahb_mem_slave_if mem_cov #(.AW(AW), .WRITABLE(WRITABLE)) u_mem_cov (
-    .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .accept(accept), .hwrite_i(hwrite_i),
+bind ahb_mem_slave_if mem_cov #(.AW(ADDR_W), .WRITABLE(WRITABLE)) u_mem_cov (
+    .hclk_i(hclk), .hreset_n_i(hreset_n), .accept(accept), .hwrite_i(hwrite_i),
     .misaligned(misaligned), .ro_write(ro_write), .lock_write(lock_write),
     .wr_lock_i(wr_lock_i), .lock_bypass_i(lock_bypass_i), .hsize_i(hsize_i), .haddr_i(haddr_i),
     .wb_v(wb_v), .dp_valid(dp_valid), .dp_write(dp_write), .dp_err(dp_err),

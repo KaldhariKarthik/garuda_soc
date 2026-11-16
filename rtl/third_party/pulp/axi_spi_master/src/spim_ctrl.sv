@@ -12,10 +12,10 @@
 `define SPI_QUAD_TX 2'b01
 `define SPI_QUAD_RX 2'b10
 
-module spi_master_controller
+module spim_ctrl
 (
-    input  logic                          clk,
-    input  logic                          rstn,
+    input  logic                          pclk,
+    input  logic                          preset_n,
     output logic                          eot,
     input  logic                    [7:0] spi_clk_div,
     input  logic                          spi_clk_div_valid,
@@ -95,10 +95,10 @@ module spi_master_controller
 
   assign en_quad = spi_qrd | spi_qwr | en_quad_int;
 
-  spi_master_clkgen u_clkgen
+  spim_clkgen u_clkgen
   (
-    .clk           ( clk               ),
-    .rstn          ( rstn              ),
+    .pclk           ( pclk               ),
+    .preset_n          ( preset_n              ),
     .en            ( spi_clock_en      ),
     .clk_div       ( spi_clk_div       ),
     .clk_div_valid ( spi_clk_div_valid ),
@@ -109,8 +109,8 @@ module spi_master_controller
 
   spi_master_tx u_txreg
   (
-    .clk            ( clk              ),
-    .rstn           ( rstn             ),
+    .pclk            ( pclk              ),
+    .preset_n           ( preset_n             ),
     .en             ( spi_en_tx        ),
     .tx_edge        ( spi_fall         ),
     .tx_done        ( tx_done          ),
@@ -129,8 +129,8 @@ module spi_master_controller
 
   spi_master_rx u_rxreg
   (
-    .clk            ( clk                    ),
-    .rstn           ( rstn                   ),
+    .pclk            ( pclk                    ),
+    .preset_n           ( preset_n                   ),
     .en             ( spi_en_rx              ),
     .rx_edge        ( spi_rise               ),
     .rx_done        ( rx_done                ),
@@ -515,9 +515,9 @@ module spi_master_controller
   end
 
 
-  always_ff @(posedge clk, negedge rstn)
+  always_ff @(posedge pclk, negedge preset_n)
   begin
-    if (rstn == 1'b0)
+    if (preset_n == 1'b0)
     begin
       state       <= IDLE;
       en_quad_int <= 1'b0;

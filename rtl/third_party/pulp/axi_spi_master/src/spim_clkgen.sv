@@ -8,10 +8,10 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
-module spi_master_clkgen
+module spim_clkgen
 (
-    input  logic                        clk,
-    input  logic                        rstn,
+    input  logic                        pclk,
+    input  logic                        preset_n,
     input  logic                        en,
     input  logic          [7:0]         clk_div,
     input  logic                        clk_div_valid,
@@ -53,9 +53,9 @@ module spi_master_clkgen
             end
     end
 
-    always_ff @(posedge clk, negedge rstn)
+    always_ff @(posedge pclk, negedge preset_n)
     begin
-        if (rstn == 1'b0)
+        if (preset_n == 1'b0)
         begin
             counter_trgt <= 'h0;
             counter      <= 'h0;

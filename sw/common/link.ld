@@ -39,7 +39,7 @@ SECTIONS
   /* Code placed deliberately far from the reset vector. Toggle coverage on the
      PC, the fetch address and the I-port address bus needs the UPPER address
      bits to move, and a program that lives entirely in the first few KB never
-     moves them - which is why garuda_pc_gen and garuda_if_stage_top scored in
+     moves them - which is why garuda_pc_gen and if_stage_top scored in
      the 70s with zero uncovered blocks. Anything in .text.far runs at
      0x1002_0000.
      NOTE the section is called .farcode, NOT .text.far: the .text output

@@ -6,7 +6,7 @@
 
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/garuda_iport_ahb_master.v
+rtl/core/iport_master.v
 
 -sv
 tb/core/garuda_tb_pkg.sv

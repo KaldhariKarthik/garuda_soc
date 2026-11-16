@@ -17,7 +17,7 @@ module tb_dsu_stall_spec;
     logic clk = 0, rst_n = 0, flush = 0, is_c0 = 0;
     logic [4:0] f5 = 0; logic [2:0] f3 = 0; logic [1:0] sel = 0;
     wire busy;
-    dsu_stall dut (.clk(clk), .rst_n(rst_n), .flush(flush), .funct5(f5), .funct3(f3), .is_custom0(is_c0),
+    dsu_stall dut (.gclk(clk), .core_rst_n(rst_n), .flush(flush), .funct5_fld(f5), .funct3_fld(f3), .is_custom0(is_c0),
                    .acc_sel(sel), .dsu_busy(busy));
     always #5 clk = ~clk;
     int checks = 0, fails = 0, extra = 0, stalls = 0, n_want = 0, n_want_ok = 0;

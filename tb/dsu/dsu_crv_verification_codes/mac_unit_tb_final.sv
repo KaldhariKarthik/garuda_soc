@@ -27,14 +27,14 @@
 // 1. DUT + all sub-modules (pasted verbatim, self-contained file)
 // -------------------------------------------------------------
 module operand_router (
-    input wire  [31:0] rs1,
-    input wire  [31:0] rs2,
+    input wire  [31:0] rs1_val,
+    input wire  [31:0] rs2_val,
     input wire         abs_en,
     input wire         dot_en,
-    output wire [15:0] a0,
-    output wire [15:0] b0,
-    output wire [15:0] a1,
-    output wire [15:0] b1
+    output wire [15:0] a_lo,
+    output wire [15:0] b_lo,
+    output wire [15:0] a_hi,
+    output wire [15:0] b_hi
 );
     function [15:0] abs16;
         input [15:0] x;
@@ -45,14 +45,14 @@ module operand_router (
         end
      endfunction
 
-     wire [15:0] rs1_lo_abs = abs16(rs1[15:0]);
-     wire [15:0] rs2_lo_abs = abs16(rs2[15:0]);
+     wire [15:0] rs1_lo_abs = abs16(rs1_val[15:0]);
+     wire [15:0] rs2_lo_abs = abs16(rs2_val[15:0]);
      wire        dot_active = dot_en & ~abs_en;
 
-     assign a0 = abs_en ? rs1_lo_abs : rs1[15:0];
-     assign b0 = abs_en ? rs2_lo_abs : rs2[15:0];
-     assign a1 = dot_active ? rs1[31:16] : 16'b0;
-     assign b1 = dot_active ? rs2[31:16] : 16'b0;
+     assign a_lo = abs_en ? rs1_lo_abs : rs1_val[15:0];
+     assign b_lo = abs_en ? rs2_lo_abs : rs2_val[15:0];
+     assign a_hi = dot_active ? rs1_val[31:16] : 16'b0;
+     assign b_hi = dot_active ? rs2_val[31:16] : 16'b0;
 endmodule
 
 module mult_16x16 (
@@ -84,11 +84,11 @@ module kogge_stone_49 (
 endmodule
 
 module mac_unit(
-    input wire         clk,
-    input wire         rst_n,
+    input wire         gclk,
+    input wire         core_rst_n,
 
-    input wire  [31:0] rs1,
-    input wire  [31:0] rs2,
+    input wire  [31:0] rs1_val,
+    input wire  [31:0] rs2_val,
 
     input wire         en,
     input wire         add_sub,
@@ -105,15 +105,15 @@ module mac_unit(
     output wire        overflow
 );
 
-    wire [15:0] a0, b0, a1, b1;
+    wire [15:0] a_lo, b_lo, a_hi, b_hi;
     operand_router u_router (
-        .rs1 (rs1), .rs2 (rs2), .abs_en (abs_en), .dot_en (dot_en),
-        .a0 (a0), .b0 (b0), .a1 (a1), .b1 (b1)
+        .rs1_val (rs1_val), .rs2_val (rs2_val), .abs_en (abs_en), .dot_en (dot_en),
+        .a_lo (a_lo), .b_lo (b_lo), .a_hi (a_hi), .b_hi (b_hi)
     );
 
     wire signed [31:0] product_a, product_b;
-    mult_16x16 U_mult_a (.a ($signed(a0)),  .b ($signed(b0)), .p (product_a));
-    mult_16x16 U_mult_b (.a ($signed(a1)),  .b ($signed(b1)), .p (product_b));
+    mult_16x16 u_mult_a (.a ($signed(a_lo)),  .b ($signed(b_lo)), .p (product_a));
+    mult_16x16 u_mult_b (.a ($signed(a_hi)),  .b ($signed(b_hi)), .p (product_b));
 
     wire [47:0] pa_ext = {{16{product_a[31]}}, product_a};
     wire [47:0] pb_ext = {{16{product_b[31]}}, product_b};
@@ -129,8 +129,8 @@ module mac_unit(
 
     reg [47:0] sum_reg, carry_reg;
     wire write_en = (en | sat_writeback_en) & ~flush;
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             sum_reg   <= 48'b0;
             carry_reg <= 48'b0;
         end
@@ -183,7 +183,7 @@ module mac_unit(
     wire        result_sign  = adder_result[47];
     wire        accum_ovf    = (acc_sign == pending_sign) && (result_sign != acc_sign);
 
-    wire signed [47:0] rs1_sext = {{16{rs1[31]}}, rs1};
+    wire signed [47:0] rs1_sext = {{16{rs1_val[31]}}, rs1_val};
     reg  signed [47:0] acc_next;
     always @(*) begin
         if      (sat_writeback_en) acc_next = sat_writeback;
@@ -192,8 +192,8 @@ module mac_unit(
         else                       acc_next = adder_result;
     end
 
-    always @(posedge clk or negedge rst_n) begin
-        if      (!rst_n)      acc <= 48'b0;
+    always @(posedge gclk or negedge core_rst_n) begin
+        if      (!core_rst_n)      acc <= 48'b0;
         else if (write_en)          acc <= acc_next;
     end
     assign mac_out = acc;
@@ -953,8 +953,8 @@ module tb_top;
     mac_if vif(clk);
 
     mac_unit dut (
-        .clk (clk), .rst_n (vif.rst_n),
-        .rs1 (vif.rs1), .rs2 (vif.rs2),
+        .gclk (clk), .core_rst_n (vif.rst_n),
+        .rs1_val (vif.rs1), .rs2_val (vif.rs2),
         .en (vif.en), .add_sub (vif.add_sub), .clear (vif.clear), .load (vif.load),
         .abs_en (vif.abs_en), .dot_en (vif.dot_en), .flush (vif.flush),
         .sat_writeback (vif.sat_writeback), .sat_writeback_en (vif.sat_writeback_en),

@@ -48,7 +48,7 @@ module chip_cov (
     always @(posedge aon_clk) reason_d <= reason;
     covergroup cg_reset @(posedge aon_clk iff (reason != reason_d));
         option.per_instance = 1;
-        cp_cause: coverpoint reason { bins ext = {4'b0001}; bins wdt = {4'b0010}; bins ndm = {4'b0100}; bins sw = {4'b1000}; bins cleared = {4'b0000}; }
+        cp_cause: coverpoint reason { bins ext = {4'b0001}; bins watchdog = {4'b0010}; bins ndm = {4'b0100}; bins sw = {4'b1000}; bins cleared = {4'b0000}; }
     endgroup
     covergroup cg_misc @(posedge hclk iff hreset_n);
         option.per_instance = 1;

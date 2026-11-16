@@ -55,10 +55,10 @@
 // =============================================================================
 
 module timers_apb (
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
-    input  wire        pclk_i,          // APB side (ADR-0002 Rev 2)
-    input  wire        preset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
+    input  wire        pclk,          // APB side (ADR-0002 Rev 2)
+    input  wire        preset_n,
 
     input  wire        psel_i,
     input  wire        penable_i,
@@ -98,8 +98,8 @@ module timers_apb (
     // edge detect turns it into exactly one hclk strobe, in the first of them.
     // =========================================================================
     reg rd_d, wr_d;
-    always @(posedge hclk_i or negedge hreset_n_i)
-        if (!hreset_n_i) begin rd_d <= 1'b0; wr_d <= 1'b0; end
+    always @(posedge hclk or negedge hreset_n)
+        if (!hreset_n) begin rd_d <= 1'b0; wr_d <= 1'b0; end
         else             begin rd_d <= rd_req;  wr_d <= wr_req; end
 
     wire rs = rd_req & ~rd_d;
@@ -119,8 +119,8 @@ module timers_apb (
     // MTIME_LO is captured on the same hclk edge that latches the shadow, so
     // the pair the bridge returns came from one cycle of the counter.
     reg [31:0] lo_cap;
-    always @(posedge hclk_i or negedge hreset_n_i)
-        if (!hreset_n_i)        lo_cap <= 32'd0;
+    always @(posedge hclk or negedge hreset_n)
+        if (!hreset_n)        lo_cap <= 32'd0;
         else if (rd_mtime_lo_o) lo_cap <= mtime_lo_i;
 
     // =========================================================================
@@ -142,8 +142,8 @@ module timers_apb (
     end
 
     reg [31:0] prdata_q;
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i)              prdata_q <= 32'd0;
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n)              prdata_q <= 32'd0;
         else if (psel_i & ~penable_i) prdata_q <= hit ? rd_mux : 32'd0;
 
     assign prdata_o  = prdata_q;

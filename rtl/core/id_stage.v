@@ -10,8 +10,8 @@
 // =============================================================================
 
 module id_stage (
-    input  wire         clk_i,
-    input  wire         rst_n_i,
+    input  wire         gclk,
+    input  wire         core_rst_n,
 
     // -------------------------------------------------------------------
     // From IF/ID pipeline register (Sec. 5.2 - instr, pc, fault, valid)
@@ -159,8 +159,8 @@ module id_stage (
     wire [31:0] rs1_data_w, rs2_data_w;
 
     regfile u_regfile (
-        .clk_i           (clk_i),
-        .rst_n_i         (rst_n_i),
+        .gclk           (gclk),
+        .core_rst_n         (core_rst_n),
 
         .rs1_idx_i       (rs1_idx_w),
         .rs2_idx_i       (rs2_idx_w),
@@ -193,7 +193,7 @@ module id_stage (
     // -----------------------------------------------------------------------
     // Sub-block 5: Hazard / Forwarding unit (ID-side load-use detection)
     // -----------------------------------------------------------------------
-    hazard_forward_unit u_hazard_forward_unit (
+    hazard_fwd_unit u_hazard_fwd (
         .id_rs1_idx_i     (rs1_idx_w),
         .id_rs2_idx_i     (rs2_idx_w),
 

@@ -22,8 +22,8 @@ module ahb2apb_apb_fsm #(
     parameter [23:0] APB_DIV = 24'h0,
     parameter integer TIMEOUT = 16
 )(
-    input  wire        pclk_i,
-    input  wire        preset_n_i,
+    input  wire        pclk,
+    input  wire        preset_n,
 
     input  wire        req_tgl_i,
     input  wire [3:0]  win_i,
@@ -59,8 +59,8 @@ module ahb2apb_apb_fsm #(
     assign paddr_o  = addr_i;
     assign pwdata_o = write_i ? wdata_i : 32'd0;
 
-    always @(posedge pclk_i or negedge preset_n_i) begin
-        if (!preset_n_i) begin
+    always @(posedge pclk or negedge preset_n) begin
+        if (!preset_n) begin
             state     <= P_IDLE;
             req_seen  <= 1'b0;
             ack_tgl_o <= 1'b0;

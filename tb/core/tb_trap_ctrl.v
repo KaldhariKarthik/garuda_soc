@@ -9,7 +9,7 @@ module tb_trap_ctrl;
   reg tkcond,wkcond,mtip_pend,mstat_mie; reg [11:0] irqid; reg [7:0] irqlvl; reg [31:0] vectgt;
   wire tk_ack, trap_en, is_int, mret, tr_rv, sq_ide, sq_exm, sq_mwb, wfih, exsq;
   wire [7:0] clvl; wire [31:0] tpc,tcause,ttval,trtgt;
-  trap_ctrl dut(.clk_i(clk),.rst_n_i(rst_n),
+  trap_ctrl dut(.gclk(clk),.core_rst_n(rst_n),
     .idex_pc_i(idpc),.idex_instr_i(idinstr),.idex_fault_i(idflt),
     .idex_illegal_dec_i(idill),.idex_is_system_i(idsys),.ex_dsu_illegal_i(dsuill),
     .ex_csr_illegal_i(csrill),.ex_load_misalign_i(ldm),.ex_store_misalign_i(stm),.ex_addr_i(exaddr),

@@ -89,8 +89,8 @@ so it is the clean one, with no DLAB and no byte addressing.
   │   0xFE0-0xFEC  tail        CMD STATUS TIMEOUT           │
   │                                 │                       │
   │              start/stop/rd/wr/din ▼  cmd_ack/dout/al    │
-  │            i2c_master_byte_ctrl (vendored)              │
-  │                    └─ i2c_master_bit_ctrl (vendored)    │
+  │            i2c_byte_ctrl (vendored)              │
+  │                    └─ i2c_bit_ctrl (vendored)    │
   │                                 │                       │
   │  bus-timeout counter ──▶ abort  │  scl_oen / sda_oen    │
   │  scl/sda ──▶ 2-flop sync        ▼                       │

@@ -3,7 +3,7 @@
 // 0x4000_1000), with the four shim registers every peripheral window has.
 //
 // Source: GARUDA-SPIM-SPEC-001 section 6, DECISIONS.md D-21, and the vendored
-// register file rtl/third_party/pulp/apb_spi_master/src/spi_master_apb_if.sv.
+// register file rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv.
 // The UVM register model tb/spi_master/uvm/spim_reg_pkg.sv is generated from this file:
 //     python3 tools/gen/gen_ral.py Design_Docs/regs/spim.rdl tb/spi_master/uvm/spim_reg_pkg.sv
 //

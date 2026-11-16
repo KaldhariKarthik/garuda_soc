@@ -133,8 +133,8 @@ module dsu_cov_vplan (
 endmodule
 
 bind dsu_top dsu_cov_vplan u_dsu_cov_vplan (
-    .clk(clk), .rst_n(rst_n), .flush(flush), .dsu_en(dsu_en), .dsu_busy(dsu_busy),
-    .illegal_instr(illegal_instr), .instr(instr), .rs1(rs1), .rs2(rs2),
+    .clk(gclk), .rst_n(core_rst_n), .flush(flush), .dsu_en(dsu_en), .dsu_busy(dsu_busy),
+    .illegal_instr(illegal_instr), .instr(instr), .rs1(rs1_val), .rs2(rs2_val),
     .mac_overflow(mac_overflow), .sat_overflow(sat_overflow),
-    .acc0(dbg_acc_0), .acc1(dbg_acc_1), .acc2(dbg_acc_2));
+    .acc0(dbg_acc_fx), .acc1(dbg_acc_fy), .acc2(dbg_acc_mag));
 `endif

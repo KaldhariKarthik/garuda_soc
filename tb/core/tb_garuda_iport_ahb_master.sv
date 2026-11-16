@@ -1,6 +1,6 @@
 // =============================================================================
 // tb_garuda_iport_ahb_master.sv -- SV unit TB for
-//                                  rtl/core/garuda_iport_ahb_master.v
+//                                  rtl/core/iport_master.v
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 6.4 (I-port AHB-Lite operation),
 //       Sec. 6.5 (flush, dropped in-flight data), Sec. 4.1 (fixed I-port
@@ -24,7 +24,7 @@
 //   * pc model    -- fetch_pc advances by 4 per fetch_issue_o, reloads on
 //                    redirect. Mirrors garuda_pc_gen.
 //   * FIFO model  -- occupancy +1 on data_valid_o, -1 on rd_en, cleared on
-//                    redirect. Mirrors garuda_prefetch_buffer's accounting,
+//                    redirect. Mirrors prefetch_buf's accounting,
 //                    so the master's reservation logic sees real pressure.
 //   * AHB slave   -- pipelined: latches the address phase, drives HRDATA in
 //                    the following data phase. Wait states and ERROR are
@@ -119,9 +119,9 @@ module tb_top;
 
     iport_if vif(clk, rst_n);
 
-    garuda_iport_ahb_master #(.FIFO_DEPTH(4)) dut (
-        .clk_i            (clk),
-        .rst_n_i          (rst_n),
+    iport_master #(.FIFO_DEPTH(4)) dut (
+        .gclk            (clk),
+        .core_rst_n          (rst_n),
         .stop_i           (1'b0),        // RDC-1 halt drain: not exercised here
         .pf_dis_i         (1'b0),        // CORE-4 (mgarudactl): full prefetch
         .redirect_i       (vif.redirect),

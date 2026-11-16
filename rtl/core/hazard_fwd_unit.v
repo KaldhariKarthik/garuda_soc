@@ -22,7 +22,7 @@
 // happen while the consumer is still in ID.
 // =============================================================================
 
-module hazard_forward_unit (
+module hazard_fwd_unit (
     input  wire [4:0] id_rs1_idx_i,
     input  wire [4:0] id_rs2_idx_i,
 

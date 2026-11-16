@@ -41,20 +41,20 @@ module tb_crg;
     always #(TREF/2) refclk = ~refclk;
 
     clk_div u_clkdiv (
-        .refclk_i(refclk), .raw_rst_n_i(ext_rst_n), .div_sel_i(div_sel),
-        .aon_clk_o(aon), .hclk_o(hclk), .pclk_o(pclk), .pclk_phase_o(pclk_phase),
+        .refclk(refclk), .ext_rst_n(ext_rst_n), .div_sel_i(div_sel),
+        .aon_clk(aon), .hclk(hclk), .pclk(pclk), .pclk_phase_o(pclk_phase),
         .div_act_o(div_act), .div_busy_o(div_busy));
 
     reset_ctrl u_rst (
-        .aon_clk_i(aon), .hclk_i(hclk), .pclk_i(pclk),
-        .ext_rst_n_i(ext_rst_n), .wdt_rst_req_i(wdt_req),
+        .aon_clk(aon), .hclk(hclk), .pclk(pclk),
+        .ext_rst_n(ext_rst_n), .wdt_rst_req_i(wdt_req),
         .ndm_rst_req_i(ndm_req), .hartreset_req_i(hart_req), .boot_sel_i(1'b1),
         .psel_i(psel), .penable_i(penable), .pwrite_i(pwrite), .paddr_i(paddr),
         .pwdata_i(pwdata), .prdata_o(prdata), .pready_o(pready), .pslverr_o(pslverr),
         .div_sel_o(div_sel), .div_act_i(div_act), .div_busy_i(div_busy),
         .ilock_o(ilock),
-        .hreset_n_o(hreset_n), .preset_n_o(preset_n), .core_rst_n_o(core_rst_n),
-        .dm_rst_n_o(dm_rst_n), .ext_hrst_n_o(ext_hrst_n));
+        .hreset_n(hreset_n), .preset_n(preset_n), .core_rst_n(core_rst_n),
+        .dm_rst_n(dm_rst_n), .ext_hrst_n(ext_hrst_n));
 
     // ---------------------------------------------------------------- scoreboard
     integer checks = 0, fails = 0;
@@ -188,7 +188,7 @@ module tb_crg;
         // ---- watchdog: one-hclk pulse -> full-length reset ------------------------
         @(posedge hclk); #0.1 wdt_req = 1;
         @(posedge hclk); #0.1 wdt_req = 0;
-        #1 check(!dm_rst_n || !hreset_n, "wdt request asserts reset");
+        #1 check(!dm_rst_n || !hreset_n, "watchdog request asserts reset");
         reset_width(w);
         check(w >= 1024*TREF, $sformatf("t_wdt_self_cancel: 1-cycle WDT pulse -> %0.0f ns reset", w));
         check(ext_hrst_n, "t_reset_domains: watchdog request domain (ext-only) not reset by WDT");

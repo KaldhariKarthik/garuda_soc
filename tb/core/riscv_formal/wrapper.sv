@@ -25,7 +25,7 @@ module rvfi_wrapper (
     (* keep *) wire        d_hwrite;
 
     garuda_core_top uut (
-        .clk_i(clock), .core_rst_n_i(!reset),
+        .hclk(clock), .core_rst_n(!reset),
         .halt_req_i(1'b0), .halt_safe_o(),
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(), .i_hburst_o(), .i_hprot_o(),
         .i_hwrite_o(), .i_hwdata_o(), .i_hrdata_i(i_hrdata), .i_hready_i(i_hready), .i_hresp_i(1'b0),

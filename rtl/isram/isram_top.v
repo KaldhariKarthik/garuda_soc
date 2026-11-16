@@ -15,8 +15,8 @@
 `include "mem_defs.vh"
 
 module isram_top (
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
 
     input  wire        hsel_i,
     input  wire [31:0] haddr_i,
@@ -35,15 +35,15 @@ module isram_top (
     input  wire        hmaster_is_sba_i    // from ahb_interconnect
 );
 
-    localparam integer AW = 14;             // 16,384 words
+    localparam integer ADDR_W = 14;             // 16,384 words
 
     wire          ce, we;
-    wire [AW-1:0] addr;
+    wire [ADDR_W-1:0] addr;
     wire [3:0]    be;
     wire [31:0]   wdata, rdata;
 
-    ahb_mem_slave_if #(.AW(AW), .WRITABLE(1)) u_if (
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i),
+    ahb_mem_slave_if #(.ADDR_W(ADDR_W), .WRITABLE(1)) u_if (
+        .hclk(hclk), .hreset_n(hreset_n),
         .hsel_i(hsel_i), .haddr_i(haddr_i), .htrans_i(htrans_i),
         .hwrite_i(hwrite_i), .hsize_i(hsize_i), .hwdata_i(hwdata_i),
         .hready_i(hready_i), .hrdata_o(hrdata_o), .hreadyout_o(hreadyout_o),
@@ -52,21 +52,21 @@ module isram_top (
         .arr_ce_o(ce), .arr_addr_o(addr), .arr_we_o(we), .arr_be_o(be),
         .arr_wdata_o(wdata), .arr_rdata_i(rdata));
 
-    sram_wrapper #(.WORDS(`MEM_ISRAM_WORDS), .AW(AW)) u_array (
-        .clk(hclk_i), .ce(ce), .addr(addr), .wdata(wdata), .rdata(rdata),
+    sram_wrapper #(.WORDS(`MEM_ISRAM_WORDS), .ADDR_W(ADDR_W)) u_array (
+        .hclk(hclk), .ce(ce), .addr(addr), .wdata(wdata), .rdata(rdata),
         .we(we), .be(be));
 
 `ifndef SYNTHESIS
     task bd_write;     input [31:0] byte_addr; input [31:0] data;
         begin
-            u_array.bd_write(byte_addr[AW+1:2], data);
+            u_array.bd_write(byte_addr[ADDR_W+1:2], data);
 `ifndef __ICARUS__
-            u_if.u_mem_sva.forget({{(32-AW){1'b0}}, byte_addr[AW+1:2]});   // the bus-side data model (rtl/mem/mem_sva.sv) did not see this write
+            u_if.u_mem_sva.forget({{(32-ADDR_W){1'b0}}, byte_addr[ADDR_W+1:2]});   // the bus-side data model (rtl/mem/mem_sva.sv) did not see this write
 `endif
         end
     endtask
     function [31:0] bd_read; input [31:0] byte_addr;
-        bd_read = u_array.bd_read(byte_addr[AW+1:2]);
+        bd_read = u_array.bd_read(byte_addr[ADDR_W+1:2]);
     endfunction
     task bd_load_hex;  input [1023:0] path;
         u_array.bd_load_hex(path);

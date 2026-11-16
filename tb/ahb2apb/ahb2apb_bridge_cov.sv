@@ -136,7 +136,7 @@ endmodule
 bind ahb2apb_bridge ahb2apb_bridge_cov #(
     .WINDOW_MASK(WINDOW_MASK), .APB_DIV(APB_DIV), .TIMEOUT(TIMEOUT)
 ) u_bridge_cov (
-    .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+    .hclk_i(hclk), .hreset_n_i(hreset_n), .pclk_i(pclk), .preset_n_i(preset_n),
     .hwrite_i(hwrite_i), .hsize_i(hsize_i), .haddr_i(haddr_i),
     .hreadyout_o(hreadyout_o), .hresp_o(hresp_o),
     .hstate(hstate), .prst_ok_q(prst_ok_q), .win_ok(win_ok), .word_ok(word_ok), .xfer(xfer),

@@ -7,7 +7,7 @@
 // previously inlined - identically - in decode_control.v and imm_gen.v.
 //
 // These encodings are a PRODUCER/CONSUMER contract: ID (decode_control,
-// imm_gen) produces alu_op/imm_sel, EX (alu) consumes alu_op. They MUST
+// imm_gen) produces alu_op/imm_sel, EX (alu_unit) consumes alu_op. They MUST
 // have exactly one definition. If core_ex_defs.vh currently redefines
 // ALU_* independently, change it to `include this header instead of
 // carrying its own copy - otherwise the two drift silently and iverilog/

@@ -371,7 +371,7 @@ module tb_top;
     overflow_flag_if vif(clk);
 
     overflow_flag dut (
-        .clk(clk), .rst_n(vif.rst_n),
+        .gclk(clk), .core_rst_n(vif.rst_n),
         .mac_overflow(vif.mac_overflow),
         .sat_overflow(vif.sat_overflow),
         .csr_clear_overflow(vif.csr_clear_overflow),

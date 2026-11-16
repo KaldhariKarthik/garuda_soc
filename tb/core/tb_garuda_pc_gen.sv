@@ -109,8 +109,8 @@ module tb_top;
     pc_gen_if vif(clk, rst_n);
 
     garuda_pc_gen dut (
-        .clk_i         (clk),
-        .rst_n_i       (rst_n),
+        .gclk         (clk),
+        .core_rst_n       (rst_n),
         .redirect_i    (vif.redirect),
         .redirect_pc_i (vif.redirect_pc),
         .fetch_issue_i (vif.fetch_issue),

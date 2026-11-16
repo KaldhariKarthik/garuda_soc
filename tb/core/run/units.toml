@@ -26,7 +26,7 @@ name = "U_branch_predict"
 flist = "tb/core/filelist_branch_predict.f"
 [[test]]
 name = "U_hazard_forward_unit"
-flist = "tb/core/filelist_hazard_forward_unit.f"
+flist = "tb/core/filelist_hazard_fwd_unit.f"
 [[test]]
 name = "U_id_stage"
 flist = "tb/core/filelist_id_stage.f"

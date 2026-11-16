@@ -38,10 +38,10 @@ module ahb2apb_sva #(
     parameter [23:0] APB_DIV     = 24'h0,
     parameter integer TIMEOUT    = 16
 )(
-    input wire        hclk_i,
-    input wire        hreset_n_i,
-    input wire        pclk_i,
-    input wire        preset_n_i,
+    input wire        hclk,
+    input wire        hreset_n,
+    input wire        pclk,
+    input wire        preset_n,
     input wire        hsel_i,
     input wire [31:0] haddr_i,
     input wire [1:0]  htrans_i,
@@ -112,8 +112,8 @@ module ahb2apb_sva #(
     wire       timeout   = in_access && (acc_cnt == {2'b0, ext} + TIMEOUT[5:0] - 6'd1) && !rdy_w;
     wire       ends      = (sample && rdy_w) || timeout;            // the transfer ends at this pclk edge
 
-    always @(posedge pclk_i or negedge preset_n_i) begin
-        if (!preset_n_i) begin
+    always @(posedge pclk or negedge preset_n) begin
+        if (!preset_n) begin
             plive <= 1'b0; ppast_ok <= 1'b0; acc_cnt <= 6'd0; end_evt <= 1'b0;
             end_err_p <= 1'b0; end_rdata_p <= 32'd0;
         end else begin
@@ -127,8 +127,8 @@ module ahb2apb_sva #(
         end
     end
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             hlive <= 1'b0; past_ok <= 1'b0; dp <= 1'b0; dp_legal <= 1'b0; dp_write <= 1'b0;
             n_start <= 2'd0; n_end <= 2'd0; end_err <= 1'b0; end_rdata <= 32'd0; low_run <= 8'd0;
             psel_any_h <= 1'b0; end_seen_q <= 1'b0;
@@ -145,7 +145,7 @@ module ahb2apb_sva #(
             if (acc) begin
                 dp <= 1'b1; dp_legal <= legal; dp_write <= hwrite_i; n_start <= 2'd0; n_end <= 2'd0;
             end
-            low_run <= (hreadyout_o || !preset_n_i) ? 8'd0 : (low_run == 8'hFF ? 8'hFF : low_run + 8'd1);
+            low_run <= (hreadyout_o || !preset_n) ? 8'd0 : (low_run == 8'hFF ? 8'hFF : low_run + 8'd1);
         end
     end
 
@@ -153,21 +153,21 @@ module ahb2apb_sva #(
     // APB protocol (pclk): a_apb_setup, a_penable_needs_psel, a_psel_onehot,
     // a_apb_addr_stable, a_apb_wdata_stable  (R-1, section 10)
     // =========================================================================
-    a_psel_onehot: assert property (@(posedge pclk_i) disable iff (!preset_n_i) $onehot0(psel_o));
-    a_penable_needs_psel: assert property (@(posedge pclk_i) disable iff (!preset_n_i) !penable_o || (|psel_o));
+    a_psel_onehot: assert property (@(posedge pclk) disable iff (!preset_n) $onehot0(psel_o));
+    a_penable_needs_psel: assert property (@(posedge pclk) disable iff (!preset_n) !penable_o || (|psel_o));
     // a transfer starts with SETUP (PSEL, no PENABLE) ...
-    a_apb_setup_first: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_apb_setup_first: assert property (@(posedge pclk) disable iff (!preset_n)
         !(ppast_ok && (|psel_o) && !$past(|psel_o)) || !penable_o);
     // ... which lasts exactly one cycle and is followed by ACCESS on the same window
-    a_apb_setup: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_apb_setup: assert property (@(posedge pclk) disable iff (!preset_n)
         !(ppast_ok && $past((|psel_o) && !penable_o)) || (penable_o && psel_o == $past(psel_o)));
-    a_apb_addr_stable: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_apb_addr_stable: assert property (@(posedge pclk) disable iff (!preset_n)
         !(ppast_ok && $past(|psel_o) && (|psel_o)) ||
         (paddr_o == $past(paddr_o) && pwrite_o == $past(pwrite_o) && psel_o == $past(psel_o)));
-    a_apb_wdata_stable: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_apb_wdata_stable: assert property (@(posedge pclk) disable iff (!preset_n)
         !(ppast_ok && $past(|psel_o && pwrite_o) && (|psel_o)) || pwdata_o == $past(pwdata_o));
     // a_unmapped: no PSEL on a window the chip does not have
-    a_unmapped: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_unmapped: assert property (@(posedge pclk) disable iff (!preset_n)
         (psel_o & ~WINDOW_MASK[11:0]) == 12'd0);
 
     // =========================================================================
@@ -175,23 +175,23 @@ module ahb2apb_sva #(
     // =========================================================================
     // the transfer leaves ACCESS exactly when the model says it ends, never earlier
     // (a PREADY during the APB_DIV extension is not taken) and never later
-    a_apb_div: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_apb_div: assert property (@(posedge pclk) disable iff (!preset_n)
         !(ppast_ok && $past(in_access) && !$past(ends)) || in_access);
-    a_access_ends: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_access_ends: assert property (@(posedge pclk) disable iff (!preset_n)
         !(ppast_ok && $past(in_access && ends)) || !(|psel_o));
-    a_timeout_at_16: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_timeout_at_16: assert property (@(posedge pclk) disable iff (!preset_n)
         !in_access || acc_cnt <= {2'b0, ext} + TIMEOUT[5:0] - 6'd1);
-    c_div_ready_early: cover property (@(posedge pclk_i) disable iff (!preset_n_i) in_access && !sample && rdy_w && ext != 0);
-    c_timeout:         cover property (@(posedge pclk_i) disable iff (!preset_n_i) timeout);
-    c_ready_last:      cover property (@(posedge pclk_i) disable iff (!preset_n_i)
+    c_div_ready_early: cover property (@(posedge pclk) disable iff (!preset_n) in_access && !sample && rdy_w && ext != 0);
+    c_timeout:         cover property (@(posedge pclk) disable iff (!preset_n) timeout);
+    c_ready_last:      cover property (@(posedge pclk) disable iff (!preset_n)
         sample && rdy_w && acc_cnt == {2'b0, ext} + TIMEOUT[5:0] - 6'd1);
-    c_slverr:          cover property (@(posedge pclk_i) disable iff (!preset_n_i) sample && rdy_w && pslverr_i[w]);
+    c_slverr:          cover property (@(posedge pclk) disable iff (!preset_n) sample && rdy_w && pslverr_i[w]);
 
     // Read data is compared with `===` here and in a_rdata: they check routing, and a
     // slave may return X in simulation (an SPI byte shifted in from a MISO that no bench
     // model drives; TB-A8).
     // a_resp_from_active_window (white-box fabric): the return is the selected window's
-    a_resp_from_active_window: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_resp_from_active_window: assert property (@(posedge pclk) disable iff (!preset_n)
         !(|psel_o) || (pready_sel == pready_i[w] && pslverr_sel == pslverr_i[w] && prdata_sel === prdata_i[32*w +: 32]));
 
     // =========================================================================
@@ -199,36 +199,36 @@ module ahb2apb_sva #(
     // the response, the two-cycle ERROR, no hang, the reset gap
     // =========================================================================
     // a_subword_no_apb / a_unmapped / APB-2 aperture: an illegal transfer starts no APB transfer
-    a_subword_no_apb: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_subword_no_apb: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(dp && !dp_legal) || n_start == 2'd0);
     // a_one_to_one: a legal transfer causes exactly one APB transfer before it completes
-    a_one_to_one: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_one_to_one: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(dp && hreadyout_o && dp_legal && hlive) ||
         (n_start + ((|psel_o) && !psel_any_h ? 2'd1 : 2'd0) == 2'd1 &&
          n_end + ((end_evt != end_seen_q) ? 2'd1 : 2'd0) == 2'd1));
-    a_one_apb_at_a_time: assert property (@(posedge hclk_i) disable iff (!hreset_n_i) n_start <= 2'd1);
+    a_one_apb_at_a_time: assert property (@(posedge hclk) disable iff (!hreset_n) n_start <= 2'd1);
     // a_subword_error / a_slverr_prop / timeout: the response follows the model
-    a_resp: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_resp: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(dp && hreadyout_o) || hresp_o == (!dp_legal || end_err));
-    a_rdata: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_rdata: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(dp && hreadyout_o && dp_legal && !dp_write && !hresp_o) || hrdata_o === end_rdata);
     // a_error_two_cycle: every ERROR is HREADY low then HREADY high
-    a_error_two_cycle: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        !(past_ok && $past(hresp_o && !hreadyout_o) && preset_n_i && $past(preset_n_i)) || (hresp_o && hreadyout_o));
-    a_error_first_cycle: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_error_two_cycle: assert property (@(posedge hclk) disable iff (!hreset_n)
+        !(past_ok && $past(hresp_o && !hreadyout_o) && preset_n && $past(preset_n)) || (hresp_o && hreadyout_o));
+    a_error_first_cycle: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(past_ok && hresp_o && hreadyout_o) || $past(hresp_o && !hreadyout_o));
-    a_okay_outside_error: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_okay_outside_error: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(hresp_o && hreadyout_o) || dp);
     // a_no_hang (R-7): a data phase never waits more than HANG_MAX cycles
-    a_no_hang: assert property (@(posedge hclk_i) disable iff (!hreset_n_i || !preset_n_i) low_run <= HANG_MAX[7:0]);
+    a_no_hang: assert property (@(posedge hclk) disable iff (!hreset_n || !preset_n) low_run <= HANG_MAX[7:0]);
     // a_dual_reset_hold ([N-9.2], [N-9.3]): HREADYOUT low while the APB side is in reset
-    a_dual_reset_hold: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        !(past_ok && $past(!preset_n_i)) || !hreadyout_o)
+    a_dual_reset_hold: assert property (@(posedge hclk) disable iff (!hreset_n)
+        !(past_ok && $past(!preset_n)) || !hreadyout_o)
         else $error("[SVA-FAIL] a_dual_reset_hold: preset_n %b (last cycle %b), hreadyout %b, hstate %0d, dp %b",
-                    preset_n_i, $past(preset_n_i), hreadyout_o, hstate, dp);
+                    preset_n, $past(preset_n), hreadyout_o, hstate, dp);
     // a_capture_stable_at_phase (white-box, was a $display in the RTL): the captured
     // window / address / direction / data do not move while the APB side works on them
-    a_capture_stable_at_phase: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_capture_stable_at_phase: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(past_ok && hstate == H_WAIT && $past(hstate == H_WAIT)) ||
         (win_cap == $past(win_cap) && addr_cap == $past(addr_cap) && write_cap == $past(write_cap) &&
          wdata_cap == $past(wdata_cap)));
@@ -236,22 +236,22 @@ module ahb2apb_sva #(
     // white-box invariants, the evidence for coverage waivers (tb/ahb2apb/cov):
     // the hclk FSM uses six of its eight codes; only legal windows are captured; the
     // timeout counter never passes TIMEOUT-1 (bit 4 of the 5-bit counter stays 0)
-    a_hstate_legal: assert property (@(posedge hclk_i) disable iff (!hreset_n_i) hstate <= 3'd5);
-    a_win_cap_legal: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_hstate_legal: assert property (@(posedge hclk) disable iff (!hreset_n) hstate <= 3'd5);
+    a_win_cap_legal: assert property (@(posedge hclk) disable iff (!hreset_n)
         win_cap < 4'd12 && (hstate != H_WAIT || WINDOW_MASK[win_cap]));
-    a_to_cnt_max: assert property (@(posedge pclk_i) disable iff (!preset_n_i) to_cnt <= TIMEOUT[4:0] - 5'd1);
-    c_legal_read:   cover property (@(posedge hclk_i) disable iff (!hreset_n_i) acc && legal && !hwrite_i);
-    c_legal_write:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i) acc && legal && hwrite_i);
-    c_subword:      cover property (@(posedge hclk_i) disable iff (!hreset_n_i) acc && win_p && hsize_i != 3'b010);
-    c_absent:       cover property (@(posedge hclk_i) disable iff (!hreset_n_i) acc && !win_p);
-    c_aperture:     cover property (@(posedge hclk_i) disable iff (!hreset_n_i) acc && win_p && hsize_i == 3'b010 && haddr_i[27:16] != 0);
-    c_back_to_back: cover property (@(posedge hclk_i) disable iff (!hreset_n_i) dp && hreadyout_o && acc);
-    c_err_resp:     cover property (@(posedge hclk_i) disable iff (!hreset_n_i) dp && hreadyout_o && hresp_o && dp_legal);
-    c_reset_gap:    cover property (@(posedge hclk_i) disable iff (!hreset_n_i) !preset_n_i && acc);
+    a_to_cnt_max: assert property (@(posedge pclk) disable iff (!preset_n) to_cnt <= TIMEOUT[4:0] - 5'd1);
+    c_legal_read:   cover property (@(posedge hclk) disable iff (!hreset_n) acc && legal && !hwrite_i);
+    c_legal_write:  cover property (@(posedge hclk) disable iff (!hreset_n) acc && legal && hwrite_i);
+    c_subword:      cover property (@(posedge hclk) disable iff (!hreset_n) acc && win_p && hsize_i != 3'b010);
+    c_absent:       cover property (@(posedge hclk) disable iff (!hreset_n) acc && !win_p);
+    c_aperture:     cover property (@(posedge hclk) disable iff (!hreset_n) acc && win_p && hsize_i == 3'b010 && haddr_i[27:16] != 0);
+    c_back_to_back: cover property (@(posedge hclk) disable iff (!hreset_n) dp && hreadyout_o && acc);
+    c_err_resp:     cover property (@(posedge hclk) disable iff (!hreset_n) dp && hreadyout_o && hresp_o && dp_legal);
+    c_reset_gap:    cover property (@(posedge hclk) disable iff (!hreset_n) !preset_n && acc);
 endmodule
 
 bind ahb2apb_bridge ahb2apb_sva #(.WINDOW_MASK(WINDOW_MASK), .APB_DIV(APB_DIV), .TIMEOUT(TIMEOUT)) u_apb_sva (
-    .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+    .hclk(hclk), .hreset_n(hreset_n), .pclk(pclk), .preset_n(preset_n),
     .hsel_i(hsel_i), .haddr_i(haddr_i), .htrans_i(htrans_i), .hwrite_i(hwrite_i), .hsize_i(hsize_i),
     .hready_i(hready_i), .hrdata_o(hrdata_o), .hreadyout_o(hreadyout_o), .hresp_o(hresp_o),
     .psel_o(psel_o), .penable_o(penable_o), .pwrite_o(pwrite_o), .paddr_o(paddr_o), .pwdata_o(pwdata_o),

@@ -1,5 +1,5 @@
 top: ahb_interconnect
-children: ahb_arbiter ahb_decoder ahb_default_slave ahb_master_mux ahb_master_port ahb_slave_mux
+children: ahb_arbiter ahb_decoder ahb_dflt_slave ahb_master_mux ahb_master_port ahb_slave_mux
 script: flow/formal/ahb/ahb_fpv.tcl
 proved: 20/20
 tool: JasperGold Apps 2022.09p002, 2026-10-15

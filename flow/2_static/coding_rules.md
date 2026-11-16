@@ -24,7 +24,7 @@ Scans, run from the repository root in tcsh:
 
 | Where | What it is | Synthesised? |
 |---|---|---|
-| `rtl/mem/sram_wrapper.v:76` | `$readmemh` of the behavioural memory model | No: it is in the `else` branch of `ifdef GARUDA_SRAM_BLACKBOX`; synthesis uses the macro (G3 row 3.10 waits for the 28 nm macros) |
+| `rtl/mem/sram_wrapper.v:76` | `$readmemh` of the behavioural memory model | No: it is in the `else` branch of `ifdef SRAM_BLACKBOX`; synthesis uses the macro (G3 row 3.10 waits for the 28 nm macros) |
 | `rtl/common/garuda_apb_shim.v:203` | Elaboration check of the IP_LIMIT parameter | No: inside `ifndef SYNTHESIS` |
 | `rtl/dma/dma_props_a.sv:267` | Elaboration assertion on ACK_CYCLES | No: an assertion file, bound in, never synthesised |
 | `rtl/clic/clic_sva.sv:145` | Elaboration check that the software-interrupt ID matches the system map | No: an assertion file |
@@ -32,7 +32,7 @@ Scans, run from the repository root in tcsh:
 
 ## Delays (60)
 
-All 60 are `<= #1` in `rtl/third_party/opencores/i2c/src/i2c_master_byte_ctrl.sv`, the
+All 60 are `<= #1` in `rtl/third_party/opencores/i2c/src/i2c_byte_ctrl.sv`, the
 OpenCores I2C byte controller, as its author wrote it. Synthesis ignores them. Vendored
 files are never edited (DECISIONS, decision of 2026-09-22: upstream files under
 `rtl/third_party/` are taken as they are); HAL counts them as DLNBLK 60, explained in

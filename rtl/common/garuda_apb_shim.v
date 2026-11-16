@@ -69,8 +69,8 @@ module garuda_apb_shim #(
     parameter [7:0]   BLOCK_NUM = 8'd0,
     parameter [7:0]   BLOCK_REV = 8'd1
 )(
-    input  wire        pclk_i,
-    input  wire        preset_n_i,
+    input  wire        pclk,
+    input  wire        preset_n,
 
     // ---- APB from the bridge ------------------------------------------------
     input  wire        psel_i,
@@ -110,8 +110,8 @@ module garuda_apb_shim #(
     localparam [11:0] A_IRQSTAT = 12'hFE0, A_IRQEN = 12'hFE4,
                       A_DMACTL  = 12'hFE8, A_ID    = 12'hFEC;
 
-    wire access = psel_i & penable_i;
-    wire wr     = access & pwrite_i;
+    wire apb_access = psel_i & penable_i;
+    wire wr     = apb_access & pwrite_i;
 
     // a register of the IP: below the limit, word aligned, and in the map
     wire in_ip   = (paddr_i < IP_LIMIT) & (paddr_i[1:0] == 2'b00) & IP_MAP[paddr_i[7:2]];
@@ -135,8 +135,8 @@ module garuda_apb_shim #(
     reg [N_EVT-1:0] irqstat_q, irqen_q;
     wire [N_EVT-1:0] w1c = (wr && paddr_i == A_IRQSTAT) ? pwdata_i[N_EVT-1:0]
                                                         : {N_EVT{1'b0}};
-    always @(posedge pclk_i or negedge preset_n_i) begin
-        if (!preset_n_i) begin
+    always @(posedge pclk or negedge preset_n) begin
+        if (!preset_n) begin
             irqstat_q <= {N_EVT{1'b0}};
             irqen_q   <= {N_EVT{1'b0}};
         end else begin
@@ -153,8 +153,8 @@ module garuda_apb_shim #(
     // =========================================================================
     reg [1:0] dmactl_q;
     reg       holdoff_q;
-    always @(posedge pclk_i or negedge preset_n_i) begin
-        if (!preset_n_i) begin
+    always @(posedge pclk or negedge preset_n) begin
+        if (!preset_n) begin
             dmactl_q  <= 2'b00;
             holdoff_q <= 1'b0;
         end else begin
@@ -172,8 +172,8 @@ module garuda_apb_shim #(
     localparam [SYNC_W-1:0] SYNC_IDLE = SYNC_RESET[SYNC_W-1:0];
 
     reg [SYNC_W-1:0] sync0_q, sync1_q;
-    always @(posedge pclk_i or negedge preset_n_i) begin
-        if (!preset_n_i) begin
+    always @(posedge pclk or negedge preset_n) begin
+        if (!preset_n) begin
             sync0_q <= SYNC_IDLE;
             sync1_q <= SYNC_IDLE;
         end else begin
@@ -196,7 +196,7 @@ module garuda_apb_shim #(
     end
 
     assign pready_o  = 1'b1;                       // never stall the bridge
-    assign pslverr_o = access & ~hit;
+    assign pslverr_o = apb_access & ~hit;
 
 `ifndef SYNTHESIS
     // the map has 64 bits, one per word of the first 0x100 offsets
@@ -207,8 +207,8 @@ module garuda_apb_shim #(
     // The one upstream behaviour that would break the SoC rather than a test:
     // an IP that deasserts PREADY while it finishes a wire transaction. All
     // four vendored IPs tie it high; this fires if a re-vendor changes that.
-    always @(posedge pclk_i)
-        if (preset_n_i && ip_psel_o && !ip_pready_i)
+    always @(posedge pclk)
+        if (preset_n && ip_psel_o && !ip_pready_i)
             $display("[SHIM-ASSERT] block %0d: IP deasserted PREADY at %0t - the bridge will time out",
                      BLOCK_NUM, $time);
 `endif

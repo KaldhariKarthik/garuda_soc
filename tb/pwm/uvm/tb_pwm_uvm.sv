@@ -18,7 +18,7 @@ module tb_pwm_uvm;
     assign pif.prdata = apb.prdata; assign pif.pready = apb.pready; assign pif.pslverr = apb.pslverr;
 
     garuda_pwm_top dut (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(apb.psel), .penable_i(apb.penable), .pwrite_i(apb.pwrite), .paddr_i(apb.paddr),
         .pwdata_i(apb.pwdata), .prdata_o(apb.prdata), .pready_o(apb.pready), .pslverr_o(apb.pslverr),
         .irq_o(pif.irq), .pwm_o(pif.pwm));

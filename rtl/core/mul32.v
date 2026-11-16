@@ -31,25 +31,25 @@
 `include "core_ex_defs.vh"
 
 module mul32 (
-    input  wire [31:0] rs1,
-    input  wire [31:0] rs2,
-    input  wire [2:0]  funct3,
+    input  wire [31:0] rs1_val,
+    input  wire [31:0] rs2_val,
+    input  wire [2:0]  funct3_fld,
     output wire [31:0] result
 );
 
-    // Operand signedness per funct3:
-    //   rs1 is signed for MUL, MULH, MULHSU; unsigned for MULHU.
-    //   rs2 is signed for MUL, MULH;         unsigned for MULHSU, MULHU.
-    wire a_signed = (funct3 == `MUL_MUL) | (funct3 == `MUL_MULH) |
-                    (funct3 == `MUL_MULHSU);
-    wire b_signed = (funct3 == `MUL_MUL) | (funct3 == `MUL_MULH);
+    // Operand signedness per funct3_fld:
+    //   rs1_val is signed for MUL, MULH, MULHSU; unsigned for MULHU.
+    //   rs2_val is signed for MUL, MULH;         unsigned for MULHSU, MULHU.
+    wire a_signed = (funct3_fld == `MUL_MUL) | (funct3_fld == `MUL_MULH) |
+                    (funct3_fld == `MUL_MULHSU);
+    wire b_signed = (funct3_fld == `MUL_MUL) | (funct3_fld == `MUL_MULH);
 
-    wire signed [32:0] a_ext = {a_signed & rs1[31], rs1};
-    wire signed [32:0] b_ext = {b_signed & rs2[31], rs2};
+    wire signed [32:0] a_ext = {a_signed & rs1_val[31], rs1_val};
+    wire signed [32:0] b_ext = {b_signed & rs2_val[31], rs2_val};
 
     wire signed [65:0] product = a_ext * b_ext;
 
-    assign result = (funct3 == `MUL_MUL) ? product[31:0]
+    assign result = (funct3_fld == `MUL_MUL) ? product[31:0]
                                          : product[63:32];
 
 endmodule

@@ -16,8 +16,8 @@ module apb_spi_master
     parameter APB_ADDR_WIDTH = 12  //APB slaves are 4KB by default
 )
 (
-    input  logic                      HCLK,
-    input  logic                      HRESETn,
+    input  logic                      pclk,
+    input  logic                      preset_n,
     input  logic [APB_ADDR_WIDTH-1:0] PADDR,
     input  logic               [31:0] PWDATA,
     input  logic                      PWRITE,
@@ -116,9 +116,9 @@ module apb_spi_master
     assign events_o[0] = s_int_tx | s_int_rx;
     assign events_o[1] = s_eot;
 
-    always_ff @(posedge HCLK, negedge HRESETn)
+    always_ff @(posedge pclk, negedge preset_n)
     begin
-        if(~HRESETn)
+        if(~preset_n)
         begin
             r_state_tx <= INT_TX_ACTIVE;
             r_state_rx <= INT_RX_ACTIVE;
@@ -130,9 +130,9 @@ module apb_spi_master
         end
     end
 
-    always_ff @(posedge HCLK, negedge HRESETn)
+    always_ff @(posedge pclk, negedge preset_n)
     begin
-        if(~HRESETn)
+        if(~preset_n)
         begin
             r_counter_tx <= 'h0;
             r_counter_rx <= 'h0;
@@ -239,15 +239,15 @@ module apb_spi_master
         endcase
     end
 
-    spi_master_apb_if
+    spim_apb_if
     #(
         .BUFFER_DEPTH   ( BUFFER_DEPTH   ),
         .APB_ADDR_WIDTH ( APB_ADDR_WIDTH )
     )
     u_axiregs
     (
-        .HCLK              ( HCLK              ),
-        .HRESETn           ( HRESETn           ),
+        .pclk              ( pclk              ),
+        .preset_n           ( preset_n           ),
         .PADDR             ( PADDR             ),
         .PWDATA            ( PWDATA            ),
         .PWRITE            ( PWRITE            ),
@@ -295,8 +295,8 @@ module apb_spi_master
     )
     u_txfifo
     (
-        .clk_i      ( HCLK                   ),
-        .rst_ni     ( HRESETn                ),
+        .pclk      ( pclk                   ),
+        .preset_n     ( preset_n                ),
         .clr_i      ( spi_swrst              ),
 
         .elements_o ( elements_tx            ),
@@ -317,8 +317,8 @@ module apb_spi_master
     )
     u_rxfifo
     (
-        .clk_i      ( HCLK                   ),
-        .rst_ni     ( HRESETn                ),
+        .pclk      ( pclk                   ),
+        .preset_n     ( preset_n                ),
         .clr_i      ( spi_swrst              ),
 
         .elements_o ( elements_rx            ),
@@ -332,10 +332,10 @@ module apb_spi_master
         .ready_o    ( spi_ctrl_data_rx_ready )
     );
 
-    spi_master_controller u_spictrl
+    spim_ctrl u_spictrl
     (
-        .clk                    ( HCLK                   ),
-        .rstn                   ( HRESETn                ),
+        .pclk                    ( pclk                   ),
+        .preset_n                   ( preset_n                ),
         .eot                    ( s_eot                  ),
         .spi_clk_div            ( spi_clk_div            ),
         .spi_clk_div_valid      ( spi_clk_div_valid      ),

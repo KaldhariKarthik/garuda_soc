@@ -1,9 +1,9 @@
 // =============================================================
 // tapeout_hazard_forward_unit.sv
-// Tapeout-grade SV verification environment for GARUDA hazard_forward_unit.v
+// Tapeout-grade SV verification environment for GARUDA hazard_fwd_unit.v
 // (ID-stage load-use hazard detector, Sec. 11.1-11.2)
 //
-// hazard_forward_unit is PURELY COMBINATIONAL - there is no clk/rst port
+// hazard_fwd_unit is PURELY COMBINATIONAL - there is no clk/rst port
 // on the DUT at all, and no internal state to carry across sequences.
 // The sequence-based generator / synchronous apply-sample-check loop
 // structure below still applies (it costs nothing and keeps every file in
@@ -21,12 +21,12 @@
 // -------------------------------------------------------------
 // 0. DEFINES
 // -------------------------------------------------------------
-// hazard_forward_unit.v has no `include dependency and no macro usage -
+// hazard_fwd_unit.v has no `include dependency and no macro usage -
 // nothing to inline. Recorded explicitly so the absence reads as
 // verified, not forgotten.
 
 // -------------------------------------------------------------
-// 1. DUT: hazard_forward_unit.v (pasted verbatim, self-contained file)
+// 1. DUT: hazard_fwd_unit.v (pasted verbatim, self-contained file)
 // -------------------------------------------------------------
 // (W6, 2026-10-11) The inlined DUT copy that stood here under `ifndef
 // GARUDA_REAL_RTL is removed: no flow compiled it (every filelist defines the
@@ -143,7 +143,7 @@ endclass
 
 // -------------------------------------------------------------
 // 4. GENERATOR -- directed sequences + exhaustive sweep + CRV.
-//    hazard_forward_unit has no internal state, so "sequence" here is
+//    hazard_fwd_unit has no internal state, so "sequence" here is
 //    purely an organizational grouping (each entry is a self-contained
 //    single cycle) - unlike dsu_stall, no sequence depends on what came
 //    before it.
@@ -472,7 +472,7 @@ module tb_top;
 
     hazard_if vif(clk);
 
-    hazard_forward_unit dut (
+    hazard_fwd_unit dut (
         .id_rs1_idx_i     (vif.rs1_idx),
         .id_rs2_idx_i     (vif.rs2_idx),
         .ex_mem_read_i    (vif.ex_mem_read),

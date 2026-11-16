@@ -9,8 +9,8 @@
 // specific language governing permissions and limitations under the License.
 
 module uart_rx (
-        input  logic            clk_i,
-        input  logic            rstn_i,
+        input  logic            pclk,
+        input  logic            preset_n,
         input  logic            rx_i,
         input  logic [15:0]     cfg_div_i,
         input  logic            cfg_en_i,
@@ -183,9 +183,9 @@ module uart_rx (
         endcase
     end
 
-    always_ff @(posedge clk_i or negedge rstn_i)
+    always_ff @(posedge pclk or negedge preset_n)
     begin
-        if (rstn_i == 1'b0)
+        if (preset_n == 1'b0)
         begin
             CS             <= IDLE;
             reg_data       <= 8'hFF;
@@ -208,9 +208,9 @@ module uart_rx (
     end
 
     assign s_rx_fall = ~reg_rx_sync[1] & reg_rx_sync[2];
-    always_ff @(posedge clk_i or negedge rstn_i)
+    always_ff @(posedge pclk or negedge preset_n)
     begin
-        if (rstn_i == 1'b0)
+        if (preset_n == 1'b0)
             reg_rx_sync <= 3'b111;
         else
         begin
@@ -221,9 +221,9 @@ module uart_rx (
         end
     end
 
-    always_ff @(posedge clk_i or negedge rstn_i)
+    always_ff @(posedge pclk or negedge preset_n)
     begin
-        if (rstn_i == 1'b0)
+        if (preset_n == 1'b0)
         begin
             baud_cnt <= 'h0;
             bit_done <= 1'b0;
@@ -258,9 +258,9 @@ module uart_rx (
         end
     end
 
-    always_ff @(posedge clk_i or negedge rstn_i)
+    always_ff @(posedge pclk or negedge preset_n)
     begin
-        if (rstn_i == 1'b0)
+        if (preset_n == 1'b0)
         begin
             err_q       <= 1'b0;
             frame_err_q <= 1'b0;                   // GARUDA patch 0001

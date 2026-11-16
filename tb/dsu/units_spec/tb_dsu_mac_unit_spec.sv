@@ -19,7 +19,7 @@ module tb_dsu_mac_unit_spec;
     logic [47:0] satv = 0;
     wire  [47:0] mac_out;
     wire  ovf;
-    mac_unit dut (.clk(clk), .rst_n(rst_n), .rs1(rs1), .rs2(rs2), .en(en), .add_sub(add_sub), .clear(clear),
+    mac_unit dut (.gclk(clk), .core_rst_n(rst_n), .rs1_val(rs1), .rs2_val(rs2), .en(en), .add_sub(add_sub), .clear(clear),
                   .load(load), .abs_en(abs_en), .dot_en(dot_en), .flush(flush), .sat_writeback(satv),
                   .sat_writeback_en(sat_en), .mac_out(mac_out), .overflow(ovf));
     always #5 clk = ~clk;

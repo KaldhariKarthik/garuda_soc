@@ -26,7 +26,7 @@ module tb_dma_uvm;
     garuda_apb_if apb (.pclk(pclk), .preset_n(dif.rst_n));
 
     dma_top dut (
-        .hclk_i(hclk), .hreset_n_i(dif.rst_n), .pclk_i(pclk), .preset_n_i(dif.rst_n),
+        .hclk(hclk), .hreset_n(dif.rst_n), .pclk(pclk), .preset_n(dif.rst_n),
         .psel_i(apb.psel), .penable_i(apb.penable), .pwrite_i(apb.pwrite), .paddr_i(apb.paddr),
         .pwdata_i(apb.pwdata), .prdata_o(apb.prdata), .pready_o(apb.pready), .pslverr_o(apb.pslverr),
         .haddr_o(dif.haddr), .htrans_o(dif.htrans), .hwrite_o(dif.hwrite), .hsize_o(dif.hsize),

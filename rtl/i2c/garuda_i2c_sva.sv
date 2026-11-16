@@ -14,8 +14,8 @@
 // Icarus Verilog does not parse concurrent assertions; under it this file is
 // empty and the block is simulated without its properties (TOOL-B2).
 module garuda_i2c_sva (
-    input wire        pclk_i,
-    input wire        preset_n_i,
+    input wire        pclk,
+    input wire        preset_n,
     input wire        pready_o,
     input wire        pslverr_o,
     input wire        irq_o,
@@ -36,47 +36,47 @@ module garuda_i2c_sva (
     input wire [3:0]  irqstat, irqen, evt
 );
     // ---- F11: an access never waits
-    a_pready: assert property (@(posedge pclk_i) pready_o)
+    a_pready: assert property (@(posedge pclk) pready_o)
         else $error("[SVA-FAIL] a_pready: pready_o low");
 
     // ---- F27: the block can pull a line low or release it, never drive it high
-    a_never_high: assert property (@(posedge pclk_i) !i2c_scl_o && !i2c_sda_o)
+    a_never_high: assert property (@(posedge pclk) !i2c_scl_o && !i2c_sda_o)
         else $error("[SVA-FAIL] a_never_high: scl_o %0b sda_o %0b", i2c_scl_o, i2c_sda_o);
 
     // ---- F28: both lines released in reset and until firmware starts a transfer
     reg seen_cmd;
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i) seen_cmd <= 1'b0;
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n) seen_cmd <= 1'b0;
         else if (cmd_ok) seen_cmd <= 1'b1;
     // (in reset from the second clock edge on: a two-state simulator applies a reset that is
     // already asserted at time 0 only at the first edge, TB-B1)
-    a_released_in_reset: assert property (@(posedge pclk_i)
-        ((!preset_n_i && $past(!preset_n_i)) || (preset_n_i && !seen_cmd)) |-> (!i2c_scl_oe && !i2c_sda_oe))
+    a_released_in_reset: assert property (@(posedge pclk)
+        ((!preset_n && $past(!preset_n)) || (preset_n && !seen_cmd)) |-> (!i2c_scl_oe && !i2c_sda_oe))
         else $error("[SVA-FAIL] a_released_in_reset: a line pulled low before the first CMD");
 
     // ---- F06: a CMD written during a transfer is refused with PSLVERR
-    a_cmd_while_tip: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_cmd_while_tip: assert property (@(posedge pclk) disable iff (!preset_n)
         (cmd_write && tip_q) |-> (pslverr_o && !cmd_ok))
         else $error("[SVA-FAIL] a_cmd_while_tip: a CMD during a transfer was not refused");
 
     // ---- F05 (I2C-7): a CMD with none of RD, WR and STO has nothing to do and is refused too
-    a_cmd_nothing_to_do: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_cmd_nothing_to_do: assert property (@(posedge pclk) disable iff (!preset_n)
         (cmd_write && cmd_bits[3:1] == 3'b000) |-> (pslverr_o && !cmd_ok))
         else $error("[SVA-FAIL] a_cmd_nothing_to_do: CMD %02h was not refused", cmd_bits);
 
     // ---- F04: a read of RXDATA clears RXVALID and never starts a transfer
-    a_rxdata_read_no_cmd: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_rxdata_read_no_cmd: assert property (@(posedge pclk) disable iff (!preset_n)
         rd_rx |=> (!rxvalid_q && !$rose(tip_q)))
         else $error("[SVA-FAIL] a_rxdata_read_no_cmd: RXVALID %0b, TIP rose %0b after a read of RXDATA", rxvalid_q, $rose(tip_q));
 
     // ---- F07, F25 (I2C-6): a transfer starts only from a CMD accepted while enabled;
     // with EN clear nothing is in progress and both lines are released
-    a_no_replay: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_no_replay: assert property (@(posedge pclk) disable iff (!preset_n)
         ($rose(tip_q) |-> $past(cmd_ok && en_q)) and (!en_q |=> !tip_q) and (core_held |-> (!i2c_scl_oe && !i2c_sda_oe)))
         else $error("[SVA-FAIL] a_no_replay: TIP %0b EN %0b held %0b scl_oe %0b sda_oe %0b", tip_q, en_q, core_held, i2c_scl_oe, i2c_sda_oe);
 
     // ---- F24: ABORT (and the timeout, which does the same) releases both lines in the next pclk
-    a_abort_releases: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_abort_releases: assert property (@(posedge pclk) disable iff (!preset_n)
         abort_req |=> (!i2c_scl_oe && !i2c_sda_oe) ##1 !tip_q)
         else $error("[SVA-FAIL] a_abort_releases: scl_oe %0b sda_oe %0b TIP %0b after ABORT or a timeout", i2c_scl_oe, i2c_sda_oe, tip_q);
 
@@ -84,19 +84,19 @@ module garuda_i2c_sva (
     // (I2C-11, 2026-11-04: core_al can stay high for a second cycle, and TIP has already
     // cleared then, so firmware's next CMD may be accepted in that cycle; the check starts
     // only from an arbitration loss with no CMD accepted alongside it)
-    a_al_releases: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_al_releases: assert property (@(posedge pclk) disable iff (!preset_n)
         (core_al && !cmd_ok) |=> ((!i2c_scl_oe && !i2c_sda_oe) until cmd_ok))
         else $error("[SVA-FAIL] a_al_releases: a line pulled low after arbitration was lost and before a CMD");
 
     // ---- F23: with TIMEOUT non-zero a transfer is never in progress for longer than TIMEOUT
     reg [16:0] tip_cnt; reg [15:0] tmo_l;
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i) begin tip_cnt <= 17'd0; tmo_l <= 16'd0; end
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n) begin tip_cnt <= 17'd0; tmo_l <= 16'd0; end
         else begin
             tip_cnt <= tip_q ? tip_cnt + 17'd1 : 17'd0;
             if (!tip_q) tmo_l <= timeout_q;
         end
-    a_tip_bounded: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_tip_bounded: assert property (@(posedge pclk) disable iff (!preset_n)
         (tip_q && tmo_l != 16'd0) |-> (tip_cnt <= {1'b0, tmo_l}))
         else $error("[SVA-FAIL] a_tip_bounded: TIP set for %0d pclk with TIMEOUT %0d", tip_cnt, tmo_l);
 
@@ -104,8 +104,8 @@ module garuda_i2c_sva (
     // own_bus: a CMD with STA was accepted, and since then no STOP has completed, no
     // arbitration was lost, no ABORT or timeout, and the block was not disabled.
     reg own_bus, sto_l;
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i) begin own_bus <= 1'b0; sto_l <= 1'b0; end
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n) begin own_bus <= 1'b0; sto_l <= 1'b0; end
         else begin
             if (cmd_ok) sto_l <= cmd_bits[1];
             if (core_al || abort_req || core_held || (core_ack && sto_l)) own_bus <= 1'b0;
@@ -117,66 +117,66 @@ module garuda_i2c_sva (
     // stretching) but cannot pull it down from high. Without this the formal run models
     // a second master, whose clock synchronisation resets the bit controller's divider
     // every pclk (I2C-11, 2026-11-10).
-    assume_scl_falls_only_by_us: assume property (@(posedge pclk_i) disable iff (!preset_n_i)
+    assume_scl_falls_only_by_us: assume property (@(posedge pclk) disable iff (!preset_n)
         $fell(i2c_scl_i) |-> (i2c_scl_oe || $past(i2c_scl_oe)));   // (the same cycle too: see wired-AND below)
     // Wired-AND: a line this master pulls low reads low. Without it the free pins could
     // read SCL high while the block holds it low, and a_sda_stable_scl_high would see a
     // legal SDA change under a low SCL as one under a high SCL (I2C-11).
-    assume_scl_wired_and: assume property (@(posedge pclk_i) disable iff (!preset_n_i)
+    assume_scl_wired_and: assume property (@(posedge pclk) disable iff (!preset_n)
         i2c_scl_oe |-> !i2c_scl_i);
-    assume_sda_wired_and: assume property (@(posedge pclk_i) disable iff (!preset_n_i)
+    assume_sda_wired_and: assume property (@(posedge pclk) disable iff (!preset_n)
         i2c_sda_oe |-> !i2c_sda_i);
     // [N-6.1a] (ruling 2026-11-10, I2C-11): PRESCALE is at least 61 before the first CMD
     // and stays so. At 3 and at 8 JasperGold showed the bit controller's clock-sync detector
     // firing on the block's own late-filtered SCL, repeating the last command (a second STOP
     // after TIP cleared) whose acknowledge the next command then takes for its START.
-    assume_prescale_legal: assume property (@(posedge pclk_i) disable iff (!preset_n_i)
+    assume_prescale_legal: assume property (@(posedge pclk) disable iff (!preset_n)
         (cmd_write || seen_cmd) |-> (prescale_q >= 16'd61));
     // the firmware rule [N-6.2f], as an assumption of the formal run (DEFS=FORMAL)
-    assume_byte_continues_own: assume property (@(posedge pclk_i) disable iff (!preset_n_i)
+    assume_byte_continues_own: assume property (@(posedge pclk) disable iff (!preset_n)
         (cmd_write && !tip_q && (cmd_bits[3] || cmd_bits[2]) && !cmd_bits[0]) |-> own_bus);
 `endif
-    c_byte_continues_own: cover property (@(posedge pclk_i) preset_n_i &&
+    c_byte_continues_own: cover property (@(posedge pclk) preset_n &&
         cmd_ok && (cmd_bits[3] || cmd_bits[2]) && !cmd_bits[0] && own_bus);
 
     // ---- F16: while the block sends a data bit, SDA does not move while SCL is high.
     // Below the smallest supported PRESCALE (61, [N-6.1a]; I2C-8, I2C-11) the block is not
     // required to make a legal bus, so the simulations that run below it for speed are exempt.
-    a_sda_stable_scl_high: assert property (@(posedge pclk_i) disable iff (!preset_n_i || core_held || prescale_q < 16'd61)
+    a_sda_stable_scl_high: assert property (@(posedge pclk) disable iff (!preset_n || core_held || prescale_q < 16'd61)
         (scl_sync && $past(scl_sync) && bit_cmd == 4'b0100 && $past(bit_cmd == 4'b0100)) |-> $stable(i2c_sda_oe))
         else $error("[SVA-FAIL] a_sda_stable_scl_high: SDA moved with SCL high inside a written bit");
 
     // ---- F29: the interrupt is the OR of the enabled flags; an event beats its own clear
-    a_irq_held: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_irq_held: assert property (@(posedge pclk) disable iff (!preset_n)
         irq_o == |(irqstat & irqen))
         else $error("[SVA-FAIL] a_irq_held: irq_o %0b, IRQSTAT %04b, IRQEN %04b", irq_o, irqstat, irqen);
     genvar e;
     generate for (e = 0; e < 4; e = e + 1) begin : g_evt
-        a_set_beats_clear: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
-            (preset_n_i && evt[e]) |=> irqstat[e])     // preset_n_i as sampled: the flops were out of reset at that edge
+        a_set_beats_clear: assert property (@(posedge pclk) disable iff (!preset_n)
+            (preset_n && evt[e]) |=> irqstat[e])     // preset_n as sampled: the flops were out of reset at that edge
             else $error("[SVA-FAIL] a_set_beats_clear: event %0d was lost", e);
     end endgenerate
-    a_set_beats_clear_status: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_set_beats_clear_status: assert property (@(posedge pclk) disable iff (!preset_n)
         (core_al |=> al_q) and (to_pulse |=> to_q))
         else $error("[SVA-FAIL] a_set_beats_clear_status: a sticky STATUS bit was lost");
     // the two sticky STATUS bits are the same flags as their interrupt bits
-    a_status_irqstat_agree: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_status_irqstat_agree: assert property (@(posedge pclk) disable iff (!preset_n)
         (al_q == irqstat[1]) && (to_q == irqstat[2]))
         else $error("[SVA-FAIL] a_status_irqstat_agree: STATUS AL %0b TIMEOUT %0b, IRQSTAT %04b", al_q, to_q, irqstat);
 
     // ---- F30: the request is low with the acknowledge and in the pclk after it
-    a_dma_drop: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_dma_drop: assert property (@(posedge pclk) disable iff (!preset_n)
         dma_ack_i |-> (!dma_req_o ##1 !dma_req_o))
         else $error("[SVA-FAIL] a_dma_drop: dma_req_o high during or right after dma_ack_i");
 
-    c_al:            cover property (@(posedge pclk_i) preset_n_i && core_al);
-    c_timeout:       cover property (@(posedge pclk_i) preset_n_i && to_pulse);
-    c_abort_in_tip:  cover property (@(posedge pclk_i) preset_n_i && abort_req && tip_q && !to_pulse);
-    c_ack_and_abort: cover property (@(posedge pclk_i) preset_n_i && core_ack && abort_req);
+    c_al:            cover property (@(posedge pclk) preset_n && core_al);
+    c_timeout:       cover property (@(posedge pclk) preset_n && to_pulse);
+    c_abort_in_tip:  cover property (@(posedge pclk) preset_n && abort_req && tip_q && !to_pulse);
+    c_ack_and_abort: cover property (@(posedge pclk) preset_n && core_ack && abort_req);
 endmodule
 
 bind garuda_i2c_top garuda_i2c_sva u_i2c_sva (
-    .pclk_i(pclk_i), .preset_n_i(preset_n_i), .pready_o(pready_o), .pslverr_o(pslverr_o), .irq_o(irq_o),
+    .pclk(pclk), .preset_n(preset_n), .pready_o(pready_o), .pslverr_o(pslverr_o), .irq_o(irq_o),
     .dma_req_o(dma_req_o), .dma_ack_i(dma_ack_i),
     .i2c_scl_o(i2c_scl_o), .i2c_sda_o(i2c_sda_o), .i2c_scl_oe(i2c_scl_oe), .i2c_sda_oe(i2c_sda_oe),
     .scl_sync(scl_sync), .i2c_scl_i(i2c_scl_i), .i2c_sda_i(i2c_sda_i), .en_q(en_q), .tip_q(tip_q), .al_q(al_q), .to_q(to_q), .rxvalid_q(rxvalid_q),

@@ -21,7 +21,7 @@ The CORE spec says *what* the core must do. This document says *how* the RTL doe
             IF                 ID                 EX                  MEM                WB
   ┌───────────────────┐ ┌────────────────┐ ┌──────────────────┐ ┌─────────────────┐ ┌──────────┐
   │ pc_gen            │ │ decode_control │ │ fwd muxes A/B    │ │ load_store_unit │ │ wb_stage │
-  │ iport_ahb_master ─┼─┤ imm_gen        │ │ alu              │ │ d_port_ahb_     │ │  → regfile│
+  │ iport_ahb_master ─┼─┤ imm_gen        │ │ alu_unit              │ │ d_port_ahb_     │ │  → regfile│
   │ prefetch_buffer(4)│ │ regfile (read) │ │ mul32 (1 cycle)  │ │   master        │ │   write  │
   │                   │ │ branch_predict │ │ branch_unit      │ │ load_formatter  │ │          │
   │                   │ │ hazard_fwd_unit│ │ csr_rw           │ │ wb_data mux     │ │          │

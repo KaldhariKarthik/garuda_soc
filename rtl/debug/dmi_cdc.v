@@ -23,14 +23,14 @@
 
 module dmi_cdc (
     // ---- tck side --------------------------------------------------------------
-    input  wire        tck_i,
-    input  wire        tck_rst_n_i,
+    input  wire        tck,
+    input  wire        ext_rst_n,
     input  wire        req_tgl_i,
     output wire        ack_tgl_sync_o,       // ack toggle, synchronised into tck
 
     // ---- hclk side ----------------------------------------------------------------
-    input  wire        hclk_i,
-    input  wire        hrst_n_i,
+    input  wire        hclk,
+    input  wire        dm_rst_n,
     output wire        req_pulse_o,          // one hclk pulse per request
     input  wire        ack_pulse_i,          // DM finished: toggles ack
     output reg         ack_tgl_o
@@ -47,23 +47,23 @@ module dmi_cdc (
     (* ASYNC_REG = "TRUE" *) reg [2:0] req_s;
     reg [1:0] arm_cnt;
     wire      armed = (arm_cnt == 2'd3);
-    always @(posedge hclk_i or negedge hrst_n_i)
-        if (!hrst_n_i) begin req_s <= 3'd0; arm_cnt <= 2'd0; end
+    always @(posedge hclk or negedge dm_rst_n)
+        if (!dm_rst_n) begin req_s <= 3'd0; arm_cnt <= 2'd0; end
         else begin
             req_s <= {req_s[1:0], req_tgl_i};
             if (!armed) arm_cnt <= arm_cnt + 2'd1;
         end
     assign req_pulse_o = armed && (req_s[2] ^ req_s[1]);
 
-    always @(posedge hclk_i or negedge hrst_n_i)
-        if (!hrst_n_i)                  ack_tgl_o <= 1'b0;
+    always @(posedge hclk or negedge dm_rst_n)
+        if (!dm_rst_n)                  ack_tgl_o <= 1'b0;
         else if (!armed)                ack_tgl_o <= req_s[1];
         else if (ack_pulse_i)           ack_tgl_o <= ~ack_tgl_o;
 
     // hclk -> tck
     (* ASYNC_REG = "TRUE" *) reg [1:0] ack_s;
-    always @(posedge tck_i or negedge tck_rst_n_i)
-        if (!tck_rst_n_i) ack_s <= 2'd0;
+    always @(posedge tck or negedge ext_rst_n)
+        if (!ext_rst_n) ack_s <= 2'd0;
         else              ack_s <= {ack_s[0], ack_tgl_o};
     assign ack_tgl_sync_o = ack_s[1];
 

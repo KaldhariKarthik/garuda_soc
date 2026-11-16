@@ -3,7 +3,7 @@
 # typical.lib has none). Nangate has no tristate buffer, which the five
 # bidirectional / tri-state pads of the chip top need, so typical.lib is read too
 # with every cell dont_use except its TBUFX3 (5 cells, area 0 in that library).
-# SRAMs and ROM are black boxes (GARUDA_SRAM_BLACKBOX):
+# SRAMs and ROM are black boxes (SRAM_BLACKBOX):
 # they become macros, so the count is logic only. No SDC: generic effort mapping.
 # Run from the repository root:
 #   /home/install/GENUS211/bin/genus -batch -no_gui -files flow/signoff/g1/trial_synth.tcl -log sim/g1_synth/genus
@@ -22,7 +22,7 @@ read_libs [list $LIB $TBUF_LIB]
 foreach c [get_db lib_cells */typical/*] { set_db $c .dont_use true }
 puts "TRIAL_SYNTH dont_use on [llength [get_db lib_cells */typical/*]] typical cells"
 set_db [get_db lib_cells */typical/TBUFX3] .dont_use false
-read_hdl -define SYNTHESIS -define GARUDA_SRAM_BLACKBOX -sv $srcs
+read_hdl -define SYNTHESIS -define SRAM_BLACKBOX -sv $srcs
 elaborate garuda_chip_top
 check_design -unresolved > $OUT/unresolved.rpt
 syn_generic

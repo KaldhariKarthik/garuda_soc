@@ -18,7 +18,7 @@ module tb_spis_uvm;
     assign sif.prdata = apb.prdata; assign sif.pready = apb.pready; assign sif.pslverr = apb.pslverr;
 
     garuda_spis_top dut (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(apb.psel), .penable_i(apb.penable), .pwrite_i(apb.pwrite), .paddr_i(apb.paddr),
         .pwdata_i(apb.pwdata), .prdata_o(apb.prdata), .pready_o(apb.pready), .pslverr_o(apb.pslverr),
         .irq_o(sif.irq), .dma_req_o(sif.dma_req), .dma_ack_i(sif.dma_ack),

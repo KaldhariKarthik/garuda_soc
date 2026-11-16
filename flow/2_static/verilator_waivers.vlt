@@ -11,14 +11,14 @@
 // the OpenCores I2C bit controller. Each is a narrower value compared with or
 // assigned to a wider one: the result is the zero-extended value in every tool.
 lint_off -rule WIDTHEXPAND    -file "*rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv"
-lint_off -rule WIDTHEXPAND    -file "*rtl/third_party/pulp/axi_spi_master/src/spi_master_controller.sv"
-lint_off -rule WIDTHTRUNC     -file "*rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv" -lines 248
+lint_off -rule WIDTHEXPAND    -file "*rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv"
+lint_off -rule WIDTHTRUNC     -file "*rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv" -lines 248
 // Case statements without a default inside clocked blocks: an unlisted value
 // leaves the registers as they are, which is the intended behaviour, and no latch
 // is inferred (the same five places HAL reports as CDEFNC, flow/2_static/hal_waivers.txt).
 lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv"
-lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/apb_spi_master/src/spi_master_apb_if.sv"
-lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/axi_spi_master/src/spi_master_controller.sv"
+lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv"
+lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv"
 lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv"
 
 // ---- the one latch of the chip: the enable latch of the core's clock gate

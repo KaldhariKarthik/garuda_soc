@@ -57,7 +57,7 @@ OFF = {  # rule: (group, reason)
  "SYNPRT": (REVIEWED, "an output port assigned from combinational logic; matters for hierarchical timing budgets. Revisit: task 3.6"),
  "LRGOPR": (REVIEWED, "arithmetic or comparison on wide operands; a timing question. Revisit: task 3.6, trial synthesis"),
  "SYNASN": (REVIEWED, "a module with both synchronous and asynchronous logic: expected with asynchronous-reset flops"),
- "IGNDLY": (REVIEWED, "a lumped delay is ignored by synthesis; all 60 are in vendored i2c_master_byte_ctrl.sv, not modified (D-22)"),
+ "IGNDLY": (REVIEWED, "a lumped delay is ignored by synthesis; all 60 are in vendored i2c_byte_ctrl.sv, not modified (D-22)"),
  "TRNMBT": (REVIEWED, "a state changes more than one bit on a transition (binary encoding); a power note. Revisit: task 3.6 power"),
  "BADFSM": (REVIEWED, "state machine not in HAL's modelling style, in vendored controllers; affects state extraction only"),
  "EXTFSM": (REVIEWED, "extra logic mixed into a state-machine process, in vendored controllers; affects state extraction only"),

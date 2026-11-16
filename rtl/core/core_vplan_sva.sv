@@ -79,7 +79,7 @@ module core_vplan_sva #(
 endmodule
 
 bind garuda_core_top core_vplan_sva #(.RESET_VECTOR(RESET_VECTOR)) u_core_vplan_sva (
-    .clk(clk_i), .rst_n(core_rst_n_i),
+    .clk(hclk), .rst_n(core_rst_n),
     .i_htrans(i_htrans_o), .d_htrans(d_htrans_o), .i_haddr(i_haddr_o),
     .d_hready(d_hready_i), .d_hresp(d_hresp_i), .d_hwrite(d_hwrite_o),
     .mem_reg_write(mem_reg_write), .mem_rd(mem_rd), .rf_we(rf_we), .rf_rd(rf_rd),

@@ -32,7 +32,7 @@
 // Applied literally that rule DEADLOCKS this SoC, and the deadlock is not
 // subtle once seen:
 //
-//     garuda_iport_ahb_master issues an address phase only when
+//     iport_master issues an address phase only when
 //         fetch_issue_o = ~redirect_i & i_hready_i & ...
 //     i.e. it needs HREADY high to present HTRANS!=IDLE in the first place.
 //     The arbiter grants on HTRANS!=IDLE. So an ungranted I-Port cannot
@@ -80,8 +80,8 @@
 `include "ahb_defs.vh"
 
 module ahb_interconnect (
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
 
     // =====================================================================
     // Master side - the interconnect is an AHB-Lite SLAVE to each of these
@@ -167,8 +167,8 @@ module ahb_interconnect (
     wire [`AHB_NMASTERS*2-1:0] htrans_bus = {m_htrans_i, s_htrans_i, d_htrans_i, i_htrans_i};
 
     ahb_arbiter u_arb (
-        .hclk_i       (hclk_i),
-        .hreset_n_i   (hreset_n_i),
+        .hclk       (hclk),
+        .hreset_n   (hreset_n),
         .htrans_i     (htrans_bus),
         .hready_i     (hready_o),
         .grant_o      (grant),
@@ -228,9 +228,9 @@ module ahb_interconnect (
     wire        hreadyout_df;
     wire        hresp_df;
 
-    ahb_default_slave u_def (
-        .hclk_i      (hclk_i),
-        .hreset_n_i  (hreset_n_i),
+    ahb_dflt_slave u_def (
+        .hclk      (hclk),
+        .hreset_n  (hreset_n),
         .hsel_i      (hsel[`AHB_S_DEFAULT]),
         .htrans_i    (htrans_o),
         .hready_i    (hready_o),
@@ -246,8 +246,8 @@ module ahb_interconnect (
     wire        hresp_shared;
 
     ahb_slave_mux u_smux (
-        .hclk_i      (hclk_i),
-        .hreset_n_i  (hreset_n_i),
+        .hclk      (hclk),
+        .hreset_n  (hreset_n),
         .hsel_i      (hsel),
         .dph_valid_i (dph_valid),
 
@@ -285,8 +285,8 @@ module ahb_interconnect (
     assign hmaster_is_sba_o = (grant == `AHB_M_SBA);
 
     ahb_master_port u_mp_i (
-        .hclk_i          (hclk_i),
-        .hreset_n_i      (hreset_n_i),
+        .hclk          (hclk),
+        .hreset_n      (hreset_n),
         .htrans_i        (i_htrans_i),
         .granted_i       (grant == `AHB_M_IPORT),
         .dph_own_i       (i_dph),
@@ -299,8 +299,8 @@ module ahb_interconnect (
     );
 
     ahb_master_port u_mp_d (
-        .hclk_i          (hclk_i),
-        .hreset_n_i      (hreset_n_i),
+        .hclk          (hclk),
+        .hreset_n      (hreset_n),
         .htrans_i        (d_htrans_i),
         .granted_i       (grant == `AHB_M_DPORT),
         .dph_own_i       (d_dph),
@@ -313,8 +313,8 @@ module ahb_interconnect (
     );
 
     ahb_master_port u_mp_s (
-        .hclk_i          (hclk_i),
-        .hreset_n_i      (hreset_n_i),
+        .hclk          (hclk),
+        .hreset_n      (hreset_n),
         .htrans_i        (s_htrans_i),
         .granted_i       (grant == `AHB_M_SBA),
         .dph_own_i       (s_dph),
@@ -327,8 +327,8 @@ module ahb_interconnect (
     );
 
     ahb_master_port u_mp_m (
-        .hclk_i          (hclk_i),
-        .hreset_n_i      (hreset_n_i),
+        .hclk          (hclk),
+        .hreset_n      (hreset_n),
         .htrans_i        (m_htrans_i),
         .granted_i       (grant == `AHB_M_DMA),
         .dph_own_i       (m_dph),

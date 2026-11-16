@@ -22,11 +22,11 @@
 // =============================================================================
 
 module clic_apb #(
-    parameter integer        N       = 32,
+    parameter integer        NUM_SRC       = 32,
     parameter [31:0]         IE_MASK = 32'h00FF_FF7E   // IDs 1-6, 8-23 = GARUDA_CLIC_ID_MASK (BUGS_HISTORY.md INT-2, INT-3)
 )(
-    input  wire          pclk_i,
-    input  wire          preset_n_i,
+    input  wire          pclk,
+    input  wire          preset_n,
 
     input  wire          psel_i,
     input  wire          penable_i,
@@ -37,32 +37,32 @@ module clic_apb #(
     output wire          pready_o,
     output wire          pslverr_o,
 
-    input  wire [N-1:0]  pending_i,
-    output wire [N-1:0]  ie_o,
-    output wire [N*8-1:0] level_o,
+    input  wire [NUM_SRC-1:0]  pending_i,
+    output wire [NUM_SRC-1:0]  ie_o,
+    output wire [NUM_SRC*8-1:0] level_o,
     output wire          swi_o            // CLICSWI[0]: the software interrupt source
 );
 
     localparam [31:0] CLICINFO = {7'd0, 4'd8, 8'd1, 13'd32};
 
     wire wr     = psel_i & penable_i & pwrite_i;
-    wire is_cfg = (paddr_i[11:8] == 4'h1) && (paddr_i[1:0] == 2'b00) && ({26'd0, paddr_i[7:2]} < N);
+    wire is_cfg = (paddr_i[11:8] == 4'h1) && (paddr_i[1:0] == 2'b00) && ({26'd0, paddr_i[7:2]} < NUM_SRC);
     wire hit    = (paddr_i == 12'h000) | (paddr_i == 12'h004) | (paddr_i == 12'h008) |
                   (paddr_i == 12'h00C) | is_cfg;
     wire [4:0] cfg_n = paddr_i[6:2];
 
-    reg [N-1:0]  ie_q;
+    reg [NUM_SRC-1:0]  ie_q;
     reg          swi_q;
-    reg [7:0]    lvl_q [0:N-1];
+    reg [7:0]    lvl_q [0:NUM_SRC-1];
 
     integer k;
-    always @(posedge pclk_i or negedge preset_n_i) begin
-        if (!preset_n_i) begin
-            ie_q <= {N{1'b0}};
+    always @(posedge pclk or negedge preset_n) begin
+        if (!preset_n) begin
+            ie_q <= {NUM_SRC{1'b0}};
             swi_q <= 1'b0;
-            for (k = 0; k < N; k = k + 1) lvl_q[k] <= 8'd0;
+            for (k = 0; k < NUM_SRC; k = k + 1) lvl_q[k] <= 8'd0;
         end else if (wr) begin
-            if (paddr_i == 12'h004) ie_q <= pwdata_i[N-1:0] & IE_MASK[N-1:0];
+            if (paddr_i == 12'h004) ie_q <= pwdata_i[NUM_SRC-1:0] & IE_MASK[NUM_SRC-1:0];
             if (paddr_i == 12'h00C) swi_q <= pwdata_i[0];
             if (is_cfg)             lvl_q[cfg_n] <= pwdata_i[7:0];
         end
@@ -83,7 +83,7 @@ module clic_apb #(
     assign ie_o  = ie_q;
     assign swi_o = swi_q;
     genvar g;
-    generate for (g = 0; g < N; g = g + 1) begin : g_lvl
+    generate for (g = 0; g < NUM_SRC; g = g + 1) begin : g_lvl
         assign level_o[8*g +: 8] = lvl_q[g];
     end endgenerate
 

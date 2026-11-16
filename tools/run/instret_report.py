@@ -45,8 +45,8 @@ total = sum(by_prog.values())
 def classify(w):
     op, f3, f7 = w & 0x7F, (w >> 12) & 7, w >> 25
     return {0x37: "lui/auipc", 0x17: "lui/auipc", 0x6F: "jal", 0x67: "jalr", 0x63: "branch", 0x03: "load",
-            0x23: "store", 0x13: "alu-imm", 0x0F: "fence", 0x0B: "dsu (custom-0)",
-            0x33: "mul" if f7 == 1 else "alu-reg",
+            0x23: "store", 0x13: "alu_unit-imm", 0x0F: "fence", 0x0B: "dsu (custom-0)",
+            0x33: "mul" if f7 == 1 else "alu_unit-reg",
             0x73: "csr" if f3 else "system (ecall/ebreak/mret/wfi)"}.get(op, "other")
 
 

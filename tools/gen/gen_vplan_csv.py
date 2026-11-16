@@ -217,7 +217,7 @@ def build(list_unchecked):
     for mode, det in [
         ("basic", "boot path, ILOCK, precise bus faults, DMA R-9"),
         ("irq", "DMA completion through the CLIC, machine timer, watchdog warning, WFI and clock gate"),
-        ("wdt", "a real watchdog reset: RSTREASON = WDT, DSRAM survives"),
+        ("watchdog", "a real watchdog reset: RSTREASON = WDT, DSRAM survives"),
         ("flash", "boot_sel = 0: ROM reads the image over SPI, checks CRC-32, sets ILOCK, jumps"),
         ("uart", "three UARTs through the pins"),
         ("periph", "SPI master, I2C, GPIO, PWM, SPI slave through the pins"),

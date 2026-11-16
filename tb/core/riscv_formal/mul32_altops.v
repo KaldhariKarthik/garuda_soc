@@ -5,13 +5,13 @@
 // by its unit bench (tb_mul32) and in simulation against Spike.
 `timescale 1ns/1ps
 module mul32 (
-    input  wire [31:0] rs1,
-    input  wire [31:0] rs2,
-    input  wire [2:0]  funct3,
+    input  wire [31:0] rs1_val,
+    input  wire [31:0] rs2_val,
+    input  wire [2:0]  funct3_fld,
     output wire [31:0] result
 );
-    assign result = (funct3[1:0] == 2'd0) ? ((rs1 + rs2) ^ 32'h5876063e) :   // MUL
-                    (funct3[1:0] == 2'd1) ? ((rs1 + rs2) ^ 32'hf6583fb7) :   // MULH
-                    (funct3[1:0] == 2'd2) ? ((rs1 - rs2) ^ 32'hecfbe137) :   // MULHSU
-                                            ((rs1 + rs2) ^ 32'h949ce5e8);    // MULHU
+    assign result = (funct3_fld[1:0] == 2'd0) ? ((rs1_val + rs2_val) ^ 32'h5876063e) :   // MUL
+                    (funct3_fld[1:0] == 2'd1) ? ((rs1_val + rs2_val) ^ 32'hf6583fb7) :   // MULH
+                    (funct3_fld[1:0] == 2'd2) ? ((rs1_val - rs2_val) ^ 32'hecfbe137) :   // MULHSU
+                                            ((rs1_val + rs2_val) ^ 32'h949ce5e8);    // MULHU
 endmodule

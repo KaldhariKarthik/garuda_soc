@@ -95,8 +95,8 @@ module hdl_top;
 
   garuda_spim_top DUT
   (
-       .pclk_i(apb_intf.pclk),
-       .preset_n_i(apb_intf.preset_n),
+       .pclk(apb_intf.pclk),
+       .preset_n(apb_intf.preset_n),
        .psel_i(apb_intf.pselx[0]),
        .penable_i(apb_intf.penable),
        .pwrite_i(apb_intf.pwrite),
@@ -117,8 +117,8 @@ module hdl_top;
        .spim_cs_imu_n_o(cs_imu_n)
   );
 
-  bind spi_master_fifo fifo_assertions MAS_FIFO_ASSERT ( .clk_i(clk_i        ),
-                                                        .rst_ni(rst_ni      ),
+  bind spi_master_fifo fifo_assertions MAS_FIFO_ASSERT ( .clk_i(pclk        ),
+                                                        .rst_ni(preset_n      ),
                                                         .clr_i(clr_i        ),
                                                         .elements_o(elements_o ),
                                                         .ready_i(ready_i),

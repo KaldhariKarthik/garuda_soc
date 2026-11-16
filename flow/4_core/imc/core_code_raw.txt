@@ -36,7 +36,7 @@ saturation_unit                          100.00% (5/5)        n/a               
 csr_rw_if                                n/a                  n/a                  93.97% (109/116)     n/a                  n/a                  
 mul32_if                                 n/a                  n/a                  99.00% (99/100)      n/a                  n/a                  
 alu_if                                   n/a                  n/a                  100.00% (101/101)    n/a                  n/a                  
-garuda_if_stage_top                      n/a                  n/a                  84.33% (269/319)     n/a                  n/a                  
+if_stage_top                      n/a                  n/a                  84.33% (269/319)     n/a                  n/a                  
 lsu_if                                   n/a                  n/a                  99.05% (104/105)     n/a                  n/a                  
 clk_div                                  88.00% (22/25)       n/a                  60.87% (14/23)       n/a                  n/a                  
 load_fmt_if                              n/a                  n/a                  100.00% (70/70)      n/a                  n/a                  
@@ -46,7 +46,7 @@ clk_div_sva                              96.30% (26/27)       56.25% (9/16)     
 mac_unit                                 100.00% (24/24)      n/a                  95.32% (1038/1089)   n/a                  n/a                  
 garuda_pc_gen_sva                        n/a                  n/a                  96.99% (129/133)     n/a                  n/a                  
 reset_ctrl                               97.06% (33/34)       100.00% (3/3)        65.19% (103/158)     n/a                  n/a                  
-garuda_iport_ahb_master                  100.00% (19/19)      100.00% (9/9)        82.26% (255/310)     n/a                  n/a                  
+iport_master                  100.00% (19/19)      100.00% (9/9)        82.26% (255/310)     n/a                  n/a                  
 operand_router                           100.00% (5/5)        n/a                  98.77% (161/163)     n/a                  n/a                  
 reset_ctrl_apb                           94.74% (18/19)       90.00% (9/10)        54.95% (61/111)      n/a                  n/a                  
 reset_ctrl_sva                           100.00% (10/10)      n/a                  69.39% (34/49)       n/a                  n/a                  
@@ -57,7 +57,7 @@ garuda_spim_top                          100.00% (5/5)        100.00% (3/3)     
 mult_16x16_sva                           100.00% (2/2)        n/a                  100.00% (64/64)      n/a                  n/a                  
 csa_3to2                                 n/a                  n/a                  99.18% (243/245)     n/a                  n/a                  
 garuda_apb_shim                          93.55% (29/31)       92.31% (12/13)       96.39% (187/194)     n/a                  n/a                  
-garuda_prefetch_buffer                   100.00% (15/15)      n/a                  97.30% (144/148)     n/a                  n/a                  
+prefetch_buf                   100.00% (15/15)      n/a                  97.30% (144/148)     n/a                  n/a                  
 kogge_stone_49                           n/a                  n/a                  98.65% (146/148)     n/a                  n/a                  
 garuda_prefetch_buffer_sva               100.00% (11/11)      100.00% (6/6)        97.22% (140/144)     n/a                  n/a                  
 garuda_apb_shim_sva                      n/a                  100.00% (3/3)        91.89% (68/74)       n/a                  n/a                  
@@ -71,15 +71,15 @@ apb_spi_master                           34.88% (15/43)       10.00% (2/20)     
 barrel_shifter                           n/a                  n/a                  100.00% (279/279)    n/a                  n/a                  
 decode_control                           96.92% (63/65)       100.00% (20/20)      100.00% (117/117)    n/a                  n/a                  
 readback_mux                             n/a                  n/a                  100.00% (114/114)    n/a                  n/a                  
-spi_master_apb_if                        91.30% (21/23)       100.00% (4/4)        47.47% (169/356)     n/a                  n/a                  
+spim_apb_if                        91.30% (21/23)       100.00% (4/4)        47.47% (169/356)     n/a                  n/a                  
 spi_master_fifo                          93.10% (27/29)       73.68% (14/19)       87.78% (79/90)       n/a                  n/a                  
 decode_control_sva                       100.00% (3/3)        n/a                  100.00% (96/96)      n/a                  n/a                  
 result_selector                          100.00% (5/5)        n/a                  100.00% (130/130)    n/a                  n/a                  
-spi_master_controller                    49.37% (39/79)       35.29% (6/17)        27.50% (88/320)      43.75%               35.71% (10/28)       
+spim_ctrl                    49.37% (39/79)       35.29% (6/17)        27.50% (88/320)      43.75%               35.71% (10/28)       
 imm_gen                                  100.00% (8/8)        n/a                  86.69% (280/323)     n/a                  n/a                  
 overflow_flag                            100.00% (7/7)        n/a                  100.00% (9/9)        n/a                  n/a                  
 regfile                                  100.00% (3/3)        100.00% (11/11)      100.00% (178/178)    n/a                  n/a                  
-spi_master_clkgen                        100.00% (13/13)      100.00% (3/3)        26.53% (13/49)       n/a                  n/a                  
+spim_clkgen                        100.00% (13/13)      100.00% (3/3)        26.53% (13/49)       n/a                  n/a                  
 dsu_stall                                100.00% (7/7)        n/a                  100.00% (25/25)      n/a                  n/a                  
 regfile_sva                              100.00% (5/5)        100.00% (3/3)        91.72% (133/145)     n/a                  n/a                  
 spi_master_tx                            86.36% (19/22)       83.33% (5/6)         42.71% (82/192)      100.00%              100.00% (4/4)        
@@ -90,12 +90,12 @@ branch_predict                           n/a                  n/a               
 garuda_spim_sva                          n/a                  n/a                  75.93% (82/108)      n/a                  n/a                  
 dsu_cov                                  100.00% (30/30)      n/a                  95.81% (297/310)     n/a                  n/a                  
 branch_predict_sva                       100.00% (3/3)        n/a                  96.27% (129/134)     n/a                  n/a                  
-hazard_forward_unit                      n/a                  n/a                  100.00% (17/17)      n/a                  n/a                  
+hazard_fwd_unit                      n/a                  n/a                  100.00% (17/17)      n/a                  n/a                  
 dsu_cov_vplan                            100.00% (49/49)      100.00% (9/9)        99.65% (285/286)     n/a                  n/a                  
 garuda_i2c_top                           89.47% (51/57)       n/a                  61.54% (184/299)     n/a                  n/a                  
-i2c_master_byte_ctrl                     83.93% (47/56)       n/a                  61.04% (47/77)       78.03%               76.47% (13/17)       
+i2c_byte_ctrl                     83.93% (47/56)       n/a                  61.04% (47/77)       78.03%               76.47% (13/17)       
 hazard_forward_unit_sva                  100.00% (2/2)        n/a                  100.00% (17/17)      n/a                  n/a                  
-i2c_master_bit_ctrl                      96.15% (75/78)       50.00% (2/4)         58.65% (61/104)      100.00%              100.00% (39/39)      
+i2c_bit_ctrl                      96.15% (75/78)       50.00% (2/4)         58.65% (61/104)      100.00%              100.00% (39/39)      
 id_ex                                    100.00% (7/7)        n/a                  99.36% (469/472)     n/a                  n/a                  
 garuda_i2c_sva                           100.00% (20/20)      77.78% (7/9)         34.48% (40/116)      n/a                  n/a                  
 id_ex_sva                                n/a                  n/a                  97.73% (172/176)     n/a                  n/a                  
@@ -104,7 +104,7 @@ forward_unit_sva                         75.00% (3/4)         100.00% (8/8)     
 garuda_uart_top                          100.00% (10/10)      n/a                  73.79% (152/206)     n/a                  n/a                  
 ex_stage                                 100.00% (8/8)        n/a                  99.58% (952/956)     n/a                  n/a                  
 apb_uart_sv                              89.29% (25/28)       100.00% (8/8)        64.15% (102/159)     n/a                  n/a                  
-alu                                      100.00% (13/13)      n/a                  100.00% (105/105)    n/a                  n/a                  
+alu_unit                                      100.00% (13/13)      n/a                  100.00% (105/105)    n/a                  n/a                  
 uart_rx                                  72.73% (56/77)       100.00% (6/6)        55.43% (51/92)       58.33%               57.14% (8/14)        
 mul32                                    n/a                  n/a                  100.00% (233/233)    n/a                  n/a                  
 branch_unit                              100.00% (8/8)        n/a                  98.15% (266/271)     n/a                  n/a                  
@@ -130,7 +130,7 @@ ex_mem_sva                               n/a                  n/a               
 mem_stage                                n/a                  n/a                  96.31% (392/407)     n/a                  n/a                  
 load_store_unit                          100.00% (4/4)        n/a                  99.07% (106/107)     n/a                  n/a                  
 load_store_unit_sva                      100.00% (3/3)        n/a                  99.06% (105/106)     n/a                  n/a                  
-d_port_ahb_master                        92.31% (12/13)       100.00% (6/6)        97.30% (144/148)     100.00%              100.00% (4/4)        
+dport_master                        92.31% (12/13)       100.00% (6/6)        97.30% (144/148)     100.00%              100.00% (4/4)        
 d_port_sva                               n/a                  n/a                  97.93% (142/145)     n/a                  n/a                  
 load_formatter                           100.00% (14/14)      n/a                  100.00% (96/96)      n/a                  n/a                  
 mem_wb_reg                               100.00% (5/5)        n/a                  100.00% (81/81)      n/a                  n/a                  
@@ -157,7 +157,7 @@ ahb_lite_checker                         41.72% (63/151)      55.88% (19/34)    
 debug_module                             55.06% (49/89)       48.15% (13/27)       22.04% (147/667)     n/a                  n/a                  
 debug_top                                n/a                  n/a                  30.91% (140/453)     n/a                  n/a                  
 jtag_tap                                 88.89% (32/36)       n/a                  63.33% (19/30)       62.50%               59.52% (25/42)       
-dtm                                      65.71% (23/35)       52.94% (9/17)        45.23% (90/199)      n/a                  n/a                  
+debug_dtm                                      65.71% (23/35)       52.94% (9/17)        45.23% (90/199)      n/a                  n/a                  
 dmi_cdc                                  100.00% (15/15)      n/a                  100.00% (17/17)      n/a                  n/a                  
 sba_master                               80.00% (12/15)       n/a                  48.36% (118/244)     100.00%              100.00% (6/6)        
 debug_sva                                n/a                  n/a                  59.64% (133/223)     n/a                  n/a                  
@@ -173,7 +173,7 @@ ahb_interconnect                         n/a                  n/a               
 ahb_arbiter                              100.00% (13/13)      100.00% (3/3)        90.32% (28/31)       n/a                  n/a                  
 ahb_master_mux                           100.00% (13/13)      100.00% (3/3)        50.52% (194/384)     n/a                  n/a                  
 ahb_decoder                              100.00% (6/6)        n/a                  67.57% (25/37)       n/a                  n/a                  
-ahb_default_slave                        92.31% (12/13)       n/a                  25.58% (11/43)       87.50%               85.71% (6/7)         
+ahb_dflt_slave                        92.31% (12/13)       n/a                  25.58% (11/43)       87.50%               85.71% (6/7)         
 ahb_slave_mux                            100.00% (21/21)      n/a                  84.40% (184/218)     n/a                  n/a                  
 ahb_master_port                          100.00% (7/7)        100.00% (3/3)        99.11% (111/112)     n/a                  n/a                  
 ahb_interconnect_sva                     100.00% (10/10)      100.00% (3/3)        56.39% (300/532)     n/a                  n/a                  
@@ -197,7 +197,7 @@ clic_sva                                 66.67% (2/3)         n/a               
 timers_top                               n/a                  n/a                  68.39% (264/386)     n/a                  n/a                  
 timers_apb                               100.00% (23/23)      n/a                  68.97% (340/493)     n/a                  n/a                  
 mtime                                    88.24% (15/17)       n/a                  60.98% (200/328)     n/a                  n/a                  
-wdt                                      100.00% (28/28)      100.00% (3/3)        59.33% (159/268)     n/a                  n/a                  
+watchdog                                      100.00% (28/28)      100.00% (3/3)        59.33% (159/268)     n/a                  n/a                  
 timers_sva                               n/a                  n/a                  65.46% (235/359)     n/a                  n/a                  
 chip_sva                                 n/a                  n/a                  80.87% (93/115)      n/a                  n/a                  
 chip_cov                                 100.00% (2/2)        n/a                  66.17% (88/133)      n/a                  n/a                  

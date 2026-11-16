@@ -27,7 +27,7 @@ module tb_dsu_decoder_spec;
                      .sat_op(sat_op), .shift_op(shift_op), .shift_amt(shift_amt), .shift_dir(shift_dir),
                      .shift_acc_sel(shift_acc_sel), .rd_lo_op(rd_lo_op), .rd_hi_op(rd_hi_op),
                      .result_src(result_src), .writes_regfile(writes_regfile), .rd_addr(rd_addr),
-                     .illegal_instr(illegal), .funct5(funct5), .funct3(funct3), .is_custom0(is_custom0));
+                     .illegal_instr(illegal), .funct5_fld(funct5), .funct3_fld(funct3), .is_custom0(is_custom0));
     int checks = 0, fails = 0, rsvd_cases = 0;
     task automatic chk(input [31:0] i, input bit en);
         bit c0 = i[6:0] == 7'b0001011, rt = c0 && i[14:12] == 3'b000, it = c0 && i[14:12] == 3'b001;

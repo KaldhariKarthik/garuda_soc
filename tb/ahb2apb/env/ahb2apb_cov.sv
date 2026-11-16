@@ -118,7 +118,7 @@ module ahb2apb_cov #(
 endmodule
 
 bind ahb2apb_bridge ahb2apb_cov #(.WINDOW_MASK(WINDOW_MASK), .APB_DIV(APB_DIV)) u_apb_cov (
-    .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .pclk_i(pclk_i), .preset_n_i(preset_n_i), .pclk_phase_i(pclk_phase_i),
+    .hclk_i(hclk), .hreset_n_i(hreset_n), .pclk_i(pclk), .preset_n_i(preset_n), .pclk_phase_i(pclk_phase_i),
     .hsel_i(hsel_i), .haddr_i(haddr_i), .htrans_i(htrans_i), .hwrite_i(hwrite_i), .hsize_i(hsize_i),
     .hready_i(hready_i), .hreadyout_o(hreadyout_o), .hresp_o(hresp_o),
     .psel_o(psel_o), .penable_o(penable_o), .pready_i(pready_i), .pslverr_i(pslverr_i));

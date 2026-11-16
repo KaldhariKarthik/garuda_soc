@@ -1,4 +1,4 @@
-top: garuda_prefetch_buffer
+top: prefetch_buf
 children: 
 script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh prefetch)
 proved: 4/4

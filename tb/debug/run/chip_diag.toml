@@ -7,7 +7,7 @@
 # rtl/debug/debug_top.v and the two RDC-1 nets in rtl/soc/garuda_soc_top.v).
 # tb/soc/tb_chip.sv is Karthik's bench; run here as the integration evidence for
 # the debug change. Known bench issues are classified, not hidden:
-#   TB-30  no reset falling edge in 2-state: RSTREASON reads 0 (basic, wdt, flash)
+#   TB-30  no reset falling edge in 2-state: RSTREASON reads 0 (basic, watchdog, flash)
 #          (timers a_mtimecmp_reset at 51 ns, TB-38: fixed on main by TB-B1, 2026-10-15)
 #   TB-37  2-state image sizing: jtag streams 64 KB, so it needs a 60 ms budget
 # Run: make -f flow/mk/track_a_run.mk debug_chip_diag
@@ -78,7 +78,7 @@ known = [
 ]
 [[test]]
 name = "t_chip_wdt"
-plusargs = ["+MODE=wdt", "+TEST=sw/build/t_chip_wdt.hex"]
+plusargs = ["+MODE=watchdog", "+TEST=sw/build/t_chip_wdt.hex"]
 [[test]]
 name = "t_chip_flash"
 plusargs = ["+MODE=flash", "+TEST=sw/build/flash.hex", "+MAXUS=3000"]

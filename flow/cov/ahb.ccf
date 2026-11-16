@@ -3,7 +3,7 @@
 // Covergroups (functional coverage) are collected everywhere by -coverage all.
 select_coverage -all -module ahb_arbiter
 select_coverage -all -module ahb_decoder
-select_coverage -all -module ahb_default_slave
+select_coverage -all -module ahb_dflt_slave
 select_coverage -all -module ahb_interconnect
 select_coverage -all -module ahb_master_mux
 select_coverage -all -module ahb_master_port

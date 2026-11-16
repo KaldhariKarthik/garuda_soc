@@ -28,8 +28,8 @@
 // =============================================================================
 
 module garuda_spis_core (
-    input  wire       pclk_i,
-    input  wire       preset_n_i,
+    input  wire       pclk,
+    input  wire       preset_n,
 
     input  wire       en_i,            // CTRL.EN
 
@@ -52,8 +52,8 @@ module garuda_spis_core (
 
     // ---- edge detection on the synchronised inputs ---------------------------
     reg sclk_q, cs_n_q;
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i) begin sclk_q <= 1'b0; cs_n_q <= 1'b1; end
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n) begin sclk_q <= 1'b0; cs_n_q <= 1'b1; end
         else             begin sclk_q <= sclk_s_i; cs_n_q <= cs_n_s_i; end
 
     wire sclk_rise = ~sclk_q &  sclk_s_i;
@@ -69,15 +69,15 @@ module garuda_spis_core (
     wire cs_fall_now = cs_n_q & ~cs_n_s_i & en_i;
     reg  open_q;
 
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i)             open_q <= 1'b0;
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n)             open_q <= 1'b0;
         else if (cs_n_s_i || !en_i)  open_q <= 1'b0;
         else if (cs_fall_now)        open_q <= 1'b1;
 
     assign cs_active_o = ~cs_n_s_i & en_i & (open_q | cs_fall_now);
 
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i) begin cs_fall_o <= 1'b0; cs_rise_o <= 1'b0; end
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n) begin cs_fall_o <= 1'b0; cs_rise_o <= 1'b0; end
         else begin
             cs_fall_o <=  cs_fall_now;
             cs_rise_o <= ~cs_n_q &  cs_n_s_i & en_i & open_q;   // only a packet that was opened can end
@@ -89,8 +89,8 @@ module garuda_spis_core (
     reg [7:0] rx_sh;
     reg [2:0] bitcnt;
 
-    always @(posedge pclk_i or negedge preset_n_i) begin
-        if (!preset_n_i) begin
+    always @(posedge pclk or negedge preset_n) begin
+        if (!preset_n) begin
             rx_sh     <= 8'd0;
             bitcnt    <= 3'd0;
             rx_byte_o <= 8'd0;
@@ -121,8 +121,8 @@ module garuda_spis_core (
     // falling edge, so the bit is stable across the master's sampling edge.
     reg [7:0] tx_sh;
 
-    always @(posedge pclk_i or negedge preset_n_i) begin
-        if (!preset_n_i) begin
+    always @(posedge pclk or negedge preset_n) begin
+        if (!preset_n) begin
             tx_sh <= 8'd0;
         end else if (cs_fall_o) begin
             tx_sh <= txdata_i;                       // new packet: first byte

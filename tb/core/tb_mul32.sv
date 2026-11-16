@@ -335,9 +335,9 @@ module tb_top;
     mul32_if vif(clk);
 
     mul32 dut (
-        .rs1    (vif.rs1),
-        .rs2    (vif.rs2),
-        .funct3 (vif.funct3),
+        .rs1_val    (vif.rs1),
+        .rs2_val    (vif.rs2),
+        .funct3_fld (vif.funct3),
         .result (vif.result)
     );
 

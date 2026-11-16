@@ -28,8 +28,8 @@
 // =============================================================================
 
 module dma_chan (
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
 
     // ---- register writes (one-hclk strobes) ----------------------------------
     input  wire        wr_cr_i,
@@ -90,8 +90,8 @@ module dma_chan (
     // hardware-owned EN clear: completion or error ([N-7.3], [N-7.13])
     wire hw_clr_en = (done && last) || err;
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             en_q <= 1'b0; mode_q <= M_P2M; sinc_q <= 1'b0; dinc_q <= 1'b0;
             size_q <= 2'd2; iec_q <= 1'b0; iee_q <= 1'b0;
             sar_q <= 32'd0; dar_q <= 32'd0; cnt_q <= 16'd0; rem_q <= 16'd0;

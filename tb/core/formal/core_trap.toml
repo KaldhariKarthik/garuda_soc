@@ -100,7 +100,7 @@ name    = "buse_no_fix"
 mode    = "bmc"
 depth   = 20
 engine  = "smtbmc yices"
-replace = { "rtl/core/garuda_iport_ahb_master.v" = "tb/core/formal/mutants/garuda_iport_ahb_master_no_buse.v" }
+replace = { "rtl/core/iport_master.v" = "tb/core/formal/mutants/garuda_iport_ahb_master_no_buse.v" }
 
 # CORE-4 (mgarudactl) negative controls: each knob ignored must break its property
 [[task]]
@@ -114,7 +114,7 @@ name    = "ctl_no_pfdis"
 mode    = "bmc"
 depth   = 16
 engine  = "smtbmc yices"
-replace = { "rtl/core/garuda_iport_ahb_master.v" = "tb/core/formal/mutants/garuda_iport_ahb_master_no_pfdis.v" }
+replace = { "rtl/core/iport_master.v" = "tb/core/formal/mutants/garuda_iport_ahb_master_no_pfdis.v" }
 [[task]]
 name    = "ctl_no_preempt"
 mode    = "bmc"

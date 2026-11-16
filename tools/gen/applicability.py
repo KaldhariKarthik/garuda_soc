@@ -93,7 +93,7 @@ ENV_OF = {"clic_top": "tb/clic/uvm/clic_env_pkg.sv", "timers_top": "tb/timers/uv
           "garuda_uart_top": "tb/uart/uvm/uart_env_pkg.sv"}
 # modules measured through their parent's environment
 CHILD_OF = {"clic_apb": "clic_top", "clic_select": "clic_top", "mtime": "timers_top", "timers_apb": "timers_top",
-            "wdt": "timers_top", "reset_ctrl_apb": "reset_ctrl", "garuda_pwm_core": "garuda_pwm_top",
+            "watchdog": "timers_top", "reset_ctrl_apb": "reset_ctrl", "garuda_pwm_core": "garuda_pwm_top",
             "garuda_spis_core": "garuda_spis_top",
             "ahb2apb_apb_fsm": "ahb2apb_bridge", "ahb2apb_fabric": "ahb2apb_bridge",
             # the memories: the checkers are bound to the shared front end inside each top
@@ -108,11 +108,11 @@ CHILD_OF = {"clic_apb": "clic_top", "clic_select": "clic_top", "mtime": "timers_
             "csr_file": "garuda_core_top", "clic_ctrl": "garuda_core_top", "core_clk_gate": "garuda_core_top",
             "regfile": "garuda_core_top", "wb_stage": "garuda_core_top",
             # the bus fabric, the DMA and debug: checker and covergroup bound at the block top
-            "ahb_arbiter": "ahb_interconnect", "ahb_decoder": "ahb_interconnect", "ahb_default_slave": "ahb_interconnect",
+            "ahb_arbiter": "ahb_interconnect", "ahb_decoder": "ahb_interconnect", "ahb_dflt_slave": "ahb_interconnect",
             "ahb_master_port": "ahb_interconnect", "ahb_slave_mux": "ahb_interconnect", "ahb_master_mux": "ahb_interconnect",
             "dma_apb_slave": "dma_top", "dma_arbiter": "dma_top", "dma_chan": "dma_top", "dma_engine": "dma_top",
             "garuda_soc_top": "garuda_chip_core",     # its interrupt map is checked by chip_sva
-            "debug_module": "debug_top", "dmi_cdc": "debug_top", "dtm": "debug_top", "jtag_tap": "debug_top", "sba_master": "debug_top"}
+            "debug_module": "debug_top", "dmi_cdc": "debug_top", "debug_dtm": "debug_top", "jtag_tap": "debug_top", "sba_master": "debug_top"}
 
 def formal_facts():
     d = {}
@@ -159,7 +159,7 @@ FORMAL_N = {
  "csa_3to2": SERIAL, "barrel_shifter": None,
  "dsram_top": "four 4096-word banks: the shared front end and the array are proved on a 16-word harness (flow/formal/mem); the bank selection is checked end to end by a_data_integrity in simulation",
  "regfile": ARRAY,
- "imm_gen": SERIAL, "load_formatter": SERIAL, "alu": SERIAL, "saturation_unit": SERIAL,
+ "imm_gen": SERIAL, "load_formatter": SERIAL, "alu_unit": SERIAL, "saturation_unit": SERIAL,
  "overflow_flag": SERIAL, "result_selector": SERIAL, "readback_mux": SERIAL, "operand_router": SERIAL,
  "garuda_chip_top": TOPW, "garuda_soc_top": TOPW, "ahb_master_mux": TOPW, "ahb2apb_fabric": TOPW,
  "if_id": P, "id_ex": P, "ex_mem": P, "mem_wb_reg": P,

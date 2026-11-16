@@ -11,9 +11,9 @@
 //
 // Contents:
 //   * MUX_A / MUX_B operand forwarding (Section 11.1) + pc/imm substitution
-//   * alu, mul32, branch_unit, csr_rw, dsu_top instances
+//   * alu_unit, mul32, branch_unit, csr_rw, dsu_top instances
 //   * EX result mux, priority per Section 8.3 (erratum 6.3-E1 resolved):
-//         csr_rdata (csr_en)  >  dsu_rd_data (dsu_rd_valid)  >  mul  >  alu/link
+//         csr_rdata (csr_en)  >  dsu_rd_data (dsu_rd_valid)  >  mul  >  alu_unit/link
 //   * PC+4 link path for JAL/JALR (see INFERENCE NOTE 1)
 //   * Load/store misalignment check, pre-address-phase (Section 10.2)
 //
@@ -69,8 +69,8 @@
 `include "core_ex_defs.vh"
 
 module ex_stage (
-    input  wire        clk,
-    input  wire        rst_n,
+    input  wire        gclk,
+    input  wire        core_rst_n,
 
     //------------------------------------------------------------------
     // id_ex payload (Section 5.2 field list)
@@ -81,7 +81,7 @@ module ex_stage (
     input  wire [31:0] rs2_data,
     input  wire [31:0] imm,
     input  wire [4:0]  rd,
-    input  wire [2:0]  funct3,
+    input  wire [2:0]  funct3_fld,
 
     //------------------------------------------------------------------
     // id_ex ctrl bundle
@@ -93,7 +93,7 @@ module ex_stage (
     input  wire        alu_src,         // 1: op_b = imm
     input  wire        pc_op_a,         // 1: op_a = pc (AUIPC)
     input  wire [3:0]  alu_op,
-    input  wire        branch,
+    input  wire        is_branch,
     input  wire        jal,
     input  wire        jalr,
     input  wire        predicted_taken, // rides in ctrl (INFERENCE, branch_unit.v)
@@ -163,9 +163,9 @@ module ex_stage (
     output wire        dsu_busy,          // raw -- see integration constraint 1
     output wire        dsu_overflow,      // sticky, read via dsu_ovf CSR
     output wire        dsu_ovf_pending,   // DSU-14: the flag may still change this cycle
-    output wire [47:0] dbg_acc_0,         // straight to dbg_acc_0_o
-    output wire [47:0] dbg_acc_1,
-    output wire [47:0] dbg_acc_2
+    output wire [47:0] dbg_acc_fx,         // straight to dbg_acc_0_o
+    output wire [47:0] dbg_acc_fy,
+    output wire [47:0] dbg_acc_mag
 );
 
     //==================================================================
@@ -200,8 +200,8 @@ module ex_stage (
     // (Section 9.5: DSU operands ride the same EX forwarding paths).
     assign store_data = rs2_fwd;
 
-    // Reported on the branch/jump itself, not on the target instruction
-    // (RISC-V priv spec: "reported on the branch or jump that caused the
+    // Reported on the is_branch/jump itself, not on the target instruction
+    // (RISC-V priv spec: "reported on the is_branch or jump that caused the
     // misaligned instruction address"). mtval is the offending target.
     assign rs1_fwd_o = rs1_fwd;
     assign rs2_fwd_o = rs2_fwd;
@@ -211,7 +211,7 @@ module ex_stage (
     //==================================================================
     wire [31:0] alu_result;
 
-    alu u_alu (
+    alu_unit u_alu (
         .op_a   (op_a),
         .op_b   (op_b),
         .alu_op (alu_op),
@@ -224,9 +224,9 @@ module ex_stage (
     wire [31:0] mul_result;
 
     mul32 u_mul32 (
-        .rs1    (rs1_fwd),
-        .rs2    (rs2_fwd),
-        .funct3 (funct3),
+        .rs1_val    (rs1_fwd),
+        .rs2_val    (rs2_fwd),
+        .funct3_fld (funct3_fld),
         .result (mul_result)
     );
 
@@ -236,10 +236,10 @@ module ex_stage (
     branch_unit u_branch (
         .pc              (pc),
         .imm             (imm),
-        .funct3          (funct3),
+        .funct3_fld          (funct3_fld),
         .rs1_fwd         (rs1_fwd),
         .rs2_fwd         (rs2_fwd),
-        .branch          (branch),
+        .is_branch          (is_branch),
         .jal             (jal),
         .jalr            (jalr),
         .predicted_taken (predicted_taken),
@@ -273,13 +273,13 @@ module ex_stage (
     wire [4:0]  dsu_rd_addr;
 
     dsu_top u_dsu (
-        .clk                (clk),
-        .rst_n              (rst_n),
+        .gclk                (gclk),
+        .core_rst_n              (core_rst_n),
         .flush              (ex_squash),     // EX squash ONLY -- see NOTE 0
         .dsu_en             (dsu_en),
         .instr              (instr),
-        .rs1                (rs1_fwd),       // post-forwarding (Section 9.5)
-        .rs2                (rs2_fwd),
+        .rs1_val                (rs1_fwd),       // post-forwarding (Section 9.5)
+        .rs2_val                (rs2_fwd),
         .csr_clear_overflow (csr_clear_overflow),
         .dsu_busy           (dsu_busy),
         .dsu_rd_data        (dsu_rd_data),
@@ -288,9 +288,9 @@ module ex_stage (
         .dsu_overflow       (dsu_overflow),
         .ovf_pending        (dsu_ovf_pending),
         .illegal_instr      (dsu_illegal_instr),
-        .dbg_acc_0          (dbg_acc_0),
-        .dbg_acc_1          (dbg_acc_1),
-        .dbg_acc_2          (dbg_acc_2)
+        .dbg_acc_fx          (dbg_acc_fx),
+        .dbg_acc_fy          (dbg_acc_fy),
+        .dbg_acc_mag          (dbg_acc_mag)
     );
 
     //==================================================================
@@ -329,10 +329,10 @@ module ex_stage (
     // D-port address phase can commit; a misaligned access never issues.
     // ex_result carries the faulting address for mtval (Section 14.2).
     //
-    //   funct3[1:0]: 00 byte (never misaligned), 01 half, 10 word.
+    //   funct3_fld[1:0]: 00 byte (never misaligned), 01 half, 10 word.
     //==================================================================
-    wire misaligned = (funct3[1:0] == 2'b01) ?  alu_result[0]
-                    : (funct3[1:0] == 2'b10) ? |alu_result[1:0]
+    wire misaligned = (funct3_fld[1:0] == 2'b01) ?  alu_result[0]
+                    : (funct3_fld[1:0] == 2'b10) ? |alu_result[1:0]
                     :                           1'b0;
 
     assign load_misaligned  = mem_read  & misaligned;

@@ -873,7 +873,7 @@ Stage 6 - SoC Top,1,SECTION,S6,,,,
 Chip tests from the pins (tb_chip),2,SECTION,S6.CHIP,garuda_chip_top with the real boot ROM; AHB checker on all four masters and the shared bus.,,,
 t_chip_basic,3,TC,S6.CHIP.basic,"boot path, ILOCK, precise bus faults, DMA R-9",sw/chip/t_chip_basic.c on tb/soc/filelist_chip.f,,high
 t_chip_irq,3,TC,S6.CHIP.irq,"DMA completion through the CLIC, machine timer, watchdog warning, WFI and clock gate",sw/chip/t_chip_irq.c on tb/soc/filelist_chip.f,,high
-t_chip_wdt,3,TC,S6.CHIP.wdt,"a real watchdog reset: RSTREASON = WDT, DSRAM survives",sw/chip/t_chip_wdt.c on tb/soc/filelist_chip.f,,high
+t_chip_wdt,3,TC,S6.CHIP.watchdog,"a real watchdog reset: RSTREASON = WDT, DSRAM survives",sw/chip/t_chip_wdt.c on tb/soc/filelist_chip.f,,high
 t_chip_flash,3,TC,S6.CHIP.flash,"boot_sel = 0: ROM reads the image over SPI, checks CRC-32, sets ILOCK, jumps",sw/chip/t_chip_flash.c on tb/soc/filelist_chip.f,,high
 t_chip_uart,3,TC,S6.CHIP.uart,three UARTs through the pins,sw/chip/t_chip_uart.c on tb/soc/filelist_chip.f,,high
 t_chip_periph,3,TC,S6.CHIP.periph,"SPI master, I2C, GPIO, PWM, SPI slave through the pins",sw/chip/t_chip_periph.c on tb/soc/filelist_chip.f,,high

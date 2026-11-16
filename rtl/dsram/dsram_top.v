@@ -16,8 +16,8 @@
 `include "mem_defs.vh"
 
 module dsram_top (
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
 
     input  wire        hsel_i,
     input  wire [31:0] haddr_i,
@@ -33,18 +33,18 @@ module dsram_top (
     output wire        hresp_o
 );
 
-    localparam integer AW  = 14;            // 16,384 words total
-    localparam integer BAW = 12;            // 4,096 words per bank
+    localparam integer ADDR_W  = 14;            // 16,384 words total
+    localparam integer BANK_ADDR_W = 12;            // 4,096 words per bank
 
     wire          ce, we;
-    wire [AW-1:0] addr;
+    wire [ADDR_W-1:0] addr;
     wire [3:0]    be;
     wire [31:0]   wdata;
     wire [31:0]   rdata [0:3];
     reg  [1:0]    rd_bank_q;
 
-    ahb_mem_slave_if #(.AW(AW), .WRITABLE(1)) u_if (
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i),
+    ahb_mem_slave_if #(.ADDR_W(ADDR_W), .WRITABLE(1)) u_if (
+        .hclk(hclk), .hreset_n(hreset_n),
         .hsel_i(hsel_i), .haddr_i(haddr_i), .htrans_i(htrans_i),
         .hwrite_i(hwrite_i), .hsize_i(hsize_i), .hwdata_i(hwdata_i),
         .hready_i(hready_i), .hrdata_o(hrdata_o), .hreadyout_o(hreadyout_o),
@@ -53,17 +53,17 @@ module dsram_top (
         .arr_ce_o(ce), .arr_addr_o(addr), .arr_we_o(we), .arr_be_o(be),
         .arr_wdata_o(wdata), .arr_rdata_i(rdata[rd_bank_q]));
 
-    wire [1:0] bank = addr[AW-1:BAW];
+    wire [1:0] bank = addr[ADDR_W-1:BANK_ADDR_W];
 
     // bank of the most recent read; its data is what arrives next cycle
-    always @(posedge hclk_i or negedge hreset_n_i)
-        if (!hreset_n_i)     rd_bank_q <= 2'd0;
+    always @(posedge hclk or negedge hreset_n)
+        if (!hreset_n)     rd_bank_q <= 2'd0;
         else if (ce && !we)  rd_bank_q <= bank;
 
     genvar b;
     generate for (b = 0; b < 4; b = b + 1) begin : g_bank
-        sram_wrapper #(.WORDS(`MEM_DSRAM_BANK_WORDS), .AW(BAW)) u_array (
-            .clk(hclk_i), .ce(ce && bank == b), .addr(addr[BAW-1:0]),
+        sram_wrapper #(.WORDS(`MEM_DSRAM_BANK_WORDS), .ADDR_W(BANK_ADDR_W)) u_array (
+            .hclk(hclk), .ce(ce && bank == b), .addr(addr[BANK_ADDR_W-1:0]),
             .wdata(wdata), .rdata(rdata[b]), .we(we), .be(be));
     end endgenerate
 

@@ -1,6 +1,6 @@
 // =============================================================================
 // tb_garuda_if_stage_top.sv -- SV integration TB for
-//                              rtl/core/garuda_if_stage_top.v
+//                              rtl/core/if_stage_top.v
 //                              (pc_gen + I-port master + prefetch buffer)
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 6 (instruction fetch and prefetch
@@ -8,7 +8,7 @@
 // Plan: C14 (buffer fill/drain, full backpressure, empty fetch bubble),
 //       C15 (whole-buffer flush on redirect; no stale instruction issued),
 //       C12/C13 (I-port ERROR tagged, and dropped when flushed).
-// Coverage note: Docs/COVERAGE.md Category C names garuda_if_stage_top at
+// Coverage note: Docs/COVERAGE.md Category C names if_stage_top at
 //       58.36%, with "buffer full, redirect with 2 fetches in flight,
 //       back-to-back redirects" as the outstanding corners. There is a
 //       section below for each of the three, and the covergroup bins them.
@@ -103,9 +103,9 @@ module tb_top;
 
     if_top_if vif(clk, rst_n);
 
-    garuda_if_stage_top dut (
-        .clk_i         (clk),
-        .rst_n_i       (rst_n),
+    if_stage_top dut (
+        .gclk         (clk),
+        .core_rst_n       (rst_n),
         .fetch_stop_i  (1'b0),          // RDC-1 halt drain: not exercised here
         .pf_dis_i      (1'b0),          // CORE-4 (mgarudactl): full prefetch
         .i_haddr_o     (vif.i_haddr),

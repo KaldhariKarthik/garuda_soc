@@ -28,7 +28,7 @@ module tb_apb_units;
     logic req = 0; logic [3:0] win = 0; logic [11:0] addr = 0; logic wr = 0; logic [31:0] wd = 0;
     logic [31:0] prd = 0; logic prdy = 0, perr = 0;
     wire ack, err; wire [31:0] rdata; wire [11:0] psel; wire pen, pwr; wire [11:0] paddr; wire [31:0] pwd;
-    ahb2apb_apb_fsm #(.APB_DIV(DIV), .TIMEOUT(16)) u_fsm (.pclk_i(clk), .preset_n_i(rst_n), .req_tgl_i(req),
+    ahb2apb_apb_fsm #(.APB_DIV(DIV), .TIMEOUT(16)) u_fsm (.pclk(clk), .preset_n(rst_n), .req_tgl_i(req),
         .win_i(win), .addr_i(addr), .write_i(wr), .wdata_i(wd), .ack_tgl_o(ack), .err_o(err), .rdata_o(rdata),
         .psel_o(psel), .penable_o(pen), .pwrite_o(pwr), .paddr_o(paddr), .pwdata_o(pwd),
         .prdata_sel_i(prd), .pready_sel_i(prdy), .pslverr_sel_i(perr));

@@ -55,8 +55,8 @@
 `include "ahb_defs.vh"
 
 module ahb_slave_mux (
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
 
     // Address-phase one-hot select from the decoder.
     input  wire [`AHB_SEL_W-1:0] hsel_i,
@@ -84,8 +84,8 @@ module ahb_slave_mux (
     // Data-phase select register (Sec. 7.5). Updated on every accepted address
     // phase, i.e. every cycle HREADY is high.
     // -----------------------------------------------------------------------
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i)
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n)
             dph_sel_o <= {`AHB_SEL_W{1'b0}};
         else
             dph_sel_o <= hsel_i;

@@ -1,7 +1,7 @@
 // =============================================================================
 // garuda_cov_ext.sv -- core design-behaviour functional coverage, part 2
 // (Track A plan E8). Bound into garuda_core_top next to garuda_cov.sv, which
-// keeps decode / alu / ldst / hazard / trap / ahb / dsu. This file adds what
+// keeps decode / alu_unit / ldst / hazard / trap / ahb / dsu. This file adds what
 // the core plan's coverage list names and garuda_cov.sv does not model:
 //
 //   cg_pipe      hold / flush per pipeline register (incl. flush-beats-hold),
@@ -244,7 +244,7 @@ endmodule
 
 // Attach to the core without touching the RTL.
 bind garuda_core_top garuda_cov_ext u_cov_ext_a (
-    .clk_i(clk_i), .rst_n_i(core_rst_n_i),
+    .clk_i(hclk), .rst_n_i(core_rst_n),
     // the HOLD requests, not pipe_ctrl's stall outputs: a stall output is hold & ~flush,
     // so with it the hold_flush bins could never be hit (TB-B5, 2026-11-15)
     .ifid_s(u_pipe.hold_pc_ifid), .ifid_f(pc_ifid_f), .idex_s(u_pipe.hold_id_ex), .idex_f(pc_idex_f),

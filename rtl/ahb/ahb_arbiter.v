@@ -45,7 +45,7 @@
 //
 // Keeping the bus pinned to whichever master owns the data phase for as long as
 // it is still requesting makes the hand-off trivially safe, and it starves the
-// DMA. garuda_iport_ahb_master sustains one fetch per cycle whenever the
+// DMA. iport_master sustains one fetch per cycle whenever the
 // prefetch buffer is popped every cycle - straight-line code at 1 IPC - so the
 // LOWEST-priority master would hold an unbounded lock on the bus and the DMA
 // would never get a beat. That defeats the entire rationale for fixed priority
@@ -61,7 +61,7 @@
 // 3. BURST CONTINUITY ACROSS A GRANT CHANGE  (ERRATUM AHB-3, Sec. 8.5)
 // -----------------------------------------------------------------------------
 // Sec. 8.5 says an interrupted I-Port INCR burst "resumes later with a fresh
-// NONSEQ". The frozen I-Port RTL does not do that: garuda_iport_ahb_master
+// NONSEQ". The frozen I-Port RTL does not do that: iport_master
 // only re-arms need_nonseq on paths where it drives IDLE. When it is merely
 // held by HREADY=0 it keeps presenting the same SEQ beat, and re-presents it
 // unchanged when re-granted. The slave side would then see
@@ -83,8 +83,8 @@
 `include "ahb_defs.vh"
 
 module ahb_arbiter (
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
 
     // Per-master HTRANS, flattened: htrans_i[2*m +: 2] is master m.
     input  wire [`AHB_NMASTERS*2-1:0] htrans_i,
@@ -136,8 +136,8 @@ module ahb_arbiter (
 
     assign grant_o = hold_r ? grant_r : winner;
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             grant_r <= `AHB_M_IPORT;
             hold_r  <= 1'b0;
         end else begin
@@ -161,8 +161,8 @@ module ahb_arbiter (
     // -----------------------------------------------------------------------
     wire [1:0] granted_htrans = htrans_i[2*grant_o +: 2];
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             dph_valid_o  <= 1'b0;
             dph_master_o <= `AHB_M_IPORT;
         end else if (hready_i) begin
@@ -186,8 +186,8 @@ module ahb_arbiter (
 
     assign seq_break_o = ~last_owner_v || (last_owner_r != grant_o);
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             last_owner_r <= `AHB_M_IPORT;
             last_owner_v <= 1'b0;
         end else if (hready_i && granted_htrans[1]) begin

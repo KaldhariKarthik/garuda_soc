@@ -29,10 +29,10 @@
 // =============================================================================
 
 module dma_apb_slave (
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
-    input  wire        pclk_i,          // APB side (ADR-0002 Rev 2)
-    input  wire        preset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
+    input  wire        pclk,          // APB side (ADR-0002 Rev 2)
+    input  wire        preset_n,
 
     input  wire        psel_i,
     input  wire        penable_i,
@@ -71,8 +71,8 @@ module dma_apb_slave (
     // cycles that phase spans.
     wire acc_wr = psel_i & penable_i & pwrite_i & chan_rgn;
     reg  acc_wr_q;
-    always @(posedge hclk_i or negedge hreset_n_i)
-        if (!hreset_n_i) acc_wr_q <= 1'b0;
+    always @(posedge hclk or negedge hreset_n)
+        if (!hreset_n) acc_wr_q <= 1'b0;
         else             acc_wr_q <= acc_wr;
     wire wstb = acc_wr & ~acc_wr_q;
 
@@ -115,8 +115,8 @@ module dma_apb_slave (
     // Registered on pclk at the setup-to-access edge: stable for the whole
     // access phase, so what leaves for the bridge is a pclk-to-pclk path.
     reg [31:0] prdata_q;
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i)              prdata_q <= 32'd0;
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n)              prdata_q <= 32'd0;
         else if (psel_i & ~penable_i) prdata_q <= rd_mux;
     assign prdata_o = prdata_q;
 

@@ -23,8 +23,8 @@
 // =============================================================================
 
 module mem_stage (
-    input  wire         clk_i,
-    input  wire         rst_n_i,
+    input  wire         gclk,
+    input  wire         core_rst_n,
 
     // -------------------------------------------------------------------
     // From ex_mem pipeline register (Sec. 5.2 field list)
@@ -87,7 +87,7 @@ module mem_stage (
     wire         store_misaligned_w;
     wire [31:0] hwdata_w;
 
-    load_store_unit u_load_store_unit (
+    load_store_unit u_lsu (
         .addr_i               (ex_result_i),
         .funct3_i              (funct3_i),
         .rs2_data_i            (rs2_data_i),
@@ -111,9 +111,9 @@ module mem_stage (
     // -----------------------------------------------------------------------
     wire err_pulse_w;
 
-    d_port_ahb_master u_d_port_ahb_master (
-        .clk_i        (clk_i),
-        .rst_n_i      (rst_n_i),
+    dport_master u_dport_master (
+        .gclk        (gclk),
+        .core_rst_n      (core_rst_n),
 
         .start_i      (start_w),
         .hwrite_i     (mem_write_i),

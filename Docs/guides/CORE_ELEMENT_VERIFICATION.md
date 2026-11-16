@@ -46,7 +46,7 @@ tens of thousands of checks and printing them all makes the log unusable.
 Passes are still counted. Add `+VERBOSE` to print every one:
 
 ```bash
-xrun -64bit -f tb/core/filelist_alu.f -top tb_top +VERBOSE
+xrun -64bit -f tb/core/filelist_alu_unit.f -top tb_top +VERBOSE
 ```
 
 ### Shared scoreboard

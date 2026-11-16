@@ -5,10 +5,10 @@
 // RTL's macros, so a wrong `define, a sign error or a wrong target formula fails.
 //   branch_unit           RV32I conditional branches, JALR target, prediction check
 //   forward_unit          EX/MEM before MEM/WB, never x0, only from a writing stage
-//   hazard_forward_unit   the load-use stall
+//   hazard_fwd_unit   the load-use stall
 //   load_store_unit       sizes, misalignment (no misaligned access, CORE 14.1), byte lanes
 //   garuda_pc_gen         redirect, fetch and commit PCs
-//   garuda_prefetch_buffer  a FIFO: order kept, nothing lost, nothing invented, emptied by a redirect
+//   prefetch_buf  a FIFO: order kept, nothing lost, nothing invented, emptied by a redirect
 // Bound to each unit; they run in every core run and are proved by flow/formal/run_blocks.sh.
 // Not for synthesis, not under Icarus (TOOL-B2).
 // =============================================================================
@@ -93,58 +93,58 @@ module load_store_unit_sva (
 endmodule
 
 module garuda_pc_gen_sva (
-    input wire clk_i, rst_n_i, redirect_i, fetch_issue_i, commit_i,
+    input wire gclk, core_rst_n, redirect_i, fetch_issue_i, commit_i,
     input wire [31:0] redirect_pc_i, commit_pc_i, pc_o, fetch_pc_o
 );
-    a_pc_redirect: assert property (@(posedge clk_i) disable iff (!rst_n_i)
-        (rst_n_i && redirect_i) |=> (pc_o == $past(redirect_pc_i) && fetch_pc_o == $past(redirect_pc_i)) )
+    a_pc_redirect: assert property (@(posedge gclk) disable iff (!core_rst_n)
+        (core_rst_n && redirect_i) |=> (pc_o == $past(redirect_pc_i) && fetch_pc_o == $past(redirect_pc_i)) )
         else $error("[SVA-FAIL] a_pc_redirect: a redirect did not move both PCs");
-    a_pc_fetch_next: assert property (@(posedge clk_i) disable iff (!rst_n_i)
-        (rst_n_i && !redirect_i && fetch_issue_i) |=> fetch_pc_o == $past(fetch_pc_o) + 32'd4 )
+    a_pc_fetch_next: assert property (@(posedge gclk) disable iff (!core_rst_n)
+        (core_rst_n && !redirect_i && fetch_issue_i) |=> fetch_pc_o == $past(fetch_pc_o) + 32'd4 )
         else $error("[SVA-FAIL] a_pc_fetch_next: the fetch PC did not advance by 4");
-    a_pc_fetch_hold: assert property (@(posedge clk_i) disable iff (!rst_n_i)
-        (rst_n_i && !redirect_i && !fetch_issue_i) |=> $stable(fetch_pc_o) )
+    a_pc_fetch_hold: assert property (@(posedge gclk) disable iff (!core_rst_n)
+        (core_rst_n && !redirect_i && !fetch_issue_i) |=> $stable(fetch_pc_o) )
         else $error("[SVA-FAIL] a_pc_fetch_hold: the fetch PC moved without a fetch");
-    a_pc_commit: assert property (@(posedge clk_i) disable iff (!rst_n_i)
-        (rst_n_i && !redirect_i && commit_i) |=> pc_o == $past(commit_pc_i) + 32'd4 )
+    a_pc_commit: assert property (@(posedge gclk) disable iff (!core_rst_n)
+        (core_rst_n && !redirect_i && commit_i) |=> pc_o == $past(commit_pc_i) + 32'd4 )
         else $error("[SVA-FAIL] a_pc_commit: the PC is not the committed one plus 4");
 endmodule
 
 module garuda_prefetch_buffer_sva (
-    input wire clk_i, rst_n_i, redirect_i, wr_en_i, wr_fault_i, rd_en_i,
+    input wire gclk, core_rst_n, redirect_i, wr_en_i, wr_fault_i, rd_en_i,
     input wire [31:0] wr_instr_i, wr_pc_i, instr_o, instr_pc_o,
     input wire instr_fault_o, instr_valid_o, full_o, empty_o, input wire [2:0] occupancy_o
 );
     // the users' contract (assumed in formal): no write into a full buffer, no read from an empty one
-    assume_no_overflow: assume property (@(posedge clk_i) disable iff (!rst_n_i) (full_o && !rd_en_i) |-> !wr_en_i);
-    assume_no_underflow: assume property (@(posedge clk_i) disable iff (!rst_n_i) empty_o |-> !rd_en_i);
+    assume_no_overflow: assume property (@(posedge gclk) disable iff (!core_rst_n) (full_o && !rd_en_i) |-> !wr_en_i);
+    assume_no_underflow: assume property (@(posedge gclk) disable iff (!core_rst_n) empty_o |-> !rd_en_i);
     // a reference queue of four entries
     reg [64:0] q [0:3]; reg [2:0] n;
-    always @(posedge clk_i or negedge rst_n_i)
-        if (!rst_n_i) n <= 3'd0;
+    always @(posedge gclk or negedge core_rst_n)
+        if (!core_rst_n) n <= 3'd0;
         else if (redirect_i) n <= 3'd0;
         else begin
             if (rd_en_i && n != 0) begin q[0] <= q[1]; q[1] <= q[2]; q[2] <= q[3]; end
             if (wr_en_i) q[(rd_en_i && n != 0) ? n - 1 : n] <= {wr_fault_i, wr_pc_i, wr_instr_i};
             n <= n + (wr_en_i ? 3'd1 : 3'd0) - ((rd_en_i && n != 0) ? 3'd1 : 3'd0);
         end
-    a_pfb_count: assert property (@(posedge clk_i) disable iff (!rst_n_i) occupancy_o == n && n <= 3'd4 )
+    a_pfb_count: assert property (@(posedge gclk) disable iff (!core_rst_n) occupancy_o == n && n <= 3'd4 )
         else $error("[SVA-FAIL] a_pfb_count: occupancy %0d, the reference holds %0d", occupancy_o, n);
-    a_pfb_flags: assert property (@(posedge clk_i) disable iff (!rst_n_i) (empty_o == (n == 0)) && (full_o == (n == 4)) && (instr_valid_o == (n != 0)) )
+    a_pfb_flags: assert property (@(posedge gclk) disable iff (!core_rst_n) (empty_o == (n == 0)) && (full_o == (n == 4)) && (instr_valid_o == (n != 0)) )
         else $error("[SVA-FAIL] a_pfb_flags: empty/full/valid disagree with the occupancy");
-    a_pfb_order: assert property (@(posedge clk_i) disable iff (!rst_n_i) (n != 0) |-> {instr_fault_o, instr_pc_o, instr_o} === q[0] )
+    a_pfb_order: assert property (@(posedge gclk) disable iff (!core_rst_n) (n != 0) |-> {instr_fault_o, instr_pc_o, instr_o} === q[0] )
         else $error("[SVA-FAIL] a_pfb_order: head %b %h %h, reference %h, n %0d", instr_fault_o, instr_pc_o, instr_o, q[0], n);
-    a_pfb_redirect_empties: assert property (@(posedge clk_i) disable iff (!rst_n_i) redirect_i |=> empty_o )
+    a_pfb_redirect_empties: assert property (@(posedge gclk) disable iff (!core_rst_n) redirect_i |=> empty_o )
         else $error("[SVA-FAIL] a_pfb_redirect_empties: a redirect left instructions in the buffer");
-    c_pfb_full: cover property (@(posedge clk_i) full_o);
-    c_pfb_wr_rd_full: cover property (@(posedge clk_i) full_o && wr_en_i && rd_en_i);
+    c_pfb_full: cover property (@(posedge gclk) full_o);
+    c_pfb_wr_rd_full: cover property (@(posedge gclk) full_o && wr_en_i && rd_en_i);
 endmodule
 
 bind branch_unit branch_unit_sva u_branch_unit_sva (.*);
 bind forward_unit forward_unit_sva u_forward_unit_sva (.*);
-bind hazard_forward_unit hazard_forward_unit_sva u_hazard_sva (.*);
+bind hazard_fwd_unit hazard_forward_unit_sva u_hazard_sva (.*);
 bind load_store_unit load_store_unit_sva u_lsu_sva (.*);
 bind garuda_pc_gen garuda_pc_gen_sva u_pc_gen_sva (.*);
-bind garuda_prefetch_buffer garuda_prefetch_buffer_sva u_pfb_sva (.*);
+bind prefetch_buf garuda_prefetch_buffer_sva u_pfb_sva (.*);
 `endif
 `endif

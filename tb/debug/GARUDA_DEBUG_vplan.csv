@@ -1,5 +1,5 @@
 NAME,DEPTH,NODE_KIND,element_id,details,implementation_note,owner,priority
-Debug verification plan,0,SECTION,DEBUG,"Block 12: debug_top with jtag_tap, dtm, dmi_cdc, debug_module and sba_master. Source: GARUDA-DEBUG-SPEC-001, RISC-V Debug 0.13, IEEE 1149.1, decision D-18. Feature-level plan written 2026-10-04, before the UVM environment. Sign-off criteria: flow/0_signoff_criteria.md. This block holds the only asynchronous clock boundary in the chip.",,,
+Debug verification plan,0,SECTION,DEBUG,"Block 12: debug_top with jtag_tap, debug_dtm, dmi_cdc, debug_module and sba_master. Source: GARUDA-DEBUG-SPEC-001, RISC-V Debug 0.13, IEEE 1149.1, decision D-18. Feature-level plan written 2026-10-04, before the UVM environment. Sign-off criteria: flow/0_signoff_criteria.md. This block holds the only asynchronous clock boundary in the chip.",,,
 A JTAG TAP and DTM,1,SECTION,DEBUG.A,"Spec 5.1, 6.1 to 6.3.",,,
 F01 The TAP state machine follows IEEE 1149.1,2,SECTION,DEBUG.F01,All 16 states and every transition on TMS.,Method: formal + sim (JTAG agent). Today: no check of the state machine itself; scans exercise part of it,Karthik,P1
 a_tap_fsm,3,CHK,DEBUG.F01.CHK1,The next state is the standard's function of the current state and TMS.,"SVA in rtl/debug/debug_sva.sv, bound to the block. Planned. Also a formal property - waiting for JasperGold.",Karthik,

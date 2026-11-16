@@ -83,10 +83,10 @@ module dsu_cov (
 endmodule
 
 bind dsu_top dsu_cov u_dsu_cov (
-    .clk(clk), .rst_n(rst_n), .flush(flush), .dsu_en(dsu_en), .dsu_busy(dsu_busy),
+    .clk(gclk), .rst_n(core_rst_n), .flush(flush), .dsu_en(dsu_en), .dsu_busy(dsu_busy),
     .dsu_overflow(dsu_overflow), .csr_clear_overflow(csr_clear_overflow),
-    .instr(instr), .rs1(rs1), .rs2(rs2), .illegal_instr(illegal_instr),
-    .acc0(dbg_acc_0), .acc1(dbg_acc_1), .acc2(dbg_acc_2), .sat_overflow(sat_overflow));
+    .instr(instr), .rs1(rs1_val), .rs2(rs2_val), .illegal_instr(illegal_instr),
+    .acc0(dbg_acc_fx), .acc1(dbg_acc_fy), .acc2(dbg_acc_mag), .sat_overflow(sat_overflow));
 `endif
 `endif
 `endif

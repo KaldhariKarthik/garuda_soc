@@ -58,8 +58,8 @@ module tb_debug;
     wire [2:0]  hsize, hburst;
 
     debug_top dut (
-        .tck_i(tck), .tms_i(tms), .tdi_i(tdi), .tdo_o(tdo), .tdo_oe_o(tdo_oe), .por_n_i(por_n),
-        .hclk_i(hclk), .dm_rst_n_i(rst_n), .ndmreset_o(ndmreset), .hartreset_o(hartreset),
+        .tck(tck), .tms_i(tms), .tdi_i(tdi), .tdo_o(tdo), .tdo_oe_o(tdo_oe), .ext_rst_n(por_n),
+        .hclk(hclk), .dm_rst_n(rst_n), .ndmreset_o(ndmreset), .hartreset_o(hartreset),
         .halt_req_o(), .halt_safe_i(1'b1),     // RDC-1: no core here, always at a safe point
         .dsu_acc0_i(acc0), .dsu_acc1_i(acc1), .dsu_acc2_i(acc2), .dsu_ovf_i(ovf),
         .haddr_o(haddr), .htrans_o(htrans_m), .hwrite_o(hwrite), .hsize_o(hsize),
@@ -78,7 +78,7 @@ module tb_debug;
     reg [7:0] d_waits = 8'd2;               // DSRAM model wait states
     reg       d_rand  = 1'b1;
 
-    isram_top u_isram (.hclk_i(hclk), .hreset_n_i(rst_n), .hsel_i(sel_i), .haddr_i(haddr),
+    isram_top u_isram (.hclk(hclk), .hreset_n(rst_n), .hsel_i(sel_i), .haddr_i(haddr),
         .htrans_i(htrans), .hwrite_i(hwrite), .hsize_i(hsize), .hburst_i(hburst),
         .hprot_i(4'h3), .hwdata_i(hwdata), .hready_i(hready),
         .hrdata_o(rd_i), .hreadyout_o(ro_i), .hresp_o(re_i),

@@ -150,7 +150,7 @@ CORE_SUMMARY = [
      "P0", "In progress"],
     ["Formal (JasperGold)", "control blocks whose state space simulation "
      "only samples",
-     "FPV on pipe_ctrl, trap_ctrl, forward_unit, hazard_forward_unit",
+     "FPV on pipe_ctrl, trap_ctrl, forward_unit, hazard_fwd_unit",
      "Priority/mutex properties proven, not just simulated",
      "P1", "Not started"],
     ["Coverage closure", "signoff is coverage, not 'it ran once'",
@@ -179,7 +179,7 @@ UNIT = [
     ["no advance under backpressure", "PC advancing while downstream is "
      "stalled drops instructions",
      "stall_i high for N cycles with valid fetch", "PC frozen for all N", "P0", ""],
-    "IF stage — garuda_iport_ahb_master.v",
+    "IF stage — iport_master.v",
     ["AHB address/data phase", "protocol violation hangs the bus",
      "drive HREADY low for 1..N cycles mid-transfer",
      "HTRANS/HADDR held stable through the wait; no new transfer started",
@@ -192,7 +192,7 @@ UNIT = [
      "(cause 1), not a silent wrong instruction",
      "slave returns ERROR two-cycle response",
      "instr_fault_o asserted with the right PC", "P0", ""],
-    "IF stage — garuda_prefetch_buffer.v",
+    "IF stage — prefetch_buf.v",
     ["fill/drain", "buffer must never return a stale instruction after a "
      "redirect",
      "fill buffer, redirect, check next delivered instruction",
@@ -243,7 +243,7 @@ UNIT = [
      "predict_taken matches the documented static policy", "P0", ""],
     ["target computation", "wrong predicted target wastes the redirect",
      "sweep branch offsets", "target = PC + imm", "P0", ""],
-    "ID stage — hazard_forward_unit.v / load_use",
+    "ID stage — hazard_fwd_unit.v / load_use",
     ["load-use detect", "missing a load-use stall reads stale register data",
      "LOAD followed immediately by a dependent op on rs1, rs2, and both",
      "load_use_stall asserted for exactly one cycle", "P0", ""],
@@ -251,7 +251,7 @@ UNIT = [
      "and can mask real bugs",
      "LOAD with rd=x0 then dependent op; ALU op then dependent op",
      "no stall", "P1", ""],
-    "EX — alu.v",
+    "EX — alu_unit.v",
     ["ADD/SUB wrap", "overflow must wrap two's complement, not saturate",
      "0x7FFFFFFF+1, 0x80000000-1", "wraps, no trap", "P0", ""],
     ["shift amount masking", "RV32 masks the shift amount to 5 bits; not "
@@ -312,7 +312,7 @@ UNIT = [
      "JasperGold FPV: assert one-hot select and correct priority",
      "properties proven", "P1", ""],
     "EX — ex_stage.v (result mux + DSU boundary)",
-    ["result mux priority", "Sec.9.2 erratum: csr_rdata > dsu > mul > alu. A "
+    ["result mux priority", "Sec.9.2 erratum: csr_rdata > dsu > mul > alu_unit. A "
      "wrong order breaks CSRRW read-modify-write",
      "issue CSR, DSU, MUL and ALU ops incl. overlapping enables",
      "documented priority holds", "P0", ""],
@@ -343,7 +343,7 @@ UNIT = [
     ["offset extraction", "the wrong byte lane returns a plausible-but-wrong "
      "value", "all size x offset combinations",
      "correct lane selected for each", "P0", ""],
-    "MEM — d_port_ahb_master.v",
+    "MEM — dport_master.v",
     ["wait states", "the pipeline must freeze, not drop, during HREADY low",
      "random 0..N wait states on every access",
      "mem_stall asserted; transfer completes intact", "P0", ""],

@@ -33,8 +33,8 @@
 // 1. DUT: overflow_flag.v (pasted verbatim, self-contained file)
 // -------------------------------------------------------------
 module overflow_flag (
-    input wire       clk,
-    input wire       rst_n,
+    input wire       gclk,
+    input wire       core_rst_n,
     input wire [2:0] mac_overflow,
     input wire       sat_overflow,
     input wire       csr_clear_overflow,
@@ -44,8 +44,8 @@ module overflow_flag (
 
     wire any_ovf = (|mac_overflow) | sat_overflow;
 
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n)                   dsu_overflow <= 1'b0;
+    always @(posedge gclk or negedge core_rst_n) begin
+        if(!core_rst_n)                   dsu_overflow <= 1'b0;
         else if (csr_clear_overflow) dsu_overflow <= 1'b0;
         else if (any_ovf)            dsu_overflow <= 1'b1;
     end
@@ -450,7 +450,7 @@ module tb_top;
     ovf_if vif(clk);
 
     overflow_flag dut (
-        .clk (clk), .rst_n (vif.rst_n),
+        .gclk (clk), .core_rst_n (vif.rst_n),
         .mac_overflow (vif.mac_overflow), .sat_overflow (vif.sat_overflow),
         .csr_clear_overflow (vif.csr_clear_overflow), .dsu_overflow (vif.dsu_overflow)
     );

@@ -15,7 +15,7 @@ addrmap crg {
 
     reg { name = "Cause of the last reset";
           field { sw = rw; onwrite = woclr; hw = w; reset = 1'b1; desc = "The reset pin"; } ext[0:0];
-          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "The watchdog"; } wdt[1:1];
+          field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "The watchdog"; } watchdog[1:1];
           field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "The debugger (ndmreset)"; } ndm[2:2];
           field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "Software (RSTCTL.SWRST)"; } swr[3:3];
           field { sw = rw; onwrite = woclr; hw = w; reset = 1'b0; desc = "Set by the boot code through RSTCTL bit 4"; } bootfail[4:4];

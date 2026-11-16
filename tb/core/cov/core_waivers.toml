@@ -40,7 +40,7 @@ reviewer = "pending: Sreyesh"
 [[waiver]]
 id       = "CW-003"
 metric   = "line"
-file     = "rtl/core/d_port_ahb_master.v"
+file     = "rtl/core/dport_master.v"
 match    = "^line:140 "
 category = "unreachable"
 reason   = "Defensive `default:` of the D-port FSM case. state is a 2-bit register with two states (S_ADDR=0, S_DATA=1); every assignment writes 0 or 1, so the default arm cannot be entered."
@@ -50,7 +50,7 @@ reviewer = "pending: Sreyesh"
 [[waiver]]
 id       = "CW-004"
 metric   = "expr"
-file     = "rtl/core/d_port_ahb_master.v"
+file     = "rtl/core/dport_master.v"
 match    = "^line:156 \\(\\(state == S_ADDR\\)==0 && \\(state == S_DATA\\)==0\\) => 0"
 category = "unreachable"
 reason   = "The term needs state outside {S_ADDR, S_DATA}; see CW-003."
@@ -60,7 +60,7 @@ reviewer = "pending: Sreyesh"
 [[waiver]]
 id       = "CW-005"
 metric   = "toggle"
-file     = "rtl/core/d_port_ahb_master.v"
+file     = "rtl/core/dport_master.v"
 match    = "^state\\[1\\]:"
 category = "constant"
 reason   = "state[1] is always 0 (two-state FSM in a 2-bit register)."
@@ -272,13 +272,13 @@ evidence = "literal rtl/core/csr_file.v:144-156"
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
-id       = "CT-DBUS-d_port_ahb_master"
+id       = "CT-DBUS-dport_master"
 metric   = "toggle"
-file     = "rtl/core/d_port_ahb_master.v"
+file     = "rtl/core/dport_master.v"
 match    = "^(d_hsize_o\\[2\\]:0\\->1|d_hsize_o\\[2\\]:1\\->0|d_htrans_o\\[0\\]:0\\->1|d_htrans_o\\[0\\]:1\\->0|hsize_i\\[2\\]:0\\->1|hsize_i\\[2\\]:1\\->0)$"
 category = "constant"
 reason   = "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize[2] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
-evidence = "literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; d_port_ahb_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE"
+evidence = "literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; dport_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE"
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
@@ -288,7 +288,7 @@ file     = "rtl/core/garuda_core_top.v"
 match    = "^(d_hburst_o\\[0\\]:0\\->1|d_hburst_o\\[0\\]:1\\->0|d_hburst_o\\[1\\]:0\\->1|d_hburst_o\\[1\\]:1\\->0|d_hburst_o\\[2\\]:0\\->1|d_hburst_o\\[2\\]:1\\->0|d_hprot_o\\[0\\]:1\\->0|d_hprot_o\\[1\\]:1\\->0|d_hprot_o\\[2\\]:0\\->1|d_hprot_o\\[2\\]:1\\->0|d_hprot_o\\[3\\]:0\\->1|d_hprot_o\\[3\\]:1\\->0|d_hsize_o\\[2\\]:0\\->1|d_hsize_o\\[2\\]:1\\->0|d_htrans_o\\[0\\]:0\\->1|d_htrans_o\\[0\\]:1\\->0)$"
 category = "constant"
 reason   = "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize[2] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
-evidence = "literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; d_port_ahb_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE"
+evidence = "literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; dport_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE"
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
@@ -298,7 +298,7 @@ file     = "rtl/core/load_store_unit.v"
 match    = "^(hsize_o\\[2\\]:0\\->1|hsize_o\\[2\\]:1\\->0)$"
 category = "constant"
 reason   = "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize[2] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
-evidence = "literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; d_port_ahb_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE"
+evidence = "literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; dport_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE"
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
@@ -308,7 +308,7 @@ file     = "rtl/core/mem_stage.v"
 match    = "^(d_hburst_o\\[0\\]:0\\->1|d_hburst_o\\[0\\]:1\\->0|d_hburst_o\\[1\\]:0\\->1|d_hburst_o\\[1\\]:1\\->0|d_hburst_o\\[2\\]:0\\->1|d_hburst_o\\[2\\]:1\\->0|d_hprot_o\\[0\\]:1\\->0|d_hprot_o\\[1\\]:1\\->0|d_hprot_o\\[2\\]:0\\->1|d_hprot_o\\[2\\]:1\\->0|d_hprot_o\\[3\\]:0\\->1|d_hprot_o\\[3\\]:1\\->0|d_hsize_o\\[2\\]:0\\->1|d_hsize_o\\[2\\]:1\\->0|d_htrans_o\\[0\\]:0\\->1|d_htrans_o\\[0\\]:1\\->0|hsize_w\\[2\\]:0\\->1|hsize_w\\[2\\]:1\\->0)$"
 category = "constant"
 reason   = "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize[2] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
-evidence = "literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; d_port_ahb_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE"
+evidence = "literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; dport_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE"
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
@@ -328,27 +328,27 @@ file     = "rtl/core/garuda_core_top.v"
 match    = "^(i_hburst_o\\[0\\]:1\\->0|i_hburst_o\\[1\\]:0\\->1|i_hburst_o\\[1\\]:1\\->0|i_hburst_o\\[2\\]:0\\->1|i_hburst_o\\[2\\]:1\\->0|i_hprot_o\\[0\\]:0\\->1|i_hprot_o\\[0\\]:1\\->0|i_hprot_o\\[1\\]:1\\->0|i_hprot_o\\[2\\]:0\\->1|i_hprot_o\\[2\\]:1\\->0|i_hprot_o\\[3\\]:0\\->1|i_hprot_o\\[3\\]:1\\->0|i_hsize_o\\[0\\]:0\\->1|i_hsize_o\\[0\\]:1\\->0|i_hsize_o\\[1\\]:1\\->0|i_hsize_o\\[2\\]:0\\->1|i_hsize_o\\[2\\]:1\\->0|i_hwdata_o\\[0\\]:0\\->1|i_hwdata_o\\[0\\]:1\\->0|i_hwdata_o\\[10\\]:0\\->1|i_hwdata_o\\[10\\]:1\\->0|i_hwdata_o\\[11\\]:0\\->1|i_hwdata_o\\[11\\]:1\\->0|i_hwdata_o\\[12\\]:0\\->1|i_hwdata_o\\[12\\]:1\\->0|i_hwdata_o\\[13\\]:0\\->1|i_hwdata_o\\[13\\]:1\\->0|i_hwdata_o\\[14\\]:0\\->1|i_hwdata_o\\[14\\]:1\\->0|i_hwdata_o\\[15\\]:0\\->1|i_hwdata_o\\[15\\]:1\\->0|i_hwdata_o\\[16\\]:0\\->1|i_hwdata_o\\[16\\]:1\\->0|i_hwdata_o\\[17\\]:0\\->1|i_hwdata_o\\[17\\]:1\\->0|i_hwdata_o\\[18\\]:0\\->1|i_hwdata_o\\[18\\]:1\\->0|i_hwdata_o\\[19\\]:0\\->1|i_hwdata_o\\[19\\]:1\\->0|i_hwdata_o\\[1\\]:0\\->1|i_hwdata_o\\[1\\]:1\\->0|i_hwdata_o\\[20\\]:0\\->1|i_hwdata_o\\[20\\]:1\\->0|i_hwdata_o\\[21\\]:0\\->1|i_hwdata_o\\[21\\]:1\\->0|i_hwdata_o\\[22\\]:0\\->1|i_hwdata_o\\[22\\]:1\\->0|i_hwdata_o\\[23\\]:0\\->1|i_hwdata_o\\[23\\]:1\\->0|i_hwdata_o\\[24\\]:0\\->1|i_hwdata_o\\[24\\]:1\\->0|i_hwdata_o\\[25\\]:0\\->1|i_hwdata_o\\[25\\]:1\\->0|i_hwdata_o\\[26\\]:0\\->1|i_hwdata_o\\[26\\]:1\\->0|i_hwdata_o\\[27\\]:0\\->1|i_hwdata_o\\[27\\]:1\\->0|i_hwdata_o\\[28\\]:0\\->1|i_hwdata_o\\[28\\]:1\\->0|i_hwdata_o\\[29\\]:0\\->1|i_hwdata_o\\[29\\]:1\\->0|i_hwdata_o\\[2\\]:0\\->1|i_hwdata_o\\[2\\]:1\\->0|i_hwdata_o\\[30\\]:0\\->1|i_hwdata_o\\[30\\]:1\\->0|i_hwdata_o\\[31\\]:0\\->1|i_hwdata_o\\[31\\]:1\\->0|i_hwdata_o\\[3\\]:0\\->1|i_hwdata_o\\[3\\]:1\\->0|i_hwdata_o\\[4\\]:0\\->1|i_hwdata_o\\[4\\]:1\\->0|i_hwdata_o\\[5\\]:0\\->1|i_hwdata_o\\[5\\]:1\\->0|i_hwdata_o\\[6\\]:0\\->1|i_hwdata_o\\[6\\]:1\\->0|i_hwdata_o\\[7\\]:0\\->1|i_hwdata_o\\[7\\]:1\\->0|i_hwdata_o\\[8\\]:0\\->1|i_hwdata_o\\[8\\]:1\\->0|i_hwdata_o\\[9\\]:0\\->1|i_hwdata_o\\[9\\]:1\\->0|i_hwrite_o:0\\->1|i_hwrite_o:1\\->0)$"
 category = "constant"
 reason   = "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
-evidence = "literal rtl/core/garuda_iport_ahb_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)"
+evidence = "literal rtl/core/iport_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)"
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
-id       = "CT-IBUS-garuda_if_stage_top"
+id       = "CT-IBUS-if_stage_top"
 metric   = "toggle"
-file     = "rtl/core/garuda_if_stage_top.v"
+file     = "rtl/core/if_stage_top.v"
 match    = "^(i_hburst_o\\[0\\]:1\\->0|i_hburst_o\\[1\\]:0\\->1|i_hburst_o\\[1\\]:1\\->0|i_hburst_o\\[2\\]:0\\->1|i_hburst_o\\[2\\]:1\\->0|i_hprot_o\\[0\\]:0\\->1|i_hprot_o\\[0\\]:1\\->0|i_hprot_o\\[1\\]:1\\->0|i_hprot_o\\[2\\]:0\\->1|i_hprot_o\\[2\\]:1\\->0|i_hprot_o\\[3\\]:0\\->1|i_hprot_o\\[3\\]:1\\->0|i_hsize_o\\[0\\]:0\\->1|i_hsize_o\\[0\\]:1\\->0|i_hsize_o\\[1\\]:1\\->0|i_hsize_o\\[2\\]:0\\->1|i_hsize_o\\[2\\]:1\\->0|i_hwdata_o\\[0\\]:0\\->1|i_hwdata_o\\[0\\]:1\\->0|i_hwdata_o\\[10\\]:0\\->1|i_hwdata_o\\[10\\]:1\\->0|i_hwdata_o\\[11\\]:0\\->1|i_hwdata_o\\[11\\]:1\\->0|i_hwdata_o\\[12\\]:0\\->1|i_hwdata_o\\[12\\]:1\\->0|i_hwdata_o\\[13\\]:0\\->1|i_hwdata_o\\[13\\]:1\\->0|i_hwdata_o\\[14\\]:0\\->1|i_hwdata_o\\[14\\]:1\\->0|i_hwdata_o\\[15\\]:0\\->1|i_hwdata_o\\[15\\]:1\\->0|i_hwdata_o\\[16\\]:0\\->1|i_hwdata_o\\[16\\]:1\\->0|i_hwdata_o\\[17\\]:0\\->1|i_hwdata_o\\[17\\]:1\\->0|i_hwdata_o\\[18\\]:0\\->1|i_hwdata_o\\[18\\]:1\\->0|i_hwdata_o\\[19\\]:0\\->1|i_hwdata_o\\[19\\]:1\\->0|i_hwdata_o\\[1\\]:0\\->1|i_hwdata_o\\[1\\]:1\\->0|i_hwdata_o\\[20\\]:0\\->1|i_hwdata_o\\[20\\]:1\\->0|i_hwdata_o\\[21\\]:0\\->1|i_hwdata_o\\[21\\]:1\\->0|i_hwdata_o\\[22\\]:0\\->1|i_hwdata_o\\[22\\]:1\\->0|i_hwdata_o\\[23\\]:0\\->1|i_hwdata_o\\[23\\]:1\\->0|i_hwdata_o\\[24\\]:0\\->1|i_hwdata_o\\[24\\]:1\\->0|i_hwdata_o\\[25\\]:0\\->1|i_hwdata_o\\[25\\]:1\\->0|i_hwdata_o\\[26\\]:0\\->1|i_hwdata_o\\[26\\]:1\\->0|i_hwdata_o\\[27\\]:0\\->1|i_hwdata_o\\[27\\]:1\\->0|i_hwdata_o\\[28\\]:0\\->1|i_hwdata_o\\[28\\]:1\\->0|i_hwdata_o\\[29\\]:0\\->1|i_hwdata_o\\[29\\]:1\\->0|i_hwdata_o\\[2\\]:0\\->1|i_hwdata_o\\[2\\]:1\\->0|i_hwdata_o\\[30\\]:0\\->1|i_hwdata_o\\[30\\]:1\\->0|i_hwdata_o\\[31\\]:0\\->1|i_hwdata_o\\[31\\]:1\\->0|i_hwdata_o\\[3\\]:0\\->1|i_hwdata_o\\[3\\]:1\\->0|i_hwdata_o\\[4\\]:0\\->1|i_hwdata_o\\[4\\]:1\\->0|i_hwdata_o\\[5\\]:0\\->1|i_hwdata_o\\[5\\]:1\\->0|i_hwdata_o\\[6\\]:0\\->1|i_hwdata_o\\[6\\]:1\\->0|i_hwdata_o\\[7\\]:0\\->1|i_hwdata_o\\[7\\]:1\\->0|i_hwdata_o\\[8\\]:0\\->1|i_hwdata_o\\[8\\]:1\\->0|i_hwdata_o\\[9\\]:0\\->1|i_hwdata_o\\[9\\]:1\\->0|i_hwrite_o:0\\->1|i_hwrite_o:1\\->0)$"
 category = "constant"
 reason   = "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
-evidence = "literal rtl/core/garuda_iport_ahb_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)"
+evidence = "literal rtl/core/iport_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)"
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
-id       = "CT-IBUS-garuda_iport_ahb_master"
+id       = "CT-IBUS-iport_master"
 metric   = "toggle"
-file     = "rtl/core/garuda_iport_ahb_master.v"
+file     = "rtl/core/iport_master.v"
 match    = "^(i_hburst_o\\[0\\]:1\\->0|i_hburst_o\\[1\\]:0\\->1|i_hburst_o\\[1\\]:1\\->0|i_hburst_o\\[2\\]:0\\->1|i_hburst_o\\[2\\]:1\\->0|i_hprot_o\\[0\\]:0\\->1|i_hprot_o\\[0\\]:1\\->0|i_hprot_o\\[1\\]:1\\->0|i_hprot_o\\[2\\]:0\\->1|i_hprot_o\\[2\\]:1\\->0|i_hprot_o\\[3\\]:0\\->1|i_hprot_o\\[3\\]:1\\->0|i_hsize_o\\[0\\]:0\\->1|i_hsize_o\\[0\\]:1\\->0|i_hsize_o\\[1\\]:1\\->0|i_hsize_o\\[2\\]:0\\->1|i_hsize_o\\[2\\]:1\\->0|i_hwdata_o\\[0\\]:0\\->1|i_hwdata_o\\[0\\]:1\\->0|i_hwdata_o\\[10\\]:0\\->1|i_hwdata_o\\[10\\]:1\\->0|i_hwdata_o\\[11\\]:0\\->1|i_hwdata_o\\[11\\]:1\\->0|i_hwdata_o\\[12\\]:0\\->1|i_hwdata_o\\[12\\]:1\\->0|i_hwdata_o\\[13\\]:0\\->1|i_hwdata_o\\[13\\]:1\\->0|i_hwdata_o\\[14\\]:0\\->1|i_hwdata_o\\[14\\]:1\\->0|i_hwdata_o\\[15\\]:0\\->1|i_hwdata_o\\[15\\]:1\\->0|i_hwdata_o\\[16\\]:0\\->1|i_hwdata_o\\[16\\]:1\\->0|i_hwdata_o\\[17\\]:0\\->1|i_hwdata_o\\[17\\]:1\\->0|i_hwdata_o\\[18\\]:0\\->1|i_hwdata_o\\[18\\]:1\\->0|i_hwdata_o\\[19\\]:0\\->1|i_hwdata_o\\[19\\]:1\\->0|i_hwdata_o\\[1\\]:0\\->1|i_hwdata_o\\[1\\]:1\\->0|i_hwdata_o\\[20\\]:0\\->1|i_hwdata_o\\[20\\]:1\\->0|i_hwdata_o\\[21\\]:0\\->1|i_hwdata_o\\[21\\]:1\\->0|i_hwdata_o\\[22\\]:0\\->1|i_hwdata_o\\[22\\]:1\\->0|i_hwdata_o\\[23\\]:0\\->1|i_hwdata_o\\[23\\]:1\\->0|i_hwdata_o\\[24\\]:0\\->1|i_hwdata_o\\[24\\]:1\\->0|i_hwdata_o\\[25\\]:0\\->1|i_hwdata_o\\[25\\]:1\\->0|i_hwdata_o\\[26\\]:0\\->1|i_hwdata_o\\[26\\]:1\\->0|i_hwdata_o\\[27\\]:0\\->1|i_hwdata_o\\[27\\]:1\\->0|i_hwdata_o\\[28\\]:0\\->1|i_hwdata_o\\[28\\]:1\\->0|i_hwdata_o\\[29\\]:0\\->1|i_hwdata_o\\[29\\]:1\\->0|i_hwdata_o\\[2\\]:0\\->1|i_hwdata_o\\[2\\]:1\\->0|i_hwdata_o\\[30\\]:0\\->1|i_hwdata_o\\[30\\]:1\\->0|i_hwdata_o\\[31\\]:0\\->1|i_hwdata_o\\[31\\]:1\\->0|i_hwdata_o\\[3\\]:0\\->1|i_hwdata_o\\[3\\]:1\\->0|i_hwdata_o\\[4\\]:0\\->1|i_hwdata_o\\[4\\]:1\\->0|i_hwdata_o\\[5\\]:0\\->1|i_hwdata_o\\[5\\]:1\\->0|i_hwdata_o\\[6\\]:0\\->1|i_hwdata_o\\[6\\]:1\\->0|i_hwdata_o\\[7\\]:0\\->1|i_hwdata_o\\[7\\]:1\\->0|i_hwdata_o\\[8\\]:0\\->1|i_hwdata_o\\[8\\]:1\\->0|i_hwdata_o\\[9\\]:0\\->1|i_hwdata_o\\[9\\]:1\\->0|i_hwrite_o:0\\->1|i_hwrite_o:1\\->0)$"
 category = "constant"
 reason   = "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
-evidence = "literal rtl/core/garuda_iport_ahb_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)"
+evidence = "literal rtl/core/iport_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)"
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
@@ -362,9 +362,9 @@ evidence = "literal rtl/core/imm_gen.v:35 {.., 12'b0}, :38 {27'b0, ..}"
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
-id       = "CT-IPCOUNT-garuda_iport_ahb_master"
+id       = "CT-IPCOUNT-iport_master"
 metric   = "toggle"
-file     = "rtl/core/garuda_iport_ahb_master.v"
+file     = "rtl/core/iport_master.v"
 match    = "^(inflight\\[2\\]:0\\->1|inflight\\[2\\]:1\\->0|inflight\\[3\\]:0\\->1|inflight\\[3\\]:1\\->0|occ_after_pop\\[3\\]:0\\->1|occ_after_pop\\[3\\]:1\\->0|occ_plus_landing\\[3\\]:0\\->1|occ_plus_landing\\[3\\]:1\\->0|projected_occ\\[3\\]:0\\->1|projected_occ\\[3\\]:1\\->0)$"
 category = "constant"
 reason   = "At most 2 transfers are in flight and occupancy + in flight <= 6: the top bits of these 4-bit sums never set."
@@ -522,9 +522,9 @@ evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
-id       = "CT-PCALIGN-garuda_if_stage_top"
+id       = "CT-PCALIGN-if_stage_top"
 metric   = "toggle"
-file     = "rtl/core/garuda_if_stage_top.v"
+file     = "rtl/core/if_stage_top.v"
 match    = "^(data_pc\\[0\\]:0\\->1|data_pc\\[0\\]:1\\->0|data_pc\\[1\\]:0\\->1|data_pc\\[1\\]:1\\->0|i_haddr_o\\[0\\]:0\\->1|i_haddr_o\\[0\\]:1\\->0|i_haddr_o\\[1\\]:0\\->1|i_haddr_o\\[1\\]:1\\->0|instr_pc_o\\[0\\]:0\\->1|instr_pc_o\\[0\\]:1\\->0|instr_pc_o\\[1\\]:0\\->1|instr_pc_o\\[1\\]:1\\->0)$"
 category = "constant"
 reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
@@ -532,9 +532,9 @@ evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
-id       = "CT-PCALIGN-garuda_iport_ahb_master"
+id       = "CT-PCALIGN-iport_master"
 metric   = "toggle"
-file     = "rtl/core/garuda_iport_ahb_master.v"
+file     = "rtl/core/iport_master.v"
 match    = "^(addr_pc\\[0\\]:0\\->1|addr_pc\\[0\\]:1\\->0|addr_pc\\[1\\]:0\\->1|addr_pc\\[1\\]:1\\->0|data_pc_o\\[0\\]:0\\->1|data_pc_o\\[0\\]:1\\->0|data_pc_o\\[1\\]:0\\->1|data_pc_o\\[1\\]:1\\->0|i_haddr_o\\[0\\]:0\\->1|i_haddr_o\\[0\\]:1\\->0|i_haddr_o\\[1\\]:0\\->1|i_haddr_o\\[1\\]:1\\->0|outstanding_pc\\[0\\]:0\\->1|outstanding_pc\\[0\\]:1\\->0|outstanding_pc\\[1\\]:0\\->1|outstanding_pc\\[1\\]:1\\->0)$"
 category = "constant"
 reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
@@ -552,9 +552,9 @@ evidence = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
-id       = "CT-PCALIGN-garuda_prefetch_buffer"
+id       = "CT-PCALIGN-prefetch_buf"
 metric   = "toggle"
-file     = "rtl/core/garuda_prefetch_buffer.v"
+file     = "rtl/core/prefetch_buf.v"
 match    = "^(fifo_pc\\[0\\]\\[0\\]:0\\->1|fifo_pc\\[0\\]\\[0\\]:1\\->0|fifo_pc\\[0\\]\\[1\\]:0\\->1|fifo_pc\\[0\\]\\[1\\]:1\\->0|fifo_pc\\[1\\]\\[0\\]:0\\->1|fifo_pc\\[1\\]\\[0\\]:1\\->0|fifo_pc\\[1\\]\\[1\\]:0\\->1|fifo_pc\\[1\\]\\[1\\]:1\\->0|fifo_pc\\[2\\]\\[0\\]:0\\->1|fifo_pc\\[2\\]\\[0\\]:1\\->0|fifo_pc\\[2\\]\\[1\\]:0\\->1|fifo_pc\\[2\\]\\[1\\]:1\\->0|fifo_pc\\[3\\]\\[0\\]:0\\->1|fifo_pc\\[3\\]\\[0\\]:1\\->0|fifo_pc\\[3\\]\\[1\\]:0\\->1|fifo_pc\\[3\\]\\[1\\]:1\\->0|instr_pc_o\\[0\\]:0\\->1|instr_pc_o\\[0\\]:1\\->0|instr_pc_o\\[1\\]:0\\->1|instr_pc_o\\[1\\]:1\\->0|wr_pc_i\\[0\\]:0\\->1|wr_pc_i\\[0\\]:1\\->0|wr_pc_i\\[1\\]:0\\->1|wr_pc_i\\[1\\]:1\\->0)$"
 category = "constant"
 reason   = "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0."
@@ -642,9 +642,9 @@ evidence = "PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
-id       = "CT-PCBIT0-garuda_if_stage_top"
+id       = "CT-PCBIT0-if_stage_top"
 metric   = "toggle"
-file     = "rtl/core/garuda_if_stage_top.v"
+file     = "rtl/core/if_stage_top.v"
 match    = "^(fetch_pc\\[0\\]:0\\->1|fetch_pc\\[0\\]:1\\->0|redirect_pc_i\\[0\\]:0\\->1|redirect_pc_i\\[0\\]:1\\->0)$"
 category = "constant"
 reason   = "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
@@ -652,9 +652,9 @@ evidence = "PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
-id       = "CT-PCBIT0-garuda_iport_ahb_master"
+id       = "CT-PCBIT0-iport_master"
 metric   = "toggle"
-file     = "rtl/core/garuda_iport_ahb_master.v"
+file     = "rtl/core/iport_master.v"
 match    = "^(fetch_pc_i\\[0\\]:0\\->1|fetch_pc_i\\[0\\]:1\\->0)$"
 category = "constant"
 reason   = "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"

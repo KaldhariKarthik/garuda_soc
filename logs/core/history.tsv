@@ -13973,3 +13973,27 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-16T10:01:04+05:30	5dfc2efc60ce	True	halt	t_core_hartreset_s2	1	PASS	OK	
 2026-11-16T10:01:04+05:30	5dfc2efc60ce	True	halt	t_core_hartreset_s3	1	PASS	OK	
 2026-11-16T10:01:04+05:30	5dfc2efc60ce	True	halt	t_core_hartreset_timeout	1	PASS	OK	
+2026-11-16T16:54:28+05:30	7faec5bb3a3b	True	fv_trap	trap_bmc	-	BOUNDED(20)	OK	[40 asserts, 35 covers in model] 
+2026-11-16T16:54:28+05:30	7faec5bb3a3b	True	fv_trap	trap_prove	-	PROVEN	OK	[31 asserts, 35 covers in model] 
+2026-11-16T16:54:28+05:30	7faec5bb3a3b	True	fv_trap	pipe_bmc	-	BOUNDED(30)	OK	[9 asserts, 35 covers in model] 
+2026-11-16T16:54:28+05:30	7faec5bb3a3b	True	fv_trap	trap_cover	-	COVERED	OK	[40 asserts, 34 covers in model] 
+2026-11-16T16:54:28+05:30	7faec5bb3a3b	True	fv_trap	trap_prove_no_t13	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] assertion failed (see trace)
+2026-11-16T16:54:28+05:30	7faec5bb3a3b	True	fv_trap	trap_prove_no_t14	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] assertion failed (see trace)
+2026-11-16T16:54:28+05:30	7faec5bb3a3b	True	fv_trap	t17_no_fix	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_trap.u_trap_sva.a_ex_exc_needs_instr
+2026-11-16T16:54:28+05:30	7faec5bb3a3b	True	fv_trap	t18_no_fix	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_trap.u_trap_sva.a_misfetch_tval_misaligned
+2026-11-16T16:54:28+05:30	7faec5bb3a3b	True	fv_trap	buse_no_fix	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_if.u_iport_master.u_ctl_sva.a_ihaddr_aligned
+2026-11-16T16:54:28+05:30	7faec5bb3a3b	True	fv_trap	ctl_no_bpdis	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_ctl_sva.a_ctl_bp
+2026-11-16T16:54:28+05:30	7faec5bb3a3b	True	fv_trap	ctl_no_pfdis	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_if.u_iport_master.u_ctl_sva.a_ctl_pf
+2026-11-16T16:54:28+05:30	7faec5bb3a3b	True	fv_trap	ctl_no_preempt	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_ctl_sva.a_ctl_preempt
+2026-11-16T16:54:28+05:30	7faec5bb3a3b	True	fv_trap	ctl_no_cgdis	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_ctl_sva.a_ctl_cg
+2026-11-16T16:54:29+05:30	7faec5bb3a3b	True	fv_csr	csr_prove	-	PROVEN	OK	[11 asserts, 9 covers in model] 
+2026-11-16T16:54:29+05:30	7faec5bb3a3b	True	fv_csr	csr_cover	-	COVERED	OK	[11 asserts, 9 covers in model] 
+2026-11-16T16:54:29+05:30	7faec5bb3a3b	True	fv_csr	csr_prove_no_t12	-	FAIL	XFAIL:PLANTED	[11 asserts, 9 covers in model] props: u_csr_sva.a_mret_pops_mil
+2026-11-16T16:54:29+05:30	7faec5bb3a3b	True	fv_csr	csr_prove_no_c16	-	FAIL	XFAIL:PLANTED	[11 asserts, 9 covers in model] props: u_csr_sva.a_mconfigptr_read_ok
+2026-11-16T16:55:19+05:30	7faec5bb3a3b	True	fv_rdc1	rdc1_bmc	-	BOUNDED(30)	OK	[44 asserts, 38 covers in model] 
+2026-11-16T16:55:19+05:30	7faec5bb3a3b	True	fv_rdc1	rdc1_prove	-	PROVEN	OK	[35 asserts, 38 covers in model] 
+2026-11-16T16:55:19+05:30	7faec5bb3a3b	True	fv_rdc1	rdc1_cover	-	COVERED	OK	[44 asserts, 37 covers in model] 
+2026-11-16T16:55:19+05:30	7faec5bb3a3b	True	fv_rdc1	rdc1_prove_rawgrant	-	FAIL	XFAIL:PLANTED	[44 asserts, 38 covers in model] props: a_grant_only_safe
+2026-11-16T16:55:51+05:30	7faec5bb3a3b	True	fv_cov	cov_bmc	-	BOUNDED(24)	OK	[57 asserts, 36 covers in model] 
+2026-11-16T16:55:51+05:30	7faec5bb3a3b	True	fv_cov	cov_prove	-	PROVEN	OK	[50 asserts, 36 covers in model] 
+2026-11-16T16:55:51+05:30	7faec5bb3a3b	True	fv_cov	cov_reach	-	COVERED	OK	[57 asserts, 35 covers in model] 

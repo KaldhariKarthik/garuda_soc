@@ -37,7 +37,7 @@
 
 //  CVS Log
 //
-//  $Id: i2c_master_byte_ctrl.v,v 1.8 2009-01-19 20:29:26 rherveille Exp $
+//  $Id: i2c_byte_ctrl.v,v 1.8 2009-01-19 20:29:26 rherveille Exp $
 //
 //  $Date: 2009-01-19 20:29:26 $
 //  $Revision: 1.8 $
@@ -68,15 +68,15 @@
 
 `include "i2c_master_defines.sv"
 
-module i2c_master_byte_ctrl (
-	clk, nReset, ena, clk_cnt, start, stop, read, write, ack_in, din,
+module i2c_byte_ctrl (
+	pclk, i2c_rst_n, ena, clk_cnt, start, stop, read, write, ack_in, din,
 	cmd_ack, ack_out, dout, i2c_busy, i2c_al, scl_i, scl_o, scl_oen, sda_i, sda_o, sda_oen );
 
 	//
 	// inputs & outputs
 	//
-	input clk;     // master clock
-	input nReset;  // asynchronous active low reset
+	input pclk;     // master clock
+	input i2c_rst_n;  // asynchronous active low reset
 	input ena;     // core enable signal
 
 	input [15:0] clk_cnt; // 4x SCL
@@ -138,9 +138,9 @@ module i2c_master_byte_ctrl (
 	//
 
 	// hookup bit_controller
-	i2c_master_bit_ctrl bit_controller (
-		.clk     ( clk      ),
-		.nReset  ( nReset   ),
+	i2c_bit_ctrl bit_controller (
+		.pclk     ( pclk      ),
+		.i2c_rst_n  ( i2c_rst_n   ),
 		.ena     ( ena      ),
 		.clk_cnt ( clk_cnt  ),
 		.cmd     ( core_cmd ),
@@ -164,8 +164,8 @@ module i2c_master_byte_ctrl (
 	assign dout = sr;
 
 	// generate shift register
-	always @(posedge clk or negedge nReset)
-	  if (!nReset)
+	always @(posedge pclk or negedge i2c_rst_n)
+	  if (!i2c_rst_n)
 	    sr <= #1 8'h0;
 	  else if (ld)
 	    sr <= #1 din;
@@ -173,8 +173,8 @@ module i2c_master_byte_ctrl (
 	    sr <= #1 {sr[6:0], core_rxd};
 
 	// generate counter
-	always @(posedge clk or negedge nReset)
-	  if (!nReset)
+	always @(posedge pclk or negedge i2c_rst_n)
+	  if (!i2c_rst_n)
 	    dcnt <= #1 3'h0;
 	  else if (ld)
 	    dcnt <= #1 3'h7;
@@ -188,8 +188,8 @@ module i2c_master_byte_ctrl (
 	//
 	reg [4:0] c_state; 
 
-	always @(posedge clk or negedge nReset)
-	  if (!nReset)
+	always @(posedge pclk or negedge i2c_rst_n)
+	  if (!i2c_rst_n)
 	    begin
 	        core_cmd <= #1 `I2C_CMD_NOP;
 	        core_txd <= #1 1'b0;

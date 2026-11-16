@@ -102,7 +102,7 @@ Rev 2.0 does the comparison here and sends one wire. The core keeps its existing
    │  │  WATCHDOG                                        │      │
    │  │                                                  │      │
    │  │  ┌────────────┐   ┌──────────┐  ┌─────────────┐  │      │
-   │  │  │ wdt 32-bit │──▶│ == WARN  │─▶│ warn irq    ├──┼──────┼──▶ CLIC 22
+   │  │  │ watchdog 32-bit │──▶│ == WARN  │─▶│ warn irq    ├──┼──────┼──▶ CLIC 22
    │  │  │ down ctr   │   └──────────┘  └─────────────┘  │      │
    │  │  │            │   ┌──────────┐  ┌─────────────┐  │      │
    │  │  │  kick ◀────┼───│ == 0     │─▶│ rst req flop│──┼──────┼──▶ wdt_rst_req

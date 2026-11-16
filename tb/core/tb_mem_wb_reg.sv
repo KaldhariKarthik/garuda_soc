@@ -105,8 +105,8 @@ module tb_top;
     memwb_if vif(clk, rst_n);
 
     mem_wb_reg dut (
-        .clk_i       (clk),
-        .rst_n_i     (rst_n),
+        .gclk       (clk),
+        .core_rst_n     (rst_n),
         .flush_i     (vif.flush),
         .wb_data_i   (vif.wb_data_i),
         .rd_i        (vif.rd_i),

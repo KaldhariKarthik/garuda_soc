@@ -26,7 +26,7 @@ module tb_dma_apb_slave_unit;
     wire  pready, pslverr;
     wire  [5:0] wcr, wsar, wdar, wcnt, wiclr;
     logic [191:0] cr = 0, sar = 0, dar = 0, cnt = 0, stat = 0;
-    dma_apb_slave dut (.hclk_i(hclk), .hreset_n_i(rst_n), .pclk_i(pclk), .preset_n_i(rst_n),
+    dma_apb_slave dut (.hclk(hclk), .hreset_n(rst_n), .pclk(pclk), .preset_n(rst_n),
         .psel_i(psel), .penable_i(penable), .pwrite_i(pwrite), .paddr_i(paddr), .pwdata_i(pwdata),
         .prdata_o(prdata), .pready_o(pready), .pslverr_o(pslverr), .wr_cr_o(wcr), .wr_sar_o(wsar),
         .wr_dar_o(wdar), .wr_cnt_o(wcnt), .wr_iclr_o(wiclr), .wdata_o(wdata),

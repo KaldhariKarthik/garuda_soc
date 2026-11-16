@@ -57,7 +57,7 @@ module tb_map_pkg;
             eq(CLIC_ID_DMA_ERROR[c],    `GARUDA_CLIC_ID_DMA_ERROR_CH0_5_FIRST + c,    $sformatf("CLIC error ch%0d", c));
         end
         eq(CLIC_ID_SPI_SLAVE, `GARUDA_CLIC_ID_SPI_SLAVE, "CLIC spi_slave"); eq(CLIC_ID_UART2, `GARUDA_CLIC_ID_UART2, "CLIC uart2");
-        eq(CLIC_ID_WDT_EARLY_WARNING, `GARUDA_CLIC_ID_WDT_EARLY_WARNING, "CLIC wdt");
+        eq(CLIC_ID_WDT_EARLY_WARNING, `GARUDA_CLIC_ID_WDT_EARLY_WARNING, "CLIC watchdog");
         begin   // every ID with a source is in the RTL's ID mask; no reserved ID is
             logic [31:0] m = `GARUDA_CLIC_ID_MASK;
             foreach (CLIC_ID_RESERVED[i]) check(!m[CLIC_ID_RESERVED[i]], $sformatf("reserved CLIC ID %0d not in GARUDA_CLIC_ID_MASK", CLIC_ID_RESERVED[i]));

@@ -5,6 +5,6 @@
 -makelib oc_i2c
   -incdir rtl/third_party/opencores/i2c/src
   -sv
-  rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv
-  rtl/third_party/opencores/i2c/src/i2c_master_byte_ctrl.sv
+  rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv
+  rtl/third_party/opencores/i2c/src/i2c_byte_ctrl.sv
 -endlib

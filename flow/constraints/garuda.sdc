@@ -85,7 +85,7 @@ set_max_delay $HCLK_NS -ignore_clock_latency -from [get_clocks {aon_clk hclk pcl
 # 6. ext_rst_n: only its asynchronous reset/set pins. On ASAP7 all 183 loads
 #    were RESETN/SETN with no data use: u_clk_div (raw reset, [N-7.16]),
 #    u_reset_ctrl (release synchronisers, stretch counter held by ext_held,
-#    RSTREASON), and u_debug (jtag_tap/dtm/dmi_cdc por_n, tck domain). The pin
+#    RSTREASON), and u_debug (jtag_tap/debug_dtm/dmi_cdc por_n, tck domain). The pin
 #    has no clock (PHYS B-1). Re-check that the load list is the same on 28 nm.
 set_false_path -from [get_ports ext_rst_n] \
     -to [get_pins -of_objects [get_nets ext_rst_n] -filter "direction == input"]

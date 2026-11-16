@@ -58,10 +58,10 @@ module ahb2apb_bridge #(
     parameter [23:0] APB_DIV     = 24'h0,         // 2 bits per window 0..11
     parameter integer TIMEOUT    = 16             // GARUDA_APB_TIMEOUT_PCLK
 )(
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
-    input  wire        pclk_i,
-    input  wire        preset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
+    input  wire        pclk,
+    input  wire        preset_n,
     input  wire        pclk_phase_i,
 
     // ---- AHB-Lite slave ------------------------------------------------------
@@ -94,9 +94,9 @@ module ahb2apb_bridge #(
     // Reset release gate
     // =========================================================================
     reg prst_ok_q;
-    always @(posedge hclk_i or negedge hreset_n_i)
-        if (!hreset_n_i) prst_ok_q <= 1'b0;
-        else             prst_ok_q <= preset_n_i;
+    always @(posedge hclk or negedge hreset_n)
+        if (!hreset_n) prst_ok_q <= 1'b0;
+        else             prst_ok_q <= preset_n;
 
     // =========================================================================
     // Address-phase decode
@@ -126,8 +126,8 @@ module ahb2apb_bridge #(
     reg         ack_seen;
     wire        ack_new = (ack_tgl != ack_seen);
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             hstate    <= H_IDLE;
             win_cap   <= 4'd0;
             addr_cap  <= 12'd0;
@@ -190,8 +190,8 @@ module ahb2apb_bridge #(
         .APB_DIV (APB_DIV),
         .TIMEOUT (TIMEOUT)
     ) u_fsm (
-        .pclk_i        (pclk_i),
-        .preset_n_i    (preset_n_i),
+        .pclk        (pclk),
+        .preset_n    (preset_n),
         .req_tgl_i     (req_tgl),
         .win_i         (win_cap),
         .addr_i        (addr_cap),

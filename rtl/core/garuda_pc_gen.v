@@ -21,8 +21,8 @@
 module garuda_pc_gen #(
     parameter [31:0] RESET_VECTOR = 32'h1000_0000   // Boot ROM (GARUDA_RESET_VECTOR)
 ) (
-    input  wire        clk_i,
-    input  wire        rst_n_i,
+    input  wire        gclk,
+    input  wire        core_rst_n,
 
     // Redirect (from redirect mux, external to IF)
     input  wire        redirect_i,
@@ -41,8 +41,8 @@ module garuda_pc_gen #(
     output reg  [31:0] fetch_pc_o
 );
 
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             pc_o       <= RESET_VECTOR;
             fetch_pc_o <= RESET_VECTOR;
 

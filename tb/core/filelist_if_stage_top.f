@@ -7,9 +7,9 @@
 -incdir rtl/common
 -incdir rtl/core
 rtl/core/garuda_pc_gen.v
-rtl/core/garuda_iport_ahb_master.v
-rtl/core/garuda_prefetch_buffer.v
-rtl/core/garuda_if_stage_top.v
+rtl/core/iport_master.v
+rtl/core/prefetch_buf.v
+rtl/core/if_stage_top.v
 
 -sv
 tb/core/garuda_tb_pkg.sv

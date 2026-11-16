@@ -44,8 +44,8 @@
 module debug_module #(
     parameter integer HALT_TIMEOUT = 1024     // hclk cycles from halt request to a forced grant
 ) (
-    input  wire        hclk_i,
-    input  wire        dm_rst_n_i,
+    input  wire        hclk,
+    input  wire        dm_rst_n,
 
     // ---- DMI (from dmi_cdc) ---------------------------------------------------------
     input  wire        req_i,             // one-cycle pulse
@@ -89,7 +89,7 @@ module debug_module #(
     reg        sbbusyerror, sbreadonaddr, sbautoinc, sbreadondata;
     reg [2:0]  sbaccess, sberror;
     reg [31:0] sbaddr, sbdata;
-    reg [47:0] hold0, hold1, hold2;
+    reg [47:0] hold_fx, hold_fy, hold_mag;
     reg        pending_write;             // the running SBA transfer is a write
 
     // ERRATUM DBG-2: sba_done_i is high one cycle AFTER sba_busy_i falls, and
@@ -123,8 +123,8 @@ module debug_module #(
     wire rd = req_i && op_i == 2'd1;
     wire wr = req_i && op_i == 2'd2;
 
-    always @(posedge hclk_i or negedge dm_rst_n_i) begin
-        if (!dm_rst_n_i) begin
+    always @(posedge hclk or negedge dm_rst_n) begin
+        if (!dm_rst_n) begin
             grant_q <= 1'b0; haltforced <= 1'b0; halt_cnt <= 16'd0;
         end else begin
             if (wr && addr_i == A_HALTINFO && wdata_i[0])
@@ -153,13 +153,13 @@ module debug_module #(
     // rather than as a task: Xcelium switches X-propagation off for a block that calls a
     // task writing registers outside it (flow/2_static/xprop/README.md, ruling 2026-11-10).
 
-    always @(posedge hclk_i or negedge dm_rst_n_i) begin
-        if (!dm_rst_n_i) begin
+    always @(posedge hclk or negedge dm_rst_n) begin
+        if (!dm_rst_n) begin
             dmactive <= 1'b0; ndmreset <= 1'b0; hartreset <= 1'b0;
             sbbusyerror <= 1'b0; sbreadonaddr <= 1'b0; sbautoinc <= 1'b0;
             sbreadondata <= 1'b0; sbaccess <= 3'd2; sberror <= 3'd0;
             sbaddr <= 32'd0; sbdata <= 32'd0;
-            hold0 <= 48'd0; hold1 <= 48'd0; hold2 <= 48'd0;
+            hold_fx <= 48'd0; hold_fy <= 48'd0; hold_mag <= 48'd0;
             sba_start_o <= 1'b0; sba_write_o <= 1'b0; pending_write <= 1'b0;
             rdata_o <= 32'd0; done_o <= 1'b0;
         end else begin
@@ -255,12 +255,12 @@ module debug_module #(
                             else begin sba_start_o <= 1'b1; sba_write_o <= 1'b0; pending_write <= 1'b0; end
                         end
                     end
-                    A_ACC0L: begin rdata_o <= dsu_acc0_i[31:0]; hold0 <= dsu_acc0_i; end
-                    A_ACC0H:       rdata_o <= {16'd0, hold0[47:32]};
-                    A_ACC1L: begin rdata_o <= dsu_acc1_i[31:0]; hold1 <= dsu_acc1_i; end
-                    A_ACC1H:       rdata_o <= {16'd0, hold1[47:32]};
-                    A_ACC2L: begin rdata_o <= dsu_acc2_i[31:0]; hold2 <= dsu_acc2_i; end
-                    A_ACC2H:       rdata_o <= {16'd0, hold2[47:32]};
+                    A_ACC0L: begin rdata_o <= dsu_acc0_i[31:0]; hold_fx <= dsu_acc0_i; end
+                    A_ACC0H:       rdata_o <= {16'd0, hold_fx[47:32]};
+                    A_ACC1L: begin rdata_o <= dsu_acc1_i[31:0]; hold_fy <= dsu_acc1_i; end
+                    A_ACC1H:       rdata_o <= {16'd0, hold_fy[47:32]};
+                    A_ACC2L: begin rdata_o <= dsu_acc2_i[31:0]; hold_mag <= dsu_acc2_i; end
+                    A_ACC2H:       rdata_o <= {16'd0, hold_mag[47:32]};
                     A_OVF:         rdata_o <= {31'd0, dsu_ovf_i};
                     A_HALTINFO:    rdata_o <= {31'd0, haltforced};   // RDC-1
                     default:       rdata_o <= 32'd0;          // abstractcs, data0, progbuf ...

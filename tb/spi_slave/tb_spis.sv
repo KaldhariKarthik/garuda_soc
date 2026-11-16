@@ -20,7 +20,7 @@ module tb_spis;
     wire  miso = miso_oe ? miso_o : 1'bz;
 
     garuda_spis_top #(.BLOCK_NUM(8'd14), .FIFO_DEPTH(16)) dut (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(bfm.psel), .penable_i(bfm.penable), .pwrite_i(bfm.pwrite),
         .paddr_i(bfm.paddr), .pwdata_i(bfm.pwdata), .prdata_o(bfm.prdata),
         .pready_o(bfm.pready), .pslverr_o(bfm.pslverr),

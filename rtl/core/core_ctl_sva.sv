@@ -68,8 +68,8 @@ module iport_ctl_sva (
 endmodule
 
 bind garuda_core_top core_ctl_sva u_ctl_sva (
-    .clk           (clk_i),
-    .rst_n         (core_rst_n_i),
+    .clk           (hclk),
+    .rst_n         (core_rst_n),
     .ctl           (csr_ctl),
     .predict_taken (id_predict_taken),
     .clic_take_cond(clic_take_cond),
@@ -78,9 +78,9 @@ bind garuda_core_top core_ctl_sva u_ctl_sva (
     .cg_en         (u_cg.en_i),
     .quiescent     (quiescent)
 );
-bind garuda_iport_ahb_master iport_ctl_sva u_ctl_sva (
-    .clk          (clk_i),
-    .rst_n        (rst_n_i),
+bind iport_master iport_ctl_sva u_ctl_sva (
+    .clk          (gclk),
+    .rst_n        (core_rst_n),
     .pf_dis       (pf_dis_i),
     .fetch_issue  (fetch_issue_o),
     .projected_occ(projected_occ),

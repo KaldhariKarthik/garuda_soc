@@ -309,8 +309,8 @@ module tb_top;
     operand_router_if vif(clk);
 
     operand_router dut (
-        .rs1(vif.rs1), .rs2(vif.rs2), .abs_en(vif.abs_en), .dot_en(vif.dot_en),
-        .a0(vif.a0), .b0(vif.b0), .a1(vif.a1), .b1(vif.b1)
+        .rs1_val(vif.rs1), .rs2_val(vif.rs2), .abs_en(vif.abs_en), .dot_en(vif.dot_en),
+        .a_lo(vif.a0), .b_lo(vif.b0), .a_hi(vif.a1), .b_hi(vif.b1)
     );
 
     router_test test;

@@ -753,8 +753,8 @@ module tb_top;
     mac_unit_if vif(clk);
 
     mac_unit dut (
-        .clk(clk), .rst_n(vif.rst_n),
-        .rs1(vif.rs1), .rs2(vif.rs2),
+        .gclk(clk), .core_rst_n(vif.rst_n),
+        .rs1_val(vif.rs1), .rs2_val(vif.rs2),
         .en(vif.en), .add_sub(vif.add_sub), .clear(vif.clear), .load(vif.load),
         .abs_en(vif.abs_en), .dot_en(vif.dot_en), .flush(vif.flush),
         .sat_writeback(vif.sat_writeback), .sat_writeback_en(vif.sat_writeback_en),

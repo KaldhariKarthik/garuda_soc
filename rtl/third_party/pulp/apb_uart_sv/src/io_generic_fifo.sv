@@ -15,8 +15,8 @@ module io_generic_fifo
     parameter LOG_BUFFER_DEPTH = $clog2(BUFFER_DEPTH)
 )
 (
-    input  logic                      clk_i,
-    input  logic                      rstn_i,
+    input  logic                      pclk,
+    input  logic                      preset_n,
 
     input  logic                      clr_i,
 
@@ -46,9 +46,9 @@ module io_generic_fifo
     assign full = (elements == BUFFER_DEPTH);
     assign elements_o = elements;
 
-    always_ff @(posedge clk_i, negedge rstn_i)
+    always_ff @(posedge pclk, negedge preset_n)
     begin: elements_sequential
-        if (rstn_i == 1'b0)
+        if (preset_n == 1'b0)
             elements <= 0;
         else
         begin
@@ -70,9 +70,9 @@ module io_generic_fifo
         end
     end
 
-    always_ff @(posedge clk_i, negedge rstn_i)
+    always_ff @(posedge pclk, negedge preset_n)
     begin: buffers_sequential
-        if (rstn_i == 1'b0)
+        if (preset_n == 1'b0)
         begin
                 for (loop1 = 0 ; loop1 < BUFFER_DEPTH ; loop1 = loop1 + 1)
                         buffer[loop1] <= 0;
@@ -85,9 +85,9 @@ module io_generic_fifo
         end
     end
 
-    always_ff @(posedge clk_i, negedge rstn_i)
+    always_ff @(posedge pclk, negedge preset_n)
     begin: sequential
-        if (rstn_i == 1'b0)
+        if (preset_n == 1'b0)
         begin
                 pointer_out <= 0;
                 pointer_in  <= 0;

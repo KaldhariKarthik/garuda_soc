@@ -5,20 +5,20 @@
 `include "dsu_defs.vh"
 
 module dsu_stall (
-    input wire clk,
-    input wire rst_n,
+    input wire gclk,
+    input wire core_rst_n,
     input wire flush,
     
-    input wire [4:0] funct5,
-    input wire [2:0] funct3,
+    input wire [4:0] funct5_fld,
+    input wire [2:0] funct3_fld,
     input wire       is_custom0,
     input wire [1:0] acc_sel,
     
     output wire dsu_busy
 );
 
-    wire cur_is_rtype = is_custom0 & (funct3 == 3'b000);
-    wire cur_is_itype = is_custom0 & (funct3 == 3'b001);
+    wire cur_is_rtype = is_custom0 & (funct3_fld == 3'b000);
+    wire cur_is_itype = is_custom0 & (funct3_fld == 3'b001);
     
     // -----------------------------------------------------------------------
     // ERRATUM DSU-3 (FLAG-C / FLAG-2) -- compute -> readback was not interlocked
@@ -47,16 +47,16 @@ module dsu_stall (
     // purposes. The one-shot guard from ERRATUM DSU-1 still applies, so this
     // still inserts exactly one bubble and cannot re-deadlock.
     // -----------------------------------------------------------------------
-    wire cur_is_compute = cur_is_rtype & ((funct5 == `FUNCT5_MAC_SEL) |
-                                          (funct5 == `FUNCT5_MACSUB)  |
-                                          (funct5 == `FUNCT5_MACABS)  |
-                                          (funct5 == `FUNCT5_MACDOT));
+    wire cur_is_compute = cur_is_rtype & ((funct5_fld == `FUNCT5_MAC_SEL) |
+                                          (funct5_fld == `FUNCT5_MACSUB)  |
+                                          (funct5_fld == `FUNCT5_MACABS)  |
+                                          (funct5_fld == `FUNCT5_MACDOT));
 
-    wire cur_is_2cycle = (cur_is_rtype & ((funct5 == `FUNCT5_MACRD_LO) |
-                                          (funct5 == `FUNCT5_MACRD_HI) |
-                                          (funct5 == `FUNCT5_MACSAT)))
+    wire cur_is_2cycle = (cur_is_rtype & ((funct5_fld == `FUNCT5_MACRD_LO) |
+                                          (funct5_fld == `FUNCT5_MACRD_HI) |
+                                          (funct5_fld == `FUNCT5_MACSAT)))
                        | cur_is_compute;
-    wire cur_reads_acc = (cur_is_rtype & ((funct5 == `FUNCT5_MACRD_LO) | (funct5 == `FUNCT5_MACRD_HI) | (funct5 == `FUNCT5_MACSAT))) | cur_is_itype;
+    wire cur_reads_acc = (cur_is_rtype & ((funct5_fld == `FUNCT5_MACRD_LO) | (funct5_fld == `FUNCT5_MACRD_HI) | (funct5_fld == `FUNCT5_MACSAT))) | cur_is_itype;
     
     reg       prev_was_2cycle;
     reg [1:0] prev_acc_sel;
@@ -77,8 +77,8 @@ module dsu_stall (
     // The interlock is meant to insert exactly ONE bubble, so it is now a
     // one-shot: stalled_once records that this instruction has already been
     // held and suppresses any further stall for it, letting prev_* advance.
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if(!core_rst_n) begin
             prev_was_2cycle <= 1'b0;
             prev_acc_sel <= 2'b00;
             stalled_once <= 1'b0;

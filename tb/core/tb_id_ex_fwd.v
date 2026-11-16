@@ -24,7 +24,7 @@ module tb_id_ex_fwd;
   reg [31:0] pc_i, instr_i, imm_i; reg [4:0] rd_i, rs1i, rs2i;
   reg rw_i, mr_i, dsu_i, pt_i;
   wire [31:0] pc_o, instr_o; wire [4:0] rd_o; wire rw_o, mr_o, dsu_o, pt_o;
-  id_ex dut(.clk_i(clk), .rst_n_i(rst_n), .stall_i(stall), .flush_i(flush),
+  id_ex dut(.gclk(clk), .core_rst_n(rst_n), .stall_i(stall), .flush_i(flush),
     .pc_i(pc_i), .instr_i(instr_i), .rs1_data_i(32'd0), .rs2_data_i(32'd0), .imm_i(imm_i),
     .rs1_idx_i(rs1i), .rs2_idx_i(rs2i), .rd_i(rd_i), .funct3_i(3'd0),
     .reg_write_i(rw_i), .mem_read_i(mr_i), .mem_write_i(1'b0), .mem_to_reg_i(1'b0),

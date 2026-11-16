@@ -32,7 +32,7 @@ rtl/ahb/ahb_master_mux.v
 rtl/ahb/ahb_arbiter.v
 rtl/ahb/ahb_master_port.v
 rtl/ahb/ahb_slave_mux.v
-rtl/ahb/ahb_default_slave.v
+rtl/ahb/ahb_dflt_slave.v
 rtl/ahb/ahb_interconnect.v
 rtl/ahb/ahb_ic_props_a.sv
 tb/ahb/ahb_lite_sram.v
@@ -54,7 +54,7 @@ rtl/ahb/ahb_master_mux.v
 rtl/ahb/ahb_arbiter.v
 rtl/ahb/ahb_master_port.v
 rtl/ahb/ahb_slave_mux.v
-rtl/ahb/ahb_default_slave.v
+rtl/ahb/ahb_dflt_slave.v
 rtl/ahb/ahb_interconnect.v
 rtl/ahb/ahb_ic_props_a.sv
 tb/common/garuda_map_pkg.sv
@@ -91,7 +91,7 @@ rtl/ahb/ahb_master_mux.v
 rtl/ahb/ahb_arbiter.v
 rtl/ahb/ahb_master_port.v
 rtl/ahb/ahb_slave_mux.v
-rtl/ahb/ahb_default_slave.v
+rtl/ahb/ahb_dflt_slave.v
 tb/ahb/units/tb_ahb_units.sv
 EOF
 irun -64bit -sv -elaborate -access +r -timescale 1ns/1ps -f $D/tb_ahb_units_tb_ahb_units_filelist_ahb_units_f.f -top tb_ahb_units -nclibdirname $D/INCA_tb_ahb_units_tb_ahb_units_filelist_ahb_units_f $COV -l $D/tb_ahb_units_tb_ahb_units_filelist_ahb_units_f.compile.log || { echo "COMPILE FAILED: tb_ahb_units_tb_ahb_units_filelist_ahb_units_f (see $D/tb_ahb_units_tb_ahb_units_filelist_ahb_units_f.compile.log)"; }

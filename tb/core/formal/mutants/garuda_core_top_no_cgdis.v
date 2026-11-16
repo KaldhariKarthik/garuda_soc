@@ -38,8 +38,8 @@ module garuda_core_top #(
     parameter [31:0] RESET_VECTOR = 32'h1000_0000,   // GARUDA_RESET_VECTOR
     parameter        CLK_GATE     = 1
 )(
-    input  wire        clk_i,           // hclk, ungated
-    input  wire        core_rst_n_i,    // from reset_ctrl
+    input  wire        hclk,           // hclk, ungated
+    input  wire        core_rst_n,    // from reset_ctrl
     // ERRATUM RDC-1 (reset-domain review crossing 5; fixed 2026-10-11): a debugger
     // halt (= hartreset, ADR-0012) used to reset the core at any cycle, also in the
     // waited data phase of a store, on a bus that is NOT reset: the store's
@@ -119,7 +119,7 @@ module garuda_core_top #(
     // =========================================================================
     // reset and clock
     // =========================================================================
-    // [N-7.33] (D-36, 2026-11-16): one reset input. reset_ctrl asserts core_rst_n_i for
+    // [N-7.33] (D-36, 2026-11-16): one reset input. reset_ctrl asserts core_rst_n for
     // every system reset and, one hclk after it, for the Debug Module's hartreset grant,
     // and releases it synchronously to hclk. Until 2026-11-16 the core had a second
     // input, hartreset_n_i, ANDed here in front of the asynchronous resets (HAL GLTASR).
@@ -139,11 +139,11 @@ module garuda_core_top #(
     wire [3:0] id_alu_op; wire id_branch, id_jal, id_jalr, id_mul_en, id_dsu_en, id_csr_en;
     wire [2:0] id_csr_op; wire id_is_system, id_illegal, id_fault;
     wire [31:0] id_rs1_data, id_rs2_data, id_imm, id_pc, id_instr;
-    wire [4:0] id_rs1_idx, id_rs2_idx, id_rd; wire [2:0] id_funct3;
+    wire [4:0] id_rs1_idx, id_rs2_idx, id_rd; wire [2:0] id_funct3_fld;
     wire id_valid; wire id_load_use, id_redir_v; wire [31:0] id_redir_t; wire id_predict_taken;
     // ID/EX outputs
-    wire [31:0] xe_pc, xe_instr, xe_rs1, xe_rs2, xe_imm; wire [4:0] xe_rs1i, xe_rs2i, xe_rd;
-    wire [2:0] xe_funct3; wire xe_reg_write, xe_mem_read, xe_mem_write, xe_mem_to_reg;
+    wire [31:0] xe_pc, xe_instr, xe_rs1_val, xe_rs2_val, xe_imm; wire [4:0] xe_rs1i, xe_rs2i, xe_rd;
+    wire [2:0] xe_funct3_fld; wire xe_reg_write, xe_mem_read, xe_mem_write, xe_mem_to_reg;
     wire xe_alu_src, xe_pc_op_a; wire [3:0] xe_alu_op; wire xe_branch, xe_jal, xe_jalr;
     wire xe_predicted_taken, xe_mul_en, xe_dsu_en, xe_csr_en, xe_csr_imm; wire [1:0] xe_csr_op;
     wire xe_is_system, xe_illegal, xe_fault, xe_valid;
@@ -158,7 +158,7 @@ module garuda_core_top #(
     wire ex_load_mis, ex_store_mis, ex_dsu_illegal, ex_dsu_busy, ex_dsu_overflow, ex_dsu_ovf_pending;
     wire ex_fetch_mis;                    // cause 0, ERRATUM T-1
     // EX/MEM outputs
-    wire [31:0] em_result, em_store, em_pc; wire [2:0] em_funct3; wire [4:0] em_rd;
+    wire [31:0] em_result, em_store, em_pc; wire [2:0] em_funct3_fld; wire [4:0] em_rd;
     wire em_mem_read, em_mem_write, em_mem_to_reg, em_reg_write, em_valid;
     // MEM outputs
     wire [31:0] mem_wb_data; wire mem_reg_write, mem_retire; wire [4:0] mem_rd; wire mem_stall;
@@ -189,7 +189,7 @@ module garuda_core_top #(
     // Root clock gate (R11). Everything below this point is clocked by gclk.
     // =========================================================================
     core_clk_gate u_cg (
-        .clk_i(clk_i), .en_i(~quiescent | (CLK_GATE == 0)),   // MUTANT: CG_DIS ignored   // CORE-4: CG_DIS
+        .hclk(hclk), .en_i(~quiescent | (CLK_GATE == 0)),   // MUTANT: CG_DIS ignored   // CORE-4: CG_DIS
         .test_en_i(1'b0), .gclk_o(gclk)
     );
     assign core_sleep_o = quiescent;
@@ -197,8 +197,8 @@ module garuda_core_top #(
     // Bus activity for quiescent: a port is busy while it presents a transfer
     // or owns an unfinished data phase.
     reg i_dph_q, d_dph_q, wfi_q1, wfi_q2;
-    always @(posedge gclk or negedge core_rst_n_i) begin
-        if (!core_rst_n_i) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             i_dph_q <= 1'b0; d_dph_q <= 1'b0; wfi_q1 <= 1'b0; wfi_q2 <= 1'b0;
         end else begin
             if (i_hready_i) i_dph_q <= i_htrans_o[1];
@@ -230,8 +230,8 @@ module garuda_core_top #(
     // =========================================================================
     // IF stage
     // =========================================================================
-    garuda_if_stage_top #(.RESET_VECTOR(RESET_VECTOR)) u_if (
-        .clk_i(gclk), .rst_n_i(core_rst_n_i),
+    if_stage_top #(.RESET_VECTOR(RESET_VECTOR)) u_if (
+        .gclk(gclk), .core_rst_n(core_rst_n),
         .i_haddr_o(i_haddr_o), .i_htrans_o(i_htrans_o), .i_hsize_o(i_hsize_o),
         .i_hburst_o(i_hburst_o), .i_hprot_o(i_hprot_o), .i_hwrite_o(i_hwrite_o), .i_hwdata_o(i_hwdata_o),
         .i_hrdata_i(i_hrdata_i), .i_hready_i(i_hready_i), .i_hresp_i(i_hresp_i),
@@ -241,7 +241,7 @@ module garuda_core_top #(
         .pf_dis_i(csr_ctl[1])                               // CORE-4: PF_DIS
     );
     if_id u_ifid (
-        .clk_i(gclk), .rst_n_i(core_rst_n_i), .stall_i(pc_ifid_s), .flush_i(pc_ifid_f),
+        .gclk(gclk), .core_rst_n(core_rst_n), .stall_i(pc_ifid_s), .flush_i(pc_ifid_f),
         .instr_i(if_instr), .pc_i(if_pc), .valid_i(if_valid), .fault_i(if_fault),
         .instr_o(fd_instr), .pc_o(fd_pc), .valid_o(fd_valid), .fault_o(fd_fault)
     );
@@ -250,7 +250,7 @@ module garuda_core_top #(
     // ID stage (regfile internal)
     // =========================================================================
     id_stage u_id (
-        .clk_i(gclk), .rst_n_i(core_rst_n_i),
+        .gclk(gclk), .core_rst_n(core_rst_n),
         .if_id_instr_i(fd_instr), .if_id_pc_i(fd_pc), .if_id_fault_i(fd_fault), .if_id_valid_i(fd_valid),
         .wb_reg_write_i(rf_we), .wb_rd_i(rf_rd), .wb_data_i(rf_wdata),
         .ex_mem_read_i(xe_mem_read), .ex_rd_i(xe_rd),
@@ -260,7 +260,7 @@ module garuda_core_top #(
         .mul_en_o(id_mul_en), .dsu_en_o(id_dsu_en), .csr_en_o(id_csr_en), .csr_op_o(id_csr_op),
         .is_system_o(id_is_system), .illegal_instr_dec_o(id_illegal),
         .rs1_data_o(id_rs1_data), .rs2_data_o(id_rs2_data), .imm_o(id_imm), .pc_o(id_pc),
-        .rs1_idx_o(id_rs1_idx), .rs2_idx_o(id_rs2_idx), .rd_o(id_rd), .funct3_o(id_funct3),
+        .rs1_idx_o(id_rs1_idx), .rs2_idx_o(id_rs2_idx), .rd_o(id_rd), .funct3_o(id_funct3_fld),
         .instr_o(id_instr), .fault_o(id_fault),
         .load_use_stall_o(id_load_use),
         .id_redirect_valid_o(id_redir_v), .id_redirect_target_o(id_redir_t),
@@ -268,18 +268,18 @@ module garuda_core_top #(
         .bp_dis_i(csr_ctl[0])                               // CORE-4: BP_DIS
     );
     id_ex u_idex (
-        .clk_i(gclk), .rst_n_i(core_rst_n_i), .stall_i(pc_idex_s), .flush_i(pc_idex_f),
+        .gclk(gclk), .core_rst_n(core_rst_n), .stall_i(pc_idex_s), .flush_i(pc_idex_f),
         .pc_i(id_pc), .instr_i(id_instr), .rs1_data_i(id_rs1_data), .rs2_data_i(id_rs2_data),
         .rs1_fwd_i(ex_rs1_fwd), .rs2_fwd_i(ex_rs2_fwd),   // ERRATUM F-1 operand capture
-        .imm_i(id_imm), .rs1_idx_i(id_rs1_idx), .rs2_idx_i(id_rs2_idx), .rd_i(id_rd), .funct3_i(id_funct3),
+        .imm_i(id_imm), .rs1_idx_i(id_rs1_idx), .rs2_idx_i(id_rs2_idx), .rd_i(id_rd), .funct3_i(id_funct3_fld),
         .reg_write_i(id_reg_write), .mem_read_i(id_mem_read), .mem_write_i(id_mem_write),
         .mem_to_reg_i(id_mem_to_reg), .alu_src_i(id_alu_src), .pc_op_a_i(id_alu_a_pc),
         .alu_op_i(id_alu_op), .branch_i(id_branch), .jal_i(id_jal), .jalr_i(id_jalr),
         .predicted_taken_i(id_predict_taken), .mul_en_i(id_mul_en), .dsu_en_i(id_dsu_en),
         .csr_en_i(id_csr_en), .csr_imm_i(id_csr_op[2]), .csr_op_i(id_csr_op[1:0]),
         .is_system_i(id_is_system), .illegal_instr_dec_i(id_illegal), .fault_i(id_fault), .valid_i(id_valid),
-        .pc_o(xe_pc), .instr_o(xe_instr), .rs1_data_o(xe_rs1), .rs2_data_o(xe_rs2), .imm_o(xe_imm),
-        .rs1_idx_o(xe_rs1i), .rs2_idx_o(xe_rs2i), .rd_o(xe_rd), .funct3_o(xe_funct3),
+        .pc_o(xe_pc), .instr_o(xe_instr), .rs1_data_o(xe_rs1_val), .rs2_data_o(xe_rs2_val), .imm_o(xe_imm),
+        .rs1_idx_o(xe_rs1i), .rs2_idx_o(xe_rs2i), .rd_o(xe_rd), .funct3_o(xe_funct3_fld),
         .reg_write_o(xe_reg_write), .mem_read_o(xe_mem_read), .mem_write_o(xe_mem_write),
         .mem_to_reg_o(xe_mem_to_reg), .alu_src_o(xe_alu_src), .pc_op_a_o(xe_pc_op_a),
         .alu_op_o(xe_alu_op), .branch_o(xe_branch), .jal_o(xe_jal), .jalr_o(xe_jalr),
@@ -298,11 +298,11 @@ module garuda_core_top #(
         .fwd_a_sel_o(fwd_a_sel), .fwd_b_sel_o(fwd_b_sel)
     );
     ex_stage u_ex (
-        .clk(gclk), .rst_n(core_rst_n_i),
-        .pc(xe_pc), .instr(xe_instr), .rs1_data(xe_rs1), .rs2_data(xe_rs2), .imm(xe_imm),
-        .rd(xe_rd), .funct3(xe_funct3), .reg_write(xe_reg_write), .mem_read(xe_mem_read),
+        .gclk(gclk), .core_rst_n(core_rst_n),
+        .pc(xe_pc), .instr(xe_instr), .rs1_data(xe_rs1_val), .rs2_data(xe_rs2_val), .imm(xe_imm),
+        .rd(xe_rd), .funct3_fld(xe_funct3_fld), .reg_write(xe_reg_write), .mem_read(xe_mem_read),
         .mem_write(xe_mem_write), .mem_to_reg(xe_mem_to_reg), .alu_src(xe_alu_src),
-        .pc_op_a(xe_pc_op_a), .alu_op(xe_alu_op), .branch(xe_branch), .jal(xe_jal), .jalr(xe_jalr),
+        .pc_op_a(xe_pc_op_a), .alu_op(xe_alu_op), .is_branch(xe_branch), .jal(xe_jal), .jalr(xe_jalr),
         .predicted_taken(xe_predicted_taken), .mul_en(xe_mul_en), .dsu_en(xe_dsu_en & ~ex_parked),
         .csr_en(xe_csr_en), .csr_imm(xe_csr_imm), .csr_op(xe_csr_op),
         .fwd_a_sel(fwd_a_sel), .fwd_b_sel(fwd_b_sel),
@@ -317,14 +317,14 @@ module garuda_core_top #(
         .branch_mispredict(ex_branch_mispredict), .load_misaligned(ex_load_mis),
         .store_misaligned(ex_store_mis), .dsu_illegal_instr(ex_dsu_illegal),
         .dsu_busy(ex_dsu_busy), .dsu_overflow(ex_dsu_overflow), .dsu_ovf_pending(ex_dsu_ovf_pending),
-        .dbg_acc_0(dbg_acc_0_o), .dbg_acc_1(dbg_acc_1_o), .dbg_acc_2(dbg_acc_2_o)
+        .dbg_acc_fx(dbg_acc_0_o), .dbg_acc_fy(dbg_acc_1_o), .dbg_acc_mag(dbg_acc_2_o)
     );
     ex_mem u_exmem (
-        .clk_i(gclk), .rst_n_i(core_rst_n_i), .stall_i(pc_exmem_s), .flush_i(pc_exmem_f),
-        .ex_result_i(ex_result), .store_data_i(ex_store_data), .funct3_i(xe_funct3),
+        .gclk(gclk), .core_rst_n(core_rst_n), .stall_i(pc_exmem_s), .flush_i(pc_exmem_f),
+        .ex_result_i(ex_result), .store_data_i(ex_store_data), .funct3_i(xe_funct3_fld),
         .rd_i(ex_rd_out), .pc_i(xe_pc), .mem_read_i(ex_mem_read_out), .mem_write_i(ex_mem_write_out),
         .mem_to_reg_i(ex_mem_to_reg_out), .reg_write_i(ex_reg_write_out), .valid_i(xe_valid),
-        .ex_result_o(em_result), .store_data_o(em_store), .funct3_o(em_funct3), .rd_o(em_rd),
+        .ex_result_o(em_result), .store_data_o(em_store), .funct3_o(em_funct3_fld), .rd_o(em_rd),
         .pc_o(em_pc), .mem_read_o(em_mem_read), .mem_write_o(em_mem_write),
         .mem_to_reg_o(em_mem_to_reg), .reg_write_o(em_reg_write), .valid_o(em_valid)
     );
@@ -333,8 +333,8 @@ module garuda_core_top #(
     // MEM + WB
     // =========================================================================
     mem_stage u_mem (
-        .clk_i(gclk), .rst_n_i(core_rst_n_i),
-        .ex_result_i(em_result), .rs2_data_i(em_store), .funct3_i(em_funct3), .rd_i(em_rd),
+        .gclk(gclk), .core_rst_n(core_rst_n),
+        .ex_result_i(em_result), .rs2_data_i(em_store), .funct3_i(em_funct3_fld), .rd_i(em_rd),
         .pc_i(em_pc), .mem_read_i(em_mem_read), .mem_write_i(em_mem_write),
         .mem_to_reg_i(em_mem_to_reg), .reg_write_i(em_reg_write), .valid_i(em_valid),
         .d_haddr_o(d_haddr_o), .d_htrans_o(d_htrans_o), .d_hsize_o(d_hsize_o),
@@ -346,7 +346,7 @@ module garuda_core_top #(
         .mem_exception_cause_o(mem_exc_cause), .mem_exception_mtval_o(mem_exc_tval)
     );
     mem_wb_reg u_memwb (
-        .clk_i(gclk), .rst_n_i(core_rst_n_i), .flush_i(pc_mwb_f),
+        .gclk(gclk), .core_rst_n(core_rst_n), .flush_i(pc_mwb_f),
         .wb_data_i(mem_wb_data), .rd_i(mem_rd), .reg_write_i(mem_reg_write), .retire_i(mem_retire),
         .wb_data_o(mw_data), .rd_o(mw_rd), .reg_write_o(mw_reg_write), .retire_o(mw_retire)
     );
@@ -376,7 +376,7 @@ module garuda_core_top #(
     assign ex_commit = ~ex_parked & ~tr_ex_squash & ~ovf_rd_hold;
 
     csr_file u_csr (
-        .clk_i(gclk), .rst_n_i(core_rst_n_i),
+        .gclk(gclk), .core_rst_n(core_rst_n),
         .csr_en_i(ex_csr_en_out), .commit_i(ex_commit), .csr_addr_i(ex_csr_addr_w), .csr_wdata_i(ex_csr_wdata),
         .csr_op_i(ex_csr_op_out), .csr_rdata_o(csr_rdata), .illegal_csr_o(csr_illegal),
         .instret_i(mw_retire),                        // true architectural retire
@@ -401,7 +401,7 @@ module garuda_core_top #(
     );
     assign dsu_ovf_o = ex_dsu_overflow;
     trap_ctrl #(.ID_W(5)) u_trap (
-        .clk_i(gclk), .rst_n_i(core_rst_n_i),
+        .gclk(gclk), .core_rst_n(core_rst_n),
         .idex_pc_i(xe_pc), .idex_instr_i(xe_instr), .idex_fault_i(xe_fault),
         .idex_illegal_dec_i(xe_illegal), .idex_is_system_i(xe_is_system),
         .idex_valid_i(xe_valid),                      // ERRATUM T-4
@@ -451,9 +451,9 @@ module garuda_core_top #(
     // RVFI (plan 5.1): records follow ex_mem / mem_wb hold and flush exactly
     // =========================================================================
     garuda_rvfi u_rvfi (
-        .clk_i(gclk), .clk_free_i(clk_i), .rst_n_i(core_rst_n_i),
+        .gclk(gclk), .hclk(hclk), .core_rst_n(core_rst_n),
         .xe_valid_i(xe_valid), .xe_pc_i(xe_pc), .xe_instr_i(xe_instr), .xe_imm_i(xe_imm),
-        .xe_rs1_i(xe_rs1i), .xe_rs2_i(xe_rs2i), .xe_funct3_i(xe_funct3),
+        .xe_rs1_i(xe_rs1i), .xe_rs2_i(xe_rs2i), .xe_funct3_i(xe_funct3_fld),
         .xe_branch_i(xe_branch), .xe_jal_i(xe_jal), .xe_pred_taken_i(xe_predicted_taken),
         .xe_mem_read_i(xe_mem_read), .xe_mem_write_i(xe_mem_write),
         .ex_rs1_val_i(ex_rs1_fwd), .ex_rs2_val_i(ex_rs2_fwd), .ex_result_i(ex_result),

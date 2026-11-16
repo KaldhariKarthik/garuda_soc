@@ -8,11 +8,11 @@
 `include "dsu_defs.vh"
 
 module mac_cluster (
-    input wire clk, 
-    input wire rst_n,
+    input wire gclk, 
+    input wire core_rst_n,
     
-    input wire [31:0] rs1,
-    input wire [31:0] rs2, 
+    input wire [31:0] rs1_val,
+    input wire [31:0] rs2_val, 
     
     input wire [`MAC_CTRL_W-1:0] control,
     input wire [1:0]             acc_sel,
@@ -24,9 +24,9 @@ module mac_cluster (
     output wire [2:0]  overflow,
     output wire [2:0]  pending,            // per unit: a fold commits this cycle (DSU-14)
     
-    output wire [47:0] dbg_acc_0,
-    output wire [47:0] dbg_acc_1,
-    output wire [47:0] dbg_acc_2
+    output wire [47:0] dbg_acc_fx,
+    output wire [47:0] dbg_acc_fy,
+    output wire [47:0] dbg_acc_mag
 );
 
     wire ctrl_en     = control[`MAC_CTRL_EN];
@@ -47,13 +47,13 @@ module mac_cluster (
     assign sat_we_onehot[1] = sat_writeback_en & (acc_sel == `ACC_FY);
     assign sat_we_onehot[2] = sat_writeback_en & (acc_sel == `ACC_MAG);
     
-    wire [47:0] mac_out_0, mac_out_1, mac_out_2;
+    wire [47:0] mac_out_fx, mac_out_fy, mac_out_mag;
     
     mac_unit u_mac0 (
-        .clk              (clk),
-        .rst_n            (rst_n),
-        .rs1              (rs1),
-        .rs2              (rs2),
+        .gclk              (gclk),
+        .core_rst_n            (core_rst_n),
+        .rs1_val              (rs1_val),
+        .rs2_val              (rs2_val),
         .en               (en_onehot[0]),
         .add_sub          (ctrl_addsub),
         .clear            (ctrl_clear),
@@ -63,16 +63,16 @@ module mac_cluster (
         .flush            (ctrl_flush),
         .sat_writeback    (sat_writeback),
         .sat_writeback_en (sat_we_onehot[0]),
-        .mac_out          (mac_out_0),
+        .mac_out          (mac_out_fx),
         .overflow         (overflow[0]),
         .pending_o        (pending[0])
     );
     
     mac_unit u_mac1 (
-        .clk              (clk),
-        .rst_n            (rst_n),
-        .rs1              (rs1),
-        .rs2              (rs2),
+        .gclk              (gclk),
+        .core_rst_n            (core_rst_n),
+        .rs1_val              (rs1_val),
+        .rs2_val              (rs2_val),
         .en               (en_onehot[1]),
         .add_sub          (ctrl_addsub),
         .clear            (ctrl_clear),
@@ -82,16 +82,16 @@ module mac_cluster (
         .flush            (ctrl_flush),
         .sat_writeback    (sat_writeback),
         .sat_writeback_en (sat_we_onehot[1]),
-        .mac_out          (mac_out_1),
+        .mac_out          (mac_out_fy),
         .overflow         (overflow[1]),
         .pending_o        (pending[1])
     );
     
     mac_unit u_mac2 (
-        .clk              (clk),
-        .rst_n            (rst_n),
-        .rs1              (rs1),
-        .rs2              (rs2),
+        .gclk              (gclk),
+        .core_rst_n            (core_rst_n),
+        .rs1_val              (rs1_val),
+        .rs2_val              (rs2_val),
         .en               (en_onehot[2]),
         .add_sub          (ctrl_addsub),
         .clear            (ctrl_clear),
@@ -101,7 +101,7 @@ module mac_cluster (
         .flush            (ctrl_flush),
         .sat_writeback    (sat_writeback),
         .sat_writeback_en (sat_we_onehot[2]),
-        .mac_out          (mac_out_2),
+        .mac_out          (mac_out_mag),
         .overflow         (overflow[2]),
         .pending_o        (pending[2])
     );
@@ -109,17 +109,17 @@ module mac_cluster (
     reg [47:0] cluster_out_r;
     always @(*) begin
         case (acc_sel)
-            `ACC_FX:  cluster_out_r = mac_out_0;
-            `ACC_FY:  cluster_out_r = mac_out_1;
-            `ACC_MAG: cluster_out_r = mac_out_2;
+            `ACC_FX:  cluster_out_r = mac_out_fx;
+            `ACC_FY:  cluster_out_r = mac_out_fy;
+            `ACC_MAG: cluster_out_r = mac_out_mag;
             default: cluster_out_r = 48'b0;
         endcase
     end
     
     assign cluster_out = cluster_out_r;
     
-    assign dbg_acc_0 = mac_out_0;
-    assign dbg_acc_1 = mac_out_1;
-    assign dbg_acc_2 = mac_out_2;
+    assign dbg_acc_fx = mac_out_fx;
+    assign dbg_acc_fy = mac_out_fy;
+    assign dbg_acc_mag = mac_out_mag;
     
 endmodule

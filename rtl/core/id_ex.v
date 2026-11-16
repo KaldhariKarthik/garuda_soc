@@ -20,8 +20,8 @@
 //   discarded anyway. Reset => bubble.
 // =============================================================================
 module id_ex (
-    input  wire        clk_i,
-    input  wire        rst_n_i,
+    input  wire        gclk,
+    input  wire        core_rst_n,
     input  wire        stall_i,        // hold (DSU hold / D-port wait leg)
     input  wire        flush_i,        // bubble (load-use / mispredict / trap)
 
@@ -98,8 +98,8 @@ module id_ex (
     // reset and for flush, rather than as a task: Xcelium switches X-propagation off for a
     // block that calls a task writing registers outside it (flow/2_static/xprop/README.md,
     // ruling 2026-11-10). The two lists must stay identical.
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             reg_write_o<=1'b0; mem_read_o<=1'b0; mem_write_o<=1'b0; mem_to_reg_o<=1'b0;
             branch_o<=1'b0; jal_o<=1'b0; jalr_o<=1'b0; predicted_taken_o<=1'b0;
             mul_en_o<=1'b0; dsu_en_o<=1'b0; csr_en_o<=1'b0;

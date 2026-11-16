@@ -264,7 +264,7 @@ module tb_boot;
         if (!rst_n) sleep_cycles <= 0; else if (core_sleep) sleep_cycles <= sleep_cycles + 1;
 
     garuda_core_top #(.RESET_VECTOR(BASE_ADDR)) dut (
-        .clk_i(clk), .core_rst_n_i(rst_n),
+        .hclk(clk), .core_rst_n(rst_n),
         .halt_req_i(fstop), .halt_safe_o(),            // no debugger; +FSTOP_ON_WFI drives the fetch stop (RDC-1 ports)
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize),
         .i_hburst_o(i_hburst), .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite),
@@ -727,12 +727,12 @@ module tb_boot;
                      cyc, dut.xe_pc, dut.xe_valid, dut.xe_branch,
                      dut.id_load_use, dut.pc_idex_s, dut.pc_idex_f,
                      dut.ex_redirect, dut.ex_redirect_target,
-                     dut.fwd_a_sel, dut.xe_rs1, dut.mem_stall);
+                     dut.fwd_a_sel, dut.xe_rs1_val, dut.mem_stall);
         end
         if (rst_n && $test$plusargs("DBGM") && cyc >= dbgfrom && cyc < dbgto) begin
             $display("c%0d MEM: em_pc=%08x em_v=%b memrd=%b memwr=%b | dstate=%d start=%b hready=%b memstall=%b | mwb_f=%b mw_ret=%b mw_rd=%02d mw_data=%08x",
                      cyc, dut.em_pc, dut.em_valid, dut.em_mem_read, dut.em_mem_write,
-                     dut.u_mem.u_d_port_ahb_master.state, dut.u_mem.u_d_port_ahb_master.start_i, d_hready,
+                     dut.u_mem.u_dport_master.state, dut.u_mem.u_dport_master.start_i, d_hready,
                      dut.mem_stall, dut.pc_mwb_f, dut.mw_retire, dut.mw_rd, dut.mw_data);
         end
         if (rst_n && $test$plusargs("DBGTRAP") && cyc >= dbgfrom && cyc < dbgto) begin

@@ -244,9 +244,9 @@ cg_dma                         75.00%, 87.50% (7/8)           41    covergroup c
 |--cp_req_still_high           50.00% (1/2)                   44    cp_req_still_high: coverpoint |(dma_req & dma_ack); 
 | |--auto[1]                   0.00% (0/1)                    44    cp_req_still_high: coverpoint |(dma_req & dma_ack); 
 cg_reset                       60.00%, 60.00% (3/5)           49    covergroup cg_reset @(posedge aon_clk iff (reason != reason_d)); 
-|--cp_cause                    60.00% (3/5)                   51    cp_cause: coverpoint reason { bins ext = {4'b0001}; bins wdt = {4'b0010}; bins ndm = {4'b0100}; bins sw = {4'b1000}; bins cleared = {4'b0000}; } 
-| |--ndm                       0.00% (0/1)                    51    cp_cause: coverpoint reason { bins ext = {4'b0001}; bins wdt = {4'b0010}; bins ndm = {4'b0100}; bins sw = {4'b1000}; bins cleared = {4'b0000}; } 
-| |--sw                        0.00% (0/1)                    51    cp_cause: coverpoint reason { bins ext = {4'b0001}; bins wdt = {4'b0010}; bins ndm = {4'b0100}; bins sw = {4'b1000}; bins cleared = {4'b0000}; } 
+|--cp_cause                    60.00% (3/5)                   51    cp_cause: coverpoint reason { bins ext = {4'b0001}; bins watchdog = {4'b0010}; bins ndm = {4'b0100}; bins sw = {4'b1000}; bins cleared = {4'b0000}; } 
+| |--ndm                       0.00% (0/1)                    51    cp_cause: coverpoint reason { bins ext = {4'b0001}; bins watchdog = {4'b0010}; bins ndm = {4'b0100}; bins sw = {4'b1000}; bins cleared = {4'b0000}; } 
+| |--sw                        0.00% (0/1)                    51    cp_cause: coverpoint reason { bins ext = {4'b0001}; bins watchdog = {4'b0010}; bins ndm = {4'b0100}; bins sw = {4'b1000}; bins cleared = {4'b0000}; } 
 cg_misc                        81.25%, 77.27% (17/22)         53    covergroup cg_misc @(posedge hclk iff hreset_n); 
 |--cp_ratio                    25.00% (1/4)                   58    cp_ratio: coverpoint div_act { bins div2 = {0}; bins div4 = {1}; bins div8 = {2}; bins div16 = {3}; } 
 | |--div4                      0.00% (0/1)                    58    cp_ratio: coverpoint div_act { bins div2 = {0}; bins div4 = {1}; bins div8 = {2}; bins div16 = {3}; } 

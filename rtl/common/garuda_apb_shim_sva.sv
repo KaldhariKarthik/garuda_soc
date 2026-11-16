@@ -24,8 +24,8 @@ module garuda_apb_shim_sva #(
     parameter [11:0]  IP_LIMIT = 12'h100,
     parameter [63:0]  IP_MAP   = {64{1'b1}}
 )(
-    input wire             pclk_i,
-    input wire             preset_n_i,
+    input wire             pclk,
+    input wire             preset_n,
     input wire             psel_i, penable_i, pwrite_i,
     input wire [11:0]      paddr_i,
     input wire [31:0]      pwdata_i,
@@ -42,41 +42,41 @@ module garuda_apb_shim_sva #(
 
     // a property that looks one cycle back takes the sampled reset in its
     // antecedent, so no attempt starts on the edge that releases the reset
-    a_shim_pready: assert property (@(posedge pclk_i) disable iff (preset_n_i !== 1'b1) pready_o)
+    a_shim_pready: assert property (@(posedge pclk) disable iff (preset_n !== 1'b1) pready_o)
         else $error("[SVA-FAIL] a_shim_pready: a peripheral window stalled");
 
     // the interrupt line is a level: the OR of the captured events that are enabled
-    a_shim_irq_level: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_shim_irq_level: assert property (@(posedge pclk) disable iff (!preset_n)
         irq_o == |(irqstat_q & irqen_q))
         else $error("[SVA-FAIL] a_shim_irq_level");
 
     genvar k;
     generate for (k = 0; k < N_EVT; k = k + 1) begin : g_evt
         // an event is always captured, also in the cycle firmware clears that bit
-        a_shim_capture: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
-            (preset_n_i && evt_i[k]) |=> irqstat_q[k])
+        a_shim_capture: assert property (@(posedge pclk) disable iff (!preset_n)
+            (preset_n && evt_i[k]) |=> irqstat_q[k])
             else $error("[SVA-FAIL] a_shim_capture: event %0d lost", k);
-        a_shim_set_beats_clear: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
-            (preset_n_i && evt_i[k] && clr[k]) |=> irqstat_q[k])
+        a_shim_set_beats_clear: assert property (@(posedge pclk) disable iff (!preset_n)
+            (preset_n && evt_i[k] && clr[k]) |=> irqstat_q[k])
             else $error("[SVA-FAIL] a_shim_set_beats_clear: event %0d lost to its own clear", k);
         // a captured event is held until firmware writes 1 to it
-        a_shim_sticky: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
-            (preset_n_i && irqstat_q[k] && !clr[k]) |=> irqstat_q[k])
+        a_shim_sticky: assert property (@(posedge pclk) disable iff (!preset_n)
+            (preset_n && irqstat_q[k] && !clr[k]) |=> irqstat_q[k])
             else $error("[SVA-FAIL] a_shim_sticky: status bit %0d dropped without a clear", k);
-        a_shim_clear: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
-            (preset_n_i && clr[k] && !evt_i[k]) |=> !irqstat_q[k])
+        a_shim_clear: assert property (@(posedge pclk) disable iff (!preset_n)
+            (preset_n && clr[k] && !evt_i[k]) |=> !irqstat_q[k])
             else $error("[SVA-FAIL] a_shim_clear: status bit %0d not cleared by a write of 1", k);
         // and nothing but an event sets a bit
-        a_shim_no_spurious: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
-            (preset_n_i && !irqstat_q[k] && !evt_i[k]) |=> !irqstat_q[k])
+        a_shim_no_spurious: assert property (@(posedge pclk) disable iff (!preset_n)
+            (preset_n && !irqstat_q[k] && !evt_i[k]) |=> !irqstat_q[k])
             else $error("[SVA-FAIL] a_shim_no_spurious: status bit %0d set with no event", k);
-        c_shim_evt:           cover property (@(posedge pclk_i) preset_n_i && evt_i[k]);
-        c_shim_clear:         cover property (@(posedge pclk_i) preset_n_i && clr[k] && irqstat_q[k]);
+        c_shim_evt:           cover property (@(posedge pclk) preset_n && evt_i[k]);
+        c_shim_clear:         cover property (@(posedge pclk) preset_n && clr[k] && irqstat_q[k]);
     end endgenerate
 
     // the line to the CLIC falls only because firmware wrote IRQSTAT or IRQEN (D-17)
-    a_shim_irq_held: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
-        (preset_n_i && $fell(irq_o)) |-> $past(wr && (paddr_i == 12'hFE0 || paddr_i == 12'hFE4)))
+    a_shim_irq_held: assert property (@(posedge pclk) disable iff (!preset_n)
+        (preset_n && $fell(irq_o)) |-> $past(wr && (paddr_i == 12'hFE0 || paddr_i == 12'hFE4)))
         else $error("[SVA-FAIL] a_shim_irq_held: the interrupt dropped with no write to IRQSTAT or IRQEN");
 
     // AUD-13, the one rule of the chip: PSLVERR exactly for an access to an offset
@@ -84,43 +84,43 @@ module garuda_apb_shim_sva #(
     // The map is recomputed here from the parameters, not taken from the shim.
     wire is_ip_reg  = (paddr_i < IP_LIMIT) && (paddr_i[1:0] == 2'b00) && IP_MAP[paddr_i[7:2]];
     wire is_tail    = (paddr_i == 12'hFE0) || (paddr_i == 12'hFE4) || (paddr_i == 12'hFE8) || (paddr_i == 12'hFEC);
-    a_shim_pslverr_map: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_shim_pslverr_map: assert property (@(posedge pclk) disable iff (!preset_n)
         pslverr_o == (psel_i && penable_i && !(is_ip_reg || is_tail)))
         else $error("[SVA-FAIL] a_shim_pslverr_map: paddr=%h pslverr=%b", paddr_i, pslverr_o);
-    a_shim_select_only_registers: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_shim_select_only_registers: assert property (@(posedge pclk) disable iff (!preset_n)
         ip_psel_o == (psel_i && is_ip_reg))
         else $error("[SVA-FAIL] a_shim_select_only_registers: paddr=%h ip_psel=%b", paddr_i, ip_psel_o);
-    c_shim_hole:      cover property (@(posedge pclk_i) preset_n_i && psel_i && penable_i && (paddr_i < IP_LIMIT) && (paddr_i[1:0] == 2'b00) && !IP_MAP[paddr_i[7:2]]);
-    c_shim_unaligned: cover property (@(posedge pclk_i) preset_n_i && psel_i && penable_i && (paddr_i < IP_LIMIT) && (paddr_i[1:0] != 2'b00));
+    c_shim_hole:      cover property (@(posedge pclk) preset_n && psel_i && penable_i && (paddr_i < IP_LIMIT) && (paddr_i[1:0] == 2'b00) && !IP_MAP[paddr_i[7:2]]);
+    c_shim_unaligned: cover property (@(posedge pclk) preset_n && psel_i && penable_i && (paddr_i < IP_LIMIT) && (paddr_i[1:0] != 2'b00));
 
     // an access that answers with an error reaches neither the IP nor a shim register
-    a_shim_err_no_select: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_shim_err_no_select: assert property (@(posedge pclk) disable iff (!preset_n)
         pslverr_o |-> !ip_psel_o)
         else $error("[SVA-FAIL] a_shim_err_no_select");
-    a_shim_err_no_change: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
-        (preset_n_i && pslverr_o) |=> ($stable(irqen_q) && $stable(dmactl_q)))
+    a_shim_err_no_change: assert property (@(posedge pclk) disable iff (!preset_n)
+        (preset_n && pslverr_o) |=> ($stable(irqen_q) && $stable(dmactl_q)))
         else $error("[SVA-FAIL] a_shim_err_no_change");
 
     // DMA request: only when enabled, never together with the acknowledge, and
     // low for one pclk after it so the channel sees a new request per beat (D-16)
-    a_shim_dma_gate: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
+    a_shim_dma_gate: assert property (@(posedge pclk) disable iff (!preset_n)
         dma_req_o |-> ((dmactl_q[0] && rx_avail_i) || (dmactl_q[1] && tx_space_i)))
         else $error("[SVA-FAIL] a_shim_dma_gate: request with nothing enabled");
-    a_shim_dma_holdoff: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
-        (preset_n_i && dma_ack_i) |-> (!dma_req_o ##1 !dma_req_o))
+    a_shim_dma_holdoff: assert property (@(posedge pclk) disable iff (!preset_n)
+        (preset_n && dma_ack_i) |-> (!dma_req_o ##1 !dma_req_o))
         else $error("[SVA-FAIL] a_shim_dma_holdoff");
 
     // in reset nothing is pending or enabled
-    a_shim_reset: assert property (@(posedge pclk_i)
-        !preset_n_i |-> (irqstat_q == '0 && irqen_q == '0 && dmactl_q == 2'b00 && !irq_o))
+    a_shim_reset: assert property (@(posedge pclk)
+        !preset_n |-> (irqstat_q == '0 && irqen_q == '0 && dmactl_q == 2'b00 && !irq_o))
         else $error("[SVA-FAIL] a_shim_reset");
 
-    c_shim_err:     cover property (@(posedge pclk_i) preset_n_i && pslverr_o);
-    c_shim_irq:     cover property (@(posedge pclk_i) preset_n_i && $rose(irq_o));
+    c_shim_err:     cover property (@(posedge pclk) preset_n && pslverr_o);
+    c_shim_irq:     cover property (@(posedge pclk) preset_n && $rose(irq_o));
 endmodule
 
 bind garuda_apb_shim garuda_apb_shim_sva #(.N_EVT(N_EVT), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP)) u_shim_sva (
-    .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+    .pclk(pclk), .preset_n(preset_n),
     .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i), .paddr_i(paddr_i), .pwdata_i(pwdata_i),
     .pready_o(pready_o), .pslverr_o(pslverr_o), .ip_psel_o(ip_psel_o),
     .evt_i(evt_i), .irq_o(irq_o),

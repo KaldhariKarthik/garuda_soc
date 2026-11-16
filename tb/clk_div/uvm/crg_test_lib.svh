@@ -63,12 +63,12 @@ class crg_base_test extends uvm_test;
     endtask
     // a software reset with the watchdog and/or the debugger request arriving in the very
     // always-on cycle in which the write is seen
-    task sw_with(bit wdt, bit ndm);
+    task sw_with(bit watchdog, bit ndm);
         fork
             wr(12'h004, {22'd0, vif.div_sel, 8'd1});
             begin
                 @(posedge vif.penable);
-                vif.wdt_req = wdt; vif.ndm_req = ndm;
+                vif.wdt_req = watchdog; vif.ndm_req = ndm;
                 @(posedge vif.aon);                          // seen together on this one edge, like the strobe
                 vif.wdt_req = 1'b0; vif.ndm_req = 1'b0;
             end

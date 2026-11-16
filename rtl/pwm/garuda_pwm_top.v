@@ -14,10 +14,10 @@
 
 module garuda_pwm_top #(
     parameter [7:0]   BLOCK_NUM = 8'd20,
-    parameter integer NCH       = 4
+    parameter integer NUM_CHAN       = 4
 )(
-    input  wire        pclk_i,
-    input  wire        preset_n_i,
+    input  wire        pclk,
+    input  wire        preset_n,
 
     // ---- APB slave, window 8 -------------------------------------------------
     input  wire        psel_i,
@@ -33,7 +33,7 @@ module garuda_pwm_top #(
     output wire        irq_o,
 
     // ---- pins ------------------------------------------------------------------
-    output wire [NCH-1:0] pwm_o
+    output wire [NUM_CHAN-1:0] pwm_o
 );
 
     localparam [11:0] A_PRESCALE = 12'h000, A_PERIOD = 12'h004,
@@ -54,33 +54,33 @@ module garuda_pwm_top #(
     // =========================================================================
     reg [15:0] prescale_q, period_q;
     reg        en_q;
-    reg [NCH-1:0] ch_en_q;
-    reg [15:0] duty_q [0:NCH-1];
+    reg [NUM_CHAN-1:0] ch_en_q;
+    reg [15:0] duty_q [0:NUM_CHAN-1];
 
-    wire [NCH*16-1:0] duty_flat;
+    wire [NUM_CHAN*16-1:0] duty_flat;
     genvar g;
-    generate for (g = 0; g < NCH; g = g + 1) begin : g_flat
+    generate for (g = 0; g < NUM_CHAN; g = g + 1) begin : g_flat
         assign duty_flat[16*g +: 16] = duty_q[g];
     end endgenerate
 
     integer kw;                                 // write-side loop index only (PWM-3)
-    always @(posedge pclk_i or negedge preset_n_i) begin
-        if (!preset_n_i) begin
+    always @(posedge pclk or negedge preset_n) begin
+        if (!preset_n) begin
             prescale_q <= 16'd0;
             period_q   <= 16'd0;
             en_q       <= 1'b0;                 // motors off out of reset
-            ch_en_q    <= {NCH{1'b0}};
-            for (kw = 0; kw < NCH; kw = kw + 1) duty_q[kw] <= 16'd0;
+            ch_en_q    <= {NUM_CHAN{1'b0}};
+            for (kw = 0; kw < NUM_CHAN; kw = kw + 1) duty_q[kw] <= 16'd0;
         end else if (wr_hit) begin
             case (ip_paddr)
                 A_PRESCALE: prescale_q <= pwdata_i[15:0];
                 A_PERIOD:   period_q   <= pwdata_i[15:0];
                 A_CTRL:     begin
                     en_q    <= pwdata_i[0];
-                    ch_en_q <= pwdata_i[NCH+3:4];
+                    ch_en_q <= pwdata_i[NUM_CHAN+3:4];
                 end
                 default: begin
-                    for (kw = 0; kw < NCH; kw = kw + 1)
+                    for (kw = 0; kw < NUM_CHAN; kw = kw + 1)
                         if (ip_paddr == (A_DUTY0 + 12'd4 * kw[11:0]))
                             duty_q[kw] <= pwdata_i[15:0];
                 end
@@ -91,12 +91,12 @@ module garuda_pwm_top #(
     // =========================================================================
     // The timing core
     // =========================================================================
-    wire [NCH-1:0] clamp;
+    wire [NUM_CHAN-1:0] clamp;
     wire           wrap;
     wire [15:0]    count;
 
-    garuda_pwm_core #(.NCH(NCH)) u_core (
-        .clk_i(pclk_i), .rst_n_i(preset_n_i),
+    garuda_pwm_core #(.NUM_CHAN(NUM_CHAN)) u_core (
+        .pclk(pclk), .preset_n(preset_n),
         .en_i(en_q), .ch_en_i(ch_en_q),
         .prescale_i(prescale_q), .period_i(period_q), .duty_i(duty_flat),
         .pwm_o(pwm_o), .wrap_o(wrap), .clamp_o(clamp), .count_o(count));
@@ -119,7 +119,7 @@ module garuda_pwm_top #(
     integer    kr;
     always @(*) begin
         duty_rd = 16'd0;
-        for (kr = 0; kr < NCH; kr = kr + 1)
+        for (kr = 0; kr < NUM_CHAN; kr = kr + 1)
             if (ip_paddr == (A_DUTY0 + 12'd4 * kr[11:0]))
                 duty_rd = duty_q[kr];
     end
@@ -130,8 +130,8 @@ module garuda_pwm_top #(
         case (ip_paddr)
             A_PRESCALE: reg_rdata = {16'd0, prescale_q};
             A_PERIOD:   reg_rdata = {16'd0, period_q};
-            A_CTRL:     reg_rdata = {{(28-NCH){1'b0}}, ch_en_q, 3'd0, en_q};
-            A_STATUS:   reg_rdata = {{(16-NCH){1'b0}}, clamp, count};
+            A_CTRL:     reg_rdata = {{(28-NUM_CHAN){1'b0}}, ch_en_q, 3'd0, en_q};
+            A_STATUS:   reg_rdata = {{(16-NUM_CHAN){1'b0}}, clamp, count};
             default:    reg_rdata = {16'd0, duty_rd};
         endcase
     end
@@ -140,7 +140,7 @@ module garuda_pwm_top #(
         .N_EVT(2), .SYNC_W(1), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
         .ADDR_SHIFT(0), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
-        .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),

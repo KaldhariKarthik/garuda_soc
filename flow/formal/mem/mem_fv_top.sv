@@ -14,15 +14,15 @@ module mem_fv_top #(parameter integer WRITABLE = 1) (
     output wire        hreadyout_o, hresp_o
 );
     wire ce, we; wire [3:0] addr; wire [3:0] be; wire [31:0] wdata, rdata;
-    ahb_mem_slave_if #(.AW(4), .WRITABLE(WRITABLE)) u_if (
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .hsel_i(hsel_i), .haddr_i(haddr_i),
+    ahb_mem_slave_if #(.ADDR_W(4), .WRITABLE(WRITABLE)) u_if (
+        .hclk(hclk_i), .hreset_n(hreset_n_i), .hsel_i(hsel_i), .haddr_i(haddr_i),
         .htrans_i(htrans_i), .hwrite_i(hwrite_i), .hsize_i(hsize_i), .hwdata_i(hwdata_i),
         .hready_i(hready_i), .hrdata_o(hrdata_o), .hreadyout_o(hreadyout_o), .hresp_o(hresp_o),
         .wr_lock_i(wr_lock_i), .lock_bypass_i(lock_bypass_i),
         .arr_ce_o(ce), .arr_addr_o(addr), .arr_we_o(we), .arr_be_o(be),
         .arr_wdata_o(wdata), .arr_rdata_i(rdata));
-    sram_wrapper #(.WORDS(16), .AW(4), .ROM(WRITABLE == 0)) u_array (
-        .clk(hclk_i), .ce(ce), .addr(addr), .wdata(wdata), .rdata(rdata), .we(we), .be(be));
+    sram_wrapper #(.WORDS(16), .ADDR_W(4), .IS_ROM(WRITABLE == 0)) u_array (
+        .hclk(hclk_i), .ce(ce), .addr(addr), .wdata(wdata), .rdata(rdata), .we(we), .be(be));
     // the AHB master holds an address phase until it is accepted; while this slave owns the data
     // phase, the global HREADY is its own HREADYOUT
     assume_hold: assume property (@(posedge hclk_i) disable iff (!hreset_n_i)

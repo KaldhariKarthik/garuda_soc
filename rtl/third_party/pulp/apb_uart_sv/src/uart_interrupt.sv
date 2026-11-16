@@ -14,8 +14,8 @@ module uart_interrupt
     parameter RX_FIFO_DEPTH = 32
 )
 (
-    input  logic                      clk_i,
-    input  logic                      rstn_i,
+    input  logic                      pclk,
+    input  logic                      preset_n,
 
     // registers
     input  logic [2:0]                IER_i, // interrupt enable register
@@ -80,9 +80,9 @@ module uart_interrupt
     end
 
 
-    always_ff @(posedge clk_i, negedge rstn_i)
+    always_ff @(posedge pclk, negedge preset_n)
     begin
-        if (~rstn_i)
+        if (~preset_n)
         begin
             iir_q <= 4'b0001;
         end

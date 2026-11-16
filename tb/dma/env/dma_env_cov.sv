@@ -274,7 +274,7 @@ module dma_env_cov (
 endmodule
 
 bind dma_top dma_env_cov u_dma_env_cov (
-    .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .pclk_i(pclk_i),
+    .hclk_i(hclk), .hreset_n_i(hreset_n), .pclk_i(pclk),
     .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i), .pslverr_o(pslverr_o), .paddr_i(paddr_i),
     .haddr_o(haddr_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o), .hready_i(hready_i), .hresp_i(hresp_i),
     .dma_req_i(dma_req_i), .dma_ack_o(dma_ack_o), .dma_complete_o(dma_complete_o), .dma_error_o(dma_error_o),

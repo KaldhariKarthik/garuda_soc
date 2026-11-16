@@ -23,27 +23,27 @@ module tb_crg_uvm;
     always #1 if (cif.refclk_en) refclk = ~refclk;        // 500 MHz
 
     clk_div u_clkdiv (
-        .refclk_i(refclk), .raw_rst_n_i(cif.ext_rst_n), .div_sel_i(div_sel),
-        .aon_clk_o(aon), .hclk_o(hclk), .pclk_o(pclk), .pclk_phase_o(pclk_phase),
+        .refclk(refclk), .ext_rst_n(cif.ext_rst_n), .div_sel_i(div_sel),
+        .aon_clk(aon), .hclk(hclk), .pclk(pclk), .pclk_phase_o(pclk_phase),
         .div_act_o(div_act), .div_busy_o(div_busy));
 
     reset_ctrl u_rst (
-        .aon_clk_i(aon), .hclk_i(hclk), .pclk_i(pclk),
-        .ext_rst_n_i(cif.ext_rst_n), .wdt_rst_req_i(cif.wdt_req),
+        .aon_clk(aon), .hclk(hclk), .pclk(pclk),
+        .ext_rst_n(cif.ext_rst_n), .wdt_rst_req_i(cif.wdt_req),
         .ndm_rst_req_i(cif.ndm_req), .hartreset_req_i(cif.hart_req), .boot_sel_i(cif.boot_sel),
         .psel_i(apb.psel), .penable_i(apb.penable), .pwrite_i(apb.pwrite), .paddr_i(apb.paddr),
         .pwdata_i(apb.pwdata), .prdata_o(apb.prdata), .pready_o(apb.pready), .pslverr_o(apb.pslverr),
         .div_sel_o(div_sel), .div_act_i(div_act), .div_busy_i(div_busy),
         .ilock_o(ilock),
-        .hreset_n_o(hreset_n), .preset_n_o(preset_n), .core_rst_n_o(core_rst_n),
-        .dm_rst_n_o(dm_rst_n), .ext_hrst_n_o(ext_hrst_n));
+        .hreset_n(hreset_n), .preset_n(preset_n), .core_rst_n(core_rst_n),
+        .dm_rst_n(dm_rst_n), .ext_hrst_n(ext_hrst_n));
 
     assign cif.aon = aon; assign cif.hclk = hclk; assign cif.pclk = pclk; assign cif.pclk_phase = pclk_phase;
     assign cif.div_busy = div_busy; assign cif.div_act = div_act; assign cif.div_sel = div_sel;
     assign cif.hreset_n = hreset_n; assign cif.preset_n = preset_n; assign cif.core_rst_n = core_rst_n;
     assign cif.dm_rst_n = dm_rst_n; assign cif.ext_hrst_n = ext_hrst_n; assign cif.ilock = ilock;
     assign cif.prdata = apb.prdata; assign cif.pready = apb.pready; assign cif.pslverr = apb.pslverr;
-    assign cif.phase = {u_clkdiv.t4_q, u_clkdiv.t3_q, u_clkdiv.t2_q, u_clkdiv.t1_q};
+    assign cif.phase = {u_clkdiv.t4_q, u_clkdiv.t3_q, u_clkdiv.t2_q, u_clkdiv.aon_clk};
 
     wire [31:0] apbviol;
     apb_checker u_apbchk (

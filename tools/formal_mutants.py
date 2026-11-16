@@ -159,19 +159,19 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
   'src': 'rtl/core/garuda_core_top.v',
   'header': ['MUTANT garuda_core_top_no_cgdis: rtl/core/garuda_core_top.v with ONE change (CG_DIS ignored).',
              'Formal negative control in tb/core/formal/core_trap.toml: must FAIL.'],
-  'subs': [('        .clk_i(clk_i), .en_i(~quiescent | (CLK_GATE == 0) | csr_ctl[3]),   // CORE-4: CG_DIS\n',
-            '        .clk_i(clk_i), .en_i(~quiescent | (CLK_GATE == 0)),   // MUTANT: CG_DIS ignored   // '
+  'subs': [('        .hclk(hclk), .en_i(~quiescent | (CLK_GATE == 0) | csr_ctl[3]),   // CORE-4: CG_DIS\n',
+            '        .hclk(hclk), .en_i(~quiescent | (CLK_GATE == 0)),   // MUTANT: CG_DIS ignored   // '
             'CORE-4: CG_DIS\n')]},
  {'path': 'tb/core/formal/mutants/garuda_iport_ahb_master_no_buse.v',
-  'src': 'rtl/core/garuda_iport_ahb_master.v',
-  'header': ['MUTANT garuda_iport_ahb_master_no_buse: rtl/core/garuda_iport_ahb_master.v with ONE change. '
+  'src': 'rtl/core/iport_master.v',
+  'header': ['MUTANT garuda_iport_ahb_master_no_buse: rtl/core/iport_master.v with ONE change. '
              'Formal negative control: must FAIL.'],
   'subs': [('                            room_for_new_fetch &\n'
             "                            (fetch_pc_i[1:0] == 2'b00);           // BUS-E\n",
             '                            room_for_new_fetch;\n')]},
  {'path': 'tb/core/formal/mutants/garuda_iport_ahb_master_no_pfdis.v',
-  'src': 'rtl/core/garuda_iport_ahb_master.v',
-  'header': ['MUTANT garuda_iport_ahb_master_no_pfdis: rtl/core/garuda_iport_ahb_master.v with ONE change '
+  'src': 'rtl/core/iport_master.v',
+  'header': ['MUTANT garuda_iport_ahb_master_no_pfdis: rtl/core/iport_master.v with ONE change '
              '(PF_DIS ignored).',
              'Formal negative control: must FAIL. Regenerated 2026-11-16 from the current RTL; it differs '
              'from it by this change only. (tb/core/formal/core_trap.toml ctl_no_pfdis)'],

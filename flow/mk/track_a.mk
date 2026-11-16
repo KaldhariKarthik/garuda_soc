@@ -61,7 +61,7 @@ test_decode_control:      ; $(call run_tb_top,decode_control)
 test_imm_gen:             ; $(call run_tb_top,imm_gen)
 test_reg_file:            ; $(call run_tb_top,reg_file)
 test_branch_predict:      ; $(call run_tb_top,branch_predict)
-test_hazard_forward_unit: ; $(call run_tb_top,hazard_forward_unit)
+test_hazard_forward_unit: ; $(call run_tb_top,hazard_fwd_unit)
 test_id_stage:            ; $(call run_tb_top,id_stage)
 
 # ---- core unit smokes ----
@@ -87,7 +87,7 @@ test_trap:
 	$(call run_test,tb/core/filelist_trap_ctrl.f,tb_trap_ctrl)
 
 # ---- per-element SV unit TBs ----
-test_alu:            ; $(call run_tb_elem,alu)
+test_alu:            ; $(call run_tb_elem,alu_unit)
 test_mul32:          ; $(call run_tb_elem,mul32)
 test_branch_unit:    ; $(call run_tb_elem,branch_unit)
 test_csr_rw:         ; $(call run_tb_elem,csr_rw)
@@ -96,12 +96,12 @@ test_lsu:            ; $(call run_tb_elem,load_store_unit)
 test_load_fmt:       ; $(call run_tb_elem,load_formatter)
 test_memwb:          ; $(call run_tb_elem,mem_wb_reg)
 test_pc_gen:         ; $(call run_tb_elem,garuda_pc_gen)
-test_prefetch:       ; $(call run_tb_elem,garuda_prefetch_buffer)
-test_iport:          ; $(call run_tb_elem,garuda_iport_ahb_master)
-test_dport:          ; $(call run_tb_elem,d_port_ahb_master)
+test_prefetch:       ; $(call run_tb_elem,prefetch_buf)
+test_iport:          ; $(call run_tb_elem,iport_master)
+test_dport:          ; $(call run_tb_elem,dport_master)
 test_mem_stage:      ; $(call run_tb_elem,mem_stage)
 test_forward_unit:   ; $(call run_tb_elem,forward_unit)
-test_if_stage:       ; $(call run_tb_elem,garuda_if_stage_top)
+test_if_stage:       ; $(call run_tb_elem,if_stage_top)
 
 # Every core element with its own TB, in block-diagram order:
 # IF -> EX -> MEM -> WB -> CONTROL.

@@ -1,11 +1,11 @@
 NAME = "debug"
-FILES = ["rtl/debug/jtag_tap.v", "rtl/debug/dtm.v", "rtl/debug/dmi_cdc.v", "rtl/debug/sba_master.v", "rtl/debug/debug_module.v", "rtl/debug/debug_top.v", "rtl/debug/debug_sva.sv"]
+FILES = ["rtl/debug/jtag_tap.v", "rtl/debug/debug_dtm.v", "rtl/debug/dmi_cdc.v", "rtl/debug/sba_master.v", "rtl/debug/debug_module.v", "rtl/debug/debug_top.v", "rtl/debug/debug_sva.sv"]
 BENCH = "tb/debug/filelist_debug.f"; FL_LINE = "-f rtl/debug/filelist.f"; TOP = "tb_debug"
 MUTANTS = [
  ("M1 TAP: TLR does not select IDCODE", "rtl/debug/jtag_tap.v", "if (st == TLR)   ir_q  <= IR_IDCODE;", "if (1'b0)   ir_q  <= IR_IDCODE;"),
  ("M2 TAP: Select-IR with TMS stays", "rtl/debug/jtag_tap.v", "SELIR: st <= tms_i ? TLR   : CAPIR;", "SELIR: st <= tms_i ? SELIR : CAPIR;"),
- ("M3 DTM: busy not sticky (DBG-1 back)", "rtl/debug/dtm.v", "if (busy) dmistat <= 2'd3;\n", "if (1'b0) dmistat <= 2'd3;\n"),
- ("M4 DTM: request while busy", "rtl/debug/dtm.v", "if (busy)                  dmistat <= 2'd3; // sticky busy\n                    else if (dmistat == 2'd0) begin", "if (1'b0)                  dmistat <= 2'd3; // sticky busy\n                    else if (1'b1) begin"),
+ ("M3 DTM: busy not sticky (DBG-1 back)", "rtl/debug/debug_dtm.v", "if (busy) dmistat <= 2'd3;\n", "if (1'b0) dmistat <= 2'd3;\n"),
+ ("M4 DTM: request while busy", "rtl/debug/debug_dtm.v", "if (busy)                  dmistat <= 2'd3; // sticky busy\n                    else if (dmistat == 2'd0) begin", "if (1'b0)                  dmistat <= 2'd3; // sticky busy\n                    else if (1'b1) begin"),
  ("M5 DM: unaligned SBDATA0-write address not refused", "rtl/debug/debug_module.v", "else if (sbaddr[1:0] != 2'b00) sberror <= 3'd2;\n                                else begin sba_start_o <= 1'b1; sba_write_o <= 1'b1;", "else if (1'b0) sberror <= 3'd2;\n                                else begin sba_start_o <= 1'b1; sba_write_o <= 1'b1;"),
  ("M5b DM: unaligned read-on-address not refused", "rtl/debug/debug_module.v", "else if (wdata_i[1:0] != 0) sberror <= 3'd2;", "else if (1'b0) sberror <= 3'd2;"),
  ("M5c DM: unaligned read-on-data not refused", "rtl/debug/debug_module.v", "else if (sbaddr[1:0] != 2'b00) sberror <= 3'd2;\n                            else begin sba_start_o <= 1'b1; sba_write_o <= 1'b0;", "else if (1'b0) sberror <= 3'd2;\n                            else begin sba_start_o <= 1'b1; sba_write_o <= 1'b0;"),

@@ -47,7 +47,7 @@ module garuda_apb_shim_cov #(parameter integer N_EVT = 4) (
 endmodule
 
 bind garuda_apb_shim garuda_apb_shim_cov #(.N_EVT(N_EVT)) u_shim_cov (
-    .pclk_i(pclk_i), .preset_n_i(preset_n_i), .access(access), .pwrite_i(pwrite_i),
+    .pclk_i(pclk), .preset_n_i(preset_n), .access(apb_access), .pwrite_i(pwrite_i),
     .in_ip(in_ip), .in_tail(in_tail), .pslverr_o(pslverr_o), .paddr_i(paddr_i),
     .evt_i(evt_i), .w1c(w1c), .irqstat_q(irqstat_q), .irqen_q(irqen_q), .irq_o(irq_o),
     .dma_req_o(dma_req_o), .dma_ack_i(dma_ack_i), .holdoff_q(holdoff_q), .dmactl_q(dmactl_q));

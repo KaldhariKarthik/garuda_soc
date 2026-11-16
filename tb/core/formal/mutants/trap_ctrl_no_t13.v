@@ -31,8 +31,8 @@
 module trap_ctrl #(
     parameter ID_W = 5
 )(
-    input  wire        clk_i,
-    input  wire        rst_n_i,
+    input  wire        gclk,
+    input  wire        core_rst_n,
 
     // ---- EX-point instruction (id_ex + ex_stage) ----
     input  wire [31:0] idex_pc_i,
@@ -187,8 +187,8 @@ module trap_ctrl #(
     // loses nothing.
     wire wfi_squashed;                             // assigned below, once any_int exists
     reg wfi_active;
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i)                              wfi_active <= 1'b0;
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n)                              wfi_active <= 1'b0;
         else if (is_wfi & ~wfi_active & ~wfi_squashed & ~h2) wfi_active <= 1'b1;
         else if (wfi_active & wake_cond)           wfi_active <= 1'b0;
     end

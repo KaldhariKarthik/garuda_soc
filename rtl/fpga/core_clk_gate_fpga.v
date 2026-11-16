@@ -18,13 +18,13 @@
 // BUFG.
 // =============================================================================
 module core_clk_gate (
-    input  wire clk_i,
+    input  wire hclk,
     input  wire en_i,
     input  wire test_en_i,
     output wire gclk_o
 );
     BUFGCE #(.CE_TYPE("SYNC")) u_bufgce (
-        .I(clk_i), .CE(en_i | test_en_i), .O(gclk_o));
+        .I(hclk), .CE(en_i | test_en_i), .O(gclk_o));
 endmodule
 
 `default_nettype wire

@@ -130,7 +130,7 @@ module garuda_cov_vplan (
         // take_int / take_mti & idex_valid_i, ERRATUM T-4; PROVEN a_int_needs_ex_instr,
         // flow/formal/core/cov_g5_unr.tcl, G5 5.8)
         x_insn_class: coverpoint klass_in_ex iff (what == 0) {
-            bins alu = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5};
+            bins alu_unit = {0}; bins mem = {1}; bins ctrl = {2}; bins mul = {3}; bins sys = {4}; bins dsu = {5};
             ignore_bins bubble = {6}; }
         cp_mti_with_clic: coverpoint what iff (what >= 1 && what <= 3) { bins both_pending = {1}; bins clic_taken = {2}; bins mti_taken = {3}; }
         cp_with_exception: coverpoint what iff (what == 4) { bins exception_wins = {4}; }
@@ -255,11 +255,11 @@ module garuda_cov_vplan (
 endmodule
 
 bind garuda_core_top garuda_cov_vplan u_cov_vplan (
-    .clk_i(clk_i), .rst_n_i(core_rst_n_i),
+    .clk_i(hclk), .rst_n_i(core_rst_n),
     .xe_valid(xe_valid), .xe_mul_en(xe_mul_en), .xe_dsu_en(xe_dsu_en), .xe_csr_en(xe_csr_en),
     .xe_branch(xe_branch), .xe_jal(xe_jal), .xe_jalr(xe_jalr),
     .xe_pred_taken(xe_predicted_taken), .ex_mispredict(ex_branch_mispredict),
-    // the EX operands after forwarding (the values the ALU / multiplier use; xe_rs1/2 can be stale)
+    // the EX operands after forwarding (the values the ALU / multiplier use; xe_rs1_val/2 can be stale)
     .xe_instr(xe_instr), .xe_rs1(ex_rs1_fwd), .xe_rs2(ex_rs2_fwd), .xe_rd(xe_rd),
     .mem_stall(mem_stall), .dsu_busy(ex_dsu_busy), .load_use(id_load_use),
     .id_valid(id_valid), .id_illegal(id_illegal), .id_fault(id_fault), .id_instr(id_instr),

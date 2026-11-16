@@ -77,9 +77,9 @@ flash read, which is why the boot path fits the 4 KiB ROM budget.
   ┌──────────────────────── garuda_spim_top ────────────────────────┐
   │                                                                 │
   │  garuda_apb_shim ──── IP APB ────▶ apb_spi_master (vendored)    │
-  │   0x000-0x0FF  pass-through          ├─ spi_master_apb_if       │
-  │   0xFE0-0xFEC  IRQSTAT/IRQEN/        ├─ spi_master_controller   │
-  │                DMACTL/ID             ├─ spi_master_clkgen       │
+  │   0x000-0x0FF  pass-through          ├─ spim_apb_if       │
+  │   0xFE0-0xFEC  IRQSTAT/IRQEN/        ├─ spim_ctrl   │
+  │                DMACTL/ID             ├─ spim_clkgen       │
   │                                      ├─ spi_master_tx / _rx     │
   │  events ──▶ sticky IRQSTAT           └─ spi_master_fifo x2      │
   │  FIFO counts ──▶ dma_req (hold-off)         │                   │

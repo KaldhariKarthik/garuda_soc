@@ -1,4 +1,4 @@
-alu                        blk 100.00% (13/13)    expr n/a                tog 100.00% (105/105)    fsm n/a
+alu_unit                        blk 100.00% (13/13)    expr n/a                tog 100.00% (105/105)    fsm n/a
 branch_predict             blk n/a                expr n/a                tog 96.09% (221/230)     fsm n/a
       TOG   pc_i[1]                      none     CT-PCALIGN-branch_predict
       TOG   pc_i[0]                      none     CT-PCALIGN-branch_predict
@@ -772,12 +772,12 @@ csr_file                   blk 66.18% (45/68)     expr 73.33% (11/15)     tog 26
 csr_rw                     blk n/a                expr n/a                tog 98.26% (113/115)     fsm n/a
       TOG   instr[3]                     none     NOT WAIVED
       TOG   instr[2]                     none     NOT WAIVED
-d_port_ahb_master          blk 92.31% (12/13)     expr 100.00% (6/6)      tog 96.62% (143/148)     fsm 100.00%
+dport_master          blk 92.31% (12/13)     expr 100.00% (6/6)      tog 96.62% (143/148)     fsm 100.00%
       BLOCK line 140 (a case item of) default: state <= S_ADDR;  CW-003
       TOG   rst_n_i                      no fall  NOT WAIVED
-      TOG   hsize_i[2]                   none     CT-DBUS-d_port_ahb_master
-      TOG   d_htrans_o[0]                none     CT-DBUS-d_port_ahb_master
-      TOG   d_hsize_o[2]                 none     CT-DBUS-d_port_ahb_master
+      TOG   hsize_i[2]                   none     CT-DBUS-dport_master
+      TOG   d_htrans_o[0]                none     CT-DBUS-dport_master
+      TOG   d_hsize_o[2]                 none     CT-DBUS-dport_master
       TOG   state[1]                     none     CW-005
 decode_control             blk 96.92% (63/65)     expr 100.00% (20/20)    tog 100.00% (117/117)    fsm n/a
       BLOCK line 216 (a case item of) default: illegal_instr_o = 1'b1;  CW-006
@@ -1341,53 +1341,53 @@ ex_stage                   blk 75.00% (6/8)       expr n/a                tog 60
       TOG   link[1]                      none     CT-PCALIGN-ex_stage
       TOG   link[0]                      none     CT-PCALIGN-ex_stage
 forward_unit               blk n/a                expr 100.00% (12/12)    tog 100.00% (28/28)      fsm n/a
-garuda_if_stage_top        blk n/a                expr n/a                tog 78.68% (251/319)     fsm n/a
+if_stage_top        blk n/a                expr n/a                tog 78.68% (251/319)     fsm n/a
       TOG   rst_n_i                      no fall  NOT WAIVED
-      TOG   i_haddr_o[1]                 none     CT-PCALIGN-garuda_if_stage_top
-      TOG   i_haddr_o[0]                 none     CT-PCALIGN-garuda_if_stage_top
-      TOG   i_hsize_o[2]                 none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hsize_o[1]                 none     CT-IBUS-garuda_if_stage_top,NOT WAIVED
-      TOG   i_hsize_o[0]                 none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hburst_o[2]                none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hburst_o[1]                none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hburst_o[0]                none     CT-IBUS-garuda_if_stage_top,NOT WAIVED
-      TOG   i_hprot_o[3]                 none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hprot_o[2]                 none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hprot_o[1]                 none     CT-IBUS-garuda_if_stage_top,NOT WAIVED
-      TOG   i_hprot_o[0]                 none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwrite_o                   none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[31]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[30]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[29]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[28]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[27]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[26]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[25]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[24]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[23]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[22]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[21]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[20]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[19]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[18]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[17]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[16]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[15]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[14]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[13]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[12]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[11]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[10]               none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[9]                none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[8]                none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[7]                none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[6]                none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[5]                none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[4]                none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[3]                none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[2]                none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[1]                none     CT-IBUS-garuda_if_stage_top
-      TOG   i_hwdata_o[0]                none     CT-IBUS-garuda_if_stage_top
+      TOG   i_haddr_o[1]                 none     CT-PCALIGN-if_stage_top
+      TOG   i_haddr_o[0]                 none     CT-PCALIGN-if_stage_top
+      TOG   i_hsize_o[2]                 none     CT-IBUS-if_stage_top
+      TOG   i_hsize_o[1]                 none     CT-IBUS-if_stage_top,NOT WAIVED
+      TOG   i_hsize_o[0]                 none     CT-IBUS-if_stage_top
+      TOG   i_hburst_o[2]                none     CT-IBUS-if_stage_top
+      TOG   i_hburst_o[1]                none     CT-IBUS-if_stage_top
+      TOG   i_hburst_o[0]                none     CT-IBUS-if_stage_top,NOT WAIVED
+      TOG   i_hprot_o[3]                 none     CT-IBUS-if_stage_top
+      TOG   i_hprot_o[2]                 none     CT-IBUS-if_stage_top
+      TOG   i_hprot_o[1]                 none     CT-IBUS-if_stage_top,NOT WAIVED
+      TOG   i_hprot_o[0]                 none     CT-IBUS-if_stage_top
+      TOG   i_hwrite_o                   none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[31]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[30]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[29]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[28]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[27]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[26]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[25]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[24]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[23]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[22]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[21]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[20]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[19]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[18]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[17]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[16]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[15]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[14]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[13]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[12]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[11]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[10]               none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[9]                none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[8]                none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[7]                none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[6]                none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[5]                none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[4]                none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[3]                none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[2]                none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[1]                none     CT-IBUS-if_stage_top
+      TOG   i_hwdata_o[0]                none     CT-IBUS-if_stage_top
       TOG   i_hrdata_i[17]               none     NOT WAIVED
       TOG   i_hrdata_i[16]               none     NOT WAIVED
       TOG   i_hrdata_i[1]                none     NOT WAIVED
@@ -1396,71 +1396,71 @@ garuda_if_stage_top        blk n/a                expr n/a                tog 78
       TOG   instr_o[16]                  no fall  NOT WAIVED
       TOG   instr_o[1]                   no rise  NOT WAIVED
       TOG   instr_o[0]                   no rise  NOT WAIVED
-      TOG   instr_pc_o[1]                none     CT-PCALIGN-garuda_if_stage_top
-      TOG   instr_pc_o[0]                none     CT-PCALIGN-garuda_if_stage_top
+      TOG   instr_pc_o[1]                none     CT-PCALIGN-if_stage_top
+      TOG   instr_pc_o[0]                none     CT-PCALIGN-if_stage_top
       TOG   redirect_pc_i[1]             none     NOT WAIVED
-      TOG   redirect_pc_i[0]             none     CT-PCBIT0-garuda_if_stage_top
+      TOG   redirect_pc_i[0]             none     CT-PCBIT0-if_stage_top
       TOG   fetch_stop_i                 none     NOT WAIVED
       TOG   pf_dis_i                     none     NOT WAIVED
       TOG   fetch_pc[1]                  none     NOT WAIVED
-      TOG   fetch_pc[0]                  none     CT-PCBIT0-garuda_if_stage_top
+      TOG   fetch_pc[0]                  none     CT-PCBIT0-if_stage_top
       TOG   data_instr[17]               none     NOT WAIVED
       TOG   data_instr[16]               none     NOT WAIVED
       TOG   data_instr[1]                none     NOT WAIVED
       TOG   data_instr[0]                none     NOT WAIVED
-      TOG   data_pc[1]                   none     CT-PCALIGN-garuda_if_stage_top
-      TOG   data_pc[0]                   none     CT-PCALIGN-garuda_if_stage_top
-garuda_iport_ahb_master    blk 100.00% (19/19)    expr 100.00% (9/9)      tog 78.39% (243/310)     fsm n/a
+      TOG   data_pc[1]                   none     CT-PCALIGN-if_stage_top
+      TOG   data_pc[0]                   none     CT-PCALIGN-if_stage_top
+iport_master    blk 100.00% (19/19)    expr 100.00% (9/9)      tog 78.39% (243/310)     fsm n/a
       TOG   rst_n_i                      no fall  NOT WAIVED
       TOG   fetch_pc_i[1]                none     NOT WAIVED
-      TOG   fetch_pc_i[0]                none     CT-PCBIT0-garuda_iport_ahb_master
+      TOG   fetch_pc_i[0]                none     CT-PCBIT0-iport_master
       TOG   stop_i                       none     NOT WAIVED
       TOG   pf_dis_i                     none     NOT WAIVED
-      TOG   i_haddr_o[1]                 none     CT-PCALIGN-garuda_iport_ahb_master
-      TOG   i_haddr_o[0]                 none     CT-PCALIGN-garuda_iport_ahb_master
-      TOG   i_hsize_o[2]                 none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hsize_o[1]                 none     CT-IBUS-garuda_iport_ahb_master,NOT WAIVED
-      TOG   i_hsize_o[0]                 none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hburst_o[2]                none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hburst_o[1]                none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hburst_o[0]                none     CT-IBUS-garuda_iport_ahb_master,NOT WAIVED
-      TOG   i_hprot_o[3]                 none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hprot_o[2]                 none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hprot_o[1]                 none     CT-IBUS-garuda_iport_ahb_master,NOT WAIVED
-      TOG   i_hprot_o[0]                 none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwrite_o                   none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[31]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[30]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[29]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[28]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[27]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[26]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[25]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[24]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[23]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[22]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[21]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[20]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[19]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[18]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[17]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[16]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[15]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[14]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[13]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[12]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[11]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[10]               none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[9]                none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[8]                none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[7]                none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[6]                none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[5]                none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[4]                none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[3]                none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[2]                none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[1]                none     CT-IBUS-garuda_iport_ahb_master
-      TOG   i_hwdata_o[0]                none     CT-IBUS-garuda_iport_ahb_master
+      TOG   i_haddr_o[1]                 none     CT-PCALIGN-iport_master
+      TOG   i_haddr_o[0]                 none     CT-PCALIGN-iport_master
+      TOG   i_hsize_o[2]                 none     CT-IBUS-iport_master
+      TOG   i_hsize_o[1]                 none     CT-IBUS-iport_master,NOT WAIVED
+      TOG   i_hsize_o[0]                 none     CT-IBUS-iport_master
+      TOG   i_hburst_o[2]                none     CT-IBUS-iport_master
+      TOG   i_hburst_o[1]                none     CT-IBUS-iport_master
+      TOG   i_hburst_o[0]                none     CT-IBUS-iport_master,NOT WAIVED
+      TOG   i_hprot_o[3]                 none     CT-IBUS-iport_master
+      TOG   i_hprot_o[2]                 none     CT-IBUS-iport_master
+      TOG   i_hprot_o[1]                 none     CT-IBUS-iport_master,NOT WAIVED
+      TOG   i_hprot_o[0]                 none     CT-IBUS-iport_master
+      TOG   i_hwrite_o                   none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[31]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[30]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[29]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[28]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[27]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[26]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[25]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[24]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[23]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[22]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[21]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[20]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[19]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[18]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[17]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[16]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[15]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[14]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[13]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[12]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[11]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[10]               none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[9]                none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[8]                none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[7]                none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[6]                none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[5]                none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[4]                none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[3]                none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[2]                none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[1]                none     CT-IBUS-iport_master
+      TOG   i_hwdata_o[0]                none     CT-IBUS-iport_master
       TOG   i_hrdata_i[17]               none     NOT WAIVED
       TOG   i_hrdata_i[16]               none     NOT WAIVED
       TOG   i_hrdata_i[1]                none     NOT WAIVED
@@ -1469,28 +1469,28 @@ garuda_iport_ahb_master    blk 100.00% (19/19)    expr 100.00% (9/9)      tog 78
       TOG   data_instr_o[16]             none     NOT WAIVED
       TOG   data_instr_o[1]              none     NOT WAIVED
       TOG   data_instr_o[0]              none     NOT WAIVED
-      TOG   data_pc_o[1]                 none     CT-PCALIGN-garuda_iport_ahb_master
-      TOG   data_pc_o[0]                 none     CT-PCALIGN-garuda_iport_ahb_master
-      TOG   addr_pc[1]                   none     CT-PCALIGN-garuda_iport_ahb_master
-      TOG   addr_pc[0]                   none     CT-PCALIGN-garuda_iport_ahb_master
-      TOG   outstanding_pc[1]            none     CT-PCALIGN-garuda_iport_ahb_master
-      TOG   outstanding_pc[0]            none     CT-PCALIGN-garuda_iport_ahb_master
-      TOG   occ_plus_landing[3]          none     CT-IPCOUNT-garuda_iport_ahb_master
-      TOG   occ_after_pop[3]             none     CT-IPCOUNT-garuda_iport_ahb_master
-      TOG   projected_occ[3]             none     CT-IPCOUNT-garuda_iport_ahb_master
+      TOG   data_pc_o[1]                 none     CT-PCALIGN-iport_master
+      TOG   data_pc_o[0]                 none     CT-PCALIGN-iport_master
+      TOG   addr_pc[1]                   none     CT-PCALIGN-iport_master
+      TOG   addr_pc[0]                   none     CT-PCALIGN-iport_master
+      TOG   outstanding_pc[1]            none     CT-PCALIGN-iport_master
+      TOG   outstanding_pc[0]            none     CT-PCALIGN-iport_master
+      TOG   occ_plus_landing[3]          none     CT-IPCOUNT-iport_master
+      TOG   occ_after_pop[3]             none     CT-IPCOUNT-iport_master
+      TOG   projected_occ[3]             none     CT-IPCOUNT-iport_master
 garuda_pc_gen              blk 100.00% (10/10)    expr n/a                tog 96.24% (128/133)     fsm n/a
       TOG   redirect_pc_i[0]             none     CT-PCBIT0-garuda_pc_gen
       TOG   commit_pc_i[1]               none     CT-PCALIGN-garuda_pc_gen
       TOG   commit_pc_i[0]               none     CT-PCALIGN-garuda_pc_gen
       TOG   pc_o[0]                      none     CT-PCALIGN-garuda_pc_gen
       TOG   fetch_pc_o[0]                none     CT-PCBIT0-garuda_pc_gen
-garuda_prefetch_buffer     blk 100.00% (15/15)    expr n/a                tog 96.62% (143/148)     fsm n/a
+prefetch_buf     blk 100.00% (15/15)    expr n/a                tog 96.62% (143/148)     fsm n/a
       TOG   rst_n_i                      no fall  NOT WAIVED
-      TOG   wr_pc_i[1]                   none     CT-PCALIGN-garuda_prefetch_buffer
-      TOG   wr_pc_i[0]                   none     CT-PCALIGN-garuda_prefetch_buffer
-      TOG   instr_pc_o[1]                none     CT-PCALIGN-garuda_prefetch_buffer
-      TOG   instr_pc_o[0]                none     CT-PCALIGN-garuda_prefetch_buffer
-hazard_forward_unit        blk n/a                expr n/a                tog 100.00% (17/17)      fsm n/a
+      TOG   wr_pc_i[1]                   none     CT-PCALIGN-prefetch_buf
+      TOG   wr_pc_i[0]                   none     CT-PCALIGN-prefetch_buf
+      TOG   instr_pc_o[1]                none     CT-PCALIGN-prefetch_buf
+      TOG   instr_pc_o[0]                none     CT-PCALIGN-prefetch_buf
+hazard_fwd_unit        blk n/a                expr n/a                tog 100.00% (17/17)      fsm n/a
 id_ex                      blk 100.00% (7/7)      expr n/a                tog 10.38% (49/472)      fsm n/a
       TOG   rst_n_i                      no fall  NOT WAIVED
       TOG   flush_i                      no fall  NOT WAIVED

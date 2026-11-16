@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_alu.sv -- SystemVerilog unit TB for rtl/core/alu.v
+// tb_alu.sv -- SystemVerilog unit TB for rtl/core/alu_unit.v
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 8.1 (32-bit combinational ALU).
 // Plan: supports C01 (RV32I base ISA) and C05 (dependent ALU chains) at the
@@ -15,8 +15,8 @@
 // their DUT under `ifndef GARUDA_REAL_RTL. tb_imm_gen.sv's own header records
 // that its snapshot HAD ALREADY DRIFTED from rtl/core, so "a green run
 // against it proves nothing about the RTL that actually ships". This file
-// carries no snapshot: tb/core/filelist_alu.f always binds the real
-// rtl/core/alu.v, which is the only configuration worth reporting a result
+// carries no snapshot: tb/core/filelist_alu_unit.f always binds the real
+// rtl/core/alu_unit.v, which is the only configuration worth reporting a result
 // from.
 //
 // Discriminating vectors (a plausible wrong ALU cannot pass these):
@@ -436,7 +436,7 @@ module tb_top;
 
     alu_if vif(clk);
 
-    alu dut (
+    alu_unit dut (
         .op_a   (vif.op_a),
         .op_b   (vif.op_b),
         .alu_op (vif.alu_op),

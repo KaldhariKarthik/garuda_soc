@@ -33,7 +33,7 @@ module tb_gpio;
 `endif
 
     garuda_gpio_top #(.BLOCK_NUM(8'd19), .PAD_NUM(2)) dut (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(bfm.psel), .penable_i(bfm.penable), .pwrite_i(bfm.pwrite),
         .paddr_i(bfm.paddr), .pwdata_i(bfm.pwdata), .prdata_o(bfm.prdata),
         .pready_o(bfm.pready), .pslverr_o(bfm.pslverr),

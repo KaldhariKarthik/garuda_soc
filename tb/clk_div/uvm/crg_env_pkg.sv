@@ -155,9 +155,9 @@ package crg_env_pkg;
 
         covergroup cg_rst_reason with function sample(int kind, int v);
             option.per_instance = 1;
-            cp_cause: coverpoint v iff (kind == 0) { bins ext = {0}; bins wdt = {1}; bins ndm = {2}; bins sw = {3}; bins bootfail_by_software = {4};
+            cp_cause: coverpoint v iff (kind == 0) { bins ext = {0}; bins watchdog = {1}; bins ndm = {2}; bins sw = {3}; bins bootfail_by_software = {4};
                                                     bins second_cause_before_a_clear = {5}; }
-            cp_clear: coverpoint v iff (kind == 1) { bins ext = {0}; bins wdt = {1}; bins ndm = {2}; bins sw = {3}; bins bootfail = {4};
+            cp_clear: coverpoint v iff (kind == 1) { bins ext = {0}; bins watchdog = {1}; bins ndm = {2}; bins sw = {3}; bins bootfail = {4};
                                                     bins clear_in_the_cycle_of_a_new_cause = {5}; }
         endgroup
 
@@ -183,8 +183,8 @@ package crg_env_pkg;
 
         covergroup cg_rst with function sample(int kind, int a, int b);
             option.per_instance = 1;
-            cp_source: coverpoint a iff (kind == 0) { bins ext = {0}; bins wdt = {1}; bins ndm = {2}; bins sw = {3}; bins hart = {4}; }
-            cp_src: coverpoint a iff (kind == 1) { bins ext = {0}; bins wdt = {1}; bins ndm = {2}; }
+            cp_source: coverpoint a iff (kind == 0) { bins ext = {0}; bins watchdog = {1}; bins ndm = {2}; bins sw = {3}; bins hart = {4}; }
+            cp_src: coverpoint a iff (kind == 1) { bins ext = {0}; bins watchdog = {1}; bins ndm = {2}; }
             cp_len: coverpoint b iff (kind == 1) { bins one_cycle = {0}; bins a_few = {1}; bins longer_than_the_stretch = {2}; }
             x_source_length: cross cp_src, cp_len;
             cp_request_during_reset: coverpoint a iff (kind == 2) { bins same_source = {0}; bins other_source = {1}; }

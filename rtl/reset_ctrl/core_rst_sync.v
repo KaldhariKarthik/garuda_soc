@@ -7,7 +7,7 @@
 // decision D-36 (2026-11-16).
 //
 // core_rst_n_o resets the core and the DSU. It falls
-//   - at once (asynchronously) while clr_i is high: every system reset, from
+//   - at once (asynchronously) while core_clr is high: every system reset, from
 //     reset_ctrl's aon-domain request register;
 //   - one hclk after hartreset_req_i rises: the Debug Module's hartreset grant, a
 //     register on hclk, sampled here.
@@ -18,18 +18,18 @@
 // (tb/core/tb_core_halt.sv, tb/core/formal/rdc1_top.sv).
 // =============================================================================
 module core_rst_sync (
-    input  wire hclk_i,
-    input  wire clr_i,              // asynchronous, active high
+    input  wire hclk,
+    input  wire core_clr,              // asynchronous, active high
     input  wire hartreset_req_i,    // hclk domain, level
-    output wire core_rst_n_o
+    output wire core_rst_n
 );
     reg [1:0] sync_q;
-    always @(posedge hclk_i or posedge clr_i) begin
-        if (clr_i) begin
+    always @(posedge hclk or posedge core_clr) begin
+        if (core_clr) begin
             sync_q <= 2'b00;
         end else begin
             sync_q <= {sync_q[0] & ~hartreset_req_i, ~hartreset_req_i};
         end
     end
-    assign core_rst_n_o = sync_q[1];
+    assign core_rst_n = sync_q[1];
 endmodule

@@ -12,13 +12,13 @@
 //=============================================================================
 
 module dsu_top (
-    input  wire        clk,
-    input  wire        rst_n,
+    input  wire        gclk,
+    input  wire        core_rst_n,
     input  wire        flush,
     input  wire        dsu_en,
     input  wire [31:0] instr,
-    input  wire [31:0] rs1,
-    input  wire [31:0] rs2,
+    input  wire [31:0] rs1_val,
+    input  wire [31:0] rs2_val,
     input  wire        csr_clear_overflow,
     output wire        dsu_busy,
     output wire [31:0] dsu_rd_data,
@@ -27,9 +27,9 @@ module dsu_top (
     output wire        dsu_overflow,
     output wire        ovf_pending,      // DSU-14: no fold in the stub
     output wire        illegal_instr,
-    output wire [47:0] dbg_acc_0,
-    output wire [47:0] dbg_acc_1,
-    output wire [47:0] dbg_acc_2
+    output wire [47:0] dbg_acc_fx,
+    output wire [47:0] dbg_acc_fy,
+    output wire [47:0] dbg_acc_mag
 );
 
     assign dsu_busy      = 1'b0;
@@ -39,9 +39,9 @@ module dsu_top (
     assign dsu_overflow  = 1'b0;
     assign ovf_pending   = 1'b0;
     assign illegal_instr = 1'b0;
-    assign dbg_acc_0     = 48'b0;
-    assign dbg_acc_1     = 48'b0;
-    assign dbg_acc_2     = 48'b0;
+    assign dbg_acc_fx     = 48'b0;
+    assign dbg_acc_fy     = 48'b0;
+    assign dbg_acc_mag     = 48'b0;
 
 endmodule
 

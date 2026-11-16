@@ -40,7 +40,7 @@ module tb_dma_env;
     wire  [5:0]  req, ack, comp, err;
 
     dma_top dut (
-        .hclk_i(hclk), .hreset_n_i(rst_n), .pclk_i(pclk), .preset_n_i(rst_n),
+        .hclk(hclk), .hreset_n(rst_n), .pclk(pclk), .preset_n(rst_n),
         .psel_i(psel), .penable_i(penable), .pwrite_i(pwrite), .paddr_i(paddr),
         .pwdata_i(pwdata), .prdata_o(prdata), .pready_o(pready), .pslverr_o(pslverr),
         .haddr_o(haddr), .htrans_o(htrans), .hwrite_o(hwrite), .hsize_o(hsize),

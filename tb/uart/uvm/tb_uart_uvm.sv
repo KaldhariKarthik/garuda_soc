@@ -22,7 +22,7 @@ module tb_uart_uvm;
     genvar g;
     generate for (g = 0; g < 3; g = g + 1) begin : g_uart
         garuda_uart_top #(.BLOCK_NUM(8'd16 + g)) dut (
-            .pclk_i(pclk), .preset_n_i(preset_n),
+            .pclk(pclk), .preset_n(preset_n),
             .psel_i(apb.psel & (uif.inst == g)), .penable_i(apb.penable), .pwrite_i(apb.pwrite), .paddr_i(apb.paddr),
             .pwdata_i(apb.pwdata), .prdata_o(prdata[g]), .pready_o(pready[g]), .pslverr_o(pslverr[g]),
             .irq_o(irq[g]), .dma_req_o(dma_req[g]), .dma_ack_i(uif.dma_ack & (uif.inst == g)),

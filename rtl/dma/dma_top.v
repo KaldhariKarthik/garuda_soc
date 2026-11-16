@@ -20,10 +20,10 @@ module dma_top #(
     parameter [17:0] PRIO       = {3'd0, 3'd4, 3'd2, 3'd1, 3'd3, 3'd5},  // ch5..ch0
     parameter integer ACK_CYCLES = 2
 )(
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
-    input  wire        pclk_i,              // APB side ([N-5.1])
-    input  wire        preset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
+    input  wire        pclk,              // APB side ([N-5.1])
+    input  wire        preset_n,
 
     // ---- APB slave, window 5 ---------------------------------------------------
     input  wire        psel_i,
@@ -71,8 +71,8 @@ module dma_top #(
     wire [2:0]  grant_ch;
 
     dma_apb_slave u_apb (
-        .pclk_i(pclk_i), .preset_n_i(preset_n_i),
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i),
+        .pclk(pclk), .preset_n(preset_n),
+        .hclk(hclk), .hreset_n(hreset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
@@ -83,7 +83,7 @@ module dma_top #(
     genvar n;
     generate for (n = 0; n < 6; n = n + 1) begin : g_ch
         dma_chan u_ch (
-            .hclk_i(hclk_i), .hreset_n_i(hreset_n_i),
+            .hclk(hclk), .hreset_n(hreset_n),
             .wr_cr_i(wr_cr[n]), .wr_sar_i(wr_sar[n]), .wr_dar_i(wr_dar[n]),
             .wr_cnt_i(wr_cnt[n]), .wr_iclr_i(wr_iclr[n]), .wdata_i(wdata),
             .cr_o(cr[32*n +: 32]), .sar_o(sar[32*n +: 32]), .dar_o(dar[32*n +: 32]),
@@ -99,7 +99,7 @@ module dma_top #(
         .eligible_i(eligible), .grant_valid_o(grant_valid), .grant_ch_o(grant_ch));
 
     dma_engine #(.ACK_CYCLES(ACK_CYCLES)) u_eng (
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i),
+        .hclk(hclk), .hreset_n(hreset_n),
         .grant_valid_i(grant_valid), .grant_ch_i(grant_ch),
         .sar_i(sar), .dar_i(dar), .size_i(size), .m2m_i(m2m),
         .beat_done_o(beat_done), .beat_err_o(beat_err), .err_phase_o(err_phase),

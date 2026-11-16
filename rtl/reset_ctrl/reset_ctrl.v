@@ -48,12 +48,12 @@ module reset_ctrl #(
     parameter integer STRETCH = 1024          // GARUDA_RESET_STRETCH_CYCLES
 )(
     // ---- clocks ------------------------------------------------------------
-    input  wire        aon_clk_i,             // stretch + RSTREASON clock
-    input  wire        hclk_i,
-    input  wire        pclk_i,
+    input  wire        aon_clk,             // stretch + RSTREASON clock
+    input  wire        hclk,
+    input  wire        pclk,
 
     // ---- sources -----------------------------------------------------------
-    input  wire        ext_rst_n_i,           // pin, async, active-low
+    input  wire        ext_rst_n,           // pin, async, active-low
     input  wire        wdt_rst_req_i,         // hclk, pulse
     input  wire        ndm_rst_req_i,         // hclk, level (dmcontrol.ndmreset)
     input  wire        hartreset_req_i,       // hclk, level (dmcontrol.hartreset/haltreq)
@@ -78,14 +78,14 @@ module reset_ctrl #(
     output wire        ilock_o,               // to isram (hclk-domain consumer)
 
     // ---- distributed resets ------------------------------------------------
-    output wire        hreset_n_o,            // fabric, memories, DMA, CLIC, timers
-    output wire        preset_n_o,            // bridge pclk side, APB registers
-    output wire        core_rst_n_o,          // core + DSU
-    output wire        dm_rst_n_o,            // Debug Module (outside ndmreset)
-    output wire        ext_hrst_n_o           // ext-only, hclk (watchdog request flop)
+    output wire        hreset_n,            // fabric, memories, DMA, CLIC, timers
+    output wire        preset_n,            // bridge pclk side, APB registers
+    output wire        core_rst_n,          // core + DSU
+    output wire        dm_rst_n,            // Debug Module (outside ndmreset)
+    output wire        ext_hrst_n           // ext-only, hclk (watchdog request flop)
 );
 
-    localparam integer CW = $clog2(STRETCH + 1);
+    localparam integer CNT_W = $clog2(STRETCH + 1);
 
     // =========================================================================
     // Strobes from the APB register block (pclk domain, one pclk cycle long)
@@ -98,35 +98,35 @@ module reset_ctrl #(
     // aon domain: ext synchroniser, stretch counter, request flops
     // =========================================================================
     reg [1:0] ext_sync_q;
-    always @(posedge aon_clk_i or negedge ext_rst_n_i)
-        if (!ext_rst_n_i) ext_sync_q <= 2'b00;
+    always @(posedge aon_clk or negedge ext_rst_n)
+        if (!ext_rst_n) ext_sync_q <= 2'b00;
         else              ext_sync_q <= {ext_sync_q[0], 1'b1};
     wire ext_held = ~ext_sync_q[1];
 
     wire req_dm_scope = wdt_rst_req_i | swrst_stb;      // resets the DM too
     wire req_any      = ext_held | req_dm_scope | ndm_rst_req_i;
 
-    reg [CW-1:0] cnt_q;
+    reg [CNT_W-1:0] cnt_q;
     reg          dm_scope_q;
-    wire [CW-1:0] cnt_nxt = req_any       ? STRETCH[CW-1:0] :
+    wire [CNT_W-1:0] cnt_nxt = req_any       ? STRETCH[CNT_W-1:0] :
                             (cnt_q != 0)  ? cnt_q - 1'b1    : cnt_q;
     wire dm_scope_nxt = (ext_held | req_dm_scope) ? 1'b1 :
                         (cnt_nxt == 0)            ? 1'b0 : dm_scope_q;
 
-    reg sys_req_q, dm_req_q, core_req_q;
-    always @(posedge aon_clk_i or negedge ext_rst_n_i) begin
-        if (!ext_rst_n_i) begin
-            cnt_q      <= STRETCH[CW-1:0];
+    reg sys_req_q, dm_req_q, core_clr;
+    always @(posedge aon_clk or negedge ext_rst_n) begin
+        if (!ext_rst_n) begin
+            cnt_q      <= STRETCH[CNT_W-1:0];
             dm_scope_q <= 1'b1;
             sys_req_q  <= 1'b1;
             dm_req_q   <= 1'b1;
-            core_req_q <= 1'b1;
+            core_clr <= 1'b1;
         end else begin
             cnt_q      <= cnt_nxt;
             dm_scope_q <= dm_scope_nxt;
             sys_req_q  <= (cnt_nxt != 0);
             dm_req_q   <= (cnt_nxt != 0) & dm_scope_nxt;
-            core_req_q <= (cnt_nxt != 0);
+            core_clr <= (cnt_nxt != 0);
         end
     end
 
@@ -149,8 +149,8 @@ module reset_ctrl #(
     reg [3:0] reason_q;       // {SW, NDM, WDT, EXT}
     reg       bootfail_q;
     wire      cause_req = wdt_rst_req_i | swrst_stb | ndm_rst_req_i;
-    always @(posedge aon_clk_i or negedge ext_rst_n_i) begin
-        if (!ext_rst_n_i) begin
+    always @(posedge aon_clk or negedge ext_rst_n) begin
+        if (!ext_rst_n) begin
             reason_q   <= 4'b0001;
             bootfail_q <= 1'b0;
         end else begin
@@ -169,41 +169,39 @@ module reset_ctrl #(
     // Release synchronisers
     // =========================================================================
     reg [1:0] hrst_q, dm_q, exth_q;
-    always @(posedge hclk_i or posedge sys_req_q)
+    always @(posedge hclk or posedge sys_req_q)
         if (sys_req_q) hrst_q <= 2'b00; else hrst_q <= {hrst_q[0], 1'b1};
     // The core's reset (D-36, 2026-11-16) also falls for the Debug Module's hartreset
     // grant ([N-7.13]), sampled on hclk: core_rst_sync.v. Until then the grant reached the
-    // core through the aon-clocked core_req_q and, without waiting, through an AND gate
+    // core through the aon-clocked core_clr and, without waiting, through an AND gate
     // inside the core.
-    wire core_rst_n;
     core_rst_sync u_core_rst_sync (
-        .hclk_i(hclk_i), .clr_i(core_req_q), .hartreset_req_i(hartreset_req_i),
-        .core_rst_n_o(core_rst_n));
-    always @(posedge hclk_i or posedge dm_req_q)
+        .hclk(hclk), .core_clr(core_clr), .hartreset_req_i(hartreset_req_i),
+        .core_rst_n(core_rst_n));
+    always @(posedge hclk or posedge dm_req_q)
         if (dm_req_q) dm_q <= 2'b00; else dm_q <= {dm_q[0], 1'b1};
-    always @(posedge hclk_i or negedge ext_rst_n_i)
-        if (!ext_rst_n_i) exth_q <= 2'b00; else exth_q <= {exth_q[0], 1'b1};
+    always @(posedge hclk or negedge ext_rst_n)
+        if (!ext_rst_n) exth_q <= 2'b00; else exth_q <= {exth_q[0], 1'b1};
 
     reg [1:0] prst_q, extp_q;
-    always @(posedge pclk_i or posedge sys_req_q)
+    always @(posedge pclk or posedge sys_req_q)
         if (sys_req_q) prst_q <= 2'b00; else prst_q <= {prst_q[0], hrst_q[1]};
-    always @(posedge pclk_i or negedge ext_rst_n_i)
-        if (!ext_rst_n_i) extp_q <= 2'b00; else extp_q <= {extp_q[0], 1'b1};
+    always @(posedge pclk or negedge ext_rst_n)
+        if (!ext_rst_n) extp_q <= 2'b00; else extp_q <= {extp_q[0], 1'b1};
 
-    assign hreset_n_o   = hrst_q[1];
-    assign core_rst_n_o = core_rst_n;
-    assign dm_rst_n_o   = dm_q[1];
-    assign ext_hrst_n_o = exth_q[1];
-    assign preset_n_o   = prst_q[1];
+    assign hreset_n   = hrst_q[1];
+    assign dm_rst_n   = dm_q[1];
+    assign ext_hrst_n = exth_q[1];
+    assign preset_n   = prst_q[1];
     wire   ext_prst_n   = extp_q[1];
 
     // =========================================================================
     // APB registers (pclk)
     // =========================================================================
     reset_ctrl_apb u_apb (
-        .pclk_i        (pclk_i),
-        .preset_n_i    (prst_q[1]),
-        .ext_prst_n_i  (ext_prst_n),
+        .pclk        (pclk),
+        .preset_n    (preset_n),
+        .ext_prst_n  (ext_prst_n),
         .psel_i        (psel_i),
         .penable_i     (penable_i),
         .pwrite_i      (pwrite_i),

@@ -1,5 +1,5 @@
 top: timers_top
-children: mtime timers_apb wdt
+children: mtime timers_apb watchdog
 script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh timers)
 proved: 26/26
 tool: JasperGold Apps 2022.09p002, 2026-10-15

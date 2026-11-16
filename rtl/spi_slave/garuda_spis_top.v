@@ -23,8 +23,8 @@ module garuda_spis_top #(
     parameter [7:0]   BLOCK_NUM = 8'd14,
     parameter integer FIFO_DEPTH = 16
 )(
-    input  wire        pclk_i,
-    input  wire        preset_n_i,
+    input  wire        pclk,
+    input  wire        preset_n,
 
     // ---- APB slave, window 0 -------------------------------------------------
     input  wire        psel_i,
@@ -88,7 +88,7 @@ module garuda_spis_top #(
     wire       rx_push, cs_active, cs_rise, cs_fall;
 
     garuda_spis_core u_core (
-        .pclk_i(pclk_i), .preset_n_i(preset_n_i), .en_i(en_q),
+        .pclk(pclk), .preset_n(preset_n), .en_i(en_q),
         .sclk_s_i(sclk_s), .mosi_s_i(mosi_s), .cs_n_s_i(cs_n_s),
         .miso_o(spis_miso_o), .miso_oe_o(spis_miso_oe_o),
         .txdata_i(txdata_q),
@@ -100,27 +100,27 @@ module garuda_spis_top #(
     // truncates a packet rather than interleaving it, and a truncated packet
     // fails its checksum while an interleaved one might not ([N-7.5]).
     // =========================================================================
-    localparam integer AW = (FIFO_DEPTH <= 16) ? 4 : 5;
+    localparam integer ADDR_W = (FIFO_DEPTH <= 16) ? 4 : 5;
 
     reg [7:0]    fifo [0:FIFO_DEPTH-1];
-    reg [AW:0]   wptr, rptr;
-    wire [AW:0]  level = wptr - rptr;
-    wire         full  = (level == FIFO_DEPTH[AW:0]);
+    reg [ADDR_W:0]   wptr, rptr;
+    wire [ADDR_W:0]  level = wptr - rptr;
+    wire         full  = (level == FIFO_DEPTH[ADDR_W:0]);
     wire         empty = (level == 0);
 
     wire pop  = rd_hit & (ip_paddr == A_RXDATA) & ~empty;
     wire push = rx_push & ~full;
 
     integer k;
-    always @(posedge pclk_i or negedge preset_n_i) begin
-        if (!preset_n_i) begin
+    always @(posedge pclk or negedge preset_n) begin
+        if (!preset_n) begin
             wptr <= 0; rptr <= 0;
             for (k = 0; k < FIFO_DEPTH; k = k + 1) fifo[k] <= 8'd0;
         end else if (rxflush) begin
             wptr <= 0; rptr <= 0;
         end else begin
             if (push) begin
-                fifo[wptr[AW-1:0]] <= rx_byte;
+                fifo[wptr[ADDR_W-1:0]] <= rx_byte;
                 wptr <= wptr + 1'b1;
             end
             if (pop) rptr <= rptr + 1'b1;
@@ -132,8 +132,8 @@ module garuda_spis_top #(
     // =========================================================================
     // Status and control
     // =========================================================================
-    always @(posedge pclk_i or negedge preset_n_i) begin
-        if (!preset_n_i) begin
+    always @(posedge pclk or negedge preset_n) begin
+        if (!preset_n) begin
             en_q <= 1'b0; txdata_q <= 8'd0; ovr_q <= 1'b0; done_q <= 1'b0;
         end else begin
             if (wr_hit) begin
@@ -171,7 +171,7 @@ module garuda_spis_top #(
     // Read mux
     // =========================================================================
     wire [31:0] reg_rdata =
-        (ip_paddr == A_RXDATA) ? {24'd0, empty ? 8'd0 : fifo[rptr[AW-1:0]]} :
+        (ip_paddr == A_RXDATA) ? {24'd0, empty ? 8'd0 : fifo[rptr[ADDR_W-1:0]]} :
         (ip_paddr == A_TXDATA) ? {24'd0, txdata_q}                          :
         (ip_paddr == A_CTRL)   ? {31'd0, en_q}                              :
         (ip_paddr == A_STATUS) ? {23'd0, level[4:0], done_q, ovr_q,
@@ -183,7 +183,7 @@ module garuda_spis_top #(
         .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP), .ADDR_SHIFT(0),
         .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
-        .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),

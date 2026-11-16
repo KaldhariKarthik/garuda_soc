@@ -39,15 +39,15 @@ module tb_ex_smoke;
     integer errors = 0;
 
     ex_stage dut (
-        .clk(clk),
-        .rst_n(rst_n),
+        .gclk(clk),
+        .core_rst_n(rst_n),
         .pc(pc),
         .instr(instr),
         .rs1_data(rs1_data),
         .rs2_data(rs2_data),
         .imm(imm),
         .rd(rd),
-        .funct3(funct3),
+        .funct3_fld(funct3),
         .reg_write(reg_write),
         .mem_read(mem_read),
         .mem_write(mem_write),
@@ -55,7 +55,7 @@ module tb_ex_smoke;
         .alu_src(alu_src),
         .pc_op_a(pc_op_a),
         .alu_op(alu_op),
-        .branch(branch),
+        .is_branch(branch),
         .jal(jal),
         .jalr(jalr),
         .predicted_taken(predicted_taken),
@@ -90,9 +90,9 @@ module tb_ex_smoke;
         .dsu_illegal_instr(dsu_illegal_instr),
         .dsu_busy(dsu_busy),
         .dsu_overflow(dsu_overflow),
-        .dbg_acc_0(dbg_acc_0),
-        .dbg_acc_1(dbg_acc_1),
-        .dbg_acc_2(dbg_acc_2)
+        .dbg_acc_fx(dbg_acc_0),
+        .dbg_acc_fy(dbg_acc_1),
+        .dbg_acc_mag(dbg_acc_2)
     );
 
     always #2.5 clk = ~clk;   // 200 MHz

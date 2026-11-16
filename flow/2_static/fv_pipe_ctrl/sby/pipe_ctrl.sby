@@ -7,7 +7,7 @@
 # prove     every pipe_ctrl assertion holds for all inputs allowed by A1
 #           (pipe_ctrl has no state, so depth 2 is a complete proof)
 # cover     every cover, including the v_ vacuity covers, is reachable
-# g1_prove  G1 on d_port_ahb_master, k-induction
+# g1_prove  G1 on dport_master, k-induction
 # g1_cover  ... and an error and a stall are each reachable
 # g2_prove  G2 on trap_ctrl, k-induction
 # g2_cover  ... and a squash under H2 is reachable
@@ -40,14 +40,14 @@ prove: read -formal pipe_ctrl.v pipe_ctrl_fv.sv
 prove: prep -top pipe_ctrl_fv
 cover: read -formal pipe_ctrl.v pipe_ctrl_fv.sv
 cover: prep -top pipe_ctrl_fv
-g1: read -formal d_port_ahb_master.v trap_ctrl.v env_guarantees_fv.sv
+g1: read -formal dport_master.v trap_ctrl.v env_guarantees_fv.sv
 g1: prep -top g1_dport
-g2: read -formal d_port_ahb_master.v trap_ctrl.v env_guarantees_fv.sv
+g2: read -formal dport_master.v trap_ctrl.v env_guarantees_fv.sv
 g2: prep -top g2_trap
 
 [files]
 rtl/core/pipe_ctrl.v
-rtl/core/d_port_ahb_master.v
+rtl/core/dport_master.v
 rtl/core/trap_ctrl.v
 flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl_fv.sv
 flow/2_static/fv_pipe_ctrl/sby/env_guarantees_fv.sv

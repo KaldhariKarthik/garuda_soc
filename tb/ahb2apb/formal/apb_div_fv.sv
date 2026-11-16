@@ -21,7 +21,7 @@ module apb_div_fv (
     input  wire [11:0] pready_i, pslverr_i
 );
     ahb2apb_bridge #(.WINDOW_MASK(16'h0FFF), .APB_DIV(24'hE4E4E4)) u_br (
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+        .hclk(hclk_i), .hreset_n(hreset_n_i), .pclk(pclk_i), .preset_n(preset_n_i),
         .pclk_phase_i(pclk_phase_i), .hsel_i(hsel_i), .haddr_i(haddr_i), .htrans_i(htrans_i),
         .hwrite_i(hwrite_i), .hsize_i(hsize_i), .hwdata_i(hwdata_i), .hready_i(hready_i),
         .hrdata_o(hrdata_o), .hreadyout_o(hreadyout_o), .hresp_o(hresp_o),

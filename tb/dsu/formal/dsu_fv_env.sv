@@ -10,4 +10,4 @@ module dsu_fv_env (input wire clk, input wire rst_n);
         else            assume (rst_n);
     end
 endmodule
-bind dsu_top dsu_fv_env u_fv_env (.clk(clk), .rst_n(rst_n));
+bind dsu_top dsu_fv_env u_fv_env (.clk(gclk), .rst_n(core_rst_n));

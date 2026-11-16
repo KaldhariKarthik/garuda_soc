@@ -10,7 +10,7 @@
 // Bus Access, which is the development loop of DEBUG-SPEC §7.6.
 //
 //   +TEST=<hex>   ISRAM image (sw/build/t_chip_*.hex)
-//   +MODE=basic | irq | wdt | jtag | flash
+//   +MODE=basic | irq | watchdog | jtag | flash
 //   +MAXUS=<n>    timeout in microseconds (default 400)
 //
 // Pass = the program writes 1 to tohost (0x2000_F000); (n<<1)|1 = step n
@@ -184,7 +184,7 @@ module tb_chip;
     always @(negedge dut.u_core.hreset_n) if (ext_rst_n) begin
         n_hreset_fall++;
         $display("[tb_chip] system reset observed at %0t (RSTREASON source will say why)", $time);
-        if (mode == "wdt") post_mailbox();                      // run 2
+        if (mode == "watchdog") post_mailbox();                      // run 2
     end
 
     initial begin

@@ -35,26 +35,26 @@ module tb_ahb_units;
     // ---------------- arbiter ----------------
     logic [7:0] arb_htrans; logic arb_hready;
     wire  [1:0] arb_grant, arb_dphm; wire arb_seqb, arb_dphv;
-    ahb_arbiter u_arb (.hclk_i(clk), .hreset_n_i(rst_n), .htrans_i(arb_htrans), .hready_i(arb_hready),
+    ahb_arbiter u_arb (.hclk(clk), .hreset_n(rst_n), .htrans_i(arb_htrans), .hready_i(arb_hready),
                        .grant_o(arb_grant), .seq_break_o(arb_seqb), .dph_valid_o(arb_dphv), .dph_master_o(arb_dphm));
 
     // ---------------- master port ----------------
     logic [1:0] mp_htrans; logic mp_gr, mp_own, mp_rdy; logic [31:0] mp_rd; logic mp_resp;
     wire  mp_hready, mp_hresp; wire [31:0] mp_hrdata;
-    ahb_master_port u_mp (.hclk_i(clk), .hreset_n_i(rst_n), .htrans_i(mp_htrans), .granted_i(mp_gr),
+    ahb_master_port u_mp (.hclk(clk), .hreset_n(rst_n), .htrans_i(mp_htrans), .granted_i(mp_gr),
                           .dph_own_i(mp_own), .hready_shared_i(mp_rdy), .hrdata_shared_i(mp_rd),
                           .hresp_shared_i(mp_resp), .hready_o(mp_hready), .hrdata_o(mp_hrdata), .hresp_o(mp_hresp));
 
     // ---------------- default slave ----------------
     logic ds_sel, ds_rdy; logic [1:0] ds_trans;
     wire [31:0] ds_rdata; wire ds_rdyo, ds_resp;
-    ahb_default_slave u_ds (.hclk_i(clk), .hreset_n_i(rst_n), .hsel_i(ds_sel), .htrans_i(ds_trans),
+    ahb_dflt_slave u_ds (.hclk(clk), .hreset_n(rst_n), .hsel_i(ds_sel), .htrans_i(ds_trans),
                             .hready_i(ds_rdy), .hrdata_o(ds_rdata), .hreadyout_o(ds_rdyo), .hresp_o(ds_resp));
 
     // ---------------- slave mux ----------------
     logic [4:0] sm_sel; logic sm_dv; logic [4:0][31:0] sm_rd; logic [4:0] sm_ry, sm_rs;
     wire [31:0] sm_hrdata; wire sm_hresp, sm_hready; wire [4:0] sm_dphsel;
-    ahb_slave_mux u_sm (.hclk_i(clk), .hreset_n_i(rst_n), .hsel_i(sm_sel), .dph_valid_i(sm_dv),
+    ahb_slave_mux u_sm (.hclk(clk), .hreset_n(rst_n), .hsel_i(sm_sel), .dph_valid_i(sm_dv),
         .hrdata_s0_i(sm_rd[0]), .hreadyout_s0_i(sm_ry[0]), .hresp_s0_i(sm_rs[0]),
         .hrdata_s1_i(sm_rd[1]), .hreadyout_s1_i(sm_ry[1]), .hresp_s1_i(sm_rs[1]),
         .hrdata_s2_i(sm_rd[2]), .hreadyout_s2_i(sm_ry[2]), .hresp_s2_i(sm_rs[2]),

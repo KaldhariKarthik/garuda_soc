@@ -49,18 +49,18 @@ module tb_timers;
     wire mtip, warn_irq, wdt_req;
     reg  hart_req = 0;                       // debugger holds the core in hartreset
 
-    clk_div u_clk (.refclk_i(refclk), .raw_rst_n_i(ext_rst_n), .div_sel_i(div_sel),
-        .aon_clk_o(aon), .hclk_o(hclk), .pclk_o(pclk), .pclk_phase_o(pclk_phase),
+    clk_div u_clk (.refclk(refclk), .ext_rst_n(ext_rst_n), .div_sel_i(div_sel),
+        .aon_clk(aon), .hclk(hclk), .pclk(pclk), .pclk_phase_o(pclk_phase),
         .div_act_o(div_act), .div_busy_o(div_busy));
 
-    reset_ctrl u_rst (.aon_clk_i(aon), .hclk_i(hclk), .pclk_i(pclk),
-        .ext_rst_n_i(ext_rst_n), .wdt_rst_req_i(wdt_req), .ndm_rst_req_i(1'b0),
+    reset_ctrl u_rst (.aon_clk(aon), .hclk(hclk), .pclk(pclk),
+        .ext_rst_n(ext_rst_n), .wdt_rst_req_i(wdt_req), .ndm_rst_req_i(1'b0),
         .hartreset_req_i(hart_req), .boot_sel_i(1'b0),
         .psel_i(sel[0]), .penable_i(penable), .pwrite_i(pwrite), .paddr_i(paddr),
         .pwdata_i(pwdata), .prdata_o(prd_r), .pready_o(rdy_r), .pslverr_o(err_r),
         .div_sel_o(div_sel), .div_act_i(div_act), .div_busy_i(div_busy), .ilock_o(ilock),
-        .hreset_n_o(hreset_n), .preset_n_o(preset_n), .core_rst_n_o(core_rst_n),
-        .dm_rst_n_o(dm_rst_n), .ext_hrst_n_o(ext_hrst_n));
+        .hreset_n(hreset_n), .preset_n(preset_n), .core_rst_n(core_rst_n),
+        .dm_rst_n(dm_rst_n), .ext_hrst_n(ext_hrst_n));
 
     // ---- ADR-0002 Rev 2: PRDATA must be stable for the whole access phase ----
     // WDTVAL is a free-running hclk down-counter, so before the pclk migration
@@ -80,8 +80,8 @@ module tb_timers;
         acc_d    <= sel[1] & penable;
     end
 
-    timers_top dut (.hclk_i(hclk), .hreset_n_i(hreset_n), .ext_rst_n_i(ext_hrst_n),
-        .pclk_i(pclk), .preset_n_i(preset_n),
+    timers_top dut (.hclk(hclk), .hreset_n(hreset_n), .ext_hrst_n(ext_hrst_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(sel[1]), .penable_i(penable), .pwrite_i(pwrite), .paddr_i(paddr),
         .pwdata_i(pwdata), .prdata_o(prd_t), .pready_o(rdy_t), .pslverr_o(err_t),
         .mtip_o(mtip), .wdt_warn_irq_o(warn_irq), .wdt_rst_req_o(wdt_req));

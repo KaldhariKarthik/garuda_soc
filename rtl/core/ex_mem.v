@@ -19,8 +19,8 @@
 // flush strictly wins over stall (Sec. 11.4). Reset => bubble.
 // =============================================================================
 module ex_mem (
-    input  wire        clk_i,
-    input  wire        rst_n_i,
+    input  wire        gclk,
+    input  wire        core_rst_n,
     input  wire        stall_i,
     input  wire        flush_i,
 
@@ -50,8 +50,8 @@ module ex_mem (
     // See rtl/core/if_id.v for the full explanation; the same defect was in all
     // three pipeline registers. Priority is unchanged: reset, then flush, then
     // stall.
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             ex_result_o<=32'd0; store_data_o<=32'd0; funct3_o<=3'd0; rd_o<=5'd0; pc_o<=32'd0;
             mem_read_o<=1'b0; mem_write_o<=1'b0; mem_to_reg_o<=1'b0; reg_write_o<=1'b0;
             valid_o<=1'b0;

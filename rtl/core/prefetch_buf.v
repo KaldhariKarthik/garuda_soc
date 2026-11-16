@@ -2,7 +2,7 @@
 `default_nettype none
 // ============================================================================
 // GARUDA SoC — Block I: Processor Core
-// Module      : garuda_prefetch_buffer
+// Module      : prefetch_buf
 // Description : Depth-4 circular FIFO. Each entry is tagged with the PC it
 //               was fetched from and a fault bit (I-port ERROR).
 // Spec Ref    : AERO-GARUDA-DS-001 Rev 1.0, §6.3, §6.5
@@ -18,9 +18,9 @@
 //              entry (§6.5).
 // ============================================================================
 
-module garuda_prefetch_buffer (
-    input  wire        clk_i,
-    input  wire        rst_n_i,
+module prefetch_buf (
+    input  wire        gclk,
+    input  wire        core_rst_n,
     input  wire        redirect_i,
 
     // Write side (from AHB master)
@@ -64,8 +64,8 @@ module garuda_prefetch_buffer (
 
     integer i;
 
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             wr_ptr    <= {PTR_W{1'b0}};
             rd_ptr    <= {PTR_W{1'b0}};
             occupancy <= {(PTR_W+1){1'b0}};

@@ -29,7 +29,7 @@
 // Concretely, with the frozen GARUDA masters: dma_ahb_master drives
 // HTRANS=IDLE in S_WDATA while its write data phase is in flight, precisely so
 // that the bus can be handed to somebody else. Following Sec. 3.1 literally,
-// that hand-off would write the D-Port's HWDATA (or, since d_port_ahb_master
+// that hand-off would write the D-Port's HWDATA (or, since dport_master
 // holds its captured hwdata register, a stale store value) into the DMA's
 // destination address. The DMA would report the beat complete, the store would
 // report OKAY, and the destination buffer would silently hold the wrong word.

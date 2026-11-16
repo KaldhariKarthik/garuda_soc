@@ -91,7 +91,7 @@ module ahb_lite_master_bfm #(
 
     // A new address phase may be presented when the bus is ready and the
     // previous one has been accepted (or is being accepted right now). This is
-    // the same gating garuda_iport_ahb_master uses, deliberately.
+    // the same gating iport_master uses, deliberately.
     wire can_issue = hready_i && (!addr_outstanding || addr_phase_done) &&
                      !q_empty && (gap_cnt == 8'd0);
 

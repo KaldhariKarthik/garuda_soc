@@ -50,13 +50,13 @@ module rdc1_top (
     wire        dsu_ovf, core_sleep, hartreset, ndmreset, halt_req, halt_safe;
     // The core's reset as on the chip (D-36): reset_ctrl's core_rst_sync.
     wire        core_rst_n;
-    core_rst_sync u_core_rst_sync (.hclk_i(clk), .clr_i(~rst_n), .hartreset_req_i(hartreset),
-                                   .core_rst_n_o(core_rst_n));
+    core_rst_sync u_core_rst_sync (.hclk(clk), .core_clr(~rst_n), .hartreset_req_i(hartreset),
+                                   .core_rst_n(core_rst_n));
     wire [31:0] dmi_rdata, sba_addr, sba_wdata;
     wire        dmi_done, sba_start, sba_write;
 
     garuda_core_top #(.RESET_VECTOR(32'h1000_0000), .CLK_GATE(0)) u_core (
-        .clk_i(clk), .core_rst_n_i(core_rst_n),
+        .hclk(clk), .core_rst_n(core_rst_n),
         .halt_req_i(halt_req), .halt_safe_o(halt_safe),
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize), .i_hburst_o(i_hburst),
         .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite), .i_hwdata_o(i_hwdata),
@@ -69,7 +69,7 @@ module rdc1_top (
         .dsu_ovf_o(dsu_ovf), .core_sleep_o(core_sleep));
 
     debug_module u_dm (
-        .hclk_i(clk), .dm_rst_n_i(rst_n),
+        .hclk(clk), .dm_rst_n(rst_n),
         .req_i(dmi_req), .addr_i(dmi_addr), .wdata_i(dmi_wdata), .op_i(dmi_op),
         .rdata_o(dmi_rdata), .done_o(dmi_done),
         .ndmreset_o(ndmreset), .hartreset_o(hartreset),

@@ -137,7 +137,7 @@ def main():
                 continue            # headers are pulled in via `include
             # A .sv file needs -sv. Without it yosys's Verilog-2005 frontend
             # rejects a SystemVerilog port declaration -- the whole chip
-            # stopped synthesising at spi_master_clkgen.sv:13 ("input logic
+            # stopped synthesising at spim_clkgen.sv:13 ("input logic
             # clk") the moment the vendored PULP SPI master joined the build,
             # which is why the chip-level cell and latch counts could not be
             # reproduced. Flagged per file rather than globally so the

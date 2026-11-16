@@ -27,7 +27,7 @@ module tb_dma_engine_unit;
     wire [5:0] bdone, berr, ack; wire [2:0] eph;
     wire [31:0] haddr, hwdata; wire [1:0] htrans; wire hwrite; wire [2:0] hsize, hburst; wire busy;
     logic [31:0] hrdata = 0; logic hready = 1, hresp = 0;
-    dma_engine #(.ACK_CYCLES(2)) dut (.hclk_i(clk), .hreset_n_i(rst_n), .grant_valid_i(gv), .grant_ch_i(gch),
+    dma_engine #(.ACK_CYCLES(2)) dut (.hclk(clk), .hreset_n(rst_n), .grant_valid_i(gv), .grant_ch_i(gch),
         .sar_i(sar), .dar_i(dar), .size_i(size), .m2m_i(6'd0), .beat_done_o(bdone), .beat_err_o(berr), .err_phase_o(eph),
         .dma_ack_o(ack), .haddr_o(haddr), .htrans_o(htrans), .hwrite_o(hwrite), .hsize_o(hsize), .hburst_o(hburst),
         .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready), .hresp_i(hresp), .busy_o(busy), .inflight_o());

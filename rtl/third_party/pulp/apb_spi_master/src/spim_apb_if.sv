@@ -21,15 +21,15 @@
 `define REG_INTCFG 4'b1001 // BASEREG + 0x24
 `define REG_INTSTA 4'b1010 // BASEREG + 0x28
 
-module spi_master_apb_if
+module spim_apb_if
 #(
     parameter BUFFER_DEPTH   = 10,
     parameter APB_ADDR_WIDTH = 12,  //APB slaves are 4KB by default
     parameter LOG_BUFFER_DEPTH = `log2(BUFFER_DEPTH)
 )
 (
-    input  logic                      HCLK,
-    input  logic                      HRESETn,
+    input  logic                      pclk,
+    input  logic                      preset_n,
     input  logic [APB_ADDR_WIDTH-1:0] PADDR,
     input  logic               [31:0] PWDATA,
     input  logic                      PWRITE,
@@ -81,9 +81,9 @@ module spi_master_apb_if
 
     assign spi_int_rd_sta = PSEL & PENABLE & ~PWRITE & (read_address  == `REG_INTSTA);
 
-    always @( posedge HCLK or negedge HRESETn )
+    always @( posedge pclk or negedge preset_n )
     begin
-        if ( HRESETn == 1'b0 )
+        if ( preset_n == 1'b0 )
         begin
             spi_swrst         <= 1'b0;
             spi_rd            <= 1'b0;

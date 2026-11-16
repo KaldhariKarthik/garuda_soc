@@ -57,7 +57,7 @@ endmodule
 
 bind garuda_chip_core chip_sva u_chip_sva (
     .hclk(hclk), .hreset_n(hreset_n), .preset_n(preset_n), .core_rst_n(core_rst_n), .dm_rst_n(dm_rst_n),
-    .ext_rst_n(u_reset_ctrl.ext_rst_n_i),
+    .ext_rst_n(u_reset_ctrl.ext_rst_n),
     .clic_src(u_soc.irq_src), .dma_complete(u_soc.dma_complete), .dma_error(u_soc.dma_error),
     .wdt_warn(u_soc.wdt_warn),
     .spim_irq(spim_irq), .i2c_irq(i2c_irq), .gpio_irq(gpio_irq), .pwm_irq(pwm_irq), .spis_irq(spis_irq),

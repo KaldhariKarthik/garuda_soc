@@ -107,8 +107,8 @@ module garuda_chip_core #(
     wire [1:0] div_sel, div_act;
 
     clk_div u_clk_div (
-        .refclk_i(refclk), .raw_rst_n_i(ext_rst_n), .div_sel_i(div_sel),
-        .aon_clk_o(aon_clk), .hclk_o(hclk), .pclk_o(pclk), .pclk_phase_o(pclk_phase),
+        .refclk(refclk), .ext_rst_n(ext_rst_n), .div_sel_i(div_sel),
+        .aon_clk(aon_clk), .hclk(hclk), .pclk(pclk), .pclk_phase_o(pclk_phase),
         .div_act_o(div_act), .div_busy_o(div_busy));
 
     // =========================================================================
@@ -123,16 +123,16 @@ module garuda_chip_core #(
     wire        rst_pready, rst_pslverr;
 
     reset_ctrl u_reset_ctrl (
-        .aon_clk_i(aon_clk), .hclk_i(hclk), .pclk_i(pclk),
-        .ext_rst_n_i(ext_rst_n), .wdt_rst_req_i(wdt_rst_req),
+        .aon_clk(aon_clk), .hclk(hclk), .pclk(pclk),
+        .ext_rst_n(ext_rst_n), .wdt_rst_req_i(wdt_rst_req),
         .ndm_rst_req_i(ndmreset), .hartreset_req_i(hartreset), .boot_sel_i(boot_sel),
         .psel_i(ext_psel[`GARUDA_APB_WIN_RESET_CTRL]), .penable_i(ext_penable),
         .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
         .prdata_o(rst_prdata), .pready_o(rst_pready), .pslverr_o(rst_pslverr),
         .div_sel_o(div_sel), .div_act_i(div_act), .div_busy_i(div_busy),
         .ilock_o(ilock),
-        .hreset_n_o(hreset_n), .preset_n_o(preset_n), .core_rst_n_o(core_rst_n),
-        .dm_rst_n_o(dm_rst_n), .ext_hrst_n_o(ext_hrst_n));
+        .hreset_n(hreset_n), .preset_n(preset_n), .core_rst_n(core_rst_n),
+        .dm_rst_n(dm_rst_n), .ext_hrst_n(ext_hrst_n));
 
     // =========================================================================
     // Block 13: SPI master (window 1) - boot flash and the IMU
@@ -142,7 +142,7 @@ module garuda_chip_core #(
     wire        spim_pready, spim_pslverr, spim_irq, spim_dma_req;
 
     garuda_spim_top u_spim (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(ext_psel[`GARUDA_APB_WIN_SPI_MASTER]), .penable_i(ext_penable),
         .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
         .prdata_o(spim_prdata), .pready_o(spim_pready), .pslverr_o(spim_pslverr),
@@ -158,7 +158,7 @@ module garuda_chip_core #(
     wire        i2c_scl_out, i2c_scl_oe, i2c_sda_out, i2c_sda_oe;
 
     garuda_i2c_top u_i2c (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(ext_psel[`GARUDA_APB_WIN_I2C]), .penable_i(ext_penable),
         .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
         .prdata_o(i2c_prdata), .pready_o(i2c_pready), .pslverr_o(i2c_pslverr),
@@ -184,19 +184,19 @@ module garuda_chip_core #(
     // and each expression is still a constant within its generate iteration.
     genvar u;
     generate for (u = 0; u < 3; u = u + 1) begin : g_uart
-        localparam integer WIN = (u == 0) ? `GARUDA_APB_WIN_UART0 :
+        localparam integer APB_WIN = (u == 0) ? `GARUDA_APB_WIN_UART0 :
                                  (u == 1) ? `GARUDA_APB_WIN_UART1 :
                                             `GARUDA_APB_WIN_UART2;
-        localparam integer DCH = (u == 0) ? 2 : (u == 1) ? 3 : 5;
+        localparam integer DMA_CHAN = (u == 0) ? 2 : (u == 1) ? 3 : 5;
 
         garuda_uart_top #(.BLOCK_NUM(8'd16 + u[7:0])) u_uart (
-            .pclk_i(pclk), .preset_n_i(preset_n),
-            .psel_i(ext_psel[WIN]), .penable_i(ext_penable),
+            .pclk(pclk), .preset_n(preset_n),
+            .psel_i(ext_psel[APB_WIN]), .penable_i(ext_penable),
             .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
             .prdata_o(uart_prdata[u]), .pready_o(uart_pready[u]),
             .pslverr_o(uart_pslverr[u]),
             .irq_o(uart_irq[u]), .dma_req_o(uart_dma_req[u]),
-            .dma_ack_i(dma_ack[DCH]),
+            .dma_ack_i(dma_ack[DMA_CHAN]),
             .uart_tx_o(uart_tx[u]), .uart_rx_i(uart_rx[u]));
     end endgenerate
 
@@ -210,7 +210,7 @@ module garuda_chip_core #(
     assign gpio_in = gpio_i;
 
     garuda_gpio_top #(.BLOCK_NUM(8'd19), .PAD_NUM(2)) u_gpio (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(ext_psel[`GARUDA_APB_WIN_GPIO]), .penable_i(ext_penable),
         .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
         .prdata_o(gpio_prdata), .pready_o(gpio_pready), .pslverr_o(gpio_pslverr),
@@ -224,8 +224,8 @@ module garuda_chip_core #(
     wire        pwm_pready, pwm_pslverr, pwm_irq;
     wire [3:0]  pwm_pins;
 
-    garuda_pwm_top #(.BLOCK_NUM(8'd20), .NCH(4)) u_pwm (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+    garuda_pwm_top #(.BLOCK_NUM(8'd20), .NUM_CHAN(4)) u_pwm (
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(ext_psel[`GARUDA_APB_WIN_PWM]), .penable_i(ext_penable),
         .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
         .prdata_o(pwm_prdata), .pready_o(pwm_pready), .pslverr_o(pwm_pslverr),
@@ -240,7 +240,7 @@ module garuda_chip_core #(
 
     generate if (WITH_SPI_SLAVE) begin : g_spis
         garuda_spis_top #(.BLOCK_NUM(8'd14), .FIFO_DEPTH(16)) u_spis (
-            .pclk_i(pclk), .preset_n_i(preset_n),
+            .pclk(pclk), .preset_n(preset_n),
             .psel_i(ext_psel[`GARUDA_APB_WIN_SPI_SLAVE]), .penable_i(ext_penable),
             .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
             .prdata_o(spis_prdata), .pready_o(spis_pready),
@@ -338,12 +338,12 @@ module garuda_chip_core #(
         .BROM_INIT_FILE(BROM_INIT_FILE), .APB_WINDOW_MASK(APB_WINDOW_MASK),
         .APB_DIV(APB_DIV), .CORE_CLK_GATE(CORE_CLK_GATE)
     ) u_soc (
-        .hclk_i(hclk), .pclk_i(pclk), .pclk_phase_i(pclk_phase),
-        .hreset_n_i(hreset_n), .preset_n_i(preset_n), .core_rst_n_i(core_rst_n),
-        .dm_rst_n_i(dm_rst_n), .ext_hrst_n_i(ext_hrst_n), .por_n_i(ext_rst_n),
+        .hclk(hclk), .pclk(pclk), .pclk_phase_i(pclk_phase),
+        .hreset_n(hreset_n), .preset_n(preset_n), .core_rst_n(core_rst_n),
+        .dm_rst_n(dm_rst_n), .ext_hrst_n(ext_hrst_n), .ext_rst_n(ext_rst_n),
         .wdt_rst_req_o(wdt_rst_req), .ndmreset_o(ndmreset), .hartreset_o(hartreset),
         .ilock_i(ilock),
-        .tck_i(tck), .tms_i(tms), .tdi_i(tdi), .tdo_o(tdo_q), .tdo_oe_o(tdo_oe),
+        .tck(tck), .tms_i(tms), .tdi_i(tdi), .tdo_o(tdo_q), .tdo_oe_o(tdo_oe),
         .apb_ext_psel_o(ext_psel), .apb_ext_penable_o(ext_penable),
         .apb_ext_pwrite_o(ext_pwrite), .apb_ext_paddr_o(ext_paddr),
         .apb_ext_pwdata_o(ext_pwdata),

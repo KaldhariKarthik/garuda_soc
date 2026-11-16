@@ -10,8 +10,8 @@
 
 module spi_master_tx
 (
-    input  logic        clk,
-    input  logic        rstn,
+    input  logic        pclk,
+    input  logic        preset_n,
     input  logic        en,
     input  logic        tx_edge,
     output logic        tx_done,
@@ -109,9 +109,9 @@ module spi_master_tx
     endcase
   end
 
-  always_ff @(posedge clk, negedge rstn)
+  always_ff @(posedge pclk, negedge preset_n)
   begin
-    if (~rstn)
+    if (~preset_n)
     begin
       counter      <= 0;
       counter_trgt <= 'h8;

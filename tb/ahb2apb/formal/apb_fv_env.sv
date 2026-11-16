@@ -60,6 +60,6 @@ module apb_fv_env #(parameter integer RST_CYCLES = 2) (
     end
 endmodule
 
-bind ahb2apb_bridge apb_fv_env u_fv_env (.clk(hclk_i), .hreset_n_i(hreset_n_i), .preset_n_i(preset_n_i),
+bind ahb2apb_bridge apb_fv_env u_fv_env (.clk(hclk), .hreset_n_i(hreset_n), .preset_n_i(preset_n),
     .hsel_i(hsel_i), .haddr_i(haddr_i), .htrans_i(htrans_i), .hwrite_i(hwrite_i), .hsize_i(hsize_i),
     .hwdata_i(hwdata_i), .hready_i(hready_i), .hreadyout_o(hreadyout_o));

@@ -16,7 +16,7 @@ rtl/core/decode_control.v
 rtl/core/imm_gen.v
 rtl/core/regfile.v
 rtl/core/branch_predict.v
-rtl/core/hazard_forward_unit.v
+rtl/core/hazard_fwd_unit.v
 rtl/core/id_stage.v
 
 -sv

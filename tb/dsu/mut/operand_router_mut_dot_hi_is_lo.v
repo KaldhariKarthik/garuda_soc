@@ -2,14 +2,14 @@
 `timescale 1ns / 1ps
 
 module operand_router (
-    input wire  [31:0] rs1,
-    input wire  [31:0] rs2,
+    input wire  [31:0] rs1_val,
+    input wire  [31:0] rs2_val,
     input wire         abs_en,
     input wire         dot_en,
-    output wire [15:0] a0,
-    output wire [15:0] b0,
-    output wire [15:0] a1,
-    output wire [15:0] b1
+    output wire [15:0] a_lo,
+    output wire [15:0] b_lo,
+    output wire [15:0] a_hi,
+    output wire [15:0] b_hi
 );
 
     function [15:0] abs16;
@@ -21,13 +21,13 @@ module operand_router (
         end
      endfunction
      
-     wire [15:0] rs1_lo_abs = abs16(rs1[15:0]);
-     wire [15:0] rs2_lo_abs = abs16(rs2[15:0]);
+     wire [15:0] rs1_lo_abs = abs16(rs1_val[15:0]);
+     wire [15:0] rs2_lo_abs = abs16(rs2_val[15:0]);
      wire        dot_active = dot_en & ~abs_en;
      
-     assign a0 = abs_en ? rs1_lo_abs : rs1[15:0];
-     assign b0 = abs_en ? rs2_lo_abs : rs2[15:0];
-     assign a1 = dot_active ? rs1[15:0] : 16'b0;
-     assign b1 = dot_active ? rs2[31:16] : 16'b0;
+     assign a_lo = abs_en ? rs1_lo_abs : rs1_val[15:0];
+     assign b_lo = abs_en ? rs2_lo_abs : rs2_val[15:0];
+     assign a_hi = dot_active ? rs1_val[15:0] : 16'b0;
+     assign b_hi = dot_active ? rs2_val[31:16] : 16'b0;
      
 endmodule

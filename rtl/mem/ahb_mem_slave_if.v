@@ -44,11 +44,11 @@
 `include "mem_defs.vh"
 
 module ahb_mem_slave_if #(
-    parameter integer AW       = 14,   // word-address width into the array
+    parameter integer ADDR_W       = 14,   // word-address width into the array
     parameter integer WRITABLE = 1     // 0 = ROM: writes get ERROR
 )(
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
 
     input  wire        hsel_i,
     input  wire [31:0] haddr_i,
@@ -66,7 +66,7 @@ module ahb_mem_slave_if #(
 
     // ---- macro port (sram_wrapper) -------------------------------------------
     output wire          arr_ce_o,
-    output wire [AW-1:0] arr_addr_o,
+    output wire [ADDR_W-1:0] arr_addr_o,
     output wire          arr_we_o,
     output wire [3:0]    arr_be_o,
     output wire [31:0]   arr_wdata_o,
@@ -85,14 +85,14 @@ module ahb_mem_slave_if #(
     wire lock_write = hwrite_i && wr_lock_i && !lock_bypass_i;
     wire ap_err     = misaligned | ro_write | lock_write;
 
-    wire [AW-1:0] ap_word = haddr_i[AW+1:2];
+    wire [ADDR_W-1:0] ap_word = haddr_i[ADDR_W+1:2];
     wire          rd_now  = accept && !hwrite_i && !ap_err;   // port busy
 
     // =========================================================================
     // Data-phase registers (advance only when the bus advances)
     // =========================================================================
     reg          dp_valid, dp_write, dp_err;
-    reg [AW-1:0] dp_word;
+    reg [ADDR_W-1:0] dp_word;
     reg [3:0]    dp_be;
 
     reg [3:0] ap_be;
@@ -104,12 +104,12 @@ module ahb_mem_slave_if #(
         endcase
     end
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             dp_valid <= 1'b0;
             dp_write <= 1'b0;
             dp_err   <= 1'b0;
-            dp_word  <= {AW{1'b0}};
+            dp_word  <= {ADDR_W{1'b0}};
             dp_be    <= 4'b0;
         end else if (hready_i) begin
             dp_valid <= accept;
@@ -126,8 +126,8 @@ module ahb_mem_slave_if #(
     // Two-cycle ERROR
     // =========================================================================
     reg err2_q;
-    always @(posedge hclk_i or negedge hreset_n_i)
-        if (!hreset_n_i) err2_q <= 1'b0;
+    always @(posedge hclk or negedge hreset_n)
+        if (!hreset_n) err2_q <= 1'b0;
         else             err2_q <= dp_valid && dp_err && !err2_q;
 
     wire err_first = dp_valid && dp_err && !err2_q;
@@ -140,7 +140,7 @@ module ahb_mem_slave_if #(
     wire wr_dp = dp_valid && dp_write && !dp_err && hready_i;   // write data phase
 
     reg          wb_v;
-    reg [AW-1:0] wb_word;
+    reg [ADDR_W-1:0] wb_word;
     reg [3:0]    wb_be;
     reg [31:0]   wb_data;
 
@@ -150,10 +150,10 @@ module ahb_mem_slave_if #(
     wire direct_wr = wr_dp && !rd_now && !wb_v;
     wire park_wr   = wr_dp && !direct_wr;
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             wb_v    <= 1'b0;
-            wb_word <= {AW{1'b0}};
+            wb_word <= {ADDR_W{1'b0}};
             wb_be   <= 4'b0;
             wb_data <= 32'b0;
         end else begin
@@ -179,17 +179,17 @@ module ahb_mem_slave_if #(
     // =========================================================================
     wire        rd_dp = dp_valid && !dp_write && !dp_err;
     wire        byp   = wb_v && (wb_word == dp_word);
-    wire [31:0] merged = {
+    wire [31:0] wr_merged = {
         (byp && wb_be[3]) ? wb_data[31:24] : arr_rdata_i[31:24],
         (byp && wb_be[2]) ? wb_data[23:16] : arr_rdata_i[23:16],
         (byp && wb_be[1]) ? wb_data[15: 8] : arr_rdata_i[15: 8],
         (byp && wb_be[0]) ? wb_data[ 7: 0] : arr_rdata_i[ 7: 0] };
 
-    assign hrdata_o = rd_dp ? merged : 32'h0;
+    assign hrdata_o = rd_dp ? wr_merged : 32'h0;
 
 `ifndef SYNTHESIS
-    always @(posedge hclk_i)
-        if (hreset_n_i && park_wr && wb_v && !commit_wb)
+    always @(posedge hclk)
+        if (hreset_n && park_wr && wb_v && !commit_wb)
             $display("[MEM-ASSERT] write buffer overflow at %0t", $time);
 `endif
 

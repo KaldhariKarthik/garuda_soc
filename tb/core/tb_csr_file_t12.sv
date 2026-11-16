@@ -41,7 +41,7 @@ module tb_csr_file_t12;
     wire         illegal, mie, clr_ovf;
 
     csr_file dut (
-        .clk_i(clk), .rst_n_i(rst_n), .csr_en_i(csr_en), .commit_i(1'b1), .csr_addr_i(addr),
+        .gclk(clk), .core_rst_n(rst_n), .csr_en_i(csr_en), .commit_i(1'b1), .csr_addr_i(addr),
         .csr_wdata_i(wdata), .csr_op_i(op), .csr_rdata_o(rdata), .illegal_csr_o(illegal),
         .instret_i(1'b0), .ret_mem_i(1'b0), .dsu_overflow_i(1'b0), .csr_clear_overflow_o(clr_ovf),
         .trap_enter_i(trap_enter), .mret_i(mret), .is_interrupt_i(is_int), .clic_level_i(lvl),

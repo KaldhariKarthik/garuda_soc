@@ -31,7 +31,7 @@ set_db information_level 1
 set_db hdl_error_on_latch false
 set_db init_hdl_search_path {$INCS rtl/include}
 read_libs $LIB
-read_hdl -define SYNTHESIS -define GARUDA_SRAM_BLACKBOX $DEFS -sv {$SRCS}
+read_hdl -define SYNTHESIS -define SRAM_BLACKBOX $DEFS -sv {$SRCS}
 elaborate garuda_chip_top
 set GARUDA_DIV $DIV
 redirect -tee $OUT/read_sdc.log { read_sdc flow/constraints/garuda_rtl.sdc }

@@ -108,7 +108,7 @@ for every iteration.
   │  ── tck domain ────────────┼── hclk domain ──────────────  │
   │                            │                               │
   │  ┌──────────┐   ┌────────┐ │ ┌──────────┐                  │
-  │  │ jtag_tap │──▶│  dtm   │─┼▶│  dmi_cdc │                  │
+  │  │ jtag_tap │──▶│  debug_dtm   │─┼▶│  dmi_cdc │                  │
   │  │ IEEE1149 │   │ DMI    │ │ │ 2ff req/ │                  │
   │  │ state m/c│◀──│ shift  │◀┼─│ ack      │                  │
   │  └──────────┘   └────────┘ │ └────┬─────┘                  │

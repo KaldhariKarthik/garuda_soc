@@ -47,8 +47,8 @@ module tb_timers_uvm;
     assign tif.preset_n = preset_n;
 
     timers_top dut (
-        .hclk_i(hclk), .hreset_n_i(hreset_n), .ext_rst_n_i(tif.ext_rst_n),
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .hclk(hclk), .hreset_n(hreset_n), .ext_hrst_n(tif.ext_rst_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(apb.psel), .penable_i(apb.penable), .pwrite_i(apb.pwrite), .paddr_i(apb.paddr),
         .pwdata_i(apb.pwdata), .prdata_o(apb.prdata), .pready_o(apb.pready), .pslverr_o(apb.pslverr),
         .mtip_o(tif.mtip), .wdt_warn_irq_o(tif.warn), .wdt_rst_req_o(tif.req));

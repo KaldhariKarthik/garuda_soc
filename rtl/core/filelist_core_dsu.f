@@ -14,9 +14,9 @@
 
 // IF
 rtl/core/garuda_pc_gen.v
-rtl/core/garuda_iport_ahb_master.v
-rtl/core/garuda_prefetch_buffer.v
-rtl/core/garuda_if_stage_top.v
+rtl/core/iport_master.v
+rtl/core/prefetch_buf.v
+rtl/core/if_stage_top.v
 rtl/core/if_id.v
 
 // ID
@@ -24,12 +24,12 @@ rtl/core/decode_control.v
 rtl/core/imm_gen.v
 rtl/core/regfile.v
 rtl/core/branch_predict.v
-rtl/core/hazard_forward_unit.v
+rtl/core/hazard_fwd_unit.v
 rtl/core/id_stage.v
 rtl/core/id_ex.v
 
 // EX (+ forwarding)
-rtl/core/alu.v
+rtl/core/alu_unit.v
 rtl/core/mul32.v
 rtl/core/branch_unit.v
 rtl/core/csr_rw.v
@@ -39,7 +39,7 @@ rtl/core/ex_mem.v
 
 // MEM / WB
 rtl/core/load_store_unit.v
-rtl/core/d_port_ahb_master.v
+rtl/core/dport_master.v
 rtl/core/load_formatter.v
 rtl/core/mem_stage.v
 rtl/core/mem_wb_reg.v

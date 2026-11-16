@@ -1,4 +1,4 @@
-// filelist_garuda_prefetch_buffer.f -- SystemVerilog element TB. Top module is tb_top.
+// filelist_alu.f -- SystemVerilog element TB. Top module is tb_top.
 //
 // No GARUDA_REAL_RTL define here: unlike the older unit TBs, these carry no
 // inlined DUT snapshot, so the real rtl/core source below is the only DUT
@@ -6,8 +6,8 @@
 
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/garuda_prefetch_buffer.v
+rtl/core/alu_unit.v
 
 -sv
 tb/core/garuda_tb_pkg.sv
-tb/core/tb_garuda_prefetch_buffer.sv
+tb/core/tb_alu.sv

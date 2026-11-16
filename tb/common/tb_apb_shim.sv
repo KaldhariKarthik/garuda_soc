@@ -38,7 +38,7 @@ module tb_apb_shim;
 
     garuda_apb_shim #(.N_EVT(N_EVT), .SYNC_W(1), .IP_LIMIT(12'h100),
                       .ADDR_SHIFT(0), .BLOCK_NUM(8'd13)) dut (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(bfm.psel), .penable_i(bfm.penable), .pwrite_i(bfm.pwrite),
         .paddr_i(bfm.paddr), .pwdata_i(bfm.pwdata), .prdata_o(bfm.prdata),
         .pready_o(bfm.pready), .pslverr_o(bfm.pslverr),
@@ -90,7 +90,7 @@ module tb_apb_shim;
 
     garuda_apb_shim #(.N_EVT(1), .SYNC_W(1), .IP_LIMIT(12'h020),
                       .ADDR_SHIFT(2), .BLOCK_NUM(8'd16)) dut_b (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(b_psel), .penable_i(b_penable), .pwrite_i(b_pwrite),
         .paddr_i(b_paddr), .pwdata_i(b_pwdata), .prdata_o(b_prdata),
         .pready_o(b_pready), .pslverr_o(b_pslverr),

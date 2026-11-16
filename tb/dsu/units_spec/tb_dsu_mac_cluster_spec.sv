@@ -21,9 +21,9 @@ module tb_dsu_mac_cluster_spec;
     logic sat_en = 0;
     wire [47:0] cout, a0, a1, a2;
     wire [2:0] ovf;
-    mac_cluster dut (.clk(clk), .rst_n(rst_n), .rs1(rs1), .rs2(rs2), .control(control), .acc_sel(sel),
+    mac_cluster dut (.gclk(clk), .core_rst_n(rst_n), .rs1_val(rs1), .rs2_val(rs2), .control(control), .acc_sel(sel),
                      .sat_writeback(satv), .sat_writeback_en(sat_en), .cluster_out(cout), .overflow(ovf),
-                     .dbg_acc_0(a0), .dbg_acc_1(a1), .dbg_acc_2(a2));
+                     .dbg_acc_fx(a0), .dbg_acc_fy(a1), .dbg_acc_mag(a2));
     always #5 clk = ~clk;
     int checks = 0, fails = 0, n_ovf = 0;
     logic [47:0] ref_acc [3] = '{0, 0, 0};

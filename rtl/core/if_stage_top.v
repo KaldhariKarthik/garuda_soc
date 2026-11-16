@@ -2,23 +2,23 @@
 `default_nettype none
 // ============================================================================
 // GARUDA SoC — Block I: Processor Core
-// Module      : garuda_if_stage_top
+// Module      : if_stage_top
 // Description : Top-level Instruction Fetch stage. Instantiates and wires
 //               together the three IF sub-blocks:
 //                 1. garuda_pc_gen            — PC / fetch_pc generator
-//                 2. garuda_iport_ahb_master  — I-port AHB-Lite master
-//                 3. garuda_prefetch_buffer   — depth-4 FIFO
+//                 2. iport_master  — I-port AHB-Lite master
+//                 3. prefetch_buf   — depth-4 FIFO
 // Spec Ref    : AERO-GARUDA-DS-001 Rev 1.0, §5, §6, §16
 // ============================================================================
 
-module garuda_if_stage_top #(
+module if_stage_top #(
     parameter [31:0] RESET_VECTOR = 32'h1000_0000
 ) (
     // ----------------------------------------------------------------
     // Infrastructure
     // ----------------------------------------------------------------
-    input  wire        clk_i,
-    input  wire        rst_n_i,
+    input  wire        gclk,
+    input  wire        core_rst_n,
 
     // ----------------------------------------------------------------
     // I-port AHB-Lite master (to interconnect)
@@ -70,8 +70,8 @@ module garuda_if_stage_top #(
     // 1. PC Generator
     // ------------------------------------------------------------------
     garuda_pc_gen #(.RESET_VECTOR(RESET_VECTOR)) u_pc_gen (
-        .clk_i         (clk_i),
-        .rst_n_i       (rst_n_i),
+        .gclk         (gclk),
+        .core_rst_n       (core_rst_n),
         .redirect_i    (redirect_i),
         .redirect_pc_i (redirect_pc_i),
         .fetch_issue_i (fetch_issue),
@@ -84,9 +84,9 @@ module garuda_if_stage_top #(
     // ------------------------------------------------------------------
     // 2. I-port AHB-Lite Master
     // ------------------------------------------------------------------
-    garuda_iport_ahb_master u_iport_master (
-        .clk_i         (clk_i),
-        .rst_n_i       (rst_n_i),
+    iport_master u_iport_master (
+        .gclk         (gclk),
+        .core_rst_n       (core_rst_n),
         .redirect_i    (redirect_i),
         .fetch_pc_i    (fetch_pc),
         .fifo_occupancy_i (fifo_occupancy),
@@ -116,9 +116,9 @@ module garuda_if_stage_top #(
     // ------------------------------------------------------------------
     // 3. Prefetch Buffer
     // ------------------------------------------------------------------
-    garuda_prefetch_buffer u_prefetch_buffer (
-        .clk_i         (clk_i),
-        .rst_n_i       (rst_n_i),
+    prefetch_buf u_prefetch (
+        .gclk         (gclk),
+        .core_rst_n       (core_rst_n),
         .redirect_i    (redirect_i),
 
         .wr_en_i       (data_valid),

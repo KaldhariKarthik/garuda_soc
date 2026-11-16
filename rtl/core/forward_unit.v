@@ -6,7 +6,7 @@
 // Document: AERO-GARUDA-DS-001 Rev 1.1
 //
 // Generates fwd_a_sel / fwd_b_sel for ex_stage's operand muxes. This is the
-// EX-side half deferred by hazard_forward_unit.v (which does only ID load-use
+// EX-side half deferred by hazard_fwd_unit.v (which does only ID load-use
 // detection). Encoding uses the shared FWD_* macros so it can never drift from
 // ex_stage's mux (core_ex_defs.vh -> garuda_defs.vh).
 //

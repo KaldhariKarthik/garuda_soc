@@ -29,8 +29,8 @@
 module dma_engine #(
     parameter integer ACK_CYCLES = 2           // dma_ack width in hclk (D-16)
 )(
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
 
     // ---- arbiter -----------------------------------------------------------------
     input  wire        grant_valid_i,
@@ -88,8 +88,8 @@ module dma_engine #(
     assign busy_o   = (st != E_IDLE);
     assign dma_ack_o = ack_q;
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             st <= E_IDLE; ch <= 3'd0; data_q <= 32'd0;
             haddr_o <= 32'd0; htrans_o <= 2'b00; hwrite_o <= 1'b0;
             hsize_o <= 3'b010; hwdata_o <= 32'd0;

@@ -43,8 +43,8 @@
 module garuda_uart_top #(
     parameter [7:0] BLOCK_NUM = 8'd16       // 16 = uart0, 17 = uart1, 18 = uart2
 )(
-    input  wire        pclk_i,
-    input  wire        preset_n_i,
+    input  wire        pclk,
+    input  wire        preset_n,
 
     // ---- APB slave, window 3 / 4 / 6 -----------------------------------------
     input  wire        psel_i,
@@ -93,8 +93,8 @@ module garuda_uart_top #(
     wire poll = ~psel_i;                    // window idle: our cycle to use
 
     reg [7:0] lsr_q;
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i)  lsr_q <= 8'h60;   // THRE | TEMT: nothing to send
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n)  lsr_q <= 8'h60;   // THRE | TEMT: nothing to send
         else if (poll)    lsr_q <= ip_prdata[7:0];
 
     wire lsr_dr   = lsr_q[0];               // a received byte is waiting
@@ -124,8 +124,8 @@ module garuda_uart_top #(
     // silently overwritten with payload bytes.
     // =========================================================================
     reg dlab_q;
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i)                                            dlab_q <= 1'b0;
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n)                                            dlab_q <= 1'b0;
         else if (psel_i & penable_i & pwrite_i & (paddr_i == A_LCR)) dlab_q <= pwdata_i[7];
 
     // =========================================================================
@@ -140,7 +140,7 @@ module garuda_uart_top #(
         .N_EVT(3), .SYNC_W(1), .SYNC_RESET(8'h01), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
         .ADDR_SHIFT(2), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
-        .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
@@ -171,7 +171,7 @@ module garuda_uart_top #(
     apb_uart_sv #(
         .APB_ADDR_WIDTH(12)
     ) u_uart (
-        .CLK(pclk_i), .RSTN(preset_n_i),
+        .pclk(pclk), .preset_n(preset_n),
         .PADDR(eff_paddr), .PWDATA(ip_pwdata), .PWRITE(eff_pwrite),
         .PSEL(eff_psel), .PENABLE(eff_penable),
         .PRDATA(ip_prdata), .PREADY(ip_pready), .PSLVERR(),

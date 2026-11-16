@@ -15,27 +15,27 @@
 // =============================================================================
 
 module clic_select #(
-    parameter integer N = 32                      // power of two
+    parameter integer NUM_SRC = 32                      // power of two
 )(
-    input  wire [N-1:0]   cand_i,                 // enable & pending
-    input  wire [N*8-1:0] level_i,
+    input  wire [NUM_SRC-1:0]   cand_i,                 // enable & pending
+    input  wire [NUM_SRC*8-1:0] level_i,
     output wire           valid_o,
     output wire [4:0]     id_o,
     output wire [7:0]     level_o
 );
 
-    localparam integer L = $clog2(N);
+    localparam integer SEL_W = $clog2(NUM_SRC);
 
     // node key = {present, level[7:0], ~id[4:0]}
-    wire [13:0] node [0:2*N-2];
+    wire [13:0] node [0:2*NUM_SRC-2];
 
     genvar i;
     generate
-        for (i = 0; i < N; i = i + 1) begin : g_leaf
-            assign node[N-1+i] = {cand_i[i], cand_i[i] ? level_i[8*i +: 8] : 8'd0,
+        for (i = 0; i < NUM_SRC; i = i + 1) begin : g_leaf
+            assign node[NUM_SRC-1+i] = {cand_i[i], cand_i[i] ? level_i[8*i +: 8] : 8'd0,
                                   ~i[4:0]};
         end
-        for (i = 0; i < N-1; i = i + 1) begin : g_tree
+        for (i = 0; i < NUM_SRC-1; i = i + 1) begin : g_tree
             wire [13:0] l = node[2*i+1];
             wire [13:0] r = node[2*i+2];
             assign node[i] = (l >= r) ? l : r;

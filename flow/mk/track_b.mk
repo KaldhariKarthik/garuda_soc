@@ -19,7 +19,7 @@
 help_b:
 	@echo "  ---- track B: peripherals, clocks and resets, chip, flow ----"
 	@echo "  make test_blocks_b   -- block TBs: crg clic timers apb_shim spim uart i2c gpio pwm spis"
-	@echo "  make test_chip       -- whole chip from the pins: basic, irq, wdt, flash, uart, periph, integ, jtag"
+	@echo "  make test_chip       -- whole chip from the pins: basic, irq, watchdog, flash, uart, periph, integ, jtag"
 	@echo "  make elab_chip       -- elaborate garuda_chip_top"
 	@echo "  make static          -- HAL lint, clock-domain check, chip tests with X-propagation"
 	@echo "  make uvm_clic        -- CLIC UVM environment with coverage (SEEDS=n); also"
@@ -54,13 +54,13 @@ test_blocks_b: $(BLOCKS_B)
 # Whole chip (garuda_chip_top) from the pins, real Boot ROM, boot_sel = 1:
 #   basic  boot path, ILOCK, precise bus faults, DMA R-9
 #   irq    DMA completion via CLIC, machine timer, WDT warning (WFI + clock gate)
-#   wdt    a real watchdog reset: RSTREASON = WDT, DSRAM survives
+#   watchdog    a real watchdog reset: RSTREASON = WDT, DSRAM survives
 #   jtag   halt -> load ISRAM over JTAG SBA -> mailbox -> resume -> run
 # =============================================================================
 CHIP_FL = tb/soc/filelist_chip.f
 test_chip_basic: ; $(call run_blk,$(CHIP_FL),tb_chip,chip_basic,+MODE=basic +TEST=sw/build/t_chip_basic.hex)
 test_chip_irq:   ; $(call run_blk,$(CHIP_FL),tb_chip,chip_irq,+MODE=irq +TEST=sw/build/t_chip_irq.hex)
-test_chip_wdt:   ; $(call run_blk,$(CHIP_FL),tb_chip,chip_wdt,+MODE=wdt +TEST=sw/build/t_chip_wdt.hex)
+test_chip_wdt:   ; $(call run_blk,$(CHIP_FL),tb_chip,chip_wdt,+MODE=watchdog +TEST=sw/build/t_chip_wdt.hex)
 test_chip_jtag:  ; $(call run_blk,$(CHIP_FL),tb_chip,chip_jtag,+MODE=jtag +TEST=sw/build/t_chip_jtag.hex +MAXUS=1500)
 test_chip_flash: ; $(call run_blk,$(CHIP_FL),tb_chip,chip_flash,+MODE=flash +TEST=sw/build/flash.hex +MAXUS=3000)
 test_chip_uart:  ; $(call run_blk,$(CHIP_FL),tb_chip,chip_uart,+MODE=basic +TEST=sw/build/t_chip_uart.hex)
@@ -130,7 +130,7 @@ static_lint_selfcheck:
 
 static_cdc:
 	@mkdir -p $(SIM_DIR)/static_cdc_debug
-	@$(IRUN152) -hal -64bit -f rtl/third_party/timescale.f rtl/debug/jtag_tap.v rtl/debug/dtm.v \
+	@$(IRUN152) -hal -64bit -f rtl/third_party/timescale.f rtl/debug/jtag_tap.v rtl/debug/debug_dtm.v \
 	    rtl/debug/dmi_cdc.v rtl/debug/sba_master.v rtl/debug/debug_module.v rtl/debug/debug_top.v \
 	    -incdir rtl/include -top debug_top -define SYNTHESIS \
 	    -nclibdirname $(SIM_DIR)/static_cdc_debug/INCA_libs -l $(SIM_DIR)/static_cdc_debug/hal_cdc.log \
@@ -144,7 +144,7 @@ static_cdc:
 static_xprop: sw
 	@mkdir -p $(SIM_DIR)/xprop; fail=0; \
 	 for t in "basic:+MODE=basic +TEST=sw/build/t_chip_basic.hex" "irq:+MODE=irq +TEST=sw/build/t_chip_irq.hex" \
-	          "wdt:+MODE=wdt +TEST=sw/build/t_chip_wdt.hex" "jtag:+MODE=jtag +TEST=sw/build/t_chip_jtag.hex +MAXUS=1500" \
+	          "watchdog:+MODE=watchdog +TEST=sw/build/t_chip_wdt.hex" "jtag:+MODE=jtag +TEST=sw/build/t_chip_jtag.hex +MAXUS=1500" \
 	          "flash:+MODE=flash +TEST=sw/build/flash.hex +MAXUS=3000" "uart:+MODE=basic +TEST=sw/build/t_chip_uart.hex" \
 	          "periph:+MODE=basic +TEST=sw/build/t_chip_periph.hex +MAXUS=1200" "integ:+MODE=basic +TEST=sw/build/t_chip_integ.hex +MAXUS=4000" \
 	          "swirq:+MODE=basic +TEST=sw/build/t_chip_swirq.hex"; do \

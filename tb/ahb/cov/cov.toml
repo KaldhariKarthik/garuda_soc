@@ -15,7 +15,7 @@ suites = [
 # rtl/ahb/ahb_mem_slave.v is a verification model (its own header), not design
 design    = ["rtl/ahb/ahb_interconnect.v", "rtl/ahb/ahb_arbiter.v", "rtl/ahb/ahb_decoder.v",
              "rtl/ahb/ahb_master_mux.v", "rtl/ahb/ahb_master_port.v", "rtl/ahb/ahb_slave_mux.v",
-             "rtl/ahb/ahb_default_slave.v"]
+             "rtl/ahb/ahb_dflt_slave.v"]
 testbench = ["tb/ahb/*", "tb/common/garuda_map_pkg.sv", "rtl/ahb/ahb_ic_props_a.sv"]
 
 functional_files = ["tb/ahb/env/ahb_cov.sv"]
@@ -33,4 +33,4 @@ ahb_decoder       = ["ahb_interconnect.u_dec"]
 ahb_master_mux    = ["ahb_interconnect.u_mmux"]
 ahb_master_port   = ["ahb_interconnect.u_mp_i", "ahb_interconnect.u_mp_d", "ahb_interconnect.u_mp_s", "ahb_interconnect.u_mp_m"]
 ahb_slave_mux     = ["ahb_interconnect.u_smux"]
-ahb_default_slave = ["ahb_interconnect.u_def"]
+ahb_dflt_slave = ["ahb_interconnect.u_def"]

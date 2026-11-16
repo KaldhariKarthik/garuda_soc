@@ -14,8 +14,8 @@
 // Reset => bubble.
 // =============================================================================
 module if_id (
-    input  wire        clk_i,
-    input  wire        rst_n_i,
+    input  wire        gclk,
+    input  wire        core_rst_n,
     input  wire        stall_i,
     input  wire        flush_i,
 
@@ -30,8 +30,8 @@ module if_id (
     output reg         fault_o
 );
     // ERRATUM CORE-1 -- flush_i must not appear in the ASYNCHRONOUS reset test.
-    // This was  if (!rst_n_i || flush_i)  inside an  always @(posedge clk_i or
-    // negedge rst_n_i)  block. flush_i is a SYNCHRONOUS signal and is not in
+    // This was  if (!core_rst_n || flush_i)  inside an  always @(posedge gclk or
+    // negedge core_rst_n)  block. flush_i is a SYNCHRONOUS signal and is not in
     // the sensitivity list, so the block describes two different things to two
     // different readers: simulation samples flush_i on the clock edge (the
     // intended behaviour), while synthesis sees a term in the async-reset
@@ -43,8 +43,8 @@ module if_id (
     // The bubble body is identical either way, so it is simply moved into its
     // own synchronous branch. Priority is unchanged: reset, then flush, then
     // stall -- flush still wins over stall (Sec. 11.4, "flush wins over hold").
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             instr_o<=32'h0000_0013; pc_o<=32'd0; valid_o<=1'b0; fault_o<=1'b0;
         end else if (flush_i) begin
             instr_o<=32'h0000_0013; pc_o<=32'd0; valid_o<=1'b0; fault_o<=1'b0;

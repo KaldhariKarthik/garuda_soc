@@ -56,7 +56,7 @@ ncbrowse -64bit -cdslib sim/static/INCA_libs/irun.lnx8664.15.20.nc/cds.lib \
          -sortby severity -sortby category -sortby tag sim/static/hal.log &
 
 # clock-domain crossings: the debug block, where tck and hclk are both ports
-irun -hal -64bit -f rtl/third_party/timescale.f rtl/debug/jtag_tap.v rtl/debug/dtm.v \
+irun -hal -64bit -f rtl/third_party/timescale.f rtl/debug/jtag_tap.v rtl/debug/debug_dtm.v \
      rtl/debug/dmi_cdc.v rtl/debug/sba_master.v rtl/debug/debug_module.v rtl/debug/debug_top.v \
      -incdir rtl/include -top debug_top -define SYNTHESIS \
      -nclibdirname sim/static_cdc_debug/INCA_libs -l sim/static_cdc_debug/hal_cdc.log \
@@ -483,7 +483,7 @@ The other chip programs, same command with these arguments:
 | Test | Plus-arguments |
 |---|---|
 | irq | `+MODE=irq +TEST=sw/build/t_chip_irq.hex` |
-| wdt | `+MODE=wdt +TEST=sw/build/t_chip_wdt.hex` |
+| watchdog | `+MODE=watchdog +TEST=sw/build/t_chip_wdt.hex` |
 | flash | `+MODE=flash +TEST=sw/build/flash.hex +MAXUS=3000` |
 | uart | `+MODE=basic +TEST=sw/build/t_chip_uart.hex` |
 | periph | `+MODE=basic +TEST=sw/build/t_chip_periph.hex +MAXUS=1200` |
@@ -728,7 +728,7 @@ Start every replay with:
 |---|---|---|
 | R4.1 | `irun -64bit -coverage functional -covoverwrite -covworkdir sim/replay/cov_dec -nclibdirname sim/replay/INCA_dec -f tb/core/filelist_decode_control.f -top tb_top -l sim/replay/decode.log` then `grep -e TOTAL_CYCLES -e COVERAGE sim/replay/decode.log` | `PASS=3211  FAIL=0`, both coverage lines `100.00 %` (row 4.2: every opcode x funct3 x funct7, FENCE and FENCE.I) |
 | R4.2 | `irun -64bit -nclibdirname sim/replay/INCA_fwd -f tb/core/filelist_forward_unit.f -top tb_top -svseed 7 -l sim/replay/fwd.log` then `grep CHECKS sim/replay/fwd.log` | `CHECKS=5088  PASS=5088  FAIL=0` (row 4.8, the forwarding unit's new bench) |
-| R4.3 | `irun -64bit -nclibdirname sim/replay/INCA_alu -f tb/core/filelist_alu.f -top tb_top -svseed 13 -l sim/replay/alu_s13.log` then `grep CHECKS sim/replay/alu_s13.log` | `CHECKS=2317  PASS=2317  FAIL=0`; any seed passes (row 4.9, `flow/3_unit/seeds_2026-11-10.txt`) |
+| R4.3 | `irun -64bit -nclibdirname sim/replay/INCA_alu -f tb/core/filelist_alu_unit.f -top tb_top -svseed 13 -l sim/replay/alu_s13.log` then `grep CHECKS sim/replay/alu_s13.log` | `CHECKS=2317  PASS=2317  FAIL=0`; any seed passes (row 4.9, `flow/3_unit/seeds_2026-11-10.txt`) |
 | R4.4 | `irun -64bit -nclibdirname sim/replay/INCA_boot -f tb/soc/filelist_boot.f -top tb_boot +HEX=sw/build/t_hazard.hex +MAXCYC=200000 +QUIET +IWAIT=2 +IRAND=1 +DWAIT=3 +DRAND=1 +SEED=5 -l sim/replay/hazard.log` then `grep TOHOST sim/replay/hazard.log` | `TOHOST=1 -> PASSED (293 instructions retired` (row 4.13, 35 hazard cases under random wait states; build the image first with `make sw`) |
 | R4.5 | `make csr_map` | last line `csr_map: RTL vs contract 0 mismatch(es); RTL vs Spike 0 unexplained difference(s) -> PASS` (row 4.15) |
 | R4.6 | `python3.12 tools/mutate.py flow/mutation/spim_mutants.py` | six lines, each with an assertion named or `bench: FAIL`: every planted defect is caught (`flow/mutation/README.md`) |

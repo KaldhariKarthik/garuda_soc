@@ -19,7 +19,7 @@ module tb_uart;
     wire  irq, dma_req, tx, rx;
 
     garuda_uart_top #(.BLOCK_NUM(8'd16)) dut (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(bfm.psel), .penable_i(bfm.penable), .pwrite_i(bfm.pwrite),
         .paddr_i(bfm.paddr), .pwdata_i(bfm.pwdata), .prdata_o(bfm.prdata),
         .pready_o(bfm.pready), .pslverr_o(bfm.pslverr),
@@ -43,14 +43,14 @@ module tb_uart;
     wire irq1, dma_req1, tx1, rx1, irq2, dma_req2, tx2, rx2;
 
     garuda_uart_top #(.BLOCK_NUM(8'd17)) dut1 (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(bfm1.psel), .penable_i(bfm1.penable), .pwrite_i(bfm1.pwrite),
         .paddr_i(bfm1.paddr), .pwdata_i(bfm1.pwdata), .prdata_o(bfm1.prdata),
         .pready_o(bfm1.pready), .pslverr_o(bfm1.pslverr),
         .irq_o(irq1), .dma_req_o(dma_req1), .dma_ack_i(1'b0),
         .uart_tx_o(tx1), .uart_rx_i(rx1));
     garuda_uart_top #(.BLOCK_NUM(8'd18)) dut2 (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(bfm2.psel), .penable_i(bfm2.penable), .pwrite_i(bfm2.pwrite),
         .paddr_i(bfm2.paddr), .pwdata_i(bfm2.pwdata), .prdata_o(bfm2.prdata),
         .pready_o(bfm2.pready), .pslverr_o(bfm2.pslverr),

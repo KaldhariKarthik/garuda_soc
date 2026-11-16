@@ -122,7 +122,7 @@ module ahb_fv_env #(
 endmodule
 
 bind ahb_interconnect ahb_fv_env u_fv_env (
-    .clk(hclk_i), .hreset_n_i(hreset_n_i),
+    .clk(hclk), .hreset_n_i(hreset_n),
     .m_addr ({m_haddr_i,  s_haddr_i,  d_haddr_i,  i_haddr_i}),
     .m_trans({m_htrans_i, s_htrans_i, d_htrans_i, i_htrans_i}),
     .m_wr   ({m_hwrite_i, s_hwrite_i, d_hwrite_i, i_hwrite_i}),

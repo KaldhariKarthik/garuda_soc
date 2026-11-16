@@ -155,17 +155,17 @@ module dsu_top_sva (
 endmodule
 
 bind mac_unit mac_unit_sva u_mac_sva (
-    .clk(clk), .rst_n(rst_n), .en(en), .sat_writeback_en(sat_writeback_en), .flush(flush),
+    .clk(gclk), .rst_n(core_rst_n), .en(en), .sat_writeback_en(sat_writeback_en), .flush(flush),
     .pending(pending), .acc_we(acc_we), .overflow(overflow),
     .prod_en(prod_en), .my_sat(my_sat), .my_load(my_load), .my_clear(my_clear), .acc(acc)
 );
 bind dsu_top dsu_top_sva u_dsu_props_a (
-    .clk(clk), .rst_n(rst_n), .flush(flush), .dsu_en(dsu_en), .instr(instr),
+    .clk(gclk), .rst_n(core_rst_n), .flush(flush), .dsu_en(dsu_en), .instr(instr),
     .csr_clear_overflow(csr_clear_overflow), .dsu_busy(dsu_busy), .dsu_rd_valid(dsu_rd_valid),
     .dsu_overflow(dsu_overflow), .illegal_instr(illegal_instr), .control(control),
     .sat_op(sat_op), .shift_op(shift_op), .rd_lo_op(rd_lo_op), .rd_hi_op(rd_hi_op), .acc_sel(acc_sel),
     .mac_overflow(mac_overflow), .sat_overflow(sat_overflow),
-    .dbg_acc_0(dbg_acc_0), .dbg_acc_1(dbg_acc_1), .dbg_acc_2(dbg_acc_2),
+    .dbg_acc_0(dbg_acc_fx), .dbg_acc_1(dbg_acc_fy), .dbg_acc_2(dbg_acc_mag),
     .acc0(u_cluster.u_mac0.acc), .acc1(u_cluster.u_mac1.acc), .acc2(u_cluster.u_mac2.acc)
 );
 `endif

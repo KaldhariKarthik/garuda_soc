@@ -29,8 +29,8 @@ module garuda_spim_top #(
     parameter integer BUFFER_DEPTH = 10,
     parameter [7:0]   BLOCK_NUM    = 8'd13
 )(
-    input  wire        pclk_i,
-    input  wire        preset_n_i,
+    input  wire        pclk,
+    input  wire        preset_n,
 
     // ---- APB slave, window 1 -------------------------------------------------
     input  wire        psel_i,
@@ -83,8 +83,8 @@ module garuda_spim_top #(
     wire poll = ~psel_i;                       // window idle: our cycle to use
 
     reg [31:0] status_q;
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i)  status_q <= 32'd0;
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n)  status_q <= 32'd0;
         else if (poll)    status_q <= ip_prdata;
 
     wire [4:0] rx_words = status_q[20:16];
@@ -96,7 +96,7 @@ module garuda_spim_top #(
         .N_EVT(3), .SYNC_W(1), .IP_LIMIT(12'h100), .IP_MAP(64'h0000_0000_0000_077F), .ADDR_SHIFT(0),
         .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
-        .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
@@ -140,7 +140,7 @@ module garuda_spim_top #(
     apb_spi_master #(
         .BUFFER_DEPTH(BUFFER_DEPTH), .APB_ADDR_WIDTH(12)
     ) u_spi (
-        .HCLK(pclk_i), .HRESETn(preset_n_i),
+        .pclk(pclk), .preset_n(preset_n),
         .PADDR(eff_paddr), .PWDATA(eff_pwdata), .PWRITE(eff_pwrite),
         .PSEL(eff_psel), .PENABLE(eff_penable),
         .PRDATA(ip_prdata), .PREADY(ip_pready), .PSLVERR(),

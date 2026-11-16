@@ -43,8 +43,8 @@ module apb_gpio #(
     parameter PAD_NUM        = 32,
     parameter NBIT_PADCFG    = 4
 ) (
-    input  logic                      HCLK,
-    input  logic                      HRESETn,
+    input  logic                      pclk,
+    input  logic                      preset_n,
 
     input  logic                      dft_cg_enable_i,
 
@@ -142,9 +142,9 @@ module apb_gpio #(
 
     assign interrupt = s_rise_int;
 
-    always_ff @(posedge HCLK, negedge HRESETn)
+    always_ff @(posedge pclk, negedge preset_n)
     begin
-        if(~HRESETn)
+        if(~preset_n)
         begin
             r_status  <=  'h0;
         end else begin
@@ -181,9 +181,9 @@ module apb_gpio #(
             s_clk_en[i] = s_cg_en[i*4] | s_cg_en[i*4+1] | s_cg_en[i*4+2] | s_cg_en[i*4+3];
     end
 
-    always_ff @(posedge HCLK or negedge HRESETn)
+    always_ff @(posedge pclk or negedge preset_n)
     begin
-        if(~HRESETn)
+        if(~preset_n)
         begin
             for(int j=0;j<PAD_NUM;j++)
             begin
@@ -206,8 +206,8 @@ module apb_gpio #(
         end
     end
 
-    always_ff @(posedge HCLK or negedge HRESETn) begin
-        if(~HRESETn) begin
+    always_ff @(posedge pclk or negedge preset_n) begin
+        if(~preset_n) begin
             for(int i=0;i<PAD_NUM;i++)
             begin
                 r_gpio_padcfg[i]  <= '0;

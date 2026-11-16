@@ -141,7 +141,7 @@ if [ $# -eq 0 ]; then
     fi
 
     # the six constrained-random block TBs (top module is tb_top)
-    for u in decode_control imm_gen reg_file branch_predict hazard_forward_unit id_stage; do
+    for u in decode_control imm_gen reg_file branch_predict hazard_fwd_unit id_stage; do
         irun -64bit -f "tb/core/filelist_$u.f" -top tb_top \
              -coverage all -cov_cgsample -covoverwrite \
              -covworkdir "$COVDIR/cov_work" -covtest "unit_$u" \

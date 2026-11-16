@@ -435,10 +435,10 @@ module tb_top;
     branch_unit dut (
         .pc                (vif.pc),
         .imm               (vif.imm),
-        .funct3            (vif.funct3),
+        .funct3_fld            (vif.funct3),
         .rs1_fwd           (vif.rs1_fwd),
         .rs2_fwd           (vif.rs2_fwd),
-        .branch            (vif.branch),
+        .is_branch            (vif.branch),
         .jal               (vif.jal),
         .jalr              (vif.jalr),
         .predicted_taken   (vif.predicted_taken),

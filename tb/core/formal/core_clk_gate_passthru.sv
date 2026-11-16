@@ -7,10 +7,10 @@
 // hidden; a counterexample after a sleep must be replayed in simulation.
 `timescale 1ns/1ps
 module core_clk_gate (
-    input  wire clk_i,
+    input  wire hclk,
     input  wire en_i,
     input  wire test_en_i,
     output wire gclk_o
 );
-    assign gclk_o = clk_i;
+    assign gclk_o = hclk;
 endmodule

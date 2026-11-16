@@ -25,7 +25,7 @@ module tb_gpio_uvm;
     assign gif.pad[1] = (gif.gpio_oe[1] && !gif.ext_force[1]) ? gif.gpio_o[1] : gif.ext_val[1];
 
     garuda_gpio_top dut (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(apb.psel), .penable_i(apb.penable), .pwrite_i(apb.pwrite), .paddr_i(apb.paddr),
         .pwdata_i(apb.pwdata), .prdata_o(apb.prdata), .pready_o(apb.pready), .pslverr_o(apb.pslverr),
         .irq_o(gif.irq), .gpio_i(gif.pad), .gpio_o(gif.gpio_o), .gpio_oe(gif.gpio_oe));

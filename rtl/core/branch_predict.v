@@ -46,7 +46,7 @@ module branch_predict (
     assign predict_taken_o = branch_i & imm_b_i[31] & ~bp_dis_i;   // CORE-4: BP_DIS
 
     // ERRATUM C-3: FENCE.I redirects to the NEXT instruction. The redirect is
-    // what does the work - garuda_prefetch_buffer drops its entire contents on
+    // what does the work - prefetch_buf drops its entire contents on
     // any redirect, so everything fetched after the FENCE.I is discarded and
     // refetched. Architecturally a no-op; structurally a prefetch flush.
     // Ranked first because a FENCE.I is neither a branch nor a JAL, so the

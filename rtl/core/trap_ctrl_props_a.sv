@@ -142,8 +142,8 @@ module trap_ctrl_props_a (
 endmodule
 
 bind trap_ctrl trap_ctrl_props_a u_trap_sva (
-    .clk            (clk_i),
-    .rst_n          (rst_n_i),
+    .clk            (gclk),
+    .rst_n          (core_rst_n),
     .mem_exc_valid  (mem_exc_valid_i),
     .h2             (mem_stall_i),
     .idex_is_system (idex_is_system_i),

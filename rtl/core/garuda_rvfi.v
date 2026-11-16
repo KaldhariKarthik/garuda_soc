@@ -22,9 +22,9 @@
 // into the core.
 // =============================================================================
 module garuda_rvfi (
-    input  wire        clk_i,          // the core's (gated) clock: the record pipeline
-    input  wire        clk_free_i,     // ungated clock: the emission stage
-    input  wire        rst_n_i,
+    input  wire        gclk,          // the core's (gated) clock: the record pipeline
+    input  wire        hclk,     // ungated clock: the emission stage
+    input  wire        core_rst_n,
     // ---- EX stage (ID/EX outputs and EX results) --------------------------------
     input  wire        xe_valid_i,
     input  wire [31:0] xe_pc_i,
@@ -106,8 +106,8 @@ module garuda_rvfi (
     reg        w_trap_v;
     reg        intr_next;                                 // next captured instruction opens a handler
 
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             e_trap_v <= 1'b0; w_trap_v <= 1'b0; intr_next <= 1'b0; e_intr <= 1'b0; w_intr <= 1'b0;
             e_insn <= 32'd0; e_pc <= 32'd0; e_npc <= 32'd0; e_rs1v <= 32'd0; e_rs2v <= 32'd0;
             e_addr <= 32'd0; e_wdata <= 32'd0; e_rs1 <= 5'd0; e_rs2 <= 5'd0; e_rmask <= 4'd0; e_wmask <= 4'd0;
@@ -168,8 +168,8 @@ module garuda_rvfi (
     // consumer on the free clock would see the record again. mw_retire is 0
     // while the core sleeps, so this stage falls to 0. (Same edges as the core
     // clock whenever that runs; the formal model passes the clock through.)
-    always @(posedge clk_free_i or negedge rst_n_i) begin
-        if (!rst_n_i) begin
+    always @(posedge hclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             rvfi_valid <= 1'b0; rvfi_order <= 64'd0; rvfi_trap <= 1'b0; rvfi_intr <= 1'b0;
             rvfi_insn <= 32'd0; rvfi_rs1_addr <= 5'd0; rvfi_rs2_addr <= 5'd0;
             rvfi_rs1_rdata <= 32'd0; rvfi_rs2_rdata <= 32'd0; rvfi_rd_addr <= 5'd0; rvfi_rd_wdata <= 32'd0;

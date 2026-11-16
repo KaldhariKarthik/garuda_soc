@@ -45,7 +45,7 @@ file     = "rtl/ahb2apb/ahb2apb_bridge.v"
 match    = "^(hsize_i\\[2\\]:0\\->1|hsize_i\\[2\\]:1\\->0)$"
 category = "constant"
 reason   = "The AHB is 32 bits wide: HSIZE <= word, so HSIZE[2] is 0 on the shared bus."
-evidence = "literal rtl/core/garuda_iport_ahb_master.v:89, rtl/core/load_store_unit.v:32, rtl/debug/sba_master.v:42, rtl/dma/dma_engine.v {1'b0, size}"
+evidence = "literal rtl/core/iport_master.v:89, rtl/core/load_store_unit.v:32, rtl/debug/sba_master.v:42, rtl/dma/dma_engine.v {1'b0, size}"
 reviewer = "pending: Sreyesh"
 
 [[waiver]]

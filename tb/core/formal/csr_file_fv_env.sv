@@ -14,4 +14,4 @@ module csr_file_fv_env (
     always @(*) if (!started) assume (!rst_n_i);
 endmodule
 
-bind csr_file csr_file_fv_env u_fv_env (.clk_i(clk_i), .rst_n_i(rst_n_i));
+bind csr_file csr_file_fv_env u_fv_env (.clk_i(gclk), .rst_n_i(core_rst_n));

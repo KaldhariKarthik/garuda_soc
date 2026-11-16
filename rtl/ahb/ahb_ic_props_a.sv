@@ -48,8 +48,8 @@
 
 `ifdef GARUDA_AHB_SVA
 module ahb_ic_props_a (
-    input wire        hclk_i,
-    input wire        hreset_n_i,
+    input wire        hclk,
+    input wire        hreset_n,
     // ---- M0 I-port ----
     input wire [31:0] i_haddr_i,  input wire [1:0] i_htrans_i, input wire i_hwrite_i,
     input wire [2:0]  i_hsize_i,  input wire [2:0] i_hburst_i, input wire [3:0] i_hprot_i,
@@ -161,8 +161,8 @@ module ahb_ic_props_a (
         assign exp_wr[g]   = pend_v[g] ? pend_wr[g]   : dwr_q;
     end endgenerate
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             live_q <= 1'b0; past_ok <= 1'b0;
             dv_q <= 1'b0; dwr_q <= 1'b0; dfirst_q <= 1'b0; do_q <= 2'd0; dslv_q <= 3'd0;
             out <= 4'd0; pend_v <= 4'd0; pend_wr <= 4'd0; pend_resp <= 4'd0; pend_data <= '0;
@@ -195,22 +195,22 @@ module ahb_ic_props_a (
     // =========================================================================
     // AHB.TA.sb_conservation (pin level): at most one master believes its
     // address phase was taken, and it is taken exactly when the slave side takes one.
-    a_one_accept: assert property (@(posedge hclk_i) disable iff (!hreset_n_i) $onehot0(acc));
-    a_no_phantom: assert property (@(posedge hclk_i) disable iff (!hreset_n_i) slv_acc == (|acc));
+    a_one_accept: assert property (@(posedge hclk) disable iff (!hreset_n) $onehot0(acc));
+    a_no_phantom: assert property (@(posedge hclk) disable iff (!hreset_n) slv_acc == (|acc));
     // what reaches the slaves is the accepting master's transfer (HTRANS may only
     // be rewritten SEQ -> NONSEQ, AHB-3)
-    a_ctrl_of_acceptor: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_ctrl_of_acceptor: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(|acc) || (haddr_o == m_addr[acc_m] && hwrite_o == m_wr[acc_m] && hsize_o == m_size[acc_m] &&
                     (htrans_o == m_trans[acc_m] || (m_trans[acc_m] == T_SEQ && htrans_o == T_NONSEQ))));
     // F07 a_ungranted_held (white-box grant): a presenting master that is not granted is held
     generate for (g = 0; g < 4; g++) begin : g_held
-        a_ungranted_held: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        a_ungranted_held: assert property (@(posedge hclk) disable iff (!hreset_n)
             !(m_req[g] && grant != g) || !m_rdy[g]);
         // AHB-4: a master with nothing presented and nothing owed sees HREADY high
-        a_idle_not_gated: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        a_idle_not_gated: assert property (@(posedge hclk) disable iff (!hreset_n)
             !(!m_req[g] && !out[g]) || m_rdy[g]);
-        c_held:     cover property (@(posedge hclk_i) disable iff (!hreset_n_i) m_req[g] && grant != g);
-        c_idle:     cover property (@(posedge hclk_i) disable iff (!hreset_n_i) !m_req[g] && !out[g]);
+        c_held:     cover property (@(posedge hclk) disable iff (!hreset_n) m_req[g] && grant != g);
+        c_idle:     cover property (@(posedge hclk) disable iff (!hreset_n) !m_req[g] && !out[g]);
     end endgenerate
 
     // =========================================================================
@@ -218,24 +218,24 @@ module ahb_ic_props_a (
     // =========================================================================
     // a_priority (white-box grant): where no address phase is being held (HREADY
     // was high last cycle) the grant is the highest requester.
-    a_priority: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_priority: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(past_ok && $past(hready_o) && (|m_req)) || grant == winner(m_req));
     // a_grant_stable_in_data_phase (white-box grant): while an address phase waits
     // (HREADY low) the grant does not move, whatever the requests do ([N-7.2]).
-    a_grant_stable_in_data_phase: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_grant_stable_in_data_phase: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(past_ok && !$past(hready_o)) || grant == $past(grant));
     // slave-side AHB-Lite: a waited address phase is held unchanged ([N-7.20]);
     // the one exception AHB-Lite allows: after the first cycle of an ERROR the
     // waiting transfer may be cancelled to IDLE (and to nothing else)
     wire err_first = dv_q && sl_resp && !hready_o;     // first cycle of an ERROR on the shared bus
-    a_slave_addr_stable: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_slave_addr_stable: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(past_ok && $past(!hready_o && htrans_o[1])) ||
         ($past(err_first) && htrans_o == T_IDLE) ||
         (haddr_o == $past(haddr_o) && htrans_o == $past(htrans_o) && hwrite_o == $past(hwrite_o) &&
          hsize_o == $past(hsize_o) && hburst_o == $past(hburst_o)));
-    c_cancel_after_error: cover property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    c_cancel_after_error: cover property (@(posedge hclk) disable iff (!hreset_n)
         past_ok && $past(!hready_o && htrans_o[1] && err_first) && htrans_o == T_IDLE);
-    c_wait_preempt: cover property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    c_wait_preempt: cover property (@(posedge hclk) disable iff (!hreset_n)
         dv_q && !hready_o && m_req[3] && do_q != 2'd3);
 
     // =========================================================================
@@ -245,15 +245,15 @@ module ahb_ic_props_a (
     // value that is X in simulation (the boot ROM prologue saves s0..s3, which no
     // instruction has written yet; the register file has no reset), and `==`
     // turns X into a failure under a 4-state simulator (TB-A8).
-    a_hwdata_data_phase: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_hwdata_data_phase: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(dv_q && dwr_q) || hwdata_o === m_wdata[do_q]);
-    c_write_handoff: cover property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    c_write_handoff: cover property (@(posedge hclk) disable iff (!hreset_n)
         dv_q && dwr_q && slv_acc && acc_m != do_q);
 
     // =========================================================================
     // R-8: the interconnect inserts no wait of its own
     // =========================================================================
-    a_no_inserted_wait: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_no_inserted_wait: assert property (@(posedge hclk) disable iff (!hreset_n)
         hready_o == (dv_q ? sl_rdy : 1'b1));
 
     // =========================================================================
@@ -262,93 +262,93 @@ module ahb_ic_props_a (
     generate for (g = 0; g < 4; g++) begin : g_resp
         // a_resp_from_addressed_slave + AHB-2: a master completes a data phase only
         // when the slave has answered ITS transfer (now, or held from earlier)...
-        a_complete_has_response: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        a_complete_has_response: assert property (@(posedge hclk) disable iff (!hreset_n)
             !mdone[g] || exp_ok[g]);
         // ... with that slave's response ...
-        a_resp_value: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        a_resp_value: assert property (@(posedge hclk) disable iff (!hreset_n)
             !(mdone[g] && exp_ok[g]) || m_err[g] == exp_resp[g]);
         // ... and, for a read that completed OKAY, that slave's data. `===` as in
         // a_hwdata_data_phase: a read of memory nobody has written returns X in
         // simulation, and the property is about routing (TB-A8).
-        a_rdata_value: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        a_rdata_value: assert property (@(posedge hclk) disable iff (!hreset_n)
             !(mdone[g] && exp_ok[g] && !exp_wr[g] && !exp_resp[g]) || m_rdata[g] === exp_data[g]);
         // a_resp_hold (AHB-2): one held response at most; a second one would be lost
-        a_resp_hold_one_deep: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        a_resp_hold_one_deep: assert property (@(posedge hclk) disable iff (!hreset_n)
             !(slave_done && do_q == g && pend_v[g]));
         // a_error_not_broadcast: a master with nothing outstanding never sees ERROR
-        a_error_not_broadcast: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        a_error_not_broadcast: assert property (@(posedge hclk) disable iff (!hreset_n)
             out[g] || !m_err[g]);
         // a_error_two_cycle at the master: an ERROR completion was preceded by the
         // ERROR first cycle (HREADY low) -- the replayed-response argument of AHB-2
-        a_error_two_cycle_master: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        a_error_two_cycle_master: assert property (@(posedge hclk) disable iff (!hreset_n)
             !(past_ok && mdone[g] && m_err[g]) || $past(out[g] && !m_rdy[g] && m_err[g]));
         // AHB-7 detectors (open defect; always on, declared per suite):
         // a_held_resp_okay: a response the master cannot take now (it was preempted
         // while presenting) is never an ERROR -- ahb_master_port.v's own claim
-        a_held_resp_okay: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        a_held_resp_okay: assert property (@(posedge hclk) disable iff (!hreset_n)
             !(slave_done && do_q == g && !mdone[g] && sl_resp));
         // a_master_err_shape: what the master sees is a legal AHB-Lite ERROR: the
         // first cycle (HREADY low, ERROR) lasts exactly one cycle and is followed
         // by the second (HREADY high, ERROR)
-        a_master_err_shape: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        a_master_err_shape: assert property (@(posedge hclk) disable iff (!hreset_n)
             !(past_ok && $past(out[g] && !m_rdy[g] && m_err[g])) || (m_rdy[g] && m_err[g]));
         // a_hold_not_owner (white-box): "why one entry is enough" (ahb_master_port.v):
         // a master with a held response never owns the data phase in flight, so the
         // held response and a live one can never compete for the same master
-        a_hold_not_owner: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        a_hold_not_owner: assert property (@(posedge hclk) disable iff (!hreset_n)
             !(hold_valid[g] && dph_valid && dph_master == g));
-        c_complete:     cover property (@(posedge hclk_i) disable iff (!hreset_n_i) mdone[g]);
-        c_held_resp:    cover property (@(posedge hclk_i) disable iff (!hreset_n_i) mdone[g] && pend_v[g]);
-        c_error:        cover property (@(posedge hclk_i) disable iff (!hreset_n_i) mdone[g] && m_err[g]);
-        c_capture:      cover property (@(posedge hclk_i) disable iff (!hreset_n_i) hold_valid[g]);
+        c_complete:     cover property (@(posedge hclk) disable iff (!hreset_n) mdone[g]);
+        c_held_resp:    cover property (@(posedge hclk) disable iff (!hreset_n) mdone[g] && pend_v[g]);
+        c_error:        cover property (@(posedge hclk) disable iff (!hreset_n) mdone[g] && m_err[g]);
+        c_capture:      cover property (@(posedge hclk) disable iff (!hreset_n) hold_valid[g]);
     end endgenerate
 
     // default slave: the two-cycle ERROR in the specified order ([N-7.6], R-6)
-    a_error_first_cycle: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_error_first_cycle: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(dv_q && dslv_q == S_DEF && dfirst_q) || (!hready_o && sl_resp));
-    a_error_two_cycle: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_error_two_cycle: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(past_ok && $past(dv_q && dslv_q == S_DEF && dfirst_q)) || (hready_o && sl_resp));
     // every slave (not only the default one): the ERROR first cycle on the shared bus
     // lasts exactly one cycle and is followed by the completing ERROR cycle; a slave
     // in wait states answers OKAY (AHB-Lite slave rule; found TB-47)
-    a_slave_err_shape: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_slave_err_shape: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(past_ok && $past(err_first)) || (hready_o && sl_resp));
     // the default slave's state register only takes IDLE / ERR1 / ERR2 (2'd3 unused):
     // evidence for the coverage waiver of its `default:` arm (tb/ahb/cov/ahb_waivers.toml)
-    a_def_state_legal: assert property (@(posedge hclk_i) disable iff (!hreset_n_i) def_state != 2'd3);
-    c_undecoded: cover property (@(posedge hclk_i) disable iff (!hreset_n_i) dv_q && dslv_q == S_DEF && dfirst_q);
-    c_error_then_accept: cover property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_def_state_legal: assert property (@(posedge hclk) disable iff (!hreset_n) def_state != 2'd3);
+    c_undecoded: cover property (@(posedge hclk) disable iff (!hreset_n) dv_q && dslv_q == S_DEF && dfirst_q);
+    c_error_then_accept: cover property (@(posedge hclk) disable iff (!hreset_n)
         past_ok && $past(dv_q && dslv_q == S_DEF && dfirst_q) && slv_acc);
 
     // =========================================================================
     // R-3 / [N-7.11]: decode (white-box hsel)
     // =========================================================================
-    a_hsel_onehot: assert property (@(posedge hclk_i) disable iff (!hreset_n_i) $onehot(hsel));
-    a_decode: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_hsel_onehot: assert property (@(posedge hclk) disable iff (!hreset_n) $onehot(hsel));
+    a_decode: assert property (@(posedge hclk) disable iff (!hreset_n)
         hsel == (5'd1 << region(haddr_o)) &&
         {hsel_bridge_o, hsel_dsram_o, hsel_rom_o, hsel_isram_o} == hsel[3:0]);
 
     // =========================================================================
     // R-9 / AHB-3: a SEQ on the slave side continues the last accepted transfer's master
     // =========================================================================
-    a_burst_restart_nonseq: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_burst_restart_nonseq: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(slv_acc && htrans_o == T_SEQ) || (la_v && la_m == acc_m));
-    c_seq_rewrite: cover property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    c_seq_rewrite: cover property (@(posedge hclk) disable iff (!hreset_n)
         |acc && m_trans[acc_m] == T_SEQ && htrans_o == T_NONSEQ);
-    c_seq_kept: cover property (@(posedge hclk_i) disable iff (!hreset_n_i) slv_acc && htrans_o == T_SEQ);
+    c_seq_kept: cover property (@(posedge hclk) disable iff (!hreset_n) slv_acc && htrans_o == T_SEQ);
 
     // =========================================================================
     // R-7 / AHB-6: the SBA indication marks an address phase accepted from M2
     // =========================================================================
-    a_sba_ind: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_sba_ind: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(|acc) || hmaster_is_sba_o == acc[2]);
-    c_sba_isram_write: cover property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    c_sba_isram_write: cover property (@(posedge hclk) disable iff (!hreset_n)
         acc[2] && hsel_isram_o && hwrite_o);
 
     // =========================================================================
     // [N-5.2] HPROT: passed through for the core ports, the constant for SBA / DMA
     // =========================================================================
-    a_hprot_const: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_hprot_const: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(|acc) || hprot_o == (acc[0] ? i_hprot_i : acc[1] ? d_hprot_i : HPROT_CONST));
 
     // =========================================================================
@@ -356,19 +356,19 @@ module ahb_ic_props_a (
     // ERROR anywhere, and every master that is not presenting is free to start
     // (a master presenting in this very cycle may be held: it is not granted yet)
     // =========================================================================
-    a_reset_state: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
+    a_reset_state: assert property (@(posedge hclk) disable iff (!hreset_n)
         live_q || (hready_o && m_err == 4'h0 && (m_rdy | m_req) == 4'hF));
 
     // request sets at a beat boundary (cg_arb.cp_request_set lives in tb/ahb/env;
     // these covers make the 15 sets visible in formal too)
     generate for (g = 1; g < 16; g++) begin : g_set
-        c_request_set: cover property (@(posedge hclk_i) disable iff (!hreset_n_i)
+        c_request_set: cover property (@(posedge hclk) disable iff (!hreset_n)
             past_ok && $past(hready_o) && m_req == g);
     end endgenerate
 endmodule
 
 bind ahb_interconnect ahb_ic_props_a u_ahb_props_a (
-    .hclk_i(hclk_i), .hreset_n_i(hreset_n_i),
+    .hclk(hclk), .hreset_n(hreset_n),
     .i_haddr_i(i_haddr_i), .i_htrans_i(i_htrans_i), .i_hwrite_i(i_hwrite_i), .i_hsize_i(i_hsize_i),
     .i_hburst_i(i_hburst_i), .i_hprot_i(i_hprot_i), .i_hwdata_i(i_hwdata_i),
     .i_hrdata_o(i_hrdata_o), .i_hready_o(i_hready_o), .i_hresp_o(i_hresp_o),

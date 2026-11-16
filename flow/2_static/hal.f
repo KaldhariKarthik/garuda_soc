@@ -61,7 +61,7 @@
 //   CBPAHI    691  combinational path crossing several modules (the pad logic and the shim); matters only for synthesis by block. Revisit: task 3.6
 //   SYNPRT    516  an output port assigned from combinational logic; matters for hierarchical timing budgets. Revisit: task 3.6
 //   LRGOPR    210  arithmetic or comparison on wide operands; a timing question. Revisit: task 3.6, trial synthesis
-//   IGNDLY     60  a lumped delay is ignored by synthesis; all 60 are in vendored i2c_master_byte_ctrl.sv, not modified (D-22)
+//   IGNDLY     60  a lumped delay is ignored by synthesis; all 60 are in vendored i2c_byte_ctrl.sv, not modified (D-22)
 //   TRNMBT     58  a state changes more than one bit on a transition (binary encoding); a power note. Revisit: task 3.6 power
 //   REVROP     56  a register read or written outside its process; pclk_q is the accepted case (SIM-1), the rest vendored
 //   SYNASN     48  a module with both synchronous and asynchronous logic: expected with asynchronous-reset flops

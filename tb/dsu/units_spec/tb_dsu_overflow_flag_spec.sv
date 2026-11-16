@@ -13,7 +13,7 @@ module tb_dsu_overflow_flag_spec;
     logic [2:0] mac_ovf = 0;
     logic sat_ovf = 0, clr = 0;
     wire  flag;
-    overflow_flag dut (.clk(clk), .rst_n(rst_n), .mac_overflow(mac_ovf), .sat_overflow(sat_ovf),
+    overflow_flag dut (.gclk(clk), .core_rst_n(rst_n), .mac_overflow(mac_ovf), .sat_overflow(sat_ovf),
                        .csr_clear_overflow(clr), .dsu_overflow(flag));
     always #5 clk = ~clk;
     int checks = 0, fails = 0;

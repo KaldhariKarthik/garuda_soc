@@ -17,8 +17,8 @@
 // =============================================================================
 
 module regfile (
-    input  wire         clk_i,
-    input  wire         rst_n_i,
+    input  wire         gclk,
+    input  wire         core_rst_n,
 
     input  wire [4:0]  rs1_idx_i,
     input  wire [4:0]  rs2_idx_i,
@@ -34,7 +34,7 @@ module regfile (
     reg [31:0] mem [1:31];   // x0 not stored - reads as 0 by construction
     wire [31:0] rs1_raw, rs2_raw;
 
-    always @(posedge clk_i) begin
+    always @(posedge gclk) begin
         if (wb_reg_write_i && (wb_rd_i != 5'd0)) begin
             mem[wb_rd_i] <= wb_data_i;
         end

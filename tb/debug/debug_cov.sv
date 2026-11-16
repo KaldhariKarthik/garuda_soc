@@ -78,7 +78,7 @@ module debug_cov (
 endmodule
 
 bind debug_top debug_cov u_debug_cov (
-    .tck_i(tck_i), .por_n_i(por_n_i), .hclk_i(hclk_i), .dm_rst_n_i(dm_rst_n_i),
+    .tck_i(tck), .por_n_i(ext_rst_n), .hclk_i(hclk), .dm_rst_n_i(dm_rst_n),
     .req_pulse(req_pulse), .req_addr(req_addr), .req_op(req_op), .req_data(req_data),
     .dmactive(u_dm.dmactive), .sbbusy(u_dm.sbbusy), .sbautoinc(u_dm.sbautoinc),
     .sbreadonaddr(u_dm.sbreadonaddr), .sbreadondata(u_dm.sbreadondata), .sbbusyerror(u_dm.sbbusyerror),

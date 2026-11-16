@@ -2,7 +2,7 @@
 `default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 12 : Debug Transport Module (tck domain)
-// dtm.v
+// debug_dtm.v
 //
 // Spec: GARUDA-DEBUG-SPEC-001 Rev 2.0 §6.1-§6.3; RISC-V Debug 0.13 §6.1
 //
@@ -18,9 +18,9 @@
 // Capture-DR the register returns {last addr, last read data, status}.
 // =============================================================================
 
-module dtm (
-    input  wire        tck_i,
-    input  wire        por_n_i,
+module debug_dtm (
+    input  wire        tck,
+    input  wire        ext_rst_n,
     input  wire        tdi_i,
     input  wire [4:0]  ir_i,
     input  wire        tlr_i,
@@ -53,8 +53,8 @@ module dtm (
     wire [31:0] dtmcs = {14'd0, 1'b0 /*hardreset*/, 1'b0 /*dmireset*/, 1'b0,
                          3'd5 /*idle*/, dmistat, 6'd7 /*abits*/, 4'd1 /*version*/};
 
-    always @(posedge tck_i or negedge por_n_i) begin
-        if (!por_n_i) begin
+    always @(posedge tck or negedge ext_rst_n) begin
+        if (!ext_rst_n) begin
             sh <= 41'd0; bypass <= 1'b0;
             req_tgl_o <= 1'b0; req_addr_o <= 7'd0; req_data_o <= 32'd0; req_op_o <= 2'd0;
             ack_seen <= 1'b0; dmistat <= 2'd0; rsp_q <= 32'd0;

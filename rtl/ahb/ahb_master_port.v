@@ -35,7 +35,7 @@
 // the grant off a master that was still requesting. That is correct, and it
 // starves the DMA, which is the one master that must not be starved:
 //
-//     garuda_iport_ahb_master sustains one fetch per cycle whenever the
+//     iport_master sustains one fetch per cycle whenever the
 //     prefetch buffer is popped every cycle - i.e. straight-line code at
 //     1 IPC. projected_occ settles at 3 and room_for_new_fetch stays true
 //     indefinitely, so the I-Port presents HTRANS!=IDLE on every cycle,
@@ -79,8 +79,8 @@
 // The capture is therefore always an OKAY response, and replaying HRESP is
 // belt-and-braces: it costs one flop and means the argument above does not
 // have to stay true for the design to stay correct. If it were ever violated,
-// the master receives a single-cycle ERROR - which garuda_iport_ahb_master and
-// d_port_ahb_master both handle (they qualify HRESP with their own
+// the master receives a single-cycle ERROR - which iport_master and
+// dport_master both handle (they qualify HRESP with their own
 // outstanding-data-phase flag), and which dma_ahb_master does not - but the
 // DMA is the highest-priority master and can never be the one preempted.
 // =============================================================================
@@ -88,8 +88,8 @@
 `include "ahb_defs.vh"
 
 module ahb_master_port (
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
 
     // ---- this master's address phase ----
     input  wire [1:0]  htrans_i,
@@ -126,7 +126,7 @@ module ahb_master_port (
     // Nothing presented and nothing owed -> HREADY=1 unconditionally.
     //
     // This is the deadlock fix. Sec. 7.3 says an ungranted master sees HREADY
-    // low; applied to an idle master it means garuda_iport_ahb_master, whose
+    // low; applied to an idle master it means iport_master, whose
     // fetch_issue_o is gated on i_hready_i, can never present the HTRANS the
     // arbiter needs in order to grant it - and the reset-vector fetch never
     // happens. A master with nothing in flight has nothing that HREADY=1 could
@@ -148,8 +148,8 @@ module ahb_master_port (
 
     assign hready_o = pending ? (hready_shared_i && entitled) : 1'b1;
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             hold_valid <= 1'b0;
             hold_data  <= 32'h0000_0000;
             hold_resp  <= `AHB_RESP_OKAY;

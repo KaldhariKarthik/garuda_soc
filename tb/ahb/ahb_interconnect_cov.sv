@@ -88,7 +88,7 @@ module ahb_interconnect_cov (
 endmodule
 
 bind ahb_interconnect ahb_interconnect_cov u_ahb_cov (
-    .hclk_i(hclk_i), .hreset_n_i(hreset_n_i),
+    .hclk_i(hclk), .hreset_n_i(hreset_n),
     .i_htrans_i(i_htrans_i), .d_htrans_i(d_htrans_i), .s_htrans_i(s_htrans_i), .m_htrans_i(m_htrans_i),
     .haddr_o(haddr_o), .htrans_o(htrans_o), .hsize_o(hsize_o), .hburst_o(hburst_o),
     .hwrite_o(hwrite_o), .hready_o(hready_o),

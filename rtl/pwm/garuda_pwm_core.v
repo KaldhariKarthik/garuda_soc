@@ -43,20 +43,20 @@
 // =============================================================================
 
 module garuda_pwm_core #(
-    parameter integer NCH = 4
+    parameter integer NUM_CHAN = 4
 )(
-    input  wire              clk_i,
-    input  wire              rst_n_i,
+    input  wire              pclk,
+    input  wire              preset_n,
 
     input  wire              en_i,          // global run
-    input  wire [NCH-1:0]    ch_en_i,       // per-channel output enable
+    input  wire [NUM_CHAN-1:0]    ch_en_i,       // per-channel output enable
     input  wire [15:0]       prescale_i,    // tick = clk / (prescale + 1)
     input  wire [15:0]       period_i,      // ticks per frame
-    input  wire [NCH*16-1:0] duty_i,        // ticks high, per channel
+    input  wire [NUM_CHAN*16-1:0] duty_i,        // ticks high, per channel
 
-    output wire [NCH-1:0]    pwm_o,
+    output wire [NUM_CHAN-1:0]    pwm_o,
     output wire              wrap_o,        // period boundary: shadows loaded
-    output wire [NCH-1:0]    clamp_o,       // this channel's duty exceeded period
+    output wire [NUM_CHAN-1:0]    clamp_o,       // this channel's duty exceeded period
     output wire [15:0]       count_o
 );
 
@@ -73,8 +73,8 @@ module garuda_pwm_core #(
     reg [15:0] pre_q;
     wire       tick = en_i & (pre_q >= prescale_i);
 
-    always @(posedge clk_i or negedge rst_n_i)
-        if (!rst_n_i)      pre_q <= 16'd0;
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n)      pre_q <= 16'd0;
         else if (!en_i)    pre_q <= 16'd0;
         else if (tick)     pre_q <= 16'd0;
         else               pre_q <= pre_q + 16'd1;
@@ -85,8 +85,8 @@ module garuda_pwm_core #(
     wire       at_end = ({1'b0, cnt_q} + 17'd1) >= {1'b0, period_i};
     wire       wrap   = tick & at_end;
 
-    always @(posedge clk_i or negedge rst_n_i)
-        if (!rst_n_i)   cnt_q <= 16'd0;
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n)   cnt_q <= 16'd0;
         else if (!en_i) cnt_q <= 16'd0;
         else if (tick)  cnt_q <= at_end ? 16'd0 : (cnt_q + 16'd1);
 
@@ -99,16 +99,16 @@ module garuda_pwm_core #(
     // (100% duty) and reported. Clamping rather than ignoring keeps the output
     // defined for every register value that can be written.
     genvar c;
-    reg  [15:0] duty_s [0:NCH-1];
-    reg  [NCH-1:0] clamp_q;
-    reg  [NCH-1:0] pwm_q;
+    reg  [15:0] duty_s [0:NUM_CHAN-1];
+    reg  [NUM_CHAN-1:0] clamp_q;
+    reg  [NUM_CHAN-1:0] pwm_q;
 
-    generate for (c = 0; c < NCH; c = c + 1) begin : g_ch
+    generate for (c = 0; c < NUM_CHAN; c = c + 1) begin : g_ch
         wire [15:0] duty_in = duty_i[16*c +: 16];
         wire        over    = (duty_in > period_i);
 
-        always @(posedge clk_i or negedge rst_n_i)
-            if (!rst_n_i) begin
+        always @(posedge pclk or negedge preset_n)
+            if (!preset_n) begin
                 duty_s[c]  <= 16'd0;
                 clamp_q[c] <= 1'b0;
             end else if (wrap || !en_i) begin
@@ -119,8 +119,8 @@ module garuda_pwm_core #(
         // Low beats everything: no enable, no output, at the next edge and
         // not at the end of the frame. Registered, so the pin cannot glitch
         // (PWM-2); reset clears it asynchronously.
-        always @(posedge clk_i or negedge rst_n_i)
-            if (!rst_n_i) pwm_q[c] <= 1'b0;
+        always @(posedge pclk or negedge preset_n)
+            if (!preset_n) pwm_q[c] <= 1'b0;
             else          pwm_q[c] <= en_i & ch_en_i[c] & (cnt_q < duty_s[c]);
     end endgenerate
 

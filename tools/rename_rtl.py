@@ -9,6 +9,9 @@ Table rows (tab-separated; '#' starts a comment):
                                flow/ (Verilog and SystemVerilog files)
     local   MODULE  OLD  NEW   an identifier inside MODULE only (a net, register, parameter, label
                                or instance name), in the module's text, its comments included
+    param   MODULE  OLD  NEW   a parameter of MODULE: in the module, and in every #(.OLD(..)) override
+    global  OLD     NEW        a name unique to the chip (instance, macro): whole words in every text
+                               file of the TEXT_DIRS, so hierarchical paths in scripts follow
     module  OLD     NEW        a module: its definition and every instantiation, bind and
                                file-list line; the file itself is renamed by a `file` row
     file    OLD     NEW        git mv OLD NEW, and every reference to the path in rtl/ tb/ flow/
@@ -90,7 +93,7 @@ def module_spans(t, m):
 def word_sub(seg, old, new, keep_dot=False):
     """Whole-word rename; with keep_dot, `.old` (a child's port in a named connection, or a
     hierarchical reference) is left alone: it belongs to another module."""
-    lb = r"(?<![\w$`.])" if keep_dot else r"(?<![\w$`])"
+    lb = r"(?<![\w$`.'])" if keep_dot else r"(?<![\w$`'])"   # ' : never the base of a literal (16'b0)
     return re.sub(lb + r"%s(?![\w])" % re.escape(old), new, seg)
 
 
@@ -126,6 +129,40 @@ def apply_rows(rows, dry):
     changed = set()
     for row in rows:
         kind = row[0]
+        if kind == "param":
+            # a parameter: in the module, and in every #(.OLD(...)) override of an instance
+            mod, old, new = row[1:4]
+            for f in hdl:
+                t = get(f)
+                if mod not in t:
+                    continue
+                m = mask(t)
+                for s, e in reversed(module_spans(t, m).get(mod, [])):
+                    seg = word_sub(t[s:e], old, new, keep_dot=True)
+                    if seg != t[s:e]:
+                        t = t[:s] + seg + t[e:]
+                        changed.add(f)
+                        m = mask(t)
+                for mm in reversed(list(re.finditer(r"(?<![\w.])%s\s*#\s*\(" % re.escape(mod), m))):
+                    k = mm.end() - 1
+                    e = match_paren(m, k)
+                    seg = re.sub(r"\.%s(\s*\()" % re.escape(old), r".%s\1" % new, t[k:e])
+                    if seg != t[k:e]:
+                        t = t[:k] + seg + t[e:]
+                        changed.add(f)
+                texts[f] = t
+            continue
+        if kind == "global":
+            # a name unique to the chip (an instance, a macro): whole words in every text file,
+            # hierarchical paths in formal scripts and documents included
+            old, new = row[1:3]
+            for f in tracked(TEXT_DIRS) + TEXT_FILES:
+                t = get(f)
+                t2 = word_sub(t, old, new)
+                if t2 != t:
+                    texts[f] = t2
+                    changed.add(f)
+            continue
         if kind in ("port", "local"):
             mod, old, new = row[1:4]
             hit = False
@@ -182,6 +219,9 @@ def apply_rows(rows, dry):
         elif kind == "file":
             old, new = row[1:3]
             if not dry:
+                if old in texts:                 # edits made to the file by earlier rows go with it
+                    with open(os.path.join(ROOT, old), "w", errors="surrogateescape") as fh:
+                        fh.write(texts.pop(old))
                 subprocess.check_call(["git", "mv", old, new], cwd=ROOT)
             for f in tracked(TEXT_DIRS) + TEXT_FILES:
                 f2 = new if f == old else f

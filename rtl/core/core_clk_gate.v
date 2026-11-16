@@ -19,7 +19,7 @@
 // =============================================================================
 
 module core_clk_gate (
-    input  wire clk_i,
+    input  wire hclk,
     input  wire en_i,
     input  wire test_en_i,
     output wire gclk_o
@@ -39,12 +39,12 @@ module core_clk_gate (
 `ifndef OPENROAD_CLKGATE
     GARUDA_ICG_CELL_requires_OPENROAD_CLKGATE_define u_missing_define ();
 `endif
-    OPENROAD_CLKGATE u_icg (.CK(clk_i), .E(en_i | test_en_i), .GCK(gclk_o));
+    OPENROAD_CLKGATE u_icg (.CK(hclk), .E(en_i | test_en_i), .GCK(gclk_o));
 `else
     reg en_l;
-    always @(clk_i or en_i or test_en_i)
-        if (!clk_i) en_l = en_i | test_en_i;
-    assign gclk_o = clk_i & en_l;
+    always @(hclk or en_i or test_en_i)
+        if (!hclk) en_l = en_i | test_en_i;
+    assign gclk_o = hclk & en_l;
 `endif
 
 endmodule

@@ -118,7 +118,7 @@ module garuda_core_cov_ext (
 endmodule
 
 bind garuda_core_top garuda_core_cov_ext u_cov_ext (
-    .clk_i(clk_i), .rst_n_i(core_rst_n_i),
+    .clk_i(hclk), .rst_n_i(core_rst_n),
     .csr_en(ex_csr_en_out), .csr_commit(ex_commit), .csr_illegal(csr_illegal),
     .csr_addr(ex_csr_addr_w), .csr_op(ex_csr_op_out), .csr_wdata(ex_csr_wdata),
     .tr_enter(tr_enter), .tr_is_int(tr_is_int), .tr_mret(tr_mret), .tr_cause(tr_cause),

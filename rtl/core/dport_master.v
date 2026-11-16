@@ -24,9 +24,9 @@
 // Reset/idle (Sec. 16.3): out of reset, HTRANS=IDLE.
 // =============================================================================
 
-module d_port_ahb_master (
-    input  wire         clk_i,
-    input  wire         rst_n_i,
+module dport_master (
+    input  wire         gclk,
+    input  wire         core_rst_n,
 
     // Qualified request from Load/Store Unit + top-level misalign gating
     input  wire          start_i,       // (mem_read | mem_write) & ~misaligned
@@ -113,8 +113,8 @@ module d_port_ahb_master (
     // -----------------------------------------------------------------------
     // State register
     // -----------------------------------------------------------------------
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             state      <= S_ADDR;
             d_hwdata_o <= 32'b0;
         end else begin

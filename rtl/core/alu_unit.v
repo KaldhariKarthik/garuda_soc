@@ -2,7 +2,7 @@
 `default_nettype none
 //=============================================================================
 // GARUDA SoC -- Block I: Processor Core
-// alu.v -- 32-bit combinational ALU
+// alu_unit.v -- 32-bit combinational ALU
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Section 8.1.
 // Ten operations: ADD SUB AND OR XOR SLL SRL SRA SLT SLTU.
@@ -15,7 +15,7 @@
 
 `include "core_ex_defs.vh"
 
-module alu (
+module alu_unit (
     input  wire [31:0] op_a,
     input  wire [31:0] op_b,
     input  wire [3:0]  alu_op,

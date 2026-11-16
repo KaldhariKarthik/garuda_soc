@@ -29,16 +29,16 @@ name = "E_garuda_pc_gen"
 flist = "tb/core/filelist_garuda_pc_gen.f"
 [[test]]
 name = "E_garuda_prefetch_buffer"
-flist = "tb/core/filelist_garuda_prefetch_buffer.f"
+flist = "tb/core/filelist_prefetch_buf.f"
 [[test]]
 name = "E_garuda_iport_ahb_master"
-flist = "tb/core/filelist_garuda_iport_ahb_master.f"
+flist = "tb/core/filelist_iport_master.f"
 [[test]]
 name = "E_garuda_if_stage_top"
-flist = "tb/core/filelist_garuda_if_stage_top.f"
+flist = "tb/core/filelist_if_stage_top.f"
 [[test]]
 name = "E_alu"
-flist = "tb/core/filelist_alu.f"
+flist = "tb/core/filelist_alu_unit.f"
 [[test]]
 name = "E_forward_unit"
 flist = "tb/core/filelist_forward_unit.f"
@@ -59,7 +59,7 @@ name = "E_load_formatter"
 flist = "tb/core/filelist_load_formatter.f"
 [[test]]
 name = "E_d_port_ahb_master"
-flist = "tb/core/filelist_d_port_ahb_master.f"
+flist = "tb/core/filelist_dport_master.f"
 [[test]]
 name = "E_mem_stage"
 flist = "tb/core/filelist_mem_stage.f"

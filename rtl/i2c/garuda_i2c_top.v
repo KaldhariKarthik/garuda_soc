@@ -34,8 +34,8 @@
 module garuda_i2c_top #(
     parameter [7:0] BLOCK_NUM = 8'd15
 )(
-    input  wire        pclk_i,
-    input  wire        preset_n_i,
+    input  wire        pclk,
+    input  wire        preset_n,
 
     // ---- APB slave, window 2 -------------------------------------------------
     input  wire        psel_i,
@@ -128,7 +128,7 @@ module garuda_i2c_top #(
     // is disabled or aborting. That also makes CTRL.EN = 0 a clean state rather
     // than a free-running one.
     //
-    // The core's asynchronous reset comes straight from ONE flop, core_rst_n_q -
+    // The core's asynchronous reset comes straight from ONE flop, i2c_rst_q -
     // the CRG-2 rule. It used to be `preset_n_i & en_q & ~(|abort_q)`: flops
     // behind it, but an AND and a 3-input OR in the reset path, and abort_q is a
     // down-counter whose 4->3 and 2->1 steps move bits in opposite directions,
@@ -140,13 +140,13 @@ module garuda_i2c_top #(
     wire [2:0] abort_d   = abort_req  ? 3'd4            :
                            (|abort_q) ? abort_q - 3'd1  : 3'd0;
     wire       en_d      = (wr_hit & (ip_paddr == A_CTRL)) ? pwdata_i[0] : en_q;
-    reg        core_rst_n_q;
-    wire       core_rst_n = core_rst_n_q;
-    assign     core_held  = ~core_rst_n_q;
+    reg        i2c_rst_q;
+    wire       i2c_rst_n = i2c_rst_q;
+    assign     core_held  = ~i2c_rst_q;
 
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i) core_rst_n_q <= 1'b0;
-        else             core_rst_n_q <= en_d & ~(|abort_d);
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n) i2c_rst_q <= 1'b0;
+        else             i2c_rst_q <= en_d & ~(|abort_d);
 
     // =========================================================================
     // Bus timeout ([N-7.5]). Counts pclk while a command is outstanding; a
@@ -155,8 +155,8 @@ module garuda_i2c_top #(
     reg  [15:0] tocnt_q;
     assign to_pulse = tip_q & (timeout_q != 16'd0) & (tocnt_q == 16'd1);
 
-    always @(posedge pclk_i or negedge preset_n_i) begin
-        if (!preset_n_i) begin
+    always @(posedge pclk or negedge preset_n) begin
+        if (!preset_n) begin
             tocnt_q <= 16'd0;
             abort_q <= 3'd0;
         end else begin
@@ -170,8 +170,8 @@ module garuda_i2c_top #(
     // =========================================================================
     // Register file
     // =========================================================================
-    always @(posedge pclk_i or negedge preset_n_i) begin
-        if (!preset_n_i) begin
+    always @(posedge pclk or negedge preset_n) begin
+        if (!preset_n) begin
             prescale_q <= 16'd0;  timeout_q <= 16'd0;  en_q <= 1'b0;
             txdata_q   <= 8'd0;   rxdata_q  <= 8'd0;   rxvalid_q <= 1'b0;
             al_q <= 1'b0;  to_q <= 1'b0;  rxnack_q <= 1'b0;  tip_q <= 1'b0;
@@ -244,8 +244,8 @@ module garuda_i2c_top #(
     // change in that same cycle - so what the event needs is a snapshot taken
     // WITH the pulse, not the live signals one cycle later.
     reg core_ack_q, was_wr_q, nacked_q;
-    always @(posedge pclk_i or negedge preset_n_i)
-        if (!preset_n_i) begin
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n) begin
             core_ack_q <= 1'b0; was_wr_q <= 1'b0; nacked_q <= 1'b0;
         end else begin
             core_ack_q <= core_ack;
@@ -282,7 +282,7 @@ module garuda_i2c_top #(
         .N_EVT(4), .SYNC_W(2), .SYNC_RESET(8'h03), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
         .ADDR_SHIFT(0), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
-        .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(shim_slverr),
@@ -302,8 +302,8 @@ module garuda_i2c_top #(
     // =========================================================================
     wire core_scl_o, core_sda_o;
 
-    i2c_master_byte_ctrl u_byte (
-        .clk(pclk_i), .nReset(core_rst_n), .ena(1'b1),
+    i2c_byte_ctrl u_byte (
+        .pclk(pclk), .i2c_rst_n(i2c_rst_n), .ena(1'b1),
         .clk_cnt(prescale_q),
         .start(c_sta), .stop(c_sto), .read(c_rd), .write(c_wr),
         .ack_in(c_nack), .din(txdata_q),

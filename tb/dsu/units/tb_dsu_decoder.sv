@@ -471,7 +471,7 @@ module tb_top;
         .shift_op(vif.shift_op), .shift_amt(vif.shift_amt), .shift_dir(vif.shift_dir),
         .shift_acc_sel(vif.shift_acc_sel), .rd_lo_op(vif.rd_lo_op), .rd_hi_op(vif.rd_hi_op),
         .result_src(vif.result_src), .writes_regfile(vif.writes_regfile), .rd_addr(vif.rd_addr),
-        .illegal_instr(vif.illegal_instr), .funct5(vif.funct5), .funct3(vif.funct3),
+        .illegal_instr(vif.illegal_instr), .funct5_fld(vif.funct5), .funct3_fld(vif.funct3),
         .is_custom0(vif.is_custom0)
     );
 

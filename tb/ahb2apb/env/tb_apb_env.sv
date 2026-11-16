@@ -42,8 +42,8 @@ module tb_apb_env;
     initial #0 ext_rst_n = 1'b0;
     always #1 refclk = ~refclk;
     wire aon, hclk, pclk, pclk_phase, div_busy; wire [1:0] div_act;
-    clk_div u_clk (.refclk_i(refclk), .raw_rst_n_i(ext_rst_n), .div_sel_i(2'b00), .aon_clk_o(aon),
-                   .hclk_o(hclk), .pclk_o(pclk), .pclk_phase_o(pclk_phase), .div_act_o(div_act), .div_busy_o(div_busy));
+    clk_div u_clk (.refclk(refclk), .ext_rst_n(ext_rst_n), .div_sel_i(2'b00), .aon_clk(aon),
+                   .hclk(hclk), .pclk(pclk), .pclk_phase_o(pclk_phase), .div_act_o(div_act), .div_busy_o(div_busy));
     reg hreset_n, preset_n;
     initial #0 begin hreset_n <= 1'b0; preset_n <= 1'b0; end
 
@@ -71,7 +71,7 @@ module tb_apb_env;
     wire [11:0] psel, paddr, pready, pslverr; wire penable, pwrite; wire [31:0] pwdata;
     wire [12*32-1:0] prdata;
     ahb2apb_bridge #(.WINDOW_MASK(MASK), .APB_DIV(DIV)) u_dut (
-        .hclk_i(hclk), .hreset_n_i(hreset_n), .pclk_i(pclk), .preset_n_i(preset_n), .pclk_phase_i(pclk_phase),
+        .hclk(hclk), .hreset_n(hreset_n), .pclk(pclk), .preset_n(preset_n), .pclk_phase_i(pclk_phase),
         .hsel_i(hsel), .haddr_i(haddr), .htrans_i(htrans), .hwrite_i(hwrite), .hsize_i(hsize),
         .hwdata_i(hwdata), .hready_i(hready), .hrdata_o(hrdata_b), .hreadyout_o(hreadyout), .hresp_o(hresp_b),
         .psel_o(psel), .penable_o(penable), .pwrite_o(pwrite), .paddr_o(paddr), .pwdata_o(pwdata),
@@ -84,7 +84,7 @@ module tb_apb_env;
         localparam [1:0] D = DIV[2*g +: 2];
 `ifdef APB_ENV_REAL_DMA
         if (g == 5) begin : g_dma
-            dma_top u_dma (.hclk_i(hclk), .hreset_n_i(hreset_n), .pclk_i(pclk), .preset_n_i(preset_n),
+            dma_top u_dma (.hclk(hclk), .hreset_n(hreset_n), .pclk(pclk), .preset_n(preset_n),
                 .psel_i(psel[g]), .penable_i(penable), .pwrite_i(pwrite), .paddr_i(paddr), .pwdata_i(pwdata),
                 .prdata_o(prdata[32*g +: 32]), .pready_o(pready[g]), .pslverr_o(pslverr[g]),
                 .haddr_o(), .htrans_o(), .hwrite_o(), .hsize_o(), .hburst_o(), .hwdata_o(),

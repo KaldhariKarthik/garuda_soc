@@ -116,8 +116,8 @@ module csr_file_props_a (
 endmodule
 
 bind csr_file csr_file_props_a u_csr_sva (
-    .clk      (clk_i),
-    .rst_n    (rst_n_i),
+    .clk      (gclk),
+    .rst_n    (core_rst_n),
     .csr_en   (csr_en_i),
     .csr_op   (csr_op_i),
     .csr_addr (csr_addr_i),

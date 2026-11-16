@@ -16,8 +16,8 @@
 // =============================================================================
 
 module mtime (
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
+    input  wire        hclk,
+    input  wire        hreset_n,
 
     input  wire        wr_lo_i,        // MTIME_LO write strobe (one hclk)
     input  wire        wr_hi_i,
@@ -35,8 +35,8 @@ module mtime (
     reg [63:0] mtime_q, cmp_q;
     reg [31:0] shadow_q;
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             mtime_q  <= 64'd0;
             cmp_q    <= {64{1'b1}};
             shadow_q <= 32'd0;

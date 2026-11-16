@@ -43,9 +43,9 @@ IMC_PATH = "/home/install/INCISIVE152/tools/bin:/home/install/INCISIVE152/bin"
 # ----------------------------------------------------------------------------
 BLOCKS = [
     dict(key="CORE", name="RV32IM core", plan="tb/core/GARUDA_CORE_vplan.csv", track="A",
-         modules="alu branch_predict branch_unit clic_ctrl core_clk_gate csr_file csr_rw decode_control "
-                 "d_port_ahb_master ex_mem ex_stage forward_unit garuda_core_top garuda_if_stage_top "
-                 "garuda_iport_ahb_master garuda_pc_gen garuda_prefetch_buffer hazard_forward_unit id_ex "
+         modules="alu_unit branch_predict branch_unit clic_ctrl core_clk_gate csr_file csr_rw decode_control "
+                 "dport_master ex_mem ex_stage forward_unit garuda_core_top if_stage_top "
+                 "iport_master garuda_pc_gen prefetch_buf hazard_fwd_unit id_ex "
                  "id_stage if_id imm_gen load_formatter load_store_unit mem_stage mem_wb_reg mul32 pipe_ctrl "
                  "regfile trap_ctrl wb_stage",
          sva="pipe_ctrl_sva alu_if branch_if csr_rw_if decode_if dport_if hazard_if id_stage_if if_top_if "
@@ -56,7 +56,7 @@ BLOCKS = [
                  "mult_16x16 operand_router overflow_flag readback_mux result_selector saturation_unit",
          cg_types="dsu_cov"),
     dict(key="AHB", name="AHB interconnect", plan="tb/ahb/GARUDA_AHB_vplan.csv", track="A",
-         modules="ahb_arbiter ahb_decoder ahb_default_slave ahb_interconnect ahb_master_mux ahb_master_port "
+         modules="ahb_arbiter ahb_decoder ahb_dflt_slave ahb_interconnect ahb_master_mux ahb_master_port "
                  "ahb_slave_mux", sva="ahb_interconnect_sva", cg_types="ahb_interconnect_cov"),
     dict(key="AHB2APB", name="AHB to APB bridge", plan="tb/ahb2apb/GARUDA_AHB2APB_vplan.csv", track="A",
          modules="ahb2apb_apb_fsm ahb2apb_bridge ahb2apb_fabric", sva="ahb2apb_bridge_sva",
@@ -68,13 +68,13 @@ BLOCKS = [
          modules="dma_apb_slave dma_arbiter dma_chan dma_engine dma_top", sva="dma_top_sva dma_chan_sva",
          cg_types="dma_cov"),
     dict(key="DEBUG", name="Debug", plan="tb/debug/GARUDA_DEBUG_vplan.csv", track="A",
-         modules="debug_module debug_top dmi_cdc dtm jtag_tap sba_master", sva="debug_sva",
+         modules="debug_module debug_top dmi_cdc debug_dtm jtag_tap sba_master", sva="debug_sva",
          cg_types="debug_cov"),
     dict(key="CLIC", name="CLIC", plan="tb/clic/GARUDA_CLIC_vplan.csv", track="B",
          modules="clic_apb clic_select clic_top", sva="clic_sva",
          uvm=("uvm_clic", ["clic_top"], "flow/cov/clic_exclusions.tcl")),
     dict(key="TIMERS", name="Timers and watchdog", plan="tb/timers/GARUDA_TIMERS_vplan.csv", track="B",
-         modules="mtime timers_apb timers_top wdt", sva="timers_sva",
+         modules="mtime timers_apb timers_top watchdog", sva="timers_sva",
          uvm=("uvm_timers", ["timers_top"], "flow/cov/timers_exclusions.tcl")),
     dict(key="CLKRST", name="Clock divider and reset", plan="tb/clk_div/GARUDA_CLKRST_vplan.csv", track="B",
          modules="clk_div reset_ctrl reset_ctrl_apb", sva="clk_div_sva reset_ctrl_sva",
@@ -89,10 +89,10 @@ BLOCKS = [
          modules="garuda_uart_top apb_uart_sv uart_rx uart_tx uart_interrupt io_generic_fifo", sva="garuda_uart_sva",
          uvm=("uvm_uart", ["tb_uart_uvm.g_uart*.dut"], "flow/cov/uart_exclusions.tcl")),   # three instances: selected by path
     dict(key="I2C", name="I2C", plan="tb/i2c/GARUDA_I2C_vplan.csv", track="B",
-         modules="garuda_i2c_top i2c_master_byte_ctrl i2c_master_bit_ctrl", sva="garuda_i2c_sva",
+         modules="garuda_i2c_top i2c_byte_ctrl i2c_bit_ctrl", sva="garuda_i2c_sva",
          uvm=("uvm_i2c", ["garuda_i2c_top"], "flow/cov/i2c_exclusions.tcl")),
     dict(key="SPIM", name="SPI master", plan="tb/spi_master/GARUDA_SPIM_vplan.csv", track="B",
-         modules="garuda_spim_top apb_spi_master spi_master_apb_if spi_master_clkgen spi_master_controller "
+         modules="garuda_spim_top apb_spi_master spim_apb_if spim_clkgen spim_ctrl "
                  "spi_master_fifo spi_master_rx spi_master_tx", sva="garuda_spim_sva", cg_types="spim_cov"),
     dict(key="SPIS", name="SPI slave", plan="tb/spi_slave/GARUDA_SPIS_vplan.csv", track="B",
          modules="garuda_spis_core garuda_spis_top", sva="garuda_spis_sva",

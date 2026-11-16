@@ -9,7 +9,7 @@
 # nets, combinational loops and inferred latches. It says nothing about timing
 # (no library, no SDC) - that is the PD flow's job.
 #
-# SRAM/ROM arrays are black-boxed (GARUDA_SRAM_BLACKBOX): they become macros.
+# SRAM/ROM arrays are black-boxed (SRAM_BLACKBOX): they become macros.
 # Output: sim/genus_<top>/genus.log, check_design.rpt, latches.rpt
 # The only latch that may appear is the ICG latch inside core_clk_gate
 # (behavioural model of the library ICG cell - see that file's header).
@@ -36,7 +36,7 @@ set_db information_level 1
 set_db hdl_error_on_latch false
 set_db init_hdl_search_path {$INCS rtl/include}
 read_libs $LIB
-read_hdl -define SYNTHESIS -define GARUDA_SRAM_BLACKBOX $DEFS -sv {$SRCS}
+read_hdl -define SYNTHESIS -define SRAM_BLACKBOX $DEFS -sv {$SRCS}
 elaborate $TOP
 check_design -all > $OUT/check_design.rpt
 syn_generic

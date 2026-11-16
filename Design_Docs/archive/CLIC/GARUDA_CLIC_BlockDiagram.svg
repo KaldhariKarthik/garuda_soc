@@ -30,7 +30,7 @@
   <text x="120" y="320" text-anchor="middle" class="tt">dma_err[5:0]</text>
   <text x="120" y="342" text-anchor="middle" class="tt">spi/i2c/uart</text>
   <text x="120" y="360" text-anchor="middle" class="tt">pwm/gpio irq</text>
-  <text x="120" y="382" text-anchor="middle" class="tt">systmr/wdt</text>
+  <text x="120" y="382" text-anchor="middle" class="tt">systmr/watchdog</text>
   <text x="120" y="400" text-anchor="middle" class="tt">gpt/pwmtmr</text>
   <text x="120" y="428" text-anchor="middle" class="sm">level or edge,</text>
   <text x="120" y="446" text-anchor="middle" class="sm">per source (attr)</text>

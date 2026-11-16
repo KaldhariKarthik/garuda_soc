@@ -702,11 +702,11 @@ module tb_top;
     dsu_stall_if vif(clk);
 
     dsu_stall dut (
-        .clk        (clk),
-        .rst_n      (vif.rst_n),
+        .gclk        (clk),
+        .core_rst_n      (vif.rst_n),
         .flush      (vif.flush),
-        .funct5     (vif.funct5),
-        .funct3     (vif.funct3),
+        .funct5_fld     (vif.funct5),
+        .funct3_fld     (vif.funct3),
         .is_custom0 (vif.is_custom0),
         .acc_sel    (vif.acc_sel),
         .dsu_busy   (vif.dsu_busy)

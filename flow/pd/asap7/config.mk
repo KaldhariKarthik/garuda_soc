@@ -46,7 +46,7 @@ export VERILOG_INCLUDE_DIRS = $(shell cd $(GARUDA_ROOT) && python3 scripts/expan
 #     the map would be a wire; P1's guard then fails elaboration.
 # P3: GARUDA_SRAM_MACRO makes sram_wrapper instantiate the named macros
 #     garuda_sram_16384x32 / garuda_sram_4096x32 / garuda_rom_1024x32, declared
-#     as black boxes in garuda_sram_stubs.v. GARUDA_SRAM_BLACKBOX is NOT
+#     as black boxes in garuda_sram_stubs.v. SRAM_BLACKBOX is NOT
 #     defined: that branch is a constant-0 register and would trim the core.
 #     SYNTH_MEMORY_MAX_BITS stays at 4096 and SYNTH_MOCK_LARGE_MEMORIES at 0,
 #     so ORFS aborts if any memory were inferred as flops.

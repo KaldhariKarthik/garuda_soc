@@ -244,7 +244,7 @@ XPROP:	X-propagation disabled for block
 		INVXPC: Blocking task or system task call in block - Line : 33
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/core/alu.v 
+	File: rtl/core/alu_unit.v 
 	Line: 27
 
 XPROP:	FOX Mode Enabled for block
@@ -471,11 +471,11 @@ XPROP:	FOX Mode Enabled for block
 	Line: 53
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/core/d_port_ahb_master.v 
+	File: rtl/core/dport_master.v 
 	Line: 99
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/core/d_port_ahb_master.v 
+	File: rtl/core/dport_master.v 
 	Line: 116
 
 XPROP:	FOX Mode Enabled for block
@@ -507,7 +507,7 @@ XPROP:	FOX Mode Enabled for block
 	Line: 44
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/core/garuda_prefetch_buffer.v 
+	File: rtl/core/prefetch_buf.v 
 	Line: 67
 
 XPROP:	FOX Mode Enabled for block
@@ -515,7 +515,7 @@ XPROP:	FOX Mode Enabled for block
 	Line: 188
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/core/garuda_iport_ahb_master.v 
+	File: rtl/core/iport_master.v 
 	Line: 214
 
 XPROP:	FOX Mode Enabled for block
@@ -931,11 +931,11 @@ XPROP:	FOX Mode Enabled for block
 	Line: 151
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/ahb/ahb_default_slave.v 
+	File: rtl/ahb/ahb_dflt_slave.v 
 	Line: 74
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/ahb/ahb_default_slave.v 
+	File: rtl/ahb/ahb_dflt_slave.v 
 	Line: 82
 
 XPROP:	FOX Mode Enabled for block
@@ -947,11 +947,11 @@ XPROP:	FOX Mode Enabled for block
 	Line: 38
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/timers/wdt.v 
+	File: rtl/timers/watchdog.v 
 	Line: 55
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/timers/wdt.v 
+	File: rtl/timers/watchdog.v 
 	Line: 77
 
 XPROP:	FOX Mode Enabled for block
@@ -967,7 +967,7 @@ XPROP:	FOX Mode Enabled for block
 	Line: 82
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/debug/dtm.v 
+	File: rtl/debug/debug_dtm.v 
 	Line: 56
 
 XPROP:	FOX Mode Enabled for block
@@ -1234,67 +1234,67 @@ XPROP:	FOX Mode Enabled for block
 	Line: 125
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv 
 	Line: 189
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv 
 	Line: 194
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv 
 	Line: 204
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv 
 	Line: 245
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv 
 	Line: 231
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv 
 	Line: 252
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv 
 	Line: 266
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv 
 	Line: 288
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv 
 	Line: 302
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv 
 	Line: 312
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv 
 	Line: 318
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv 
 	Line: 326
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_bit_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv 
 	Line: 352
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_byte_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_byte_ctrl.sv 
 	Line: 167
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_byte_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_byte_ctrl.sv 
 	Line: 176
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/opencores/i2c/src/i2c_master_byte_ctrl.sv 
+	File: rtl/third_party/opencores/i2c/src/i2c_byte_ctrl.sv 
 	Line: 191
 
 XPROP:	FOX Mode Enabled for block
@@ -1410,11 +1410,11 @@ XPROP:	FOX Mode Enabled for block
 	Line: 112
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_clkgen.sv 
+	File: rtl/third_party/pulp/axi_spi_master/src/spim_clkgen.sv 
 	Line: 31
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_clkgen.sv 
+	File: rtl/third_party/pulp/axi_spi_master/src/spim_clkgen.sv 
 	Line: 56
 
 XPROP:	FOX Mode Enabled for block
@@ -1442,23 +1442,23 @@ XPROP:	FOX Mode Enabled for block
 	Line: 73
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/pulp/apb_spi_master/src/spi_master_apb_if.sv 
+	File: rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv 
 	Line: 84
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/pulp/apb_spi_master/src/spi_master_apb_if.sv 
+	File: rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv 
 	Line: 183
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_controller.sv 
+	File: rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv 
 	Line: 150
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_controller.sv 
+	File: rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv 
 	Line: 193
 
 XPROP:	FOX Mode Enabled for block
-	File: rtl/third_party/pulp/axi_spi_master/src/spi_master_controller.sv 
+	File: rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv 
 	Line: 518
 
 XPROP:	FOX Mode Enabled for block

@@ -54,31 +54,31 @@
 // 1. DUT: dsu_stall.v (pasted verbatim, self-contained file)
 // -------------------------------------------------------------
 module dsu_stall (
-    input wire clk,
-    input wire rst_n,
+    input wire gclk,
+    input wire core_rst_n,
     input wire flush,
 
-    input wire [4:0] funct5,
-    input wire [2:0] funct3,
+    input wire [4:0] funct5_fld,
+    input wire [2:0] funct3_fld,
     input wire       is_custom0,
     input wire [1:0] acc_sel,
 
     output wire dsu_busy
 );
 
-    wire cur_is_rtype = is_custom0 & (funct3 == 3'b000);
-    wire cur_is_itype = is_custom0 & (funct3 == 3'b001);
+    wire cur_is_rtype = is_custom0 & (funct3_fld == 3'b000);
+    wire cur_is_itype = is_custom0 & (funct3_fld == 3'b001);
 
-    wire cur_is_2cycle = cur_is_rtype & ((funct5 == `FUNCT5_MACRD_LO) | (funct5 == `FUNCT5_MACRD_HI) | (funct5 == `FUNCT5_MACSAT));
-    wire cur_reads_acc = (cur_is_rtype & ((funct5 == `FUNCT5_MACRD_LO) | (funct5 == `FUNCT5_MACRD_HI) | (funct5 == `FUNCT5_MACSAT))) | cur_is_itype;
+    wire cur_is_2cycle = cur_is_rtype & ((funct5_fld == `FUNCT5_MACRD_LO) | (funct5_fld == `FUNCT5_MACRD_HI) | (funct5_fld == `FUNCT5_MACSAT));
+    wire cur_reads_acc = (cur_is_rtype & ((funct5_fld == `FUNCT5_MACRD_LO) | (funct5_fld == `FUNCT5_MACRD_HI) | (funct5_fld == `FUNCT5_MACSAT))) | cur_is_itype;
 
     reg       prev_was_2cycle;
     reg [1:0] prev_acc_sel;
 
     wire stall_now;
 
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if(!core_rst_n) begin
             prev_was_2cycle <= 1'b0;
             prev_acc_sel <= 2'b00;
         end
@@ -683,11 +683,11 @@ module tb_top;
     dsu_stall_if vif(clk);
 
     dsu_stall dut (
-        .clk        (clk),
-        .rst_n      (vif.rst_n),
+        .gclk        (clk),
+        .core_rst_n      (vif.rst_n),
         .flush      (vif.flush),
-        .funct5     (vif.funct5),
-        .funct3     (vif.funct3),
+        .funct5_fld     (vif.funct5),
+        .funct3_fld     (vif.funct3),
         .is_custom0 (vif.is_custom0),
         .acc_sel    (vif.acc_sel),
         .dsu_busy   (vif.dsu_busy)

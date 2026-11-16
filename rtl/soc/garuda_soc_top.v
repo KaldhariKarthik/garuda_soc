@@ -47,15 +47,15 @@ module garuda_soc_top #(
     parameter        CORE_CLK_GATE   = 1
 )(
     // ---- clocks and resets -----------------------------------------------------
-    input  wire        hclk_i,
-    input  wire        pclk_i,
+    input  wire        hclk,
+    input  wire        pclk,
     input  wire        pclk_phase_i,
-    input  wire        hreset_n_i,
-    input  wire        preset_n_i,
-    input  wire        core_rst_n_i,
-    input  wire        dm_rst_n_i,
-    input  wire        ext_hrst_n_i,
-    input  wire        por_n_i,            // ext_rst_n pin, TAP power-on reset
+    input  wire        hreset_n,
+    input  wire        preset_n,
+    input  wire        core_rst_n,
+    input  wire        dm_rst_n,
+    input  wire        ext_hrst_n,
+    input  wire        ext_rst_n,            // ext_rst_n pin, TAP power-on reset
 
     // ---- reset requests (to reset_ctrl) -------------------------------------
     output wire        wdt_rst_req_o,
@@ -66,7 +66,7 @@ module garuda_soc_top #(
     input  wire        ilock_i,
 
     // ---- JTAG -------------------------------------------------------------------
-    input  wire        tck_i,
+    input  wire        tck,
     input  wire        tms_i,
     input  wire        tdi_i,
     output wire        tdo_o,
@@ -117,7 +117,7 @@ module garuda_soc_top #(
     wire        clic_valid;  wire [4:0] clic_id;  wire [7:0] clic_level;
     wire [5:0]  dma_complete, dma_error;
     wire        mtip, wdt_warn;
-    wire [47:0] acc0, acc1, acc2;  wire dsu_ovf;
+    wire [47:0] acc_fx, acc_fy, acc_mag;  wire dsu_ovf;
     wire        dm_hartreset;
     wire        dm_halt_req, core_halt_safe;     // RDC-1 halt drain (core <-> Debug Module)
 
@@ -125,7 +125,7 @@ module garuda_soc_top #(
     // Block 1 (+2): core with DSU
     // =========================================================================
     garuda_core_top #(.RESET_VECTOR(RESET_VECTOR), .CLK_GATE(CORE_CLK_GATE)) u_core (
-        .clk_i(hclk_i), .core_rst_n_i(core_rst_n_i),
+        .hclk(hclk), .core_rst_n(core_rst_n),
         .halt_req_i(dm_halt_req), .halt_safe_o(core_halt_safe),
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize), .i_hburst_o(i_hburst),
         .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite), .i_hwdata_o(i_hwdata),
@@ -135,19 +135,19 @@ module garuda_soc_top #(
         .d_hrdata_i(d_hrdata), .d_hready_i(d_hready), .d_hresp_i(d_hresp),
         .clic_irq_valid_i(clic_valid), .clic_irq_id_i(clic_id), .clic_irq_level_i(clic_level),
         .mtip_i(mtip),
-        .dbg_acc_0_o(acc0), .dbg_acc_1_o(acc1), .dbg_acc_2_o(acc2), .dsu_ovf_o(dsu_ovf),
+        .dbg_acc_0_o(acc_fx), .dbg_acc_1_o(acc_fy), .dbg_acc_2_o(acc_mag), .dsu_ovf_o(dsu_ovf),
         .core_sleep_o(core_sleep_o));
 
     // =========================================================================
     // Block 12: debug (JTAG + DM + SBA master M2)
     // =========================================================================
     debug_top u_debug (
-        .tck_i(tck_i), .tms_i(tms_i), .tdi_i(tdi_i), .tdo_o(tdo_o), .tdo_oe_o(tdo_oe_o),
-        .por_n_i(por_n_i),
-        .hclk_i(hclk_i), .dm_rst_n_i(dm_rst_n_i),
+        .tck(tck), .tms_i(tms_i), .tdi_i(tdi_i), .tdo_o(tdo_o), .tdo_oe_o(tdo_oe_o),
+        .ext_rst_n(ext_rst_n),
+        .hclk(hclk), .dm_rst_n(dm_rst_n),
         .ndmreset_o(ndmreset_o), .hartreset_o(dm_hartreset),
         .halt_req_o(dm_halt_req), .halt_safe_i(core_halt_safe),
-        .dsu_acc0_i(acc0), .dsu_acc1_i(acc1), .dsu_acc2_i(acc2), .dsu_ovf_i(dsu_ovf),
+        .dsu_acc0_i(acc_fx), .dsu_acc1_i(acc_fy), .dsu_acc2_i(acc_mag), .dsu_ovf_i(dsu_ovf),
         .haddr_o(s_haddr), .htrans_o(s_htrans), .hwrite_o(s_hwrite), .hsize_o(s_hsize),
         .hburst_o(s_hburst), .hwdata_o(s_hwdata), .hrdata_i(s_hrdata),
         .hready_i(s_hready), .hresp_i(s_hresp));
@@ -161,7 +161,7 @@ module garuda_soc_top #(
     wire        rdy_dma, rdy_clic, rdy_tmr, err_dma, err_clic, err_tmr;
 
     dma_top u_dma (
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+        .hclk(hclk), .hreset_n(hreset_n), .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel[`GARUDA_APB_WIN_DMA_CFG]), .penable_i(penable), .pwrite_i(pwrite),
         .paddr_i(paddr), .pwdata_i(pwdata), .prdata_o(prd_dma), .pready_o(rdy_dma),
         .pslverr_o(err_dma),
@@ -180,7 +180,7 @@ module garuda_soc_top #(
     // Block 6: AHB-Lite interconnect
     // =========================================================================
     ahb_interconnect u_ahb (
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i),
+        .hclk(hclk), .hreset_n(hreset_n),
         .i_haddr_i(i_haddr), .i_htrans_i(i_htrans), .i_hwrite_i(i_hwrite), .i_hsize_i(i_hsize),
         .i_hburst_i(i_hburst), .i_hprot_i(i_hprot), .i_hwdata_i(i_hwdata),
         .i_hrdata_o(i_hrdata), .i_hready_o(i_hready), .i_hresp_o(i_hresp),
@@ -207,20 +207,20 @@ module garuda_soc_top #(
     // Blocks 3/4/5: memories
     // =========================================================================
     isram_top u_isram (
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .hsel_i(hsel_isram), .haddr_i(haddr),
+        .hclk(hclk), .hreset_n(hreset_n), .hsel_i(hsel_isram), .haddr_i(haddr),
         .htrans_i(htrans), .hwrite_i(hwrite), .hsize_i(hsize), .hburst_i(hburst),
         .hprot_i(hprot), .hwdata_i(hwdata), .hready_i(hready),
         .hrdata_o(hrdata_isram), .hreadyout_o(hro_isram), .hresp_o(hresp_isram),
         .ilock_i(ilock_i), .hmaster_is_sba_i(hmaster_is_sba));
 
     bootrom_top #(.INIT_FILE(BROM_INIT_FILE)) u_brom (
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .hsel_i(hsel_rom), .haddr_i(haddr),
+        .hclk(hclk), .hreset_n(hreset_n), .hsel_i(hsel_rom), .haddr_i(haddr),
         .htrans_i(htrans), .hwrite_i(hwrite), .hsize_i(hsize), .hburst_i(hburst),
         .hprot_i(hprot), .hwdata_i(hwdata), .hready_i(hready),
         .hrdata_o(hrdata_rom), .hreadyout_o(hro_rom), .hresp_o(hresp_rom));
 
     dsram_top u_dsram (
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .hsel_i(hsel_dsram), .haddr_i(haddr),
+        .hclk(hclk), .hreset_n(hreset_n), .hsel_i(hsel_dsram), .haddr_i(haddr),
         .htrans_i(htrans), .hwrite_i(hwrite), .hsize_i(hsize), .hburst_i(hburst),
         .hprot_i(hprot), .hwdata_i(hwdata), .hready_i(hready),
         .hrdata_o(hrdata_dsram), .hreadyout_o(hro_dsram), .hresp_o(hresp_dsram));
@@ -249,7 +249,7 @@ module garuda_soc_top #(
 
     ahb2apb_bridge #(.WINDOW_MASK(APB_WINDOW_MASK), .APB_DIV(APB_DIV),
                      .TIMEOUT(`GARUDA_APB_TIMEOUT_PCLK)) u_bridge (
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+        .hclk(hclk), .hreset_n(hreset_n), .pclk(pclk), .preset_n(preset_n),
         .pclk_phase_i(pclk_phase_i),
         .hsel_i(hsel_bridge), .haddr_i(haddr), .htrans_i(htrans), .hwrite_i(hwrite),
         .hsize_i(hsize), .hwdata_i(hwdata), .hready_i(hready),
@@ -288,7 +288,7 @@ module garuda_soc_top #(
     // IDs 13 and 14 from when the SPI slave had been removed, so the SPI slave's
     // interrupt could be wired, pending, and impossible to enable (BUGS_HISTORY.md INT-3).
     clic_top #(.IE_MASK(`GARUDA_CLIC_ID_MASK)) u_clic (   // SWI_ID: default 23 = GARUDA_CLIC_ID_SOFTWARE
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+        .hclk(hclk), .hreset_n(hreset_n), .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel[`GARUDA_APB_WIN_CLIC_CFG]), .penable_i(penable), .pwrite_i(pwrite),
         .paddr_i(paddr), .pwdata_i(pwdata), .prdata_o(prd_clic), .pready_o(rdy_clic),
         .pslverr_o(err_clic),
@@ -299,8 +299,8 @@ module garuda_soc_top #(
     // Block 11: timers + watchdog (APB window 11)
     // =========================================================================
     timers_top u_timers (
-        .hclk_i(hclk_i), .hreset_n_i(hreset_n_i), .ext_rst_n_i(ext_hrst_n_i),
-        .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+        .hclk(hclk), .hreset_n(hreset_n), .ext_hrst_n(ext_hrst_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel[`GARUDA_APB_WIN_TIMERS_CFG]), .penable_i(penable), .pwrite_i(pwrite),
         .paddr_i(paddr), .pwdata_i(pwdata), .prdata_o(prd_tmr), .pready_o(rdy_tmr),
         .pslverr_o(err_tmr),

@@ -2,7 +2,7 @@
 `default_nettype none
 // ============================================================================
 // GARUDA SoC — Block I: Processor Core
-// Module      : garuda_iport_ahb_master
+// Module      : iport_master
 // Description : I-port AHB-Lite master. Drives the pipelined address/data
 //               phase protocol, issues NONSEQ/SEQ transfers, and safely
 //               discards in-flight data across a redirect.
@@ -29,11 +29,11 @@
 // completes, regardless of redirect_i's value at that later cycle (§6.5).
 // ============================================================================
 
-module garuda_iport_ahb_master #(
+module iport_master #(
     parameter FIFO_DEPTH = 4
 ) (
-    input  wire        clk_i,
-    input  wire        rst_n_i,
+    input  wire        gclk,
+    input  wire        core_rst_n,
 
     input  wire        redirect_i,
 
@@ -211,8 +211,8 @@ module garuda_iport_ahb_master #(
     assign data_pc_o     = outstanding_pc;
     assign data_fault_o  = i_hresp_i;
 
-    always @(posedge clk_i or negedge rst_n_i) begin
-        if (!rst_n_i) begin
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
             i_haddr_o        <= 32'b0;
             i_htrans_o       <= HTRANS_IDLE;      // idle out of reset (§4.2)
             addr_outstanding <= 1'b0;

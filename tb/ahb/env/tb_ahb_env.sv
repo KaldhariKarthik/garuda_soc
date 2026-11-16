@@ -66,7 +66,7 @@ module tb_ahb_env;
     wire        ry_isram, ry_rom, ry_dsram, ry_brg, rs_isram, rs_rom, rs_dsram, rs_brg;
 
     ahb_interconnect u_dut (
-        .hclk_i(hclk), .hreset_n_i(hreset_n),
+        .hclk(hclk), .hreset_n(hreset_n),
         .i_haddr_i(i_haddr), .i_htrans_i(i_htrans), .i_hwrite_i(i_hwrite), .i_hsize_i(i_hsize),
         .i_hburst_i(i_hburst), .i_hprot_i(i_hprot), .i_hwdata_i(i_hwdata),
         .i_hrdata_o(i_hrdata), .i_hready_o(i_hready), .i_hresp_o(i_hresp),

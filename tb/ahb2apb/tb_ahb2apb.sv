@@ -32,8 +32,8 @@ module tb_ahb2apb;
 
     wire aon, hclk, pclk, pclk_phase, div_busy;
     wire [1:0] div_act;
-    clk_div u_clk (.refclk_i(refclk), .raw_rst_n_i(ext_rst_n), .div_sel_i(2'b00),
-                   .aon_clk_o(aon), .hclk_o(hclk), .pclk_o(pclk), .pclk_phase_o(pclk_phase),
+    clk_div u_clk (.refclk(refclk), .ext_rst_n(ext_rst_n), .div_sel_i(2'b00),
+                   .aon_clk(aon), .hclk(hclk), .pclk(pclk), .pclk_phase_o(pclk_phase),
                    .div_act_o(div_act), .div_busy_o(div_busy));
 
     // simple resets: hreset first, preset a few pclk later (production order)
@@ -63,7 +63,7 @@ module tb_ahb2apb;
     wire [11:0] pready, pslverr;
 
     ahb2apb_bridge #(.WINDOW_MASK(MASK), .APB_DIV(DIV)) u_dut (
-        .hclk_i(hclk), .hreset_n_i(hreset_n), .pclk_i(pclk), .preset_n_i(preset_n),
+        .hclk(hclk), .hreset_n(hreset_n), .pclk(pclk), .preset_n(preset_n),
         .pclk_phase_i(pclk_phase),
         .hsel_i(haddr[31:28] == 4'h4), .haddr_i(haddr), .htrans_i(htrans),
         .hwrite_i(hwrite), .hsize_i(hsize), .hwdata_i(hwdata), .hready_i(hreadyout),

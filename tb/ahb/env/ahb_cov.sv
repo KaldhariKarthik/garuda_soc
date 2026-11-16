@@ -142,7 +142,7 @@ module ahb_cov (
 endmodule
 
 bind ahb_interconnect ahb_cov u_ahb_cov (
-    .hclk_i(hclk_i), .hreset_n_i(hreset_n_i),
+    .hclk_i(hclk), .hreset_n_i(hreset_n),
     .m_req({m_htrans_i[1], s_htrans_i[1], d_htrans_i[1], i_htrans_i[1]}),
     .m_rdy({m_hready_o, s_hready_o, d_hready_o, i_hready_o}),
     .m_err({m_hresp_o, s_hresp_o, d_hresp_o, i_hresp_o}),

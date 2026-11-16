@@ -18,7 +18,7 @@ module tb_i2c_uvm;
     assign iif.prdata = apb.prdata; assign iif.pready = apb.pready; assign iif.pslverr = apb.pslverr;
 
     garuda_i2c_top dut (
-        .pclk_i(pclk), .preset_n_i(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(apb.psel), .penable_i(apb.penable), .pwrite_i(apb.pwrite), .paddr_i(apb.paddr),
         .pwdata_i(apb.pwdata), .prdata_o(apb.prdata), .pready_o(apb.pready), .pslverr_o(apb.pslverr),
         .irq_o(iif.irq), .dma_req_o(iif.dma_req), .dma_ack_i(iif.dma_ack),

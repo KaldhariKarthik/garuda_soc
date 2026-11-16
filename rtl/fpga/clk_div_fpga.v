@@ -32,12 +32,12 @@
 //         but the frequency does not change. No chip test depends on this.
 // =============================================================================
 module clk_div (
-    input  wire       refclk_i,
-    input  wire       raw_rst_n_i,
+    input  wire       refclk,
+    input  wire       ext_rst_n,
     input  wire [1:0] div_sel_i,
-    output wire       aon_clk_o,
-    output wire       hclk_o,
-    output wire       pclk_o,
+    output wire       aon_clk,
+    output wire       hclk,
+    output wire       pclk,
     output wire       pclk_phase_o,
     output wire [1:0] div_act_o,
     output wire       div_busy_o
@@ -45,14 +45,14 @@ module clk_div (
     wire hclk_b, pclk_b;
 
     BUFGCE_DIV #(.BUFGCE_DIVIDE(1)) u_bufg_h (
-        .I(refclk_i), .CE(1'b1), .CLR(1'b0), .O(hclk_b));
+        .I(refclk), .CE(1'b1), .CLR(1'b0), .O(hclk_b));
     BUFGCE_DIV #(.BUFGCE_DIVIDE(2)) u_bufg_p (
-        .I(refclk_i), .CE(1'b1), .CLR(1'b0), .O(pclk_b));
+        .I(refclk), .CE(1'b1), .CLR(1'b0), .O(pclk_b));
 
     // ---- reset for the phase flops: raw reset, synchronised to hclk ---------
     reg [1:0] rs_q;
-    always @(posedge hclk_b or negedge raw_rst_n_i)
-        if (!raw_rst_n_i) rs_q <= 2'b00;
+    always @(posedge hclk_b or negedge ext_rst_n)
+        if (!ext_rst_n) rs_q <= 2'b00;
         else              rs_q <= {rs_q[0], 1'b1};
     wire ph_rst_n = rs_q[1];
 
@@ -71,9 +71,9 @@ module clk_div (
         if (!ph_rst_n) th <= 1'b0;
         else           th <= tp;
 
-    assign aon_clk_o    = hclk_b;
-    assign hclk_o       = hclk_b;
-    assign pclk_o       = pclk_b;
+    assign aon_clk    = hclk_b;
+    assign hclk       = hclk_b;
+    assign pclk       = pclk_b;
     assign pclk_phase_o = (tp == th);
     assign div_act_o    = div_sel_i;
     assign div_busy_o   = 1'b0;

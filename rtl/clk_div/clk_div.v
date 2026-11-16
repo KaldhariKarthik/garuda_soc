@@ -7,7 +7,7 @@
 // Spec: GARUDA-CLKRST-SPEC-001 Rev 2.0 (Rev 4.0 set), §5.1, §7.1, §7.6
 //       Rulings: Docs/DECISIONS.md D-5 (pclk exists), D-14 (always-on clock)
 //
-//   refclk 500 MHz ──▶ [÷2 toggle] ─ t1 (250 MHz) ─▶ aon_clk_o, and DIV2 source
+//   refclk 500 MHz ──▶ [÷2 toggle] ─ t1 (250 MHz) ─▶ aon_clk, and DIV2 source
 //                           │
 //                           └─▶ [3-bit counter clocked by t1] ─ t2, t3, t4
 //
@@ -60,29 +60,28 @@
 // =============================================================================
 
 module clk_div (
-    input  wire       refclk_i,       // 500 MHz, pad
-    input  wire       raw_rst_n_i,    // ext_rst_n, unstretched, unsynchronised
+    input  wire       refclk,       // 500 MHz, pad
+    input  wire       ext_rst_n,    // ext_rst_n, unstretched, unsynchronised
     input  wire [1:0] div_sel_i,      // 00=DIV2 01=DIV4 10=DIV8 11=DIV16 (RSTCTL.DIVSEL)
 
-    output wire       aon_clk_o,      // refclk/2, always on, ratio-independent (D-14)
-    output wire       hclk_o,         // 250 MHz at DIV2
-    output wire       pclk_o,         // hclk/2
+    output reg        aon_clk,      // refclk/2, always on, ratio-independent (D-14)
+    output wire       hclk,         // 250 MHz at DIV2
+    output wire       pclk,         // hclk/2
     output wire       pclk_phase_o,   // hclk domain
     output wire [1:0] div_act_o,      // CLKSTAT.DIVACT
     output wire       div_busy_o      // CLKSTAT.DIVBUSY
 );
 
     // ---- the only 500 MHz flop in the chip ([N-7.1]) ------------------------
-    reg t1_q;
-    always @(posedge refclk_i or negedge raw_rst_n_i)
-        if (!raw_rst_n_i) t1_q <= 1'b0;
-        else              t1_q <= ~t1_q;
+    always @(posedge refclk or negedge ext_rst_n)
+        if (!ext_rst_n) aon_clk <= 1'b0;
+        else              aon_clk <= ~aon_clk;
 
     // ---- programmable further division, all three flops clocked by t1 -------
     // (PD-11: was a ripple chain t1 -> t2 -> t3 -> t4; same waveforms.)
     reg t2_q, t3_q, t4_q;
-    always @(posedge t1_q or negedge raw_rst_n_i)
-        if (!raw_rst_n_i) begin
+    always @(posedge aon_clk or negedge ext_rst_n)
+        if (!ext_rst_n) begin
             t2_q <= 1'b0;
             t3_q <= 1'b0;
             t4_q <= 1'b0;
@@ -97,8 +96,8 @@ module clk_div (
     // the t1 rising edge (a synchronous path: pclk edges are t1 edges), then
     // moved into the active select on the t1 falling edge at the all-low point.
     reg [1:0] sel_req_q;
-    always @(posedge t1_q or negedge raw_rst_n_i)
-        if (!raw_rst_n_i) sel_req_q <= 2'b00;
+    always @(posedge aon_clk or negedge ext_rst_n)
+        if (!ext_rst_n) sel_req_q <= 2'b00;
         else              sel_req_q <= div_sel_i;
 
     // At a t1 falling edge t2..t4 are stable (they only move on t1 rising
@@ -106,15 +105,15 @@ module clk_div (
     wire all_low_next = ~t2_q & ~t3_q & ~t4_q;
 
     reg [1:0] sel_act_q;
-    always @(negedge t1_q or negedge raw_rst_n_i)
-        if (!raw_rst_n_i)      sel_act_q <= 2'b00;
+    always @(negedge aon_clk or negedge ext_rst_n)
+        if (!ext_rst_n)      sel_act_q <= 2'b00;
         else if (all_low_next) sel_act_q <= sel_req_q;
 
     // Output clock mux. Select only changes while every input is low.
     reg hclk_mux;
     always @(*) begin
         case (sel_act_q)
-            2'b00:   hclk_mux = t1_q;
+            2'b00:   hclk_mux = aon_clk;
             2'b01:   hclk_mux = t2_q;
             2'b10:   hclk_mux = t3_q;
             default: hclk_mux = t4_q;
@@ -135,8 +134,8 @@ module clk_div (
     // same toggle flop. (HAL reports the blocking assignment in a clocked
     // block; it is waived in flow/2_static/hal_waivers.txt with this reason.)
     reg pclk_q;
-    always @(posedge hclk_mux or negedge raw_rst_n_i)
-        if (!raw_rst_n_i) pclk_q = 1'b1;
+    always @(posedge hclk_mux or negedge ext_rst_n)
+        if (!ext_rst_n) pclk_q = 1'b1;
         else              pclk_q = ~pclk_q;
 
     // pclk_phase is DATA in the hclk domain: 1 in the hclk cycle whose closing
@@ -144,13 +143,12 @@ module clk_div (
     // hclk flop, so that hclk logic sampling it has no race against the
     // blocking toggle above; it is ~pclk_q at every instant between edges.
     reg phase_q;
-    always @(posedge hclk_mux or negedge raw_rst_n_i)
-        if (!raw_rst_n_i) phase_q <= 1'b0;
+    always @(posedge hclk_mux or negedge ext_rst_n)
+        if (!ext_rst_n) phase_q <= 1'b0;
         else              phase_q <= ~phase_q;
 
-    assign aon_clk_o    = t1_q;
-    assign hclk_o       = hclk_mux;
-    assign pclk_o       = pclk_q;
+    assign hclk       = hclk_mux;
+    assign pclk       = pclk_q;
     assign pclk_phase_o = phase_q;
     assign div_act_o    = sel_act_q;
     assign div_busy_o   = (sel_act_q != sel_req_q) || (sel_req_q != div_sel_i);

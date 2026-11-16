@@ -32,7 +32,7 @@ Whole-chip elaboration,2,CHK,SOC.S5.ELAB,garuda_chip_top elaborates with nothing
 Stage 6 - SoC top,1,SECTION,SOC.S6,"The chip from its pins, with the real boot ROM.",,,
 t_chip_basic,2,TC,SOC.S6.basic,"boot path, ILOCK, precise bus faults, DMA","pass, 0 assertion failures.",,high
 t_chip_irq,2,TC,SOC.S6.irq,"DMA completion through the CLIC, machine timer, watchdog warning, WFI and clock gate","pass, 0 assertion failures.",,high
-t_chip_wdt,2,TC,SOC.S6.wdt,"a real watchdog reset, RSTREASON, DSRAM survives","pass, 0 assertion failures.",,high
+t_chip_wdt,2,TC,SOC.S6.watchdog,"a real watchdog reset, RSTREASON, DSRAM survives","pass, 0 assertion failures.",,high
 t_chip_flash,2,TC,SOC.S6.flash,"boot from SPI flash: image read, CRC-32, ILOCK, jump","pass, 0 assertion failures.",,high
 t_chip_uart,2,TC,SOC.S6.uart,three UARTs through the pins,"pass, 0 assertion failures.",,high
 t_chip_periph,2,TC,SOC.S6.periph,"SPI master, I2C, GPIO, PWM, SPI slave through the pins","pass, 0 assertion failures.",,high

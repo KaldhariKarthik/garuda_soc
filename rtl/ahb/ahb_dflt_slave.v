@@ -2,7 +2,7 @@
 `default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 6: AHB-Lite Interconnect
-// ahb_default_slave.v - two-cycle ERROR responder for unmapped addresses
+// ahb_dflt_slave.v - two-cycle ERROR responder for unmapped addresses
 //
 // Spec reference: GARUDA-AHB-SPEC-001 Rev 2.0, Sec. 1.4, Sec. 3.1, Sec. 8.4,
 //                 Sec. 13.3
@@ -45,9 +45,9 @@
 
 `include "ahb_defs.vh"
 
-module ahb_default_slave (
-    input  wire        hclk_i,
-    input  wire        hreset_n_i,
+module ahb_dflt_slave (
+    input  wire        hclk,
+    input  wire        hreset_n,
 
     input  wire        hsel_i,
     input  wire [1:0]  htrans_i,
@@ -79,8 +79,8 @@ module ahb_default_slave (
         endcase
     end
 
-    always @(posedge hclk_i or negedge hreset_n_i) begin
-        if (!hreset_n_i) begin
+    always @(posedge hclk or negedge hreset_n) begin
+        if (!hreset_n) begin
             state <= S_IDLE;
         end else begin
             case (state)

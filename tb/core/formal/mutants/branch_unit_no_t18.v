@@ -41,18 +41,18 @@
 module branch_unit (
     // id_ex payload
     input  wire [31:0] pc,              // pc of the instruction in EX
-    input  wire [31:0] imm,             // sign-extended B-imm (branch) / I-imm (JALR)
-    input  wire [2:0]  funct3,
+    input  wire [31:0] imm,             // sign-extended B-imm (is_branch) / I-imm (JALR)
+    input  wire [2:0]  funct3_fld,
     // forwarded operands (post MUX_A/MUX_B register path)
     input  wire [31:0] rs1_fwd,
     input  wire [31:0] rs2_fwd,
     // ctrl
-    input  wire        branch,          // conditional branch in EX
+    input  wire        is_branch,          // conditional is_branch in EX
     input  wire        jal,             // JAL in EX (target = pc + Jimm)
     input  wire        jalr,            // JALR in EX
-    input  wire        predicted_taken, // ID's static prediction for this branch
+    input  wire        predicted_taken, // ID's static prediction for this is_branch
     // resolution
-    output wire        branch_taken,    // resolved direction (valid when branch)
+    output wire        branch_taken,    // resolved direction (valid when is_branch)
     output wire        mispredict,      // prediction != resolution
     output wire        redirect,        // EX-origin redirect request
     output wire [31:0] redirect_target,
@@ -73,7 +73,7 @@ module branch_unit (
 
     reg taken_r;
     always @(*) begin
-        case (funct3)
+        case (funct3_fld)
             `BR_BEQ:  taken_r = eq;
             `BR_BNE:  taken_r = ~eq;
             `BR_BLT:  taken_r = lt;
@@ -84,12 +84,12 @@ module branch_unit (
         endcase
     end
 
-    assign branch_taken = branch & taken_r;
+    assign branch_taken = is_branch & taken_r;
 
     //------------------------------------------------------------------
     // Mispredict detection (Section 12.3)
     //------------------------------------------------------------------
-    assign mispredict = branch & (taken_r ^ predicted_taken);
+    assign mispredict = is_branch & (taken_r ^ predicted_taken);
 
     //------------------------------------------------------------------
     // Targets
@@ -98,8 +98,8 @@ module branch_unit (
     wire [31:0] fallthrough   = pc + 32'd4;
     wire [31:0] jalr_target   = (rs1_fwd + imm) & 32'hFFFF_FFFE; // (rs1+Iimm)&~1
 
-    // JALR always redirects from EX (Section 12.2). A mispredicted branch
-    // redirects to the corrected path. jalr and branch are mutually
+    // JALR always redirects from EX (Section 12.2). A mispredicted is_branch
+    // redirects to the corrected path. jalr and is_branch are mutually
     // exclusive by decode.
     // Every taken control transfer, regardless of which stage redirects for it.
     // GARUDA has no C extension, so any target with bits[1:0] != 0 is illegal.
@@ -108,7 +108,7 @@ module branch_unit (
                                                       1'b0;
 
     // ERRATUM T-18: a JAL takes branch_target unconditionally. Its imm[14:12] /
-    // rs1 / rs2 bit fields are not a funct3 and operands, so taken_r is noise
+    // rs1 / rs2 bit fields are not a funct3_fld and operands, so taken_r is noise
     // for it; before the fix a misaligned JAL whose fields read "not taken"
     // reported mtval = pc+4. JAL never asserts `redirect` (it redirects from ID),
     // so the only consumers of this for a JAL are the cause-0 mtval and RVFI.

@@ -1,4 +1,4 @@
-// filelist_alu.f -- SystemVerilog element TB. Top module is tb_top.
+// filelist_d_port_ahb_master.f -- SystemVerilog element TB. Top module is tb_top.
 //
 // No GARUDA_REAL_RTL define here: unlike the older unit TBs, these carry no
 // inlined DUT snapshot, so the real rtl/core source below is the only DUT
@@ -6,8 +6,8 @@
 
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/alu.v
+rtl/core/dport_master.v
 
 -sv
 tb/core/garuda_tb_pkg.sv
-tb/core/tb_alu.sv
+tb/core/tb_d_port_ahb_master.sv

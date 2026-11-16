@@ -28,7 +28,7 @@ inst = dict(cfg.get("imc_instances", {}))
 # Instances not listed by hand are derived from the RTL: with `imc_dut = "<module>"`
 # in cov.toml, the instantiations of the design modules are parsed from the design
 # files and walked from the DUT top, so every module gets its real instance paths
-# (written from the DUT top module, e.g. garuda_core_top.u_mem.u_d_port_ahb_master).
+# (written from the DUT top module, e.g. garuda_core_top.u_mem.u_dport_master).
 # Not from Verilator's coverage hierarchy: it collapses arrays of instances into
 # wildcards (u_mac*) and inlines small modules into their parent. Generate-loop
 # instances are not expanded here: list those by hand in [imc_instances] (the DMA).

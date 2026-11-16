@@ -27,8 +27,8 @@ module garuda_gpio_top #(
     parameter [7:0]   BLOCK_NUM = 8'd19,
     parameter integer PAD_NUM   = 2
 )(
-    input  wire        pclk_i,
-    input  wire        preset_n_i,
+    input  wire        pclk,
+    input  wire        preset_n,
 
     // ---- APB slave, window 7 -------------------------------------------------
     input  wire        psel_i,
@@ -71,7 +71,7 @@ module garuda_gpio_top #(
         .N_EVT(1), .SYNC_W(PAD_NUM), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
         .ADDR_SHIFT(0), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
-        .pclk_i(pclk_i), .preset_n_i(preset_n_i),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
@@ -93,7 +93,7 @@ module garuda_gpio_top #(
     apb_gpio #(
         .APB_ADDR_WIDTH(12), .PAD_NUM(PAD_NUM), .NBIT_PADCFG(4)
     ) u_gpio (
-        .HCLK(pclk_i), .HRESETn(preset_n_i),
+        .pclk(pclk), .preset_n(preset_n),
         .dft_cg_enable_i(1'b0),                        // OPEN-G1: DFT must drive this
         .PADDR(ip_paddr), .PWDATA(ip_pwdata), .PWRITE(ip_pwrite),
         .PSEL(ip_psel), .PENABLE(ip_penable),

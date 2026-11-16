@@ -282,7 +282,7 @@ module garuda_cov (
             b = u_cg_ahb.get_coverage();
             u = u_cg_dsu.get_coverage();
             total = (d + a + l + h + t + b + u) / 7.0;
-            $display("\n[COV] %0s decode=%0.2f alu=%0.2f ldst=%0.2f hazard=%0.2f trap=%0.2f ahb=%0.2f dsu=%0.2f overall=%0.2f",
+            $display("\n[COV] %0s decode=%0.2f alu_unit=%0.2f ldst=%0.2f hazard=%0.2f trap=%0.2f ahb=%0.2f dsu=%0.2f overall=%0.2f",
                      tag, d, a, l, h, t, b, u, total);
             // %0s of a packed vector strips the leading NULs, so a path
             // passed via +COVTAG works verbatim.
@@ -299,7 +299,7 @@ endmodule
 
 // Attach to the core without touching the RTL.
 bind garuda_core_top garuda_cov u_cov (
-    .clk_i(clk_i), .rst_n_i(core_rst_n_i),
+    .clk_i(hclk), .rst_n_i(core_rst_n),
     .xe_instr(xe_instr), .xe_valid(xe_valid), .xe_alu_op(xe_alu_op),
     .xe_branch(xe_branch), .xe_jal(xe_jal), .xe_jalr(xe_jalr),
     .xe_mem_read(xe_mem_read), .xe_mem_write(xe_mem_write),
@@ -310,10 +310,10 @@ bind garuda_core_top garuda_cov u_cov (
     // TB-40 (2026-10-11): cg_ldst samples on an EX-stage condition (xe_valid,
     // xe_mem_read/write), so the size and address must be EX-stage too: the
     // funct3 and effective address of the SAME instruction. They were the MEM
-    // stage's (em_funct3, d_haddr_o), which belong to the previous instruction,
+    // stage's (em_funct3_fld, d_haddr_o), which belong to the previous instruction,
     // and the misaligned bins (which trap in EX and never reach the bus) could
     // not be hit. Port names are kept.
-    .em_funct3(xe_funct3), .d_haddr(ex_result),
+    .em_funct3(xe_funct3_fld), .d_haddr(ex_result),
     .d_htrans(d_htrans_o), .i_htrans(i_htrans_o),
     .d_hburst(d_hburst_o), .i_hburst(i_hburst_o),
     .d_hresp(d_hresp_i),   .i_hresp(i_hresp_i),

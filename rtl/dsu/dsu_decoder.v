@@ -31,14 +31,14 @@ module dsu_decoder (
     
     output wire illegal_instr,
     
-    output wire [4:0] funct5,
-    output wire [2:0] funct3,
+    output wire [4:0] funct5_fld,
+    output wire [2:0] funct3_fld,
     output wire       is_custom0
 );
 
     wire [6:0]  opcode    = instr[6:0];
     wire [4:0]  rd_f      = instr[11:7];
-    assign      funct3    = instr[14:12];
+    assign      funct3_fld    = instr[14:12];
     wire [4:0]  rs1_f     = instr[19:15];
     wire [4:0]  rs2_f     = instr[24:20];
     wire [1:0]  acc_sel_r = instr[26:25];
@@ -46,8 +46,8 @@ module dsu_decoder (
     wire [11:0] imm_i     = instr[31:20];
     
     assign is_custom0 = (opcode == 7'b0001011);
-    wire is_rtype   = is_custom0 & (funct3 == 3'b000);
-    wire is_itype   = is_custom0 & (funct3 == 3'b001);
+    wire is_rtype   = is_custom0 & (funct3_fld == 3'b000);
+    wire is_itype   = is_custom0 & (funct3_fld == 3'b001);
     
     wire op_mac_sel  = is_rtype & (funct5_r == `FUNCT5_MAC_SEL);
     wire op_macsub   = is_rtype & (funct5_r == `FUNCT5_MACSUB);
@@ -132,6 +132,6 @@ module dsu_decoder (
     
     assign writes_regfile = (op_rd_lo | op_rd_hi | op_macshift) & dsu_en & ~illegal_instr; 
     assign rd_addr        = rd_f;
-    assign funct5 = funct5_r;
+    assign funct5_fld = funct5_r;
     
 endmodule

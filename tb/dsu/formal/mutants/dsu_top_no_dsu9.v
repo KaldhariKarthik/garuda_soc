@@ -6,14 +6,14 @@
 `include "dsu_defs.vh"
 
 module dsu_top (
-    input wire clk,
-    input wire rst_n,
+    input wire gclk,
+    input wire core_rst_n,
     input wire flush,
     
     input wire        dsu_en,
     input wire [31:0] instr,
-    input wire [31:0] rs1,
-    input wire [31:0] rs2,
+    input wire [31:0] rs1_val,
+    input wire [31:0] rs2_val,
     input wire        csr_clear_overflow,
     
     output wire        dsu_busy,
@@ -24,9 +24,9 @@ module dsu_top (
     output wire       ovf_pending,      // an accumulate folds this cycle: dsu_overflow may still change (DSU-14)
     output wire       illegal_instr,
     
-    output wire [47:0] dbg_acc_0,
-    output wire [47:0] dbg_acc_1,
-    output wire [47:0] dbg_acc_2
+    output wire [47:0] dbg_acc_fx,
+    output wire [47:0] dbg_acc_fy,
+    output wire [47:0] dbg_acc_mag
 );
 
     wire [`MAC_CTRL_W-1:0] control;
@@ -62,8 +62,8 @@ module dsu_top (
         .writes_regfile (writes_regfile),
         .rd_addr (rd_addr_w),
         .illegal_instr (illegal_instr),
-        .funct5 (funct5_w),
-        .funct3 (funct3_w),
+        .funct5_fld (funct5_w),
+        .funct3_fld (funct3_w),
         .is_custom0 (is_custom0_w)
     );
     
@@ -96,10 +96,10 @@ module dsu_top (
     assign ovf_pending = |mac_pending;
     
     mac_cluster u_cluster (
-        .clk (clk),
-        .rst_n (rst_n),
-        .rs1 (rs1),
-        .rs2 (rs2),
+        .gclk (gclk),
+        .core_rst_n (core_rst_n),
+        .rs1_val (rs1_val),
+        .rs2_val (rs2_val),
         .control (control),
         .acc_sel (acc_sel),
         .sat_writeback (sat_writeback),
@@ -107,17 +107,17 @@ module dsu_top (
         .cluster_out (cluster_out),
         .overflow (mac_overflow),
         .pending (mac_pending),
-        .dbg_acc_0 (dbg_acc_0),
-        .dbg_acc_1 (dbg_acc_1),
-        .dbg_acc_2 (dbg_acc_2)        
+        .dbg_acc_fx (dbg_acc_fx),
+        .dbg_acc_fy (dbg_acc_fy),
+        .dbg_acc_mag (dbg_acc_mag)        
     );
     
     reg [47:0] shift_input;
     always @(*) begin
         case (shift_acc_sel)
-            `ACC_FX:  shift_input = dbg_acc_0;
-            `ACC_FY:  shift_input = dbg_acc_1;
-            `ACC_MAG: shift_input = dbg_acc_2;
+            `ACC_FX:  shift_input = dbg_acc_fx;
+            `ACC_FY:  shift_input = dbg_acc_fy;
+            `ACC_MAG: shift_input = dbg_acc_mag;
             default:  shift_input = 48'b0;
         endcase
      end
@@ -150,8 +150,8 @@ module dsu_top (
     );
     
     overflow_flag u_ovf (
-        .clk (clk),
-        .rst_n (rst_n),
+        .gclk (gclk),
+        .core_rst_n (core_rst_n),
         .mac_overflow (mac_overflow),
         .sat_overflow (sat_overflow),
         .csr_clear_overflow (csr_clear_overflow),
@@ -159,11 +159,11 @@ module dsu_top (
     );
     
     dsu_stall u_stall (
-        .clk (clk),
-        .rst_n (rst_n),
+        .gclk (gclk),
+        .core_rst_n (core_rst_n),
         .flush (flush),
-        .funct5 (funct5_w),
-        .funct3 (funct3_w),
+        .funct5_fld (funct5_w),
+        .funct3_fld (funct3_w),
         // ERRATUM DSU-9 -- dsu_busy was the ONE DSU output not gated by
         // dsu_en. Every other output carries `& dsu_en` (sat_op, shift_op,
         // rd_lo_op, rd_hi_op, writes_regfile, illegal_instr, mac_en), but
