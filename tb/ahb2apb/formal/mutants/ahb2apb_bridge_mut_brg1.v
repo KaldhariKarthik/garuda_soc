@@ -1,4 +1,5 @@
-// MUTANT brg1 (bus plan B2 negative control): BRG-1 revert: a new transfer is accepted only from H_IDLE (back-to-back drops one)
+// MUTANT brg1 (bus plan B2 negative control): rtl/ahb2apb/ahb2apb_bridge.v with ONE fix reverted (BRG-1: a new transfer only from H_IDLE).
+// Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal negative control: must FAIL. (tb/ahb2apb/formal/apb.toml mut_brg1)
 `timescale 1ns/1ps
 `default_nettype none
 // =============================================================================
@@ -137,7 +138,7 @@ module ahb2apb_bridge #(
             hrdata_o  <= 32'd0;
         end else begin
             case (hstate)
-                H_IDLE: begin
+                H_IDLE: begin   // MUTANT: BRG-1 reverted
                     // A new address phase can be accepted in any cycle where
                     // the bus is ready. One accepted during the [N-9.2] window
                     // (APB side still in reset) is captured and simply waits:
@@ -219,20 +220,9 @@ module ahb2apb_bridge #(
         .pslverr_o     (pslverr_sel)
     );
 
-`ifndef SYNTHESIS
-    // a_capture_stable_at_phase: the captures never move between two cycles
-    // that are both inside an APB transfer (H_WAIT), so every pclk edge the
-    // FSM samples on sees a stable value.
-    reg [44:0] cap_prev;
-    reg [2:0]  hstate_d;
-    always @(posedge hclk_i) begin
-        if (hreset_n_i && hstate == H_WAIT && hstate_d == H_WAIT &&
-            cap_prev !== {win_cap, addr_cap, write_cap, wdata_cap[27:0]})
-            $display("[BRG-ASSERT] capture moved during an APB transfer at %0t", $time);
-        cap_prev <= {win_cap, addr_cap, write_cap, wdata_cap[27:0]};
-        hstate_d <= hstate;
-    end
-`endif
+    // TB-49: a_capture_stable_at_phase used to be a `$display("[BRG-ASSERT] ...")` here,
+    // which no regression counted as a failure. It is now a bound, formally PROVEN
+    // property in rtl/ahb2apb/ahb2apb_sva.sv (verification only, not synthesised).
 
 endmodule
 

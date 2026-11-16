@@ -1649,3 +1649,29 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-10T07:37:59+05:30	e192910b7498	True	dma_mut	mut_m23	1	FAIL	XFAIL:PLANTED	pass marker missing; 628 [FAIL] line(s); 613 assertion failure(s) | first: [762000] %Error: dma_props_a.sv:284: Assertion failed in tb_dma_regs.dut.u_dma_props_a.a_pslverr_rule: [SVA-FAIL] a_pslverr_r
 2026-11-10T07:37:59+05:30	e192910b7498	True	dma_mut	mut_m24	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1006 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [4022000] %Error: dma_props_a.sv:324: Assertion failed in tb_dma_regs.dut.u_dma_props_a.g_ch[0].a
 2026-11-10T07:37:59+05:30	e192910b7498	True	dma_mut	mut_m25	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1014 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [274000] %Error: dma_props_a.sv:495: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[0].a_i
+2026-11-16T09:31:31+05:30	5dfc2efc60ce	True	fv_dma_arb	arb_prove	-	PROVEN	OK	[10 asserts, 3 covers in model] 
+2026-11-16T09:31:31+05:30	5dfc2efc60ce	True	fv_dma_arb	arb_cover	-	COVERED	OK	[10 asserts, 3 covers in model] 
+2026-11-16T09:31:31+05:30	5dfc2efc60ce	True	fv_dma_arb	arb_mut_tie_high	-	FAIL	XFAIL:PLANTED	[10 asserts, 3 covers in model] props: u_equal.a_grant, u_pairs.a_grant
+2026-11-16T09:31:31+05:30	5dfc2efc60ce	True	fv_dma_arb	arb_mut_tie_high_shipped	-	BOUNDED(2)	OK	[2 asserts, 3 covers in model] 
+2026-11-16T09:31:42+05:30	5dfc2efc60ce	True	fv_dma_2clk	pclk_prove	-	PROVEN	OK	[10 asserts, 303 covers in model] 
+2026-11-16T09:31:42+05:30	5dfc2efc60ce	True	fv_dma_2clk	pclk_cover	-	COVERED	OK	[381 asserts, 3 covers in model] 
+2026-11-16T09:41:03+05:30	5dfc2efc60ce	True	fv_dma	dma_cover	-	COVERED	OK	[353 asserts, 300 covers in model] 
+2026-11-16T09:41:03+05:30	5dfc2efc60ce	True	fv_dma	dma_bmc	-	BOUNDED(32)	OK	[353 asserts, 303 covers in model] 
+2026-11-16T09:41:03+05:30	5dfc2efc60ce	True	fv_dma	dma_prove	-	PROVEN	OK	[347 asserts, 303 covers in model] 
+2026-11-16T09:41:03+05:30	5dfc2efc60ce	True	fv_dma	dma10_find	-	BOUNDED(24)	XPASS:DMA-10	[1 asserts, 303 covers in model] 
+2026-11-16T09:41:03+05:30	5dfc2efc60ce	True	fv_dma	dma11_find	-	BOUNDED(32)	XPASS:DMA-11	[18 asserts, 303 covers in model] 
+2026-11-16T09:41:03+05:30	5dfc2efc60ce	True	fv_dma	dma13_find	-	BOUNDED(24)	XPASS:DMA-13	[1 asserts, 303 covers in model] 
+2026-11-16T09:41:03+05:30	5dfc2efc60ce	True	fv_dma	dma14_find	-	BOUNDED(24)	XPASS:DMA-14	[1 asserts, 303 covers in model] 
+2026-11-16T09:41:03+05:30	5dfc2efc60ce	True	fv_dma	mut_eng1	-	FAIL	XFAIL:PLANTED	[1 asserts, 303 covers in model] props: u_dma_props_a.a_no_grant_while_reporting
+2026-11-16T09:41:03+05:30	5dfc2efc60ce	True	fv_dma	mut_d2	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[5].a_hw_wins_en
+2026-11-16T09:41:03+05:30	5dfc2efc60ce	True	fv_dma	mut_dma8	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[0].a_failed_beat_keeps_request
+2026-11-16T09:41:03+05:30	5dfc2efc60ce	True	fv_dma	mut_iclr_wins	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[3].a_set_beats_clear_complete
+2026-11-16T09:41:03+05:30	5dfc2efc60ce	True	fv_dma	mut_aud13	-	FAIL	XFAIL:PLANTED	[1 asserts, 303 covers in model] props: u_dma_props_a.a_pslverr_rule
+2026-11-16T09:55:17+05:30	5dfc2efc60ce	True	fv_dma	dma_cover	-	COVERED	OK	[375 asserts, 300 covers in model] 
+2026-11-16T09:55:17+05:30	5dfc2efc60ce	True	fv_dma	dma_bmc	-	BOUNDED(32)	OK	[375 asserts, 303 covers in model] 
+2026-11-16T09:55:17+05:30	5dfc2efc60ce	True	fv_dma	dma_prove	-	PROVEN	OK	[369 asserts, 303 covers in model] 
+2026-11-16T09:55:17+05:30	5dfc2efc60ce	True	fv_dma	mut_eng1	-	FAIL	XFAIL:PLANTED	[1 asserts, 303 covers in model] props: u_dma_props_a.a_no_grant_while_reporting
+2026-11-16T09:55:17+05:30	5dfc2efc60ce	True	fv_dma	mut_d2	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[5].a_hw_wins_en
+2026-11-16T09:55:17+05:30	5dfc2efc60ce	True	fv_dma	mut_dma8	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[0].a_failed_beat_keeps_request
+2026-11-16T09:55:17+05:30	5dfc2efc60ce	True	fv_dma	mut_iclr_wins	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[3].a_set_beats_clear_complete
+2026-11-16T09:55:17+05:30	5dfc2efc60ce	True	fv_dma	mut_aud13	-	FAIL	XFAIL:PLANTED	[1 asserts, 303 covers in model] props: u_dma_props_a.a_pslverr_rule

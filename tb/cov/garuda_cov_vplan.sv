@@ -255,7 +255,7 @@ module garuda_cov_vplan (
 endmodule
 
 bind garuda_core_top garuda_cov_vplan u_cov_vplan (
-    .clk_i(clk_i), .rst_n_i(rst_n_i),
+    .clk_i(clk_i), .rst_n_i(core_rst_n_i),
     .xe_valid(xe_valid), .xe_mul_en(xe_mul_en), .xe_dsu_en(xe_dsu_en), .xe_csr_en(xe_csr_en),
     .xe_branch(xe_branch), .xe_jal(xe_jal), .xe_jalr(xe_jalr),
     .xe_pred_taken(xe_predicted_taken), .ex_mispredict(ex_branch_mispredict),

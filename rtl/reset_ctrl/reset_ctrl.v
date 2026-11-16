@@ -126,7 +126,7 @@ module reset_ctrl #(
             dm_scope_q <= dm_scope_nxt;
             sys_req_q  <= (cnt_nxt != 0);
             dm_req_q   <= (cnt_nxt != 0) & dm_scope_nxt;
-            core_req_q <= (cnt_nxt != 0) | hartreset_req_i;
+            core_req_q <= (cnt_nxt != 0);
         end
     end
 
@@ -168,11 +168,17 @@ module reset_ctrl #(
     // =========================================================================
     // Release synchronisers
     // =========================================================================
-    reg [1:0] hrst_q, core_q, dm_q, exth_q;
+    reg [1:0] hrst_q, dm_q, exth_q;
     always @(posedge hclk_i or posedge sys_req_q)
         if (sys_req_q) hrst_q <= 2'b00; else hrst_q <= {hrst_q[0], 1'b1};
-    always @(posedge hclk_i or posedge core_req_q)
-        if (core_req_q) core_q <= 2'b00; else core_q <= {core_q[0], 1'b1};
+    // The core's reset (D-36, 2026-11-16) also falls for the Debug Module's hartreset
+    // grant ([N-7.13]), sampled on hclk: core_rst_sync.v. Until then the grant reached the
+    // core through the aon-clocked core_req_q and, without waiting, through an AND gate
+    // inside the core.
+    wire core_rst_n;
+    core_rst_sync u_core_rst_sync (
+        .hclk_i(hclk_i), .clr_i(core_req_q), .hartreset_req_i(hartreset_req_i),
+        .core_rst_n_o(core_rst_n));
     always @(posedge hclk_i or posedge dm_req_q)
         if (dm_req_q) dm_q <= 2'b00; else dm_q <= {dm_q[0], 1'b1};
     always @(posedge hclk_i or negedge ext_rst_n_i)
@@ -185,7 +191,7 @@ module reset_ctrl #(
         if (!ext_rst_n_i) extp_q <= 2'b00; else extp_q <= {extp_q[0], 1'b1};
 
     assign hreset_n_o   = hrst_q[1];
-    assign core_rst_n_o = core_q[1];
+    assign core_rst_n_o = core_rst_n;
     assign dm_rst_n_o   = dm_q[1];
     assign ext_hrst_n_o = exth_q[1];
     assign preset_n_o   = prst_q[1];

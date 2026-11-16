@@ -33,7 +33,7 @@ foreach d [split [string trim [exec env -u LD_LIBRARY_PATH python3 scripts/expan
     if {$d ne ""} { lappend INCS +incdir+[string range $d 2 end] }
 }
 analyze -sv09 {*}$DEFS +incdir+rtl/include +incdir+rtl/common {*}$INCS {*}$FILES
-elaborate -top $TOP {*}$PARAMS
+elaborate -top $TOP -bbox_mul 128 {*}$PARAMS
 
 # COMB=1: a combinational unit, no clock and no reset
 if {[info exists ::env(COMB)]} {

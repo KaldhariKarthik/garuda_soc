@@ -264,7 +264,7 @@ module tb_boot;
         if (!rst_n) sleep_cycles <= 0; else if (core_sleep) sleep_cycles <= sleep_cycles + 1;
 
     garuda_core_top #(.RESET_VECTOR(BASE_ADDR)) dut (
-        .clk_i(clk), .core_rst_n_i(rst_n), .hartreset_n_i(1'b1),
+        .clk_i(clk), .core_rst_n_i(rst_n),
         .halt_req_i(fstop), .halt_safe_o(),            // no debugger; +FSTOP_ON_WFI drives the fetch stop (RDC-1 ports)
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize),
         .i_hburst_o(i_hburst), .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite),

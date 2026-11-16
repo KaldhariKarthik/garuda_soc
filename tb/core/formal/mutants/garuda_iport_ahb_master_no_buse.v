@@ -1,3 +1,4 @@
+// MUTANT garuda_iport_ahb_master_no_buse: rtl/core/garuda_iport_ahb_master.v with ONE change. Formal negative control: must FAIL.
 `timescale 1ns/1ps
 `default_nettype none
 // ============================================================================
@@ -191,6 +192,13 @@ module garuda_iport_ahb_master #(
     // Issue a new address phase when: the bus is ready, the previous address
     // phase has been accepted (or is being accepted this cycle), the buffer
     // will have room for everything in flight, and we're not mid-redirect.
+    // ERRATUM BUS-E (2026-10-11, found by the coverage test t_cov_misfetch): a
+    // JAL / predicted-taken branch in ID can redirect fetch to a target that is
+    // 2 mod 4. While the instruction then waits in EX (behind a load in MEM, T-9)
+    // this port issued a WORD fetch at that address -- an AHB-Lite violation
+    // (HADDR must be aligned to HSIZE). No fetch is issued from a misaligned
+    // fetch_pc: the redirect that produced it always resolves in EX (cause-0
+    // trap, mispredict, or an older trap / interrupt) to an aligned address.
     assign fetch_issue_o = ~redirect_i & ~stop_i & i_hready_i &   // RDC-1: ~stop_i
                             (~addr_outstanding | addr_phase_done) &
                             room_for_new_fetch;

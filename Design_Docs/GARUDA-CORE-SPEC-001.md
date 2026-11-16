@@ -188,10 +188,13 @@ the CLIC block performed the threshold comparison, which it does not — that co
 in `clic_ctrl`, inside this core, alongside the CSRs it reads. Removing the port removes the
 ambiguity.
 
-**[N-5.3]** `core_rst_n_i` and `hartreset_n_i` are separate ports, not ORed outside. The core
-ORs them internally so that both produce identical internal reset behaviour, while
-`reset_ctrl` and the Debug Module can drive them independently — `hartreset` leaves the bus,
-memories and peripherals running, which is what SBA needs (`GARUDA-DEBUG-SPEC-001` §7.13).
+**[N-5.3]** One reset input, `core_rst_n_i` (D-36, 2026-11-16). `reset_ctrl` asserts it for
+every system reset and for the Debug Module's `hartreset`, which leaves the bus, memories and
+peripherals running, as SBA needs (`GARUDA-DEBUG-SPEC-001` §7.13; `GARUDA-CLKRST-SPEC-001`
+`core_rst_n_o`). Until Rev 3.1 the core had a second input, `hartreset_n_i`, ORed with
+`core_rst_n_i` by a gate inside the core in front of the asynchronous resets; lint (HAL
+GLTASR) rejects combinational logic there, so the two are now combined in `reset_ctrl`, where
+the grant is sampled on `hclk`.
 
 ---
 
@@ -469,8 +472,10 @@ measurement ([N-6.2]) and is not asserted here.
 
 ### 7.8 Reset and the reset vector
 
-**[N-7.33]** `core_rst_n_i` and `hartreset_n_i` are ORed internally. Either produces a full
-core and DSU reset.
+**[N-7.33]** `core_rst_n_i` produces a full core and DSU reset, whether it comes from a
+system reset or from `hartreset` ([N-5.3]). For `hartreset` it falls one `hclk` after the
+Debug Module's grant; the Debug Module keeps `halt_req` high through the grant, so the core
+starts no bus transfer in that clock (RDC-1).
 
 **[N-7.34]** On reset the PC is `BOOTROM_BASE` (`0x1000_0000`), from the generated header.
 The prefetch buffer is empty and all CSRs take their reset values; `mtvec` resets to base 0
@@ -570,7 +575,7 @@ mtip_i    ───────────────────────�
 
 **[N-9.1]** One clock domain: `hclk`. No CDC anywhere in this core.
 
-**[N-9.2]** Two reset inputs, ORed internally ([N-7.33]).
+**[N-9.2]** One reset input, `core_rst_n_i` ([N-5.3], [N-7.33]).
 
 **[N-9.3]** Clock gating: one root gate on core + DSU, enabled by `quiescent` (§7.7):
 `en = ~quiescent | (CLK_GATE == 0) | mgarudactl.CG_DIS`. The `garuda_core_top` parameter

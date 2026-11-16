@@ -223,7 +223,7 @@ endmodule
 // Bound at the core, on the UNGATED clock - see the header.
 bind garuda_core_top pipe_ctrl_sva u_pipe_sva (
     .clk           (clk_i),
-    .rst_n         (rst_n_i),
+    .rst_n         (core_rst_n_i),
     .mem_stall     (u_pipe.mem_stall_i),
     .dsu_busy      (u_pipe.dsu_busy_i),
     .load_use      (u_pipe.load_use_stall_i),

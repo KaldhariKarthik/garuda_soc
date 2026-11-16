@@ -1,6 +1,7 @@
 # xfail list for core suites: one row per EXPECTED non-pass, each with a bug ID.
 # suite<TAB>test<TAB>expect(FAIL|BLOCKED)<TAB>bug<TAB>reason
-fv_trap	trap_prove_unfixed	FAIL	PLANTED	pre-fix trap_ctrl must fail the T-13/T-14 proof
+fv_trap	trap_prove_no_t13	FAIL	PLANTED	trap_ctrl with the T-13 fix reverted must fail the proof
+fv_trap	trap_prove_no_t14	FAIL	PLANTED	trap_ctrl with the T-14 fix reverted must fail the proof
 fv_csr	csr_prove_no_t12	FAIL	PLANTED	csr_file with the T-12 fix reverted must fail the proof
 fv_csr	csr_prove_no_c16	FAIL	PLANTED	csr_file with the C-16 fix reverted must fail the proof
 fv_rdc1	rdc1_prove_rawgrant	FAIL	PLANTED	a DM granting on the raw request (pre-fix) must break a waited transfer

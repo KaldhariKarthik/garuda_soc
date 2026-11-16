@@ -1,4 +1,5 @@
-// MUTANT apb2 (bus plan B2 negative control): APB-2 revert: no aperture check
+// MUTANT apb2 (bus plan B2 negative control): rtl/ahb2apb/ahb2apb_bridge.v with ONE fix reverted (APB-2: no aperture check).
+// Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal negative control: must FAIL. (tb/ahb2apb/formal/apb.toml mut_apb2)
 `timescale 1ns/1ps
 `default_nettype none
 // =============================================================================
@@ -105,7 +106,7 @@ module ahb2apb_bridge #(
     // region 0x4 above the 48 KiB aperture (e.g. 0x4001_5000) aliased a live
     // window. Out-of-aperture addresses now take the existing two-cycle ERROR path
     // with no PSEL (garuda_system.yaml: APB = 0x4000_0000, 48 KiB).
-    wire       win_ok  = WINDOW_MASK[win];
+    wire       win_ok  = WINDOW_MASK[win];   // MUTANT: APB-2 reverted
     wire       word_ok = (hsize_i == 3'b010);
     wire       xfer    = hsel_i & htrans_i[1] & hready_i;
 
@@ -219,20 +220,9 @@ module ahb2apb_bridge #(
         .pslverr_o     (pslverr_sel)
     );
 
-`ifndef SYNTHESIS
-    // a_capture_stable_at_phase: the captures never move between two cycles
-    // that are both inside an APB transfer (H_WAIT), so every pclk edge the
-    // FSM samples on sees a stable value.
-    reg [44:0] cap_prev;
-    reg [2:0]  hstate_d;
-    always @(posedge hclk_i) begin
-        if (hreset_n_i && hstate == H_WAIT && hstate_d == H_WAIT &&
-            cap_prev !== {win_cap, addr_cap, write_cap, wdata_cap[27:0]})
-            $display("[BRG-ASSERT] capture moved during an APB transfer at %0t", $time);
-        cap_prev <= {win_cap, addr_cap, write_cap, wdata_cap[27:0]};
-        hstate_d <= hstate;
-    end
-`endif
+    // TB-49: a_capture_stable_at_phase used to be a `$display("[BRG-ASSERT] ...")` here,
+    // which no regression counted as a failure. It is now a bound, formally PROVEN
+    // property in rtl/ahb2apb/ahb2apb_sva.sv (verification only, not synthesised).
 
 endmodule
 

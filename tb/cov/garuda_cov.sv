@@ -299,7 +299,7 @@ endmodule
 
 // Attach to the core without touching the RTL.
 bind garuda_core_top garuda_cov u_cov (
-    .clk_i(clk_i), .rst_n_i(rst_n_i),
+    .clk_i(clk_i), .rst_n_i(core_rst_n_i),
     .xe_instr(xe_instr), .xe_valid(xe_valid), .xe_alu_op(xe_alu_op),
     .xe_branch(xe_branch), .xe_jal(xe_jal), .xe_jalr(xe_jalr),
     .xe_mem_read(xe_mem_read), .xe_mem_write(xe_mem_write),

@@ -6,5 +6,6 @@
 rtl/ahb/ahb_mem_slave.v
 tb/ahb/ahb_lite_checker.v
 rtl/debug/debug_module.v
+rtl/reset_ctrl/core_rst_sync.v
 -sv
 tb/core/tb_core_halt.sv

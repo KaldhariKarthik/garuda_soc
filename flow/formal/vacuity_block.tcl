@@ -16,7 +16,7 @@ set top  $::env(GARUDA_UNR_TOP)
 set incs {}
 foreach d [exec env -u LD_LIBRARY_PATH python3 scripts/expand_filelist.py $fl --incdirs] { lappend incs "+incdir+[string range $d 2 end]" }
 analyze -sv09 {*}$incs {*}[exec env -u LD_LIBRARY_PATH python3 scripts/expand_filelist.py $fl]
-elaborate -top $top
+elaborate -top $top -bbox_mul 128
 foreach c $::env(GARUDA_UNR_CLK) {
     lassign [split $c :] name factor
     clock $name -factor $factor -phase 1

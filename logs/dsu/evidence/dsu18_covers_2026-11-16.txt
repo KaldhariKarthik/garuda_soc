@@ -1,0 +1,22 @@
+# DSU-18 covers in simulation, 2026-11-16: xrun 22.09, tb/dsu/units_spec/tb_dsu_top_ovf_b2b.sv, -abvrecordcoverall, assertion -summary -final
+# columns: cover enabled, hits, failures, instance
+[PASS]  ACC_FX case 0 (            MAC overflow, idle): overflow flag 1, accumulator 800000000000
+[PASS]  ACC_FX case 1 (             MAC overflow, MAC): overflow flag 1, accumulator 800000000001
+[PASS]  ACC_FX case 2 (MAC overflow, MACCLEAR at once): overflow flag 1, accumulator 000000000000
+[PASS]  ACC_FX case 3 ( MAC overflow, MACLOAD at once): overflow flag 1, accumulator 000000000005
+[PASS]  ACC_FY case 0 (            MAC overflow, idle): overflow flag 1, accumulator 800000000000
+[PASS]  ACC_FY case 1 (             MAC overflow, MAC): overflow flag 1, accumulator 800000000001
+[PASS]  ACC_FY case 2 (MAC overflow, MACCLEAR at once): overflow flag 1, accumulator 000000000000
+[PASS]  ACC_FY case 3 ( MAC overflow, MACLOAD at once): overflow flag 1, accumulator 000000000005
+[PASS] ACC_MAG case 0 (            MAC overflow, idle): overflow flag 1, accumulator 800000000000
+[PASS] ACC_MAG case 1 (             MAC overflow, MAC): overflow flag 1, accumulator 800000000001
+[PASS] ACC_MAG case 2 (MAC overflow, MACCLEAR at once): overflow flag 1, accumulator 000000000000
+[PASS] ACC_MAG case 3 ( MAC overflow, MACLOAD at once): overflow flag 1, accumulator 000000000005
+tb_dsu_top_ovf_b2b: checks=12 FAIL=0
+RESULT: PASSED
+         1      2      0   tb_dsu_top_ovf_b2b.dut.u_cluster.u_mac0.u_mac_sva.c_fold_replaced_ovf
+         1      4      0   tb_dsu_top_ovf_b2b.dut.u_cluster.u_mac0.u_mac_sva.c_overflow
+         1      2      0   tb_dsu_top_ovf_b2b.dut.u_cluster.u_mac1.u_mac_sva.c_fold_replaced_ovf
+         1      4      0   tb_dsu_top_ovf_b2b.dut.u_cluster.u_mac1.u_mac_sva.c_overflow
+         1      2      0   tb_dsu_top_ovf_b2b.dut.u_cluster.u_mac2.u_mac_sva.c_fold_replaced_ovf
+         1      4      0   tb_dsu_top_ovf_b2b.dut.u_cluster.u_mac2.u_mac_sva.c_overflow

@@ -420,3 +420,17 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-10-15T22:06:42+05:30	167aa935078d	True	units_spec	negctl_stall_no_interlock	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] read of acc0 after an accumulate: held 0 cycles, expected 1
 2026-10-15T22:06:42+05:30	167aa935078d	True	units_spec	negctl_mac_unit_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 1: mac_out=88108e7524c0 expected 881093819316, overflow seen 0 expected 0
 2026-10-15T22:06:42+05:30	167aa935078d	True	units_spec	negctl_mac_cluster_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] burst 3: acc 770c065d2ece 000000000000 000000000000 (expected 770c065d2ece 00001b7447ee 0000035b9d88), cluster_out[0] 770c065d2ece, o
+2026-11-16T09:26:50+05:30	5dfc2efc60ce	True	fv_dsu	dsu_bmc	-	BOUNDED(16)	OK	[18 asserts, 9 covers in model] 
+2026-11-16T09:26:50+05:30	5dfc2efc60ce	True	fv_dsu	dsu_prove	-	PROVEN	OK	[18 asserts, 9 covers in model] 
+2026-11-16T09:26:50+05:30	5dfc2efc60ce	True	fv_dsu	dsu_cover	-	UNREACHED(3)	UNEXPECTED	[18 asserts, 9 covers in model] u_cluster.u_mac0.u_mac_sva.c_fold_replaced_ovf u_cluster.u_mac1.u_mac_sva.c_fold_replaced_ovf u_cluster.u_mac2.u_mac_sva.c_fold_replaced_ovf
+2026-11-16T09:26:50+05:30	5dfc2efc60ce	True	fv_dsu	dsu_no_dsu9	-	FAIL	XFAIL:PLANTED	[18 asserts, 9 covers in model] props: u_dsu_props_a.a_interlock_per_acc
+2026-11-16T09:26:50+05:30	5dfc2efc60ce	True	fv_dsu	dsu_mut_no_interlock	-	FAIL	XFAIL:PLANTED	[16 asserts, 9 covers in model] props: u_dsu_props_a.a_interlock_fires
+2026-11-16T09:26:50+05:30	5dfc2efc60ce	True	fv_dsu	dsu_mut_ovf_not_sticky	-	FAIL	XFAIL:PLANTED	[18 asserts, 9 covers in model] props: u_dsu_props_a.a_ovf_sticky
+2026-11-16T09:26:50+05:30	5dfc2efc60ce	True	fv_dsu	dsu_mut_ovf_clear_drops_set	-	FAIL	XFAIL:PLANTED	[18 asserts, 9 covers in model] props: u_dsu_props_a.a_ovf_set_beats_clear
+2026-11-16T09:43:56+05:30	5dfc2efc60ce	True	fv_dsu	dsu_bmc	-	BOUNDED(16)	OK	[18 asserts, 6 covers in model] 
+2026-11-16T09:43:56+05:30	5dfc2efc60ce	True	fv_dsu	dsu_prove	-	PROVEN	OK	[18 asserts, 6 covers in model] 
+2026-11-16T09:43:56+05:30	5dfc2efc60ce	True	fv_dsu	dsu_cover	-	COVERED	OK	[18 asserts, 6 covers in model] 
+2026-11-16T09:43:56+05:30	5dfc2efc60ce	True	fv_dsu	dsu_no_dsu9	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_per_acc
+2026-11-16T09:43:56+05:30	5dfc2efc60ce	True	fv_dsu	dsu_mut_no_interlock	-	FAIL	XFAIL:PLANTED	[16 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_fires
+2026-11-16T09:43:56+05:30	5dfc2efc60ce	True	fv_dsu	dsu_mut_ovf_not_sticky	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_sticky
+2026-11-16T09:43:56+05:30	5dfc2efc60ce	True	fv_dsu	dsu_mut_ovf_clear_drops_set	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_set_beats_clear

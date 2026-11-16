@@ -69,7 +69,7 @@ endmodule
 
 bind garuda_core_top core_ctl_sva u_ctl_sva (
     .clk           (clk_i),
-    .rst_n         (rst_n_i),
+    .rst_n         (core_rst_n_i),
     .ctl           (csr_ctl),
     .predict_taken (id_predict_taken),
     .clic_take_cond(clic_take_cond),

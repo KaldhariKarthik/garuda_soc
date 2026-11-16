@@ -31,7 +31,7 @@ branch_predict |branch_predict |rtl/core/filelist_branch_predict_fv.f |c |r ||CO
 csr_rw  |csr_rw          |rtl/core/filelist_csr_rw_fv.f |c |r ||COMB=1
 if_stage |garuda_if_stage_top |rtl/core/filelist_if_stage_fv.f |clk_i |rst_n_i |garuda_pc_gen garuda_iport_ahb_master garuda_prefetch_buffer|ASSUMES_FILE=flow/formal/core/if_stage_assumes.txt
 decode  |decode_control  |rtl/core/filelist_decode_fv.f |c |r ||COMB=1
-dsu     |dsu_top         |rtl/dsu/filelist.f         |clk             |rst_n |dsu_decoder dsu_stall overflow_flag mac_cluster operand_router readback_mux result_selector barrel_shifter|
+dsu     |dsu_top         |rtl/dsu/filelist.f         |clk             |rst_n |dsu_decoder dsu_stall overflow_flag mac_cluster operand_router readback_mux result_selector barrel_shifter|DEFS=FORMAL
 '
 want=" $* "
 echo "$TABLE" | while IFS='|' read -r name top fl clks rsts kids extra; do

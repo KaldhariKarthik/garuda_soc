@@ -1,5 +1,5 @@
 // MUTANT csr_file_no_c16: rtl/core/csr_file.v with ONE fix reverted (C-16: the read-zero CSRs trap again).
-// Formal negative control: the proof in tb/core/formal/csr_file.toml must FAIL on it.
+// Formal negative control: must FAIL. Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. (tb/core/formal/csr_file.toml csr_prove_no_c16)
 `timescale 1ns/1ps
 `default_nettype none
 // =============================================================================
@@ -39,6 +39,7 @@ module csr_file (
 
     // ---- retire / counters ----
     input  wire        instret_i,        // one retired instruction this cycle
+    input  wire        ret_mem_i,        // C-17: the instruction in MEM will retire (counted on a read)
 
     // ---- DSU overflow ----
     input  wire        dsu_overflow_i,
@@ -142,6 +143,13 @@ module csr_file (
     reg [7:0]  mil_r;                    // mintstatus.mil: current interrupt level
     reg [3:0]  ctl_r;                    // mgarudactl (CORE-4)
     reg [63:0] mcycle_r, minstret_r;
+    // ERRATUM C-17 (ruling D-32, 2026-11-04): minstret_r counts at WB, so a read in EX
+    // missed the older instructions still in MEM and WB. The architectural count adds
+    // them. A write stores its value less (MEM + 1): the MEM instruction and the writing
+    // instruction itself then increment it to exactly the written value, as Spike
+    // counts (the writing instruction is not counted; the WB instruction's increment
+    // in the write cycle is dropped, it was older). Borrow and carry cancel over 64 bits.
+    wire [63:0] instret_arch = minstret_r + {63'd0, ret_mem_i} + {63'd0, instret_i};
 
     wire [31:0] mstatus_val = {19'd0, 2'b11 /*MPP*/, 3'd0, mstatus_mpie, 3'd0, mstatus_mie, 3'd0};
     // CORE-SPEC Rev 3.0 §6.1: 0x4000_1100, RV32IM. The X bit is not set: the
@@ -184,14 +192,14 @@ module csr_file (
             MINTTHRESH:rdata = {24'd0, mintthresh_r};
             MCYCLE:    rdata = mcycle_r[31:0];
             MCYCLEH:   rdata = mcycle_r[63:32];
-            MINSTRET:  rdata = minstret_r[31:0];
-            MINSTRETH: rdata = minstret_r[63:32];
+            MINSTRET:  rdata = instret_arch[31:0];
+            MINSTRETH: rdata = instret_arch[63:32];
             DSU_OVF:   rdata = {31'd0, dsu_overflow_i};
             MGARUDACTL:rdata = {28'd0, ctl_r};                // CORE-4
             CYCLE:     rdata = mcycle_r[31:0];       // Zicntr read-only aliases
             CYCLEH:    rdata = mcycle_r[63:32];
-            INSTRET:   rdata = minstret_r[31:0];
-            INSTRETH:  rdata = minstret_r[63:32];
+            INSTRET:   rdata = instret_arch[31:0];
+            INSTRETH:  rdata = instret_arch[63:32];
             default:   begin rdata = 32'd0; implemented = 1'b0; end   // MUTANT: C-16 reverted
         endcase
         csr_rdata_o = rdata;
@@ -262,6 +270,7 @@ module csr_file (
     assign mintthresh_o    = mintthresh_r;
     assign mintstatus_mil_o= mil_r;
     assign mgarudactl_o    = ctl_r;          // CORE-4
+    wire [31:0] ctl_next   = nextv({28'd0, ctl_r}, csr_wdata_i, csr_op_i);
 
     always @(posedge clk_i or negedge rst_n_i) begin
         if (!rst_n_i) begin
@@ -276,8 +285,12 @@ module csr_file (
             if      (wr_ok && csr_addr_i == MCYCLE)  mcycle_r[31:0]  <= nextv(mcycle_r[31:0],  csr_wdata_i, csr_op_i);
             else if (wr_ok && csr_addr_i == MCYCLEH) mcycle_r[63:32] <= nextv(mcycle_r[63:32], csr_wdata_i, csr_op_i);
             else                                     mcycle_r        <= mcycle_r + 64'd1;
-            if      (wr_ok && csr_addr_i == MINSTRET)  minstret_r[31:0]  <= nextv(minstret_r[31:0],  csr_wdata_i, csr_op_i);
-            else if (wr_ok && csr_addr_i == MINSTRETH) minstret_r[63:32] <= nextv(minstret_r[63:32], csr_wdata_i, csr_op_i);
+            if      (wr_ok && csr_addr_i == MINSTRET)
+                minstret_r <= {instret_arch[63:32], nextv(instret_arch[31:0], csr_wdata_i, csr_op_i)}
+                              - {63'd0, ret_mem_i} - 64'd1;
+            else if (wr_ok && csr_addr_i == MINSTRETH)
+                minstret_r <= {nextv(instret_arch[63:32], csr_wdata_i, csr_op_i), instret_arch[31:0]}
+                              - {63'd0, ret_mem_i} - 64'd1;
             else if (instret_i)                        minstret_r        <= minstret_r + 64'd1;
 
             // Trap entry/exit take precedence over CSR-instruction writes.
@@ -316,7 +329,7 @@ module csr_file (
                     MTVAL:    mtval_r    <= nextv(mtval_r,    csr_wdata_i, csr_op_i);
                     MSCRATCH: mscratch_r <= nextv(mscratch_r, csr_wdata_i, csr_op_i);
                     MINTTHRESH: mintthresh_r <= mintthresh_next[7:0];
-                    MGARUDACTL: ctl_r <= nextv({28'd0, ctl_r}, csr_wdata_i, csr_op_i) & 32'hF; // CORE-4
+                    MGARUDACTL: ctl_r <= ctl_next[3:0];                      // CORE-4
                     default: ; // counters/RO handled elsewhere or ignored
                 endcase
             end

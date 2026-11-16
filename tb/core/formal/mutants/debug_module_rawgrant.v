@@ -1,5 +1,5 @@
-// debug_module.v with hartreset_o following the RAW request (the pre-fix
-// behaviour, b90b481): formal NEGATIVE CONTROL for tb/core/formal/rdc1.toml.
+// MUTANT debug_module_rawgrant: rtl/debug/debug_module.v with ONE change: hartreset_o follows the RAW request
+// (the pre-RDC-1 behaviour of b90b481). Formal negative control: must FAIL. Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. (tb/core/formal/rdc1.toml rdc1_prove_rawgrant)
 `timescale 1ns/1ps
 `default_nettype none
 // =============================================================================
@@ -59,7 +59,7 @@ module debug_module #(
     output wire        ndmreset_o,
     output wire        hartreset_o,
     // ---- halt drain with the core (RDC-1) -------------------------------------------------
-    output wire        halt_req_o,        // a halt is requested and not yet granted
+    output wire        halt_req_o,        // a halt is requested (held through the grant)
     input  wire        halt_safe_i,       // the core breaks no bus transfer if reset now
 
     // ---- DSU taps --------------------------------------------------------------------------
@@ -104,12 +104,19 @@ module debug_module #(
     reg        grant_q;                   // the core is (being) held in hartreset
     reg        haltforced;                // sticky: a grant came from the timeout
     reg [15:0] halt_cnt;
+    localparam integer HALT_LAST_I = HALT_TIMEOUT - 1;
+    localparam [15:0]  HALT_LAST   = HALT_LAST_I[15:0];   // the counter is 16 bits
     wire       halt_requested = dmactive & hartreset;
 
     wire [31:0] dmcontrol = {2'b00, hartreset, 27'd0, ndmreset, dmactive};
-    wire [31:0] dmstatus  = {12'd0, 1'b0 /*impebreak*/, 2'b00, 1'b0, 1'b0, 2'b00,
+    // dmstatus, RISC-V External Debug Support 0.13 layout, 32 bits. The fields
+    // above bit 11 are all 0; this used to be a 31-bit concatenation (impebreak
+    // at bit 18), the same value, and a lint waiver.
+    wire [31:0] dmstatus  = {9'd0, 1'b0 /*impebreak*/, 2'b00,
+                             2'b00 /*all,anyhavereset*/, 2'b00 /*all,anyresumeack*/,
+                             2'b00 /*all,anynonexistent*/, 2'b00 /*all,anyunavail*/,
                              ~grant_q, ~grant_q, grant_q, grant_q,      // RDC-1: halted = granted
-                             1'b1 /*authenticated*/, 3'b000, 4'd2};
+                             1'b1 /*authenticated*/, 3'b000, 4'd2 /*version 0.13*/};
     wire [31:0] sbcs      = {3'd1, 6'd0, sbbusyerror, sbbusy, sbreadonaddr, sbaccess,
                              sbautoinc, sbreadondata, sberror, 7'd32, 5'b00100};
 
@@ -128,7 +135,7 @@ module debug_module #(
             end else if (!grant_q) begin
                 if (halt_safe_i)
                     grant_q <= 1'b1;                         // the core reached a safe point
-                else if (halt_cnt == HALT_TIMEOUT - 1) begin
+                else if (halt_cnt == HALT_LAST) begin
                     grant_q    <= 1'b1;                      // bounded: never wait forever
                     haltforced <= 1'b1;
                 end else
@@ -136,20 +143,15 @@ module debug_module #(
             end
         end
     end
-    assign halt_req_o = halt_requested & ~grant_q;
+    // Held through the grant (2026-11-16): the core samples the grant into its reset
+    // flop one clock after it rises, and must not start fetching in that clock.
+    assign halt_req_o = halt_requested;
 
-    // start an SBA access if nothing is wrong ([N-7.6])
-    task automatic kick(input w);
-        begin
-            if (sbaccess != 3'd2)       sberror <= 3'd3;
-            else if (sbaddr[1:0] != 0)  sberror <= 3'd2;
-            else begin
-                sba_start_o   <= 1'b1;
-                sba_write_o   <= w;
-                pending_write <= w;
-            end
-        end
-    endtask
+    // An SBA access starts only if nothing is wrong ([N-7.6]): sbaccess must be 2 (32-bit),
+    // else sberror = 3; the address must be word-aligned, else sberror = 2. The check is
+    // written out at each of its three places (SBADDR0 write, SBDATA0 write, SBDATA0 read)
+    // rather than as a task: Xcelium switches X-propagation off for a block that calls a
+    // task writing registers outside it (flow/2_static/xprop/README.md, ruling 2026-11-10).
 
     always @(posedge hclk_i or negedge dm_rst_n_i) begin
         if (!dm_rst_n_i) begin
@@ -198,7 +200,12 @@ module debug_module #(
                     end
                     A_SBCS: begin
                         if (wdata_i[22]) sbbusyerror <= 1'b0;
-                        if (wdata_i[14:12] != 0) sberror <= sberror & ~wdata_i[14:12];
+                        // ERRATUM DBG-4 (ruling D-32, 2026-11-03): an SBA error completing
+                        // in this cycle wins over the debugger's write-1-to-clear, as the
+                        // DMA's set-beats-clear rule ([N-7.19]); before, the later
+                        // assignment cleared the 4 just set and the error was lost.
+                        if (wdata_i[14:12] != 0 && !(sba_done_i && dmactive && sba_err_i))
+                            sberror <= sberror & ~wdata_i[14:12];
                         sbreadonaddr <= wdata_i[20];
                         sbaccess     <= wdata_i[19:17];
                         sbautoinc    <= wdata_i[16];
@@ -209,7 +216,7 @@ module debug_module #(
                         else begin
                             sbaddr <= wdata_i;
                             if (sbreadonaddr && sberror == 0 && !sbbusyerror) begin
-                                // kick() checks the NEW address
+                                // the check uses the NEW address
                                 if (sbaccess != 3'd2)     sberror <= 3'd3;
                                 else if (wdata_i[1:0] != 0) sberror <= 3'd2;
                                 else begin sba_start_o <= 1'b1; sba_write_o <= 1'b0; pending_write <= 1'b0; end
@@ -220,7 +227,11 @@ module debug_module #(
                         if (sbbusy) sbbusyerror <= 1'b1;
                         else begin
                             sbdata <= wdata_i;
-                            if (sberror == 0 && !sbbusyerror) kick(1'b1);
+                            if (sberror == 0 && !sbbusyerror) begin
+                                if (sbaccess != 3'd2)       sberror <= 3'd3;
+                                else if (sbaddr[1:0] != 2'b00) sberror <= 3'd2;
+                                else begin sba_start_o <= 1'b1; sba_write_o <= 1'b1; pending_write <= 1'b1; end
+                            end
                         end
                     end
                     default: ;
@@ -238,7 +249,11 @@ module debug_module #(
                         rdata_o <= sbdata;
                         if (!dmactive) ;                  // DBG-3: no side effects in reset
                         else if (sbbusy) sbbusyerror <= 1'b1;
-                        else if (sbreadondata && sberror == 0 && !sbbusyerror) kick(1'b0);
+                        else if (sbreadondata && sberror == 0 && !sbbusyerror) begin
+                            if (sbaccess != 3'd2)       sberror <= 3'd3;
+                            else if (sbaddr[1:0] != 2'b00) sberror <= 3'd2;
+                            else begin sba_start_o <= 1'b1; sba_write_o <= 1'b0; pending_write <= 1'b0; end
+                        end
                     end
                     A_ACC0L: begin rdata_o <= dsu_acc0_i[31:0]; hold0 <= dsu_acc0_i; end
                     A_ACC0H:       rdata_o <= {16'd0, hold0[47:32]};

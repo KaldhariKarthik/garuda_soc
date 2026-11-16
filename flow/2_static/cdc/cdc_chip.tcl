@@ -86,7 +86,6 @@ waive RST_NO_SYNC -occurrence {u_core.u_reset_ctrl.*} "the reset generator itsel
 waive RST_NO_SYNC -occurrence {u_core.u_soc.u_debug.u_*} "JTAG side (TAP, DTM, dmi_cdc ack): power-on reset from the pin, tck stopped at power-up; the TAP is also reset by five TMS-high clocks (IEEE 1149.1)"
 # reset structure inside reset_ctrl and the core, already reviewed
 waive RST_RS_CONV -occurrence {u_core.u_reset_ctrl.*} "the request logic of reset_ctrl combines the synchronised pin with the other reset causes; its outputs are re-registered (hrst_q, core_q, dm_q)"
-waive RST_RS_CONV -occurrence {u_core.u_soc.u_core.rst_n_i} "core_rst_n AND hartreset_n inside the core: CORE (N-7.33), HAL GLTASR waiver"
 waive RST_RS_RIDP -occurrence {u_core.u_reset_ctrl.hrst_q*} "hreset_n is data on purpose: preset_n releases after it (prst_q chain) and the watchdog request flop is cleared by it (rdc_review.md crossings 1 and 2)"
 # clock-domain items
 waive CDC_PR_FOUT -occurrence {u_core.u_soc.u_debug.u_dtm.req_*} "DMI payload fans out to several Debug Module registers; it is stable for the whole handshake (DEBUG (N-7.16))"

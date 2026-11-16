@@ -6,9 +6,13 @@
 // The bus (and the Debug Module) reset only at the start: the properties are
 // judged with the BUS reset, never with the hart reset -- that is exactly why
 // the simulation checkers missed RDC-1 for so long (they were on the same reset).
-// HALT_TIMEOUT is the production value; a forced grant is flagged sticky in
-// haltinfo.haltforced and every property is required only while no grant has
-// ever been forced (the forced reset is the documented, flagged fallback).
+// HALT_TIMEOUT is the production value. A forced grant (the timeout, flagged in
+// haltinfo.haltforced) is the documented fallback for a slave that never ends its
+// transfer, and it does break that transfer. So the properties are excused from the
+// forced grant until the core comes out of the reset it causes -- tracked here in
+// forced_q, not by haltforced alone, because the debugger may clear haltforced (W1C)
+// in the clock between the grant and the core's reset (D-36: the reset is sampled one
+// hclk after the grant). Outside that window every property is required.
 //
 // Properties (all PROVEN on the fixed RTL; the negative control
 // mutants/debug_module_rawgrant.v -- hartreset_o following the raw request, the
@@ -44,11 +48,15 @@ module rdc1_top (
     wire        i_hwrite, d_hwrite;
     wire [47:0] acc0, acc1, acc2;
     wire        dsu_ovf, core_sleep, hartreset, ndmreset, halt_req, halt_safe;
+    // The core's reset as on the chip (D-36): reset_ctrl's core_rst_sync.
+    wire        core_rst_n;
+    core_rst_sync u_core_rst_sync (.hclk_i(clk), .clr_i(~rst_n), .hartreset_req_i(hartreset),
+                                   .core_rst_n_o(core_rst_n));
     wire [31:0] dmi_rdata, sba_addr, sba_wdata;
     wire        dmi_done, sba_start, sba_write;
 
     garuda_core_top #(.RESET_VECTOR(32'h1000_0000), .CLK_GATE(0)) u_core (
-        .clk_i(clk), .core_rst_n_i(rst_n), .hartreset_n_i(~hartreset),
+        .clk_i(clk), .core_rst_n_i(core_rst_n),
         .halt_req_i(halt_req), .halt_safe_o(halt_safe),
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize), .i_hburst_o(i_hburst),
         .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite), .i_hwdata_o(i_hwdata),
@@ -115,7 +123,13 @@ module rdc1_top (
             q_d_hwrite <= d_hwrite; q_d_hsize <= d_hsize;
             q_i_haddr  <= i_haddr;  q_i_htrans <= i_htrans;
         end
-    wire unforced = !u_dm.haltforced;
+    // From a forced grant until the core's reset is released (see the header).
+    reg forced_q;
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n)                forced_q <= 1'b0;
+        else if (u_dm.haltforced)  forced_q <= 1'b1;
+        else if (core_rst_n)       forced_q <= 1'b0;
+    wire unforced = !u_dm.haltforced && !forced_q;
 
     a_d_hwdata_stable: assert property (@(posedge clk) disable iff (!rst_n)
         !(q_d_wwait && unforced) || (d_hwdata == q_d_hwdata));

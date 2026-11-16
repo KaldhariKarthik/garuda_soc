@@ -58,11 +58,14 @@ module mac_unit_sva (
         !overflow || pending)                    // DSU-18 (ruling D-32): a same-cycle load/clear/saturate no longer hides it
         else $error("[SVA-FAIL] DSU F10: overflow flagged outside an accumulate fold");
     c_fold:     cover property (@(posedge clk) disable iff (!rst_n) pending && !(my_load || my_clear || my_sat));
-    c_fold_replaced_ovf: cover property (@(posedge clk) disable iff (!rst_n) overflow && (my_load || my_clear || my_sat));   // DSU-18
 `ifndef FORMAL
-    // reached in simulation (t_cov_dsu, the clamp walk); a 48-bit overflow is
-    // ~65000 cycles from reset, beyond any bounded formal cover
+    // reached in simulation; a 48-bit overflow is ~65000 cycles from reset, beyond any
+    // bounded formal cover. c_overflow: t_cov_dsu, the clamp walk. c_fold_replaced_ovf
+    // (DSU-18): tb/dsu/units_spec/tb_dsu_top_ovf_b2b.sv, an overflowing accumulate
+    // followed at once by MACCLEAR / MACLOAD of the same accumulator (was in the formal
+    // cover task until 2026-11-16, where it could never be reached).
     c_overflow: cover property (@(posedge clk) disable iff (!rst_n) overflow);
+    c_fold_replaced_ovf: cover property (@(posedge clk) disable iff (!rst_n) overflow && (my_load || my_clear || my_sat));   // DSU-18
 `endif
 endmodule
 

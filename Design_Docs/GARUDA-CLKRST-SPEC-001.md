@@ -156,7 +156,7 @@ substance of §7.3.
 | `hartreset_req_i` | in | 1 | tck→hclk | — | Debug core-only reset. |
 | `hreset_n_o` | out | 1 | hclk | 0 | Reset for the AHB fabric, memories, DMA, CLIC, timers. |
 | `preset_n_o` | out | 1 | pclk | 0 | Reset for the APB bridge and peripherals. |
-| `core_rst_n_o` | out | 1 | hclk | 0 | Reset for core + DSU. Asserts with `hreset_n_o`, and additionally for `hartreset`. |
+| `core_rst_n_o` | out | 1 | hclk | 0 | Reset for core + DSU. Asserts with `hreset_n_o`, and additionally one `hclk` after `hartreset_req_i` rises (sampled on `hclk`, D-36). |
 | APB slave | — | — | pclk | — | Window 9. See §6. |
 
 **`preset_n_o` and `hreset_n_o` deassert on different clocks and therefore at different
@@ -565,9 +565,11 @@ a_div_no_glitch: assert property (
 a_release_order: assert property (
   @(posedge pclk_i) $rose(preset_n_o) |-> hreset_n_o);
 
-// --- hartreset resets the core without touching the fabric
+// --- hartreset resets the core, one hclk after the grant (D-36), without touching the fabric
+a_hartreset_core: assert property (
+  @(posedge hclk_i) hartreset_req_i |=> !core_rst_n_o);
 a_hartreset_scope: assert property (
-  @(posedge hclk_i) hartreset_req_i |-> !core_rst_n_o && hreset_n_o);
+  @(posedge hclk_i) hartreset_req_i |-> hreset_n_o);
 ```
 
 ---

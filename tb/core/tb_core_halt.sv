@@ -44,9 +44,14 @@ module tb_core_halt;
     wire        dsu_ovf, core_sleep;
     wire        dm_hartreset;
     wire        halt_req, halt_safe;          // RDC-1 drain handshake (core <-> Debug Module)
+    // The core's reset as on the chip (D-36): reset_ctrl's core_rst_sync, cleared by the
+    // bench reset, and falling one clock after the Debug Module's hartreset grant.
+    wire        core_rst_n;
+    core_rst_sync u_core_rst_sync (.hclk_i(clk), .clr_i(~rst_n), .hartreset_req_i(dm_hartreset),
+                                   .core_rst_n_o(core_rst_n));
 
     garuda_core_top #(.RESET_VECTOR(BASE)) dut (
-        .clk_i(clk), .core_rst_n_i(rst_n), .hartreset_n_i(~dm_hartreset),
+        .clk_i(clk), .core_rst_n_i(core_rst_n),
         .halt_req_i(halt_req), .halt_safe_o(halt_safe),
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize),
         .i_hburst_o(i_hburst), .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite),

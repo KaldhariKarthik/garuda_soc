@@ -120,14 +120,17 @@ endef
 # See Docs/guides/CORE_ELEMENT_VERIFICATION.md for the element -> spec section ->
 # C-test mapping. The pass line is any "RESULT: ... PASSED": thirteen benches
 # print "RESULT: ALL CHECKS PASSED" and tb_clic_ctrl prints "RESULT: PASSED (n
-# checks, 0 failed)".
+# checks, 0 failed)". The summary prints the bench's own check count (CHECKS=n or
+# "(n checks"); a bench that reports no checks fails (2026-11-16: the summary used to
+# count [PASS] lines, which these benches do not print, and showed PASS=0).
 define run_tb_elem
 	@mkdir -p $(SIM_DIR)/elem_$(1) && rm -f $(SIM_DIR)/elem_$(1)/run.log; \
 	  $(XRUN) -64bit -f $(if $(2),$(2),tb/core)/filelist_$(1).f -top tb_top \
 	    -xmlibdirname $(SIM_DIR)/elem_$(1)/xcelium.d \
 	    -l $(SIM_DIR)/elem_$(1)/run.log $(3) > /dev/null 2>&1; rc=$$?; \
-	  printf "%-26s PASS=%-6s FAIL=%-4s SVA_FAIL=%-4s %s\n" "$(1)" \
-	    "$$(grep -c '\[PASS\]' $(SIM_DIR)/elem_$(1)/run.log 2> /dev/null)" \
+	  n=$$(grep -ohE 'CHECKS=[0-9]+|\([0-9]+ checks' $(SIM_DIR)/elem_$(1)/run.log 2> /dev/null | grep -oE '[0-9]+' | tail -1); \
+	  [ -n "$$n" ] && [ "$$n" -gt 0 ] || { n=0; rc=1; echo "$(1): the bench reports no checks"; }; \
+	  printf "%-26s CHECKS=%-6s FAIL=%-4s SVA_FAIL=%-4s %s\n" "$(1)" "$$n" \
 	    "$$(grep -c '\[FAIL\]' $(SIM_DIR)/elem_$(1)/run.log 2> /dev/null)" \
 	    "$$(grep -c '\*E,ASRTST' $(SIM_DIR)/elem_$(1)/run.log 2> /dev/null)" \
 	    "$$(grep -hE '^ ?RESULT:' $(SIM_DIR)/elem_$(1)/run.log 2> /dev/null | head -1)"; \

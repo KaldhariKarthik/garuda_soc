@@ -1,0 +1,34 @@
+Zero-waiver work, batch 1 (2026-11-16): D-36 one core reset, formal mutants, formal suites made whole.
+Every line below was run on this tree before the commit.
+
+Gates and regression (tcsh, source /home/install/cshrc)
+  make regress_all                          regress_all: PASS
+  make uvm_b UVM_TAG=_gate                  every UVM test PASS
+  make test_elements                        15 benches, 38 to 40056 checks each, 0 failed (TOOL-A20)
+  make check_tree                           0 problems, 308 bug IDs; formal_mutants: 34 mutants, all current
+  make csr_map                              0 mismatches -> PASS
+  make static_lint                          FAILS on the old baseline only: DIFRST 26 -> 33 (core_rst_n_i
+                                            meets submodule ports named rst_n_i), FRSTDF 9 -> 10 (the new
+                                            synchroniser); GLTASR 1 -> 0. Not added to the baseline: both
+                                            close in the F4 pass that removes the baseline (flow/ZERO_WAIVER.md).
+
+Formal, SymbiYosys (make -f flow/mk/track_a_run.mk ...)
+  fv_core_rdc1     rdc1_bmc depth 30 OK, rdc1_prove PROVEN, rdc1_cover OK, rawgrant mutant FAIL on a_grant_only_safe
+  fv_core_trap     13/13 as expected (2 proofs, 1 cover, 9 mutants each FAIL)
+  fv_core_csr      4/4 as expected
+  fv_cov_unreach   3/3 OK
+  fv_dsu           7/7 as expected (dsu_cover COVERED after the DSU-18 cover moved to simulation)
+  fv_apb, fv_ahb   OK; every mutant FAIL on its named property (ahb7_find: open bug AHB-7, Z10)
+  fv_dma           dma_prove PROVEN with every detector, dma_bmc depth 32, dma_cover; 5 mutants FAIL
+  core_halt        4/4 PASS (t_core_hartreset_s1..s3, t_core_hartreset_timeout)
+
+Formal, JasperGold (no multiplier blackboxed, TOOL-A21)
+  flow/formal/core/rdc1_jg.tcl             131/131 proven, 0 undetermined   (rdc1_jg.result.txt)
+  flow/formal/core/pipe_ctrl_core.tcl      DSU: 156/156 proven, 134 covered, 2 unreachable (design facts)
+                                           stub: 127/127 proven               (pipe_ctrl_core.result.txt)
+  flow/formal/core/cov_g5_unr.tcl          3/3 proven, 5/5 covered
+  flow/formal/run_blocks.sh dsu            47/47 proven, 31/31 covered      (dsu/dsu_fpv.result.txt)
+
+Simulation evidence
+  tb/dsu/units_spec/tb_dsu_top_ovf_b2b.sv  12/12, c_fold_replaced_ovf and c_overflow hit on all three
+                                           accumulators (logs/dsu/evidence/dsu18_covers_2026-11-16.txt)

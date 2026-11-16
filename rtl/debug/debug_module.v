@@ -57,7 +57,7 @@ module debug_module #(
     output wire        ndmreset_o,
     output wire        hartreset_o,
     // ---- halt drain with the core (RDC-1) -------------------------------------------------
-    output wire        halt_req_o,        // a halt is requested and not yet granted
+    output wire        halt_req_o,        // a halt is requested (held through the grant)
     input  wire        halt_safe_i,       // the core breaks no bus transfer if reset now
 
     // ---- DSU taps --------------------------------------------------------------------------
@@ -141,7 +141,9 @@ module debug_module #(
             end
         end
     end
-    assign halt_req_o = halt_requested & ~grant_q;
+    // Held through the grant (2026-11-16): the core samples the grant into its reset
+    // flop one clock after it rises, and must not start fetching in that clock.
+    assign halt_req_o = halt_requested;
 
     // An SBA access starts only if nothing is wrong ([N-7.6]): sbaccess must be 2 (32-bit),
     // else sberror = 3; the address must be word-aligned, else sberror = 2. The check is

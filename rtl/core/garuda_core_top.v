@@ -9,8 +9,9 @@
 // Rev 3.0 boundary (RTL deltas R4, R5, R7, R11):
 //   - mtip_i replaces mtime_i/mtimecmp_i and the in-core 64-bit comparator;
 //     the compare lives in block 11 (ADR-0010).
-//   - hartreset_n_i is a second reset input, ORed internally with
-//     core_rst_n_i ([N-7.33]); the Debug Module holds it to "halt" the hart.
+//   - (D-36, 2026-11-16) one reset input, core_rst_n_i: reset_ctrl also asserts it
+//     for the Debug Module's hartreset ([N-7.33]); the hartreset_n_i input of Rev 3.0
+//     is gone.
 //   - clic_mintthresh_o is gone; the CLIC interface is {valid, id[4:0],
 //     level[7:0]}, level-triggered, no acknowledge (CLIC-SPEC §5).
 //   - Every core flop runs on a gated clock from core_clk_gate, enabled by
@@ -37,7 +38,6 @@ module garuda_core_top #(
 )(
     input  wire        clk_i,           // hclk, ungated
     input  wire        core_rst_n_i,    // from reset_ctrl
-    input  wire        hartreset_n_i,   // from the Debug Module (core only)
     // ERRATUM RDC-1 (reset-domain review crossing 5; fixed 2026-10-11): a debugger
     // halt (= hartreset, ADR-0012) used to reset the core at any cycle, also in the
     // waited data phase of a store, on a bus that is NOT reset: the store's
@@ -117,11 +117,10 @@ module garuda_core_top #(
     // =========================================================================
     // reset and clock
     // =========================================================================
-    // [N-7.33]: either reset input produces a full core + DSU reset. Both are
-    // registered outputs of reset_ctrl synchronisers, so their AND is glitch-free
-    // apart from simultaneous opposite transitions, which cannot occur (one is
-    // a stretched system reset, the other a debugger-held level).
-    wire rst_n_i = core_rst_n_i & hartreset_n_i;
+    // [N-7.33] (D-36, 2026-11-16): one reset input. reset_ctrl asserts core_rst_n_i for
+    // every system reset and, one hclk after it, for the Debug Module's hartreset grant,
+    // and releases it synchronously to hclk. Until 2026-11-16 the core had a second
+    // input, hartreset_n_i, ANDed here in front of the asynchronous resets (HAL GLTASR).
     wire [3:0] csr_ctl;                  // CORE-4: mgarudactl (BP_DIS, PF_DIS, PREEMPT_DIS, CG_DIS)
     wire gclk;
     wire quiescent;
@@ -196,8 +195,8 @@ module garuda_core_top #(
     // Bus activity for quiescent: a port is busy while it presents a transfer
     // or owns an unfinished data phase.
     reg i_dph_q, d_dph_q, wfi_q1, wfi_q2;
-    always @(posedge gclk or negedge rst_n_i) begin
-        if (!rst_n_i) begin
+    always @(posedge gclk or negedge core_rst_n_i) begin
+        if (!core_rst_n_i) begin
             i_dph_q <= 1'b0; d_dph_q <= 1'b0; wfi_q1 <= 1'b0; wfi_q2 <= 1'b0;
         end else begin
             if (i_hready_i) i_dph_q <= i_htrans_o[1];
@@ -215,15 +214,22 @@ module garuda_core_top #(
     // a load's register write not yet done, for the whole sleep.
     wire bus_idle = ~i_htrans_o[1] & ~d_htrans_o[1] & ~i_dph_q & ~d_dph_q &
                     ~em_valid & ~mw_retire & ~mw_reg_write;
-    // RDC-1: the port part of bus_idle -- no address presented, no data phase
-    // owned, on either port. A hart reset in such a cycle breaks no transfer.
-    assign halt_safe_o = ~i_htrans_o[1] & ~d_htrans_o[1] & ~i_dph_q & ~d_dph_q;
+    // RDC-1: no address presented and no data phase owned on either port, now or in
+    // the next clock. The hart reset falls one hclk after the Debug Module's grant
+    // (D-36), so a load or store in EX or MEM, which would present its D-port address
+    // in that clock, makes the point unsafe (until 2026-11-16 the reset fell in the
+    // grant's own clock and the port part alone was enough; JasperGold a_d_addr_stable).
+    // The I-port presents nothing new: fetch is stopped by halt_req_i, held through the
+    // grant.
+    assign halt_safe_o = ~i_htrans_o[1] & ~d_htrans_o[1] & ~i_dph_q & ~d_dph_q &
+                         ~(xe_valid & (xe_mem_read | xe_mem_write)) &
+                         ~(em_valid & (em_mem_read | em_mem_write));
 
     // =========================================================================
     // IF stage
     // =========================================================================
     garuda_if_stage_top #(.RESET_VECTOR(RESET_VECTOR)) u_if (
-        .clk_i(gclk), .rst_n_i(rst_n_i),
+        .clk_i(gclk), .rst_n_i(core_rst_n_i),
         .i_haddr_o(i_haddr_o), .i_htrans_o(i_htrans_o), .i_hsize_o(i_hsize_o),
         .i_hburst_o(i_hburst_o), .i_hprot_o(i_hprot_o), .i_hwrite_o(i_hwrite_o), .i_hwdata_o(i_hwdata_o),
         .i_hrdata_i(i_hrdata_i), .i_hready_i(i_hready_i), .i_hresp_i(i_hresp_i),
@@ -233,7 +239,7 @@ module garuda_core_top #(
         .pf_dis_i(csr_ctl[1])                               // CORE-4: PF_DIS
     );
     if_id u_ifid (
-        .clk_i(gclk), .rst_n_i(rst_n_i), .stall_i(pc_ifid_s), .flush_i(pc_ifid_f),
+        .clk_i(gclk), .rst_n_i(core_rst_n_i), .stall_i(pc_ifid_s), .flush_i(pc_ifid_f),
         .instr_i(if_instr), .pc_i(if_pc), .valid_i(if_valid), .fault_i(if_fault),
         .instr_o(fd_instr), .pc_o(fd_pc), .valid_o(fd_valid), .fault_o(fd_fault)
     );
@@ -242,7 +248,7 @@ module garuda_core_top #(
     // ID stage (regfile internal)
     // =========================================================================
     id_stage u_id (
-        .clk_i(gclk), .rst_n_i(rst_n_i),
+        .clk_i(gclk), .rst_n_i(core_rst_n_i),
         .if_id_instr_i(fd_instr), .if_id_pc_i(fd_pc), .if_id_fault_i(fd_fault), .if_id_valid_i(fd_valid),
         .wb_reg_write_i(rf_we), .wb_rd_i(rf_rd), .wb_data_i(rf_wdata),
         .ex_mem_read_i(xe_mem_read), .ex_rd_i(xe_rd),
@@ -260,7 +266,7 @@ module garuda_core_top #(
         .bp_dis_i(csr_ctl[0])                               // CORE-4: BP_DIS
     );
     id_ex u_idex (
-        .clk_i(gclk), .rst_n_i(rst_n_i), .stall_i(pc_idex_s), .flush_i(pc_idex_f),
+        .clk_i(gclk), .rst_n_i(core_rst_n_i), .stall_i(pc_idex_s), .flush_i(pc_idex_f),
         .pc_i(id_pc), .instr_i(id_instr), .rs1_data_i(id_rs1_data), .rs2_data_i(id_rs2_data),
         .rs1_fwd_i(ex_rs1_fwd), .rs2_fwd_i(ex_rs2_fwd),   // ERRATUM F-1 operand capture
         .imm_i(id_imm), .rs1_idx_i(id_rs1_idx), .rs2_idx_i(id_rs2_idx), .rd_i(id_rd), .funct3_i(id_funct3),
@@ -290,7 +296,7 @@ module garuda_core_top #(
         .fwd_a_sel_o(fwd_a_sel), .fwd_b_sel_o(fwd_b_sel)
     );
     ex_stage u_ex (
-        .clk(gclk), .rst_n(rst_n_i),
+        .clk(gclk), .rst_n(core_rst_n_i),
         .pc(xe_pc), .instr(xe_instr), .rs1_data(xe_rs1), .rs2_data(xe_rs2), .imm(xe_imm),
         .rd(xe_rd), .funct3(xe_funct3), .reg_write(xe_reg_write), .mem_read(xe_mem_read),
         .mem_write(xe_mem_write), .mem_to_reg(xe_mem_to_reg), .alu_src(xe_alu_src),
@@ -312,7 +318,7 @@ module garuda_core_top #(
         .dbg_acc_0(dbg_acc_0_o), .dbg_acc_1(dbg_acc_1_o), .dbg_acc_2(dbg_acc_2_o)
     );
     ex_mem u_exmem (
-        .clk_i(gclk), .rst_n_i(rst_n_i), .stall_i(pc_exmem_s), .flush_i(pc_exmem_f),
+        .clk_i(gclk), .rst_n_i(core_rst_n_i), .stall_i(pc_exmem_s), .flush_i(pc_exmem_f),
         .ex_result_i(ex_result), .store_data_i(ex_store_data), .funct3_i(xe_funct3),
         .rd_i(ex_rd_out), .pc_i(xe_pc), .mem_read_i(ex_mem_read_out), .mem_write_i(ex_mem_write_out),
         .mem_to_reg_i(ex_mem_to_reg_out), .reg_write_i(ex_reg_write_out), .valid_i(xe_valid),
@@ -325,7 +331,7 @@ module garuda_core_top #(
     // MEM + WB
     // =========================================================================
     mem_stage u_mem (
-        .clk_i(gclk), .rst_n_i(rst_n_i),
+        .clk_i(gclk), .rst_n_i(core_rst_n_i),
         .ex_result_i(em_result), .rs2_data_i(em_store), .funct3_i(em_funct3), .rd_i(em_rd),
         .pc_i(em_pc), .mem_read_i(em_mem_read), .mem_write_i(em_mem_write),
         .mem_to_reg_i(em_mem_to_reg), .reg_write_i(em_reg_write), .valid_i(em_valid),
@@ -338,7 +344,7 @@ module garuda_core_top #(
         .mem_exception_cause_o(mem_exc_cause), .mem_exception_mtval_o(mem_exc_tval)
     );
     mem_wb_reg u_memwb (
-        .clk_i(gclk), .rst_n_i(rst_n_i), .flush_i(pc_mwb_f),
+        .clk_i(gclk), .rst_n_i(core_rst_n_i), .flush_i(pc_mwb_f),
         .wb_data_i(mem_wb_data), .rd_i(mem_rd), .reg_write_i(mem_reg_write), .retire_i(mem_retire),
         .wb_data_o(mw_data), .rd_o(mw_rd), .reg_write_o(mw_reg_write), .retire_o(mw_retire)
     );
@@ -368,7 +374,7 @@ module garuda_core_top #(
     assign ex_commit = ~ex_parked & ~tr_ex_squash & ~ovf_rd_hold;
 
     csr_file u_csr (
-        .clk_i(gclk), .rst_n_i(rst_n_i),
+        .clk_i(gclk), .rst_n_i(core_rst_n_i),
         .csr_en_i(ex_csr_en_out), .commit_i(ex_commit), .csr_addr_i(ex_csr_addr_w), .csr_wdata_i(ex_csr_wdata),
         .csr_op_i(ex_csr_op_out), .csr_rdata_o(csr_rdata), .illegal_csr_o(csr_illegal),
         .instret_i(mw_retire),                        // true architectural retire
@@ -393,7 +399,7 @@ module garuda_core_top #(
     );
     assign dsu_ovf_o = ex_dsu_overflow;
     trap_ctrl #(.ID_W(5)) u_trap (
-        .clk_i(gclk), .rst_n_i(rst_n_i),
+        .clk_i(gclk), .rst_n_i(core_rst_n_i),
         .idex_pc_i(xe_pc), .idex_instr_i(xe_instr), .idex_fault_i(xe_fault),
         .idex_illegal_dec_i(xe_illegal), .idex_is_system_i(xe_is_system),
         .idex_valid_i(xe_valid),                      // ERRATUM T-4
@@ -443,7 +449,7 @@ module garuda_core_top #(
     // RVFI (plan 5.1): records follow ex_mem / mem_wb hold and flush exactly
     // =========================================================================
     garuda_rvfi u_rvfi (
-        .clk_i(gclk), .clk_free_i(clk_i), .rst_n_i(rst_n_i),
+        .clk_i(gclk), .clk_free_i(clk_i), .rst_n_i(core_rst_n_i),
         .xe_valid_i(xe_valid), .xe_pc_i(xe_pc), .xe_instr_i(xe_instr), .xe_imm_i(xe_imm),
         .xe_rs1_i(xe_rs1i), .xe_rs2_i(xe_rs2i), .xe_funct3_i(xe_funct3),
         .xe_branch_i(xe_branch), .xe_jal_i(xe_jal), .xe_pred_taken_i(xe_predicted_taken),

@@ -62,6 +62,10 @@ module reset_ctrl_sva #(
     a_hartreset_scope: assert property (@(posedge aon_clk_i) disable iff (!ext_rst_n_i)
         (!hreset_n_o || !preset_n_o) |-> sys_cause)
         else $error("[SVA-FAIL] a_hartreset_scope: the system reset is low with no system request");
+    // D-36: the Debug Module's hartreset grant (hclk) resets the core one hclk later
+    a_hartreset_core: assert property (@(posedge hclk_i) disable iff (!ext_rst_n_i)
+        hartreset_req_i |=> !core_rst_n_o)
+        else $error("[SVA-FAIL] a_hartreset_core: core_rst_n_o still high one hclk after hartreset");
     a_reset_scope: assert property (@(posedge aon_clk_i) disable iff (!ext_rst_n_i)
         !dm_rst_n_o |-> dm_cause)
         else $error("[SVA-FAIL] a_reset_scope: the Debug Module is in reset with no pin, watchdog or software request");

@@ -111,14 +111,14 @@ module cov_const_iport (
 endmodule
 
 bind garuda_core_top cov_const_top u_cov_const_top (
-    .clk(clk_i), .rst_n(rst_n_i),
+    .clk(clk_i), .rst_n(core_rst_n_i),
     .i_haddr(i_haddr_o), .if_pc(if_pc), .fd_pc(fd_pc), .id_pc(id_pc), .xe_pc(xe_pc), .em_pc(em_pc),
     .mem_exc_pc(mem_exc_pc), .tr_pc(tr_pc), .csr_mepc(csr_mepc),
     .redir_pc(pc_if_redir_pc), .id_redir_t(id_redir_t), .tr_redir_t(tr_redir_t),
     .tr_cause(tr_cause), .mem_exc_cause(mem_exc_cause)
 );
 bind garuda_core_top cov_reach_top u_cov_reach_top (
-    .clk(clk_i), .rst_n(rst_n_i),
+    .clk(clk_i), .rst_n(core_rst_n_i),
     .ifid_s(pc_ifid_s), .ifid_f(pc_ifid_f), .idex_s(pc_idex_s), .idex_f(pc_idex_f),
     .mem_stall(mem_stall), .dsu_busy(ex_dsu_busy), .fwd_a_sel(fwd_a_sel),
     .irq_valid(clic_irq_valid_i), .mie(csr_mstatus_mie),

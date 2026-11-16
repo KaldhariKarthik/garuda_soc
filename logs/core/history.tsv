@@ -13929,3 +13929,47 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-16T04:30:33+05:30	f8434ca6b74e	False	covtests	t_cov_irq_ids	1	PASS	OK	
 2026-11-16T04:30:33+05:30	f8434ca6b74e	False	covtests	t_cov_irq_ids_fstop	1	PASS	OK	
 2026-11-16T04:30:33+05:30	f8434ca6b74e	False	covtests	t_dsu_macsat_rd	1	PASS	OK	
+2026-11-16T06:11:59+05:30	5dfc2efc60ce	True	halt	t_core_hartreset_s1	1	PASS	OK	
+2026-11-16T06:11:59+05:30	5dfc2efc60ce	True	halt	t_core_hartreset_s2	1	PASS	OK	
+2026-11-16T06:11:59+05:30	5dfc2efc60ce	True	halt	t_core_hartreset_s3	1	PASS	OK	
+2026-11-16T06:11:59+05:30	5dfc2efc60ce	True	halt	t_core_hartreset_timeout	1	PASS	OK	
+2026-11-16T06:12:05+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_bmc	-	ERROR	UNEXPECTED	SBY  6:12:05 [/home/kkarthik/garuda_soc/logs/core/raw/fv_rdc1/rdc1_bmc/rdc1_bmc] base: pipe_ctrl_sva.sv:226: ERROR: use of undeclared identifier 'rst_n_i'
+2026-11-16T06:12:05+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_prove	-	ERROR	UNEXPECTED	SBY  6:12:05 [/home/kkarthik/garuda_soc/logs/core/raw/fv_rdc1/rdc1_prove/rdc1_prove] base: pipe_ctrl_sva.sv:226: ERROR: use of undeclared identifier 'rst_n_i'
+2026-11-16T06:12:05+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_cover	-	ERROR	UNEXPECTED	SBY  6:12:05 [/home/kkarthik/garuda_soc/logs/core/raw/fv_rdc1/rdc1_cover/rdc1_cover] base: pipe_ctrl_sva.sv:226: ERROR: use of undeclared identifier 'rst_n_i'
+2026-11-16T06:12:05+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_prove_rawgrant	-	ERROR	UNEXPECTED	ome/kkarthik/garuda_soc/logs/core/raw/fv_rdc1/rdc1_prove_rawgrant/rdc1_prove_rawgrant] base: pipe_ctrl_sva.sv:226: ERROR: use of undeclared identifier 'rst_n_i'
+2026-11-16T06:13:22+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_bmc	-	FAIL	UNEXPECTED	[44 asserts, 38 covers in model] props: a_d_addr_stable
+2026-11-16T06:13:22+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_prove	-	FAIL	UNEXPECTED	[35 asserts, 38 covers in model] assertion failed (see trace)
+2026-11-16T06:13:22+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_cover	-	COVERED	OK	[44 asserts, 37 covers in model] 
+2026-11-16T06:13:22+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_prove_rawgrant	-	FAIL	XFAIL:PLANTED	[44 asserts, 38 covers in model] props: a_grant_only_safe
+2026-11-16T06:23:53+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_bmc	-	BOUNDED(30)	OK	[44 asserts, 38 covers in model] 
+2026-11-16T06:23:53+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_prove	-	FAIL	UNEXPECTED	[35 asserts, 38 covers in model] assertion failed (see trace)
+2026-11-16T06:23:53+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_cover	-	COVERED	OK	[44 asserts, 37 covers in model] 
+2026-11-16T06:23:53+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_prove_rawgrant	-	FAIL	XFAIL:PLANTED	[44 asserts, 38 covers in model] props: a_grant_only_safe
+2026-11-16T09:24:25+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_bmc	-	BOUNDED(30)	OK	[44 asserts, 38 covers in model] 
+2026-11-16T09:24:25+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_prove	-	PROVEN	OK	[35 asserts, 38 covers in model] 
+2026-11-16T09:24:25+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_cover	-	COVERED	OK	[44 asserts, 37 covers in model] 
+2026-11-16T09:24:25+05:30	5dfc2efc60ce	True	fv_rdc1	rdc1_prove_rawgrant	-	FAIL	XFAIL:PLANTED	[44 asserts, 38 covers in model] props: a_grant_only_safe
+2026-11-16T09:25:15+05:30	5dfc2efc60ce	True	fv_trap	trap_bmc	-	BOUNDED(20)	OK	[40 asserts, 35 covers in model] 
+2026-11-16T09:25:15+05:30	5dfc2efc60ce	True	fv_trap	trap_prove	-	PROVEN	OK	[31 asserts, 35 covers in model] 
+2026-11-16T09:25:15+05:30	5dfc2efc60ce	True	fv_trap	pipe_bmc	-	BOUNDED(30)	OK	[9 asserts, 35 covers in model] 
+2026-11-16T09:25:15+05:30	5dfc2efc60ce	True	fv_trap	trap_cover	-	COVERED	OK	[40 asserts, 34 covers in model] 
+2026-11-16T09:25:15+05:30	5dfc2efc60ce	True	fv_trap	trap_prove_no_t13	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] assertion failed (see trace)
+2026-11-16T09:25:15+05:30	5dfc2efc60ce	True	fv_trap	trap_prove_no_t14	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] assertion failed (see trace)
+2026-11-16T09:25:15+05:30	5dfc2efc60ce	True	fv_trap	t17_no_fix	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_trap.u_trap_sva.a_ex_exc_needs_instr
+2026-11-16T09:25:15+05:30	5dfc2efc60ce	True	fv_trap	t18_no_fix	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_trap.u_trap_sva.a_misfetch_tval_misaligned
+2026-11-16T09:25:15+05:30	5dfc2efc60ce	True	fv_trap	buse_no_fix	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_if.u_iport_master.u_ctl_sva.a_ihaddr_aligned
+2026-11-16T09:25:15+05:30	5dfc2efc60ce	True	fv_trap	ctl_no_bpdis	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_ctl_sva.a_ctl_bp
+2026-11-16T09:25:15+05:30	5dfc2efc60ce	True	fv_trap	ctl_no_pfdis	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_if.u_iport_master.u_ctl_sva.a_ctl_pf
+2026-11-16T09:25:15+05:30	5dfc2efc60ce	True	fv_trap	ctl_no_preempt	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_ctl_sva.a_ctl_preempt
+2026-11-16T09:25:15+05:30	5dfc2efc60ce	True	fv_trap	ctl_no_cgdis	-	FAIL	XFAIL:PLANTED	[40 asserts, 35 covers in model] props: u_ctl_sva.a_ctl_cg
+2026-11-16T09:25:16+05:30	5dfc2efc60ce	True	fv_csr	csr_prove	-	PROVEN	OK	[11 asserts, 9 covers in model] 
+2026-11-16T09:25:16+05:30	5dfc2efc60ce	True	fv_csr	csr_cover	-	COVERED	OK	[11 asserts, 9 covers in model] 
+2026-11-16T09:25:16+05:30	5dfc2efc60ce	True	fv_csr	csr_prove_no_t12	-	FAIL	XFAIL:PLANTED	[11 asserts, 9 covers in model] props: u_csr_sva.a_mret_pops_mil
+2026-11-16T09:25:16+05:30	5dfc2efc60ce	True	fv_csr	csr_prove_no_c16	-	FAIL	XFAIL:PLANTED	[11 asserts, 9 covers in model] props: u_csr_sva.a_mconfigptr_read_ok
+2026-11-16T10:00:51+05:30	5dfc2efc60ce	True	fv_cov	cov_bmc	-	BOUNDED(24)	OK	[57 asserts, 36 covers in model] 
+2026-11-16T10:00:51+05:30	5dfc2efc60ce	True	fv_cov	cov_prove	-	PROVEN	OK	[50 asserts, 36 covers in model] 
+2026-11-16T10:00:51+05:30	5dfc2efc60ce	True	fv_cov	cov_reach	-	COVERED	OK	[57 asserts, 35 covers in model] 
+2026-11-16T10:01:04+05:30	5dfc2efc60ce	True	halt	t_core_hartreset_s1	1	PASS	OK	
+2026-11-16T10:01:04+05:30	5dfc2efc60ce	True	halt	t_core_hartreset_s2	1	PASS	OK	
+2026-11-16T10:01:04+05:30	5dfc2efc60ce	True	halt	t_core_hartreset_s3	1	PASS	OK	
+2026-11-16T10:01:04+05:30	5dfc2efc60ce	True	halt	t_core_hartreset_timeout	1	PASS	OK	

@@ -6,13 +6,11 @@
 
 clock -add clk_i
 
-# reset: hold both core resets low for four cycles, then release for good
+# reset: hold the core reset low for four cycles, then release for good
 force core_rst_n_i 0
-force hartreset_n_i 0
 run 4
 init -load -current
 constraint -add -pin core_rst_n_i 1 -reset
-constraint -add -pin hartreset_n_i 1 -reset
 
 # inputs change only on the clock
 constraint -add -change * -clock clk_i -edge posedge

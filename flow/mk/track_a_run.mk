@@ -288,7 +288,7 @@ fv_core_rdc1: ; @$(ENV) $$PYTHON tools/run/garuda_fv.py tb/core/formal/rdc1.toml
 fv_dsu:        ; @$(ENV) $$PYTHON tools/run/garuda_fv.py tb/dsu/formal/dsu.toml --jobs 4
 fv_cov_unreach: ; @$(ENV) $$PYTHON tools/run/garuda_fv.py tb/core/formal/cov_unreach.toml --jobs 2
 fv_core: fv_core_trap fv_core_csr fv_core_rdc1 fv_cov_unreach
-FV_DMA_QUICK = dma10_find dma11_find dma13_find dma14_find mut_eng1 mut_d2 mut_dma8 mut_iclr_wins mut_aud13
+FV_DMA_QUICK = mut_eng1 mut_d2 mut_dma8 mut_iclr_wins mut_aud13
 fv_dma_quick:
 	@$(ENV) $$PYTHON tools/run/garuda_fv.py tb/dma/formal/arb.toml --jobs 3 && \
 	 $$PYTHON tools/run/garuda_fv.py tb/dma/formal/dma_2clk.toml --jobs 2 && \

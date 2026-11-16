@@ -687,6 +687,32 @@ owner reviews) · Raised by** the mentor's five tasks after pnr_r7
 
 ---
 
+## D-36 — One core reset: hartreset combined in reset_ctrl (2026-11-16)
+
+**Context.** Karthik's ruling of 2026-11-16: no lint finding is carried, every HAL rule on
+(`flow/ZERO_WAIVER.md`). HAL's one error in our own RTL was GLTASR at
+`garuda_core_top.v:124`: the core ANDed `core_rst_n_i` with `hartreset_n_i` in front of the
+asynchronous reset of every core flop, so a glitch on either input could reset the core.
+CORE [N-5.3], [N-7.33] required that AND inside the core; it had been waived.
+
+**Decision.**
+- The core has one reset input, `core_rst_n_i`. Its `hartreset_n_i` input is removed.
+- `reset_ctrl` makes the core reset in a module of its own, `core_rst_sync.v`: cleared at once
+  by every system reset, and falling one `hclk` after the Debug Module's hartreset grant,
+  which it samples (the grant is a register on `hclk`). Release is synchronous, two `hclk`.
+  The grant no longer goes through the aon-clocked request register (one clock crossing less).
+- The Debug Module keeps `halt_req_o` high through the grant (it used to drop when the grant
+  rose), so the core starts no bus transfer in the clock before its reset (RDC-1).
+- Specs: CORE [N-5.3], [N-7.33], [N-9.2]; CLKRST `core_rst_n_o` and its assertions
+  (`a_hartreset_core`, now also bound in `reset_ctrl_sva.sv`).
+
+**Consequences.** A debugger halt resets the core one `hclk` later than before; no program
+can see it (the core is held by `halt_req` in that clock). The HAL waiver, the CDC waiver of
+the reset convergence inside the core and the AND gate are gone. Benches that drove
+`hartreset_n_i` use `core_rst_sync` itself (`tb_core_halt.sv`, `rdc1_top.sv`).
+
+---
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. None blocks RTL.

@@ -1,8 +1,10 @@
+// MUTANT dma_arbiter_mut_prio_inv: rtl/dma/dma_arbiter.v with ONE change (DMA plan D7: the LOWEST priority wins).
+// Formal negative control: must FAIL.
 `timescale 1ns/1ps
 `default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 9 : channel arbiter (combinational)
-// dma_arbiter.v -- MUTANT prio_inv (negative control, DMA plan D7): the LOWEST priority wins
+// dma_arbiter.v
 //
 // Spec: GARUDA-DMA-SPEC-001 Rev 3.0 §6.3, §7.4; yaml dma.assignment
 //

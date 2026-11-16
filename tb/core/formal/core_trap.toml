@@ -59,14 +59,22 @@ engine = "smtbmc yices"
 # FA-3). They are covered in simulation (tb_boot runs the real DSU).
 script = ["chformal -cover -remove n:*c_h4_*"]
 
-# Negative control: the same proof on trap_ctrl.v as it stood at b90b481
-# (before T-13/T-14). Must FAIL; listed in tb/core/run/xfail.tsv as PLANTED.
+# Negative controls for T-13 and T-14 (2026-11-16: split from the whole b90b481 file,
+# so each is the current trap_ctrl.v with one fix reverted). Each must FAIL the same
+# proof; listed in tb/core/run/xfail.tsv as PLANTED.
 [[task]]
-name    = "trap_prove_unfixed"
+name    = "trap_prove_no_t13"
 mode    = "prove"
 engine  = "abc pdr"
 timeout = 3600
-replace = { "rtl/core/trap_ctrl.v" = "tb/core/formal/mutants/trap_ctrl_b90b481.v" }
+replace = { "rtl/core/trap_ctrl.v" = "tb/core/formal/mutants/trap_ctrl_no_t13.v" }
+
+[[task]]
+name    = "trap_prove_no_t14"
+mode    = "prove"
+engine  = "abc pdr"
+timeout = 3600
+replace = { "rtl/core/trap_ctrl.v" = "tb/core/formal/mutants/trap_ctrl_no_t14.v" }
 
 # T-17 negative control: trap_ctrl.v before the T-17 fix (a fetch-fault bit on a
 # bubble raises cause 1). a_ex_exc_needs_instr must FAIL (PLANTED in xfail.tsv).

@@ -125,7 +125,7 @@ module garuda_soc_top #(
     // Block 1 (+2): core with DSU
     // =========================================================================
     garuda_core_top #(.RESET_VECTOR(RESET_VECTOR), .CLK_GATE(CORE_CLK_GATE)) u_core (
-        .clk_i(hclk_i), .core_rst_n_i(core_rst_n_i), .hartreset_n_i(~dm_hartreset),
+        .clk_i(hclk_i), .core_rst_n_i(core_rst_n_i),
         .halt_req_i(dm_halt_req), .halt_safe_o(core_halt_safe),
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize), .i_hburst_o(i_hburst),
         .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite), .i_hwdata_o(i_hwdata),

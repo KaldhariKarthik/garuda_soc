@@ -1,3 +1,5 @@
+// MUTANT dsu_no_dsu9: rtl/dsu/dsu_top.v with ONE fix reverted (DSU-9: busy not gated by dsu_en).
+// Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal negative control: must FAIL. (tb/dsu/formal/dsu.toml dsu_no_dsu9)
 //dsu_top.v
 
 `timescale 1ns / 1ps
@@ -19,6 +21,7 @@ module dsu_top (
     output wire        dsu_rd_valid,
     output wire [4:0] dsu_rd_addr,
     output wire       dsu_overflow,
+    output wire       ovf_pending,      // an accumulate folds this cycle: dsu_overflow may still change (DSU-14)
     output wire       illegal_instr,
     
     output wire [47:0] dbg_acc_0,
@@ -89,6 +92,8 @@ module dsu_top (
     );
     
     wire [2:0] mac_overflow;
+    wire [2:0] mac_pending;
+    assign ovf_pending = |mac_pending;
     
     mac_cluster u_cluster (
         .clk (clk),
@@ -101,6 +106,7 @@ module dsu_top (
         .sat_writeback_en (sat_writeback_en),
         .cluster_out (cluster_out),
         .overflow (mac_overflow),
+        .pending (mac_pending),
         .dbg_acc_0 (dbg_acc_0),
         .dbg_acc_1 (dbg_acc_1),
         .dbg_acc_2 (dbg_acc_2)        

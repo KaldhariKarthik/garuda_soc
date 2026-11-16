@@ -30,7 +30,7 @@ set srcs {}
 foreach f [exec env -u LD_LIBRARY_PATH python3 scripts/expand_filelist.py $fl] { if {![string match *_sva.sv $f]} { lappend srcs $f } }
 check_cov -init -model {statement branch expression toggle} -type stimuli -exclude_bind_hierarchies
 analyze -sv09 +define+SYNTHESIS {*}$incs {*}$srcs
-elaborate -top $top
+elaborate -top $top -bbox_mul 128
 foreach c $clk {
     lassign [split $c :] name factor
     clock $name -factor $factor -phase 1

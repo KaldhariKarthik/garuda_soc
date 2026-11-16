@@ -4,11 +4,12 @@
 //
 // Top module: reset_ctrl
 //
-// One file, no dependencies. See rtl/clk_div/filelist.f for why Blocks 22 and
+// Two files (core_rst_sync.v, the core's reset synchroniser, D-36), no dependencies. See rtl/clk_div/filelist.f for why Blocks 22 and
 // 23 are built separately despite sharing one specification document.
 // =============================================================================
 
 rtl/reset_ctrl/reset_ctrl_apb.v
+rtl/reset_ctrl/core_rst_sync.v
 rtl/reset_ctrl/reset_ctrl.v
 // properties, bound to the module (empty under SYNTHESIS)
 rtl/reset_ctrl/reset_ctrl_sva.sv
