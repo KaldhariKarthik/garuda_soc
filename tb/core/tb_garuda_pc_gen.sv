@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_garuda_pc_gen.sv -- SystemVerilog unit TB for rtl/core/garuda_pc_gen.v
+// tb_garuda_pc_gen.sv -- SystemVerilog unit TB for rtl/core/garuda_pc_gen.sv
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 6.2 (PC and fetch-address
 //       generation), Sec. 2.1 / 17 (reset vector 0x1000_0000, Boot ROM),

@@ -15,7 +15,7 @@
 // tb_dsu_saturation_unit.sv
 //
 //  BLOCK      : II -- DSU (Custom-0 MAC coprocessor)
-//  RTL SOURCE : rtl/dsu/saturation_unit.v   (GARUDA_DSU_DesignSpec)
+//  RTL SOURCE : rtl/dsu/saturation_unit.sv   (GARUDA_DSU_DesignSpec)
 //  SCOPE      : DSU unit module
 //
 // Single-file SV verification environment for GARUDA saturation_unit.v

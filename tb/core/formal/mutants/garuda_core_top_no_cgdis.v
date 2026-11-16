@@ -1,4 +1,4 @@
-// MUTANT garuda_core_top_no_cgdis: rtl/core/garuda_core_top.v with ONE change (CG_DIS ignored).
+// MUTANT garuda_core_top_no_cgdis: rtl/core/garuda_core_top.sv with ONE change (CG_DIS ignored).
 // Formal negative control in tb/core/formal/core_trap.toml: must FAIL.
 `timescale 1ns/1ps
 `default_nettype none

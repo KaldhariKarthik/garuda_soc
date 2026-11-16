@@ -29,21 +29,22 @@
 // the error for the other 255.9 MB, not this block.
 // =============================================================================
 
-`include "ahb_defs.vh"
 
-module ahb_decoder (
+module ahb_decoder
+    import ahb_pkg::*;
+(
     input  wire [31:0]            haddr_i,
-    output reg  [`AHB_SEL_W-1:0]  hsel_o     // one-hot, bit 4 = default slave
+    output reg  [AHB_SEL_W-1:0]  hsel_o     // one-hot, bit 4 = default slave
 );
 
     always @(*) begin
-        hsel_o = {`AHB_SEL_W{1'b0}};
+        hsel_o = {AHB_SEL_W{1'b0}};
         case (haddr_i[31:28])
-            `AHB_RGN_ISRAM : hsel_o[`AHB_S_ISRAM ] = 1'b1;
-            `AHB_RGN_ROM   : hsel_o[`AHB_S_ROM   ] = 1'b1;
-            `AHB_RGN_DSRAM : hsel_o[`AHB_S_DSRAM ] = 1'b1;
-            4'h5          : hsel_o[`AHB_S_BRIDGE] = 1'b1;
-            default        : hsel_o[`AHB_S_DEFAULT] = 1'b1;
+            AHB_RGN_ISRAM : hsel_o[AHB_S_ISRAM ] = 1'b1;
+            AHB_RGN_ROM   : hsel_o[AHB_S_ROM   ] = 1'b1;
+            AHB_RGN_DSRAM : hsel_o[AHB_S_DSRAM ] = 1'b1;
+            4'h5          : hsel_o[AHB_S_BRIDGE] = 1'b1;
+            default        : hsel_o[AHB_S_DEFAULT] = 1'b1;
         endcase
     end
 

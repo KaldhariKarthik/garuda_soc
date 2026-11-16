@@ -1,5 +1,5 @@
---- a/rtl/mem/sram_wrapper.v
-+++ b/rtl/mem/sram_wrapper.v
+--- a/rtl/mem/sram_wrapper.sv
++++ b/rtl/mem/sram_wrapper.sv
 @@ -46,12 +46,28 @@
      always @(posedge clk) rdata <= 32'd0;
      wire _unused = |{ce, addr, wdata, we, be};

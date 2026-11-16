@@ -11,7 +11,7 @@
 -f rtl/core/filelist_core_dsu.f
 
 // verification support
-rtl/ahb/ahb_mem_slave.v
+rtl/ahb/ahb_mem_slave.sv
 
 // AHB-Lite protocol checker. In the PLAIN filelist on purpose: every test in
 // the suite now checks bus protocol as well as its own result, at no extra

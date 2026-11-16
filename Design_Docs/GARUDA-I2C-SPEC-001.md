@@ -51,7 +51,7 @@ unmodified: `i2c_master_bit_ctrl.sv`, `i2c_master_byte_ctrl.sv`,
 
 **The register layer is not vendored.** PULP's `apb_i2c.sv`, which normally sits
 on these controllers, carries no licence header and its repository has no
-LICENSE file, so it is deliberately not taken (D-22). `rtl/i2c/garuda_i2c_top.v`
+LICENSE file, so it is deliberately not taken (D-22). `rtl/i2c/garuda_i2c_top.sv`
 implements GARUDA's own register file over the byte controller's
 `start/stop/read/write/din/dout/cmd_ack` interface. This block is therefore the
 one peripheral where the register map is ours to design rather than inherit —
@@ -103,8 +103,8 @@ so it is the clean one, with no DLAB and no byte addressing.
 
 | Name | Type | RTL file | Role |
 |---|---|---|---|
-| `garuda_apb_shim` | seq (pclk) | `rtl/common/garuda_apb_shim.v` | decode, PSLVERR, sticky IRQ, DMA, pad sync |
-| `garuda_i2c_top` | seq (pclk) | `rtl/i2c/garuda_i2c_top.v` | **GARUDA's register file**, timeout, abort |
+| `garuda_apb_shim` | seq (pclk) | `rtl/common/garuda_apb_shim.sv` | decode, PSLVERR, sticky IRQ, DMA, pad sync |
+| `garuda_i2c_top` | seq (pclk) | `rtl/i2c/garuda_i2c_top.sv` | **GARUDA's register file**, timeout, abort |
 | `i2c_master_byte_ctrl` | seq | `rtl/third_party/opencores/i2c/src/` | byte sequencer, shift register (vendored) |
 | `i2c_master_bit_ctrl` | seq | same | SCL generation, start/stop/bit timing, arbitration (vendored) |
 

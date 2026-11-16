@@ -1,6 +1,6 @@
-# garuda-fv 1 suite=fv_rdc1 block=core date=2026-11-16T16:55:19+05:30 design=7faec5bb3a3bb2476fd416d08e51d60d7131dcaf rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+# garuda-fv 1 suite=fv_rdc1 block=core date=2026-11-16T23:23:55+05:30 design=d995a4a7de781733e0bfe64ba46c94868c1a3298 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
 task	mode	result	class	secs	detail	log
-rdc1_bmc	bmc	BOUNDED(30)	OK	50	[44 asserts, 38 covers in model] 	logs/core/raw/fv_rdc1/fv_rdc1_bmc.log
-rdc1_prove	prove	PROVEN	OK	9	[35 asserts, 38 covers in model] 	logs/core/raw/fv_rdc1/fv_rdc1_prove.log
-rdc1_cover	cover	COVERED	OK	25	[44 asserts, 37 covers in model] 	logs/core/raw/fv_rdc1/fv_rdc1_cover.log
+rdc1_bmc	bmc	BOUNDED(30)	OK	63	[44 asserts, 38 covers in model] 	logs/core/raw/fv_rdc1/fv_rdc1_bmc.log
+rdc1_prove	prove	PROVEN	OK	13	[35 asserts, 38 covers in model] 	logs/core/raw/fv_rdc1/fv_rdc1_prove.log
+rdc1_cover	cover	COVERED	OK	29	[44 asserts, 37 covers in model] 	logs/core/raw/fv_rdc1/fv_rdc1_cover.log
 rdc1_prove_rawgrant	bmc	FAIL	XFAIL:PLANTED	1	[44 asserts, 38 covers in model] props: a_grant_only_safe	logs/core/raw/fv_rdc1/fv_rdc1_prove_rawgrant.log

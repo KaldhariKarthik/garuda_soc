@@ -12,7 +12,7 @@ xfail = "tb/core/run/xfail.tsv"
 [design]
 flist   = "rtl/core/filelist_core.f"
 top     = "garuda_core_top"
-replace = { "rtl/core/core_clk_gate.v" = "tb/core/formal/core_clk_gate_passthru.sv" }
+replace = { "rtl/core/core_clk_gate.sv" = "tb/core/formal/core_clk_gate_passthru.sv" }
 extra   = ["tb/core/formal/core_fv_env.sv"]
 # the model must contain at least these (11 asserts + 9 covers in trap_ctrl_props_a.sv, + a_ihaddr_aligned)
 min_asserts = 12
@@ -67,14 +67,14 @@ name    = "trap_prove_no_t13"
 mode    = "prove"
 engine  = "abc pdr"
 timeout = 3600
-replace = { "rtl/core/trap_ctrl.v" = "tb/core/formal/mutants/trap_ctrl_no_t13.v" }
+replace = { "rtl/core/trap_ctrl.sv" = "tb/core/formal/mutants/trap_ctrl_no_t13.v" }
 
 [[task]]
 name    = "trap_prove_no_t14"
 mode    = "prove"
 engine  = "abc pdr"
 timeout = 3600
-replace = { "rtl/core/trap_ctrl.v" = "tb/core/formal/mutants/trap_ctrl_no_t14.v" }
+replace = { "rtl/core/trap_ctrl.sv" = "tb/core/formal/mutants/trap_ctrl_no_t14.v" }
 
 # T-17 negative control: trap_ctrl.v before the T-17 fix (a fetch-fault bit on a
 # bubble raises cause 1). a_ex_exc_needs_instr must FAIL (PLANTED in xfail.tsv).
@@ -83,7 +83,7 @@ name    = "t17_no_fix"
 mode    = "bmc"
 depth   = 20
 engine  = "smtbmc yices"
-replace = { "rtl/core/trap_ctrl.v" = "tb/core/formal/mutants/trap_ctrl_no_t17.v" }
+replace = { "rtl/core/trap_ctrl.sv" = "tb/core/formal/mutants/trap_ctrl_no_t17.v" }
 
 # T-18 negative control: branch_unit.v before the fix (a JAL's mtval follows the
 # fake branch compare of its bit fields). a_misfetch_tval_misaligned must FAIL.
@@ -92,7 +92,7 @@ name    = "t18_no_fix"
 mode    = "bmc"
 depth   = 20
 engine  = "smtbmc yices"
-replace = { "rtl/core/branch_unit.v" = "tb/core/formal/mutants/branch_unit_no_t18.v" }
+replace = { "rtl/core/branch_unit.sv" = "tb/core/formal/mutants/branch_unit_no_t18.v" }
 
 # BUS-E negative control: the I-port before the fix must issue a misaligned fetch
 [[task]]
@@ -100,7 +100,7 @@ name    = "buse_no_fix"
 mode    = "bmc"
 depth   = 20
 engine  = "smtbmc yices"
-replace = { "rtl/core/iport_master.v" = "tb/core/formal/mutants/garuda_iport_ahb_master_no_buse.v" }
+replace = { "rtl/core/iport_master.sv" = "tb/core/formal/mutants/garuda_iport_ahb_master_no_buse.v" }
 
 # CORE-4 (mgarudactl) negative controls: each knob ignored must break its property
 [[task]]
@@ -108,22 +108,22 @@ name    = "ctl_no_bpdis"
 mode    = "bmc"
 depth   = 16
 engine  = "smtbmc yices"
-replace = { "rtl/core/branch_predict.v" = "tb/core/formal/mutants/branch_predict_no_bpdis.v" }
+replace = { "rtl/core/branch_predict.sv" = "tb/core/formal/mutants/branch_predict_no_bpdis.v" }
 [[task]]
 name    = "ctl_no_pfdis"
 mode    = "bmc"
 depth   = 16
 engine  = "smtbmc yices"
-replace = { "rtl/core/iport_master.v" = "tb/core/formal/mutants/garuda_iport_ahb_master_no_pfdis.v" }
+replace = { "rtl/core/iport_master.sv" = "tb/core/formal/mutants/garuda_iport_ahb_master_no_pfdis.v" }
 [[task]]
 name    = "ctl_no_preempt"
 mode    = "bmc"
 depth   = 16
 engine  = "smtbmc yices"
-replace = { "rtl/core/clic_ctrl.v" = "tb/core/formal/mutants/clic_ctrl_no_preempt.v" }
+replace = { "rtl/core/clic_ctrl.sv" = "tb/core/formal/mutants/clic_ctrl_no_preempt.v" }
 [[task]]
 name    = "ctl_no_cgdis"
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
-replace = { "rtl/core/garuda_core_top.v" = "tb/core/formal/mutants/garuda_core_top_no_cgdis.v" }
+replace = { "rtl/core/garuda_core_top.sv" = "tb/core/formal/mutants/garuda_core_top_no_cgdis.v" }

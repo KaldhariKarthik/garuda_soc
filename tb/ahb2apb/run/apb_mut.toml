@@ -18,7 +18,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p01.v" }
+replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p01.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P02: APB-2 reverted: no aperture check
@@ -28,7 +28,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p02.v" }
+replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p02.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P03: sub-word accesses passed to APB
@@ -38,7 +38,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p03.v" }
+replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p03.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P04: timeout one sample early (15)
@@ -48,7 +48,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p04.v" }
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p04.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P05: timeout one sample late (17)
@@ -58,7 +58,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p05.v" }
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p05.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P06: PSEL on the neighbouring window
@@ -68,7 +68,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p06.v" }
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p06.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P07: PENABLE with PSEL (no SETUP cycle)
@@ -78,7 +78,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p07.v" }
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p07.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P08: [N-9.2] gate removed: HREADYOUT while PRESET is asserted
@@ -88,7 +88,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p08.v" }
+replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p08.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P09: one-cycle ERROR (no second cycle)
@@ -98,7 +98,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p09.v" }
+replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p09.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P10: read data not returned
@@ -108,7 +108,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p10.v" }
+replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p10.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P11: write data not captured (the previous write's data goes out)
@@ -118,7 +118,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p11.v" }
+replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p11.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P12: APB_DIV ignored: every window /1
@@ -128,7 +128,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p12.v" }
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p12.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P13: PSLVERR ignored: an erroring target answers OKAY
@@ -138,7 +138,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p13.v" }
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p13.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P14: fabric: PSLVERR from any window, not the selected one
@@ -147,7 +147,7 @@ name = "mut_p14"
 flist = "tb/ahb2apb/units/filelist_apb_units.f"
 top = "tb_apb_units"
 plusargs = ["+UNIT=fabric", "+CYCLES=5000"]
-replace = { "rtl/ahb2apb/ahb2apb_fabric.v" = "tb/ahb2apb/mut/ahb2apb_fabric_mut_p14.v" }
+replace = { "rtl/ahb2apb/ahb2apb_fabric.sv" = "tb/ahb2apb/mut/ahb2apb_fabric_mut_p14.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P15: a second acknowledge toggle after DONE (one request, two responses)
@@ -157,7 +157,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p15.v" }
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p15.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P16: absent / out-of-aperture windows passed to APB (only sub-word rejected)
@@ -167,5 +167,5 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p16.v" }
+replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p16.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'

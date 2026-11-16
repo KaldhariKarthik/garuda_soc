@@ -32,7 +32,7 @@ name    = "arb_mut_tie_high"
 mode    = "bmc"
 depth   = 2
 engine  = "smtbmc yices"
-replace = { "rtl/dma/dma_arbiter.v" = "tb/dma/formal/mutants/dma_arbiter_mut_tie_high.v" }
+replace = { "rtl/dma/dma_arbiter.sv" = "tb/dma/formal/mutants/dma_arbiter_mut_tie_high.v" }
 timeout = 600
 
 # M12 of the planted-defect run (DMA plan D8) is EQUIVALENT under the shipped map:
@@ -43,7 +43,7 @@ name    = "arb_mut_tie_high_shipped"
 mode    = "bmc"
 depth   = 2
 engine  = "smtbmc yices"
-replace = { "rtl/dma/dma_arbiter.v" = "tb/dma/formal/mutants/dma_arbiter_mut_tie_high.v" }
+replace = { "rtl/dma/dma_arbiter.sv" = "tb/dma/formal/mutants/dma_arbiter_mut_tie_high.v" }
 script  = ["chformal -assert -remove t:$check n:u_shipped.* %d"]
 timeout = 600
 min_asserts = 2

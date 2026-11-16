@@ -79,7 +79,7 @@ module garuda_cov (
         // are verified one by one by the decode unit bench (cg_encoding,
         // tb/core/tb_decode_control.sv); at core level they are not
         // instructions. CUSTOM0 defines funct3 000 (R-type) and 001 (MACSHIFT)
-        // only (rtl/dsu/dsu_stall.v).
+        // only (rtl/dsu/dsu_stall.sv).
         x_op_f3: cross cp_opcode, cp_funct3 {
             ignore_bins non_f3 = binsof(cp_opcode) intersect {7'b0110111, 7'b0010111, 7'b1101111};
             ignore_bins rsv_jalr   = binsof(cp_opcode.jalr)   && binsof(cp_funct3) intersect {[1:7]};

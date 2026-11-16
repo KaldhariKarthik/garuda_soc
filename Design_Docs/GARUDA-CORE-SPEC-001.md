@@ -203,7 +203,7 @@ the grant is sampled on `hclk`.
 ### 6.1 Implemented
 
 Every CSR the core implements, with its value after reset and its access type, taken from
-`rtl/core/csr_file.v` (reset branch and read mux). **RW**: every bit written is stored.
+`rtl/core/csr_file.sv` (reset branch and read mux). **RW**: every bit written is stored.
 **WARL**: writes are accepted and the register reads back only legal values. **RO**: a write
 raises an illegal-instruction exception. **RZ**: reads 0, writes ignored (C-16). An address not
 in this table raises an illegal-instruction exception on any access.

@@ -81,7 +81,7 @@ A statement the formal engine proved can never execute, with the chip's real inp
 The run of 2026-11-03 also reported `dma_chan.v:140` (`taken_q <= 1`, now line 157). This run
 does not: it is among the statements left undetermined or reached. The reading of
 2026-11-03 still stands. In the chip, every peripheral's APB shim drops its request on the
-acknowledge (`rtl/common/garuda_apb_shim.v`, DECISIONS D-21), so the flag is a second
+acknowledge (`rtl/common/garuda_apb_shim.sv`, DECISIONS D-21), so the flag is a second
 safeguard.
 
 ## Dead code, vendored IP (17)
@@ -96,7 +96,7 @@ The same 17 as on 2026-11-03.
 | PULP UART | `uart_rx.sv:206,220`, `uart_tx.sv:179` | The "disabled" branches: `apb_uart.sv` ties `cfg_en_i` to 1. |
 | PULP UART | `uart_interrupt.sv:76` | The character-timeout interrupt: `apb_uart.sv` ties `CTI_i` to 0. |
 | PULP GPIO (`apb_gpio`) | `apb_gpio.sv:284,547` | The registers of pins 32 to 63 (`REG_PADDIR_32_63` and the read-back of bits above 31). GARUDA uses 2 pins. |
-| OpenCores I2C | `i2c_master_bit_ctrl.sv:247` | The filter counter's reset when the core is disabled: `rtl/i2c/garuda_i2c_top.v:302` ties `ena` to 1. |
+| OpenCores I2C | `i2c_master_bit_ctrl.sv:247` | The filter counter's reset when the core is disabled: `rtl/i2c/garuda_i2c_top.sv:302` ties `ena` to 1. |
 
 Vendored files are not edited (`Docs/THIRD_PARTY_NOTICES.md`).
 

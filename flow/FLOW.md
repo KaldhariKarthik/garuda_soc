@@ -80,7 +80,7 @@ address with its interrupt, DMA and pin connections.
 **Entry.** F1; F2 for the block.
 **Exit.** Every block coded and integrated; HAL shows no new findings against the
 baseline; the address decode checked from the chip.
-**Outputs.** `rtl/`; `rtl/soc/garuda_soc_top.v`, `rtl/soc/garuda_chip_top.v`;
+**Outputs.** `rtl/`; `rtl/soc/garuda_soc_top.sv`, `rtl/soc/garuda_chip_top.sv`;
 `flow/signoff/g3/`.
 **Rows.** G2 2.1 to 2.10, 2.14 to 2.17; G3 3.1 to 3.13, 3.17 to 3.22.
 

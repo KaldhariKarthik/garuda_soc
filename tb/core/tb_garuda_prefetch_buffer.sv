@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_garuda_prefetch_buffer.sv -- SV unit TB for rtl/core/prefetch_buf.v
+// tb_garuda_prefetch_buffer.sv -- SV unit TB for rtl/core/prefetch_buf.sv
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 6.3 (depth-4 circular FIFO, each
 //       entry tagged with its PC and fault bit) and Sec. 6.5 (whole-buffer

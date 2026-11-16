@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 // =============================================================================
-// tb_apb_shim.sv -- the shared peripheral front end (rtl/common/garuda_apb_shim.v)
+// tb_apb_shim.sv -- the shared peripheral front end (rtl/common/garuda_apb_shim.sv)
 //
 // Every peripheral inherits its contract compliance from this module, so this
 // TB is where the contract itself is proven, once:

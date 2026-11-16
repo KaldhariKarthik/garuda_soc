@@ -12,7 +12,8 @@
 -incdir rtl/common
 -incdir rtl/core
 
-rtl/core/imm_gen.v
+rtl/common/garuda_pkg.sv
+rtl/core/imm_gen.sv
 
 -sv
 tb/core/tb_imm_gen.sv

@@ -12,7 +12,7 @@ xfail = "tb/core/run/xfail.tsv"
 [design]
 flist   = "tb/core/formal/filelist_rdc1_fv.f"
 top     = "rdc1_top"
-replace = { "rtl/core/core_clk_gate.v" = "tb/core/formal/core_clk_gate_passthru.sv" }
+replace = { "rtl/core/core_clk_gate.sv" = "tb/core/formal/core_clk_gate_passthru.sv" }
 min_asserts = 4
 min_covers  = 3
 
@@ -45,4 +45,4 @@ name    = "rdc1_prove_rawgrant"
 mode    = "bmc"
 depth   = 30
 engine  = "smtbmc yices"
-replace = { "rtl/debug/debug_module.v" = "tb/core/formal/mutants/debug_module_rawgrant.v" }
+replace = { "rtl/debug/debug_module.sv" = "tb/core/formal/mutants/debug_module_rawgrant.v" }

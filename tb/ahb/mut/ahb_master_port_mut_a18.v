@@ -86,9 +86,10 @@
 // DMA is the highest-priority master and can never be the one preempted.
 // =============================================================================
 
-`include "ahb_defs.vh"
 
-module ahb_master_port (
+module ahb_master_port
+    import ahb_pkg::*;
+(
     input  wire        hclk,
     input  wire        hreset_n,
 
@@ -153,7 +154,7 @@ module ahb_master_port (
         if (!hreset_n) begin
             hold_valid <= 1'b0;
             hold_data  <= 32'h0000_0000;
-            hold_resp  <= `AHB_RESP_OKAY;
+            hold_resp  <= AHB_RESP_OKAY;
         end else if (capture) begin
             hold_valid <= 1'b1;
             hold_data  <= hrdata_shared_i;
@@ -173,7 +174,7 @@ module ahb_master_port (
                       dph_own_i  ? hrdata_shared_i : 32'h0000_0000;
 
     assign hresp_o  = hold_valid ? hold_resp :
-                      dph_own_i  ? hresp_shared_i : `AHB_RESP_OKAY;
+                      dph_own_i  ? hresp_shared_i : AHB_RESP_OKAY;
 
 endmodule
 

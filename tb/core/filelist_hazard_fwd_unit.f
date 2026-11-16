@@ -12,7 +12,7 @@
 -incdir rtl/common
 -incdir rtl/core
 
-rtl/core/hazard_fwd_unit.v
+rtl/core/hazard_fwd_unit.sv
 
 -sv
 tb/core/tb_hazard_forward_unit.sv

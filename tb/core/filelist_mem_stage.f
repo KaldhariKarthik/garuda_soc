@@ -6,10 +6,10 @@
 
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/load_store_unit.v
-rtl/core/dport_master.v
-rtl/core/load_formatter.v
-rtl/core/mem_stage.v
+rtl/core/load_store_unit.sv
+rtl/core/dport_master.sv
+rtl/core/load_formatter.sv
+rtl/core/mem_stage.sv
 
 -sv
 tb/core/garuda_tb_pkg.sv

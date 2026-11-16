@@ -6,7 +6,7 @@
 
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/load_store_unit.v
+rtl/core/load_store_unit.sv
 
 -sv
 tb/core/garuda_tb_pkg.sv

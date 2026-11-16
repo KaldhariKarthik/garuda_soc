@@ -26,8 +26,8 @@
 //   F  the two mintstatus layouts
 // =============================================================================
 `timescale 1ns/1ps
-`include "core_ex_defs.vh"
 
+import core_ex_pkg::*;
 module tb_csr_file_t12;
     logic        clk = 1'b0;
     always #5 clk = ~clk;
@@ -75,13 +75,13 @@ module tb_csr_file_t12;
     endtask
 
     task automatic csr_read(input logic [11:0] a, output logic [31:0] v);
-        @(negedge clk); csr_en = 1'b1; addr = a; op = `CSR_RS; wdata = 32'd0;
+        @(negedge clk); csr_en = 1'b1; addr = a; op = CSR_RS; wdata = 32'd0;
         #1 v = rdata;
         @(negedge clk); csr_en = 1'b0; op = 2'b00;
     endtask
 
     task automatic csr_write(input logic [11:0] a, input logic [31:0] v);
-        @(negedge clk); csr_en = 1'b1; addr = a; op = `CSR_RW; wdata = v;
+        @(negedge clk); csr_en = 1'b1; addr = a; op = CSR_RW; wdata = v;
         @(negedge clk); csr_en = 1'b0; op = 2'b00;
     endtask
 

@@ -28,9 +28,9 @@ out = []
 for s in srcs:
     if s.endswith("_sva.sv"):
         continue                                    # bound checkers: proven by fv_*
-    if s == "rtl/core/core_clk_gate.v":
+    if s == "rtl/core/core_clk_gate.sv":
         s = "tb/core/formal/core_clk_gate_passthru.sv"
-    if s == "rtl/core/mul32.v":
+    if s == "rtl/core/mul32.sv":
         continue                                    # replaced by the ALTOPS model
     out.append(f"{gr.ROOT}/{s}")
 out.append("@basedir@/cores/@core@/mul32_altops.v")

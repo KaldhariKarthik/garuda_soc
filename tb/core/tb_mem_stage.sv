@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_mem_stage.sv -- SV integration TB for rtl/core/mem_stage.v
+// tb_mem_stage.sv -- SV integration TB for rtl/core/mem_stage.sv
 //                    (load_store_unit + dport_master + load_formatter)
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 10 (memory stage and data port),

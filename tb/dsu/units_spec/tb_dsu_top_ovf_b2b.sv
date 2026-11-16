@@ -11,6 +11,7 @@
 // ACC_MAG (2026-11-16), so every accumulator's c_fold_replaced_ovf cover is reached.
 // DSU-18 fixed (D-32): every check passes.
 // =============================================================================
+import dsu_pkg::*;
 module tb_dsu_top_ovf_b2b;
     logic clk = 0, rst_n = 0, flush = 0, dsu_en = 0, clr = 0;
     logic [31:0] instr = 0, rs1 = 0, rs2 = 0;

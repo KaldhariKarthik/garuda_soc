@@ -1,6 +1,6 @@
 // =============================================================================
 // tb_garuda_if_stage_top.sv -- SV integration TB for
-//                              rtl/core/if_stage_top.v
+//                              rtl/core/if_stage_top.sv
 //                              (pc_gen + I-port master + prefetch buffer)
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 6 (instruction fetch and prefetch

@@ -53,7 +53,7 @@ times. Each is 8-bit, one start bit, configurable parity and stop bits, with a
 ### 1.3 Where the RTL comes from
 
 `rtl/third_party/pulp/apb_uart_sv` (Solderpad 0.51), behind
-`rtl/uart/garuda_uart_top.v`. The upstream block is a 16550-style register file
+`rtl/uart/garuda_uart_top.sv`. The upstream block is a 16550-style register file
 over a plain start/data/parity/stop shifter pair with 16-entry FIFOs.
 
 It is the **one modified vendored IP in the design** — see below and §15.
@@ -120,12 +120,12 @@ could have.
 
 | Name | Type | RTL file | Role |
 |---|---|---|---|
-| `garuda_apb_shim` | seq (pclk) | `rtl/common/garuda_apb_shim.v` | word decode, PSLVERR, sticky IRQ, DMA request, pad sync |
+| `garuda_apb_shim` | seq (pclk) | `rtl/common/garuda_apb_shim.sv` | word decode, PSLVERR, sticky IRQ, DMA request, pad sync |
 | `apb_uart_sv` | seq (pclk) | `rtl/third_party/pulp/apb_uart_sv/src/` | 16550 register file + FIFOs (vendored) |
 | `uart_tx`, `uart_rx` | seq | same | shifters and baud counters |
 | `io_generic_fifo` | seq | same | 16-byte TX and RX FIFOs |
 | `uart_interrupt` | seq | same | **instantiated but its output is unused** ([N-7.5]) |
-| `garuda_uart_top` | wrapper | `rtl/uart/garuda_uart_top.v` | address shift, LSR poll, DLAB snoop, event derivation |
+| `garuda_uart_top` | wrapper | `rtl/uart/garuda_uart_top.sv` | address shift, LSR poll, DLAB snoop, event derivation |
 
 ---
 

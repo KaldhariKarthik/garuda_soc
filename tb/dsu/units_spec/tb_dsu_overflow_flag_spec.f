@@ -1,3 +1,3 @@
 -incdir rtl/dsu
-rtl/dsu/overflow_flag.v
+rtl/dsu/overflow_flag.sv
 tb/dsu/units_spec/tb_dsu_overflow_flag_spec.sv

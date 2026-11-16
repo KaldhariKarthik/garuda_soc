@@ -1,4 +1,4 @@
-// MUTANT garuda_iport_ahb_master_no_pfdis: rtl/core/iport_master.v with ONE change (PF_DIS ignored).
+// MUTANT garuda_iport_ahb_master_no_pfdis: rtl/core/iport_master.sv with ONE change (PF_DIS ignored).
 // Formal negative control: must FAIL. Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. (tb/core/formal/core_trap.toml ctl_no_pfdis)
 `timescale 1ns/1ps
 `default_nettype none

@@ -42,14 +42,15 @@
 // -----------------------------------------------------------------------------
 // HPROT (Sec. 7.6) and HTRANS rewriting (Sec. 8.5) are the two places where
 // this mux is not a pure select:
-//   - the DMA boundary has no HPROT port, so `AHB_HPROT_DMA is substituted;
+//   - the DMA boundary has no HPROT port, so AHB_HPROT_DMA is substituted;
 //   - seq_break_i rewrites SEQ to NONSEQ for the first transfer after a grant
 //     change. See ERRATUM AHB-3 in ahb_arbiter.v.
 // =============================================================================
 
-`include "ahb_defs.vh"
 
-module ahb_master_mux (
+module ahb_master_mux
+    import ahb_pkg::*;
+(
     input  wire [1:0]  grant_i,        // address-phase owner
     input  wire [1:0]  dph_master_i,   // data-phase owner (ERRATUM AHB-1)
     input  wire        seq_break_i,    // force NONSEQ (ERRATUM AHB-3)
@@ -105,7 +106,7 @@ module ahb_master_mux (
 
     always @(*) begin
         case (grant_i)
-            `AHB_M_DPORT: begin
+            AHB_M_DPORT: begin
                 haddr_o    = d_haddr_i;
                 htrans_sel = d_htrans_i;
                 hwrite_o   = d_hwrite_i;
@@ -113,15 +114,15 @@ module ahb_master_mux (
                 hburst_o   = d_hburst_i;
                 hprot_o    = d_hprot_i;
             end
-            `AHB_M_SBA: begin
+            AHB_M_SBA: begin
                 haddr_o    = s_haddr_i;
                 htrans_sel = s_htrans_i;
                 hwrite_o   = s_hwrite_i;
                 hsize_o    = s_hsize_i;
                 hburst_o   = s_hburst_i;
-                hprot_o    = `AHB_HPROT_SBA;
+                hprot_o    = AHB_HPROT_SBA;
             end
-            `AHB_M_DMA: begin
+            AHB_M_DMA: begin
                 haddr_o    = m_haddr_i;
                 htrans_sel = m_htrans_i;
                 hwrite_o   = m_hwrite_i;
@@ -129,7 +130,7 @@ module ahb_master_mux (
                 hburst_o   = m_hburst_i;
                 hprot_o    = 4'b0001;   // Sec. 7.6 substitution
             end
-            default: begin                      // `AHB_M_IPORT
+            default: begin                      // AHB_M_IPORT
                 haddr_o    = i_haddr_i;
                 htrans_sel = i_htrans_i;
                 hwrite_o   = i_hwrite_i;
@@ -144,8 +145,8 @@ module ahb_master_mux (
     // another master's transfer is re-opened as NONSEQ. One-way rewrite -
     // NONSEQ is legal anywhere, so this can never make the bus less compliant.
     always @(*) begin
-        if (seq_break_i && (htrans_sel == `AHB_TRANS_SEQ))
-            htrans_o = `AHB_TRANS_NONSEQ;
+        if (seq_break_i && (htrans_sel == AHB_TRANS_SEQ))
+            htrans_o = AHB_TRANS_NONSEQ;
         else
             htrans_o = htrans_sel;
     end
@@ -155,9 +156,9 @@ module ahb_master_mux (
     // -----------------------------------------------------------------------
     always @(*) begin
         case (dph_master_i)
-            `AHB_M_DPORT: hwdata_o = d_hwdata_i;
-            `AHB_M_SBA:   hwdata_o = s_hwdata_i;
-            `AHB_M_DMA:   hwdata_o = m_hwdata_i;
+            AHB_M_DPORT: hwdata_o = d_hwdata_i;
+            AHB_M_SBA:   hwdata_o = s_hwdata_i;
+            AHB_M_DMA:   hwdata_o = m_hwdata_i;
             default:      hwdata_o = i_hwdata_i;
         endcase
     end

@@ -49,7 +49,7 @@ feature has no input. It is load-bearing.
 
 ### 1.3 Where the RTL comes from
 
-**In-house**, `rtl/spi_slave/garuda_spis_core.v` + `garuda_spis_top.v`. Written
+**In-house**, `rtl/spi_slave/garuda_spis_core.sv` + `garuda_spis_top.v`. Written
 rather than adapted, and the reason is [N-7.1] rather than taste: the
 interesting decision in an SPI slave is how SCLK enters the chip, and that is
 an architectural choice this design has already made elsewhere. Vendoring a
@@ -98,9 +98,9 @@ slave would import someone else's answer to it.
 
 | Name | Type | RTL file | Role |
 |---|---|---|---|
-| `garuda_apb_shim` | seq (pclk) | `rtl/common/garuda_apb_shim.v` | decode, PSLVERR, sticky IRQ, DMA, pad sync |
-| `garuda_spis_core` | seq (pclk) | `rtl/spi_slave/garuda_spis_core.v` | oversampled shifter, CS framing, byte assembly |
-| `garuda_spis_top` | seq (pclk) | `rtl/spi_slave/garuda_spis_top.v` | register file, FIFO, events |
+| `garuda_apb_shim` | seq (pclk) | `rtl/common/garuda_apb_shim.sv` | decode, PSLVERR, sticky IRQ, DMA, pad sync |
+| `garuda_spis_core` | seq (pclk) | `rtl/spi_slave/garuda_spis_core.sv` | oversampled shifter, CS framing, byte assembly |
+| `garuda_spis_top` | seq (pclk) | `rtl/spi_slave/garuda_spis_top.sv` | register file, FIFO, events |
 
 ---
 

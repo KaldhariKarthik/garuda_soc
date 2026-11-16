@@ -26,6 +26,11 @@ Every rewritten module must then be proven equal to its old self (tools/sec_rtl.
 import re, sys
 
 MAXLEN = 80
+
+
+def blen(x):
+    """line length as HAL counts it: bytes"""
+    return len(x.encode("utf-8", "surrogateescape"))
 IND = "    "
 
 # ------------------------------------------------------------------------------------------------
@@ -104,7 +109,7 @@ def no_space(a, b):
         return True
     if b.s == "'" :
         return True
-    if b.s == "[" and (a.k in ("id", "num") or a.s in ("]", ")")):
+    if b.s == "[" and ((a.k == "id" and a.s not in KEYWORDS) or a.k == "num" or a.s in ("]", ")")):
         return True
     if b.s == "(" and a.k == "id" and (a.s.startswith("$") or a.s not in KEYWORDS):
         return True
@@ -479,6 +484,60 @@ def rewrite_always(toks, start, used, latch):
     return lines, p.i, body
 
 
+DECL_KW = ("input", "output", "inout", "reg", "integer", "logic", "int", "bit", "wire", "localparam")
+
+
+def rewrite_function(toks, start):
+    """`function ... ; decls; statements endfunction`: statements in the canonical style.
+    Returns (text from `function` to `endfunction` inclusive, index after it), or None."""
+    p = Parser(toks)
+    p.i = start
+    # header up to its ';'
+    j = start
+    while j < len(toks) and toks[j].s != ";":
+        j += 1
+    p.i = j + 1
+    # declarations
+    while True:
+        save = p.i
+        p.comments()
+        nt = p.peek()
+        if nt is not None and nt.s in DECL_KW:
+            p.until_semicolon()
+            continue
+        p.i = save
+        break
+    body_start = p.i
+    stmts = []
+    try:
+        while True:
+            save = p.i
+            p.comments()
+            if p.peek().s == "endfunction":
+                p.i = save
+                break
+            p.i = save
+            stmts.append(p.stmt())
+    except (SyntaxError, IndexError):
+        return None
+    tail = p.comments()
+    end_i = p.i
+    while toks[end_i].s != "endfunction":
+        end_i += 1
+    # indentation of the `function` line
+    k = start - 1
+    while k >= 0 and toks[k].k == "ws":
+        k -= 1
+    ind = toks[start - 1].s if start and toks[start - 1].k == "ws" else ""
+    head = "".join(x.s for x in toks[start:body_start]).rstrip()
+    head = re.sub(r"^function\s+(?!automatic\b)", "function automatic ", head)   # HAL NAUTOF
+    out = []
+    for st in stmts:
+        emit(st, ind + IND, out)
+    put_comments(out, ind + IND, tail)
+    return head + "\n" + "\n".join(out) + "\n" + ind + "endfunction", end_i + 1
+
+
 # ------------------------------------------------------------------------------------------------
 # line-level passes
 # ------------------------------------------------------------------------------------------------
@@ -508,12 +567,15 @@ def wrap_comment(ind, text):
     """re-wrap // comment text to fit"""
     body = text[2:].strip() if text.startswith("//") else text
     lead = ind + "// "
+    d = re.match(r"^(.*?)\s*([-=~*#]{3,})\s*$", body)
+    if d and d.group(1) and blen(lead + d.group(1)) + 4 <= MAXLEN:
+        return [(lead + d.group(1) + " " + d.group(2))[:MAXLEN].rstrip()]
     if re.fullmatch(r"[=\-~*#]{6,}.*", body):
         return [(ind + "// " + body)[:MAXLEN]]
     words = body.split()
     out, cur = [], ""
     for w in words:
-        if len(lead + (cur + " " + w if cur else w)) > MAXLEN and cur:
+        if blen(lead + (cur + " " + w if cur else w)) > MAXLEN and cur:
             out.append(lead + cur)
             cur = w
         else:
@@ -527,7 +589,7 @@ def break_code(line):
     """break a code line at its outermost level so every piece fits"""
     ind = re.match(r"\s*", line).group(0)
     toks = [t for t in lex(line.strip()) if t.k != "ws"]
-    if len(line) <= MAXLEN:
+    if blen(line) <= MAXLEN:
         return [line]
     # candidate break points: after ',' or before a binary operator, at the lowest paren depth
     pieces = [[]]
@@ -546,8 +608,8 @@ def break_code(line):
     cont = ind + IND
     out, cur = [], []
     first = True
-    for depth_k in range(best, best + 4):
-        cut = {k for d, k, s in pts if d == depth_k and not (s in ("<=", "=") and d > 0)}
+    for depth_k in range(best, max(d for d, _, _ in pts) + 1):
+        cut = {k for d, k, s in pts if d <= depth_k and not (s in ("<=", "=") and d > 0)}
         out, cur = [], []
         for k, t in enumerate(toks):
             if k in cut and t.s != "," and cur:
@@ -563,11 +625,11 @@ def break_code(line):
         # re-join greedily
         res = []
         for ln in lines:
-            if res and len(res[-1] + " " + ln.strip()) <= MAXLEN:
+            if res and blen(res[-1] + " " + ln.strip()) <= MAXLEN:
                 res[-1] = res[-1] + " " + ln.strip()
             else:
                 res.append(ln)
-        if all(len(x) <= MAXLEN for x in res):
+        if all(blen(x) <= MAXLEN for x in res):
             return res
     return res
 
@@ -590,9 +652,9 @@ def tidy_lines(lines):
     while k < len(lines):
         ln = lines[k].rstrip()
         k += 1
-        if len(ln) > MAXLEN and comment_only(ln):
+        if blen(ln) > MAXLEN and comment_only(ln):
             d = DECOR.match(ln)
-            if d and len(d.group(1)) + 4 <= MAXLEN:      # a rule: shorten its tail
+            if d and blen(d.group(1)) + 4 <= MAXLEN:      # a rule: shorten its tail
                 out.append((d.group(1) + " " + d.group(2))[:MAXLEN].rstrip())
                 continue
             ind = re.match(r"\s*", ln).group(0)
@@ -606,7 +668,7 @@ def tidy_lines(lines):
                 k += 1
             cur = ""
             for w in words:
-                if cur and len(ind + "// " + cur + " " + w) > MAXLEN:
+                if cur and blen(ind + "// " + cur + " " + w) > MAXLEN:
                     out.append(ind + "// " + cur)
                     cur = w
                 else:
@@ -621,7 +683,7 @@ def tidy_one(ln):
     out = []
     if True:
         ln = fix_literals(ln.rstrip())
-        if len(ln) <= MAXLEN:
+        if blen(ln) <= MAXLEN:
             return [ln]
         ind = re.match(r"\s*", ln).group(0)
         c, com = split_code_comment(ln)
@@ -630,7 +692,7 @@ def tidy_one(ln):
         if com:
             out.extend(wrap_comment(ind, com.strip()))
             ln = c
-            if len(ln) <= MAXLEN:
+            if blen(ln) <= MAXLEN:
                 out.append(ln)
                 return out
         out.extend(break_code(ln))
@@ -640,6 +702,127 @@ def tidy_one(ln):
 # ------------------------------------------------------------------------------------------------
 # whole file
 # ------------------------------------------------------------------------------------------------
+def mask_text(t):
+    """comments and strings blanked, same length, newlines kept"""
+    out = list(t)
+    for m in re.finditer(r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"', t, re.S):
+        for k in range(m.start(), m.end()):
+            if out[k] != "\n":
+                out[k] = " "
+    return "".join(out)
+
+
+def header_end(m, i):
+    """index of the ';' that ends a module header, from just after `module NAME` (masked text)"""
+    n = len(m)
+
+    def skip_ws(j):
+        while j < n and m[j] in " \t\r\n":
+            j += 1
+        return j
+
+    def match(j):
+        d = 0
+        while j < n:
+            if m[j] == "(":
+                d += 1
+            elif m[j] == ")":
+                d -= 1
+                if d == 0:
+                    return j
+            j += 1
+        return -1
+    j = skip_ws(i)
+    while m.startswith("import", j):
+        j = m.find(";", j) + 1
+        j = skip_ws(j)
+    if j < n and m[j] == "#":
+        j = skip_ws(j + 1)
+        j = match(j) + 1
+        j = skip_ws(j)
+    if j < n and m[j] == "(":
+        j = match(j) + 1
+        j = skip_ws(j)
+    return j if j < n and m[j] == ";" else -1
+
+
+DIRS = ("input", "output", "inout")
+
+
+def normalise_ports(text):
+    """ANSI port lists: one declaration per line (HAL DECLIN, SEPLIN)"""
+    m_ = mask_text(text)
+    out, pos = [], 0
+    for mm in re.finditer(r"\bmodule\s+\w+", m_):
+        e = header_end(m_, mm.end())
+        if e < 0:
+            continue
+        # the port list: last '(' .. ')' before e at depth 0 after the optional #( )
+        close = m_.rfind(")", mm.end(), e)
+        d, k = 0, close
+        while k > mm.end():
+            if m_[k] == ")":
+                d += 1
+            elif m_[k] == "(":
+                d -= 1
+                if d == 0:
+                    break
+            k -= 1
+        opn = k
+        inner = text[opn + 1:close]
+        if not re.search(r"\b(input|output|inout)\b", mask_text(inner)):
+            continue
+        toks = lex(inner)
+        decls = []          # [code tokens, comments above, trailing comment]
+        cur, above, depth, nl_seen = [], [], 0, True
+        for t in toks:
+            if t.k == "nl":
+                nl_seen = True
+                continue
+            if t.k == "ws":
+                continue
+            if t.k in ("lc", "bc"):
+                if not nl_seen and decls and not cur:
+                    decls[-1][2] = (decls[-1][2] + " " if decls[-1][2] else "") + t.s.strip()
+                elif not nl_seen and cur:
+                    above.append(t.s)
+                else:
+                    above.append(t.s)
+                continue
+            if t.s in ("(", "[", "{"):
+                depth += 1
+            elif t.s in (")", "]", "}"):
+                depth -= 1
+            if t.s == "," and depth == 0:
+                decls.append([cur, above, None])
+                cur, above = [], []
+                nl_seen = False
+                continue
+            cur.append(t)
+            nl_seen = False
+        if cur:
+            decls.append([cur, above, None])
+            above = []
+        lines, last = [], None
+        for n_, (c, ab, tr) in enumerate(decls):
+            if c and c[0].s in DIRS:
+                last = c[:-1]
+                decl = join(c)
+            else:
+                decl = (join(last) + " " + join(c)) if last else join(c)
+            for cm in ab:
+                for ln in cm.strip().splitlines():
+                    lines.append(IND + ln.strip())
+            sep = "," if n_ < len(decls) - 1 else ""
+            lines.append(IND + decl + sep + (("  " + tr) if tr else ""))
+        for cm in above:
+            lines.append(IND + cm.strip())
+        out.append(text[pos:opn + 1] + "\n" + "\n".join(lines) + "\n")
+        pos = close
+    out.append(text[pos:])
+    return "".join(out)
+
+
 def module_level(text):
     """module-level passes on raw text: directives, parameters"""
     ts = re.search(r"^`timescale\s+(\S+)\s*/\s*(\S+)\s*$", text, re.M)
@@ -647,26 +830,12 @@ def module_level(text):
     text = re.sub(r"^`default_nettype[^\n]*\n", "", text, flags=re.M)
     unit, prec = (ts.group(1), ts.group(2)) if ts else ("1ns", "1ps")
 
-    def add_tu(m):
-        return m.group(0) + "\n" + IND + "timeunit %s;\n%stimeprecision %s;\n" % (unit, IND, prec)
-    # after the header's closing ");" of each module
+    m_ = mask_text(text)
     out, pos = [], 0
-    for mm in re.finditer(r"\bmodule\s+\w+", text):
-        if mm.start() < pos:
+    for mm in re.finditer(r"\bmodule\s+\w+", m_):
+        e = header_end(m_, mm.end())
+        if e < 0 or e < pos:
             continue
-        j = text.find("(", mm.end())
-        k = text.find(";", mm.end())
-        # header end: the ';' that closes the port list
-        depth, e = 0, mm.end()
-        while e < len(text):
-            ch = text[e]
-            if ch == "(":
-                depth += 1
-            elif ch == ")":
-                depth -= 1
-            elif ch == ";" and depth == 0:
-                break
-            e += 1
         out.append(text[pos:e + 1])
         out.append("\n" + IND + "timeunit %s;\n%stimeprecision %s;" % (unit, IND, prec))
         pos = e + 1
@@ -683,8 +852,15 @@ def module_level(text):
     return text
 
 
+ASCII = {"\u00a7": "Sec.", "\u2014": "-", "\u2500": "-", "\u25b6": ">", "\u00f7": "/", "\u2502": "|",
+         "\u2514": "`", "\u2192": "->", "\u2190": "<-", "\u00b1": "+/-", "\u00d7": "x", "\u2264": "<=",
+         "\u2265": ">=", "\u2248": "~", "\u2019": "'", "\u201c": '"', "\u201d": '"', "\u2026": "..."}
+
+
 def process(text, path=""):
     text = text.replace("\r\n", "\n").replace("\t", IND)
+    text = "".join(ASCII.get(ch, ch) for ch in text)
+    text = normalise_ports(text)
     text = module_level(text)
     toks = lex(text)
     out_lines = []
@@ -693,6 +869,15 @@ def process(text, path=""):
     buf = []
     while i < len(toks):
         t = toks[i]
+        if t.k == "id" and t.s == "function":
+            j = rewrite_function(toks, i)
+            if j is not None:
+                lines, j2 = j
+                prefix = "".join(x.s for x in buf)
+                out_lines.append(prefix + lines)
+                buf = []
+                i = j2
+                continue
         if t.k == "id" and t.s == "always":
             latch = "rtl_style: latch" in "".join(x.s for x in toks[max(0, i - 6):i])
             prefix = "".join(x.s for x in buf)

@@ -46,8 +46,8 @@ g2: read -formal dport_master.v trap_ctrl.v env_guarantees_fv.sv
 g2: prep -top g2_trap
 
 [files]
-rtl/core/pipe_ctrl.v
-rtl/core/dport_master.v
-rtl/core/trap_ctrl.v
+rtl/core/pipe_ctrl.sv
+rtl/core/dport_master.sv
+rtl/core/trap_ctrl.sv
 flow/2_static/fv_pipe_ctrl/sby/pipe_ctrl_fv.sv
 flow/2_static/fv_pipe_ctrl/sby/env_guarantees_fv.sv

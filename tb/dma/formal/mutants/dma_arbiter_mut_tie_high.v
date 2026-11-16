@@ -1,4 +1,4 @@
-// MUTANT dma_arbiter_mut_tie_high: rtl/dma/dma_arbiter.v with ONE change. Formal negative control: must FAIL.
+// MUTANT dma_arbiter_mut_tie_high: rtl/dma/dma_arbiter.sv with ONE change. Formal negative control: must FAIL.
 `timescale 1ns/1ps
 `default_nettype none
 // =============================================================================

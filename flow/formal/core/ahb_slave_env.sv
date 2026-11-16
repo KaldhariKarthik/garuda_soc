@@ -7,7 +7,7 @@
 //   - A master presenting nothing, with no data phase outstanding, sees HREADY high.
 //   - A master presenting an address with no data phase outstanding may see HREADY
 //     low: GARUDA's interconnect holds an ungranted master's address phase until the
-//     arbiter grants it (rtl/ahb/ahb_master_port.v, hready_o; GARUDA-SYS Sec. 7.3).
+//     arbiter grants it (rtl/ahb/ahb_master_port.sv, hready_o; GARUDA-SYS Sec. 7.3).
 //     Until 2026-11-16 this file assumed HREADY high whenever no data phase was
 //     outstanding, which ruled that wait out of every whole-core proof (and left the
 //     D-port's a_dport_addr_stable vacuous here).

@@ -41,6 +41,7 @@ def main():
     ap.add_argument("--fl", default="rtl/soc/filelist_chip.f")
     ap.add_argument("--map", nargs="*", default=[])
     ap.add_argument("--limit", default="30m")
+    ap.add_argument("--imp-root", default=ROOT, help="tree holding the rewritten RTL (default: this one)")
     ap.add_argument("modules", nargs="+")
     a = ap.parse_args()
     rev = subprocess.check_output(["git", "rev-parse", "--short", a.base], cwd=ROOT).decode().strip()
@@ -51,7 +52,7 @@ def main():
         subprocess.check_call(["tar", "-x", "-C", spec], stdin=arch.stdout)
         arch.wait()
     sf, si = expand(spec, a.fl)
-    jf, ji = expand(ROOT, a.fl)
+    jf, ji = expand(os.path.abspath(a.imp_root), a.fl)
     bad = 0
     for mod in a.modules:
         d = os.path.join(ROOT, "sim/sec", mod)
@@ -75,10 +76,18 @@ exit
         with open(os.path.join(d, "sec.tcl"), "w") as fh:
             fh.write(tcl)
         log = os.path.join(d, "sec.log")
-        with open(log, "w") as fh:
-            subprocess.call([JG, "-allow_unsupported_OS", "-sec", "-batch", "-no_jges", "-proj",
-                             os.path.join(d, "proj"), os.path.join(d, "sec.tcl")], cwd=ROOT, stdout=fh, stderr=subprocess.STDOUT)
-        t = open(log, errors="replace").read()
+        for attempt in (1, 2):
+            with open(log, "w") as fh:
+                subprocess.call([JG, "-allow_unsupported_OS", "-sec", "-batch", "-no_jges", "-proj",
+                                 os.path.join(d, "proj"), os.path.join(d, "sec.tcl")], cwd=ROOT, stdout=fh, stderr=subprocess.STDOUT)
+            t = open(log, errors="replace").read()
+            if attempt == 1 and "ECK040" in t:
+                # a combinational module: no clock to infer
+                with open(os.path.join(d, "sec.tcl"), "w") as fh:
+                    fh.write(tcl.replace("clock -infer\nreset -none", "clock -none\nreset -none"))
+                shutil.rmtree(os.path.join(d, "proj"), ignore_errors=True)
+                continue
+            break
         m = re.search(r"#proven: (\d+), #unprocessed: (\d+), #undetermined: (\d+), #cex: (\d+)", t)
         errs = re.findall(r"^ERROR.*$", t, re.M)
         if m and int(m.group(2)) == 0 and int(m.group(3)) == 0 and int(m.group(4)) == 0 and int(m.group(1)) > 0 and not errs:

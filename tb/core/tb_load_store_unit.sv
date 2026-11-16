@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_load_store_unit.sv -- SystemVerilog unit TB for rtl/core/load_store_unit.v
+// tb_load_store_unit.sv -- SystemVerilog unit TB for rtl/core/load_store_unit.sv
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 10.1 / 10.2.
 // Plan: C10 (SB/SH/SW lane alignment) and C11 (misaligned LH/LW, SH/SW) at

@@ -6,8 +6,8 @@
 
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/mem_wb_reg.v
-rtl/core/wb_stage.v
+rtl/core/mem_wb_reg.sv
+rtl/core/wb_stage.sv
 
 -sv
 tb/core/garuda_tb_pkg.sv

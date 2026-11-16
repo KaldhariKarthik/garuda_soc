@@ -12,7 +12,6 @@
 // MACRD / MACSAT of the same accumulator (one cycle, performance only; ruling on
 // narrowing the interlock, TB-43). flush = 0 (flush is covered at core level).
 // =============================================================================
-`include "dsu_defs.vh"
 module tb_dsu_stall_spec;
     logic clk = 0, rst_n = 0, flush = 0, is_c0 = 0;
     logic [4:0] f5 = 0; logic [2:0] f3 = 0; logic [1:0] sel = 0;

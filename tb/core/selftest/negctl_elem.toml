@@ -16,5 +16,5 @@ timeout = 120
 [[test]]
 name    = "E_clic_ctrl_no_preempt"
 flist   = "tb/core/filelist_clic_ctrl.f"
-replace = { "rtl/core/clic_ctrl.v" = "tb/core/formal/mutants/clic_ctrl_no_preempt.v" }
+replace = { "rtl/core/clic_ctrl.sv" = "tb/core/formal/mutants/clic_ctrl_no_preempt.v" }
 fail_reason = 'PREEMPT_DIS: no preemption in a handler: take=1 exp 0'

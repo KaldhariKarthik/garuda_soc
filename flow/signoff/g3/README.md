@@ -4,7 +4,7 @@ Written 2026-11-03. Rows of the GARUDA 1-TOPS workbook whose evidence is a check
 
 ## 3.9 Boot ROM: reproducible from source
 
-The 4 KiB boot ROM image is built from `sw/bootrom/` (`rom_start.S`, `boot.c`, `spim.c`, `link_rom.ld`) by `sw/Makefile`, rule `$(BUILD)/bootrom.hex`. The RTL loads it through the `BROM_INIT_FILE` parameter of `rtl/brom/bootrom_top.v`.
+The 4 KiB boot ROM image is built from `sw/bootrom/` (`rom_start.S`, `boot.c`, `spim.c`, `link_rom.ld`) by `sw/Makefile`, rule `$(BUILD)/bootrom.hex`. The RTL loads it through the `BROM_INIT_FILE` parameter of `rtl/brom/bootrom_top.sv`.
 
 The image was built twice from a clean `sw/build`. Each build used the following tcsh commands, from the repository root:
 
@@ -27,8 +27,8 @@ The `boot_sel` path, from pin to firmware:
 
 | Step | Where |
 |---|---|
-| The pin, with a pull-down at the pad | `rtl/soc/garuda_chip_top.v`, port `boot_sel` (pin 26, PHYS §3.1) |
-| Two-flop synchroniser on `pclk` (it is an asynchronous input) | `rtl/reset_ctrl/reset_ctrl_apb.v`, `bsel_q` |
+| The pin, with a pull-down at the pad | `rtl/soc/garuda_chip_top.sv`, port `boot_sel` (pin 26, PHYS §3.1) |
+| Two-flop synchroniser on `pclk` (it is an asynchronous input) | `rtl/reset_ctrl/reset_ctrl_apb.sv`, `bsel_q` |
 | Readable at `CLKSTAT[8]` | reset_ctrl, APB window 9 (DECISIONS D-19) |
 | The boot ROM reads it once, at step 2 of the boot sequence: 1 means recovery (wait for JTAG), 0 means flash boot | `sw/bootrom/boot.c` (`CLKSTAT_BOOTSEL`) |
 | After a good flash boot the ROM sets `MEMCTL.ILOCK` | `sw/bootrom/boot.c`; `rtl/mem/` |
@@ -58,9 +58,9 @@ Run on 2026-11-03. Reports are in `out/`.
 
 | Flops | Register | Why nothing reads it |
 |---|---|---|
-| 32 | `u_pc_gen/pc_o` (`rtl/core/garuda_pc_gen.v`), the architectural PC | `garuda_if_stage_top.v` leaves the port unconnected on purpose: the pipeline uses the PC tag stored with each prefetch-buffer entry. The unit bench `tb_garuda_pc_gen` checks it. Synthesis removes it. |
+| 32 | `u_pc_gen/pc_o` (`rtl/core/garuda_pc_gen.sv`), the architectural PC | `garuda_if_stage_top.v` leaves the port unconnected on purpose: the pipeline uses the PC tag stored with each prefetch-buffer entry. The unit bench `tb_garuda_pc_gen` checks it. Synthesis removes it. |
 | 2 | `spi_mode` in the vendored `spi_master_controller.sv` | The quad and dual SPI modes are not exposed; GARUDA's SPI master is single-bit (SPIM spec). |
-| 1 | `sync1_q` in the PWM's APB shim | The shared shim carries a pad-input synchroniser. The PWM has no input pin, so `pad_async_i` is tied to 0 and `pad_sync_o` is left open (`rtl/pwm/garuda_pwm_top.v`). |
+| 1 | `sync1_q` in the PWM's APB shim | The shared shim carries a pad-input synchroniser. The PWM has no input pin, so `pad_async_i` is tied to 0 and `pad_sync_o` is left open (`rtl/pwm/garuda_pwm_top.sv`). |
 
 **The multiply driven pins** are `i2c_scl_i`, `i2c_sda_i` and `gpio_i[1:0]`, and the first synchroniser flop behind each. Each is a bidirectional pin, modelled as `assign pin = oe ? out : 1'bz` and read back as the input. Genus counts the tristate output and the port as two drivers of one net. A pad cell from the PDK's IO library replaces this model, with separate output, enable and input pins, and the count goes to 0 (G7/G8).
 

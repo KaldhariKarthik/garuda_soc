@@ -42,7 +42,7 @@ name    = "mut_cov_prio_inv"
 mode    = "bmc"
 depth   = 16
 engine  = "smtbmc yices"
-replace = { "rtl/dma/dma_arbiter.v" = "tb/dma/formal/mutants/dma_arbiter_mut_prio_inv.v" }
+replace = { "rtl/dma/dma_arbiter.sv" = "tb/dma/formal/mutants/dma_arbiter_mut_prio_inv.v" }
 script  = ["chformal -assert -remove t:$check n:u_dma_cov_sva.*a_cov_arb_c5_alone* %d"]
 timeout = 1800
 min_asserts = 1

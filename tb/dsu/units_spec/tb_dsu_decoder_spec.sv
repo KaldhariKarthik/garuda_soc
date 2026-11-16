@@ -13,11 +13,11 @@
 // Every R-type funct5 x acc_sel x enable, every MACSHIFT immediate, other funct3,
 // and random words.
 // =============================================================================
-`include "dsu_defs.vh"
+import dsu_pkg::*;
 module tb_dsu_decoder_spec;
     logic [31:0] instr;
     logic        dsu_en, flush;
-    wire [`MAC_CTRL_W-1:0] control;
+    wire [MAC_CTRL_W-1:0] control;
     wire [1:0] acc_sel, shift_acc_sel, result_src;
     wire sat_op, shift_op, shift_dir, rd_lo_op, rd_hi_op, writes_regfile, illegal, is_custom0;
     wire [5:0] shift_amt;
@@ -38,21 +38,21 @@ module tb_dsu_decoder_spec;
         bit ill = c0 && en && (!legal_op || sel == 2'b11 || (it && i[25:20] >= 6'd48) || rsvd);
         bit ok = c0 && en && !ill;
         bit compute = ok && rt && f5 <= 5'd5;
-        logic [`MAC_CTRL_W-1:0] want_ctrl;
+        logic [MAC_CTRL_W-1:0] want_ctrl;
         string bad = "";
         instr = i; dsu_en = en; flush = 0; #1;
         if (rsvd && en) begin rsvd_cases++; return; end         // D0: not asserted
         want_ctrl = '0;
-        want_ctrl[`MAC_CTRL_EN]     = compute;
-        want_ctrl[`MAC_CTRL_ADDSUB] = rt && f5 == 5'd1;
-        want_ctrl[`MAC_CTRL_CLEAR]  = rt && f5 == 5'd5;
-        want_ctrl[`MAC_CTRL_LOAD]   = rt && f5 == 5'd4;
-        want_ctrl[`MAC_CTRL_ABS]    = rt && f5 == 5'd2;
-        want_ctrl[`MAC_CTRL_DOT]    = rt && f5 == 5'd3;
+        want_ctrl[MAC_CTRL_EN]     = compute;
+        want_ctrl[MAC_CTRL_ADDSUB] = rt && f5 == 5'd1;
+        want_ctrl[MAC_CTRL_CLEAR]  = rt && f5 == 5'd5;
+        want_ctrl[MAC_CTRL_LOAD]   = rt && f5 == 5'd4;
+        want_ctrl[MAC_CTRL_ABS]    = rt && f5 == 5'd2;
+        want_ctrl[MAC_CTRL_DOT]    = rt && f5 == 5'd3;
         checks++;
         if (illegal !== ill) bad = {bad, " illegal"};
-        if (control[`MAC_CTRL_EN] !== want_ctrl[`MAC_CTRL_EN]) bad = {bad, " mac_en"};
-        if (compute && control[`MAC_CTRL_EN-1:1] !== want_ctrl[`MAC_CTRL_EN-1:1]) bad = {bad, " control"};
+        if (control[MAC_CTRL_EN] !== want_ctrl[MAC_CTRL_EN]) bad = {bad, " mac_en"};
+        if (compute && control[MAC_CTRL_EN-1:1] !== want_ctrl[MAC_CTRL_EN-1:1]) bad = {bad, " control"};
         if (sat_op !== (ok && rt && f5 == 5'd6)) bad = {bad, " sat_op"};
         if (rd_lo_op !== (ok && rt && f5 == 5'd7)) bad = {bad, " rd_lo"};
         if (rd_hi_op !== (ok && rt && f5 == 5'd8)) bad = {bad, " rd_hi"};

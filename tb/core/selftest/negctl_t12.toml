@@ -9,7 +9,7 @@ xfail = "tb/core/selftest/xfail.tsv"
 [bench]
 flist   = "tb/soc/filelist_boot.f"
 top     = "tb_boot"
-replace = { "rtl/core/csr_file.v" = "tb/core/formal/mutants/csr_file_no_t12.v" }
+replace = { "rtl/core/csr_file.sv" = "tb/core/formal/mutants/csr_file_no_t12.v" }
 
 [defaults]
 marker   = 'TOHOST=1 -> PASSED'

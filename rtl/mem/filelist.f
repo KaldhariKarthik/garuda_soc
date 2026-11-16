@@ -5,10 +5,11 @@
 // =============================================================================
 -incdir rtl/mem
 
-rtl/mem/sram_wrapper.v
-rtl/mem/ahb_mem_slave_if.v
+rtl/mem/mem_pkg.sv
+rtl/mem/sram_wrapper.sv
+rtl/mem/ahb_mem_slave_if.sv
 
-rtl/isram/isram_top.v
-rtl/dsram/dsram_top.v
-rtl/brom/bootrom_top.v
+rtl/isram/isram_top.sv
+rtl/dsram/dsram_top.sv
+rtl/brom/bootrom_top.sv
 rtl/mem/mem_sva.sv

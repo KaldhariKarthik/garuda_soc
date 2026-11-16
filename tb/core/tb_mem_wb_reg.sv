@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_mem_wb_reg.sv -- SystemVerilog unit TB for rtl/core/mem_wb_reg.v,
+// tb_mem_wb_reg.sv -- SystemVerilog unit TB for rtl/core/mem_wb_reg.sv,
 //                     with wb_stage.v instantiated downstream of it.
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 5.2 (pipeline registers, bubble

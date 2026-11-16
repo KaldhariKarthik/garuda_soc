@@ -28,10 +28,11 @@
 `endif
 
 `ifdef GARUDA_DSU_SVA
-`include "dsu_defs.vh"
 
 // ---- one accumulator ---------------------------------------------------------
-module mac_unit_sva (
+module mac_unit_sva
+    import dsu_pkg::*;
+(
     input wire        clk, rst_n,
     input wire        en, sat_writeback_en, flush, pending, acc_we, overflow,
     input wire        prod_en, my_sat, my_load, my_clear,
@@ -70,12 +71,14 @@ module mac_unit_sva (
 endmodule
 
 // ---- the DSU as a whole --------------------------------------------------------
-module dsu_top_sva (
+module dsu_top_sva
+    import dsu_pkg::*;
+(
     input wire        clk, rst_n, flush, dsu_en,
     input wire [31:0] instr,
     input wire        csr_clear_overflow,
     input wire        dsu_busy, dsu_rd_valid, dsu_overflow, illegal_instr,
-    input wire [`MAC_CTRL_W-1:0] control,
+    input wire [MAC_CTRL_W-1:0] control,
     input wire        sat_op, shift_op, rd_lo_op, rd_hi_op,
     input wire [1:0]  acc_sel,
     input wire [2:0]  mac_overflow,
@@ -88,10 +91,10 @@ module dsu_top_sva (
     wire [4:0] f5 = instr[31:27];
     // an instruction whose result lands in its accumulator a cycle later
     // (the RTL also counts MACRD_LO / MACRD_HI / MACSAT as two-cycle)
-    wire two_cycle = rtype && (f5 == `FUNCT5_MAC_SEL || f5 == `FUNCT5_MACSUB || f5 == `FUNCT5_MACABS ||
-                               f5 == `FUNCT5_MACDOT || f5 == `FUNCT5_MACRD_LO || f5 == `FUNCT5_MACRD_HI ||
-                               f5 == `FUNCT5_MACSAT);
-    wire reads_acc = (rtype && (f5 == `FUNCT5_MACRD_LO || f5 == `FUNCT5_MACRD_HI || f5 == `FUNCT5_MACSAT)) || itype;
+    wire two_cycle = rtype && (f5 == FUNCT5_MAC_SEL || f5 == FUNCT5_MACSUB || f5 == FUNCT5_MACABS ||
+                               f5 == FUNCT5_MACDOT || f5 == FUNCT5_MACRD_LO || f5 == FUNCT5_MACRD_HI ||
+                               f5 == FUNCT5_MACSAT);
+    wire reads_acc = (rtype && (f5 == FUNCT5_MACRD_LO || f5 == FUNCT5_MACRD_HI || f5 == FUNCT5_MACSAT)) || itype;
 
     // the previous instruction that left the DSU (not held, not flushed)
     reg       p2, busy_q, hold_q, set_q;
@@ -116,12 +119,12 @@ module dsu_top_sva (
         !(rtype && instr[26:25] == 2'b11) || illegal_instr)
         else $error("[SVA-FAIL] DSU F12: accumulator select 3 not flagged illegal");
     a_accsel3_no_effect: assert property (@(posedge clk) disable iff (!rst_n)
-        !illegal_instr || !(control[`MAC_CTRL_EN] || sat_op || shift_op || rd_lo_op || rd_hi_op || dsu_rd_valid))
+        !illegal_instr || !(control[MAC_CTRL_EN] || sat_op || shift_op || rd_lo_op || rd_hi_op || dsu_rd_valid))
         else $error("[SVA-FAIL] DSU F12: an illegal DSU instruction had an effect (ctrl=%b sat=%b shift=%b rdlo=%b rdhi=%b rdv=%b instr=%08x)",
                     control, sat_op, shift_op, rd_lo_op, rd_hi_op, dsu_rd_valid, instr);
     // F14.CHK1: with the enable low the DSU is inert
     a_inert_when_disabled: assert property (@(posedge clk) disable iff (!rst_n)
-        dsu_en || !(dsu_busy || dsu_rd_valid || illegal_instr || control[`MAC_CTRL_EN] || sat_op))
+        dsu_en || !(dsu_busy || dsu_rd_valid || illegal_instr || control[MAC_CTRL_EN] || sat_op))
         else $error("[SVA-FAIL] DSU F14: the DSU acted with dsu_en low (busy=%b rdv=%b ill=%b ctrl=%b sat=%b instr=%08x)",
                     dsu_busy, dsu_rd_valid, illegal_instr, control, sat_op, instr);
     // F15 / F16 / F17: the interlock -- one cycle, exactly for a read of the

@@ -72,4 +72,4 @@ E Clock and reset,1,SECTION,GPIO.E,Spec section 9.,,,
 F26 Single clock domain with two asynchronous inputs,2,SECTION,GPIO.F26,"Everything is on pclk; the only crossings are the two pad inputs, each through a synchroniser.",Method: static. Before the UVM environment: no check. Now: all 1 items passing.,Karthik,P2
 hal_cdc,3,CHK,GPIO.F26.CHK1,Covered by F16.,"make static_cdc, whole chip - the two pad inputs are reported as synchronised. Passing.",Karthik,
 F27 The test-mode clock-gate bypass is tied off,2,SECTION,GPIO.F27,dft_cg_enable_i of the vendored block is 0. To be revisited at DFT insertion. Spec [N-9.3].,Method: static. Before the UVM environment: no check. Now: all 1 items passing.,Karthik,P3
-review,3,CHK,GPIO.F27.CHK1,The tie-off is in garuda_gpio_top.,Done 2026-10-05 - rtl/gpio/garuda_gpio_top.v ties dft_cg_enable_i to 0; open item OPEN-G1 of the specification stands until scan insertion.,Karthik,
+review,3,CHK,GPIO.F27.CHK1,The tie-off is in garuda_gpio_top.,Done 2026-10-05 - rtl/gpio/garuda_gpio_top.sv ties dft_cg_enable_i to 0; open item OPEN-G1 of the specification stands until scan insertion.,Karthik,

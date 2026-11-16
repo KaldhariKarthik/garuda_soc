@@ -130,8 +130,8 @@ static_lint_selfcheck:
 
 static_cdc:
 	@mkdir -p $(SIM_DIR)/static_cdc_debug
-	@$(IRUN152) -hal -64bit -f rtl/third_party/timescale.f rtl/debug/jtag_tap.v rtl/debug/debug_dtm.v \
-	    rtl/debug/dmi_cdc.v rtl/debug/sba_master.v rtl/debug/debug_module.v rtl/debug/debug_top.v \
+	@$(IRUN152) -hal -64bit -f rtl/third_party/timescale.f rtl/debug/jtag_tap.sv rtl/debug/debug_dtm.sv \
+	    rtl/debug/dmi_cdc.sv rtl/debug/sba_master.sv rtl/debug/debug_module.sv rtl/debug/debug_top.sv \
 	    -incdir rtl/include -top debug_top -define SYNTHESIS \
 	    -nclibdirname $(SIM_DIR)/static_cdc_debug/INCA_libs -l $(SIM_DIR)/static_cdc_debug/hal_cdc.log \
 	    -halargs "-check CLOCKDOMAIN" > /dev/null 2>&1; \

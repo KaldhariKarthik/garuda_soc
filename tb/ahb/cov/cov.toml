@@ -12,10 +12,10 @@ suites = [
   "logs/ahb/summary/units.cov.tsv",
 ]
 
-# rtl/ahb/ahb_mem_slave.v is a verification model (its own header), not design
-design    = ["rtl/ahb/ahb_interconnect.v", "rtl/ahb/ahb_arbiter.v", "rtl/ahb/ahb_decoder.v",
-             "rtl/ahb/ahb_master_mux.v", "rtl/ahb/ahb_master_port.v", "rtl/ahb/ahb_slave_mux.v",
-             "rtl/ahb/ahb_dflt_slave.v"]
+# rtl/ahb/ahb_mem_slave.sv is a verification model (its own header), not design
+design    = ["rtl/ahb/ahb_interconnect.sv", "rtl/ahb/ahb_arbiter.sv", "rtl/ahb/ahb_decoder.sv",
+             "rtl/ahb/ahb_master_mux.sv", "rtl/ahb/ahb_master_port.sv", "rtl/ahb/ahb_slave_mux.sv",
+             "rtl/ahb/ahb_dflt_slave.sv"]
 testbench = ["tb/ahb/*", "tb/common/garuda_map_pkg.sv", "rtl/ahb/ahb_ic_props_a.sv"]
 
 functional_files = ["tb/ahb/env/ahb_cov.sv"]

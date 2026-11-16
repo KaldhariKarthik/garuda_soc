@@ -16,11 +16,11 @@ PASSED=()
 
 # ---- bench tb_ahb2apb  (tb/ahb2apb/filelist_ahb2apb.f, 1 tests)
 cat > $D/tb_ahb2apb_tb_ahb2apb_filelist_ahb2apb_f.f <<'EOF'
-rtl/clk_div/clk_div.v
+rtl/clk_div/clk_div.sv
 rtl/clk_div/clk_div_sva.sv
-rtl/ahb2apb/ahb2apb_fabric.v
-rtl/ahb2apb/ahb2apb_apb_fsm.v
-rtl/ahb2apb/ahb2apb_bridge.v
+rtl/ahb2apb/ahb2apb_fabric.sv
+rtl/ahb2apb/ahb2apb_apb_fsm.sv
+rtl/ahb2apb/ahb2apb_bridge.sv
 rtl/ahb2apb/ahb2apb_sva.sv
 tb/ahb/ahb_lite_master_bfm.sv
 tb/common/apb_checker.v
@@ -34,11 +34,11 @@ fi
 
 # ---- bench tb_apb_probe  (tb/ahb2apb/filelist_apb_probe.f, 2 tests)
 cat > $D/tb_apb_probe_tb_ahb2apb_filelist_apb_probe_f.f <<'EOF'
-rtl/clk_div/clk_div.v
+rtl/clk_div/clk_div.sv
 rtl/clk_div/clk_div_sva.sv
-rtl/ahb2apb/ahb2apb_fabric.v
-rtl/ahb2apb/ahb2apb_apb_fsm.v
-rtl/ahb2apb/ahb2apb_bridge.v
+rtl/ahb2apb/ahb2apb_fabric.sv
+rtl/ahb2apb/ahb2apb_apb_fsm.sv
+rtl/ahb2apb/ahb2apb_bridge.sv
 rtl/ahb2apb/ahb2apb_sva.sv
 tb/ahb/ahb_lite_master_bfm.sv
 tb/ahb2apb/tb_apb_probe.sv
@@ -51,17 +51,17 @@ fi
 
 # ---- bench tb_apb_env  (tb/ahb2apb/env/filelist_apb_env.f, 20 tests)
 cat > $D/tb_apb_env_tb_ahb2apb_env_filelist_apb_env_f.f <<'EOF'
-rtl/clk_div/clk_div.v
+rtl/clk_div/clk_div.sv
 rtl/clk_div/clk_div_sva.sv
-rtl/ahb2apb/ahb2apb_fabric.v
-rtl/ahb2apb/ahb2apb_apb_fsm.v
-rtl/ahb2apb/ahb2apb_bridge.v
+rtl/ahb2apb/ahb2apb_fabric.sv
+rtl/ahb2apb/ahb2apb_apb_fsm.sv
+rtl/ahb2apb/ahb2apb_bridge.sv
 rtl/ahb2apb/ahb2apb_sva.sv
-rtl/dma/dma_chan.v
-rtl/dma/dma_arbiter.v
-rtl/dma/dma_engine.v
-rtl/dma/dma_apb_slave.v
-rtl/dma/dma_top.v
+rtl/dma/dma_chan.sv
+rtl/dma/dma_arbiter.sv
+rtl/dma/dma_engine.sv
+rtl/dma/dma_apb_slave.sv
+rtl/dma/dma_top.sv
 rtl/dma/dma_props_a.sv
 tb/common/garuda_map_pkg.sv
 tb/ahb/agent/ahb_agent_pkg.sv
@@ -97,8 +97,8 @@ fi
 
 # ---- bench tb_apb_units  (tb/ahb2apb/units/filelist_apb_units.f, 2 tests)
 cat > $D/tb_apb_units_tb_ahb2apb_units_filelist_apb_units_f.f <<'EOF'
-rtl/ahb2apb/ahb2apb_fabric.v
-rtl/ahb2apb/ahb2apb_apb_fsm.v
+rtl/ahb2apb/ahb2apb_fabric.sv
+rtl/ahb2apb/ahb2apb_apb_fsm.sv
 tb/ahb2apb/units/tb_apb_units.sv
 EOF
 irun -64bit -sv -elaborate -access +r -timescale 1ns/1ps -f $D/tb_apb_units_tb_ahb2apb_units_filelist_apb_units_f.f -top tb_apb_units -nclibdirname $D/INCA_tb_apb_units_tb_ahb2apb_units_filelist_apb_units_f $COV -l $D/tb_apb_units_tb_ahb2apb_units_filelist_apb_units_f.compile.log || { echo "COMPILE FAILED: tb_apb_units_tb_ahb2apb_units_filelist_apb_units_f (see $D/tb_apb_units_tb_ahb2apb_units_filelist_apb_units_f.compile.log)"; }
@@ -130,7 +130,7 @@ fi
 
 # ---- bench tb_apb_shim  (tb/common/filelist_shim.f, 1 tests)
 cat > $D/tb_apb_shim_tb_common_filelist_shim_f.f <<'EOF'
-rtl/common/garuda_apb_shim.v
+rtl/common/garuda_apb_shim.sv
 tb/common/apb_checker.v
 tb/common/garuda_apb_bfm.sv
 tb/common/dma_req_checker.sv

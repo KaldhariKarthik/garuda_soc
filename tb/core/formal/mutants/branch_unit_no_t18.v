@@ -36,9 +36,10 @@
 // redirects (trap, MRET) are muxed at core top per the redirect-mux priority.
 //=============================================================================
 
-`include "core_ex_defs.vh"
 
-module branch_unit (
+module branch_unit
+    import core_ex_pkg::*;
+(
     // id_ex payload
     input  wire [31:0] pc,              // pc of the instruction in EX
     input  wire [31:0] imm,             // sign-extended B-imm (is_branch) / I-imm (JALR)
@@ -74,12 +75,12 @@ module branch_unit (
     reg taken_r;
     always @(*) begin
         case (funct3_fld)
-            `BR_BEQ:  taken_r = eq;
-            `BR_BNE:  taken_r = ~eq;
-            `BR_BLT:  taken_r = lt;
-            `BR_BGE:  taken_r = ~lt;
-            `BR_BLTU: taken_r = ltu;
-            `BR_BGEU: taken_r = ~ltu;
+            BR_BEQ:  taken_r = eq;
+            BR_BNE:  taken_r = ~eq;
+            BR_BLT:  taken_r = lt;
+            BR_BGE:  taken_r = ~lt;
+            BR_BLTU: taken_r = ltu;
+            BR_BGEU: taken_r = ~ltu;
             default:  taken_r = 1'b0;   // 010/011 reserved -> ID traps, never here
         endcase
     end

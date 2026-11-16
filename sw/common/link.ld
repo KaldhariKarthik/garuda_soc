@@ -1,8 +1,8 @@
 /* =========================================================================
  * GARUDA SoC - bare-metal linker script
  *
- * Memory map matches the verification model in rtl/ahb/ahb_mem_slave.v and
- * the core's RESET_VECTOR (rtl/core/garuda_pc_gen.v:42): one flat 256 KB
+ * Memory map matches the verification model in rtl/ahb/ahb_mem_slave.sv and
+ * the core's RESET_VECTOR (rtl/core/garuda_pc_gen.sv:42): one flat 256 KB
  * window at 0x1000_0000 holding text, data, bss and stack.
  *
  * This is deliberately ONE region, not separate I/D regions, because the

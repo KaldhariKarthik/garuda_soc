@@ -101,7 +101,7 @@ F32 Interrupt storm,2,SECTION,CLIC.F32,"All 21 sources asserted together are ser
 t_chip_storm,3,TC,CLIC.F32.TC1,Stage 5 scenario test.,sw/chip. Planned.,Karthik,
 D Clock reset and power,1,SECTION,CLIC.D,Spec section 9.,,,
 F33 The block is never clock gated,2,SECTION,CLIC.F33,"It must respond to a source at any time, including while the core sleeps. Spec [N-9.3], [N-9.4].",Method: static + sim. Before the UVM environment: sw/chip/t_chip_irq.c wakes the gated core from a CLIC source. Now: all 1 items passing.,Karthik,P2
-review,3,CHK,CLIC.F33.CHK1,"clic_top has no clock enable; its flops are on pclk, which runs while the core clock is gated.","Done 2026-10-05 - rtl/clic has no clock enable; rtl/soc/garuda_soc_top.v line 285 connects hclk_i and pclk_i, not the gated core clock.",Karthik,
+review,3,CHK,CLIC.F33.CHK1,"clic_top has no clock enable; its flops are on pclk, which runs while the core clock is gated.","Done 2026-10-05 - rtl/clic has no clock enable; rtl/soc/garuda_soc_top.sv line 285 connects hclk_i and pclk_i, not the gated core clock.",Karthik,
 E Features that must be absent,1,SECTION,CLIC.E,Spec section 13. Each is checked by showing there is nothing there.,,,
 F34 No trigger configuration and no vectoring registers,2,SECTION,CLIC.F34,"There is no CLICINTATTR, no edge mode and no vector table base: every offset where they would be raises PSLVERR.",Method: sim. Before the UVM environment: no check. Now: nothing yet.,Karthik,P3
 sb_pslverr,3,CHK,CLIC.F34.CHK1,Covered by F08: the address map has only the four register kinds.,UVM scoreboard against the reference model (written from the spec). Planned.,Karthik,

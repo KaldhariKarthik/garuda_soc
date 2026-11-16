@@ -1,4 +1,4 @@
-// MUTANT csr_file_no_t12: rtl/core/csr_file.v with ONE fix reverted (T-12: no mpil push, mret drops the level).
+// MUTANT csr_file_no_t12: rtl/core/csr_file.sv with ONE fix reverted (T-12: no mpil push, mret drops the level).
 // Formal negative control: must FAIL. Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. (tb/core/formal/csr_file.toml csr_prove_no_t12)
 `timescale 1ns/1ps
 `default_nettype none
@@ -22,9 +22,10 @@
 // instret_i (one retired instruction). dsu_ovf (0xBC0) reads dsu_overflow_i and
 // pulses csr_clear_overflow_o on read.
 // =============================================================================
-`include "core_ex_defs.vh"
 
-module csr_file (
+module csr_file
+    import core_ex_pkg::*;
+(
     input  wire        gclk,
     input  wire        core_rst_n,
 
@@ -231,8 +232,8 @@ module csr_file (
                  // C-16: mconfigptr is read-only by its address (0xC00-0xFFF)
                  (csr_addr_i==MCONFIGPTR);
     wire csr_access      = csr_en_i && (csr_op_i != 2'b00);
-    wire is_write    = csr_access && (csr_op_i == `CSR_RW ||
-                                  ((csr_op_i==`CSR_RS||csr_op_i==`CSR_RC) && (csr_wdata_i!=32'd0)));
+    wire is_write    = csr_access && (csr_op_i == CSR_RW ||
+                                  ((csr_op_i==CSR_RS||csr_op_i==CSR_RC) && (csr_wdata_i!=32'd0)));
     assign illegal_csr_o = csr_access && (!implemented || (is_write && is_ro));
 
     // dsu_ovf read clears overflow (Sec. 13.2)
@@ -242,9 +243,9 @@ module csr_file (
     function [31:0] nextv; input [31:0] cur; input [31:0] w; input [1:0] op;
         begin
             case (op)
-                `CSR_RW: nextv = w;
-                `CSR_RS: nextv = cur |  w;
-                `CSR_RC: nextv = cur & ~w;
+                CSR_RW: nextv = w;
+                CSR_RS: nextv = cur |  w;
+                CSR_RC: nextv = cur & ~w;
                 default: nextv = cur;
             endcase
         end

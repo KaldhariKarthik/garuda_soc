@@ -6,7 +6,7 @@
 
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/load_formatter.v
+rtl/core/load_formatter.sv
 
 -sv
 tb/core/garuda_tb_pkg.sv

@@ -6,7 +6,7 @@
 
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/clic_ctrl.v
+rtl/core/clic_ctrl.sv
 
 -sv
 tb/core/garuda_tb_pkg.sv

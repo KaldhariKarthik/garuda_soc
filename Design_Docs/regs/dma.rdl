@@ -1,7 +1,7 @@
 // =============================================================================
 // dma.rdl - register description of block 9, the DMA controller (APB window 5).
 //
-// Source: GARUDA-DMA-SPEC-001 section 6 (Rev 3.0) and rtl/dma/dma_apb_slave.v.
+// Source: GARUDA-DMA-SPEC-001 section 6 (Rev 3.0) and rtl/dma/dma_apb_slave.sv.
 // The UVM register model tb/dma/uvm/dma_reg_pkg.sv is generated from this
 // file:   python3 tools/gen/gen_ral.py Design_Docs/regs/dma.rdl tb/dma/uvm/dma_reg_pkg.sv
 //

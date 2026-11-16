@@ -72,4 +72,4 @@ E Clock reset and power,1,SECTION,MEM.E,Spec section 9.,,,
 F27 The lock control crosses from pclk to hclk without a synchroniser,2,SECTION,MEM.F27,Spec [N-9.1].,Method: static. Today: no check.,Karthik,P2
 hal_cdc,3,CHK,MEM.F27.CHK1,No crossing reported at chip level.,flow/2_static.,Karthik,
 F28 Macro assumptions,2,SECTION,MEM.F28,"No sleep, retention or ECC pins are used. Requirement R-12. The memories are behavioural models until the macro compiler is run.",Method: review. Today: no check.,Karthik,P3
-review,3,CHK,MEM.F28.CHK1,Port list of rtl/mem/sram_wrapper.v.,Waits for the macros.,Karthik,
+review,3,CHK,MEM.F28.CHK1,Port list of rtl/mem/sram_wrapper.sv.,Waits for the macros.,Karthik,

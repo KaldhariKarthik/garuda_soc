@@ -47,7 +47,7 @@ critical path of every board bring-up.
 ### 1.3 Where the RTL comes from
 
 `rtl/third_party/pulp/apb_spi_master` + `rtl/third_party/pulp/axi_spi_master`
-(Solderpad 0.51), unmodified, behind `rtl/spi_master/garuda_spim_top.v`. The
+(Solderpad 0.51), unmodified, behind `rtl/spi_master/garuda_spim_top.sv`. The
 upstream register model — a command/address/dummy/data length engine — *is* a
 flash read, which is why the boot path fits the 4 KiB ROM budget.
 
@@ -95,11 +95,11 @@ flash read, which is why the boot path fits the 4 KiB ROM budget.
 
 | Name | Type | RTL file | Role |
 |---|---|---|---|
-| `garuda_apb_shim` | seq (pclk) | `rtl/common/garuda_apb_shim.v` | window decode, PSLVERR, sticky IRQ, DMA request, pad sync |
+| `garuda_apb_shim` | seq (pclk) | `rtl/common/garuda_apb_shim.sv` | window decode, PSLVERR, sticky IRQ, DMA request, pad sync |
 | `apb_spi_master` | seq (pclk) | `rtl/third_party/pulp/apb_spi_master/src/` | register file + SPI engine (vendored) |
 | `spi_master_controller` | seq | `rtl/third_party/pulp/axi_spi_master/src/` | command/address/data sequencer, chip select |
 | `spi_master_clkgen` | seq | same | SCLK generation from `CLKDIV` |
-| `garuda_spim_top` | wrapper | `rtl/spi_master/garuda_spim_top.v` | CS mapping, mode forcing, safe reset state |
+| `garuda_spim_top` | wrapper | `rtl/spi_master/garuda_spim_top.sv` | CS mapping, mode forcing, safe reset state |
 
 ---
 

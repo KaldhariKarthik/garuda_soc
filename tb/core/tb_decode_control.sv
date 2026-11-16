@@ -18,6 +18,7 @@
 // -------------------------------------------------------------
 // 0. DEFINES (inlined from garuda_defs.vh)
 // -------------------------------------------------------------
+import garuda_pkg::*;
 `ifndef GARUDA_DEFS_VH
 `define GARUDA_DEFS_VH
 `define ALU_ADD   4'h0
@@ -386,67 +387,67 @@ typedef struct packed {
 class decode_ref_model;
     static function decode_result_t base_defaults();
         decode_result_t r = '{default: 0};
-        r.alu_op = `ALU_ADD; r.imm_sel = `IMM_NONE;
+        r.alu_op = ALU_ADD; r.imm_sel = IMM_NONE;
         return r;
     endfunction
 
     static function decode_result_t decode_lui();
         decode_result_t r = base_defaults();
-        r.reg_write = 1; r.alu_src = 1; r.alu_op = `ALU_PASSB; r.imm_sel = `IMM_U;
+        r.reg_write = 1; r.alu_src = 1; r.alu_op = ALU_PASSB; r.imm_sel = IMM_U;
         return r;
     endfunction
     static function decode_result_t decode_auipc();
         decode_result_t r = base_defaults();
-        r.reg_write = 1; r.alu_src = 1; r.alu_a_pc = 1; r.alu_op = `ALU_ADD; r.imm_sel = `IMM_U;
+        r.reg_write = 1; r.alu_src = 1; r.alu_a_pc = 1; r.alu_op = ALU_ADD; r.imm_sel = IMM_U;
         return r;
     endfunction
     static function decode_result_t decode_jal();
         decode_result_t r = base_defaults();
-        r.reg_write = 1; r.jal = 1; r.imm_sel = `IMM_J;
+        r.reg_write = 1; r.jal = 1; r.imm_sel = IMM_J;
         return r;
     endfunction
     static function decode_result_t decode_jalr();
         decode_result_t r = base_defaults();
-        r.reg_write = 1; r.jalr = 1; r.imm_sel = `IMM_I;
+        r.reg_write = 1; r.jalr = 1; r.imm_sel = IMM_I;
         return r;
     endfunction
     static function decode_result_t decode_branch();
         decode_result_t r = base_defaults();
-        r.branch = 1; r.alu_op = `ALU_SUB; r.imm_sel = `IMM_B;
+        r.branch = 1; r.alu_op = ALU_SUB; r.imm_sel = IMM_B;
         return r;
     endfunction
     static function decode_result_t decode_load();
         decode_result_t r = base_defaults();
-        r.reg_write = 1; r.mem_read = 1; r.mem_to_reg = 1; r.alu_src = 1; r.alu_op = `ALU_ADD; r.imm_sel = `IMM_I;
+        r.reg_write = 1; r.mem_read = 1; r.mem_to_reg = 1; r.alu_src = 1; r.alu_op = ALU_ADD; r.imm_sel = IMM_I;
         return r;
     endfunction
     static function decode_result_t decode_store();
         decode_result_t r = base_defaults();
-        r.mem_write = 1; r.alu_src = 1; r.alu_op = `ALU_ADD; r.imm_sel = `IMM_S;
+        r.mem_write = 1; r.alu_src = 1; r.alu_op = ALU_ADD; r.imm_sel = IMM_S;
         return r;
     endfunction
 
     static function decode_result_t decode_op_imm(bit [2:0] f3, bit [6:0] f7);
         decode_result_t r = base_defaults();
-        r.reg_write = 1; r.alu_src = 1; r.imm_sel = `IMM_I;
+        r.reg_write = 1; r.alu_src = 1; r.imm_sel = IMM_I;
         unique case (f3)
-            3'b000: r.alu_op = `ALU_ADD;
-            3'b010: r.alu_op = `ALU_SLT;
-            3'b011: r.alu_op = `ALU_SLTU;
-            3'b100: r.alu_op = `ALU_XOR;
-            3'b110: r.alu_op = `ALU_OR;
-            3'b111: r.alu_op = `ALU_AND;
+            3'b000: r.alu_op = ALU_ADD;
+            3'b010: r.alu_op = ALU_SLT;
+            3'b011: r.alu_op = ALU_SLTU;
+            3'b100: r.alu_op = ALU_XOR;
+            3'b110: r.alu_op = ALU_OR;
+            3'b111: r.alu_op = ALU_AND;
             // RV32I requires instr[31:25] to be exactly 0000000 for SLLI and
             // SRLI, and 0100000 for SRAI. Anything else is a reserved encoding
             // and must raise illegal_instr. This model previously ignored all
             // of funct7 except bit 5, matching the RTL as it stood when this
-            // file was written; rtl/core/decode_control.v was corrected
+            // file was written; rtl/core/decode_control.sv was corrected
             // (ERRATUM C-1, found by riscv-tests rv32mi/shamt, which traps in
             // Spike and did not on GARUDA). Updated here to match the spec.
-            3'b001: if (f7 == 7'b0000000) r.alu_op = `ALU_SLL;
+            3'b001: if (f7 == 7'b0000000) r.alu_op = ALU_SLL;
                     else                  r.illegal = 1;
-            3'b101: if      (f7 == 7'b0000000) r.alu_op = `ALU_SRL;
-                    else if (f7 == 7'b0100000) r.alu_op = `ALU_SRA;
+            3'b101: if      (f7 == 7'b0000000) r.alu_op = ALU_SRL;
+                    else if (f7 == 7'b0100000) r.alu_op = ALU_SRA;
                     else                       r.illegal = 1;
         endcase
         // An illegal instruction writes nothing (assertion A6, rtl ERRATUM
@@ -471,14 +472,14 @@ class decode_ref_model;
                      (f7 == 7'b0100000 && (f3 == 3'b000 || f3 == 3'b101))) begin
             r.reg_write = 1;
             case (f3)
-                3'b000:  r.alu_op = f7[5] ? `ALU_SUB : `ALU_ADD;
-                3'b001:  r.alu_op = `ALU_SLL;
-                3'b010:  r.alu_op = `ALU_SLT;
-                3'b011:  r.alu_op = `ALU_SLTU;
-                3'b100:  r.alu_op = `ALU_XOR;
-                3'b101:  r.alu_op = f7[5] ? `ALU_SRA : `ALU_SRL;
-                3'b110:  r.alu_op = `ALU_OR;
-                3'b111:  r.alu_op = `ALU_AND;
+                3'b000:  r.alu_op = f7[5] ? ALU_SUB : ALU_ADD;
+                3'b001:  r.alu_op = ALU_SLL;
+                3'b010:  r.alu_op = ALU_SLT;
+                3'b011:  r.alu_op = ALU_SLTU;
+                3'b100:  r.alu_op = ALU_XOR;
+                3'b101:  r.alu_op = f7[5] ? ALU_SRA : ALU_SRL;
+                3'b110:  r.alu_op = ALU_OR;
+                3'b111:  r.alu_op = ALU_AND;
             endcase
         end else begin
             r.illegal = 1;
@@ -490,7 +491,7 @@ class decode_ref_model;
         decode_result_t r = base_defaults();
         r.is_system = 1;
         if (f3 != 3'b000) begin
-            r.csr_en = 1; r.csr_op = f3; r.reg_write = 1; r.imm_sel = `IMM_CSR;
+            r.csr_en = 1; r.csr_op = f3; r.reg_write = 1; r.imm_sel = IMM_CSR;
         end
         return r;
     endfunction
@@ -608,13 +609,13 @@ class decode_monitor;
             bins op_misc_mem = {OPC_MISC_MEM};
         }
         cp_alu_op: coverpoint vif.alu_op iff (!vif.illegal_instr) {
-            bins b_add={`ALU_ADD}; bins b_sub={`ALU_SUB}; bins b_and={`ALU_AND}; bins b_or={`ALU_OR};
-            bins b_xor={`ALU_XOR}; bins b_sll={`ALU_SLL}; bins b_srl={`ALU_SRL}; bins b_sra={`ALU_SRA};
-            bins b_slt={`ALU_SLT}; bins b_sltu={`ALU_SLTU}; bins b_passb={`ALU_PASSB};
+            bins b_add={ALU_ADD}; bins b_sub={ALU_SUB}; bins b_and={ALU_AND}; bins b_or={ALU_OR};
+            bins b_xor={ALU_XOR}; bins b_sll={ALU_SLL}; bins b_srl={ALU_SRL}; bins b_sra={ALU_SRA};
+            bins b_slt={ALU_SLT}; bins b_sltu={ALU_SLTU}; bins b_passb={ALU_PASSB};
         }
         cp_imm_sel: coverpoint vif.imm_sel {
-            bins i_type={`IMM_I}; bins s_type={`IMM_S}; bins b_type={`IMM_B}; bins u_type={`IMM_U};
-            bins j_type={`IMM_J}; bins csr_type={`IMM_CSR}; bins none_type={`IMM_NONE};
+            bins i_type={IMM_I}; bins s_type={IMM_S}; bins b_type={IMM_B}; bins u_type={IMM_U};
+            bins j_type={IMM_J}; bins csr_type={IMM_CSR}; bins none_type={IMM_NONE};
         }
         cp_illegal_cause: coverpoint illegal_cause_cov {
             bins legal = {0}; bins reserved_opcode = {1}; bins bad_reg_funct7 = {2}; bins div_family = {3};

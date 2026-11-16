@@ -15,7 +15,7 @@
 // tb_dsu_csa_3to2.sv
 //
 //  BLOCK      : II -- DSU (Custom-0 MAC coprocessor)
-//  RTL SOURCE : rtl/dsu/csa_3to2.v   (GARUDA_DSU_DesignSpec)
+//  RTL SOURCE : rtl/dsu/csa_3to2.sv   (GARUDA_DSU_DesignSpec)
 //  SCOPE      : DSU unit module
 //
 // Single-file SV verification environment for GARUDA csa_3to2.v

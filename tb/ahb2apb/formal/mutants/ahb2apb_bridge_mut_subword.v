@@ -1,4 +1,4 @@
-// MUTANT subword (bus plan B2 negative control): rtl/ahb2apb/ahb2apb_bridge.v with ONE change (sub-word accesses passed to APB).
+// MUTANT subword (bus plan B2 negative control): rtl/ahb2apb/ahb2apb_bridge.sv with ONE change (sub-word accesses passed to APB).
 // Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal negative control: must FAIL. (tb/ahb2apb/formal/apb.toml mut_subword)
 `timescale 1ns/1ps
 `default_nettype none

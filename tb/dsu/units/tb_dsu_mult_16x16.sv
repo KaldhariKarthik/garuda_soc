@@ -15,7 +15,7 @@
 // tb_dsu_mult_16x16.sv
 //
 //  BLOCK      : II -- DSU (Custom-0 MAC coprocessor)
-//  RTL SOURCE : rtl/dsu/mult_16x16.v   (GARUDA_DSU_DesignSpec)
+//  RTL SOURCE : rtl/dsu/mult_16x16.sv   (GARUDA_DSU_DesignSpec)
 //  SCOPE      : DSU unit module
 //
 // Single-file SV verification environment for GARUDA mult_16x16.v

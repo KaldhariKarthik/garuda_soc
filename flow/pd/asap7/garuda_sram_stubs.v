@@ -1,6 +1,6 @@
 // =============================================================================
 // GARUDA / ASAP7 exploratory flow: BLACK-BOX declarations for the named memory
-// macros that rtl/mem/sram_wrapper.v instantiates under GARUDA_SRAM_MACRO (P3).
+// macros that rtl/mem/sram_wrapper.sv instantiates under GARUDA_SRAM_MACRO (P3).
 // PD-only. Not RTL, never simulated. Ports must match sram_wrapper's macro
 // branch exactly. Replaced by the mock-SRAM abstracts (LEF + liberty) once those
 // exist.

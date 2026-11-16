@@ -1,7 +1,7 @@
 // GARUDA Blocks 16/17/18: UART = vendored PULP 16550 + GARUDA wrapper
 -f rtl/third_party/pulp/apb_uart_sv/filelist.f
 -sv
-rtl/common/garuda_apb_shim.v
+rtl/common/garuda_apb_shim.sv
 rtl/common/garuda_apb_shim_sva.sv
-rtl/uart/garuda_uart_top.v
+rtl/uart/garuda_uart_top.sv
 rtl/uart/garuda_uart_sva.sv

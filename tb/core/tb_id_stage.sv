@@ -51,6 +51,7 @@
 // pasted DUT sub-modules below (a literal `include would require the
 // file on disk, breaking standalone compilation) and its content
 // inlined ONCE here, shared by both.
+import garuda_pkg::*;
 `ifndef GARUDA_DEFS_VH
 `define GARUDA_DEFS_VH
 `define ALU_ADD   4'h0
@@ -475,38 +476,38 @@ class id_stage_ref_model;
         bit [2:0] f3     = instr[14:12];
         bit [6:0] f7     = instr[31:25];
         id_decode_t r = '{default: 0};
-        r.alu_op = `ALU_ADD; r.imm_sel = `IMM_NONE;
+        r.alu_op = ALU_ADD; r.imm_sel = IMM_NONE;
 
         case (opcode)
-            7'b0110111: begin r.reg_write=1; r.alu_src=1; r.alu_op=`ALU_PASSB; r.imm_sel=`IMM_U; end
-            7'b0010111: begin r.reg_write=1; r.alu_src=1; r.alu_a_pc=1; r.alu_op=`ALU_ADD; r.imm_sel=`IMM_U; end
-            7'b1101111: begin r.reg_write=1; r.jal=1; r.imm_sel=`IMM_J; end
+            7'b0110111: begin r.reg_write=1; r.alu_src=1; r.alu_op=ALU_PASSB; r.imm_sel=IMM_U; end
+            7'b0010111: begin r.reg_write=1; r.alu_src=1; r.alu_a_pc=1; r.alu_op=ALU_ADD; r.imm_sel=IMM_U; end
+            7'b1101111: begin r.reg_write=1; r.jal=1; r.imm_sel=IMM_J; end
             // ERRATUM C-5: reserved funct3 encodings of JALR/BRANCH/LOAD/STORE
             // and SYSTEM are illegal (RV32I, as Spike implements it).
-            7'b1100111: if (f3 == 3'b000) begin r.reg_write=1; r.jalr=1; r.imm_sel=`IMM_I; end
+            7'b1100111: if (f3 == 3'b000) begin r.reg_write=1; r.jalr=1; r.imm_sel=IMM_I; end
                         else r.illegal = 1;
             7'b1100011: if (f3 == 3'b010 || f3 == 3'b011) r.illegal = 1;
-                        else begin r.branch=1; r.alu_op=`ALU_SUB; r.imm_sel=`IMM_B; end
+                        else begin r.branch=1; r.alu_op=ALU_SUB; r.imm_sel=IMM_B; end
             7'b0000011: if (f3 inside {3'b011, 3'b110, 3'b111}) r.illegal = 1;
-                        else begin r.reg_write=1; r.mem_read=1; r.mem_to_reg=1; r.alu_src=1; r.alu_op=`ALU_ADD; r.imm_sel=`IMM_I; end
+                        else begin r.reg_write=1; r.mem_read=1; r.mem_to_reg=1; r.alu_src=1; r.alu_op=ALU_ADD; r.imm_sel=IMM_I; end
             7'b0100011: if (f3[2] || f3 == 3'b011) r.illegal = 1;
-                        else begin r.mem_write=1; r.alu_src=1; r.alu_op=`ALU_ADD; r.imm_sel=`IMM_S; end
+                        else begin r.mem_write=1; r.alu_src=1; r.alu_op=ALU_ADD; r.imm_sel=IMM_S; end
             7'b0010011: begin
-                r.reg_write=1; r.alu_src=1; r.imm_sel=`IMM_I;
+                r.reg_write=1; r.alu_src=1; r.imm_sel=IMM_I;
                 case (f3)
-                    3'b000: r.alu_op=`ALU_ADD; 3'b010: r.alu_op=`ALU_SLT; 3'b011: r.alu_op=`ALU_SLTU;
-                    3'b100: r.alu_op=`ALU_XOR; 3'b110: r.alu_op=`ALU_OR; 3'b111: r.alu_op=`ALU_AND;
+                    3'b000: r.alu_op=ALU_ADD; 3'b010: r.alu_op=ALU_SLT; 3'b011: r.alu_op=ALU_SLTU;
+                    3'b100: r.alu_op=ALU_XOR; 3'b110: r.alu_op=ALU_OR; 3'b111: r.alu_op=ALU_AND;
                     // ERRATUM C-1: RV32I requires instr[31:25] to be exactly
                     // 0000000 for SLLI/SRLI and 0100000 for SRAI; every other
                     // value is reserved and must trap. This model ignored all
                     // of funct7 but bit 5, matching the RTL as written at the
-                    // time. rtl/core/decode_control.v was corrected after
+                    // time. rtl/core/decode_control.sv was corrected after
                     // riscv-tests rv32mi/shamt showed Spike trapping where
                     // GARUDA did not.
-                    3'b001: if (f7 == 7'b0000000) r.alu_op=`ALU_SLL;
+                    3'b001: if (f7 == 7'b0000000) r.alu_op=ALU_SLL;
                             else                  r.illegal = 1;
-                    3'b101: if      (f7 == 7'b0000000) r.alu_op=`ALU_SRL;
-                            else if (f7 == 7'b0100000) r.alu_op=`ALU_SRA;
+                    3'b101: if      (f7 == 7'b0000000) r.alu_op=ALU_SRL;
+                            else if (f7 == 7'b0100000) r.alu_op=ALU_SRA;
                             else                       r.illegal = 1;
                     default: r.illegal = 1;
                 endcase
@@ -521,11 +522,11 @@ class id_stage_ref_model;
                          (f7 == 7'b0100000 && (f3 == 3'b000 || f3 == 3'b101))) begin
                     r.reg_write=1;
                     case (f3)
-                        3'b000: r.alu_op = f7[5] ? `ALU_SUB : `ALU_ADD;
-                        3'b001: r.alu_op=`ALU_SLL; 3'b010: r.alu_op=`ALU_SLT; 3'b011: r.alu_op=`ALU_SLTU;
-                        3'b100: r.alu_op=`ALU_XOR;
-                        3'b101: r.alu_op = f7[5] ? `ALU_SRA : `ALU_SRL;
-                        3'b110: r.alu_op=`ALU_OR; 3'b111: r.alu_op=`ALU_AND;
+                        3'b000: r.alu_op = f7[5] ? ALU_SUB : ALU_ADD;
+                        3'b001: r.alu_op=ALU_SLL; 3'b010: r.alu_op=ALU_SLT; 3'b011: r.alu_op=ALU_SLTU;
+                        3'b100: r.alu_op=ALU_XOR;
+                        3'b101: r.alu_op = f7[5] ? ALU_SRA : ALU_SRL;
+                        3'b110: r.alu_op=ALU_OR; 3'b111: r.alu_op=ALU_AND;
                         default: r.illegal=1;
                     endcase
                 end else begin r.illegal=1; end
@@ -537,7 +538,7 @@ class id_stage_ref_model;
                     if (!(instr inside {32'h0000_0073, 32'h0010_0073, 32'h3020_0073, 32'h1050_0073}))
                         r.illegal = 1;
                 end
-                else begin r.csr_en=1; r.csr_op=f3; r.reg_write=1; r.imm_sel=`IMM_CSR; end
+                else begin r.csr_en=1; r.csr_op=f3; r.reg_write=1; r.imm_sel=IMM_CSR; end
             end
             7'b0001011: begin r.dsu_en=1; end
             // ERRATUM C-2: FENCE (MISC-MEM, funct3=000) is a no-op on GARUDA -
@@ -572,12 +573,12 @@ class id_stage_ref_model;
     endfunction
     static function bit [31:0] imm_select(bit [31:0] instr, bit [2:0] sel);
         case (sel)
-            `IMM_I:   return sign_extend({20'b0, instr[31:20]}, 12);
-            `IMM_S:   return sign_extend({20'b0, instr[31:25], instr[11:7]}, 12);
-            `IMM_B:   return imm_b(instr);
-            `IMM_U:   return {instr[31:12], 12'b0};
-            `IMM_J:   return imm_j(instr);
-            `IMM_CSR: return {27'b0, instr[19:15]};
+            IMM_I:   return sign_extend({20'b0, instr[31:20]}, 12);
+            IMM_S:   return sign_extend({20'b0, instr[31:25], instr[11:7]}, 12);
+            IMM_B:   return imm_b(instr);
+            IMM_U:   return {instr[31:12], 12'b0};
+            IMM_J:   return imm_j(instr);
+            IMM_CSR: return {27'b0, instr[19:15]};
             default:  return 32'b0;
         endcase
     endfunction

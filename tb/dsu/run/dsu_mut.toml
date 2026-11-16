@@ -18,21 +18,21 @@ cwd     = "root"
 [[test]]
 name = "mut_shift_logical"
 plusargs = ["+STIM=logs/dsu/raw/vec/dsu_stim.mem", "+EXP=logs/dsu/raw/vec/dsu_expected.mem"]
-replace = { "rtl/dsu/barrel_shifter.v" = "tb/dsu/mut/barrel_shifter_mut_shift_logical.v" }
+replace = { "rtl/dsu/barrel_shifter.sv" = "tb/dsu/mut/barrel_shifter_mut_shift_logical.v" }
 fail_reason = "mismatches *: *[1-9]"
 
 # MACRD_HI zero-extends instead of sign-extending
 [[test]]
 name = "mut_rdhi_zext"
 plusargs = ["+STIM=logs/dsu/raw/vec/dsu_stim.mem", "+EXP=logs/dsu/raw/vec/dsu_expected.mem"]
-replace = { "rtl/dsu/readback_mux.v" = "tb/dsu/mut/readback_mux_mut_rdhi_zext.v" }
+replace = { "rtl/dsu/readback_mux.sv" = "tb/dsu/mut/readback_mux_mut_rdhi_zext.v" }
 fail_reason = "mismatches *: *[1-9]"
 
 # MACDOT multiplies the low halfword twice
 [[test]]
 name = "mut_dot_hi_is_lo"
 plusargs = ["+STIM=logs/dsu/raw/vec/dsu_stim.mem", "+EXP=logs/dsu/raw/vec/dsu_expected.mem"]
-replace = { "rtl/dsu/operand_router.v" = "tb/dsu/mut/operand_router_mut_dot_hi_is_lo.v" }
+replace = { "rtl/dsu/operand_router.sv" = "tb/dsu/mut/operand_router_mut_dot_hi_is_lo.v" }
 fail_reason = "mismatches *: *[1-9]"
 
 # the read-after-MAC interlock never fires
@@ -42,21 +42,21 @@ flist   = "tb/soc/filelist_boot.f"
 top     = "tb_boot"
 marker  = 'TOHOST=1 -> PASSED'
 plusargs = ["+HEX=sw/build/t_cov_dsu.hex", "+MAXCYC=8000000", "+QUIET"]
-replace = { "rtl/dsu/dsu_stall.v" = "tb/dsu/mut/dsu_stall_mut_no_interlock.v" }
+replace = { "rtl/dsu/dsu_stall.sv" = "tb/dsu/mut/dsu_stall_mut_no_interlock.v" }
 fail_reason = "TOHOST=.*FAILED|\\[SVA-FAIL\\] DSU"
 
 # the stage-2 fold of an accumulate never happens
 [[test]]
 name = "mut_no_fold"
 plusargs = ["+STIM=logs/dsu/raw/vec/dsu_stim.mem", "+EXP=logs/dsu/raw/vec/dsu_expected.mem"]
-replace = { "rtl/dsu/mac_unit.v" = "tb/dsu/mut/mac_unit_mut_no_fold.v" }
+replace = { "rtl/dsu/mac_unit.sv" = "tb/dsu/mut/mac_unit_mut_no_fold.v" }
 fail_reason = "mismatches *: *[1-9]"
 
 # MACSAT clamps but never sets the overflow flag
 [[test]]
 name = "mut_sat_no_ovf"
 plusargs = ["+STIM=logs/dsu/raw/vec/dsu_stim.mem", "+EXP=logs/dsu/raw/vec/dsu_expected.mem"]
-replace = { "rtl/dsu/saturation_unit.v" = "tb/dsu/mut/saturation_unit_mut_sat_no_ovf.v" }
+replace = { "rtl/dsu/saturation_unit.sv" = "tb/dsu/mut/saturation_unit_mut_sat_no_ovf.v" }
 fail_reason = "mismatches *: *[1-9]"
 
 # the overflow flag is not sticky
@@ -66,5 +66,5 @@ flist   = "tb/soc/filelist_boot.f"
 top     = "tb_boot"
 marker  = 'TOHOST=1 -> PASSED'
 plusargs = ["+HEX=sw/build/t_cov_dsu.hex", "+MAXCYC=8000000", "+QUIET"]
-replace = { "rtl/dsu/overflow_flag.v" = "tb/dsu/mut/overflow_flag_mut_ovf_not_sticky.v" }
+replace = { "rtl/dsu/overflow_flag.sv" = "tb/dsu/mut/overflow_flag_mut_ovf_not_sticky.v" }
 fail_reason = "TOHOST=.*FAILED|\\[SVA-FAIL\\] DSU"

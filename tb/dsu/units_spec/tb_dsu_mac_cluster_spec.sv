@@ -10,12 +10,12 @@
 // (dbg_acc_*) and cluster_out (the selected one) must equal the reference, and
 // each accumulator's overflow bit must have pulsed iff its reference left the range.
 // =============================================================================
-`include "dsu_defs.vh"
+import dsu_pkg::*;
+import tb_dsu_mac_spec_pkg::*;
 module tb_dsu_mac_cluster_spec;
-    import tb_dsu_mac_spec_pkg::*;
     logic clk = 0, rst_n = 0;
     logic [31:0] rs1 = 0, rs2 = 0;
-    logic [`MAC_CTRL_W-1:0] control = 0;
+    logic [MAC_CTRL_W-1:0] control = 0;
     logic [1:0] sel = 0;
     logic [47:0] satv = 0;
     logic sat_en = 0;
@@ -34,13 +34,13 @@ module tb_dsu_mac_cluster_spec;
         bit o;
         rs1 = a; rs2 = b; satv = sv; sel = s;
         control = '0;
-        control[`MAC_CTRL_EN]     = op inside {OP_MAC, OP_SUB, OP_ABS, OP_DOT, OP_LOAD, OP_CLEAR};
-        control[`MAC_CTRL_ADDSUB] = op == OP_SUB;
-        control[`MAC_CTRL_ABS]    = op == OP_ABS;
-        control[`MAC_CTRL_DOT]    = op == OP_DOT;
-        control[`MAC_CTRL_LOAD]   = op == OP_LOAD;
-        control[`MAC_CTRL_CLEAR]  = op == OP_CLEAR;
-        control[`MAC_CTRL_FLUSH]  = fl;
+        control[MAC_CTRL_EN]     = op inside {OP_MAC, OP_SUB, OP_ABS, OP_DOT, OP_LOAD, OP_CLEAR};
+        control[MAC_CTRL_ADDSUB] = op == OP_SUB;
+        control[MAC_CTRL_ABS]    = op == OP_ABS;
+        control[MAC_CTRL_DOT]    = op == OP_DOT;
+        control[MAC_CTRL_LOAD]   = op == OP_LOAD;
+        control[MAC_CTRL_CLEAR]  = op == OP_CLEAR;
+        control[MAC_CTRL_FLUSH]  = fl;
         sat_en = (op == OP_SAT);
         @(posedge clk); #1;
         if (!fl) begin ref_acc[s] = apply(op, ref_acc[s], a, b, sv, o); ref_ovf[s] |= o; end

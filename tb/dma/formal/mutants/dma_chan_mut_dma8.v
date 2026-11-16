@@ -1,4 +1,4 @@
-// MUTANT mut_dma8: rtl/dma/dma_chan.v with ONE fix reverted (DMA-8: a failed beat marks the request as taken).
+// MUTANT mut_dma8: rtl/dma/dma_chan.sv with ONE fix reverted (DMA-8: a failed beat marks the request as taken).
 // Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal negative control: must FAIL. (tb/dma/formal/dma.toml mut_dma8, a_failed_beat_keeps_request)
 `timescale 1ns/1ps
 `default_nettype none

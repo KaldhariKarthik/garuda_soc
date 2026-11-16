@@ -76,9 +76,10 @@
 // (Was "200/100 MHz" - stale since ADR-0001 set 500 -> 250 -> 125.)
 // =============================================================================
 
-`include "ahb_defs.vh"
 
-module ahb_interconnect (
+module ahb_interconnect
+    import ahb_pkg::*;
+(
     input  wire        hclk,
     input  wire        hreset_n,
 
@@ -163,7 +164,7 @@ module ahb_interconnect (
     wire       dph_valid;
     wire [1:0] dph_master;
 
-    wire [`AHB_NMASTERS*2-1:0] htrans_bus = {m_htrans_i, s_htrans_i, d_htrans_i, i_htrans_i};
+    wire [AHB_NMASTERS*2-1:0] htrans_bus = {m_htrans_i, s_htrans_i, d_htrans_i, i_htrans_i};
 
     ahb_arbiter u_arb (
         .hclk       (hclk),
@@ -208,17 +209,17 @@ module ahb_interconnect (
     // =====================================================================
     // Address decode (Sec. 6). One-hot for every address, default included.
     // =====================================================================
-    wire [`AHB_SEL_W-1:0] hsel;
+    wire [AHB_SEL_W-1:0] hsel;
 
     ahb_decoder u_dec (
         .haddr_i (haddr_o),
         .hsel_o  (hsel)
     );
 
-    assign hsel_isram_o  = hsel[`AHB_S_ISRAM ];
-    assign hsel_rom_o    = hsel[`AHB_S_ROM   ];
-    assign hsel_dsram_o  = hsel[`AHB_S_DSRAM ];
-    assign hsel_bridge_o = hsel[`AHB_S_BRIDGE];
+    assign hsel_isram_o  = hsel[AHB_S_ISRAM ];
+    assign hsel_rom_o    = hsel[AHB_S_ROM   ];
+    assign hsel_dsram_o  = hsel[AHB_S_DSRAM ];
+    assign hsel_bridge_o = hsel[AHB_S_BRIDGE];
 
     // =====================================================================
     // Default slave (Sec. 8.4)
@@ -230,7 +231,7 @@ module ahb_interconnect (
     ahb_dflt_slave u_def (
         .hclk      (hclk),
         .hreset_n  (hreset_n),
-        .hsel_i      (hsel[`AHB_S_DEFAULT]),
+        .hsel_i      (hsel[AHB_S_DEFAULT]),
         .htrans_i    (htrans_o),
         .hready_i    (hready_o),
         .hrdata_o    (hrdata_df),
@@ -276,18 +277,18 @@ module ahb_interconnect (
     // sets of expressions here is deliberate: the rule is subtle enough that
     // three copies of it would eventually stop being three copies.
     // =====================================================================
-    wire i_dph = dph_valid && (dph_master == `AHB_M_IPORT);
-    wire d_dph = dph_valid && (dph_master == `AHB_M_DPORT);
-    wire s_dph = dph_valid && (dph_master == `AHB_M_SBA  );
-    wire m_dph = dph_valid && (dph_master == `AHB_M_DMA  );
+    wire i_dph = dph_valid && (dph_master == AHB_M_IPORT);
+    wire d_dph = dph_valid && (dph_master == AHB_M_DPORT);
+    wire s_dph = dph_valid && (dph_master == AHB_M_SBA  );
+    wire m_dph = dph_valid && (dph_master == AHB_M_DMA  );
 
-    assign hmaster_is_sba_o = (grant == `AHB_M_DMA);
+    assign hmaster_is_sba_o = (grant == AHB_M_DMA);
 
     ahb_master_port u_mp_i (
         .hclk          (hclk),
         .hreset_n      (hreset_n),
         .htrans_i        (i_htrans_i),
-        .granted_i       (grant == `AHB_M_IPORT),
+        .granted_i       (grant == AHB_M_IPORT),
         .dph_own_i       (i_dph),
         .hready_shared_i (hready_o),
         .hrdata_shared_i (hrdata_shared),
@@ -301,7 +302,7 @@ module ahb_interconnect (
         .hclk          (hclk),
         .hreset_n      (hreset_n),
         .htrans_i        (d_htrans_i),
-        .granted_i       (grant == `AHB_M_DPORT),
+        .granted_i       (grant == AHB_M_DPORT),
         .dph_own_i       (d_dph),
         .hready_shared_i (hready_o),
         .hrdata_shared_i (hrdata_shared),
@@ -315,7 +316,7 @@ module ahb_interconnect (
         .hclk          (hclk),
         .hreset_n      (hreset_n),
         .htrans_i        (s_htrans_i),
-        .granted_i       (grant == `AHB_M_SBA),
+        .granted_i       (grant == AHB_M_SBA),
         .dph_own_i       (s_dph),
         .hready_shared_i (hready_o),
         .hrdata_shared_i (hrdata_shared),
@@ -329,7 +330,7 @@ module ahb_interconnect (
         .hclk          (hclk),
         .hreset_n      (hreset_n),
         .htrans_i        (m_htrans_i),
-        .granted_i       (grant == `AHB_M_DMA),
+        .granted_i       (grant == AHB_M_DMA),
         .dph_own_i       (m_dph),
         .hready_shared_i (hready_o),
         .hrdata_shared_i (hrdata_shared),

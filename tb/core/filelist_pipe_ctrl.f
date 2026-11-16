@@ -1,4 +1,4 @@
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/pipe_ctrl.v
+rtl/core/pipe_ctrl.sv
 tb/core/tb_pipe_ctrl.v

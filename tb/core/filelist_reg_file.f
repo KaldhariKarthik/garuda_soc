@@ -12,7 +12,7 @@
 -incdir rtl/common
 -incdir rtl/core
 
-rtl/core/regfile.v
+rtl/core/regfile.sv
 
 -sv
 tb/core/tb_reg_file.sv

@@ -2,6 +2,7 @@
 // Pasted copies of the design removed (operand_router, mult_16x16, csa_3to2, kogge_stone_49, mac_unit, mac_cluster): this bench now
 // compiles against rtl/dsu (the real RTL). Covergroups cg_cluster compiled out
 // under Verilator only (TOOL-23); otherwise unchanged.
+import dsu_pkg::*;
 `ifdef VERILATOR
   `define GARUDA_CG_NEW(cg)
   `define GARUDA_CG_SAMPLE(cg)
@@ -15,7 +16,7 @@
 // tb_dsu_mac_cluster.sv
 //
 //  BLOCK      : II -- DSU (Custom-0 MAC coprocessor)
-//  RTL SOURCE : rtl/dsu/mac_cluster.v   (GARUDA_DSU_DesignSpec)
+//  RTL SOURCE : rtl/dsu/mac_cluster.sv   (GARUDA_DSU_DesignSpec)
 //  SCOPE      : DSU unit module
 //
 // Single-file SV verification environment for GARUDA mac_cluster.v
@@ -192,15 +193,15 @@ class cluster_cycle;
     bit             rst_n = 1'b1;
     string tag;
 
-    constraint c_acc_sel_dist { acc_sel dist { `ACC_FX:=30, `ACC_FY:=30, `ACC_MAG:=30, 2'b11:=10 }; }
+    constraint c_acc_sel_dist { acc_sel dist { ACC_FX:=30, ACC_FY:=30, ACC_MAG:=30, 2'b11:=10 }; }
     constraint c_control_shape {
-        control[`MAC_CTRL_EN] dist { 1:=70, 0:=30 };
-        control[`MAC_CTRL_CLEAR] dist {1:=5,0:=95};
-        control[`MAC_CTRL_LOAD] dist {1:=8,0:=92};
-        control[`MAC_CTRL_FLUSH] dist {1:=5,0:=95};
-        control[`MAC_CTRL_ABS] dist {1:=15,0:=85};
-        control[`MAC_CTRL_DOT] dist {1:=15,0:=85};
-        control[`MAC_CTRL_ADDSUB] dist {1:=30,0:=70};
+        control[MAC_CTRL_EN] dist { 1:=70, 0:=30 };
+        control[MAC_CTRL_CLEAR] dist {1:=5,0:=95};
+        control[MAC_CTRL_LOAD] dist {1:=8,0:=92};
+        control[MAC_CTRL_FLUSH] dist {1:=5,0:=95};
+        control[MAC_CTRL_ABS] dist {1:=15,0:=85};
+        control[MAC_CTRL_DOT] dist {1:=15,0:=85};
+        control[MAC_CTRL_ADDSUB] dist {1:=30,0:=70};
         sat_writeback_en dist {1:=5,0:=95};
     }
     // Operand corner biasing per 16-bit lane, same rationale as mac_unit's
@@ -381,27 +382,27 @@ class cluster_generator;
     endfunction
 
     function void build();
-        items.push_back(mk("dir_clear_fx",  `ACC_FX,  1,0,1,0,0,0,0, 0,0));
-        items.push_back(mk("dir_clear_fy",  `ACC_FY,  1,0,1,0,0,0,0, 0,0));
-        items.push_back(mk("dir_clear_mag", `ACC_MAG, 1,0,1,0,0,0,0, 0,0));
+        items.push_back(mk("dir_clear_fx",  ACC_FX,  1,0,1,0,0,0,0, 0,0));
+        items.push_back(mk("dir_clear_fy",  ACC_FY,  1,0,1,0,0,0,0, 0,0));
+        items.push_back(mk("dir_clear_mag", ACC_MAG, 1,0,1,0,0,0,0, 0,0));
 
-        items.push_back(mk("dir_mac_fx1", `ACC_FX, 1,0,0,0,0,0,0, 32'd5, 32'd6));
-        items.push_back(mk("dir_idle1",   `ACC_FX, 0,0,0,0,0,0,0, 0,0));
-        items.push_back(mk("dir_idle2",   `ACC_FX, 0,0,0,0,0,0,0, 0,0));
+        items.push_back(mk("dir_mac_fx1", ACC_FX, 1,0,0,0,0,0,0, 32'd5, 32'd6));
+        items.push_back(mk("dir_idle1",   ACC_FX, 0,0,0,0,0,0,0, 0,0));
+        items.push_back(mk("dir_idle2",   ACC_FX, 0,0,0,0,0,0,0, 0,0));
 
-        items.push_back(mk("dir_mac_fy1", `ACC_FY, 1,0,0,0,0,0,0, 32'd2, 32'd9));
-        items.push_back(mk("dir_idle3",   `ACC_FY, 0,0,0,0,0,0,0, 0,0));
-        items.push_back(mk("dir_idle4",   `ACC_FY, 0,0,0,0,0,0,0, 0,0));
+        items.push_back(mk("dir_mac_fy1", ACC_FY, 1,0,0,0,0,0,0, 32'd2, 32'd9));
+        items.push_back(mk("dir_idle3",   ACC_FY, 0,0,0,0,0,0,0, 0,0));
+        items.push_back(mk("dir_idle4",   ACC_FY, 0,0,0,0,0,0,0, 0,0));
 
-        items.push_back(mk("dir_mac_mag1", `ACC_MAG, 1,0,0,0,0,0,0, 32'd4, 32'd4));
-        items.push_back(mk("dir_idle5",    `ACC_MAG, 0,0,0,0,0,0,0, 0,0));
-        items.push_back(mk("dir_idle6",    `ACC_MAG, 0,0,0,0,0,0,0, 0,0));
+        items.push_back(mk("dir_mac_mag1", ACC_MAG, 1,0,0,0,0,0,0, 32'd4, 32'd4));
+        items.push_back(mk("dir_idle5",    ACC_MAG, 0,0,0,0,0,0,0, 0,0));
+        items.push_back(mk("dir_idle6",    ACC_MAG, 0,0,0,0,0,0,0, 0,0));
 
         items.push_back(mk("dir_accsel_reserved", 2'b11, 1,0,0,0,0,0,0, 32'd99, 32'd99));
         items.push_back(mk("dir_idle7", 2'b11, 0,0,0,0,0,0,0, 0,0));
 
-        items.push_back(mk("dir_sat_fx", `ACC_FX, 0,0,0,0,0,0,0, 0,0, 1, 48'sh0000_00001111));
-        items.push_back(mk("dir_idle8", `ACC_FX, 0,0,0,0,0,0,0, 0,0));
+        items.push_back(mk("dir_sat_fx", ACC_FX, 0,0,0,0,0,0,0, 0,0, 1, 48'sh0000_00001111));
+        items.push_back(mk("dir_idle8", ACC_FX, 0,0,0,0,0,0,0, 0,0));
 
         // --- ASYNCHRONOUS RESET WITH ALL THREE ACCUMULATORS LOADED ---------
         // The power-on reset in tb_top only clears an already-zero cluster.
@@ -410,24 +411,24 @@ class cluster_generator;
         // only acc[0]) shows up as a mismatch on the other two -- a wiring
         // failure mode the single-instance tb_dsu_mac_unit.sv cannot see,
         // since it has only one accumulator to get right.
-        items.push_back(mk("dir_rst_load_fx",  `ACC_FX,  1,0,0,1,0,0,0, 32'h1111_1111, 0));
-        items.push_back(mk("dir_rst_load_fy",  `ACC_FY,  1,0,0,1,0,0,0, 32'h2222_2222, 0));
-        items.push_back(mk("dir_rst_load_mag", `ACC_MAG, 1,0,0,1,0,0,0, 32'h3333_3333, 0));
+        items.push_back(mk("dir_rst_load_fx",  ACC_FX,  1,0,0,1,0,0,0, 32'h1111_1111, 0));
+        items.push_back(mk("dir_rst_load_fy",  ACC_FY,  1,0,0,1,0,0,0, 32'h2222_2222, 0));
+        items.push_back(mk("dir_rst_load_mag", ACC_MAG, 1,0,0,1,0,0,0, 32'h3333_3333, 0));
         // leave a product in flight in FX as well, so sum_reg/carry_reg are
         // non-zero at the moment reset lands
-        items.push_back(mk("dir_rst_inflight", `ACC_FX, 1,0,0,0,0,0,0, 32'd300, 32'd300));
-        items.push_back(mk("dir_rst_assert",   `ACC_FX, 0,0,0,0,0,0,0, 0,0, 0, 0, 1'b0));
-        items.push_back(mk("dir_rst_hold",     `ACC_FY, 0,0,0,0,0,0,0, 0,0, 0, 0, 1'b0));
+        items.push_back(mk("dir_rst_inflight", ACC_FX, 1,0,0,0,0,0,0, 32'd300, 32'd300));
+        items.push_back(mk("dir_rst_assert",   ACC_FX, 0,0,0,0,0,0,0, 0,0, 0, 0, 1'b0));
+        items.push_back(mk("dir_rst_hold",     ACC_FY, 0,0,0,0,0,0,0, 0,0, 0, 0, 1'b0));
         // reset must win even with en asserted
-        items.push_back(mk("dir_rst_beats_en", `ACC_MAG, 1,0,0,0,0,0,0, 32'd77, 32'd77, 0, 0, 1'b0));
-        items.push_back(mk("dir_rst_release",  `ACC_FX, 0,0,0,0,0,0,0, 0,0));
-        items.push_back(mk("dir_rst_after1",   `ACC_FX, 0,0,0,0,0,0,0, 0,0));
+        items.push_back(mk("dir_rst_beats_en", ACC_MAG, 1,0,0,0,0,0,0, 32'd77, 32'd77, 0, 0, 1'b0));
+        items.push_back(mk("dir_rst_release",  ACC_FX, 0,0,0,0,0,0,0, 0,0));
+        items.push_back(mk("dir_rst_after1",   ACC_FX, 0,0,0,0,0,0,0, 0,0));
         // all three must accumulate correctly again after the reset
-        items.push_back(mk("dir_rst_post_fx",  `ACC_FX,  1,0,0,0,0,0,0, 32'd5, 32'd5));
-        items.push_back(mk("dir_rst_post_fy",  `ACC_FY,  1,0,0,0,0,0,0, 32'd6, 32'd6));
-        items.push_back(mk("dir_rst_post_mag", `ACC_MAG, 1,0,0,0,0,0,0, 32'd7, 32'd7));
-        items.push_back(mk("dir_rst_after2",   `ACC_FX, 0,0,0,0,0,0,0, 0,0));
-        items.push_back(mk("dir_rst_after3",   `ACC_FX, 0,0,0,0,0,0,0, 0,0));
+        items.push_back(mk("dir_rst_post_fx",  ACC_FX,  1,0,0,0,0,0,0, 32'd5, 32'd5));
+        items.push_back(mk("dir_rst_post_fy",  ACC_FY,  1,0,0,0,0,0,0, 32'd6, 32'd6));
+        items.push_back(mk("dir_rst_post_mag", ACC_MAG, 1,0,0,0,0,0,0, 32'd7, 32'd7));
+        items.push_back(mk("dir_rst_after2",   ACC_FX, 0,0,0,0,0,0,0, 0,0));
+        items.push_back(mk("dir_rst_after3",   ACC_FX, 0,0,0,0,0,0,0, 0,0));
 
         repeat (num_random) begin
             cluster_cycle r = new("random");
@@ -465,7 +466,7 @@ class cluster_monitor;
 covergroup cg_cluster;
         cp_accsel: coverpoint vif.acc_sel;
         cp_rst_n: coverpoint vif.rst_n;   // both bins hit by the dir_rst_* cases
-        cp_en: coverpoint vif.control[`MAC_CTRL_EN];
+        cp_en: coverpoint vif.control[MAC_CTRL_EN];
         cp_satwe: coverpoint vif.sat_writeback_en;
         cross cp_accsel, cp_en;
     endgroup
@@ -505,29 +506,29 @@ class cluster_scoreboard;
         bit ovf_fx, ovf_fy, ovf_mag; bit [2:0] ovf_exp;
         bit ok;
 
-        en     = c.control[`MAC_CTRL_EN];
-        addsub = c.control[`MAC_CTRL_ADDSUB];
-        clear  = c.control[`MAC_CTRL_CLEAR];
-        load   = c.control[`MAC_CTRL_LOAD];
-        abs_   = c.control[`MAC_CTRL_ABS];
-        dot_   = c.control[`MAC_CTRL_DOT];
-        flush  = c.control[`MAC_CTRL_FLUSH];
+        en     = c.control[MAC_CTRL_EN];
+        addsub = c.control[MAC_CTRL_ADDSUB];
+        clear  = c.control[MAC_CTRL_CLEAR];
+        load   = c.control[MAC_CTRL_LOAD];
+        abs_   = c.control[MAC_CTRL_ABS];
+        dot_   = c.control[MAC_CTRL_DOT];
+        flush  = c.control[MAC_CTRL_FLUSH];
 
-        en_fx  = en & (c.acc_sel == `ACC_FX);
-        en_fy  = en & (c.acc_sel == `ACC_FY);
-        en_mag = en & (c.acc_sel == `ACC_MAG);
-        satwe_fx  = c.sat_writeback_en & (c.acc_sel == `ACC_FX);
-        satwe_fy  = c.sat_writeback_en & (c.acc_sel == `ACC_FY);
-        satwe_mag = c.sat_writeback_en & (c.acc_sel == `ACC_MAG);
+        en_fx  = en & (c.acc_sel == ACC_FX);
+        en_fy  = en & (c.acc_sel == ACC_FY);
+        en_mag = en & (c.acc_sel == ACC_MAG);
+        satwe_fx  = c.sat_writeback_en & (c.acc_sel == ACC_FX);
+        satwe_fy  = c.sat_writeback_en & (c.acc_sel == ACC_FY);
+        satwe_mag = c.sat_writeback_en & (c.acc_sel == ACC_MAG);
 
         m_fx.step(c.rs1, c.rs2, en_fx, addsub, clear, load, abs_, dot_, flush, c.sat_writeback, satwe_fx, c.rst_n, out_fx, ovf_fx);
         m_fy.step(c.rs1, c.rs2, en_fy, addsub, clear, load, abs_, dot_, flush, c.sat_writeback, satwe_fy, c.rst_n, out_fy, ovf_fy);
         m_mag.step(c.rs1, c.rs2, en_mag, addsub, clear, load, abs_, dot_, flush, c.sat_writeback, satwe_mag, c.rst_n, out_mag, ovf_mag);
 
         case (c.acc_sel)
-            `ACC_FX:  co_exp = out_fx;
-            `ACC_FY:  co_exp = out_fy;
-            `ACC_MAG: co_exp = out_mag;
+            ACC_FX:  co_exp = out_fx;
+            ACC_FY:  co_exp = out_fy;
+            ACC_MAG: co_exp = out_mag;
             default:  co_exp = 48'b0;
         endcase
         ovf_exp = {ovf_mag, ovf_fy, ovf_fx};

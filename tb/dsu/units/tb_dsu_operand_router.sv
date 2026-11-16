@@ -15,7 +15,7 @@
 // tb_dsu_operand_router.sv
 //
 //  BLOCK      : II -- DSU (Custom-0 MAC coprocessor)
-//  RTL SOURCE : rtl/dsu/operand_router.v   (GARUDA_DSU_DesignSpec)
+//  RTL SOURCE : rtl/dsu/operand_router.sv   (GARUDA_DSU_DesignSpec)
 //  SCOPE      : DSU unit module
 //
 // Single-file SV verification environment for GARUDA operand_router.v

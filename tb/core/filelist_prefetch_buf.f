@@ -6,7 +6,7 @@
 
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/prefetch_buf.v
+rtl/core/prefetch_buf.sv
 
 -sv
 tb/core/garuda_tb_pkg.sv

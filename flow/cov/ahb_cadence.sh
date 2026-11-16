@@ -27,13 +27,13 @@ fi
 # ---- bench tb_ahb_interconnect  (tb/ahb/filelist_ahb_ic.f, 2 tests)
 cat > $D/tb_ahb_interconnect_tb_ahb_filelist_ahb_ic_f.f <<'EOF'
 +incdir+rtl/ahb
-rtl/ahb/ahb_decoder.v
-rtl/ahb/ahb_master_mux.v
-rtl/ahb/ahb_arbiter.v
-rtl/ahb/ahb_master_port.v
-rtl/ahb/ahb_slave_mux.v
-rtl/ahb/ahb_dflt_slave.v
-rtl/ahb/ahb_interconnect.v
+rtl/ahb/ahb_decoder.sv
+rtl/ahb/ahb_master_mux.sv
+rtl/ahb/ahb_arbiter.sv
+rtl/ahb/ahb_master_port.sv
+rtl/ahb/ahb_slave_mux.sv
+rtl/ahb/ahb_dflt_slave.sv
+rtl/ahb/ahb_interconnect.sv
 rtl/ahb/ahb_ic_props_a.sv
 tb/ahb/ahb_lite_sram.v
 tb/ahb/ahb_lite_master_bfm.sv
@@ -49,13 +49,13 @@ fi
 # ---- bench tb_ahb_env  (tb/ahb/env/filelist_ahb_env.f, 14 tests)
 cat > $D/tb_ahb_env_tb_ahb_env_filelist_ahb_env_f.f <<'EOF'
 +incdir+rtl/ahb
-rtl/ahb/ahb_decoder.v
-rtl/ahb/ahb_master_mux.v
-rtl/ahb/ahb_arbiter.v
-rtl/ahb/ahb_master_port.v
-rtl/ahb/ahb_slave_mux.v
-rtl/ahb/ahb_dflt_slave.v
-rtl/ahb/ahb_interconnect.v
+rtl/ahb/ahb_decoder.sv
+rtl/ahb/ahb_master_mux.sv
+rtl/ahb/ahb_arbiter.sv
+rtl/ahb/ahb_master_port.sv
+rtl/ahb/ahb_slave_mux.sv
+rtl/ahb/ahb_dflt_slave.sv
+rtl/ahb/ahb_interconnect.sv
 rtl/ahb/ahb_ic_props_a.sv
 tb/common/garuda_map_pkg.sv
 tb/ahb/agent/ahb_agent_pkg.sv
@@ -86,12 +86,12 @@ fi
 # ---- bench tb_ahb_units  (tb/ahb/units/filelist_ahb_units.f, 6 tests)
 cat > $D/tb_ahb_units_tb_ahb_units_filelist_ahb_units_f.f <<'EOF'
 +incdir+rtl/ahb
-rtl/ahb/ahb_decoder.v
-rtl/ahb/ahb_master_mux.v
-rtl/ahb/ahb_arbiter.v
-rtl/ahb/ahb_master_port.v
-rtl/ahb/ahb_slave_mux.v
-rtl/ahb/ahb_dflt_slave.v
+rtl/ahb/ahb_decoder.sv
+rtl/ahb/ahb_master_mux.sv
+rtl/ahb/ahb_arbiter.sv
+rtl/ahb/ahb_master_port.sv
+rtl/ahb/ahb_slave_mux.sv
+rtl/ahb/ahb_dflt_slave.sv
 tb/ahb/units/tb_ahb_units.sv
 EOF
 irun -64bit -sv -elaborate -access +r -timescale 1ns/1ps -f $D/tb_ahb_units_tb_ahb_units_filelist_ahb_units_f.f -top tb_ahb_units -nclibdirname $D/INCA_tb_ahb_units_tb_ahb_units_filelist_ahb_units_f $COV -l $D/tb_ahb_units_tb_ahb_units_filelist_ahb_units_f.compile.log || { echo "COMPILE FAILED: tb_ahb_units_tb_ahb_units_filelist_ahb_units_f (see $D/tb_ahb_units_tb_ahb_units_filelist_ahb_units_f.compile.log)"; }

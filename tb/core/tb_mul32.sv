@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_mul32.sv -- SystemVerilog unit TB for rtl/core/mul32.v
+// tb_mul32.sv -- SystemVerilog unit TB for rtl/core/mul32.sv
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 8.2 (single-cycle 32x32 multiplier).
 // Plan: directed test C02 -- "MUL/MULH/MULHSU/MULHU against reference
@@ -24,11 +24,12 @@
 // =============================================================================
 
 `timescale 1ns/1ps
-`include "core_ex_defs.vh"
 
 // -------------------------------------------------------------
 // 1. INTERFACE (+ bound SVA)
 // -------------------------------------------------------------
+import core_ex_pkg::*;
+localparam MUL_MULHU = 3'b011;  // the encoding the RTL takes as its default (not in core_ex_pkg: HAL USEPAR)
 interface mul32_if (input bit clk);
     logic [31:0] rs1;
     logic [31:0] rs2;
@@ -39,7 +40,7 @@ interface mul32_if (input bit clk);
     //     32 bits of a*b are the same whether the operands are read signed
     //     or unsigned, so this must match a plain unsigned multiply.
     property p_mul_low_half;
-        @(posedge clk) (funct3 == `MUL_MUL) |-> (result == 32'((rs1 * rs2)));
+        @(posedge clk) (funct3 == MUL_MUL) |-> (result == 32'((rs1 * rs2)));
     endproperty
     a_mul_low: assert property (p_mul_low_half)
         else $error("[SVA-FAIL] MUL did not return the low 32 bits of the product");
@@ -55,7 +56,7 @@ interface mul32_if (input bit clk);
     // A3: MULHU is unsigned x unsigned, so its high half can never be
     //     negative-looking for operands that are both small.
     property p_mulhu_small_operands;
-        @(posedge clk) ((funct3 == `MUL_MULHU) && (rs1[31] == 0) && (rs2[31] == 0))
+        @(posedge clk) ((funct3 == MUL_MULHU) && (rs1[31] == 0) && (rs2[31] == 0))
                        |-> (result[31] == 1'b0);
     endproperty
     a_mulhu_small: assert property (p_mulhu_small_operands)
@@ -88,7 +89,7 @@ class mul_cycle;
     // Only the four multiply funct3 values are legal here -- DIV/REM
     // (funct3 100..111) are decoded but never executed (Sec. 7.2) and never
     // reach this block.
-    constraint c_f3 { f3 inside {`MUL_MUL, `MUL_MULH, `MUL_MULHSU, `MUL_MULHU}; }
+    constraint c_f3 { f3 inside {MUL_MUL, MUL_MULH, MUL_MULHSU, MUL_MULHU}; }
 
     constraint c_kind_dist {
         kind dist { MK_POS_POS :/ 15, MK_POS_NEG :/ 15, MK_NEG_POS :/ 15,
@@ -129,16 +130,16 @@ class mul_ref_model;
                                                 bit [2:0] f3);
         logic signed [63:0] as, bs;
         // rs1 is signed for MUL/MULH/MULHSU, unsigned for MULHU
-        as = (f3 == `MUL_MULHU) ? 64'({32'b0, a}) : 64'($signed(a));
+        as = (f3 == MUL_MULHU) ? 64'({32'b0, a}) : 64'($signed(a));
         // rs2 is signed for MUL/MULH, unsigned for MULHSU/MULHU
-        bs = (f3 inside {`MUL_MULHSU, `MUL_MULHU}) ? 64'({32'b0, b})
+        bs = (f3 inside {MUL_MULHSU, MUL_MULHU}) ? 64'({32'b0, b})
                                                    : 64'($signed(b));
         return as * bs;
     endfunction
 
     function automatic bit [31:0] step(bit [31:0] a, bit [31:0] b, bit [2:0] f3);
         bit [63:0] p = full_product(a, b, f3);
-        return (f3 == `MUL_MUL) ? p[31:0] : p[63:32];
+        return (f3 == MUL_MUL) ? p[31:0] : p[63:32];
     endfunction
 endclass
 
@@ -169,27 +170,27 @@ class mul_generator;
         // 1) MUL -- low half only
         begin
             mul_cycle q[$];
-            q.push_back(mk(MK_POS_POS, 32'd6, 32'd7, `MUL_MUL));
-            q.push_back(mk(MK_NEG_POS, 32'hFFFF_FFFF, 32'd7, `MUL_MUL));
-            q.push_back(mk(MK_EXTREME, 32'h0001_0000, 32'h0001_0000, `MUL_MUL));
-            q.push_back(mk(MK_EXTREME, 32'hFFFF_FFFF, 32'hFFFF_FFFF, `MUL_MUL));
+            q.push_back(mk(MK_POS_POS, 32'd6, 32'd7, MUL_MUL));
+            q.push_back(mk(MK_NEG_POS, 32'hFFFF_FFFF, 32'd7, MUL_MUL));
+            q.push_back(mk(MK_EXTREME, 32'h0001_0000, 32'h0001_0000, MUL_MUL));
+            q.push_back(mk(MK_EXTREME, 32'hFFFF_FFFF, 32'hFFFF_FFFF, MUL_MUL));
             add_seq("mul_low_half", q);
         end
         // 2) MULH -- signed x signed
         begin
             mul_cycle q[$];
-            q.push_back(mk(MK_POS_POS, 32'h0001_0000, 32'h0001_0000, `MUL_MULH));
-            q.push_back(mk(MK_NEG_NEG, 32'hFFFF_FFFF, 32'hFFFF_FFFF, `MUL_MULH));
-            q.push_back(mk(MK_NEG_POS, 32'hFFFF_FFFF, 32'd1,         `MUL_MULH));
-            q.push_back(mk(MK_EXTREME, 32'h8000_0000, 32'h8000_0000, `MUL_MULH));
+            q.push_back(mk(MK_POS_POS, 32'h0001_0000, 32'h0001_0000, MUL_MULH));
+            q.push_back(mk(MK_NEG_NEG, 32'hFFFF_FFFF, 32'hFFFF_FFFF, MUL_MULH));
+            q.push_back(mk(MK_NEG_POS, 32'hFFFF_FFFF, 32'd1,         MUL_MULH));
+            q.push_back(mk(MK_EXTREME, 32'h8000_0000, 32'h8000_0000, MUL_MULH));
             add_seq("mulh_signed_signed", q);
         end
         // 3) MULHU -- unsigned x unsigned
         begin
             mul_cycle q[$];
-            q.push_back(mk(MK_EXTREME, 32'hFFFF_FFFF, 32'hFFFF_FFFF, `MUL_MULHU));
-            q.push_back(mk(MK_EXTREME, 32'hFFFF_FFFF, 32'd1,         `MUL_MULHU));
-            q.push_back(mk(MK_EXTREME, 32'h8000_0000, 32'h8000_0000, `MUL_MULHU));
+            q.push_back(mk(MK_EXTREME, 32'hFFFF_FFFF, 32'hFFFF_FFFF, MUL_MULHU));
+            q.push_back(mk(MK_EXTREME, 32'hFFFF_FFFF, 32'd1,         MUL_MULHU));
+            q.push_back(mk(MK_EXTREME, 32'h8000_0000, 32'h8000_0000, MUL_MULHU));
             add_seq("mulhu_unsigned_unsigned", q);
         end
         // 4) MULHSU -- the asymmetric case. rs1 SIGNED, rs2 UNSIGNED.
@@ -199,17 +200,17 @@ class mul_generator;
         //      swapped : 2 * (-1)       = 0xFFFF_FFFF_FFFF_FFFE -> high FFFFFFFF
         begin
             mul_cycle q[$];
-            q.push_back(mk(MK_NEG_NEG, 32'hFFFF_FFFF, 32'hFFFF_FFFF, `MUL_MULHSU));
-            q.push_back(mk(MK_POS_NEG, 32'd2,         32'hFFFF_FFFF, `MUL_MULHSU));
-            q.push_back(mk(MK_NEG_NEG, 32'h8000_0000, 32'h8000_0000, `MUL_MULHSU));
-            q.push_back(mk(MK_POS_POS, 32'h0001_0000, 32'h0001_0000, `MUL_MULHSU));
-            q.push_back(mk(MK_POS_NEG, 32'd1,         32'h8000_0000, `MUL_MULHSU));
+            q.push_back(mk(MK_NEG_NEG, 32'hFFFF_FFFF, 32'hFFFF_FFFF, MUL_MULHSU));
+            q.push_back(mk(MK_POS_NEG, 32'd2,         32'hFFFF_FFFF, MUL_MULHSU));
+            q.push_back(mk(MK_NEG_NEG, 32'h8000_0000, 32'h8000_0000, MUL_MULHSU));
+            q.push_back(mk(MK_POS_POS, 32'h0001_0000, 32'h0001_0000, MUL_MULHSU));
+            q.push_back(mk(MK_POS_NEG, 32'd1,         32'h8000_0000, MUL_MULHSU));
             add_seq("mulhsu_asymmetric", q);
         end
         // 5) zero and identity across all four funct3
         begin
             mul_cycle q[$];
-            bit [2:0] f3s[4] = '{`MUL_MUL, `MUL_MULH, `MUL_MULHSU, `MUL_MULHU};
+            bit [2:0] f3s[4] = '{MUL_MUL, MUL_MULH, MUL_MULHSU, MUL_MULHU};
             foreach (f3s[i]) begin
                 q.push_back(mk(MK_ZERO,    32'hDEAD_BEEF, 32'd0, f3s[i]));
                 q.push_back(mk(MK_ZERO,    32'd0, 32'hDEAD_BEEF, f3s[i]));
@@ -222,7 +223,7 @@ class mul_generator;
             mul_cycle q[$];
             bit [31:0] vals[5] = '{32'h0000_0001, 32'h7FFF_FFFF, 32'h8000_0000,
                                    32'hFFFF_FFFF, 32'h0001_0001};
-            bit [2:0]  f3s[4]  = '{`MUL_MUL, `MUL_MULH, `MUL_MULHSU, `MUL_MULHU};
+            bit [2:0]  f3s[4]  = '{MUL_MUL, MUL_MULH, MUL_MULHSU, MUL_MULHU};
             foreach (f3s[k])
                 foreach (vals[i])
                     foreach (vals[j])
@@ -260,10 +261,10 @@ class mul_monitor;
 
     covergroup cg_mul;
         cp_f3: coverpoint vif.funct3 {
-            bins mul    = {`MUL_MUL};
-            bins mulh   = {`MUL_MULH};
-            bins mulhsu = {`MUL_MULHSU};
-            bins mulhu  = {`MUL_MULHU};
+            bins mul    = {MUL_MUL};
+            bins mulh   = {MUL_MULH};
+            bins mulhsu = {MUL_MULHSU};
+            bins mulhu  = {MUL_MULHU};
         }
         cp_a_sign: coverpoint vif.rs1[31];
         cp_b_sign: coverpoint vif.rs2[31];
@@ -344,7 +345,7 @@ module tb_top;
     mul_env env;
 
     initial begin
-        vif.rs1 = 0; vif.rs2 = 0; vif.funct3 = `MUL_MUL;
+        vif.rs1 = 0; vif.rs2 = 0; vif.funct3 = MUL_MUL;
         repeat (3) @(posedge clk);
         env = new(vif, 8, 250);
         env.run();

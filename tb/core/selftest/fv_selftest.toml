@@ -11,7 +11,7 @@ xfail = "tb/core/selftest/xfail.tsv"
 flist   = "rtl/core/filelist_core.f"
 top     = "garuda_core_top"
 exclude = ["rtl/core/pipe_ctrl_sva.sv"]
-replace = { "rtl/core/core_clk_gate.v" = "tb/core/formal/core_clk_gate_passthru.sv" }
+replace = { "rtl/core/core_clk_gate.sv" = "tb/core/formal/core_clk_gate_passthru.sv" }
 extra   = ["tb/core/formal/core_fv_env.sv"]
 
 [[task]]

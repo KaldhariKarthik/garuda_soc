@@ -1,5 +1,5 @@
---- a/rtl/soc/garuda_chip_top.v
-+++ b/rtl/soc/garuda_chip_top.v
+--- a/rtl/soc/garuda_chip_top.sv
++++ b/rtl/soc/garuda_chip_top.sv
 @@ -32,7 +32,7 @@
  // =============================================================================
  `include "garuda_map.vh"

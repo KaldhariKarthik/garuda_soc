@@ -1,4 +1,4 @@
-// MUTANT trap_ctrl_no_t17: rtl/core/trap_ctrl.v with ONE fix reverted (T-17: a fetch-fault bit on a bubble raises cause 1).
+// MUTANT trap_ctrl_no_t17: rtl/core/trap_ctrl.sv with ONE fix reverted (T-17: a fetch-fault bit on a bubble raises cause 1).
 // Formal negative control: must FAIL. Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. (tb/core/formal/core_trap.toml t17_no_fix)
 `timescale 1ns/1ps
 `default_nettype none

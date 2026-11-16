@@ -1,4 +1,4 @@
-// MUTANT trap_ctrl_no_t13: rtl/core/trap_ctrl.v with ONE fix reverted (T-13: an MRET in EX blocks the older MEM-point bus error,
+// MUTANT trap_ctrl_no_t13: rtl/core/trap_ctrl.sv with ONE fix reverted (T-13: an MRET in EX blocks the older MEM-point bus error,
 // as at b90b481). Formal negative control: must FAIL. Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. (tb/core/formal/core_trap.toml trap_prove_no_t13)
 `timescale 1ns/1ps
 `default_nettype none

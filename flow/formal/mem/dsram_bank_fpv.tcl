@@ -5,7 +5,7 @@
 #   /home/install/JASPER/bin/jg -allow_unsupported_OS -fpv -batch -no_jges \
 #       -proj sim/formal_dsram_bank/jgproject flow/formal/mem/dsram_bank_fpv.tcl
 #
-# rtl/dsram/dsram_top.v loads rd_bank_q on a read access (ce && !we); M8 loads it
+# rtl/dsram/dsram_top.sv loads rd_bank_q on a read access (ce && !we); M8 loads it
 # on every access. rd_bank_q is used only to pick the bank whose data a read
 # data phase returns. Proven here on the shipped RTL: every read data phase
 # comes right after a read access, and in it rd_bank_q is that access's bank.
@@ -14,7 +14,7 @@
 # m_hready_own both assertions fail: a free HREADY can stretch a read data phase
 # while a parked write commits, which no AHB interconnect does.
 # =============================================================================
-analyze -sv09 +define+SYNTHESIS +incdir+rtl/mem rtl/mem/ahb_mem_slave_if.v rtl/dsram/dsram_top.v
+analyze -sv09 +define+SYNTHESIS +incdir+rtl/mem rtl/mem/ahb_mem_slave_if.sv rtl/dsram/dsram_top.sv
 elaborate -top dsram_top -bbox_m sram_wrapper
 clock hclk_i
 reset -expression {!hreset_n_i}

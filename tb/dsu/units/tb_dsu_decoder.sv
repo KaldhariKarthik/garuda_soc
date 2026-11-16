@@ -2,6 +2,7 @@
 // Pasted copies of the design removed (dsu_decoder): this bench now
 // compiles against rtl/dsu (the real RTL). Covergroups cg_dec compiled out
 // under Verilator only (TOOL-23); otherwise unchanged.
+import dsu_pkg::*;
 `ifdef VERILATOR
   `define GARUDA_CG_NEW(cg)
   `define GARUDA_CG_SAMPLE(cg)
@@ -15,7 +16,7 @@
 // tb_dsu_decoder.sv
 //
 //  BLOCK      : II -- DSU (Custom-0 MAC coprocessor)
-//  RTL SOURCE : rtl/dsu/dsu_decoder.v   (GARUDA_DSU_DesignSpec)
+//  RTL SOURCE : rtl/dsu/dsu_decoder.sv   (GARUDA_DSU_DesignSpec)
 //  SCOPE      : DSU unit module
 //
 // Single-file SV verification environment for GARUDA dsu_decoder.v
@@ -213,15 +214,15 @@ function automatic void dec_golden(dec_txn t);
     bit is_rtype = is_custom0 & (funct3 == 3'b000);
     bit is_itype = is_custom0 & (funct3 == 3'b001);
 
-    bit op_mac_sel  = is_rtype & (funct5_r == `FUNCT5_MAC_SEL);
-    bit op_macsub   = is_rtype & (funct5_r == `FUNCT5_MACSUB);
-    bit op_macabs   = is_rtype & (funct5_r == `FUNCT5_MACABS);
-    bit op_macdot   = is_rtype & (funct5_r == `FUNCT5_MACDOT);
-    bit op_macload  = is_rtype & (funct5_r == `FUNCT5_MACLOAD);
-    bit op_macclear = is_rtype & (funct5_r == `FUNCT5_MACCLEAR);
-    bit op_macsat   = is_rtype & (funct5_r == `FUNCT5_MACSAT);
-    bit op_rd_lo    = is_rtype & (funct5_r == `FUNCT5_MACRD_LO);
-    bit op_rd_hi    = is_rtype & (funct5_r == `FUNCT5_MACRD_HI);
+    bit op_mac_sel  = is_rtype & (funct5_r == FUNCT5_MAC_SEL);
+    bit op_macsub   = is_rtype & (funct5_r == FUNCT5_MACSUB);
+    bit op_macabs   = is_rtype & (funct5_r == FUNCT5_MACABS);
+    bit op_macdot   = is_rtype & (funct5_r == FUNCT5_MACDOT);
+    bit op_macload  = is_rtype & (funct5_r == FUNCT5_MACLOAD);
+    bit op_macclear = is_rtype & (funct5_r == FUNCT5_MACCLEAR);
+    bit op_macsat   = is_rtype & (funct5_r == FUNCT5_MACSAT);
+    bit op_rd_lo    = is_rtype & (funct5_r == FUNCT5_MACRD_LO);
+    bit op_rd_hi    = is_rtype & (funct5_r == FUNCT5_MACRD_HI);
     bit op_macshift = is_itype;
 
     bit [1:0] acc_sel_eff = is_itype ? imm_i[7:6] : acc_sel_r;
@@ -268,23 +269,23 @@ class dec_generator;
     endfunction
 
     function void build();
-        items.push_back(mk("dir_mac_sel",  mk_rtype(`FUNCT5_MAC_SEL,  `ACC_FX, 5'd2,5'd1,5'd3)));
-        items.push_back(mk("dir_macsub",   mk_rtype(`FUNCT5_MACSUB,   `ACC_FY, 5'd2,5'd1,5'd3)));
-        items.push_back(mk("dir_macabs",   mk_rtype(`FUNCT5_MACABS,   `ACC_MAG,5'd2,5'd1,5'd3)));
-        items.push_back(mk("dir_macdot",   mk_rtype(`FUNCT5_MACDOT,   `ACC_FX, 5'd2,5'd1,5'd3)));
-        items.push_back(mk("dir_macload",  mk_rtype(`FUNCT5_MACLOAD,  `ACC_FY, 5'd2,5'd1,5'd3)));
-        items.push_back(mk("dir_macclear", mk_rtype(`FUNCT5_MACCLEAR, `ACC_MAG,5'd2,5'd1,5'd3)));
-        items.push_back(mk("dir_macsat",   mk_rtype(`FUNCT5_MACSAT,   `ACC_FX, 5'd0,5'd0,5'd4)));
-        items.push_back(mk("dir_rdlo",     mk_rtype(`FUNCT5_MACRD_LO, `ACC_FY, 5'd0,5'd0,5'd5)));
-        items.push_back(mk("dir_rdhi",     mk_rtype(`FUNCT5_MACRD_HI, `ACC_MAG,5'd0,5'd0,5'd6)));
-        items.push_back(mk("dir_macshift_left",  mk_itype_shift(1'b1, `ACC_FX, 6'd7,  5'd1, 5'd7)));
-        items.push_back(mk("dir_macshift_right", mk_itype_shift(1'b0, `ACC_FY, 6'd20, 5'd1, 5'd8)));
+        items.push_back(mk("dir_mac_sel",  mk_rtype(FUNCT5_MAC_SEL,  ACC_FX, 5'd2,5'd1,5'd3)));
+        items.push_back(mk("dir_macsub",   mk_rtype(FUNCT5_MACSUB,   ACC_FY, 5'd2,5'd1,5'd3)));
+        items.push_back(mk("dir_macabs",   mk_rtype(FUNCT5_MACABS,   ACC_MAG,5'd2,5'd1,5'd3)));
+        items.push_back(mk("dir_macdot",   mk_rtype(FUNCT5_MACDOT,   ACC_FX, 5'd2,5'd1,5'd3)));
+        items.push_back(mk("dir_macload",  mk_rtype(FUNCT5_MACLOAD,  ACC_FY, 5'd2,5'd1,5'd3)));
+        items.push_back(mk("dir_macclear", mk_rtype(FUNCT5_MACCLEAR, ACC_MAG,5'd2,5'd1,5'd3)));
+        items.push_back(mk("dir_macsat",   mk_rtype(FUNCT5_MACSAT,   ACC_FX, 5'd0,5'd0,5'd4)));
+        items.push_back(mk("dir_rdlo",     mk_rtype(FUNCT5_MACRD_LO, ACC_FY, 5'd0,5'd0,5'd5)));
+        items.push_back(mk("dir_rdhi",     mk_rtype(FUNCT5_MACRD_HI, ACC_MAG,5'd0,5'd0,5'd6)));
+        items.push_back(mk("dir_macshift_left",  mk_itype_shift(1'b1, ACC_FX, 6'd7,  5'd1, 5'd7)));
+        items.push_back(mk("dir_macshift_right", mk_itype_shift(1'b0, ACC_FY, 6'd20, 5'd1, 5'd8)));
 
-        items.push_back(mk("dir_illegal_accsel", mk_rtype(`FUNCT5_MAC_SEL, 2'b11, 5'd0,5'd0,5'd9)));
-        items.push_back(mk("dir_illegal_funct5", mk_rtype(5'd20, `ACC_FX, 5'd0,5'd0,5'd10)));
-        items.push_back(mk("dir_illegal_funct3", {5'd0, `ACC_FX, 5'd0, 5'd0, 3'b010, 5'd11, 7'b0001011}));
+        items.push_back(mk("dir_illegal_accsel", mk_rtype(FUNCT5_MAC_SEL, 2'b11, 5'd0,5'd0,5'd9)));
+        items.push_back(mk("dir_illegal_funct5", mk_rtype(5'd20, ACC_FX, 5'd0,5'd0,5'd10)));
+        items.push_back(mk("dir_illegal_funct3", {5'd0, ACC_FX, 5'd0, 5'd0, 3'b010, 5'd11, 7'b0001011}));
         items.push_back(mk("dir_not_custom0", 32'h0000_0013));                          // ADDI
-        items.push_back(mk("dir_dsu_en_low",  mk_rtype(`FUNCT5_MACSUB, `ACC_FX, 5'd0,5'd0,5'd12), 0));
+        items.push_back(mk("dir_dsu_en_low",  mk_rtype(FUNCT5_MACSUB, ACC_FX, 5'd0,5'd0,5'd12), 0));
         items.push_back(mk("dir_flush_passthrough", 32'h0, 0, 1));
 
         // EXHAUSTIVE: sweep every (funct5, funct3, is_custom0, acc_sel)
@@ -310,7 +311,7 @@ class dec_generator;
         // Sweep funct5 x dsu_en explicitly so the cross is hit by
         // construction instead of by chance.
         for (int f5j = 0; f5j < 32; f5j++) begin
-            bit [31:0] wj = {f5j[4:0], `ACC_FX, 5'd0, 5'd0, 3'b000, 5'd0, 7'b0001011};
+            bit [31:0] wj = {f5j[4:0], ACC_FX, 5'd0, 5'd0, 3'b000, 5'd0, 7'b0001011};
             items.push_back(mk($sformatf("EXH_dsuen0_f5%0d", f5j), wj, 0));
         end
 

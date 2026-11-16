@@ -81,14 +81,15 @@
 // burst - whereas the converse (forcing SEQ) never happens.
 // =============================================================================
 
-`include "ahb_defs.vh"
 
-module ahb_arbiter (
+module ahb_arbiter
+    import ahb_pkg::*;
+(
     input  wire        hclk,
     input  wire        hreset_n,
 
     // Per-master HTRANS, flattened: htrans_i[2*m +: 2] is master m.
-    input  wire [`AHB_NMASTERS*2-1:0] htrans_i,
+    input  wire [AHB_NMASTERS*2-1:0] htrans_i,
 
     // Shared HREADY from the data-phase slave (ahb_slave_mux).
     input  wire        hready_i,
@@ -108,10 +109,10 @@ module ahb_arbiter (
     // emits it, and treating it as a request would hand the bus to a master
     // that has explicitly said it has nothing to transfer this cycle.
     // -----------------------------------------------------------------------
-    wire [`AHB_NMASTERS-1:0] req;
+    wire [AHB_NMASTERS-1:0] req;
     genvar g;
     generate
-        for (g = 0; g < `AHB_NMASTERS; g = g + 1) begin : g_req
+        for (g = 0; g < AHB_NMASTERS; g = g + 1) begin : g_req
             assign req[g] = htrans_i[2*g + 1];
         end
     endgenerate
@@ -123,10 +124,10 @@ module ahb_arbiter (
     // With no requester the winner is the I-Port, whose HTRANS is IDLE in that
     // case, so the slave side sees an idle bus.
     // -----------------------------------------------------------------------
-    wire [1:0] winner = req[`AHB_M_DMA]   ? `AHB_M_DMA   :
-                        req[`AHB_M_SBA]   ? `AHB_M_SBA   :
-                        req[`AHB_M_DPORT] ? `AHB_M_DPORT :
-                                            `AHB_M_IPORT ;
+    wire [1:0] winner = req[AHB_M_DMA]   ? AHB_M_DMA   :
+                        req[AHB_M_SBA]   ? AHB_M_SBA   :
+                        req[AHB_M_DPORT] ? AHB_M_DPORT :
+                                            AHB_M_IPORT ;
 
     // -----------------------------------------------------------------------
     // Grant freeze (see header Sec. 1). hold_r is set for every cycle that
@@ -139,7 +140,7 @@ module ahb_arbiter (
 
     always @(posedge hclk or negedge hreset_n) begin
         if (!hreset_n) begin
-            grant_r <= `AHB_M_IPORT;
+            grant_r <= AHB_M_IPORT;
             hold_r  <= 1'b0;
         end else begin
             grant_r <= grant_o;
@@ -165,7 +166,7 @@ module ahb_arbiter (
     always @(posedge hclk or negedge hreset_n) begin
         if (!hreset_n) begin
             dph_valid_o  <= 1'b0;
-            dph_master_o <= `AHB_M_IPORT;
+            dph_master_o <= AHB_M_IPORT;
         end else if (hready_i) begin
             dph_valid_o  <= 1'b1;
             dph_master_o <= grant_o;
@@ -189,7 +190,7 @@ module ahb_arbiter (
 
     always @(posedge hclk or negedge hreset_n) begin
         if (!hreset_n) begin
-            last_owner_r <= `AHB_M_IPORT;
+            last_owner_r <= AHB_M_IPORT;
             last_owner_v <= 1'b0;
         end else if (hready_i && granted_htrans[1]) begin
             last_owner_r <= grant_o;

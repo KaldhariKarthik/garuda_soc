@@ -2,7 +2,7 @@
 // GARUDA / ASAP7 EXPLORATORY MOCK MEMORIES. PD-ONLY, never simulated as GARUDA
 // RTL, never a real SRAM model.
 //
-// Hardened as ORFS blocks to give the named macros of rtl/mem/sram_wrapper.v
+// Hardened as ORFS blocks to give the named macros of rtl/mem/sram_wrapper.sv
 // (P3) a LEF and a timing .lib. Ports are identical to the macros that
 // sram_wrapper instantiates. Behaviour is identical to sram_wrapper's
 // behavioural model (ce gating; read when ce & !we, registered, held otherwise;

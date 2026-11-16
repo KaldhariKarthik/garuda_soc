@@ -12,12 +12,13 @@
 -incdir rtl/common
 -incdir rtl/core
 
-rtl/core/decode_control.v
-rtl/core/imm_gen.v
-rtl/core/regfile.v
-rtl/core/branch_predict.v
-rtl/core/hazard_fwd_unit.v
-rtl/core/id_stage.v
+rtl/common/garuda_pkg.sv
+rtl/core/decode_control.sv
+rtl/core/imm_gen.sv
+rtl/core/regfile.sv
+rtl/core/branch_predict.sv
+rtl/core/hazard_fwd_unit.sv
+rtl/core/id_stage.sv
 
 -sv
 tb/core/tb_id_stage.sv

@@ -11,7 +11,7 @@
 # Written 2026-10-14 against the RTL, before there is a pad ring or a clock tree.
 # Every exception in this file has its reason in flow/constraints/exceptions.md,
 # under the same number. Clock structure: GARUDA-CLKRST-SPEC-001 section 5.1 and
-# rtl/clk_div/clk_div.v.
+# rtl/clk_div/clk_div.sv.
 #
 #   refclk 500 MHz --> t1 (/2) = aon_clk, and hclk at DIV2
 #                       t1 --> t2 (/2) --> t3 (/2) --> t4 (/2)      ripple

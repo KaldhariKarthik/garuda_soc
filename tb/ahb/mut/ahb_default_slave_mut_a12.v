@@ -44,9 +44,10 @@
 // HREADYOUT low stalls the whole shared layer.
 // =============================================================================
 
-`include "ahb_defs.vh"
 
-module ahb_dflt_slave (
+module ahb_dflt_slave
+    import ahb_pkg::*;
+(
     input  wire        hclk,
     input  wire        hreset_n,
 
@@ -74,9 +75,9 @@ module ahb_dflt_slave (
     // identical whatever the address phase is doing around it.
     always @(*) begin
         case (state)
-            S_ERR1:  begin hreadyout_o = 1'b1; hresp_o = `AHB_RESP_ERROR; end
-            S_ERR2:  begin hreadyout_o = 1'b1; hresp_o = `AHB_RESP_ERROR; end
-            default: begin hreadyout_o = 1'b1; hresp_o = `AHB_RESP_OKAY;  end
+            S_ERR1:  begin hreadyout_o = 1'b1; hresp_o = AHB_RESP_ERROR; end
+            S_ERR2:  begin hreadyout_o = 1'b1; hresp_o = AHB_RESP_ERROR; end
+            default: begin hreadyout_o = 1'b1; hresp_o = AHB_RESP_OKAY;  end
         endcase
     end
 

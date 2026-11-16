@@ -6,10 +6,10 @@
 
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/garuda_pc_gen.v
-rtl/core/iport_master.v
-rtl/core/prefetch_buf.v
-rtl/core/if_stage_top.v
+rtl/core/garuda_pc_gen.sv
+rtl/core/iport_master.sv
+rtl/core/prefetch_buf.sv
+rtl/core/if_stage_top.sv
 
 -sv
 tb/core/garuda_tb_pkg.sv

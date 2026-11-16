@@ -12,7 +12,7 @@
 -incdir rtl/common
 -incdir rtl/core
 
-rtl/core/branch_predict.v
+rtl/core/branch_predict.sv
 
 -sv
 tb/core/tb_branch_predict.sv

@@ -658,3 +658,29 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-16T16:59:39+05:30	7faec5bb3a3b	True	fv_ahb	mut_nofreeze	-	FAIL	XFAIL:PLANTED	[2 asserts, 47 covers in model] props: u_ahb_props_a.a_grant_stable_in_data_phase
 2026-11-16T16:59:39+05:30	7faec5bb3a3b	True	fv_ahb	equiv_a10	-	PROVEN	OK	[58 asserts, 47 covers in model] 
 2026-11-16T16:59:39+05:30	7faec5bb3a3b	True	fv_ahb	equiv_a16	-	PROVEN	OK	[62 asserts, 47 covers in model] 
+2026-11-16T23:17:50+05:30	d995a4a7de78	True	fv_ahb	ahb_bmc	-	BOUNDED(24)	OK	[62 asserts, 47 covers in model] 
+2026-11-16T23:17:50+05:30	d995a4a7de78	True	fv_ahb	ahb_prove	-	PROVEN	OK	[62 asserts, 47 covers in model] 
+2026-11-16T23:17:50+05:30	d995a4a7de78	True	fv_ahb	ahb_cover	-	COVERED	OK	[62 asserts, 47 covers in model] 
+2026-11-16T23:17:50+05:30	d995a4a7de78	True	fv_ahb	ahb7_find	-	FAIL	XFAIL:AHB-7	[8 asserts, 47 covers in model] props: u_ahb_props_a.g_resp[0].a_held_resp_okay, u_ahb_props_a.g_resp[0].a_master_err_shape
+2026-11-16T23:17:50+05:30	d995a4a7de78	True	fv_ahb	mut_ahb1	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_hwdata_data_phase
+2026-11-16T23:17:50+05:30	d995a4a7de78	True	fv_ahb	mut_ahb2	-	FAIL	XFAIL:PLANTED	[12 asserts, 47 covers in model] props: u_ahb_props_a.g_resp[1].a_rdata_value
+2026-11-16T23:17:50+05:30	d995a4a7de78	True	fv_ahb	mut_ahb3	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_burst_restart_nonseq
+2026-11-16T23:17:50+05:30	d995a4a7de78	True	fv_ahb	mut_ahb4	-	FAIL	XFAIL:PLANTED	[5 asserts, 47 covers in model] props: u_ahb_props_a.a_reset_state, u_ahb_props_a.g_held[1].a_idle_not_gated, u_ahb_props_a.g_held[2].a_idle_not_gated, u_ahb_props_a.g_held[3].a_idle_not_gated
+2026-11-16T23:17:50+05:30	d995a4a7de78	True	fv_ahb	mut_prio	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_priority
+2026-11-16T23:17:50+05:30	d995a4a7de78	True	fv_ahb	mut_decode	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_decode
+2026-11-16T23:17:50+05:30	d995a4a7de78	True	fv_ahb	mut_nofreeze	-	FAIL	XFAIL:PLANTED	[2 asserts, 47 covers in model] props: u_ahb_props_a.a_grant_stable_in_data_phase
+2026-11-16T23:17:50+05:30	d995a4a7de78	True	fv_ahb	equiv_a10	-	PROVEN	OK	[58 asserts, 47 covers in model] 
+2026-11-16T23:17:50+05:30	d995a4a7de78	True	fv_ahb	equiv_a16	-	PROVEN	OK	[62 asserts, 47 covers in model] 
+2026-11-16T23:28:49+05:30	d995a4a7de78	True	fv_ahb	ahb_bmc	-	BOUNDED(24)	OK	[62 asserts, 47 covers in model] 
+2026-11-16T23:28:49+05:30	d995a4a7de78	True	fv_ahb	ahb_prove	-	PROVEN	OK	[62 asserts, 47 covers in model] 
+2026-11-16T23:28:49+05:30	d995a4a7de78	True	fv_ahb	ahb_cover	-	COVERED	OK	[62 asserts, 47 covers in model] 
+2026-11-16T23:28:49+05:30	d995a4a7de78	True	fv_ahb	ahb7_find	-	FAIL	XFAIL:AHB-7	[8 asserts, 47 covers in model] props: u_ahb_props_a.g_resp[0].a_held_resp_okay, u_ahb_props_a.g_resp[0].a_master_err_shape
+2026-11-16T23:28:49+05:30	d995a4a7de78	True	fv_ahb	mut_ahb1	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_hwdata_data_phase
+2026-11-16T23:28:49+05:30	d995a4a7de78	True	fv_ahb	mut_ahb2	-	FAIL	XFAIL:PLANTED	[12 asserts, 47 covers in model] props: u_ahb_props_a.g_resp[1].a_rdata_value
+2026-11-16T23:28:49+05:30	d995a4a7de78	True	fv_ahb	mut_ahb3	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_burst_restart_nonseq
+2026-11-16T23:28:49+05:30	d995a4a7de78	True	fv_ahb	mut_ahb4	-	FAIL	XFAIL:PLANTED	[5 asserts, 47 covers in model] props: u_ahb_props_a.a_reset_state, u_ahb_props_a.g_held[1].a_idle_not_gated, u_ahb_props_a.g_held[2].a_idle_not_gated, u_ahb_props_a.g_held[3].a_idle_not_gated
+2026-11-16T23:28:49+05:30	d995a4a7de78	True	fv_ahb	mut_prio	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_priority
+2026-11-16T23:28:49+05:30	d995a4a7de78	True	fv_ahb	mut_decode	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_decode
+2026-11-16T23:28:49+05:30	d995a4a7de78	True	fv_ahb	mut_nofreeze	-	FAIL	XFAIL:PLANTED	[2 asserts, 47 covers in model] props: u_ahb_props_a.a_grant_stable_in_data_phase
+2026-11-16T23:28:49+05:30	d995a4a7de78	True	fv_ahb	equiv_a10	-	PROVEN	OK	[58 asserts, 47 covers in model] 
+2026-11-16T23:28:49+05:30	d995a4a7de78	True	fv_ahb	equiv_a16	-	PROVEN	OK	[62 asserts, 47 covers in model] 

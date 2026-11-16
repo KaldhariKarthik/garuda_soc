@@ -16,11 +16,11 @@ PASSED=()
 
 # ---- bench tb_dma_top  (tb/dma/filelist_dma_top.f, 1 tests)
 cat > $D/tb_dma_top_tb_dma_filelist_dma_top_f.f <<'EOF'
-rtl/dma/dma_chan.v
-rtl/dma/dma_arbiter.v
-rtl/dma/dma_engine.v
-rtl/dma/dma_apb_slave.v
-rtl/dma/dma_top.v
+rtl/dma/dma_chan.sv
+rtl/dma/dma_arbiter.sv
+rtl/dma/dma_engine.sv
+rtl/dma/dma_apb_slave.sv
+rtl/dma/dma_top.sv
 rtl/dma/dma_props_a.sv
 tb/ahb/ahb_lite_sram.v
 tb/ahb/ahb_lite_checker.v
@@ -34,11 +34,11 @@ fi
 
 # ---- bench tb_dma_probe  (tb/dma/filelist_dma_probe.f, 2 tests)
 cat > $D/tb_dma_probe_tb_dma_filelist_dma_probe_f.f <<'EOF'
-rtl/dma/dma_chan.v
-rtl/dma/dma_arbiter.v
-rtl/dma/dma_engine.v
-rtl/dma/dma_apb_slave.v
-rtl/dma/dma_top.v
+rtl/dma/dma_chan.sv
+rtl/dma/dma_arbiter.sv
+rtl/dma/dma_engine.sv
+rtl/dma/dma_apb_slave.sv
+rtl/dma/dma_top.sv
 rtl/dma/dma_props_a.sv
 tb/dma/tb_dma_probe.sv
 tb/dma/env/dma_env_cov.sv
@@ -54,11 +54,11 @@ cat > $D/tb_dma_env_tb_dma_env_filelist_dma_env_f.f <<'EOF'
 tb/ahb/agent/ahb_agent_pkg.sv
 tb/dma/env/dma_regs_pkg.sv
 tb/dma/env/dma_env_pkg.sv
-rtl/dma/dma_chan.v
-rtl/dma/dma_arbiter.v
-rtl/dma/dma_engine.v
-rtl/dma/dma_apb_slave.v
-rtl/dma/dma_top.v
+rtl/dma/dma_chan.sv
+rtl/dma/dma_arbiter.sv
+rtl/dma/dma_engine.sv
+rtl/dma/dma_apb_slave.sv
+rtl/dma/dma_top.sv
 rtl/dma/dma_props_a.sv
 tb/ahb/ahb_lite_checker.v
 tb/common/dma_req_checker.sv
@@ -86,11 +86,11 @@ fi
 # ---- bench tb_dma_regs  (tb/dma/filelist_dma_regs.f, 1 tests)
 cat > $D/tb_dma_regs_tb_dma_filelist_dma_regs_f.f <<'EOF'
 tb/dma/env/dma_regs_pkg.sv
-rtl/dma/dma_chan.v
-rtl/dma/dma_arbiter.v
-rtl/dma/dma_engine.v
-rtl/dma/dma_apb_slave.v
-rtl/dma/dma_top.v
+rtl/dma/dma_chan.sv
+rtl/dma/dma_arbiter.sv
+rtl/dma/dma_engine.sv
+rtl/dma/dma_apb_slave.sv
+rtl/dma/dma_top.sv
 rtl/dma/dma_props_a.sv
 tb/dma/tb_dma_regs.sv
 tb/dma/env/dma_env_cov.sv

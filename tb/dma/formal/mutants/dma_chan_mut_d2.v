@@ -1,4 +1,4 @@
-// MUTANT mut_d2: rtl/dma/dma_chan.v with ONE fix reverted (D-2: a software CR write beats the hardware EN clear).
+// MUTANT mut_d2: rtl/dma/dma_chan.sv with ONE fix reverted (D-2: a software CR write beats the hardware EN clear).
 // Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal negative control: must FAIL. (tb/dma/formal/dma.toml mut_d2, a_hw_wins_en)
 `timescale 1ns/1ps
 `default_nettype none

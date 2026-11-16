@@ -1,4 +1,4 @@
-// MUTANT mut_iclr_wins: rtl/dma/dma_chan.v with ONE change (an ICLR in the cycle COMPLETE sets clears it).
+// MUTANT mut_iclr_wins: rtl/dma/dma_chan.sv with ONE change (an ICLR in the cycle COMPLETE sets clears it).
 // Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal negative control: must FAIL. (tb/dma/formal/dma.toml mut_iclr_wins, a_set_beats_clear_complete)
 `timescale 1ns/1ps
 `default_nettype none

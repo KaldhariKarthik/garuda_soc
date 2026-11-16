@@ -1,2 +1,3 @@
+rtl/dsu/dsu_pkg.sv
 -f rtl/dsu/filelist.f
 tb/dsu/units/tb_dsu_stall.sv

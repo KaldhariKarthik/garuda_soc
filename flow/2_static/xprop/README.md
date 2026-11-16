@@ -45,9 +45,9 @@ example a 2-state variable).
 
 | Where | Why X-propagation is off | Does it matter |
 |---|---|---|
-| `rtl/mem/sram_wrapper.v:80` | The behavioural memory array is too large for the default; the 28 nm macros replace it | No: the macro is a black box in the real flow |
-| `rtl/dsram/dsram_top.v:72` | The testbench backdoor task, inside `ifndef SYNTHESIS` | No |
-| `rtl/common/garuda_apb_shim.v:203` (8 instances) | The elaboration check inside `ifndef SYNTHESIS` | No |
+| `rtl/mem/sram_wrapper.sv:80` | The behavioural memory array is too large for the default; the 28 nm macros replace it | No: the macro is a black box in the real flow |
+| `rtl/dsram/dsram_top.sv:72` | The testbench backdoor task, inside `ifndef SYNTHESIS` | No |
+| `rtl/common/garuda_apb_shim.sv:203` (8 instances) | The elaboration check inside `ifndef SYNTHESIS` | No |
 | `*_sva.sv`, `dma_props_a.sv` | Assertions | No |
 | `tb/` | Testbench and models | No |
 
@@ -57,9 +57,9 @@ No block of synthesised design logic is left out.
 
 The first run listed 51 blocks, among them two of design logic:
 
-- `rtl/core/id_ex.v`, the ID/EX pipeline register: its reset and flush called the task
+- `rtl/core/id_ex.sv`, the ID/EX pipeline register: its reset and flush called the task
   `set_bubble`;
-- `rtl/debug/debug_module.v`, the debug module registers: three places called `kick()`,
+- `rtl/debug/debug_module.sv`, the debug module registers: three places called `kick()`,
   which starts a system-bus access.
 
 Xcelium switches X-propagation off for a block that calls a task writing registers outside
@@ -73,8 +73,8 @@ How the change was checked:
   equivalent, with the same 96 unreachable flops on both sides. Dofiles and logs:
   `lec_id_ex.do`, `lec_debug_module.do` and the `.txt` logs here; each dofile reads the old
   file from `sim/lec_inline/<module>_old.v`, made with
-  `git show aeecf3c:rtl/core/id_ex.v > sim/lec_inline/id_ex_old.v` (and the same for
-  `rtl/debug/debug_module.v`).
+  `git show aeecf3c:rtl/core/id_ex.sv > sim/lec_inline/id_ex_old.v` (and the same for
+  `rtl/debug/debug_module.sv`).
 - `make static_xprop`: 9 of 9 pass, now with X-propagation in both blocks.
 - `make static_lint`: HAL 745 findings, one fewer than before. The inline check writes the
   alignment literal sized (`2'b00`); the task wrote `0`.

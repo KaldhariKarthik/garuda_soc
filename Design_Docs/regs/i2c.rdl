@@ -2,7 +2,7 @@
 // i2c.rdl - register description of block 15, the I2C master (APB window 2,
 // 0x4000_2000), with the four shim registers every peripheral window has.
 //
-// Source: GARUDA-I2C-SPEC-001 section 6, DECISIONS.md D-21, rtl/i2c/garuda_i2c_top.v.
+// Source: GARUDA-I2C-SPEC-001 section 6, DECISIONS.md D-21, rtl/i2c/garuda_i2c_top.sv.
 // The UVM register model tb/i2c/uvm/i2c_reg_pkg.sv is generated from this file:
 //     python3 tools/gen/gen_ral.py Design_Docs/regs/i2c.rdl tb/i2c/uvm/i2c_reg_pkg.sv
 // =============================================================================

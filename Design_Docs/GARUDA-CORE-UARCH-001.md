@@ -127,7 +127,7 @@ During a hold it captures the **forwarded** operands from EX, not the stale regi
 
 ## 6 EX: execute
 
-Files: `ex_stage.v` (combinational, except the DSU's state), `alu.v`, `mul32.v`, `branch_unit.v`, `csr_rw.v`, `forward_unit.v`, and `rtl/dsu/dsu_top.v` (block 2).
+Files: `ex_stage.v` (combinational, except the DSU's state), `alu.v`, `mul32.v`, `branch_unit.v`, `csr_rw.v`, `forward_unit.v`, and `rtl/dsu/dsu_top.sv` (block 2).
 
 ### 6.1 Datapath
 

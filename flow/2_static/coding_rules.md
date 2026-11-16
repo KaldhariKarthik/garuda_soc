@@ -24,11 +24,11 @@ Scans, run from the repository root in tcsh:
 
 | Where | What it is | Synthesised? |
 |---|---|---|
-| `rtl/mem/sram_wrapper.v:76` | `$readmemh` of the behavioural memory model | No: it is in the `else` branch of `ifdef SRAM_BLACKBOX`; synthesis uses the macro (G3 row 3.10 waits for the 28 nm macros) |
-| `rtl/common/garuda_apb_shim.v:203` | Elaboration check of the IP_LIMIT parameter | No: inside `ifndef SYNTHESIS` |
+| `rtl/mem/sram_wrapper.sv:76` | `$readmemh` of the behavioural memory model | No: it is in the `else` branch of `ifdef SRAM_BLACKBOX`; synthesis uses the macro (G3 row 3.10 waits for the 28 nm macros) |
+| `rtl/common/garuda_apb_shim.sv:203` | Elaboration check of the IP_LIMIT parameter | No: inside `ifndef SYNTHESIS` |
 | `rtl/dma/dma_props_a.sv:267` | Elaboration assertion on ACK_CYCLES | No: an assertion file, bound in, never synthesised |
 | `rtl/clic/clic_sva.sv:145` | Elaboration check that the software-interrupt ID matches the system map | No: an assertion file |
-| `rtl/ahb/ahb_mem_slave.v:88` | Memory clear of a bus memory model | No: the chip does not compile this file; it is used only by block benches |
+| `rtl/ahb/ahb_mem_slave.sv:88` | Memory clear of a bus memory model | No: the chip does not compile this file; it is used only by block benches |
 
 ## Delays (60)
 
@@ -46,7 +46,7 @@ cells, 7 999 flops) and lists every instance that is a latch in
 
     u_core/u_soc_u_core_u_cg_en_l_reg
 
-That is the enable latch of `rtl/core/core_clk_gate.v`, the behavioural integrated clock
+That is the enable latch of `rtl/core/core_clk_gate.sv`, the behavioural integrated clock
 gate (WFI clock gating). A latch there is required: it holds the enable stable while the
 clock is high. The 28 nm library ICG cell replaces it in the physical flow. HAL reports the
 same single latch (LATINF 1, `flow/2_static/hal_waivers.txt`).

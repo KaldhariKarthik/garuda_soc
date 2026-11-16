@@ -23,6 +23,7 @@
 // would require the file on disk, breaking standalone compilation) and
 // its content is inlined here instead - a textual substitution of the
 // include mechanism, not a behavioral edit.
+import garuda_pkg::*;
 `ifndef GARUDA_DEFS_VH
 `define GARUDA_DEFS_VH
 `define ALU_ADD   4'h0
@@ -86,7 +87,7 @@ interface imm_gen_if (input bit clk);
     //     a clean zero, or the ALU-source mux could misread a phantom
     //     operand.
     property p_none_forces_zero;
-        @(posedge clk) (imm_sel == `IMM_NONE) |-> (imm == 32'b0);
+        @(posedge clk) (imm_sel == IMM_NONE) |-> (imm == 32'b0);
     endproperty
     a_none_zero: assert property (p_none_forces_zero)
         else $error("[SVA-FAIL] IMM_NONE selected but imm_o was not zero");
@@ -94,14 +95,14 @@ interface imm_gen_if (input bit clk);
     // A4: CSRRWI/SI/CI (Sec. 13.3) zero-extend a 5-bit register-number
     //     field rather than sign-extending it.
     property p_csr_zero_extended;
-        @(posedge clk) (imm_sel == `IMM_CSR) |-> (imm[31:5] == 27'b0);
+        @(posedge clk) (imm_sel == IMM_CSR) |-> (imm[31:5] == 27'b0);
     endproperty
     a_csr_zero_ext: assert property (p_csr_zero_extended)
         else $error("[SVA-FAIL] IMM_CSR selection was not zero-extended above bit 4");
 
     // A5: U-type immediates are "upper 20 bits, lower 12 forced to zero".
     property p_u_type_lower_bits_zero;
-        @(posedge clk) (imm_sel == `IMM_U) |-> (imm[11:0] == 12'b0);
+        @(posedge clk) (imm_sel == IMM_U) |-> (imm[11:0] == 12'b0);
     endproperty
     a_u_lower_zero: assert property (p_u_type_lower_bits_zero)
         else $error("[SVA-FAIL] U-type immediate did not clear its low 12 bits");
@@ -109,7 +110,7 @@ interface imm_gen_if (input bit clk);
     // A6: B/J-type immediates encode a byte offset that is always even -
     //     RISC-V branches/jumps only ever target 2-byte-aligned addresses.
     property p_b_j_type_lsb_zero;
-        @(posedge clk) ((imm_sel == `IMM_B) || (imm_sel == `IMM_J)) |-> (imm[0] == 1'b0);
+        @(posedge clk) ((imm_sel == IMM_B) || (imm_sel == IMM_J)) |-> (imm[0] == 1'b0);
     endproperty
     a_b_j_lsb_zero: assert property (p_b_j_type_lsb_zero)
         else $error("[SVA-FAIL] B/J-type immediate had a non-zero LSB");
@@ -146,13 +147,13 @@ class imm_cycle;
     }
 
     constraint c_sel_matches_op {
-        (op == IK_I_TYPE)   -> (sel_val == `IMM_I);
-        (op == IK_S_TYPE)   -> (sel_val == `IMM_S);
-        (op == IK_B_TYPE)   -> (sel_val == `IMM_B);
-        (op == IK_U_TYPE)   -> (sel_val == `IMM_U);
-        (op == IK_J_TYPE)   -> (sel_val == `IMM_J);
-        (op == IK_CSR_TYPE) -> (sel_val == `IMM_CSR);
-        (op == IK_NONE_TYPE) -> (sel_val == `IMM_NONE);
+        (op == IK_I_TYPE)   -> (sel_val == IMM_I);
+        (op == IK_S_TYPE)   -> (sel_val == IMM_S);
+        (op == IK_B_TYPE)   -> (sel_val == IMM_B);
+        (op == IK_U_TYPE)   -> (sel_val == IMM_U);
+        (op == IK_J_TYPE)   -> (sel_val == IMM_J);
+        (op == IK_CSR_TYPE) -> (sel_val == IMM_CSR);
+        (op == IK_NONE_TYPE) -> (sel_val == IMM_NONE);
         (op inside {IK_BOUNDARY_MIN, IK_BOUNDARY_MAX, IK_BOUNDARY_ZERO, IK_RANDOM}) -> (sel_val inside {[0:6]});
     }
 
@@ -200,69 +201,69 @@ class imm_generator;
         // 1) Idle/reset vector - NOP
         begin
             imm_cycle q[$];
-            q.push_back(mk(IK_NONE_TYPE, 32'h0000_0013, `IMM_NONE));
+            q.push_back(mk(IK_NONE_TYPE, 32'h0000_0013, IMM_NONE));
             add_seq("idle_nop", q);
         end
 
         // 2) I-type boundary values
         begin
             imm_cycle q[$];
-            q.push_back(mk(IK_I_TYPE, {12'h800, 20'h0}, `IMM_I)); // -2048
-            q.push_back(mk(IK_I_TYPE, {12'h7FF, 20'h0}, `IMM_I)); // +2047
-            q.push_back(mk(IK_I_TYPE, {12'h000, 20'h0}, `IMM_I)); // 0
-            q.push_back(mk(IK_I_TYPE, {12'hFFF, 20'h0}, `IMM_I)); // -1
+            q.push_back(mk(IK_I_TYPE, {12'h800, 20'h0}, IMM_I)); // -2048
+            q.push_back(mk(IK_I_TYPE, {12'h7FF, 20'h0}, IMM_I)); // +2047
+            q.push_back(mk(IK_I_TYPE, {12'h000, 20'h0}, IMM_I)); // 0
+            q.push_back(mk(IK_I_TYPE, {12'hFFF, 20'h0}, IMM_I)); // -1
             add_seq("i_type_boundaries", q);
         end
 
         // 3) S-type boundary values
         begin
             imm_cycle q[$];
-            q.push_back(mk(IK_S_TYPE, {7'b1000000, 13'h0, 5'b00000, 7'h0}, `IMM_S)); // -2048
-            q.push_back(mk(IK_S_TYPE, {7'b0111111, 13'h0, 5'b11111, 7'h0}, `IMM_S)); // +2047
-            q.push_back(mk(IK_S_TYPE, 32'h0, `IMM_S));
+            q.push_back(mk(IK_S_TYPE, {7'b1000000, 13'h0, 5'b00000, 7'h0}, IMM_S)); // -2048
+            q.push_back(mk(IK_S_TYPE, {7'b0111111, 13'h0, 5'b11111, 7'h0}, IMM_S)); // +2047
+            q.push_back(mk(IK_S_TYPE, 32'h0, IMM_S));
             add_seq("s_type_boundaries", q);
         end
 
         // 4) B-type boundary values
         begin
             imm_cycle q[$];
-            q.push_back(mk(IK_B_TYPE, 32'h8000_0000, `IMM_B)); // -4096 (min)
-            q.push_back(mk(IK_B_TYPE, 32'h0000_0000, `IMM_B)); // 0
-            q.push_back(mk(IK_B_TYPE, 32'h7E00_0F80, `IMM_B)); // +4094 (max even value)
+            q.push_back(mk(IK_B_TYPE, 32'h8000_0000, IMM_B)); // -4096 (min)
+            q.push_back(mk(IK_B_TYPE, 32'h0000_0000, IMM_B)); // 0
+            q.push_back(mk(IK_B_TYPE, 32'h7E00_0F80, IMM_B)); // +4094 (max even value)
             add_seq("b_type_boundaries", q);
         end
 
         // 5) U-type boundary values
         begin
             imm_cycle q[$];
-            q.push_back(mk(IK_U_TYPE, {20'hFFFFF, 12'h0}, `IMM_U));
-            q.push_back(mk(IK_U_TYPE, {20'h00000, 12'h0}, `IMM_U));
-            q.push_back(mk(IK_U_TYPE, {20'h80000, 12'h0}, `IMM_U));
+            q.push_back(mk(IK_U_TYPE, {20'hFFFFF, 12'h0}, IMM_U));
+            q.push_back(mk(IK_U_TYPE, {20'h00000, 12'h0}, IMM_U));
+            q.push_back(mk(IK_U_TYPE, {20'h80000, 12'h0}, IMM_U));
             add_seq("u_type_boundaries", q);
         end
 
         // 6) J-type boundary values
         begin
             imm_cycle q[$];
-            q.push_back(mk(IK_J_TYPE, 32'h0, `IMM_J));
-            q.push_back(mk(IK_J_TYPE, {1'b1, 20'h0, 11'h0}, `IMM_J)); // sign-only (most negative)
+            q.push_back(mk(IK_J_TYPE, 32'h0, IMM_J));
+            q.push_back(mk(IK_J_TYPE, {1'b1, 20'h0, 11'h0}, IMM_J)); // sign-only (most negative)
             add_seq("j_type_boundaries", q);
         end
 
         // 7) CSR zero-extension boundaries
         begin
             imm_cycle q[$];
-            q.push_back(mk(IK_CSR_TYPE, {12'hFFF, 5'd0,  15'h0}, `IMM_CSR));
-            q.push_back(mk(IK_CSR_TYPE, {12'hFFF, 5'd31, 15'h0}, `IMM_CSR)); // rs1[4]=1 must NOT sign-extend
-            q.push_back(mk(IK_CSR_TYPE, {12'hFFF, 5'd17, 15'h0}, `IMM_CSR));
+            q.push_back(mk(IK_CSR_TYPE, {12'hFFF, 5'd0,  15'h0}, IMM_CSR));
+            q.push_back(mk(IK_CSR_TYPE, {12'hFFF, 5'd31, 15'h0}, IMM_CSR)); // rs1[4]=1 must NOT sign-extend
+            q.push_back(mk(IK_CSR_TYPE, {12'hFFF, 5'd17, 15'h0}, IMM_CSR));
             add_seq("csr_zero_extension_boundaries", q);
         end
 
         // 8) IMM_NONE forces zero regardless of instr bits
         begin
             imm_cycle q[$];
-            q.push_back(mk(IK_NONE_TYPE, 32'hFFFF_FFFF, `IMM_NONE));
-            q.push_back(mk(IK_NONE_TYPE, 32'hDEAD_BEEF, `IMM_NONE));
+            q.push_back(mk(IK_NONE_TYPE, 32'hFFFF_FFFF, IMM_NONE));
+            q.push_back(mk(IK_NONE_TYPE, 32'hDEAD_BEEF, IMM_NONE));
             add_seq("none_forces_zero", q);
         end
 
@@ -285,7 +286,7 @@ class imm_generator;
         // 11) Back-to-back repeated identical select (stress)
         begin
             imm_cycle q[$];
-            repeat (10) q.push_back(mk(IK_I_TYPE, 32'h1234_5678, `IMM_I));
+            repeat (10) q.push_back(mk(IK_I_TYPE, 32'h1234_5678, IMM_I));
             add_seq("stress_repeated_select", q);
         end
 
@@ -293,8 +294,8 @@ class imm_generator;
         begin
             imm_cycle q[$];
             for (int i = 0; i < 8; i++) begin
-                if (i % 2 == 0) q.push_back(mk(IK_U_TYPE, 32'hFFFF_FFFF, `IMM_U));
-                else            q.push_back(mk(IK_J_TYPE, 32'hFFFF_FFFF, `IMM_J));
+                if (i % 2 == 0) q.push_back(mk(IK_U_TYPE, 32'hFFFF_FFFF, IMM_U));
+                else            q.push_back(mk(IK_J_TYPE, 32'hFFFF_FFFF, IMM_J));
             end
             add_seq("stress_alternating_format", q);
         end
@@ -352,12 +353,12 @@ class imm_ref_model;
         exp_imm_b = imm_b(instr);
         exp_imm_j = imm_j(instr);
         case (sel)
-            `IMM_I:   exp_imm = imm_i(instr);
-            `IMM_S:   exp_imm = imm_s(instr);
-            `IMM_B:   exp_imm = exp_imm_b;
-            `IMM_U:   exp_imm = imm_u(instr);
-            `IMM_J:   exp_imm = exp_imm_j;
-            `IMM_CSR: exp_imm = imm_csr(instr);
+            IMM_I:   exp_imm = imm_i(instr);
+            IMM_S:   exp_imm = imm_s(instr);
+            IMM_B:   exp_imm = exp_imm_b;
+            IMM_U:   exp_imm = imm_u(instr);
+            IMM_J:   exp_imm = exp_imm_j;
+            IMM_CSR: exp_imm = imm_csr(instr);
             default:  exp_imm = 32'b0;
         endcase
     endfunction
@@ -393,12 +394,12 @@ class imm_monitor;
 
     covergroup cg_imm_gen;
         cp_imm_sel: coverpoint vif.imm_sel {
-            bins i_type = {`IMM_I}; bins s_type = {`IMM_S}; bins b_type = {`IMM_B};
-            bins u_type = {`IMM_U}; bins j_type = {`IMM_J}; bins csr_type = {`IMM_CSR};
-            bins none_type = {`IMM_NONE};
+            bins i_type = {IMM_I}; bins s_type = {IMM_S}; bins b_type = {IMM_B};
+            bins u_type = {IMM_U}; bins j_type = {IMM_J}; bins csr_type = {IMM_CSR};
+            bins none_type = {IMM_NONE};
             bins unassigned_encoding = {3'd7};
         }
-        cp_sign: coverpoint vif.imm[31] iff (vif.imm_sel inside {`IMM_I, `IMM_S, `IMM_B, `IMM_U, `IMM_J});
+        cp_sign: coverpoint vif.imm[31] iff (vif.imm_sel inside {IMM_I, IMM_S, IMM_B, IMM_U, IMM_J});
         cp_boundary: coverpoint vif.imm {
             bins zero = {32'h0000_0000}; bins all_ones = {32'hFFFF_FFFF}; bins generic = default;
         }
@@ -413,7 +414,7 @@ class imm_monitor;
             // capping the group below 100%, mirroring dsu_stall_tb.sv's
             // own busy_during_reset_unreachable ignore_bins.
             ignore_bins sign_meaningless_for_non_sign_extending_types =
-                binsof(cp_imm_sel) intersect {`IMM_CSR, `IMM_NONE, 3'd7};
+                binsof(cp_imm_sel) intersect {IMM_CSR, IMM_NONE, 3'd7};
         }
     endgroup
 
@@ -543,7 +544,7 @@ module tb_top;
     imm_test test;
 
     initial begin
-        vif.instr = 32'h0000_0013; vif.imm_sel = `IMM_NONE;
+        vif.instr = 32'h0000_0013; vif.imm_sel = IMM_NONE;
         repeat (3) @(posedge clk);
 
         test = new(vif, 10, 200);

@@ -15,7 +15,7 @@
 // tb_dsu_kogge_stone_49.sv
 //
 //  BLOCK      : II -- DSU (Custom-0 MAC coprocessor)
-//  RTL SOURCE : rtl/dsu/kogge_stone_49.v   (GARUDA_DSU_DesignSpec)
+//  RTL SOURCE : rtl/dsu/kogge_stone_49.sv   (GARUDA_DSU_DesignSpec)
 //  SCOPE      : DSU unit module
 //
 // Single-file SV verification environment for GARUDA kogge_stone_49.v

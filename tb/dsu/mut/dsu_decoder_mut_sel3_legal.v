@@ -5,14 +5,15 @@
 //produces packed control bus for mac_cluster + aux_signals for Saturation unit, Barrel Shifter, Read_back Mux, Stall FSM
 
 `timescale 1ns / 1ps
-`include "dsu_defs.vh"
 
-module dsu_decoder (
+module dsu_decoder
+    import dsu_pkg::*;
+(
     input wire [31:0] instr,
     input wire        dsu_en,
     input wire        flush,
     
-    output wire [`MAC_CTRL_W-1:0] control,
+    output wire [MAC_CTRL_W-1:0] control,
     output wire [1:0]             acc_sel,
     
     output wire sat_op,
@@ -49,15 +50,15 @@ module dsu_decoder (
     wire is_rtype   = is_custom0 & (funct3_fld == 3'b000);
     wire is_itype   = is_custom0 & (funct3_fld == 3'b001);
     
-    wire op_mac_sel  = is_rtype & (funct5_r == `FUNCT5_MAC_SEL);
-    wire op_macsub   = is_rtype & (funct5_r == `FUNCT5_MACSUB);
-    wire op_macabs   = is_rtype & (funct5_r == `FUNCT5_MACABS);
-    wire op_macdot   = is_rtype & (funct5_r == `FUNCT5_MACDOT);
-    wire op_macload  = is_rtype & (funct5_r == `FUNCT5_MACLOAD);
-    wire op_macclear = is_rtype & (funct5_r == `FUNCT5_MACCLEAR);
-    wire op_macsat   = is_rtype & (funct5_r == `FUNCT5_MACSAT);
-    wire op_rd_lo    = is_rtype & (funct5_r == `FUNCT5_MACRD_LO);
-    wire op_rd_hi    = is_rtype & (funct5_r == `FUNCT5_MACRD_HI);
+    wire op_mac_sel  = is_rtype & (funct5_r == FUNCT5_MAC_SEL);
+    wire op_macsub   = is_rtype & (funct5_r == FUNCT5_MACSUB);
+    wire op_macabs   = is_rtype & (funct5_r == FUNCT5_MACABS);
+    wire op_macdot   = is_rtype & (funct5_r == FUNCT5_MACDOT);
+    wire op_macload  = is_rtype & (funct5_r == FUNCT5_MACLOAD);
+    wire op_macclear = is_rtype & (funct5_r == FUNCT5_MACCLEAR);
+    wire op_macsat   = is_rtype & (funct5_r == FUNCT5_MACSAT);
+    wire op_rd_lo    = is_rtype & (funct5_r == FUNCT5_MACRD_LO);
+    wire op_rd_hi    = is_rtype & (funct5_r == FUNCT5_MACRD_HI);
     
     wire op_macshift = is_itype;
     

@@ -1,4 +1,4 @@
-// MUTANT dma_arbiter_mut_prio_inv: rtl/dma/dma_arbiter.v with ONE change (DMA plan D7: the LOWEST priority wins).
+// MUTANT dma_arbiter_mut_prio_inv: rtl/dma/dma_arbiter.sv with ONE change (DMA plan D7: the LOWEST priority wins).
 // Formal negative control: must FAIL.
 `timescale 1ns/1ps
 `default_nettype none

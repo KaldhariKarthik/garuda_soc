@@ -1,4 +1,4 @@
-// MUTANT branch_predict_no_bpdis: rtl/core/branch_predict.v with ONE change (BP_DIS ignored).
+// MUTANT branch_predict_no_bpdis: rtl/core/branch_predict.sv with ONE change (BP_DIS ignored).
 // Formal negative control in tb/core/formal/core_trap.toml: must FAIL.
 `timescale 1ns/1ps
 `default_nettype none

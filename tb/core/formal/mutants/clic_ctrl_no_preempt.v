@@ -1,4 +1,4 @@
-// MUTANT clic_ctrl_no_preempt: rtl/core/clic_ctrl.v with ONE change (PREEMPT_DIS ignored).
+// MUTANT clic_ctrl_no_preempt: rtl/core/clic_ctrl.sv with ONE change (PREEMPT_DIS ignored).
 // Formal negative control in tb/core/formal/core_trap.toml: must FAIL.
 `timescale 1ns/1ps
 `default_nettype none

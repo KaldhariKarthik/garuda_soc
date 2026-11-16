@@ -19,7 +19,7 @@
 # tohost: 1 = pass, (n<<1)|1 = section n failed.
 # =============================================================================
 
-# Custom-0 encoding (rtl/dsu/dsu_decoder.v): opcode 0x0b, funct3 000 R-type,
+# Custom-0 encoding (rtl/dsu/dsu_decoder.sv): opcode 0x0b, funct3 000 R-type,
 # funct7 = {funct5[4:0], acc_sel[1:0]}.
 #define DSU_R(f5, acc, rd, rs1, rs2) .insn r 0x0b, 0, ((f5) << 2) | (acc), rd, rs1, rs2
 #define F5_MAC_SEL  0

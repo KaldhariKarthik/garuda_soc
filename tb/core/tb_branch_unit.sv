@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_branch_unit.sv -- SystemVerilog unit TB for rtl/core/branch_unit.v
+// tb_branch_unit.sv -- SystemVerilog unit TB for rtl/core/branch_unit.sv
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 12.2 / 12.3, plus ERRATUM T-1
 //       (instruction-address-misaligned, cause 0) as implemented in the RTL.
@@ -19,11 +19,11 @@
 // =============================================================================
 
 `timescale 1ns/1ps
-`include "core_ex_defs.vh"
 
 // -------------------------------------------------------------
 // 1. INTERFACE (+ bound SVA)
 // -------------------------------------------------------------
+import core_ex_pkg::*;
 interface branch_if (input bit clk);
     logic [31:0] pc, imm, rs1_fwd, rs2_fwd;
     logic [2:0]  funct3;
@@ -107,8 +107,8 @@ class br_cycle;
 
     // funct3 010/011 are reserved for BRANCH and are trapped in ID, so they
     // never reach this block (RTL comment on the comparator default arm).
-    constraint c_f3 { branch -> f3 inside {`BR_BEQ, `BR_BNE, `BR_BLT,
-                                           `BR_BGE, `BR_BLTU, `BR_BGEU}; }
+    constraint c_f3 { branch -> f3 inside {BR_BEQ, BR_BNE, BR_BLT,
+                                           BR_BGE, BR_BLTU, BR_BGEU}; }
 
     // branch / jal / jalr are mutually exclusive by decode.
     constraint c_exclusive { $countones({branch, jal, jalr}) <= 1; }
@@ -126,8 +126,8 @@ class br_cycle;
         (kind == BK_JALR) -> (jalr == 1 && branch == 0 && jal == 0);
         (kind == BK_IDLE) -> (branch == 0 && jal == 0 && jalr == 0);
         // equal operands force BEQ taken / BNE not-taken deterministically
-        (kind == BK_BRANCH_TAKEN)    -> (f3 == `BR_BEQ && rs1 == rs2);
-        (kind == BK_BRANCH_NOTTAKEN) -> (f3 == `BR_BEQ && rs1 != rs2);
+        (kind == BK_BRANCH_TAKEN)    -> (f3 == BR_BEQ && rs1 == rs2);
+        (kind == BK_BRANCH_NOTTAKEN) -> (f3 == BR_BEQ && rs1 != rs2);
     }
 
     // Targets clustered on the 4-byte boundary so the misalign path is
@@ -161,12 +161,12 @@ class br_ref_model;
         bit [31:0] jtgt = (rs1 + imm) & 32'hFFFF_FFFE;
 
         case (f3)
-            `BR_BEQ:  cond = (rs1 == rs2);
-            `BR_BNE:  cond = (rs1 != rs2);
-            `BR_BLT:  cond = ($signed(rs1) <  $signed(rs2));
-            `BR_BGE:  cond = ($signed(rs1) >= $signed(rs2));
-            `BR_BLTU: cond = (rs1 <  rs2);
-            `BR_BGEU: cond = (rs1 >= rs2);
+            BR_BEQ:  cond = (rs1 == rs2);
+            BR_BNE:  cond = (rs1 != rs2);
+            BR_BLT:  cond = ($signed(rs1) <  $signed(rs2));
+            BR_BGE:  cond = ($signed(rs1) >= $signed(rs2));
+            BR_BLTU: cond = (rs1 <  rs2);
+            BR_BGEU: cond = (rs1 >= rs2);
             default:  cond = 1'b0;
         endcase
 
@@ -211,19 +211,19 @@ class br_generator;
         // 1) the comparator, all six funct3, both directions
         begin
             br_cycle q[$];
-            q.push_back(mk(BK_BRANCH_TAKEN,    32'h1000_0100, 32'd8, `BR_BEQ,  5, 5, 1,0,0,0));
-            q.push_back(mk(BK_BRANCH_NOTTAKEN, 32'h1000_0100, 32'd8, `BR_BEQ,  5, 6, 1,0,0,0));
-            q.push_back(mk(BK_BRANCH_TAKEN,    32'h1000_0100, 32'd8, `BR_BNE,  5, 6, 1,0,0,0));
-            q.push_back(mk(BK_BRANCH_NOTTAKEN, 32'h1000_0100, 32'd8, `BR_BNE,  5, 5, 1,0,0,0));
+            q.push_back(mk(BK_BRANCH_TAKEN,    32'h1000_0100, 32'd8, BR_BEQ,  5, 5, 1,0,0,0));
+            q.push_back(mk(BK_BRANCH_NOTTAKEN, 32'h1000_0100, 32'd8, BR_BEQ,  5, 6, 1,0,0,0));
+            q.push_back(mk(BK_BRANCH_TAKEN,    32'h1000_0100, 32'd8, BR_BNE,  5, 6, 1,0,0,0));
+            q.push_back(mk(BK_BRANCH_NOTTAKEN, 32'h1000_0100, 32'd8, BR_BNE,  5, 5, 1,0,0,0));
             // signed vs unsigned: the (-1, 1) pair is what separates them
-            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, `BR_BLT,  32'hFFFF_FFFF, 32'd1, 1,0,0,0));
-            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, `BR_BLT,  32'd1, 32'hFFFF_FFFF, 1,0,0,0));
-            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, `BR_BGE,  32'd1, 32'hFFFF_FFFF, 1,0,0,0));
-            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, `BR_BGE,  32'd5, 32'd5, 1,0,0,0));
-            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, `BR_BLTU, 32'd1, 32'hFFFF_FFFF, 1,0,0,0));
-            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, `BR_BLTU, 32'hFFFF_FFFF, 32'd1, 1,0,0,0));
-            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, `BR_BGEU, 32'hFFFF_FFFF, 32'd1, 1,0,0,0));
-            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, `BR_BGEU, 32'd5, 32'd5, 1,0,0,0));
+            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, BR_BLT,  32'hFFFF_FFFF, 32'd1, 1,0,0,0));
+            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, BR_BLT,  32'd1, 32'hFFFF_FFFF, 1,0,0,0));
+            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, BR_BGE,  32'd1, 32'hFFFF_FFFF, 1,0,0,0));
+            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, BR_BGE,  32'd5, 32'd5, 1,0,0,0));
+            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, BR_BLTU, 32'd1, 32'hFFFF_FFFF, 1,0,0,0));
+            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, BR_BLTU, 32'hFFFF_FFFF, 32'd1, 1,0,0,0));
+            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, BR_BGEU, 32'hFFFF_FFFF, 32'd1, 1,0,0,0));
+            q.push_back(mk(BK_RANDOM, 32'h1000_0100, 32'd8, BR_BGEU, 32'd5, 32'd5, 1,0,0,0));
             add_seq("comparator_all_funct3", q);
         end
         // 1b) 1-TOPS G4 row 4.5: the full compare matrix. Every funct3 on
@@ -232,7 +232,7 @@ class br_generator;
         //     the unsigned answers differ; with both predictions.
         begin
             br_cycle q[$];
-            bit [2:0]  f3s[$] = '{`BR_BEQ, `BR_BNE, `BR_BLT, `BR_BGE, `BR_BLTU, `BR_BGEU};
+            bit [2:0]  f3s[$] = '{BR_BEQ, BR_BNE, BR_BLT, BR_BGE, BR_BLTU, BR_BGEU};
             bit [31:0] a[$]   = '{32'd7, 32'd3, 32'd9, 32'hFFFF_FFFE, 32'hFFFF_FFFF, 32'h8000_0000, 32'h7FFF_FFFF};
             bit [31:0] b[$]   = '{32'd7, 32'd9, 32'd3, 32'hFFFF_FFFF, 32'hFFFF_FFFE, 32'h7FFF_FFFF, 32'h8000_0000};
             foreach (f3s[f]) foreach (a[i]) for (int p = 0; p < 2; p++)
@@ -243,52 +243,52 @@ class br_generator;
         begin
             br_cycle q[$];
             // backward branch, predicted taken, actually taken
-            q.push_back(mk(BK_BRANCH_TAKEN, 32'h1000_0100, 32'hFFFF_FFF0, `BR_BEQ, 5, 5, 1,0,0,1));
+            q.push_back(mk(BK_BRANCH_TAKEN, 32'h1000_0100, 32'hFFFF_FFF0, BR_BEQ, 5, 5, 1,0,0,1));
             // forward branch, predicted not-taken, actually not taken
-            q.push_back(mk(BK_BRANCH_NOTTAKEN, 32'h1000_0100, 32'd16, `BR_BEQ, 5, 6, 1,0,0,0));
+            q.push_back(mk(BK_BRANCH_NOTTAKEN, 32'h1000_0100, 32'd16, BR_BEQ, 5, 6, 1,0,0,0));
             add_seq("correct_prediction_free", q);
         end
         // 3) mispredict, both directions (C07)
         begin
             br_cycle q[$];
             // predicted not-taken, actually taken -> pc + Bimm
-            q.push_back(mk(BK_MISPREDICT, 32'h1000_0100, 32'd32, `BR_BEQ, 5, 5, 1,0,0,0));
+            q.push_back(mk(BK_MISPREDICT, 32'h1000_0100, 32'd32, BR_BEQ, 5, 5, 1,0,0,0));
             // predicted taken, actually not taken -> pc + 4
-            q.push_back(mk(BK_MISPREDICT, 32'h1000_0100, 32'hFFFF_FFF0, `BR_BEQ, 5, 6, 1,0,0,1));
+            q.push_back(mk(BK_MISPREDICT, 32'h1000_0100, 32'hFFFF_FFF0, BR_BEQ, 5, 6, 1,0,0,1));
             // backward target arithmetic with a negative immediate
-            q.push_back(mk(BK_MISPREDICT, 32'h1000_0100, 32'hFFFF_FFE0, `BR_BNE, 1, 2, 1,0,0,0));
+            q.push_back(mk(BK_MISPREDICT, 32'h1000_0100, 32'hFFFF_FFE0, BR_BNE, 1, 2, 1,0,0,0));
             add_seq("mispredict_both_directions", q);
         end
         // 4) JALR (C09): target = (rs1 + imm) & ~1
         begin
             br_cycle q[$];
-            q.push_back(mk(BK_JALR, 32'h1000_0100, 32'd8, `BR_BEQ, 32'h2000_0004, 0, 0,0,1,0));
+            q.push_back(mk(BK_JALR, 32'h1000_0100, 32'd8, BR_BEQ, 32'h2000_0004, 0, 0,0,1,0));
             // odd sum -> bit 0 masked away, but bit 1 still misaligned
-            q.push_back(mk(BK_JALR, 32'h1000_0100, 32'd2, `BR_BEQ, 32'h2000_0005, 0, 0,0,1,0));
+            q.push_back(mk(BK_JALR, 32'h1000_0100, 32'd2, BR_BEQ, 32'h2000_0005, 0, 0,0,1,0));
             // odd sum that lands aligned after masking
-            q.push_back(mk(BK_JALR, 32'h1000_0100, 32'd3, `BR_BEQ, 32'h2000_0001, 0, 0,0,1,0));
+            q.push_back(mk(BK_JALR, 32'h1000_0100, 32'd3, BR_BEQ, 32'h2000_0001, 0, 0,0,1,0));
             // negative offset, and independence from the prediction bit
-            q.push_back(mk(BK_JALR, 32'h1000_0100, 32'hFFFF_FFF8, `BR_BGEU, 32'h2000_0010, 0, 0,0,1,1));
+            q.push_back(mk(BK_JALR, 32'h1000_0100, 32'hFFFF_FFF8, BR_BGEU, 32'h2000_0010, 0, 0,0,1,1));
             add_seq("jalr_target_and_masking", q);
         end
         // 5) ERRATUM T-1: JAL misalign is raised WITHOUT an EX redirect
         begin
             br_cycle q[$];
-            q.push_back(mk(BK_MISALIGNED, 32'h1000_0100, 32'd2, `BR_BEQ, 0, 0, 0,1,0,0));
-            q.push_back(mk(BK_JAL,        32'h1000_0100, 32'd8, `BR_BEQ, 0, 0, 0,1,0,0));
+            q.push_back(mk(BK_MISALIGNED, 32'h1000_0100, 32'd2, BR_BEQ, 0, 0, 0,1,0,0));
+            q.push_back(mk(BK_JAL,        32'h1000_0100, 32'd8, BR_BEQ, 0, 0, 0,1,0,0));
             // taken branch to a misaligned target
-            q.push_back(mk(BK_MISALIGNED, 32'h1000_0100, 32'd6, `BR_BEQ, 7, 7, 1,0,0,0));
+            q.push_back(mk(BK_MISALIGNED, 32'h1000_0100, 32'd6, BR_BEQ, 7, 7, 1,0,0,0));
             // NOT-taken branch to a misaligned target raises nothing
-            q.push_back(mk(BK_BRANCH_NOTTAKEN, 32'h1000_0100, 32'd6, `BR_BEQ, 7, 8, 1,0,0,0));
+            q.push_back(mk(BK_BRANCH_NOTTAKEN, 32'h1000_0100, 32'd6, BR_BEQ, 7, 8, 1,0,0,0));
             // JALR to a bit-1-misaligned target
-            q.push_back(mk(BK_MISALIGNED, 32'h1000_0100, 32'd2, `BR_BEQ, 32'h2000_0004, 0, 0,0,1,0));
+            q.push_back(mk(BK_MISALIGNED, 32'h1000_0100, 32'd2, BR_BEQ, 32'h2000_0004, 0, 0,0,1,0));
             add_seq("erratum_t1_target_misaligned", q);
         end
         // 6) idle: a plain ALU op must be silent on every output
         begin
             br_cycle q[$];
-            q.push_back(mk(BK_IDLE, 32'h1000_0100, 32'd0, `BR_BEQ, 5, 5, 0,0,0,0));
-            q.push_back(mk(BK_IDLE, 32'h1000_0100, 32'd6, `BR_BEQ, 5, 5, 0,0,0,1));
+            q.push_back(mk(BK_IDLE, 32'h1000_0100, 32'd0, BR_BEQ, 5, 5, 0,0,0,0));
+            q.push_back(mk(BK_IDLE, 32'h1000_0100, 32'd6, BR_BEQ, 5, 5, 0,0,0,1));
             add_seq("idle_silent", q);
         end
         // 7) CRV
@@ -326,9 +326,9 @@ class br_monitor;
     bit [2:0] rel_cov;   // relation of rs1 to rs2, for cp_rel below
     covergroup cg_branch;
         cp_f3: coverpoint vif.funct3 iff (vif.branch) {
-            bins beq = {`BR_BEQ};   bins bne  = {`BR_BNE};
-            bins blt = {`BR_BLT};   bins bge  = {`BR_BGE};
-            bins bltu = {`BR_BLTU}; bins bgeu = {`BR_BGEU};
+            bins beq = {BR_BEQ};   bins bne  = {BR_BNE};
+            bins blt = {BR_BLT};   bins bge  = {BR_BGE};
+            bins bltu = {BR_BLTU}; bins bgeu = {BR_BGEU};
         }
         cp_taken: coverpoint vif.branch_taken iff (vif.branch);
         cp_pred:  coverpoint vif.predicted_taken iff (vif.branch);
@@ -452,7 +452,7 @@ module tb_top;
     br_env env;
 
     initial begin
-        vif.pc = 32'h1000_0000; vif.imm = 0; vif.funct3 = `BR_BEQ;
+        vif.pc = 32'h1000_0000; vif.imm = 0; vif.funct3 = BR_BEQ;
         vif.rs1_fwd = 0; vif.rs2_fwd = 0;
         vif.branch = 0; vif.jal = 0; vif.jalr = 0; vif.predicted_taken = 0;
         repeat (3) @(posedge clk);

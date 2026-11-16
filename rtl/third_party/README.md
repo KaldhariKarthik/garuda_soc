@@ -7,10 +7,10 @@ and DMA semantics are implemented. Policy and rationale: `Docs/DECISIONS.md` D-2
 
 | Directory | Block | Wrapper |
 |---|---|---|
-| `pulp/apb_spi_master` + `pulp/axi_spi_master` | 13 spi_master | `rtl/spi_master/garuda_spim_top.v` |
-| `pulp/apb_uart_sv` | 16/17/18 uart0/1/2 | `rtl/uart/garuda_uart_top.v` |
-| `pulp/apb_gpio` | 19 gpio | `rtl/gpio/garuda_gpio_top.v` |
-| `opencores/i2c` | 15 i2c | `rtl/i2c/garuda_i2c_top.v` |
+| `pulp/apb_spi_master` + `pulp/axi_spi_master` | 13 spi_master | `rtl/spi_master/garuda_spim_top.sv` |
+| `pulp/apb_uart_sv` | 16/17/18 uart0/1/2 | `rtl/uart/garuda_uart_top.sv` |
+| `pulp/apb_gpio` | 19 gpio | `rtl/gpio/garuda_gpio_top.sv` |
+| `opencores/i2c` | 15 i2c | `rtl/i2c/garuda_i2c_top.sv` |
 
 Block 20 (pwm) has no upstream: it is written in-house (`rtl/pwm/`), because the
 only PULP option is the far larger `apb_adv_timer` and an ESC output has a

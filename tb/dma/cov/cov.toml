@@ -13,7 +13,7 @@ suites = [
   "logs/dma/summary/regs.cov.tsv",
 ]
 
-design    = ["rtl/dma/dma_top.v", "rtl/dma/dma_chan.v", "rtl/dma/dma_arbiter.v", "rtl/dma/dma_engine.v", "rtl/dma/dma_apb_slave.v"]
+design    = ["rtl/dma/dma_top.sv", "rtl/dma/dma_chan.sv", "rtl/dma/dma_arbiter.sv", "rtl/dma/dma_engine.sv", "rtl/dma/dma_apb_slave.sv"]
 testbench = ["tb/dma/*", "tb/ahb/*", "tb/common/dma_req_checker.sv", "rtl/dma/dma_props_a.sv"]
 
 functional_files = ["tb/dma/env/dma_env_cov.sv"]

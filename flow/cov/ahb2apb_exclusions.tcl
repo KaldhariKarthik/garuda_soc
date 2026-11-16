@@ -11,19 +11,19 @@
 # Commented lines need IMC's
 # block / expression / bin identifiers and are completed in IMC.
 # =============================================================================
-# CL-HSTATE (unreachable, line) TO COMPLETE IN IMC: rtl/ahb2apb/ahb2apb_bridge.v ^line:172 case
+# CL-HSTATE (unreachable, line) TO COMPLETE IN IMC: rtl/ahb2apb/ahb2apb_bridge.sv ^line:172 case
 #   reason  : The hclk FSM's 3-bit state uses six codes (H_IDLE..H_ERR2); the `default:` arm recovers the two unused codes, which no transition produces.
 #   evidence: PROVEN fv_apb apb_prove + fv_apb_div div_prove a_hstate_legal (hstate <= 5), abc pdr, 2026-10-14
 # exclude -inst ahb2apb_bridge -block <IMC block id of that line> -comment "The hclk FSM's 3-bit state uses six codes (H_IDLE..H_ERR2); the `default:` arm recovers the two unused codes, which no transition produces."
-# CB-WIN12 (unreachable, branch) TO COMPLETE IN IMC: rtl/ahb2apb/ahb2apb_apb_fsm.v ^line:53 cond_else
+# CB-WIN12 (unreachable, branch) TO COMPLETE IN IMC: rtl/ahb2apb/ahb2apb_apb_fsm.sv ^line:53 cond_else
 #   reason  : win_i is the bridge's captured window, which only takes a present window 0..11; the guard (win_i < 12) protects the APB_DIV part-select and is never false.
 #   evidence: PROVEN fv_apb apb_prove + fv_apb_div div_prove a_win_cap_legal (win_cap < 12 always), 2026-10-14
 # exclude -inst ahb2apb_bridge.u_fsm -block <IMC block id> -comment "win_i is the bridge's captured window, which only takes a present window 0..11; the guard (win_i < 12) protects the APB_DIV part-select and is never false."
-# CE-WIN12 (unreachable, expr) TO COMPLETE IN IMC: rtl/ahb2apb/ahb2apb_apb_fsm.v ^line:53 \(\(win_i < 4'hc\)==0\)
+# CE-WIN12 (unreachable, expr) TO COMPLETE IN IMC: rtl/ahb2apb/ahb2apb_apb_fsm.sv ^line:53 \(\(win_i < 4'hc\)==0\)
 #   reason  : Same guard as CB-WIN12: (win_i < 12) is never false.
 #   evidence: PROVEN a_win_cap_legal, as CB-WIN12
 # exclude -inst ahb2apb_bridge.u_fsm -expression <IMC id> -comment "Same guard as CB-WIN12: (win_i < 12) is never false."
-# CT-SIZE2-ahb2apb_bridge (constant): literal rtl/core/iport_master.v:89, rtl/core/load_store_unit.v:32, rtl/debug/sba_master.v:42, rtl/dma/dma_engine.v {1'b0, size}
+# CT-SIZE2-ahb2apb_bridge (constant): literal rtl/core/iport_master.sv:89, rtl/core/load_store_unit.sv:32, rtl/debug/sba_master.sv:42, rtl/dma/dma_engine.sv {1'b0, size}
 exclude -inst ahb2apb_bridge -toggle hsize_i\[2\] -comment "The AHB is 32 bits wide: HSIZE <= word, so HSIZE\[2\] is 0 on the shared bus."
 # CT-TOCNT-ahb2apb_apb_fsm (constant): PROVEN fv_apb / fv_apb_div a_to_cnt_max (rtl/ahb2apb/ahb2apb_sva.sv)
 exclude -inst ahb2apb_bridge.u_fsm -toggle to_cnt\[4\] -comment "The 5-bit timeout counter stops at TIMEOUT-1 = 15, so bit 4 is never set."

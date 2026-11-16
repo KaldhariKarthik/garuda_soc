@@ -1,4 +1,4 @@
-// MUTANT mut_eng1: rtl/dma/dma_engine.v with ONE fix reverted (ENG-1: a beat is taken in the cycle a result is reported).
+// MUTANT mut_eng1: rtl/dma/dma_engine.sv with ONE fix reverted (ENG-1: a beat is taken in the cycle a result is reported).
 // Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal negative control: must FAIL. (tb/dma/formal/dma.toml mut_eng1, a_no_grant_while_reporting)
 `timescale 1ns/1ps
 `default_nettype none

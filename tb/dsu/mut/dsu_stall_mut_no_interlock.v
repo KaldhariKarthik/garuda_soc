@@ -2,9 +2,10 @@
 //dsu_stall.v
 
 `timescale 1ns / 1ps
-`include "dsu_defs.vh"
 
-module dsu_stall (
+module dsu_stall
+    import dsu_pkg::*;
+(
     input wire gclk,
     input wire core_rst_n,
     input wire flush,
@@ -47,16 +48,16 @@ module dsu_stall (
     // purposes. The one-shot guard from ERRATUM DSU-1 still applies, so this
     // still inserts exactly one bubble and cannot re-deadlock.
     // -----------------------------------------------------------------------
-    wire cur_is_compute = cur_is_rtype & ((funct5_fld == `FUNCT5_MAC_SEL) |
-                                          (funct5_fld == `FUNCT5_MACSUB)  |
-                                          (funct5_fld == `FUNCT5_MACABS)  |
-                                          (funct5_fld == `FUNCT5_MACDOT));
+    wire cur_is_compute = cur_is_rtype & ((funct5_fld == FUNCT5_MAC_SEL) |
+                                          (funct5_fld == FUNCT5_MACSUB)  |
+                                          (funct5_fld == FUNCT5_MACABS)  |
+                                          (funct5_fld == FUNCT5_MACDOT));
 
-    wire cur_is_2cycle = (cur_is_rtype & ((funct5_fld == `FUNCT5_MACRD_LO) |
-                                          (funct5_fld == `FUNCT5_MACRD_HI) |
-                                          (funct5_fld == `FUNCT5_MACSAT)))
+    wire cur_is_2cycle = (cur_is_rtype & ((funct5_fld == FUNCT5_MACRD_LO) |
+                                          (funct5_fld == FUNCT5_MACRD_HI) |
+                                          (funct5_fld == FUNCT5_MACSAT)))
                        | cur_is_compute;
-    wire cur_reads_acc = (cur_is_rtype & ((funct5_fld == `FUNCT5_MACRD_LO) | (funct5_fld == `FUNCT5_MACRD_HI) | (funct5_fld == `FUNCT5_MACSAT))) | cur_is_itype;
+    wire cur_reads_acc = (cur_is_rtype & ((funct5_fld == FUNCT5_MACRD_LO) | (funct5_fld == FUNCT5_MACRD_HI) | (funct5_fld == FUNCT5_MACSAT))) | cur_is_itype;
     
     reg       prev_was_2cycle;
     reg [1:0] prev_acc_sel;

@@ -13,7 +13,7 @@ xfail = "tb/core/run/xfail.tsv"
 [design]
 flist   = "rtl/core/filelist_core.f"
 top     = "garuda_core_top"
-replace = { "rtl/core/core_clk_gate.v" = "tb/core/formal/core_clk_gate_passthru.sv" }
+replace = { "rtl/core/core_clk_gate.sv" = "tb/core/formal/core_clk_gate_passthru.sv" }
 extra   = ["tb/core/formal/core_fv_env.sv", "tb/core/formal/cov_const_sva.sv"]
 min_asserts = 18
 min_covers  = 21

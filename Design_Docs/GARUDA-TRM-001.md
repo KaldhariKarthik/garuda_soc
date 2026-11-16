@@ -149,7 +149,7 @@ substantially idle, which is what shapes the power architecture and nothing else
 | 4 | `bootrom` | GARUDA-MEM-SPEC-001 | exists |
 | 5 | `dsram` | GARUDA-MEM-SPEC-001 | exists |
 | 6 | `ahb_ic` | GARUDA-AHB-SPEC-001 | exists |
-| 7 | `apb_fabric` | GARUDA-AHB2APB-SPEC-001 | exists — rtl/ahb2apb/ahb2apb_fabric.v |
+| 7 | `apb_fabric` | GARUDA-AHB2APB-SPEC-001 | exists — rtl/ahb2apb/ahb2apb_fabric.sv |
 | 8 | `ahb2apb` | GARUDA-AHB2APB-SPEC-001 | exists |
 | 9 | `dma` | GARUDA-DMA-SPEC-001 | exists |
 | 10 | `clic` | GARUDA-CLIC-SPEC-001 | exists |

@@ -15,7 +15,7 @@ ips:
     spdx: SHL-0.51
     copyright: ETH Zurich and University of Bologna
     used_for: >-
-      Block 13 spi_master (boot flash + IMU), behind rtl/spi_master/garuda_spim_top.v.
+      Block 13 spi_master (boot flash + IMU), behind rtl/spi_master/garuda_spim_top.sv.
       PREADY is tied high upstream, which is what makes it usable with our
       16-pclk bridge timeout.
 
@@ -41,7 +41,7 @@ ips:
     spdx: SHL-0.51
     copyright: ETH Zurich and University of Bologna
     used_for: >-
-      Blocks 16/17/18 uart0/1/2, behind rtl/uart/garuda_uart_top.v. 16550
+      Blocks 16/17/18 uart0/1/2, behind rtl/uart/garuda_uart_top.sv. 16550
       register model: byte-addressed (PADDR[2:0]), so the wrapper re-maps our
       word offsets onto it.
 
@@ -54,7 +54,7 @@ ips:
     spdx: SHL-0.51
     copyright: ETH Zurich and University of Bologna
     used_for: >-
-      Block 19 gpio, behind rtl/gpio/garuda_gpio_top.v. Already 32-bit
+      Block 19 gpio, behind rtl/gpio/garuda_gpio_top.sv. Already 32-bit
       word-aligned with input synchronisers.
 
   - name: opencores_i2c
@@ -68,6 +68,6 @@ ips:
     used_for: >-
       Block 15 i2c: the bit and byte controllers only. PULP's apb_i2c.sv
       register front end carries NO licence header and that repository has no
-      LICENSE file, so it is deliberately NOT vendored - rtl/i2c/garuda_i2c_top.v
+      LICENSE file, so it is deliberately NOT vendored - rtl/i2c/garuda_i2c_top.sv
       implements our own register layer instead (D-22). The controllers
       themselves carry Richard Herveille's notice, which must be preserved.

@@ -1,5 +1,5 @@
---- a/rtl/core/core_clk_gate.v
-+++ b/rtl/core/core_clk_gate.v
+--- a/rtl/core/core_clk_gate.sv
++++ b/rtl/core/core_clk_gate.sv
 @@ -26,11 +26,20 @@
  );
  

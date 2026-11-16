@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_csr_rw.sv -- SystemVerilog unit TB for rtl/core/csr_rw.v
+// tb_csr_rw.sv -- SystemVerilog unit TB for rtl/core/csr_rw.sv
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 8.3 / 8.4 / 13.3.
 // Plan: C21 (M-mode CSR read/write) at the seam level. Architectural CSR
@@ -16,11 +16,11 @@
 // =============================================================================
 
 `timescale 1ns/1ps
-`include "core_ex_defs.vh"
 
 // -------------------------------------------------------------
 // 1. INTERFACE (+ bound SVA)
 // -------------------------------------------------------------
+import core_ex_pkg::*;
 interface csr_rw_if (input bit clk);
     logic [31:0] instr, rs1_fwd;
     logic        csr_en, csr_imm;
@@ -86,7 +86,7 @@ class csr_cycle;
     rand bit [1:0]  op;
 
     // CSR_RW / CSR_RS / CSR_RC (= funct3[1:0]); 2'b00 is not a CSR op.
-    constraint c_op { op inside {`CSR_RW, `CSR_RS, `CSR_RC}; }
+    constraint c_op { op inside {CSR_RW, CSR_RS, CSR_RC}; }
 
     constraint c_kind {
         (kind == CK_REG)      -> (en == 1 && imm == 0);
@@ -162,7 +162,7 @@ class csr_generator;
                                      12'hB82, 12'hBC0, 12'hF11, 12'hF12, 12'hF13,
                                      12'hF14, 12'hFB1};
             foreach (addrs[i])
-                q.push_back(mk(CK_REG, addrs[i], 5'd7, 32'hA5A5_A5A5, 1, 0, `CSR_RW));
+                q.push_back(mk(CK_REG, addrs[i], 5'd7, 32'hA5A5_A5A5, 1, 0, CSR_RW));
             add_seq("sec13_2_csr_map", q);
         end
         // 2) walking ones across the whole 12-bit address field -- catches a
@@ -170,40 +170,40 @@ class csr_generator;
         begin
             csr_cycle q[$];
             for (int b = 0; b < 12; b++)
-                q.push_back(mk(CK_REG, 12'd1 << b, 5'd0, 32'd0, 1, 0, `CSR_RW));
-            q.push_back(mk(CK_REG, 12'h000, 5'd0, 32'd0, 1, 0, `CSR_RW));
-            q.push_back(mk(CK_REG, 12'hFFF, 5'd0, 32'd0, 1, 0, `CSR_RW));
+                q.push_back(mk(CK_REG, 12'd1 << b, 5'd0, 32'd0, 1, 0, CSR_RW));
+            q.push_back(mk(CK_REG, 12'h000, 5'd0, 32'd0, 1, 0, CSR_RW));
+            q.push_back(mk(CK_REG, 12'hFFF, 5'd0, 32'd0, 1, 0, CSR_RW));
             add_seq("addr_walking_ones", q);
         end
         // 3) register variants: wdata is the forwarded rs1
         begin
             csr_cycle q[$];
-            q.push_back(mk(CK_REG, 12'h340, 5'd7,  32'hDEAD_BEEF, 1, 0, `CSR_RW));
-            q.push_back(mk(CK_REG, 12'h340, 5'd7,  32'h0000_0000, 1, 0, `CSR_RS));
-            q.push_back(mk(CK_REG, 12'h340, 5'd7,  32'hFFFF_FFFF, 1, 0, `CSR_RC));
+            q.push_back(mk(CK_REG, 12'h340, 5'd7,  32'hDEAD_BEEF, 1, 0, CSR_RW));
+            q.push_back(mk(CK_REG, 12'h340, 5'd7,  32'h0000_0000, 1, 0, CSR_RS));
+            q.push_back(mk(CK_REG, 12'h340, 5'd7,  32'hFFFF_FFFF, 1, 0, CSR_RC));
             add_seq("register_variants", q);
         end
         // 4) immediate variants: zero-extension is the discriminator.
         //    rs1_val is deliberately 0xDEAD_BEEF on every one of these.
         begin
             csr_cycle q[$];
-            q.push_back(mk(CK_IMM, 12'h340, 5'b11111, 32'hDEAD_BEEF, 1, 1, `CSR_RW));
-            q.push_back(mk(CK_IMM, 12'h340, 5'b00001, 32'hDEAD_BEEF, 1, 1, `CSR_RS));
-            q.push_back(mk(CK_IMM, 12'h340, 5'b00000, 32'hDEAD_BEEF, 1, 1, `CSR_RC));
-            q.push_back(mk(CK_IMM, 12'h340, 5'b10000, 32'hDEAD_BEEF, 1, 1, `CSR_RW));
+            q.push_back(mk(CK_IMM, 12'h340, 5'b11111, 32'hDEAD_BEEF, 1, 1, CSR_RW));
+            q.push_back(mk(CK_IMM, 12'h340, 5'b00001, 32'hDEAD_BEEF, 1, 1, CSR_RS));
+            q.push_back(mk(CK_IMM, 12'h340, 5'b00000, 32'hDEAD_BEEF, 1, 1, CSR_RC));
+            q.push_back(mk(CK_IMM, 12'h340, 5'b10000, 32'hDEAD_BEEF, 1, 1, CSR_RW));
             add_seq("immediate_zero_extension", q);
         end
         // 5) full uimm sweep 0..31
         begin
             csr_cycle q[$];
             for (int u = 0; u < 32; u++)
-                q.push_back(mk(CK_IMM, 12'h340, u[4:0], 32'hFFFF_FFFF, 1, 1, `CSR_RW));
+                q.push_back(mk(CK_IMM, 12'h340, u[4:0], 32'hFFFF_FFFF, 1, 1, CSR_RW));
             add_seq("uimm_sweep", q);
         end
         // 6) all three ops, enable high and low
         begin
             csr_cycle q[$];
-            bit [1:0] ops[3] = '{`CSR_RW, `CSR_RS, `CSR_RC};
+            bit [1:0] ops[3] = '{CSR_RW, CSR_RS, CSR_RC};
             foreach (ops[i]) begin
                 q.push_back(mk(CK_REG,      12'h305, 5'd9, 32'h1234_5678, 1, 0, ops[i]));
                 q.push_back(mk(CK_DISABLED, 12'h305, 5'd9, 32'h1234_5678, 0, 0, ops[i]));
@@ -254,7 +254,7 @@ class csr_monitor;
             bins other               = default;
         }
         cp_op: coverpoint vif.csr_op {
-            bins rw = {`CSR_RW}; bins rs = {`CSR_RS}; bins rc = {`CSR_RC};
+            bins rw = {CSR_RW}; bins rs = {CSR_RS}; bins rc = {CSR_RC};
             // 2'b00 is not a CSR op encoding (funct3[1:0] of a CSR instruction
             // is never 00): not a coverage target
             ignore_bins unused = {2'b00};
@@ -352,7 +352,7 @@ module tb_top;
 
     initial begin
         vif.instr = 32'h0000_0073; vif.rs1_fwd = 0;
-        vif.csr_en = 0; vif.csr_imm = 0; vif.csr_op = `CSR_RW;
+        vif.csr_en = 0; vif.csr_imm = 0; vif.csr_op = CSR_RW;
         repeat (3) @(posedge clk);
         env = new(vif, 6, 200);
         env.run();

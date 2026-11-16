@@ -1,4 +1,4 @@
-// MUTANT garuda_iport_ahb_master_no_buse: rtl/core/iport_master.v with ONE change. Formal negative control: must FAIL.
+// MUTANT garuda_iport_ahb_master_no_buse: rtl/core/iport_master.sv with ONE change. Formal negative control: must FAIL.
 `timescale 1ns/1ps
 `default_nettype none
 // ============================================================================

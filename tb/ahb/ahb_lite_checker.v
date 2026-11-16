@@ -7,7 +7,7 @@
 // Until it was written, nothing anywhere in the GARUDA testbench had ever
 // looked at HBURST:
 //
-//     $ grep -c -i hburst rtl/ahb/ahb_mem_slave.v
+//     $ grep -c -i hburst rtl/ahb/ahb_mem_slave.sv
 //     0
 //
 // The verification memory model services every transfer as an independent

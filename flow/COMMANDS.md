@@ -56,8 +56,8 @@ ncbrowse -64bit -cdslib sim/static/INCA_libs/irun.lnx8664.15.20.nc/cds.lib \
          -sortby severity -sortby category -sortby tag sim/static/hal.log &
 
 # clock-domain crossings: the debug block, where tck and hclk are both ports
-irun -hal -64bit -f rtl/third_party/timescale.f rtl/debug/jtag_tap.v rtl/debug/debug_dtm.v \
-     rtl/debug/dmi_cdc.v rtl/debug/sba_master.v rtl/debug/debug_module.v rtl/debug/debug_top.v \
+irun -hal -64bit -f rtl/third_party/timescale.f rtl/debug/jtag_tap.sv rtl/debug/debug_dtm.sv \
+     rtl/debug/dmi_cdc.sv rtl/debug/sba_master.sv rtl/debug/debug_module.sv rtl/debug/debug_top.sv \
      -incdir rtl/include -top debug_top -define SYNTHESIS \
      -nclibdirname sim/static_cdc_debug/INCA_libs -l sim/static_cdc_debug/hal_cdc.log \
      -halargs "-check CLOCKDOMAIN"
@@ -705,7 +705,7 @@ Start every replay with:
 |---|---|---|
 | R1.1 | `vplanner -standalone &`, then File > Open `tb/clic/GARUDA_CLIC_vplan.csv` | every feature has a check method, an owner and coverage items |
 | R1.2 | `grep -n 0x305 Design_Docs/GARUDA-CORE-SPEC-001.md` | the spec: `mtvec` resets to `0x0000_0003` |
-| R1.3 | `grep -n MTVEC rtl/core/csr_file.v` | the RTL: BASE resets to 0 and the read returns `{mtvec_r[31:2], 2'b11}`, so MODE reads 3: the two agree |
+| R1.3 | `grep -n MTVEC rtl/core/csr_file.sv` | the RTL: BASE resets to 0 and the read returns `{mtvec_r[31:2], 2'b11}`, so MODE reads 3: the two agree |
 | R1.4 | `grep TRIAL_SYNTH flow/signoff/g1/out/summary.txt` | `kGE=113.3`, `flops=7925`: the gate budget of PHYS [N-6.4] |
 
 ### G2 and G3, stages F3 and F4: integration and static checks

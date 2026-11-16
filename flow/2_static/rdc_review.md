@@ -1,6 +1,6 @@
 # Reset-domain review
 
-Written 2026-10-04 by reading `rtl/reset_ctrl/reset_ctrl.v`, `rtl/soc/garuda_soc_top.v`
+Written 2026-10-04 by reading `rtl/reset_ctrl/reset_ctrl.sv`, `rtl/soc/garuda_soc_top.sv`
 and the reset pins of each block. HAL 15.20 has no reset-domain-crossing check, so
 this is a review, not a tool report. Where a statement below needs a tool to
 hold it, that is said.

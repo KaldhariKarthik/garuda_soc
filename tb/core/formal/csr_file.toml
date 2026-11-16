@@ -30,10 +30,10 @@ engine = "smtbmc yices"
 name    = "csr_prove_no_t12"
 mode    = "prove"
 engine  = "abc pdr"
-replace = { "rtl/core/csr_file.v" = "tb/core/formal/mutants/csr_file_no_t12.v" }
+replace = { "rtl/core/csr_file.sv" = "tb/core/formal/mutants/csr_file_no_t12.v" }
 
 [[task]]
 name    = "csr_prove_no_c16"
 mode    = "prove"
 engine  = "abc pdr"
-replace = { "rtl/core/csr_file.v" = "tb/core/formal/mutants/csr_file_no_c16.v" }
+replace = { "rtl/core/csr_file.sv" = "tb/core/formal/mutants/csr_file_no_c16.v" }

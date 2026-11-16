@@ -10,7 +10,7 @@
 # not. Compute -> readback is FLAG-C and is covered separately by dsu_flag2.S;
 # mixing the two here would make a failure ambiguous.
 #
-# Custom-0 encoding (rtl/dsu/dsu_decoder.v):
+# Custom-0 encoding (rtl/dsu/dsu_decoder.sv):
 #   opcode 0x0b, funct3 000 (R-type), funct7 = {funct5[4:0], acc_sel[1:0]}
 # =============================================================================
 

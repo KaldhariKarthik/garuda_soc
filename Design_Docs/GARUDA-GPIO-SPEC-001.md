@@ -44,7 +44,7 @@ per-pin edge interrupt (rising, falling or either; there is no level type, [N-6.
 ### 1.3 Where the RTL comes from
 
 `rtl/third_party/pulp/apb_gpio` (Solderpad 0.51), unmodified, behind
-`rtl/gpio/garuda_gpio_top.v`. It is the **closest thing to a drop-in** of the
+`rtl/gpio/garuda_gpio_top.sv`. It is the **closest thing to a drop-in** of the
 four vendored IPs: already word-addressed (`s_apb_addr = PADDR[6:2]`), `PREADY`
 tied high, `PSLVERR` tied low, and it carries its own input synchronisers.
 
@@ -87,9 +87,9 @@ tied high, `PSLVERR` tied low, and it carries its own input synchronisers.
 
 | Name | Type | RTL file | Role |
 |---|---|---|---|
-| `garuda_apb_shim` | seq (pclk) | `rtl/common/garuda_apb_shim.v` | decode, PSLVERR, sticky IRQ, pad sync |
+| `garuda_apb_shim` | seq (pclk) | `rtl/common/garuda_apb_shim.sv` | decode, PSLVERR, sticky IRQ, pad sync |
 | `apb_gpio` | seq (pclk) | `rtl/third_party/pulp/apb_gpio/src/` | register file, edge detect, interrupt (vendored) |
-| `garuda_gpio_top` | wrapper | `rtl/gpio/garuda_gpio_top.v` | 2-pin mapping, direction polarity, sticky IRQ |
+| `garuda_gpio_top` | wrapper | `rtl/gpio/garuda_gpio_top.sv` | 2-pin mapping, direction polarity, sticky IRQ |
 
 ---
 

@@ -10,7 +10,7 @@ xfail = "tb/core/selftest/xfail.tsv"
 [bench]
 flist   = "tb/soc/filelist_boot.f"
 top     = "tb_boot"
-replace = { "rtl/core/clic_ctrl.v" = "tb/core/formal/mutants/clic_ctrl_no_preempt.v" }
+replace = { "rtl/core/clic_ctrl.sv" = "tb/core/formal/mutants/clic_ctrl_no_preempt.v" }
 
 [defaults]
 marker   = 'TOHOST=1 -> PASSED'

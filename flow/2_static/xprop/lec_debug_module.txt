@@ -21,8 +21,8 @@ in a license agreement controlling such use and disclosure.
 // Warning: (DIR6.1) Ignored compiler directive is detected (occurrence:1)
 // Warning: (DIR6.2) Supported compiler directive is detected (occurrence:2)
 // Note: Read VERILOG design successfully
-// Command: read design -sv -define SYNTHESIS rtl/debug/debug_module.v -revised
-// Parsing file rtl/debug/debug_module.v ...
+// Command: read design -sv -define SYNTHESIS rtl/debug/debug_module.sv -revised
+// Parsing file rtl/debug/debug_module.sv ...
 // Revised root module is set to 'debug_module'
 // Warning: (RTL1.2) Variable/signal is assigned by multiple non-blocking assignments (occurrence:10)
 // Warning: (RTL1.5b) Potential loss of RHS msb or carry-out bit (occurrence:2)

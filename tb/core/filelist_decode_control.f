@@ -12,7 +12,8 @@
 -incdir rtl/common
 -incdir rtl/core
 
-rtl/core/decode_control.v
+rtl/common/garuda_pkg.sv
+rtl/core/decode_control.sv
 
 -sv
 tb/core/tb_decode_control.sv

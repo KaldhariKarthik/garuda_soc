@@ -1,0 +1,82 @@
+`timescale 1ns/1ps
+`default_nettype none
+// =============================================================================
+// GARUDA SoC - Block I: Processor Core
+// mem_wb_reg.v - MEM/WB Pipeline Register (Sec. 5.2)
+// Document: AERO-GARUDA-DS-001 Rev 1.1
+//
+// CONTRACT (mux-in-MEM, Sec. 5.2 / Sec. 10.3):
+//   mem_stage performs the mem_to_reg mux itself and emits a single,
+//   already-final wb_data. MEM/WB therefore carries only:
+//       wb_data  - final writeback value (load-formatted OR EX result)
+//       rd       - destination register index
+//       reg_write- writeback enable
+//   It does NOT carry a separate load_data + result + select trio; that
+//   earlier (mux-in-WB) reading of Sec. 5.2 is retired - it double-counted
+//   a 32-bit field and put the mux in the wrong stage.
+//
+// CONTROL (Sec. 11.4):
+//   flush_i - insert a bubble (no writeback). Driven by CONTROL for BOTH:
+//               (a) trap flush, and
+//               (b) each cycle of a MEM D-port wait state.
+//   There is deliberately NO hold: WB is the terminal stage and can never
+//   stall from below, so MEM/WB is only ever held back by inserting
+//   bubbles. A hold here would replay the previous instruction's writeback
+//   every wait-state cycle - correct only because GPR writes are idempotent,
+//   but semantically wrong. Bubble-on-wait is the correct model.
+// =============================================================================
+
+module mem_wb_reg (
+    input  wire        gclk,
+    input  wire        core_rst_n,
+
+    // Pipeline control
+    input  wire        flush_i,        // bubble: trap flush OR MEM wait state
+
+    // From MEM stage (post mem_to_reg mux - already final, Sec. 10.3)
+    input  wire [31:0] wb_data_i,      // load-formatted value OR EX result
+    input  wire [4:0]  rd_i,
+    input  wire        reg_write_i,
+    input  wire        retire_i,       // mem_stage.retire_o - architectural retirement
+
+    // To WB stage
+    output reg  [31:0] wb_data_o,
+    output reg  [4:0]  rd_o,
+    output reg         reg_write_o,
+
+    // To CSR file (Sec. 13.2) - minstret increment, one pulse per retired instr
+    output reg         retire_o
+);
+
+    // ERRATUM CORE-1 -- flush_i must not appear in the ASYNCHRONOUS reset test.
+    // See rtl/core/if_id.sv for the full explanation; the same defect was in all
+    // three pipeline registers, and this is the one Yosys names when it refuses
+    // to synthesise the SoC ("Multiple edge sensitive events found for this
+    // signal" on mem_wb_reg.rd_o).
+    //
+    // This register has no hold path by design (bubble-on-wait, never hold --
+    // see the note above), so there are only three branches, not four.
+    always @(posedge gclk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
+            // Reset -> no writeback
+            wb_data_o   <= 32'd0;
+            rd_o        <= 5'd0;
+            reg_write_o <= 1'b0;    // write-enable LOW = no WB
+            retire_o    <= 1'b0;
+        end else if (flush_i) begin
+            // Bubble -> no writeback
+            wb_data_o   <= 32'd0;
+            rd_o        <= 5'd0;
+            reg_write_o <= 1'b0;
+            retire_o    <= 1'b0;    // a bubble never retires
+        end else begin
+            wb_data_o   <= wb_data_i;
+            rd_o        <= rd_i;
+            reg_write_o <= reg_write_i;
+            retire_o    <= retire_i;
+        end
+    end
+
+endmodule
+
+`default_nettype wire

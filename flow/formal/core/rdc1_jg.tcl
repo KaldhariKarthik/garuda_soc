@@ -13,7 +13,7 @@ set incs {}
 foreach d [exec env -u LD_LIBRARY_PATH python3 scripts/expand_filelist.py $fl --incdirs] { lappend incs "+incdir+[string range $d 2 end]" }
 set srcs {}
 foreach s [exec env -u LD_LIBRARY_PATH python3 scripts/expand_filelist.py $fl] {
-    if {[string match *rtl/core/core_clk_gate.v $s]} { set s tb/core/formal/core_clk_gate_passthru.sv }
+    if {[string match *rtl/core/core_clk_gate.sv $s]} { set s tb/core/formal/core_clk_gate_passthru.sv }
     lappend srcs $s
 }
 analyze -sv09 +define+FORMAL {*}$incs {*}$srcs

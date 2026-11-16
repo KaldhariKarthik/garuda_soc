@@ -96,9 +96,9 @@ on the other end of the wire is a motor, that difference is the whole decision.
 
 | Name | Type | RTL file | Role |
 |---|---|---|---|
-| `garuda_apb_shim` | seq (pclk) | `rtl/common/garuda_apb_shim.v` | decode, PSLVERR, sticky IRQ |
-| `garuda_pwm_top` | seq (pclk) | `rtl/pwm/garuda_pwm_top.v` | register file, events |
-| `garuda_pwm_core` | seq (pclk) | `rtl/pwm/garuda_pwm_core.v` | prescaler, counter, 4 comparators, shadows |
+| `garuda_apb_shim` | seq (pclk) | `rtl/common/garuda_apb_shim.sv` | decode, PSLVERR, sticky IRQ |
+| `garuda_pwm_top` | seq (pclk) | `rtl/pwm/garuda_pwm_top.sv` | register file, events |
+| `garuda_pwm_core` | seq (pclk) | `rtl/pwm/garuda_pwm_core.sv` | prescaler, counter, 4 comparators, shadows |
 
 ---
 

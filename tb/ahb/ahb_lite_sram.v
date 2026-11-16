@@ -12,7 +12,7 @@
 // interconnect before they existed.
 //
 // -----------------------------------------------------------------------------
-// WHY NOT rtl/ahb/ahb_mem_slave.v
+// WHY NOT rtl/ahb/ahb_mem_slave.sv
 // -----------------------------------------------------------------------------
 // That model predates the interconnect and cannot sit on it: it has no HSEL
 // input and no HREADY input, because it was written for a world where each

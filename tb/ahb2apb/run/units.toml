@@ -24,29 +24,29 @@ plusargs = ["+UNIT=fabric", "+CYCLES=5000"]
 [[test]]
 name        = "negctl_fsm_to15"
 plusargs    = ["+UNIT=fsm", "+CYCLES=20000"]
-replace     = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to15.v" }
+replace     = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to15.v" }
 fail_reason = '^\[FAIL\] '
 
 [[test]]
 name        = "negctl_fsm_to17"
 plusargs    = ["+UNIT=fsm", "+CYCLES=20000"]
-replace     = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to17.v" }
+replace     = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to17.v" }
 fail_reason = '^\[FAIL\] '
 
 [[test]]
 name        = "negctl_fsm_win"
 plusargs    = ["+UNIT=fsm", "+CYCLES=20000"]
-replace     = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_win.v" }
+replace     = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_win.v" }
 fail_reason = '^\[FAIL\] '
 
 [[test]]
 name        = "negctl_fsm_nosetup"
 plusargs    = ["+UNIT=fsm", "+CYCLES=20000"]
-replace     = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_nosetup.v" }
+replace     = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_nosetup.v" }
 fail_reason = '^\[FAIL\] '
 
 [[test]]
 name        = "negctl_fabric_rdy"
 plusargs    = ["+UNIT=fabric", "+CYCLES=5000"]
-replace     = { "rtl/ahb2apb/ahb2apb_fabric.v" = "tb/ahb2apb/mut/ahb2apb_fabric_mut_rdy.v" }
+replace     = { "rtl/ahb2apb/ahb2apb_fabric.sv" = "tb/ahb2apb/mut/ahb2apb_fabric_mut_rdy.v" }
 fail_reason = '^\[FAIL\] '

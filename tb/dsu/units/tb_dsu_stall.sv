@@ -2,6 +2,7 @@
 // Pasted copies of the design removed (dsu_stall): this bench now
 // compiles against rtl/dsu (the real RTL). Covergroups cg_stall compiled out
 // under Verilator only (TOOL-23); otherwise unchanged.
+import dsu_pkg::*;
 `ifdef VERILATOR
   `define GARUDA_CG_NEW(cg)
   `define GARUDA_CG_SAMPLE(cg)
@@ -15,7 +16,7 @@
 // tb_dsu_stall.sv
 //
 //  BLOCK      : II -- DSU (Custom-0 MAC coprocessor)
-//  RTL SOURCE : rtl/dsu/dsu_stall.v   (GARUDA_DSU_DesignSpec)
+//  RTL SOURCE : rtl/dsu/dsu_stall.sv   (GARUDA_DSU_DesignSpec)
 //  SCOPE      : DSU unit module
 //
 // Tapeout-grade SV verification environment for GARUDA dsu_stall.v
@@ -161,7 +162,7 @@ interface dsu_stall_if (input bit clk);
     //     would be false, dsu_busy must be false regardless of history.
     property p_busy_implies_reads_acc;
         @(posedge clk) disable iff (!rst_n)
-        dsu_busy |-> (is_custom0 & ((funct3 == 3'b000 & (funct5 == `FUNCT5_MACRD_LO | funct5 == `FUNCT5_MACRD_HI | funct5 == `FUNCT5_MACSAT)) | funct3 == 3'b001));
+        dsu_busy |-> (is_custom0 & ((funct3 == 3'b000 & (funct5 == FUNCT5_MACRD_LO | funct5 == FUNCT5_MACRD_HI | funct5 == FUNCT5_MACSAT)) | funct3 == 3'b001));
     endproperty
     a_busy_implies_reads_acc: assert property (p_busy_implies_reads_acc)
         else $error("[SVA-FAIL] dsu_busy asserted for an instruction that does not read the accumulator");
@@ -210,15 +211,15 @@ class stall_cycle;
         end
         is_custom0 = 1'b1;
         case (op)
-            OP_MAC_SEL:   begin funct3 = 3'b000; funct5 = `FUNCT5_MAC_SEL;  end
-            OP_MACSUB:    begin funct3 = 3'b000; funct5 = `FUNCT5_MACSUB;   end
-            OP_MACABS:    begin funct3 = 3'b000; funct5 = `FUNCT5_MACABS;   end
-            OP_MACDOT:    begin funct3 = 3'b000; funct5 = `FUNCT5_MACDOT;   end
-            OP_MACLOAD:   begin funct3 = 3'b000; funct5 = `FUNCT5_MACLOAD;  end
-            OP_MACCLEAR:  begin funct3 = 3'b000; funct5 = `FUNCT5_MACCLEAR; end
-            OP_MACSAT:    begin funct3 = 3'b000; funct5 = `FUNCT5_MACSAT;   end
-            OP_RD_LO:     begin funct3 = 3'b000; funct5 = `FUNCT5_MACRD_LO; end
-            OP_RD_HI:     begin funct3 = 3'b000; funct5 = `FUNCT5_MACRD_HI; end
+            OP_MAC_SEL:   begin funct3 = 3'b000; funct5 = FUNCT5_MAC_SEL;  end
+            OP_MACSUB:    begin funct3 = 3'b000; funct5 = FUNCT5_MACSUB;   end
+            OP_MACABS:    begin funct3 = 3'b000; funct5 = FUNCT5_MACABS;   end
+            OP_MACDOT:    begin funct3 = 3'b000; funct5 = FUNCT5_MACDOT;   end
+            OP_MACLOAD:   begin funct3 = 3'b000; funct5 = FUNCT5_MACLOAD;  end
+            OP_MACCLEAR:  begin funct3 = 3'b000; funct5 = FUNCT5_MACCLEAR; end
+            OP_MACSAT:    begin funct3 = 3'b000; funct5 = FUNCT5_MACSAT;   end
+            OP_RD_LO:     begin funct3 = 3'b000; funct5 = FUNCT5_MACRD_LO; end
+            OP_RD_HI:     begin funct3 = 3'b000; funct5 = FUNCT5_MACRD_HI; end
             OP_MACSHIFT:  begin funct3 = 3'b001; funct5 = 5'd0;             end
             OP_BAD_FUNCT3:begin funct3 = 3'b101; funct5 = 5'd0;             end
             OP_NON_CUSTOM0: begin is_custom0 = 1'b0; funct3 = 3'b000; funct5 = 5'd0; end
@@ -269,17 +270,17 @@ class stall_generator;
         // 1) Basic hazard trigger: MACRD_LO(FX) -> MACRD_LO(FX) => stall on cycle 2
         begin
             stall_cycle q[$];
-            q.push_back(mk(OP_RD_LO, `ACC_FX));
-            q.push_back(mk(OP_RD_LO, `ACC_FX));
-            q.push_back(mk(OP_MAC_SEL, `ACC_FX));  // bubble-ish next instr, hazard should have cleared
+            q.push_back(mk(OP_RD_LO, ACC_FX));
+            q.push_back(mk(OP_RD_LO, ACC_FX));
+            q.push_back(mk(OP_MAC_SEL, ACC_FX));  // bubble-ish next instr, hazard should have cleared
             add_seq("basic_hazard_same_acc", q);
         end
 
         // 2) No hazard: MACRD_LO(FX) -> MACRD_LO(FY) (different accumulator)
         begin
             stall_cycle q[$];
-            q.push_back(mk(OP_RD_LO, `ACC_FX));
-            q.push_back(mk(OP_RD_LO, `ACC_FY));
+            q.push_back(mk(OP_RD_LO, ACC_FX));
+            q.push_back(mk(OP_RD_LO, ACC_FY));
             add_seq("no_hazard_diff_acc", q);
         end
 
@@ -290,8 +291,8 @@ class stall_generator;
             foreach (producers[i]) begin
                 foreach (consumers[j]) begin
                     stall_cycle q[$];
-                    q.push_back(mk(producers[i], `ACC_MAG));
-                    q.push_back(mk(consumers[j], `ACC_MAG));
+                    q.push_back(mk(producers[i], ACC_MAG));
+                    q.push_back(mk(consumers[j], ACC_MAG));
                     add_seq($sformatf("producer_%0d_consumer_%0d_same_acc", i, j), q);
                 end
             end
@@ -301,9 +302,9 @@ class stall_generator;
         //    reset, then confirm the pending hazard is gone
         begin
             stall_cycle q[$];
-            q.push_back(mk(OP_RD_LO, `ACC_FX));
-            q.push_back(mk(OP_RD_LO, `ACC_FX, 1'b0, 1'b0));  // rst_n=0 this cycle
-            q.push_back(mk(OP_RD_LO, `ACC_FX));              // would have hazarded pre-reset
+            q.push_back(mk(OP_RD_LO, ACC_FX));
+            q.push_back(mk(OP_RD_LO, ACC_FX, 1'b0, 1'b0));  // rst_n=0 this cycle
+            q.push_back(mk(OP_RD_LO, ACC_FX));              // would have hazarded pre-reset
             add_seq("reset_mid_hazard", q);
         end
 
@@ -311,9 +312,9 @@ class stall_generator;
         //    then confirm the pending hazard is gone the cycle after
         begin
             stall_cycle q[$];
-            q.push_back(mk(OP_RD_LO, `ACC_FX));
-            q.push_back(mk(OP_RD_LO, `ACC_FX, 1'b1, 1'b1));  // flush=1 this cycle
-            q.push_back(mk(OP_RD_LO, `ACC_FX));              // should NOT stall (state was cleared)
+            q.push_back(mk(OP_RD_LO, ACC_FX));
+            q.push_back(mk(OP_RD_LO, ACC_FX, 1'b1, 1'b1));  // flush=1 this cycle
+            q.push_back(mk(OP_RD_LO, ACC_FX));              // should NOT stall (state was cleared)
             add_seq("flush_mid_hazard", q);
         end
 
@@ -323,8 +324,8 @@ class stall_generator;
         //     prevents the state from propagating to the NEXT cycle.
         begin
             stall_cycle q[$];
-            q.push_back(mk(OP_RD_LO, `ACC_FX));
-            q.push_back(mk(OP_RD_LO, `ACC_FX, 1'b1, 1'b1));  // hazard AND flush together
+            q.push_back(mk(OP_RD_LO, ACC_FX));
+            q.push_back(mk(OP_RD_LO, ACC_FX, 1'b1, 1'b1));  // hazard AND flush together
             add_seq("flush_same_cycle_as_hazard", q);
         end
 
@@ -340,8 +341,8 @@ class stall_generator;
             stall_op_e computes[6] = '{OP_MAC_SEL, OP_MACSUB, OP_MACABS, OP_MACDOT, OP_MACLOAD, OP_MACCLEAR};
             foreach (computes[i]) begin
                 stall_cycle q[$];
-                q.push_back(mk(computes[i], `ACC_FY));
-                q.push_back(mk(OP_RD_LO, `ACC_FY));
+                q.push_back(mk(computes[i], ACC_FY));
+                q.push_back(mk(OP_RD_LO, ACC_FY));
                 add_seq($sformatf("FINDING1_compute_%0d_then_read_same_acc", i), q);
             end
         end
@@ -356,9 +357,9 @@ class stall_generator;
         //     that, for the log/report, rather than asserting a verdict.
         begin
             stall_cycle q[$];
-            q.push_back(mk(OP_RD_LO, `ACC_MAG));
-            repeat (6) q.push_back(mk(OP_RD_LO, `ACC_MAG));  // hold identical instruction
-            q.push_back(mk(OP_MAC_SEL, `ACC_MAG));            // finally changes
+            q.push_back(mk(OP_RD_LO, ACC_MAG));
+            repeat (6) q.push_back(mk(OP_RD_LO, ACC_MAG));  // hold identical instruction
+            q.push_back(mk(OP_MAC_SEL, ACC_MAG));            // finally changes
             add_seq("FINDING2_held_stall_livelock_probe", q);
         end
 
@@ -378,16 +379,16 @@ class stall_generator;
         //    accumulator and never set prev_was_2cycle
         begin
             stall_cycle q[$];
-            q.push_back(mk(OP_RD_LO, `ACC_FX));
-            q.push_back(mk(OP_NON_CUSTOM0, `ACC_FX));
-            q.push_back(mk(OP_RD_LO, `ACC_FX));  // hazard should be gone (non-custom0 cleared prev state)
+            q.push_back(mk(OP_RD_LO, ACC_FX));
+            q.push_back(mk(OP_NON_CUSTOM0, ACC_FX));
+            q.push_back(mk(OP_RD_LO, ACC_FX));  // hazard should be gone (non-custom0 cleared prev state)
             add_seq("non_custom0_breaks_chain", q);
         end
         begin
             stall_cycle q[$];
-            q.push_back(mk(OP_RD_LO, `ACC_FX));
-            q.push_back(mk(OP_BAD_FUNCT3, `ACC_FX));
-            q.push_back(mk(OP_RD_LO, `ACC_FX));
+            q.push_back(mk(OP_RD_LO, ACC_FX));
+            q.push_back(mk(OP_BAD_FUNCT3, ACC_FX));
+            q.push_back(mk(OP_RD_LO, ACC_FX));
             add_seq("bad_funct3_breaks_chain", q);
         end
 
@@ -409,13 +410,13 @@ class stall_generator;
                         stall_cycle setup_a[$], setup_b[$];
 
                         // (a) no-hazard-pending base state, then probe
-                        setup_a.push_back(mk(OP_MAC_SEL, `ACC_FX));  // establishes prev_was_2cycle=0
-                        setup_a.push_back(mk_raw(f5i[4:0], f3i[2:0], ic0i[0], `ACC_FX));
+                        setup_a.push_back(mk(OP_MAC_SEL, ACC_FX));  // establishes prev_was_2cycle=0
+                        setup_a.push_back(mk_raw(f5i[4:0], f3i[2:0], ic0i[0], ACC_FX));
                         add_seq($sformatf("EXH_nohazard_f5%0d_f3%0d_ic0%0d", f5i, f3i, ic0i), setup_a);
 
                         // (b) hazard-pending (matching acc_sel), then probe
-                        setup_b.push_back(mk(OP_RD_LO, `ACC_FY));    // establishes prev_was_2cycle=1, prev_acc_sel=FY
-                        setup_b.push_back(mk_raw(f5i[4:0], f3i[2:0], ic0i[0], `ACC_FY));
+                        setup_b.push_back(mk(OP_RD_LO, ACC_FY));    // establishes prev_was_2cycle=1, prev_acc_sel=FY
+                        setup_b.push_back(mk_raw(f5i[4:0], f3i[2:0], ic0i[0], ACC_FY));
                         add_seq($sformatf("EXH_hazardpend_f5%0d_f3%0d_ic0%0d", f5i, f3i, ic0i), setup_b);
                     end
                 end
@@ -474,7 +475,7 @@ class stall_ref_model;
         is_itype = is_custom0 && (funct3 == 3'b001);
 
         case (1'b1)
-            (is_rtype && (funct5 == `FUNCT5_MACRD_LO || funct5 == `FUNCT5_MACRD_HI || funct5 == `FUNCT5_MACSAT)):
+            (is_rtype && (funct5 == FUNCT5_MACRD_LO || funct5 == FUNCT5_MACRD_HI || funct5 == FUNCT5_MACSAT)):
                 is_2cycle = 1'b1;
             default: is_2cycle = 1'b0;
         endcase
@@ -538,8 +539,8 @@ covergroup cg_stall;
         cp_flush: coverpoint vif.flush;
         cp_rst_n: coverpoint vif.rst_n;
         cp_op_reads_acc: coverpoint (vif.is_custom0 && (vif.funct3 == 3'b001 ||
-                          (vif.funct3 == 3'b000 && (vif.funct5 == `FUNCT5_MACRD_LO ||
-                           vif.funct5 == `FUNCT5_MACRD_HI || vif.funct5 == `FUNCT5_MACSAT))));
+                          (vif.funct3 == 3'b000 && (vif.funct5 == FUNCT5_MACRD_LO ||
+                           vif.funct5 == FUNCT5_MACRD_HI || vif.funct5 == FUNCT5_MACSAT))));
         cross cp_busy, cp_flush;
         cross cp_busy, cp_rst_n {
             // (busy=1, rst_n=0) is unreachable BY CONSTRUCTION of this

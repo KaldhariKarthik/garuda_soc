@@ -1,4 +1,4 @@
-// MUTANT debug_module_rawgrant: rtl/debug/debug_module.v with ONE change: hartreset_o follows the RAW request
+// MUTANT debug_module_rawgrant: rtl/debug/debug_module.sv with ONE change: hartreset_o follows the RAW request
 // (the pre-RDC-1 behaviour of b90b481). Formal negative control: must FAIL. Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. (tb/core/formal/rdc1.toml rdc1_prove_rawgrant)
 `timescale 1ns/1ps
 `default_nettype none

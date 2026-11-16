@@ -34,41 +34,41 @@ top   = "tb_dma_engine_unit"
 name    = "negctl_apb_double_strobe"
 flist   = "tb/dma/units/tb_dma_apb_slave_unit.f"
 top     = "tb_dma_apb_slave_unit"
-replace = { "rtl/dma/dma_apb_slave.v" = "tb/dma/mut/dma_apb_slave_mut_m20.v" }
+replace = { "rtl/dma/dma_apb_slave.sv" = "tb/dma/mut/dma_apb_slave_mut_m20.v" }
 fail_reason = '^\[FAIL\] write .*: 2 strobe'
 [[test]]
 name    = "negctl_apb_aud13"
 flist   = "tb/dma/units/tb_dma_apb_slave_unit.f"
 top     = "tb_dma_apb_slave_unit"
-replace = { "rtl/dma/dma_apb_slave.v" = "tb/dma/mut/dma_apb_slave_mut_m21.v" }
+replace = { "rtl/dma/dma_apb_slave.sv" = "tb/dma/mut/dma_apb_slave_mut_m21.v" }
 fail_reason = '^\[FAIL\] write 010: PSLVERR 1'
 [[test]]
 name    = "negctl_chan_d2"
 flist   = "tb/dma/units/tb_dma_chan_unit.f"
 top     = "tb_dma_chan_unit"
-replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_m01.v" }
+replace = { "rtl/dma/dma_chan.sv" = "tb/dma/mut/dma_chan_mut_m01.v" }
 fail_reason = '^\[FAIL\] cycle'
 [[test]]
 name    = "negctl_chan_half_step"
 flist   = "tb/dma/units/tb_dma_chan_unit.f"
 top     = "tb_dma_chan_unit"
-replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_m05.v" }
+replace = { "rtl/dma/dma_chan.sv" = "tb/dma/mut/dma_chan_mut_m05.v" }
 fail_reason = '^\[FAIL\] cycle'
 [[test]]
 name    = "negctl_engine_eng1"
 flist   = "tb/dma/units/tb_dma_engine_unit.f"
 top     = "tb_dma_engine_unit"
-replace = { "rtl/dma/dma_engine.v" = "tb/dma/mut/dma_engine_mut_m15.v" }
+replace = { "rtl/dma/dma_engine.sv" = "tb/dma/mut/dma_engine_mut_m15.v" }
 fail_reason = '^\[FAIL\] ENG-1'
 [[test]]
 name    = "negctl_engine_ack_width"
 flist   = "tb/dma/units/tb_dma_engine_unit.f"
 top     = "tb_dma_engine_unit"
-replace = { "rtl/dma/dma_engine.v" = "tb/dma/mut/dma_engine_mut_m14.v" }
+replace = { "rtl/dma/dma_engine.sv" = "tb/dma/mut/dma_engine_mut_m14.v" }
 fail_reason = 'ack high 1 hclk, expected 2'
 [[test]]
 name    = "negctl_engine_lane0"
 flist   = "tb/dma/units/tb_dma_engine_unit.f"
 top     = "tb_dma_engine_unit"
-replace = { "rtl/dma/dma_engine.v" = "tb/dma/mut/dma_engine_mut_m17.v" }
+replace = { "rtl/dma/dma_engine.sv" = "tb/dma/mut/dma_engine_mut_m17.v" }
 fail_reason = 'wrote lane .* read lane'

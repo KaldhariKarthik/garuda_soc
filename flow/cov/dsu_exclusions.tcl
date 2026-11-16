@@ -11,7 +11,7 @@
 # Commented lines need IMC's
 # block / expression / bin identifiers and are completed in IMC.
 # =============================================================================
-# CT-CARRY0-csa_3to2 (constant): literal rtl/dsu/csa_3to2.v:12 (<< 1); carry_reg loads csa1_carry or 0 (mac_unit.v:129-141)
+# CT-CARRY0-csa_3to2 (constant): literal rtl/dsu/csa_3to2.sv:12 (<< 1); carry_reg loads csa1_carry or 0 (mac_unit.v:129-141)
 exclude -inst dsu_top.u_cluster.u_mac0.u_csa1 -toggle c\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
 exclude -inst dsu_top.u_cluster.u_mac0.u_csa1 -toggle carry\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
 exclude -inst dsu_top.u_cluster.u_mac0.u_csa2 -toggle c\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
@@ -24,11 +24,11 @@ exclude -inst dsu_top.u_cluster.u_mac2.u_csa1 -toggle c\[0\] -comment "Bit 0 of 
 exclude -inst dsu_top.u_cluster.u_mac2.u_csa1 -toggle carry\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
 exclude -inst dsu_top.u_cluster.u_mac2.u_csa2 -toggle c\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
 exclude -inst dsu_top.u_cluster.u_mac2.u_csa2 -toggle carry\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
-# CT-CARRY0-kogge_stone_49 (constant): literal rtl/dsu/csa_3to2.v:12 (<< 1); carry_reg loads csa1_carry or 0 (mac_unit.v:129-141)
+# CT-CARRY0-kogge_stone_49 (constant): literal rtl/dsu/csa_3to2.sv:12 (<< 1); carry_reg loads csa1_carry or 0 (mac_unit.v:129-141)
 exclude -inst dsu_top.u_cluster.u_mac0.u_ks -toggle b\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
 exclude -inst dsu_top.u_cluster.u_mac1.u_ks -toggle b\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
 exclude -inst dsu_top.u_cluster.u_mac2.u_ks -toggle b\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
-# CT-CARRY0-mac_unit (constant): literal rtl/dsu/csa_3to2.v:12 (<< 1); carry_reg loads csa1_carry or 0 (mac_unit.v:129-141)
+# CT-CARRY0-mac_unit (constant): literal rtl/dsu/csa_3to2.sv:12 (<< 1); carry_reg loads csa1_carry or 0 (mac_unit.v:129-141)
 exclude -inst dsu_top.u_cluster.u_mac0 -toggle carry_reg\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
 exclude -inst dsu_top.u_cluster.u_mac0 -toggle csa1_carry\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
 exclude -inst dsu_top.u_cluster.u_mac0 -toggle csa2_carry\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
@@ -38,18 +38,18 @@ exclude -inst dsu_top.u_cluster.u_mac1 -toggle csa2_carry\[0\] -comment "Bit 0 o
 exclude -inst dsu_top.u_cluster.u_mac2 -toggle carry_reg\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
 exclude -inst dsu_top.u_cluster.u_mac2 -toggle csa1_carry\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
 exclude -inst dsu_top.u_cluster.u_mac2 -toggle csa2_carry\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
-# CT-CIN-kogge_stone_49 (constant): literal rtl/dsu/mac_unit.v:159 .cin(1'b0)
+# CT-CIN-kogge_stone_49 (constant): literal rtl/dsu/mac_unit.sv:159 .cin(1'b0)
 exclude -inst dsu_top.u_cluster.u_mac0.u_ks -toggle cin -comment "The final adder's carry-in is tied to 0."
 exclude -inst dsu_top.u_cluster.u_mac1.u_ks -toggle cin -comment "The final adder's carry-in is tied to 0."
 exclude -inst dsu_top.u_cluster.u_mac2.u_ks -toggle cin -comment "The final adder's carry-in is tied to 0."
-# CT-SATABS-operand_router (constant): literal rtl/dsu/operand_router.v:14-19 (if x == 16'h8000 abs16 = 16'h7FFF); the DSU oracle saturates the same way (MACABS vectors pass)
+# CT-SATABS-operand_router (constant): literal rtl/dsu/operand_router.sv:14-19 (if x == 16'h8000 abs16 = 16'h7FFF); the DSU oracle saturates the same way (MACABS vectors pass)
 exclude -inst dsu_top.u_cluster.u_mac0.u_router -toggle rs1_lo_abs\[15\] -comment "abs16 SATURATES: |-32768| gives 0x7FFF, every other negative x gives ~x+1 <= 0x7FFF and a positive x is < 0x8000, so bit 15 of the absolute value is never set."
 exclude -inst dsu_top.u_cluster.u_mac0.u_router -toggle rs2_lo_abs\[15\] -comment "abs16 SATURATES: |-32768| gives 0x7FFF, every other negative x gives ~x+1 <= 0x7FFF and a positive x is < 0x8000, so bit 15 of the absolute value is never set."
 exclude -inst dsu_top.u_cluster.u_mac1.u_router -toggle rs1_lo_abs\[15\] -comment "abs16 SATURATES: |-32768| gives 0x7FFF, every other negative x gives ~x+1 <= 0x7FFF and a positive x is < 0x8000, so bit 15 of the absolute value is never set."
 exclude -inst dsu_top.u_cluster.u_mac1.u_router -toggle rs2_lo_abs\[15\] -comment "abs16 SATURATES: |-32768| gives 0x7FFF, every other negative x gives ~x+1 <= 0x7FFF and a positive x is < 0x8000, so bit 15 of the absolute value is never set."
 exclude -inst dsu_top.u_cluster.u_mac2.u_router -toggle rs1_lo_abs\[15\] -comment "abs16 SATURATES: |-32768| gives 0x7FFF, every other negative x gives ~x+1 <= 0x7FFF and a positive x is < 0x8000, so bit 15 of the absolute value is never set."
 exclude -inst dsu_top.u_cluster.u_mac2.u_router -toggle rs2_lo_abs\[15\] -comment "abs16 SATURATES: |-32768| gives 0x7FFF, every other negative x gives ~x+1 <= 0x7FFF and a positive x is < 0x8000, so bit 15 of the absolute value is never set."
-# CT-SATBOUNDS-saturation_unit (constant): literal rtl/dsu/saturation_unit.v:19-20
+# CT-SATBOUNDS-saturation_unit (constant): literal rtl/dsu/saturation_unit.sv:19-20
 exclude -inst dsu_top.u_sat -toggle sat_neg\[0\] -comment "The MACSAT clamp values are constants (+2^31-1 and -2^31 in 48 bits)."
 exclude -inst dsu_top.u_sat -toggle sat_neg\[10\] -comment "The MACSAT clamp values are constants (+2^31-1 and -2^31 in 48 bits)."
 exclude -inst dsu_top.u_sat -toggle sat_neg\[11\] -comment "The MACSAT clamp values are constants (+2^31-1 and -2^31 in 48 bits)."
@@ -146,7 +146,7 @@ exclude -inst dsu_top.u_sat -toggle sat_pos\[6\] -comment "The MACSAT clamp valu
 exclude -inst dsu_top.u_sat -toggle sat_pos\[7\] -comment "The MACSAT clamp values are constants (+2^31-1 and -2^31 in 48 bits)."
 exclude -inst dsu_top.u_sat -toggle sat_pos\[8\] -comment "The MACSAT clamp values are constants (+2^31-1 and -2^31 in 48 bits)."
 exclude -inst dsu_top.u_sat -toggle sat_pos\[9\] -comment "The MACSAT clamp values are constants (+2^31-1 and -2^31 in 48 bits)."
-# CT-SUBK-mac_unit (constant): literal rtl/dsu/mac_unit.v:87
+# CT-SUBK-mac_unit (constant): literal rtl/dsu/mac_unit.sv:87
 exclude -inst dsu_top.u_cluster.u_mac0 -toggle sub_k\[0\] -comment "sub_k = {47'b0, add_sub, 1'b0}: the two's-complement +2 correction term; only bit 1 (add_sub) varies."
 exclude -inst dsu_top.u_cluster.u_mac0 -toggle sub_k\[10\] -comment "sub_k = {47'b0, add_sub, 1'b0}: the two's-complement +2 correction term; only bit 1 (add_sub) varies."
 exclude -inst dsu_top.u_cluster.u_mac0 -toggle sub_k\[11\] -comment "sub_k = {47'b0, add_sub, 1'b0}: the two's-complement +2 correction term; only bit 1 (add_sub) varies."

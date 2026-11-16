@@ -6,7 +6,9 @@
 
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/alu_unit.v
+rtl/common/garuda_pkg.sv
+rtl/core/core_ex_pkg.sv
+rtl/core/alu_unit.sv
 
 -sv
 tb/core/garuda_tb_pkg.sv

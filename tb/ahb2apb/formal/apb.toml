@@ -54,7 +54,7 @@ name    = "mut_brg1"
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
-replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_brg1.v" }
+replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_brg1.v" }
 script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_one_to_one n:u_apb_sva.a_resp n:u_apb_sva.a_subword_no_apb %u %u %d"]
 min_asserts = 3
 timeout = 3600
@@ -64,7 +64,7 @@ name    = "mut_apb2"
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
-replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_apb2.v" }
+replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_apb2.v" }
 script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_subword_no_apb n:u_apb_sva.a_resp %u %d"]
 min_asserts = 2
 timeout = 3600
@@ -74,7 +74,7 @@ name    = "mut_subword"
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
-replace = { "rtl/ahb2apb/ahb2apb_bridge.v" = "tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_subword.v" }
+replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_subword.v" }
 script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_subword_no_apb n:u_apb_sva.a_resp %u %d"]
 min_asserts = 2
 timeout = 3600
@@ -84,7 +84,7 @@ name    = "mut_to15"
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
-replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to15.v" }
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to15.v" }
 script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_apb_div %d"]
 min_asserts = 1
 timeout = 3600
@@ -94,7 +94,7 @@ name    = "mut_to17"
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
-replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to17.v" }
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to17.v" }
 script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_timeout_at_16 n:u_apb_sva.a_access_ends %u %d"]
 min_asserts = 2
 timeout = 3600
@@ -104,7 +104,7 @@ name    = "mut_win"
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
-replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_win.v" }
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_win.v" }
 script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_unmapped n:u_apb_sva.a_rdata n:u_apb_sva.a_resp %u %u %d"]
 min_asserts = 3
 timeout = 3600
@@ -114,7 +114,7 @@ name    = "mut_nosetup"
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
-replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.v" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_nosetup.v" }
+replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_nosetup.v" }
 script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_apb_setup_first %d"]
 min_asserts = 1
 timeout = 3600

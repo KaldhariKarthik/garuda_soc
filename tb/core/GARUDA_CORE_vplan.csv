@@ -81,7 +81,7 @@ cg_fetch.x_inflight_redirect,3,COV,CORE.F27.COV1,"A redirect with 0, 1 and 2 fet
 ahb_checker,3,CHK,CORE.F27.CHK2,AHB-Lite protocol checker on the instruction port - 0 violations.,Exists.,Karthik,
 F28 Branches and jumps,2,SECTION,CORE.F28,"Taken and not taken, forward and backward, JAL, JALR with bit 0 cleared, the link value. The specification says there is no predictor; the RTL has a static one. One of the two has to change.","Method: sim + review. Today: riscv-tests; tb_branch_unit, tb_branch_predict",Karthik,P1
 cg_branch.x_kind_dir_outcome,3,COV,CORE.F28.COV1,"Each branch type, forward and backward, taken and not, predicted right and wrong.",Planned.,Karthik,
-review,3,CHK,CORE.F28.CHK2,"Spec [N-7.1], [N-7.2] against rtl/core/branch_predict.v.",To be logged in Docs/bugs/archive/BUGS_HISTORY.md.,Karthik,
+review,3,CHK,CORE.F28.CHK2,"Spec [N-7.1], [N-7.2] against rtl/core/branch_predict.sv.",To be logged in Docs/bugs/archive/BUGS_HISTORY.md.,Karthik,
 F29 Hold against flush - all twenty combinations,2,SECTION,CORE.F29,"Flush beats hold except for a transfer already on the data port, which defers the flush; a load or store in MEM always completes; a trap beats a branch. Spec [N-7.19] to [N-7.26].",Method: sim + formal. Today: sw/tests/t_hold_flush_matrix.S - 19 cells; five properties in pipe_ctrl_sva.sv; cover points for the cells,Karthik,P1
 a_flush_beats_hold,3,CHK,CORE.F29.CHK1,"Three properties, one per pipeline register.","rtl/core/pipe_ctrl_sva.sv, bound in every core simulation. Exists.",Karthik,
 a_h2_defers_flush,3,CHK,CORE.F29.CHK2,And the load-use variant.,"rtl/core/pipe_ctrl_sva.sv, bound in every core simulation. Exists.",Karthik,

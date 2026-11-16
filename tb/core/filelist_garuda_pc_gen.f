@@ -6,7 +6,7 @@
 
 -incdir rtl/common
 -incdir rtl/core
-rtl/core/garuda_pc_gen.v
+rtl/core/garuda_pc_gen.sv
 
 -sv
 tb/core/garuda_tb_pkg.sv

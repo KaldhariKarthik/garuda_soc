@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 // =============================================================================
 // dma_req_checker.sv -- binds to a peripheral's DMA sideband and enforces the
-// rule rtl/dma/dma_chan.v actually implements.
+// rule rtl/dma/dma_chan.sv actually implements.
 //
 // dma_chan takes ONE beat per request assertion: its taken_q sets on
 // beat_done and clears only when req_i drops. A peripheral that holds a

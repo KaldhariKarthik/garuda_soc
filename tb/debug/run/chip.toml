@@ -1,5 +1,5 @@
 # Chip-level integration check of the debug path (Track A W4 changed
-# rtl/debug/debug_top.v and the two RDC-1 nets in rtl/soc/garuda_soc_top.v).
+# rtl/debug/debug_top.sv and the two RDC-1 nets in rtl/soc/garuda_soc_top.sv).
 # tb/soc/tb_chip.sv is Karthik's bench; run here as the integration evidence for
 # the debug change. Known bench issues are classified, not hidden:
 #   TB-30  fixed by Karthik (c0dce4d, 2026-10-11): the reset pin now falls, so every

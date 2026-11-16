@@ -1,11 +1,12 @@
-// MUTANT dsu_no_dsu9: rtl/dsu/dsu_top.v with ONE fix reverted (DSU-9: busy not gated by dsu_en).
+// MUTANT dsu_no_dsu9: rtl/dsu/dsu_top.sv with ONE fix reverted (DSU-9: busy not gated by dsu_en).
 // Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal negative control: must FAIL. (tb/dsu/formal/dsu.toml dsu_no_dsu9)
 //dsu_top.v
 
 `timescale 1ns / 1ps
-`include "dsu_defs.vh"
 
-module dsu_top (
+module dsu_top
+    import dsu_pkg::*;
+(
     input wire gclk,
     input wire core_rst_n,
     input wire flush,
@@ -29,7 +30,7 @@ module dsu_top (
     output wire [47:0] dbg_acc_mag
 );
 
-    wire [`MAC_CTRL_W-1:0] control;
+    wire [MAC_CTRL_W-1:0] control;
     wire [1:0]             acc_sel;
     wire                   sat_op;
     wire                   shift_op;
@@ -115,9 +116,9 @@ module dsu_top (
     reg [47:0] shift_input;
     always @(*) begin
         case (shift_acc_sel)
-            `ACC_FX:  shift_input = dbg_acc_fx;
-            `ACC_FY:  shift_input = dbg_acc_fy;
-            `ACC_MAG: shift_input = dbg_acc_mag;
+            ACC_FX:  shift_input = dbg_acc_fx;
+            ACC_FY:  shift_input = dbg_acc_fy;
+            ACC_MAG: shift_input = dbg_acc_mag;
             default:  shift_input = 48'b0;
         endcase
      end

@@ -13,19 +13,19 @@
 # =============================================================================
 # CF-ARB-C5 (unreachable, covergroup) TO COMPLETE IN IMC: tb/dma/env/dma_env_cov.sv ^cg_dma_arb\.x_nw\.(two|three_plus)_x_c\[5\]$
 #   reason  : Channel 5 (console) has priority 0, the lowest of the shipped map (ch0 5, ch4 4, ch1 3, ch3 2, ch2 1, ch5 0; all distinct): with any other channel eligible it loses, so it never wins a contest of two or more. It wins alone (bin one_x_c\[5\], covered).
-#   evidence: PROVEN fv_dma_cov cov_prove a_cov_arb_c5_alone + a_cov_prio_map (tb/dma/formal/dma_cov_sva.sv); cover c_cov_c5_alone COVERED; negative control mut_cov_prio_inv FAILS; all five priority maps: tb/dma/formal/arb.toml PROVEN. rtl/dma/dma_top.v:20 PRIO
+#   evidence: PROVEN fv_dma_cov cov_prove a_cov_arb_c5_alone + a_cov_prio_map (tb/dma/formal/dma_cov_sva.sv); cover c_cov_c5_alone COVERED; negative control mut_cov_prio_inv FAILS; all five priority maps: tb/dma/formal/arb.toml PROVEN. rtl/dma/dma_top.sv:20 PRIO
 # exclude -inst <covergroup scope> <covergroup bin exclusion> -comment "Channel 5 (console) has priority 0, the lowest of the shipped map (ch0 5, ch4 4, ch1 3, ch3 2, ch2 1, ch5 0; all distinct): with any other channel eligible it loses, so it never wins a contest of two or more. It wins alone (bin one_x_c\[5\], covered)."
 # CF-ARB-C2 (unreachable, covergroup) TO COMPLETE IN IMC: tb/dma/env/dma_env_cov.sv ^cg_dma_arb\.x_nw\.three_plus_x_c\[2\]$
 #   reason  : Channel 2 (UART0) has priority 1: it beats only channel 5, so in a contest of three or more some eligible channel outranks it. It wins against channel 5 alone (bin two_x_c\[2\], covered).
-#   evidence: PROVEN fv_dma_cov cov_prove a_cov_arb_c2_le2 + a_cov_prio_map (tb/dma/formal/dma_cov_sva.sv); cover c_cov_c2_two COVERED. rtl/dma/dma_top.v:20 PRIO
+#   evidence: PROVEN fv_dma_cov cov_prove a_cov_arb_c2_le2 + a_cov_prio_map (tb/dma/formal/dma_cov_sva.sv); cover c_cov_c2_two COVERED. rtl/dma/dma_top.sv:20 PRIO
 # exclude -inst <covergroup scope> <covergroup bin exclusion> -comment "Channel 2 (UART0) has priority 1: it beats only channel 5, so in a contest of three or more some eligible channel outranks it. It wins against channel 5 alone (bin two_x_c\[2\], covered)."
-# CW-ENG-DEFAULT (unreachable, line) TO COMPLETE IN IMC: rtl/dma/dma_engine.v ^line:168 case
+# CW-ENG-DEFAULT (unreachable, line) TO COMPLETE IN IMC: rtl/dma/dma_engine.sv ^line:168 case
 #   reason  : The default arm of the engine's state case: st only takes E_IDLE..E_WD (0..4); the arm exists for the codes 5..7 and resets to E_IDLE.
 #   evidence: PROVEN fv_dma_cov cov_prove and fv_dma dma_prove: a_state_legal (rtl/dma/dma_props_a.sv, eng_st <= E_WD)
 # exclude -inst dma_top.u_eng -block <IMC block id of that line> -comment "The default arm of the engine's state case: st only takes E_IDLE..E_WD (0..4); the arm exists for the codes 5..7 and resets to E_IDLE."
-# CT-ACKCNT-dma_engine (constant): PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_ackcnt_bit1; rtl/dma/dma_top.v:21 ACK_CYCLES = 2
+# CT-ACKCNT-dma_engine (constant): PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_ackcnt_bit1; rtl/dma/dma_top.sv:21 ACK_CYCLES = 2
 exclude -inst dma_top.u_eng -toggle ack_cnt\[1\] -comment "With the shipped ACK_CYCLES = 2 the ack stretch counter loads ACK_CYCLES - 1 = 1 at most: bit 1 stays 0 (DMA-12: values outside 1..4 are a separate bug)."
-# CT-CNTHI-dma_apb_slave (constant): literal rtl/dma/dma_chan.v:150 assign cnt_o = {16'd0, cnt_q}
+# CT-CNTHI-dma_apb_slave (constant): literal rtl/dma/dma_chan.sv:150 assign cnt_o = {16'd0, cnt_q}
 exclude -inst dma_top.u_apb -toggle cnt_i\[112\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top.u_apb -toggle cnt_i\[113\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top.u_apb -toggle cnt_i\[114\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
@@ -122,7 +122,7 @@ exclude -inst dma_top.u_apb -toggle cnt_i\[92\] -comment "CNT is a 16-bit regist
 exclude -inst dma_top.u_apb -toggle cnt_i\[93\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top.u_apb -toggle cnt_i\[94\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top.u_apb -toggle cnt_i\[95\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
-# CT-CNTHI-dma_chan (constant): literal rtl/dma/dma_chan.v:150 assign cnt_o = {16'd0, cnt_q}
+# CT-CNTHI-dma_chan (constant): literal rtl/dma/dma_chan.sv:150 assign cnt_o = {16'd0, cnt_q}
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle cnt_o\[16\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle cnt_o\[17\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle cnt_o\[18\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
@@ -219,7 +219,7 @@ exclude -inst dma_top.g_ch\[5\].u_ch -toggle cnt_o\[28\] -comment "CNT is a 16-b
 exclude -inst dma_top.g_ch\[5\].u_ch -toggle cnt_o\[29\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top.g_ch\[5\].u_ch -toggle cnt_o\[30\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top.g_ch\[5\].u_ch -toggle cnt_o\[31\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
-# CT-CNTHI-dma_top (constant): literal rtl/dma/dma_chan.v:150 assign cnt_o = {16'd0, cnt_q}
+# CT-CNTHI-dma_top (constant): literal rtl/dma/dma_chan.sv:150 assign cnt_o = {16'd0, cnt_q}
 exclude -inst dma_top -toggle cnt\[112\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top -toggle cnt\[113\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top -toggle cnt\[114\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
@@ -316,7 +316,7 @@ exclude -inst dma_top -toggle cnt\[92\] -comment "CNT is a 16-bit register read 
 exclude -inst dma_top -toggle cnt\[93\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top -toggle cnt\[94\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top -toggle cnt\[95\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
-# CT-CRRSV-dma_apb_slave (constant): literal rtl/dma/dma_chan.v:147 assign cr_o = {23'd0, ...}
+# CT-CRRSV-dma_apb_slave (constant): literal rtl/dma/dma_chan.sv:147 assign cr_o = {23'd0, ...}
 exclude -inst dma_top.u_apb -toggle cr_i\[105\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top.u_apb -toggle cr_i\[106\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top.u_apb -toggle cr_i\[107\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
@@ -455,7 +455,7 @@ exclude -inst dma_top.u_apb -toggle cr_i\[93\] -comment "CR bits 31:9 are reserv
 exclude -inst dma_top.u_apb -toggle cr_i\[94\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top.u_apb -toggle cr_i\[95\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top.u_apb -toggle cr_i\[9\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
-# CT-CRRSV-dma_chan (constant): literal rtl/dma/dma_chan.v:147 assign cr_o = {23'd0, ...}
+# CT-CRRSV-dma_chan (constant): literal rtl/dma/dma_chan.sv:147 assign cr_o = {23'd0, ...}
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle cr_o\[10\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle cr_o\[11\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle cr_o\[12\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
@@ -594,7 +594,7 @@ exclude -inst dma_top.g_ch\[5\].u_ch -toggle cr_o\[29\] -comment "CR bits 31:9 a
 exclude -inst dma_top.g_ch\[5\].u_ch -toggle cr_o\[30\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top.g_ch\[5\].u_ch -toggle cr_o\[31\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top.g_ch\[5\].u_ch -toggle cr_o\[9\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
-# CT-CRRSV-dma_top (constant): literal rtl/dma/dma_chan.v:147 assign cr_o = {23'd0, ...}
+# CT-CRRSV-dma_top (constant): literal rtl/dma/dma_chan.sv:147 assign cr_o = {23'd0, ...}
 exclude -inst dma_top -toggle cr\[105\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top -toggle cr\[106\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top -toggle cr\[107\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
@@ -733,7 +733,7 @@ exclude -inst dma_top -toggle cr\[93\] -comment "CR bits 31:9 are reserved and r
 exclude -inst dma_top -toggle cr\[94\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top -toggle cr\[95\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top -toggle cr\[9\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
-# CT-ERRPH2-dma_chan (constant): PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2; rtl/dma/dma_engine.v err_phase_o <= 3'd1 / 3'd2
+# CT-ERRPH2-dma_chan (constant): PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2; rtl/dma/dma_engine.sv err_phase_o <= 3'd1 / 3'd2
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle err_phase_i\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle errph_q\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
 exclude -inst dma_top.g_ch\[1\].u_ch -toggle err_phase_i\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
@@ -746,11 +746,11 @@ exclude -inst dma_top.g_ch\[4\].u_ch -toggle err_phase_i\[2\] -comment "ERRPHASE
 exclude -inst dma_top.g_ch\[4\].u_ch -toggle errph_q\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
 exclude -inst dma_top.g_ch\[5\].u_ch -toggle err_phase_i\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
 exclude -inst dma_top.g_ch\[5\].u_ch -toggle errph_q\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-# CT-ERRPH2-dma_engine (constant): PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2; rtl/dma/dma_engine.v err_phase_o <= 3'd1 / 3'd2
+# CT-ERRPH2-dma_engine (constant): PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2; rtl/dma/dma_engine.sv err_phase_o <= 3'd1 / 3'd2
 exclude -inst dma_top.u_eng -toggle err_phase_o\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-# CT-ERRPH2-dma_top (constant): PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2; rtl/dma/dma_engine.v err_phase_o <= 3'd1 / 3'd2
+# CT-ERRPH2-dma_top (constant): PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2; rtl/dma/dma_engine.sv err_phase_o <= 3'd1 / 3'd2
 exclude -inst dma_top -toggle err_phase\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-# CT-GSTATRSV-dma_apb_slave (constant): literal rtl/dma/dma_apb_slave.v:90-94 (gstat_v = 0, then bits n, 8+n, 16+n for n < 6)
+# CT-GSTATRSV-dma_apb_slave (constant): literal rtl/dma/dma_apb_slave.sv:90-94 (gstat_v = 0, then bits n, 8+n, 16+n for n < 6)
 exclude -inst dma_top.u_apb -toggle gstat_v\[14\] -comment "GSTAT holds ACTIVE\[5:0\], COMPLETE\[13:8\] and ERROR\[21:16\] of six channels; the other bits are 0."
 exclude -inst dma_top.u_apb -toggle gstat_v\[15\] -comment "GSTAT holds ACTIVE\[5:0\], COMPLETE\[13:8\] and ERROR\[21:16\] of six channels; the other bits are 0."
 exclude -inst dma_top.u_apb -toggle gstat_v\[22\] -comment "GSTAT holds ACTIVE\[5:0\], COMPLETE\[13:8\] and ERROR\[21:16\] of six channels; the other bits are 0."
@@ -765,27 +765,27 @@ exclude -inst dma_top.u_apb -toggle gstat_v\[30\] -comment "GSTAT holds ACTIVE\[
 exclude -inst dma_top.u_apb -toggle gstat_v\[31\] -comment "GSTAT holds ACTIVE\[5:0\], COMPLETE\[13:8\] and ERROR\[21:16\] of six channels; the other bits are 0."
 exclude -inst dma_top.u_apb -toggle gstat_v\[6\] -comment "GSTAT holds ACTIVE\[5:0\], COMPLETE\[13:8\] and ERROR\[21:16\] of six channels; the other bits are 0."
 exclude -inst dma_top.u_apb -toggle gstat_v\[7\] -comment "GSTAT holds ACTIVE\[5:0\], COMPLETE\[13:8\] and ERROR\[21:16\] of six channels; the other bits are 0."
-# CT-HBURST-dma_engine (constant): literal rtl/dma/dma_engine.v:87 assign hburst_o = 3'b000
+# CT-HBURST-dma_engine (constant): literal rtl/dma/dma_engine.sv:87 assign hburst_o = 3'b000
 exclude -inst dma_top.u_eng -toggle hburst_o\[0\] -comment "The DMA master issues SINGLE transfers only: HBURST is 000."
 exclude -inst dma_top.u_eng -toggle hburst_o\[1\] -comment "The DMA master issues SINGLE transfers only: HBURST is 000."
 exclude -inst dma_top.u_eng -toggle hburst_o\[2\] -comment "The DMA master issues SINGLE transfers only: HBURST is 000."
-# CT-HBURST-dma_top (constant): literal rtl/dma/dma_engine.v:87 assign hburst_o = 3'b000
+# CT-HBURST-dma_top (constant): literal rtl/dma/dma_engine.sv:87 assign hburst_o = 3'b000
 exclude -inst dma_top -toggle hburst_o\[0\] -comment "The DMA master issues SINGLE transfers only: HBURST is 000."
 exclude -inst dma_top -toggle hburst_o\[1\] -comment "The DMA master issues SINGLE transfers only: HBURST is 000."
 exclude -inst dma_top -toggle hburst_o\[2\] -comment "The DMA master issues SINGLE transfers only: HBURST is 000."
-# CT-HSIZE2-dma_engine (constant): literal rtl/dma/dma_engine.v:95,124,148 hsize_o <= 3'b010 / {1'b0, size}
+# CT-HSIZE2-dma_engine (constant): literal rtl/dma/dma_engine.sv:95,124,148 hsize_o <= 3'b010 / {1'b0, size}
 exclude -inst dma_top.u_eng -toggle hsize_o\[2\] -comment "HSIZE = {0, SIZE} (at most a word): bit 2 is 0."
-# CT-HSIZE2-dma_top (constant): literal rtl/dma/dma_engine.v:95,124,148 hsize_o <= 3'b010 / {1'b0, size}
+# CT-HSIZE2-dma_top (constant): literal rtl/dma/dma_engine.sv:95,124,148 hsize_o <= 3'b010 / {1'b0, size}
 exclude -inst dma_top -toggle hsize_o\[2\] -comment "HSIZE = {0, SIZE} (at most a word): bit 2 is 0."
-# CT-HTRANS0-dma_engine (constant): literal rtl/dma/dma_engine.v:94,122,129,146,154 htrans_o <= 2'b00 / 2'b10
+# CT-HTRANS0-dma_engine (constant): literal rtl/dma/dma_engine.sv:94,122,129,146,154 htrans_o <= 2'b00 / 2'b10
 exclude -inst dma_top.u_eng -toggle htrans_o\[0\] -comment "HTRANS is only IDLE (00) or NONSEQ (10): bit 0 is 0."
-# CT-HTRANS0-dma_top (constant): literal rtl/dma/dma_engine.v:94,122,129,146,154 htrans_o <= 2'b00 / 2'b10
+# CT-HTRANS0-dma_top (constant): literal rtl/dma/dma_engine.sv:94,122,129,146,154 htrans_o <= 2'b00 / 2'b10
 exclude -inst dma_top -toggle htrans_o\[0\] -comment "HTRANS is only IDLE (00) or NONSEQ (10): bit 0 is 0."
-# CT-PREADY-dma_apb_slave (constant): literal rtl/dma/dma_apb_slave.v:122 assign pready_o = 1'b1
+# CT-PREADY-dma_apb_slave (constant): literal rtl/dma/dma_apb_slave.sv:122 assign pready_o = 1'b1
 exclude -inst dma_top.u_apb -toggle pready_o -comment "The APB slave has no wait states: PREADY is tied high."
-# CT-PREADY-dma_top (constant): literal rtl/dma/dma_apb_slave.v:122 assign pready_o = 1'b1
+# CT-PREADY-dma_top (constant): literal rtl/dma/dma_apb_slave.sv:122 assign pready_o = 1'b1
 exclude -inst dma_top -toggle pready_o -comment "The APB slave has no wait states: PREADY is tied high."
-# CT-STATHI-dma_apb_slave (constant): literal rtl/dma/dma_chan.v:151 assign stat_o = {10'd0, errph_q, ...}; bit 21: PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2
+# CT-STATHI-dma_apb_slave (constant): literal rtl/dma/dma_chan.sv:151 assign stat_o = {10'd0, errph_q, ...}; bit 21: PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2
 exclude -inst dma_top.u_apb -toggle stat_i\[117\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
 exclude -inst dma_top.u_apb -toggle stat_i\[118\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
 exclude -inst dma_top.u_apb -toggle stat_i\[119\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
@@ -852,7 +852,7 @@ exclude -inst dma_top.u_apb -toggle stat_i\[92\] -comment "STAT bits 31:22 are r
 exclude -inst dma_top.u_apb -toggle stat_i\[93\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
 exclude -inst dma_top.u_apb -toggle stat_i\[94\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
 exclude -inst dma_top.u_apb -toggle stat_i\[95\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
-# CT-STATHI-dma_chan (constant): literal rtl/dma/dma_chan.v:151 assign stat_o = {10'd0, errph_q, ...}; bit 21: PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2
+# CT-STATHI-dma_chan (constant): literal rtl/dma/dma_chan.sv:151 assign stat_o = {10'd0, errph_q, ...}; bit 21: PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle stat_o\[21\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle stat_o\[22\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle stat_o\[23\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
@@ -919,7 +919,7 @@ exclude -inst dma_top.g_ch\[5\].u_ch -toggle stat_o\[28\] -comment "STAT bits 31
 exclude -inst dma_top.g_ch\[5\].u_ch -toggle stat_o\[29\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
 exclude -inst dma_top.g_ch\[5\].u_ch -toggle stat_o\[30\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
 exclude -inst dma_top.g_ch\[5\].u_ch -toggle stat_o\[31\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
-# CT-STATHI-dma_top (constant): literal rtl/dma/dma_chan.v:151 assign stat_o = {10'd0, errph_q, ...}; bit 21: PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2
+# CT-STATHI-dma_top (constant): literal rtl/dma/dma_chan.sv:151 assign stat_o = {10'd0, errph_q, ...}; bit 21: PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2
 exclude -inst dma_top -toggle stat\[117\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
 exclude -inst dma_top -toggle stat\[118\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
 exclude -inst dma_top -toggle stat\[119\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
@@ -986,7 +986,7 @@ exclude -inst dma_top -toggle stat\[92\] -comment "STAT bits 31:22 are reserved 
 exclude -inst dma_top -toggle stat\[93\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
 exclude -inst dma_top -toggle stat\[94\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
 exclude -inst dma_top -toggle stat\[95\] -comment "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE\[2\], and ERRPHASE takes only 0, 1 (read) and 2 (write)."
-# CT-STEP-dma_chan (constant): literal rtl/dma/dma_chan.v:76
+# CT-STEP-dma_chan (constant): literal rtl/dma/dma_chan.sv:76
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle step\[10\] -comment "The address step is 1, 2 or 4 (SIZE 3 is refused, F03): bits 31:3 are 0."
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle step\[11\] -comment "The address step is 1, 2 or 4 (SIZE 3 is refused, F03): bits 31:3 are 0."
 exclude -inst dma_top.g_ch\[0\].u_ch -toggle step\[12\] -comment "The address step is 1, 2 or 4 (SIZE 3 is refused, F03): bits 31:3 are 0."

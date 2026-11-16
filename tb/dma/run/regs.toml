@@ -21,5 +21,5 @@ require = ['tb_dma_regs: checks=87 +FAIL=0']
 
 [[test]]
 name    = "negctl_size_reset"
-replace = { "rtl/dma/dma_chan.v" = "tb/dma/mut/dma_chan_mut_size_reset.v" }
+replace = { "rtl/dma/dma_chan.sv" = "tb/dma/mut/dma_chan_mut_size_reset.v" }
 fail_reason = '^\[FAIL\] \[F01\] \[F11\] reset: ch0 CR = 00000000'

@@ -12,7 +12,7 @@ ERRORS (5)
   UNRCHS  same line
           State MODE is never entered and never left. Not reachable in normal
           operation. Tracked as SPIM-2 (OPEN): the fix is a vendor patch.
-  GLTASR  rtl/core/garuda_core_top.v:124  core_rst_n_i & hartreset_n_i
+  GLTASR  rtl/core/garuda_core_top.sv:124  core_rst_n_i & hartreset_n_i
           CORE [N-7.33] requires the two resets to be combined inside the core.
           Both are outputs of reset_ctrl synchroniser flops on hclk. A glitch
           needs them to move in opposite directions in the same cycle, and its
@@ -52,8 +52,8 @@ WARNING CLASSES REVIEWED AND ACCEPTED
   ULCMPE/UELOPR   comparisons against parameters and constants; widths reviewed.
 
 WARNINGS ACCEPTED BY NAME (added 2026-10-14)
-  BLKSQB  rtl/clk_div/clk_div.v  pclk_q, two lines
-  RDBFAS  rtl/clk_div/clk_div.v  pclk_q
+  BLKSQB  rtl/clk_div/clk_div.sv  pclk_q, two lines
+  RDBFAS  rtl/clk_div/clk_div.sv  pclk_q
           The pclk toggle flop is assigned with a blocking assignment on purpose
           (BUGS SIM-1, header of the block in clk_div.v). pclk is a clock made
           from hclk; with a non-blocking assignment its edge reached the
@@ -158,21 +158,21 @@ vendored = in third-party IP that is not edited (D-22); open = an open finding, 
   WIDSEL  W own 0   vendored 1    a vendored case too wide to check for completeness
 
 WARNINGS ADDED BY THE TRACK A MERGE OF 2026-10-21 (baseline raised by one each on 2026-11-03)
-  LOGORP  rtl/core/branch_unit.v:115   (jal | taken_r) ? branch_target
+  LOGORP  rtl/core/branch_unit.sv:115   (jal | taken_r) ? branch_target
           Bitwise OR of two 1-bit signals in a condition: identical to a logical
           OR. T-18 fix.
-  MULNBA  rtl/debug/debug_module.v:129 haltforced <= 1'b0
+  MULNBA  rtl/debug/debug_module.sv:129 haltforced <= 1'b0
           W1C clear of HALTINFO.haltforced; the forced-grant set later in the
           same block wins on purpose (comment on the line). RDC-1 fix.
-  URDWIR  rtl/core/csr_file.v:263      ctl_next
+  URDWIR  rtl/core/csr_file.sv:263      ctl_next
           32-bit result of the shared CSR-op function; only [3:0] is stored
           (mgarudactl has four bits). CORE-4.
   UEASPD  one fewer than the baseline (lowered on 2026-11-03).
 
 WARNINGS ADDED BY THE RULINGS OF 2026-11-03 (D-32; baseline raised by one each on 2026-11-04)
-  POOBID  rtl/dma/dma_engine.v:141-144  size_i, sar_i, dar_i, m2m_i indexed by grant_ch_i
+  POOBID  rtl/dma/dma_engine.sv:141-144  size_i, sar_i, dar_i, m2m_i indexed by grant_ch_i
           The beat's SIZE, SAR, DAR and mode are latched at the grant (DMA-14, DMA-15).
           grant_ch_i is three bits; dma_arbiter grants channels 0 to 5 only, as for the
           existing ch-indexed selections.
-  DFDRVS  rtl/dma/dma_engine.v:83  size_l
+  DFDRVS  rtl/dma/dma_engine.sv:83  size_l
           Reset to 2'd2 and loaded whole at the grant; the same pattern as size_q in dma_chan.v.

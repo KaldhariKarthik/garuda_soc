@@ -132,7 +132,7 @@ blocks:
   - {num: 4,  name: bootrom,     spec: GARUDA-MEM-SPEC-001,    rtl: exists}
   - {num: 5,  name: dsram,       spec: GARUDA-MEM-SPEC-001,    rtl: exists}
   - {num: 6,  name: ahb_ic,      spec: GARUDA-AHB-SPEC-001,    rtl: exists}
-  - {num: 7,  name: apb_fabric,  spec: GARUDA-AHB2APB-SPEC-001, rtl: exists, note: "rtl/ahb2apb/ahb2apb_fabric.v"}
+  - {num: 7,  name: apb_fabric,  spec: GARUDA-AHB2APB-SPEC-001, rtl: exists, note: "rtl/ahb2apb/ahb2apb_fabric.sv"}
   - {num: 8,  name: ahb2apb,     spec: GARUDA-AHB2APB-SPEC-001, rtl: exists}
   - {num: 9,  name: dma,         spec: GARUDA-DMA-SPEC-001,    rtl: exists}
   - {num: 10, name: clic,        spec: GARUDA-CLIC-SPEC-001,   rtl: exists}

@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_dsu_top.sv -- DSU unit testbench: rtl/dsu/dsu_top.v vs DSU_Golden.DSUModel
+// tb_dsu_top.sv -- DSU unit testbench: rtl/dsu/dsu_top.sv vs DSU_Golden.DSUModel
 //
 // This is the piece the DSU verification plan's Infrastructure sheet row 4 has
 // listed as NOT WRITTEN. Everything it needs already existed:

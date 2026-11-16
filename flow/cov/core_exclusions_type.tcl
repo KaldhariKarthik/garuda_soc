@@ -11,29 +11,29 @@
 # Commented lines need IMC's
 # block / expression / bin identifiers and are completed in IMC.
 # =============================================================================
-# CW-001 (not-connected, expr) TO COMPLETE IN IMC: rtl/core/core_clk_gate.v ^line:37 \(test_en_i==1\) => 1
+# CW-001 (not-connected, expr) TO COMPLETE IN IMC: rtl/core/core_clk_gate.sv ^line:37 \(test_en_i==1\) => 1
 #   reason  : test_en_i is the scan-mode clock enable; garuda_core_top ties it to 1'b0 until plan W8 (core test_en for the DFT clock-gate bypass, wired by Karthik). The term cannot be 1 before then.
-#   evidence: rtl/core/garuda_core_top.v:167 .test_en_i(1'b0); plan W8 / 3.10. Remove this waiver when W8 lands.
+#   evidence: rtl/core/garuda_core_top.sv:167 .test_en_i(1'b0); plan W8 / 3.10. Remove this waiver when W8 lands.
 # exclude -inst garuda_core_top.u_cg -expression <IMC id> -comment "test_en_i is the scan-mode clock enable; garuda_core_top ties it to 1'b0 until plan W8 (core test_en for the DFT clock-gate bypass, wired by Karthik). The term cannot be 1 before then."
-# CW-002 (not-connected): rtl/core/garuda_core_top.v:167; plan W8.
+# CW-002 (not-connected): rtl/core/garuda_core_top.sv:167; plan W8.
 exclude -type core_clk_gate -toggle test_en_i -comment "Same tie-off as CW-001: test_en_i is constant 0 until W8."
-# CW-003 (unreachable, line) TO COMPLETE IN IMC: rtl/core/dport_master.v ^line:140 
+# CW-003 (unreachable, line) TO COMPLETE IN IMC: rtl/core/dport_master.sv ^line:140 
 #   reason  : Defensive `default:` of the D-port FSM case. state is a 2-bit register with two states (S_ADDR=0, S_DATA=1); every assignment writes 0 or 1, so the default arm cannot be entered.
 #   evidence: PROVEN: tb/core/formal/cov_const_sva.sv a_dport_state_legal (state\[1\] == 0), fv_cov cov_prove.
 # exclude -inst garuda_core_top.u_mem.u_dport_master -block <IMC block id of that line> -comment "Defensive `default:` of the D-port FSM case. state is a 2-bit register with two states (S_ADDR=0, S_DATA=1); every assignment writes 0 or 1, so the default arm cannot be entered."
-# CW-004 (unreachable, expr) TO COMPLETE IN IMC: rtl/core/dport_master.v ^line:156 \(\(state == S_ADDR\)==0 && \(state == S_DATA\)==0\) => 0
+# CW-004 (unreachable, expr) TO COMPLETE IN IMC: rtl/core/dport_master.sv ^line:156 \(\(state == S_ADDR\)==0 && \(state == S_DATA\)==0\) => 0
 #   reason  : The term needs state outside {S_ADDR, S_DATA}; see CW-003.
 #   evidence: PROVEN: a_dport_state_legal (fv_cov cov_prove).
 # exclude -inst garuda_core_top.u_mem.u_dport_master -expression <IMC id> -comment "The term needs state outside {S_ADDR, S_DATA}; see CW-003."
 # CW-005 (constant): PROVEN: a_dport_state_legal (fv_cov cov_prove).
 exclude -type dport_master -toggle state\[1\] -comment "state\[1\] is always 0 (two-state FSM in a 2-bit register)."
-# CW-006 (unreachable, line) TO COMPLETE IN IMC: rtl/core/decode_control.v ^line:(216|243) 
+# CW-006 (unreachable, line) TO COMPLETE IN IMC: rtl/core/decode_control.sv ^line:(216|243) 
 #   reason  : `default: illegal_instr_o = 1` of two case(funct3) statements that list all eight 3-bit values (OP-IMM, OP). It can only be reached by an X/Z funct3, which no instruction word carries.
-#   evidence: Structural: rtl/core/decode_control.v case (funct3) at 196-217 and 234-244 enumerate 3'b000..3'b111.
+#   evidence: Structural: rtl/core/decode_control.sv case (funct3) at 196-217 and 234-244 enumerate 3'b000..3'b111.
 # exclude -inst garuda_core_top.u_id.u_decode_control -block <IMC block id of that line> -comment "`default: illegal_instr_o = 1` of two case(funct3) statements that list all eight 3-bit values (OP-IMM, OP). It can only be reached by an X/Z funct3, which no instruction word carries."
-# CW-007 (unreachable, expr) TO COMPLETE IN IMC: rtl/core/csr_file.v ^line:115 \(\(csr_addr_i == MSTATUSH\)==0 && \(csr_addr_i == MCONFIGPTR\)==0 && \((csr_addr_i <= 12'hb1f\)==0 && \(csr_addr_i <= 12'hb9f\)==0 && \(csr_addr_i >= 12'h323\)==0|csr_addr_i <= 12'hb1f\)==0 && \(csr_addr_i >= 12'hb83\)==0 && \(csr_addr_i >= 12'h323\)==0|csr_addr_i >= 12'hb03\)==0 && \(csr_addr_i <= 12'hb9f\)==0 && \(csr_addr_i <= 12'h33f\)==0|csr_addr_i >= 12'hb03\)==0 && \(csr_addr_i <= 12'hb9f\)==0 && \(csr_addr_i >= 12'h323\)==0)\) => 0$
+# CW-007 (unreachable, expr) TO COMPLETE IN IMC: rtl/core/csr_file.sv ^line:115 \(\(csr_addr_i == MSTATUSH\)==0 && \(csr_addr_i == MCONFIGPTR\)==0 && \((csr_addr_i <= 12'hb1f\)==0 && \(csr_addr_i <= 12'hb9f\)==0 && \(csr_addr_i >= 12'h323\)==0|csr_addr_i <= 12'hb1f\)==0 && \(csr_addr_i >= 12'hb83\)==0 && \(csr_addr_i >= 12'h323\)==0|csr_addr_i >= 12'hb03\)==0 && \(csr_addr_i <= 12'hb9f\)==0 && \(csr_addr_i <= 12'h33f\)==0|csr_addr_i >= 12'hb03\)==0 && \(csr_addr_i <= 12'hb9f\)==0 && \(csr_addr_i >= 12'h323\)==0)\) => 0$
 #   reason  : Four expression-coverage rows of the C-16 read-zero range decode that need contradictory address bounds: (a) addr > 0xB9F and addr < 0x323; (b) addr > 0xB1F and addr < 0x323; (c) addr < 0xB03 and addr > 0xB9F; (d) addr < 0xB03 and addr > 0xB9F. Each pair of bounds has an empty intersection, so no 12-bit address satisfies the row.
-#   evidence: Interval proof (above) on rtl/core/csr_file.v:112-116. The decode itself is fully exercised: core_csr_map sweeps all 4096 addresses and t_cov_csr reads every group.
+#   evidence: Interval proof (above) on rtl/core/csr_file.sv:112-116. The decode itself is fully exercised: core_csr_map sweeps all 4096 addresses and t_cov_csr reads every group.
 # exclude -inst garuda_core_top.u_csr -expression <IMC id> -comment "Four expression-coverage rows of the C-16 read-zero range decode that need contradictory address bounds: (a) addr > 0xB9F and addr < 0x323; (b) addr > 0xB1F and addr < 0x323; (c) addr < 0xB03 and addr > 0xB9F; (d) addr < 0xB03 and addr > 0xB9F. Each pair of bounds has an empty intersection, so no 12-bit address satisfies the row."
 # CF-001 (unreachable, covergroup) TO COMPLETE IN IMC: tb/cov/garuda_cov_ext.sv cg_pipe\.cp_(ifid|idex)\.hold_flush$
 #   reason  : IF/ID and ID/EX are never held and flushed in the same cycle in the integrated core; pipe_ctrl's 'flush beats hold' rule for these registers is defensive.
@@ -168,7 +168,7 @@ exclude -type trap_ctrl -toggle trap_cause_o\[6\] -comment "Exception and interr
 exclude -type trap_ctrl -toggle trap_cause_o\[7\] -comment "Exception and interrupt codes are < 32 (5-bit CLIC id, cause <= 11); bits 30:5 are 0, bit 31 is the interrupt flag (T-12 puts mpil in mcause\[23:16\] in csr_file, not on this bus)."
 exclude -type trap_ctrl -toggle trap_cause_o\[8\] -comment "Exception and interrupt codes are < 32 (5-bit CLIC id, cause <= 11); bits 30:5 are 0, bit 31 is the interrupt flag (T-12 puts mpil in mcause\[23:16\] in csr_file, not on this bus)."
 exclude -type trap_ctrl -toggle trap_cause_o\[9\] -comment "Exception and interrupt codes are < 32 (5-bit CLIC id, cause <= 11); bits 30:5 are 0, bit 31 is the interrupt flag (T-12 puts mpil in mcause\[23:16\] in csr_file, not on this bus)."
-# CT-CSRLAYOUT-csr_file (constant): literal rtl/core/csr_file.v:144-156
+# CT-CSRLAYOUT-csr_file (constant): literal rtl/core/csr_file.sv:144-156
 exclude -type csr_file -toggle mintstatus_std_val\[0\] -comment "Read-value layouts with fixed fields: mstatus (only MIE, MPIE stored; MPP = 11), misa constant, mintstatus {24'b0, mil}, mintstatus_std {mil, 24'b0}, mip {24'b0, MTIP, 7'b0}."
 exclude -type csr_file -toggle mintstatus_std_val\[10\] -comment "Read-value layouts with fixed fields: mstatus (only MIE, MPIE stored; MPP = 11), misa constant, mintstatus {24'b0, mil}, mintstatus_std {mil, 24'b0}, mip {24'b0, MTIP, 7'b0}."
 exclude -type csr_file -toggle mintstatus_std_val\[11\] -comment "Read-value layouts with fixed fields: mstatus (only MIE, MPIE stored; MPP = 11), misa constant, mintstatus {24'b0, mil}, mintstatus_std {mil, 24'b0}, mip {24'b0, MTIP, 7'b0}."
@@ -310,11 +310,11 @@ exclude -type csr_file -toggle mstatus_val\[5\] -comment "Read-value layouts wit
 exclude -type csr_file -toggle mstatus_val\[6\] -comment "Read-value layouts with fixed fields: mstatus (only MIE, MPIE stored; MPP = 11), misa constant, mintstatus {24'b0, mil}, mintstatus_std {mil, 24'b0}, mip {24'b0, MTIP, 7'b0}."
 exclude -type csr_file -toggle mstatus_val\[8\] -comment "Read-value layouts with fixed fields: mstatus (only MIE, MPIE stored; MPP = 11), misa constant, mintstatus {24'b0, mil}, mintstatus_std {mil, 24'b0}, mip {24'b0, MTIP, 7'b0}."
 exclude -type csr_file -toggle mstatus_val\[9\] -comment "Read-value layouts with fixed fields: mstatus (only MIE, MPIE stored; MPP = 11), misa constant, mintstatus {24'b0, mil}, mintstatus_std {mil, 24'b0}, mip {24'b0, MTIP, 7'b0}."
-# CT-DBUS-dport_master (constant): literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; dport_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE
+# CT-DBUS-dport_master (constant): literal rtl/core/mem_stage.sv:140-141; rtl/core/load_store_unit.sv:32 hsize_o = {1'b0, size}; dport_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE
 exclude -type dport_master -toggle d_hsize_o\[2\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
 exclude -type dport_master -toggle d_htrans_o\[0\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
 exclude -type dport_master -toggle hsize_i\[2\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
-# CT-DBUS-garuda_core_top (constant): literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; dport_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE
+# CT-DBUS-garuda_core_top (constant): literal rtl/core/mem_stage.sv:140-141; rtl/core/load_store_unit.sv:32 hsize_o = {1'b0, size}; dport_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE
 exclude -type garuda_core_top -toggle d_hburst_o\[0\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
 exclude -type garuda_core_top -toggle d_hburst_o\[1\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
 exclude -type garuda_core_top -toggle d_hburst_o\[2\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
@@ -324,9 +324,9 @@ exclude -type garuda_core_top -toggle d_hprot_o\[2\] -comment "D-port attributes
 exclude -type garuda_core_top -toggle d_hprot_o\[3\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
 exclude -type garuda_core_top -toggle d_hsize_o\[2\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
 exclude -type garuda_core_top -toggle d_htrans_o\[0\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
-# CT-DBUS-load_store_unit (constant): literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; dport_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE
+# CT-DBUS-load_store_unit (constant): literal rtl/core/mem_stage.sv:140-141; rtl/core/load_store_unit.sv:32 hsize_o = {1'b0, size}; dport_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE
 exclude -type load_store_unit -toggle hsize_o\[2\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
-# CT-DBUS-mem_stage (constant): literal rtl/core/mem_stage.v:140-141; rtl/core/load_store_unit.v:32 hsize_o = {1'b0, size}; dport_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE
+# CT-DBUS-mem_stage (constant): literal rtl/core/mem_stage.sv:140-141; rtl/core/load_store_unit.sv:32 hsize_o = {1'b0, size}; dport_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE
 exclude -type mem_stage -toggle d_hburst_o\[0\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
 exclude -type mem_stage -toggle d_hburst_o\[1\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
 exclude -type mem_stage -toggle d_hburst_o\[2\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
@@ -337,10 +337,10 @@ exclude -type mem_stage -toggle d_hprot_o\[3\] -comment "D-port attributes: SING
 exclude -type mem_stage -toggle d_hsize_o\[2\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
 exclude -type mem_stage -toggle d_htrans_o\[0\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
 exclude -type mem_stage -toggle hsize_w\[2\] -comment "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize\[2\] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0)."
-# CT-FENCEI-branch_predict (constant): rtl/core/branch_predict.v:54 + PROVEN a_pc_aligned
+# CT-FENCEI-branch_predict (constant): rtl/core/branch_predict.sv:54 + PROVEN a_pc_aligned
 exclude -type branch_predict -toggle fencei_target\[0\] -comment "fencei_target = pc + 4 of a word-aligned PC."
 exclude -type branch_predict -toggle fencei_target\[1\] -comment "fencei_target = pc + 4 of a word-aligned PC."
-# CT-IBUS-garuda_core_top (constant): literal rtl/core/iport_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)
+# CT-IBUS-garuda_core_top (constant): literal rtl/core/iport_master.sv:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)
 exclude -type garuda_core_top -toggle i_hburst_o\[0\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
 exclude -type garuda_core_top -toggle i_hburst_o\[1\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
 exclude -type garuda_core_top -toggle i_hburst_o\[2\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
@@ -384,7 +384,7 @@ exclude -type garuda_core_top -toggle i_hwdata_o\[7\] -comment "I-port attribute
 exclude -type garuda_core_top -toggle i_hwdata_o\[8\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
 exclude -type garuda_core_top -toggle i_hwdata_o\[9\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
 exclude -type garuda_core_top -toggle i_hwrite_o -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
-# CT-IBUS-if_stage_top (constant): literal rtl/core/iport_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)
+# CT-IBUS-if_stage_top (constant): literal rtl/core/iport_master.sv:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)
 exclude -type if_stage_top -toggle i_hburst_o\[0\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
 exclude -type if_stage_top -toggle i_hburst_o\[1\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
 exclude -type if_stage_top -toggle i_hburst_o\[2\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
@@ -428,7 +428,7 @@ exclude -type if_stage_top -toggle i_hwdata_o\[7\] -comment "I-port attributes a
 exclude -type if_stage_top -toggle i_hwdata_o\[8\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
 exclude -type if_stage_top -toggle i_hwdata_o\[9\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
 exclude -type if_stage_top -toggle i_hwrite_o -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
-# CT-IBUS-iport_master (constant): literal rtl/core/iport_master.v:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)
+# CT-IBUS-iport_master (constant): literal rtl/core/iport_master.sv:89-92 (hsize 3'b010, hprot 4'b0010, hwrite 0, hwdata 0), :109 (hburst 3'b001)
 exclude -type iport_master -toggle i_hburst_o\[0\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
 exclude -type iport_master -toggle i_hburst_o\[1\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
 exclude -type iport_master -toggle i_hburst_o\[2\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
@@ -472,7 +472,7 @@ exclude -type iport_master -toggle i_hwdata_o\[7\] -comment "I-port attributes a
 exclude -type iport_master -toggle i_hwdata_o\[8\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
 exclude -type iport_master -toggle i_hwdata_o\[9\] -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
 exclude -type iport_master -toggle i_hwrite_o -comment "I-port attributes are literals: INCR bursts of words, opcode-fetch HPROT, read only."
-# CT-IMMENC-imm_gen (constant): literal rtl/core/imm_gen.v:35 {.., 12'b0}, :38 {27'b0, ..}
+# CT-IMMENC-imm_gen (constant): literal rtl/core/imm_gen.sv:35 {.., 12'b0}, :38 {27'b0, ..}
 exclude -type imm_gen -toggle imm_csr_f\[10\] -comment "U-immediate bits 11:0 and the zero-extended CSR immediate bits 31:5 are literal 0."
 exclude -type imm_gen -toggle imm_csr_f\[11\] -comment "U-immediate bits 11:0 and the zero-extended CSR immediate bits 31:5 are literal 0."
 exclude -type imm_gen -toggle imm_csr_f\[12\] -comment "U-immediate bits 11:0 and the zero-extended CSR immediate bits 31:5 are literal 0."
@@ -518,11 +518,11 @@ exclude -type iport_master -toggle inflight\[3\] -comment "At most 2 transfers a
 exclude -type iport_master -toggle occ_after_pop\[3\] -comment "At most 2 transfers are in flight and occupancy + in flight <= 6: the top bits of these 4-bit sums never set."
 exclude -type iport_master -toggle occ_plus_landing\[3\] -comment "At most 2 transfers are in flight and occupancy + in flight <= 6: the top bits of these 4-bit sums never set."
 exclude -type iport_master -toggle projected_occ\[3\] -comment "At most 2 transfers are in flight and occupancy + in flight <= 6: the top bits of these 4-bit sums never set."
-# CT-MEMCAUSE-garuda_core_top (constant): literal rtl/core/mem_stage.v:184 (4'd5 / 4'd7 / 0); PROVEN a_mexc_cause_bit3
+# CT-MEMCAUSE-garuda_core_top (constant): literal rtl/core/mem_stage.sv:184 (4'd5 / 4'd7 / 0); PROVEN a_mexc_cause_bit3
 exclude -type garuda_core_top -toggle mem_exc_cause\[3\] -comment "MEM-stage causes are 5 and 7 only (4-bit field, bit 3 = 0)."
-# CT-MEMCAUSE-mem_stage (constant): literal rtl/core/mem_stage.v:184 (4'd5 / 4'd7 / 0); PROVEN a_mexc_cause_bit3
+# CT-MEMCAUSE-mem_stage (constant): literal rtl/core/mem_stage.sv:184 (4'd5 / 4'd7 / 0); PROVEN a_mexc_cause_bit3
 exclude -type mem_stage -toggle mem_exception_cause_o\[3\] -comment "MEM-stage causes are 5 and 7 only (4-bit field, bit 3 = 0)."
-# CT-MEMCAUSE-trap_ctrl (constant): literal rtl/core/mem_stage.v:184 (4'd5 / 4'd7 / 0); PROVEN a_mexc_cause_bit3
+# CT-MEMCAUSE-trap_ctrl (constant): literal rtl/core/mem_stage.sv:184 (4'd5 / 4'd7 / 0); PROVEN a_mexc_cause_bit3
 exclude -type trap_ctrl -toggle mem_exc_cause_i\[3\] -comment "MEM-stage causes are 5 and 7 only (4-bit field, bit 3 = 0)."
 # CT-MIEWARL-csr_file (constant): PROVEN a_mie_only_mtie (fv_cov); csr_file.v:303 & 32'h0000_0080
 exclude -type csr_file -toggle mie_r\[0\] -comment "mie is WARL: only MTIE (bit 7) is stored."
@@ -556,25 +556,25 @@ exclude -type csr_file -toggle mie_r\[5\] -comment "mie is WARL: only MTIE (bit 
 exclude -type csr_file -toggle mie_r\[6\] -comment "mie is WARL: only MTIE (bit 7) is stored."
 exclude -type csr_file -toggle mie_r\[8\] -comment "mie is WARL: only MTIE (bit 7) is stored."
 exclude -type csr_file -toggle mie_r\[9\] -comment "mie is WARL: only MTIE (bit 7) is stored."
-# CT-MTVECBASE-clic_ctrl (constant): literal rtl/core/csr_file.v mtvec_o = {mtvec_r\[31:2\], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)
+# CT-MTVECBASE-clic_ctrl (constant): literal rtl/core/csr_file.sv mtvec_o = {mtvec_r\[31:2\], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)
 exclude -type clic_ctrl -toggle mtvec_i\[0\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
 exclude -type clic_ctrl -toggle mtvec_i\[1\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
 exclude -type clic_ctrl -toggle vector_target_o\[0\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
 exclude -type clic_ctrl -toggle vector_target_o\[1\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
-# CT-MTVECBASE-csr_file (constant): literal rtl/core/csr_file.v mtvec_o = {mtvec_r\[31:2\], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)
+# CT-MTVECBASE-csr_file (constant): literal rtl/core/csr_file.sv mtvec_o = {mtvec_r\[31:2\], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)
 exclude -type csr_file -toggle mtvec_o\[0\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
 exclude -type csr_file -toggle mtvec_o\[1\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
-# CT-MTVECBASE-garuda_core_top (constant): literal rtl/core/csr_file.v mtvec_o = {mtvec_r\[31:2\], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)
+# CT-MTVECBASE-garuda_core_top (constant): literal rtl/core/csr_file.sv mtvec_o = {mtvec_r\[31:2\], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)
 exclude -type garuda_core_top -toggle clic_vec_target\[0\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
 exclude -type garuda_core_top -toggle clic_vec_target\[1\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
 exclude -type garuda_core_top -toggle csr_mtvec\[0\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
 exclude -type garuda_core_top -toggle csr_mtvec\[1\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
 exclude -type garuda_core_top -toggle tr_redir_t\[0\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
 exclude -type garuda_core_top -toggle tr_redir_t\[1\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
-# CT-MTVECBASE-pipe_ctrl (constant): literal rtl/core/csr_file.v mtvec_o = {mtvec_r\[31:2\], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)
+# CT-MTVECBASE-pipe_ctrl (constant): literal rtl/core/csr_file.sv mtvec_o = {mtvec_r\[31:2\], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)
 exclude -type pipe_ctrl -toggle trap_redirect_target_i\[0\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
 exclude -type pipe_ctrl -toggle trap_redirect_target_i\[1\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
-# CT-MTVECBASE-trap_ctrl (constant): literal rtl/core/csr_file.v mtvec_o = {mtvec_r\[31:2\], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)
+# CT-MTVECBASE-trap_ctrl (constant): literal rtl/core/csr_file.sv mtvec_o = {mtvec_r\[31:2\], 2'b00}; PROVEN a_trap_redir_aligned (fv_cov)
 exclude -type trap_ctrl -toggle clic_vector_target_i\[0\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
 exclude -type trap_ctrl -toggle clic_vector_target_i\[1\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
 exclude -type trap_ctrl -toggle mtvec_base\[0\] -comment "The trap vector is mtvec BASE = {mtvec\[31:2\], 2'b00} (mode bits read as 3 but are not part of the target); the trap redirect target (BASE or mepc) is word-aligned."
@@ -688,33 +688,33 @@ exclude -type trap_ctrl -toggle mepc_i\[0\] -comment "Word-aligned PC: no C exte
 exclude -type trap_ctrl -toggle mepc_i\[1\] -comment "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits \[1:0\] of this PC copy are constant 0."
 exclude -type trap_ctrl -toggle trap_pc_o\[0\] -comment "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits \[1:0\] of this PC copy are constant 0."
 exclude -type trap_ctrl -toggle trap_pc_o\[1\] -comment "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits \[1:0\] of this PC copy are constant 0."
-# CT-PCBIT0-branch_predict (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37
+# CT-PCBIT0-branch_predict (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.sv:34,37
 exclude -type branch_predict -toggle branch_target\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
 exclude -type branch_predict -toggle id_redirect_target_o\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
 exclude -type branch_predict -toggle imm_b_i\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
 exclude -type branch_predict -toggle imm_j_i\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
 exclude -type branch_predict -toggle jal_target\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
-# CT-PCBIT0-branch_unit (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37
+# CT-PCBIT0-branch_unit (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.sv:34,37
 exclude -type branch_unit -toggle jalr_target\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
-# CT-PCBIT0-garuda_core_top (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37
+# CT-PCBIT0-garuda_core_top (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.sv:34,37
 exclude -type garuda_core_top -toggle id_redir_t\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
 exclude -type garuda_core_top -toggle pc_if_redir_pc\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
-# CT-PCBIT0-if_stage_top (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37
+# CT-PCBIT0-if_stage_top (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.sv:34,37
 exclude -type if_stage_top -toggle fetch_pc\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
 exclude -type if_stage_top -toggle redirect_pc_i\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
-# CT-PCBIT0-iport_master (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37
+# CT-PCBIT0-iport_master (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.sv:34,37
 exclude -type iport_master -toggle fetch_pc_i\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
-# CT-PCBIT0-garuda_pc_gen (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37
+# CT-PCBIT0-garuda_pc_gen (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.sv:34,37
 exclude -type garuda_pc_gen -toggle fetch_pc_o\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
 exclude -type garuda_pc_gen -toggle redirect_pc_i\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
-# CT-PCBIT0-id_stage (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37
+# CT-PCBIT0-id_stage (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.sv:34,37
 exclude -type id_stage -toggle id_redirect_target_o\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
 exclude -type id_stage -toggle imm_b_w\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
 exclude -type id_stage -toggle imm_j_w\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
-# CT-PCBIT0-imm_gen (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37
+# CT-PCBIT0-imm_gen (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.sv:34,37
 exclude -type imm_gen -toggle imm_b_f\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
 exclude -type imm_gen -toggle imm_b_o\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
 exclude -type imm_gen -toggle imm_j_f\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
 exclude -type imm_gen -toggle imm_j_o\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"
-# CT-PCBIT0-pipe_ctrl (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.v:34,37
+# CT-PCBIT0-pipe_ctrl (constant): PROVEN a_redir_pc_bit0 / a_pc_aligned (fv_cov); literal 1'b0 in rtl/core/imm_gen.sv:34,37
 exclude -type pipe_ctrl -toggle id_redirect_target_i\[0\] -comment "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)"

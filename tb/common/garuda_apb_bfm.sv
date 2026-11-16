@@ -8,7 +8,7 @@
 // a 16550 RBR pop). Word accesses only - the bridge rejects anything else
 // before it reaches a peripheral.
 // Between transfers PADDR, PWRITE and PWDATA keep the last transfer's values,
-// as the bridge's capture registers do (rtl/ahb2apb/ahb2apb_bridge.v
+// as the bridge's capture registers do (rtl/ahb2apb/ahb2apb_bridge.sv
 // addr_cap / write_cap / wdata_cap): after a write PWRITE stays 1 while PSEL
 // is low. Until 2026-11-10 PWRITE went back to 0, which hid planted defect
 // SPIM M2 (an idle STATUS poll that obeys PWRITE).

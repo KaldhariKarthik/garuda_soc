@@ -8,8 +8,8 @@
 // 23 are built separately despite sharing one specification document.
 // =============================================================================
 
-rtl/reset_ctrl/reset_ctrl_apb.v
-rtl/reset_ctrl/core_rst_sync.v
-rtl/reset_ctrl/reset_ctrl.v
+rtl/reset_ctrl/reset_ctrl_apb.sv
+rtl/reset_ctrl/core_rst_sync.sv
+rtl/reset_ctrl/reset_ctrl.sv
 // properties, bound to the module (empty under SYNTHESIS)
 rtl/reset_ctrl/reset_ctrl_sva.sv

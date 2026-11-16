@@ -12,6 +12,6 @@
 // structure carried into the build.
 // =============================================================================
 
-rtl/clk_div/clk_div.v
+rtl/clk_div/clk_div.sv
 // properties, bound to the module (empty under SYNTHESIS)
 rtl/clk_div/clk_div_sva.sv

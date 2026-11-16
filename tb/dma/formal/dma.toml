@@ -63,7 +63,7 @@ name    = "mut_eng1"
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
-replace = { "rtl/dma/dma_engine.v" = "tb/dma/formal/mutants/dma_engine_mut_eng1.v" }
+replace = { "rtl/dma/dma_engine.sv" = "tb/dma/formal/mutants/dma_engine_mut_eng1.v" }
 script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_no_grant_while_reporting* %d"]
 timeout = 3600
 min_asserts = 1
@@ -74,7 +74,7 @@ name    = "mut_d2"
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
-replace = { "rtl/dma/dma_chan.v" = "tb/dma/formal/mutants/dma_chan_mut_d2.v" }
+replace = { "rtl/dma/dma_chan.sv" = "tb/dma/formal/mutants/dma_chan_mut_d2.v" }
 script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_hw_wins_en* %d"]
 timeout = 3600
 min_asserts = 6
@@ -85,7 +85,7 @@ name    = "mut_dma8"
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
-replace = { "rtl/dma/dma_chan.v" = "tb/dma/formal/mutants/dma_chan_mut_dma8.v" }
+replace = { "rtl/dma/dma_chan.sv" = "tb/dma/formal/mutants/dma_chan_mut_dma8.v" }
 script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_failed_beat_keeps_request* %d"]
 timeout = 3600
 min_asserts = 6
@@ -96,7 +96,7 @@ name    = "mut_iclr_wins"
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
-replace = { "rtl/dma/dma_chan.v" = "tb/dma/formal/mutants/dma_chan_mut_iclr_wins.v" }
+replace = { "rtl/dma/dma_chan.sv" = "tb/dma/formal/mutants/dma_chan_mut_iclr_wins.v" }
 script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_set_beats_clear_complete* %d"]
 timeout = 3600
 min_asserts = 6
@@ -107,7 +107,7 @@ name    = "mut_aud13"
 mode    = "bmc"
 depth   = 24
 engine  = "smtbmc yices"
-replace = { "rtl/dma/dma_apb_slave.v" = "tb/dma/formal/mutants/dma_apb_slave_mut_aud13.v" }
+replace = { "rtl/dma/dma_apb_slave.sv" = "tb/dma/formal/mutants/dma_apb_slave_mut_aud13.v" }
 script  = ["chformal -assert -remove t:$check n:u_dma_props_a.*a_pslverr_rule* %d"]
 timeout = 3600
 min_asserts = 1

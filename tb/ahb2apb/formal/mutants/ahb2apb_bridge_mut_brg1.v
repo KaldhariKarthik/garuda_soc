@@ -1,4 +1,4 @@
-// MUTANT brg1 (bus plan B2 negative control): rtl/ahb2apb/ahb2apb_bridge.v with ONE fix reverted (BRG-1: a new transfer only from H_IDLE).
+// MUTANT brg1 (bus plan B2 negative control): rtl/ahb2apb/ahb2apb_bridge.sv with ONE fix reverted (BRG-1: a new transfer only from H_IDLE).
 // Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal negative control: must FAIL. (tb/ahb2apb/formal/apb.toml mut_brg1)
 `timescale 1ns/1ps
 `default_nettype none

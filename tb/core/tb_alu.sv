@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_alu.sv -- SystemVerilog unit TB for rtl/core/alu_unit.v
+// tb_alu.sv -- SystemVerilog unit TB for rtl/core/alu_unit.sv
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 8.1 (32-bit combinational ALU).
 // Plan: supports C01 (RV32I base ISA) and C05 (dependent ALU chains) at the
@@ -16,7 +16,7 @@
 // that its snapshot HAD ALREADY DRIFTED from rtl/core, so "a green run
 // against it proves nothing about the RTL that actually ships". This file
 // carries no snapshot: tb/core/filelist_alu_unit.f always binds the real
-// rtl/core/alu_unit.v, which is the only configuration worth reporting a result
+// rtl/core/alu_unit.sv, which is the only configuration worth reporting a result
 // from.
 //
 // Discriminating vectors (a plausible wrong ALU cannot pass these):
@@ -28,11 +28,11 @@
 // =============================================================================
 
 `timescale 1ns/1ps
-`include "garuda_defs.vh"
 
 // -------------------------------------------------------------
 // 1. INTERFACE (+ bound SVA)
 // -------------------------------------------------------------
+import garuda_pkg::*;
 interface alu_if (input bit clk);
     logic [31:0] op_a;
     logic [31:0] op_b;
@@ -42,13 +42,13 @@ interface alu_if (input bit clk);
     // A1: the shift amount is op_b[4:0]. Stated as a property so it holds on
     //     every cycle of every sequence, not only the directed shift vectors.
     property p_shift_uses_low5;
-        @(posedge clk) (alu_op == `ALU_SLL) |-> (result == (op_a << op_b[4:0]));
+        @(posedge clk) (alu_op == ALU_SLL) |-> (result == (op_a << op_b[4:0]));
     endproperty
     a_sll_low5: assert property (p_shift_uses_low5)
         else $error("[SVA-FAIL] SLL did not mask the shift amount to op_b[4:0]");
 
     property p_srl_uses_low5;
-        @(posedge clk) (alu_op == `ALU_SRL) |-> (result == (op_a >> op_b[4:0]));
+        @(posedge clk) (alu_op == ALU_SRL) |-> (result == (op_a >> op_b[4:0]));
     endproperty
     a_srl_low5: assert property (p_srl_uses_low5)
         else $error("[SVA-FAIL] SRL did not mask the shift amount to op_b[4:0]");
@@ -56,7 +56,7 @@ interface alu_if (input bit clk);
     // A2: SRA replicates the sign bit; SRL never does. A shift-right of a
     //     negative value by a non-zero amount must differ between the two.
     property p_sra_is_arithmetic;
-        @(posedge clk) ((alu_op == `ALU_SRA) && op_a[31] && (op_b[4:0] != 0))
+        @(posedge clk) ((alu_op == ALU_SRA) && op_a[31] && (op_b[4:0] != 0))
                        |-> result[31];
     endproperty
     a_sra_arith: assert property (p_sra_is_arithmetic)
@@ -65,7 +65,7 @@ interface alu_if (input bit clk);
     // A3: the comparison ops are Boolean -- bits [31:1] must be clear, or a
     //     downstream branch on the result reads garbage.
     property p_compare_is_boolean;
-        @(posedge clk) (alu_op inside {`ALU_SLT, `ALU_SLTU})
+        @(posedge clk) (alu_op inside {ALU_SLT, ALU_SLTU})
                        |-> (result[31:1] == 31'b0);
     endproperty
     a_cmp_bool: assert property (p_compare_is_boolean)
@@ -73,7 +73,7 @@ interface alu_if (input bit clk);
 
     // A4: LUI leg -- result is op_b regardless of op_a (Sec. 8.1).
     property p_passb_ignores_a;
-        @(posedge clk) (alu_op == `ALU_PASSB) |-> (result == op_b);
+        @(posedge clk) (alu_op == ALU_PASSB) |-> (result == op_b);
     endproperty
     a_passb: assert property (p_passb_ignores_a)
         else $error("[SVA-FAIL] ALU_PASSB did not pass op_b through unchanged");
@@ -109,16 +109,16 @@ class alu_cycle;
     }
 
     constraint c_op_matches_kind {
-        (kind == AK_ARITH)   -> op inside {`ALU_ADD, `ALU_SUB};
-        (kind == AK_LOGIC)   -> op inside {`ALU_AND, `ALU_OR, `ALU_XOR};
-        (kind == AK_SHIFT)   -> op inside {`ALU_SLL, `ALU_SRL, `ALU_SRA};
-        (kind == AK_COMPARE) -> op inside {`ALU_SLT, `ALU_SLTU};
-        (kind == AK_PASSB)   -> op == `ALU_PASSB;
+        (kind == AK_ARITH)   -> op inside {ALU_ADD, ALU_SUB};
+        (kind == AK_LOGIC)   -> op inside {ALU_AND, ALU_OR, ALU_XOR};
+        (kind == AK_SHIFT)   -> op inside {ALU_SLL, ALU_SRL, ALU_SRA};
+        (kind == AK_COMPARE) -> op inside {ALU_SLT, ALU_SLTU};
+        (kind == AK_PASSB)   -> op == ALU_PASSB;
         // 4'hB..4'hF are unmapped: Sec. 8.1 says they fall back to ADD.
         (kind == AK_UNMAPPED)         -> op inside {[4'hB:4'hF]};
-        (kind == AK_SHIFT_BOUNDARY)   -> op inside {`ALU_SLL, `ALU_SRL, `ALU_SRA};
-        (kind == AK_SIGN_BOUNDARY)    -> op inside {`ALU_SLT, `ALU_SLTU,
-                                                    `ALU_ADD, `ALU_SUB};
+        (kind == AK_SHIFT_BOUNDARY)   -> op inside {ALU_SLL, ALU_SRL, ALU_SRA};
+        (kind == AK_SIGN_BOUNDARY)    -> op inside {ALU_SLT, ALU_SLTU,
+                                                    ALU_ADD, ALU_SUB};
         (kind == AK_RANDOM)           -> op inside {[4'h0:4'hF]};
     }
 
@@ -150,17 +150,17 @@ class alu_ref_model;
     function automatic bit [31:0] step(bit [31:0] a, bit [31:0] b, bit [3:0] op);
         bit [4:0] sh = b[4:0];
         case (op)
-            `ALU_ADD:   return a + b;
-            `ALU_SUB:   return a - b;
-            `ALU_AND:   return a & b;
-            `ALU_OR:    return a | b;
-            `ALU_XOR:   return a ^ b;
-            `ALU_SLL:   return a << sh;
-            `ALU_SRL:   return a >> sh;
-            `ALU_SRA:   return $signed(a) >>> sh;
-            `ALU_SLT:   return {31'b0, ($signed(a) < $signed(b))};
-            `ALU_SLTU:  return {31'b0, (a < b)};
-            `ALU_PASSB: return b;
+            ALU_ADD:   return a + b;
+            ALU_SUB:   return a - b;
+            ALU_AND:   return a & b;
+            ALU_OR:    return a | b;
+            ALU_XOR:   return a ^ b;
+            ALU_SLL:   return a << sh;
+            ALU_SRL:   return a >> sh;
+            ALU_SRA:   return $signed(a) >>> sh;
+            ALU_SLT:   return {31'b0, ($signed(a) < $signed(b))};
+            ALU_SLTU:  return {31'b0, (a < b)};
+            ALU_PASSB: return b;
             default:    return a + b;      // Sec. 8.1 safe default
         endcase
     endfunction
@@ -195,54 +195,54 @@ class alu_generator;
         // 1) arithmetic, including wrap in both directions
         begin
             alu_cycle q[$];
-            q.push_back(mk(AK_ARITH, 32'd7,          32'd5, `ALU_ADD));
-            q.push_back(mk(AK_ARITH, 32'hFFFF_FFFF,  32'd1, `ALU_ADD));   // wrap
-            q.push_back(mk(AK_ARITH, 32'd7,          32'd5, `ALU_SUB));
-            q.push_back(mk(AK_ARITH, 32'd0,          32'd1, `ALU_SUB));   // borrow
-            q.push_back(mk(AK_ARITH, 32'h8000_0000,  32'h8000_0000, `ALU_ADD));
+            q.push_back(mk(AK_ARITH, 32'd7,          32'd5, ALU_ADD));
+            q.push_back(mk(AK_ARITH, 32'hFFFF_FFFF,  32'd1, ALU_ADD));   // wrap
+            q.push_back(mk(AK_ARITH, 32'd7,          32'd5, ALU_SUB));
+            q.push_back(mk(AK_ARITH, 32'd0,          32'd1, ALU_SUB));   // borrow
+            q.push_back(mk(AK_ARITH, 32'h8000_0000,  32'h8000_0000, ALU_ADD));
             add_seq("arith", q);
         end
         // 2) logic ops with a pattern that makes each distinguishable
         begin
             alu_cycle q[$];
-            q.push_back(mk(AK_LOGIC, 32'hF0F0_AAAA, 32'h0FF0_5555, `ALU_AND));
-            q.push_back(mk(AK_LOGIC, 32'hF0F0_AAAA, 32'h0FF0_5555, `ALU_OR));
-            q.push_back(mk(AK_LOGIC, 32'hF0F0_AAAA, 32'h0FF0_5555, `ALU_XOR));
+            q.push_back(mk(AK_LOGIC, 32'hF0F0_AAAA, 32'h0FF0_5555, ALU_AND));
+            q.push_back(mk(AK_LOGIC, 32'hF0F0_AAAA, 32'h0FF0_5555, ALU_OR));
+            q.push_back(mk(AK_LOGIC, 32'hF0F0_AAAA, 32'h0FF0_5555, ALU_XOR));
             add_seq("logic", q);
         end
         // 3) shift amount is op_b[4:0] ONLY -- the discriminating sequence
         begin
             alu_cycle q[$];
-            q.push_back(mk(AK_SHIFT, 32'h0000_0001, 32'd1,  `ALU_SLL));
-            q.push_back(mk(AK_SHIFT, 32'h0000_0001, 32'd31, `ALU_SLL));
-            q.push_back(mk(AK_SHIFT_BOUNDARY, 32'h0000_00FF, 32'd32, `ALU_SLL));
-            q.push_back(mk(AK_SHIFT_BOUNDARY, 32'h0000_00FF, 32'd33, `ALU_SLL));
-            q.push_back(mk(AK_SHIFT_BOUNDARY, 32'h0000_00FF, 32'hFFFF_FFE1, `ALU_SLL));
-            q.push_back(mk(AK_SHIFT, 32'h8000_0000, 32'd31, `ALU_SRL));
-            q.push_back(mk(AK_SHIFT_BOUNDARY, 32'hDEAD_BEEF, 32'd32, `ALU_SRL));
-            q.push_back(mk(AK_SHIFT, 32'h8000_0000, 32'd31, `ALU_SRA));
-            q.push_back(mk(AK_SHIFT, 32'h4000_0000, 32'd30, `ALU_SRA));
-            q.push_back(mk(AK_SHIFT_BOUNDARY, 32'hFFFF_0000, 32'd32, `ALU_SRA));
+            q.push_back(mk(AK_SHIFT, 32'h0000_0001, 32'd1,  ALU_SLL));
+            q.push_back(mk(AK_SHIFT, 32'h0000_0001, 32'd31, ALU_SLL));
+            q.push_back(mk(AK_SHIFT_BOUNDARY, 32'h0000_00FF, 32'd32, ALU_SLL));
+            q.push_back(mk(AK_SHIFT_BOUNDARY, 32'h0000_00FF, 32'd33, ALU_SLL));
+            q.push_back(mk(AK_SHIFT_BOUNDARY, 32'h0000_00FF, 32'hFFFF_FFE1, ALU_SLL));
+            q.push_back(mk(AK_SHIFT, 32'h8000_0000, 32'd31, ALU_SRL));
+            q.push_back(mk(AK_SHIFT_BOUNDARY, 32'hDEAD_BEEF, 32'd32, ALU_SRL));
+            q.push_back(mk(AK_SHIFT, 32'h8000_0000, 32'd31, ALU_SRA));
+            q.push_back(mk(AK_SHIFT, 32'h4000_0000, 32'd30, ALU_SRA));
+            q.push_back(mk(AK_SHIFT_BOUNDARY, 32'hFFFF_0000, 32'd32, ALU_SRA));
             add_seq("shift_amount_masking", q);
         end
         // 4) signed vs unsigned compare
         begin
             alu_cycle q[$];
-            q.push_back(mk(AK_COMPARE, 32'hFFFF_FFFF, 32'd1, `ALU_SLT));   // -1 < 1
-            q.push_back(mk(AK_COMPARE, 32'hFFFF_FFFF, 32'd1, `ALU_SLTU));  // 4G > 1
-            q.push_back(mk(AK_COMPARE, 32'd5, 32'd5, `ALU_SLT));
-            q.push_back(mk(AK_COMPARE, 32'd5, 32'd5, `ALU_SLTU));
-            q.push_back(mk(AK_COMPARE, 32'd4, 32'd5, `ALU_SLT));
-            q.push_back(mk(AK_COMPARE, 32'h8000_0000, 32'h7FFF_FFFF, `ALU_SLT));
-            q.push_back(mk(AK_COMPARE, 32'h8000_0000, 32'h7FFF_FFFF, `ALU_SLTU));
+            q.push_back(mk(AK_COMPARE, 32'hFFFF_FFFF, 32'd1, ALU_SLT));   // -1 < 1
+            q.push_back(mk(AK_COMPARE, 32'hFFFF_FFFF, 32'd1, ALU_SLTU));  // 4G > 1
+            q.push_back(mk(AK_COMPARE, 32'd5, 32'd5, ALU_SLT));
+            q.push_back(mk(AK_COMPARE, 32'd5, 32'd5, ALU_SLTU));
+            q.push_back(mk(AK_COMPARE, 32'd4, 32'd5, ALU_SLT));
+            q.push_back(mk(AK_COMPARE, 32'h8000_0000, 32'h7FFF_FFFF, ALU_SLT));
+            q.push_back(mk(AK_COMPARE, 32'h8000_0000, 32'h7FFF_FFFF, ALU_SLTU));
             add_seq("signed_vs_unsigned_compare", q);
         end
         // 5) LUI leg: op_a must be ignored
         begin
             alu_cycle q[$];
-            q.push_back(mk(AK_PASSB, 32'hDEAD_BEEF, 32'h1234_5000, `ALU_PASSB));
-            q.push_back(mk(AK_PASSB, 32'hFFFF_FFFF, 32'h0000_0000, `ALU_PASSB));
-            q.push_back(mk(AK_PASSB, 32'h0000_0000, 32'hFFFF_F000, `ALU_PASSB));
+            q.push_back(mk(AK_PASSB, 32'hDEAD_BEEF, 32'h1234_5000, ALU_PASSB));
+            q.push_back(mk(AK_PASSB, 32'hFFFF_FFFF, 32'h0000_0000, ALU_PASSB));
+            q.push_back(mk(AK_PASSB, 32'h0000_0000, 32'hFFFF_F000, ALU_PASSB));
             add_seq("lui_passb", q);
         end
         // 6) unmapped encodings fall back to ADD
@@ -260,8 +260,8 @@ class alu_generator;
                                   32'h5555_5555, 32'hAAAA_AAAA};
             foreach (pat[i])
                 foreach (pat[j]) begin
-                    q.push_back(mk(AK_RANDOM, pat[i], pat[j], `ALU_ADD));
-                    q.push_back(mk(AK_RANDOM, pat[i], pat[j], `ALU_XOR));
+                    q.push_back(mk(AK_RANDOM, pat[i], pat[j], ALU_ADD));
+                    q.push_back(mk(AK_RANDOM, pat[i], pat[j], ALU_XOR));
                 end
             add_seq("toggle_patterns", q);
         end
@@ -271,12 +271,12 @@ class alu_generator;
         begin
             alu_cycle q[$];
             bit [31:0] corner[$] = '{32'h0000_0000, 32'h7FFF_FFFF, 32'h8000_0000, 32'hFFFF_FFFF};
-            bit [3:0]  ops[$]    = '{`ALU_ADD, `ALU_SUB, `ALU_AND, `ALU_OR, `ALU_XOR, `ALU_SLL,
-                                     `ALU_SRL, `ALU_SRA, `ALU_SLT, `ALU_SLTU, `ALU_PASSB};
+            bit [3:0]  ops[$]    = '{ALU_ADD, ALU_SUB, ALU_AND, ALU_OR, ALU_XOR, ALU_SLL,
+                                     ALU_SRL, ALU_SRA, ALU_SLT, ALU_SLTU, ALU_PASSB};
             bit [31:0] shamt[$]  = '{32'd0, 32'd1, 32'd31, 32'd32, 32'd33};
             foreach (ops[o]) foreach (corner[i]) foreach (corner[j])
                 q.push_back(mk(AK_RANDOM, corner[i], corner[j], ops[o]));
-            foreach (ops[o]) if (ops[o] inside {`ALU_SLL, `ALU_SRL, `ALU_SRA})
+            foreach (ops[o]) if (ops[o] inside {ALU_SLL, ALU_SRL, ALU_SRA})
                 foreach (corner[i]) foreach (shamt[k])
                     q.push_back(mk(AK_SHIFT_BOUNDARY, corner[i], shamt[k], ops[o]));
             add_seq("operand_corners", q);
@@ -323,16 +323,16 @@ class alu_monitor;
 
     covergroup cg_alu;
         cp_op: coverpoint vif.alu_op {
-            bins add = {`ALU_ADD};  bins sub  = {`ALU_SUB};
-            bins and_ = {`ALU_AND}; bins or_  = {`ALU_OR};
-            bins xor_ = {`ALU_XOR}; bins sll  = {`ALU_SLL};
-            bins srl  = {`ALU_SRL}; bins sra  = {`ALU_SRA};
-            bins slt  = {`ALU_SLT}; bins sltu = {`ALU_SLTU};
-            bins passb = {`ALU_PASSB};
+            bins add = {ALU_ADD};  bins sub  = {ALU_SUB};
+            bins and_ = {ALU_AND}; bins or_  = {ALU_OR};
+            bins xor_ = {ALU_XOR}; bins sll  = {ALU_SLL};
+            bins srl  = {ALU_SRL}; bins sra  = {ALU_SRA};
+            bins slt  = {ALU_SLT}; bins sltu = {ALU_SLTU};
+            bins passb = {ALU_PASSB};
             bins unmapped = {[4'hB:4'hF]};
         }
         // The shift-amount masking corner: 0, 31, and >=32 must all be hit.
-        cp_shamt: coverpoint vif.op_b[5:0] iff (vif.alu_op inside {`ALU_SLL, `ALU_SRL, `ALU_SRA}) {
+        cp_shamt: coverpoint vif.op_b[5:0] iff (vif.alu_op inside {ALU_SLL, ALU_SRL, ALU_SRA}) {
             bins zero      = {0};
             bins one       = {1};
             bins low       = {[2:30]};
@@ -341,17 +341,17 @@ class alu_monitor;
         }
         // 1-TOPS G4 row 4.4: every shift by 0, 1, 31 and >31, on each of the
         // three shifts; every operation on each of the four operand corners.
-        cp_shift_op: coverpoint vif.alu_op iff (vif.alu_op inside {`ALU_SLL, `ALU_SRL, `ALU_SRA}) {
-            bins sll = {`ALU_SLL}; bins srl = {`ALU_SRL}; bins sra = {`ALU_SRA};
+        cp_shift_op: coverpoint vif.alu_op iff (vif.alu_op inside {ALU_SLL, ALU_SRL, ALU_SRA}) {
+            bins sll = {ALU_SLL}; bins srl = {ALU_SRL}; bins sra = {ALU_SRA};
         }
         x_shift_amount: cross cp_shift_op, cp_shamt;
         cp_op_used: coverpoint vif.alu_op {
-            bins add = {`ALU_ADD};  bins sub  = {`ALU_SUB};
-            bins and_ = {`ALU_AND}; bins or_  = {`ALU_OR};
-            bins xor_ = {`ALU_XOR}; bins sll  = {`ALU_SLL};
-            bins srl  = {`ALU_SRL}; bins sra  = {`ALU_SRA};
-            bins slt  = {`ALU_SLT}; bins sltu = {`ALU_SLTU};
-            bins passb = {`ALU_PASSB};
+            bins add = {ALU_ADD};  bins sub  = {ALU_SUB};
+            bins and_ = {ALU_AND}; bins or_  = {ALU_OR};
+            bins xor_ = {ALU_XOR}; bins sll  = {ALU_SLL};
+            bins srl  = {ALU_SRL}; bins sra  = {ALU_SRA};
+            bins slt  = {ALU_SLT}; bins sltu = {ALU_SLTU};
+            bins passb = {ALU_PASSB};
         }
         cp_a_corner: coverpoint vif.op_a {
             bins zero = {32'h0000_0000}; bins int_max = {32'h7FFF_FFFF};
@@ -446,7 +446,7 @@ module tb_top;
     alu_env env;
 
     initial begin
-        vif.op_a = 32'd0; vif.op_b = 32'd0; vif.alu_op = `ALU_ADD;
+        vif.op_a = 32'd0; vif.op_b = 32'd0; vif.alu_op = ALU_ADD;
         repeat (3) @(posedge clk);
         env = new(vif, 8, 250);
         env.run();

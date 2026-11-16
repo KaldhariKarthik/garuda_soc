@@ -15,7 +15,7 @@
 // tb_dsu_barrel_shifter.sv
 //
 //  BLOCK      : II -- DSU (Custom-0 MAC coprocessor)
-//  RTL SOURCE : rtl/dsu/barrel_shifter.v   (GARUDA_DSU_DesignSpec)
+//  RTL SOURCE : rtl/dsu/barrel_shifter.sv   (GARUDA_DSU_DesignSpec)
 //  SCOPE      : DSU unit module
 //
 // Single-file SV verification environment for GARUDA barrel_shifter.v

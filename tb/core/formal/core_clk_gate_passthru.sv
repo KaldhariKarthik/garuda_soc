@@ -1,4 +1,4 @@
-// core_clk_gate_passthru.sv -- FORMAL-ONLY abstraction of rtl/core/core_clk_gate.v.
+// core_clk_gate_passthru.sv -- FORMAL-ONLY abstraction of rtl/core/core_clk_gate.sv.
 // SymbiYosys (single-clock mode) cannot model the latch ICG's derived clock
 // (gclk = clk & en_l). This behaves like the design's own CLK_GATE == 0 build
 // (garuda_core_top.v:154 enables the gate permanently): the core keeps clocking

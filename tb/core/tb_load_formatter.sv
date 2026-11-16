@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_load_formatter.sv -- SystemVerilog unit TB for rtl/core/load_formatter.v
+// tb_load_formatter.sv -- SystemVerilog unit TB for rtl/core/load_formatter.sv
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 10.3 (load result formatting).
 // Plan: C10 -- "LB/LH/LW/LBU/LHU sign/zero extension".

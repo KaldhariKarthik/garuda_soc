@@ -10,4 +10,4 @@ work carries the original notice and disclaimer. Not modified.
 
 PULP`s apb_i2c.sv register front end is deliberately NOT vendored: it carries no
 licence header and its repository has no LICENSE file. Our register layer is
-`rtl/i2c/garuda_i2c_top.v` (D-22).
+`rtl/i2c/garuda_i2c_top.sv` (D-22).

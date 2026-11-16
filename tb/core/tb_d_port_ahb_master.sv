@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_d_port_ahb_master.sv -- SV unit TB for rtl/core/dport_master.v
+// tb_d_port_ahb_master.sv -- SV unit TB for rtl/core/dport_master.sv
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 10.4 (wait states), Sec. 16.1-16.3
 //       (AHB-Lite master, two-cycle ERROR response, reset/idle).

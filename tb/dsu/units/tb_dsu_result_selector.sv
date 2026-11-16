@@ -15,7 +15,7 @@
 // tb_dsu_result_selector.sv
 //
 //  BLOCK      : II -- DSU (Custom-0 MAC coprocessor)
-//  RTL SOURCE : rtl/dsu/result_selector.v   (GARUDA_DSU_DesignSpec)
+//  RTL SOURCE : rtl/dsu/result_selector.sv   (GARUDA_DSU_DesignSpec)
 //  SCOPE      : DSU unit module
 //
 // Single-file SV verification environment for GARUDA result_selector.v

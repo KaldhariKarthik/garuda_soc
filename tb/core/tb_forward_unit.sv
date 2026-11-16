@@ -1,5 +1,5 @@
 // =============================================================================
-// tb_forward_unit.sv -- unit bench for rtl/core/forward_unit.v
+// tb_forward_unit.sv -- unit bench for rtl/core/forward_unit.sv
 //
 // Spec: CORE-UARCH-001 (EX stage), DS-001 Sec. 11.1: the EX operand muxes take
 // the most recent producer. EX/MEM wins over MEM/WB, MEM/WB over the register
@@ -17,17 +17,17 @@
 // above. Top is tb_top, as for the other unit benches.
 // =============================================================================
 `timescale 1ns/1ps
-`include "core_ex_defs.vh"
 
+import core_ex_pkg::*;
 interface fwd_if (input bit clk);
     logic [4:0] rs1, rs2, exmem_rd, memwb_rd;
     logic       exmem_we, memwb_we;
     logic [1:0] sel_a, sel_b;
 
     // A1: x0 is never forwarded: a select other than NONE needs a real rd
-    a_x0_a: assert property (@(posedge clk) (rs1 == 0) |-> (sel_a == `FWD_NONE))
+    a_x0_a: assert property (@(posedge clk) (rs1 == 0) |-> (sel_a == FWD_NONE))
         else $error("[SVA-FAIL] rs1 = x0 was forwarded (sel_a=%0d)", sel_a);
-    a_x0_b: assert property (@(posedge clk) (rs2 == 0) |-> (sel_b == `FWD_NONE))
+    a_x0_b: assert property (@(posedge clk) (rs2 == 0) |-> (sel_b == FWD_NONE))
         else $error("[SVA-FAIL] rs2 = x0 was forwarded (sel_b=%0d)", sel_b);
     // A2: the select encoding 2'b11 is never produced
     a_no_11: assert property (@(posedge clk) (sel_a != 2'b11) && (sel_b != 2'b11))
@@ -37,9 +37,9 @@ endinterface
 
 class fwd_model;
     static function bit [1:0] sel(bit [4:0] rs, bit [4:0] exrd, bit exwe, bit [4:0] wbrd, bit wbwe);
-        if (exwe && exrd != 0 && exrd == rs) return `FWD_EXMEM;
-        if (wbwe && wbrd != 0 && wbrd == rs) return `FWD_MEMWB;
-        return `FWD_NONE;
+        if (exwe && exrd != 0 && exrd == rs) return FWD_EXMEM;
+        if (wbwe && wbrd != 0 && wbrd == rs) return FWD_MEMWB;
+        return FWD_NONE;
     endfunction
 endclass
 
@@ -78,13 +78,13 @@ module tb_top;
     covergroup cg_fwd;
         cp_a: coverpoint ka { bins none = {0}; bins exmem = {1}; bins memwb = {2}; bins both_exmem_wins = {3}; bins not_counted = {4}; }
         cp_b: coverpoint kb { bins none = {0}; bins exmem = {1}; bins memwb = {2}; bins both_exmem_wins = {3}; bins not_counted = {4}; }
-        cp_sel_a: coverpoint vif.sel_a { bins none = {`FWD_NONE}; bins exmem = {`FWD_EXMEM}; bins memwb = {`FWD_MEMWB}; }
-        cp_sel_b: coverpoint vif.sel_b { bins none = {`FWD_NONE}; bins exmem = {`FWD_EXMEM}; bins memwb = {`FWD_MEMWB}; }
+        cp_sel_a: coverpoint vif.sel_a { bins none = {FWD_NONE}; bins exmem = {FWD_EXMEM}; bins memwb = {FWD_MEMWB}; }
+        cp_sel_b: coverpoint vif.sel_b { bins none = {FWD_NONE}; bins exmem = {FWD_EXMEM}; bins memwb = {FWD_MEMWB}; }
         // rs1-only, rs2-only and both-operand hazards, from each stage
         x_sel_a_b: cross cp_sel_a, cp_sel_b;
         // the same register on both operands (add x5, x6, x6)
         cp_same_src: coverpoint vif.sel_a iff (vif.rs1 == vif.rs2 && vif.rs1 != 0) {
-            bins exmem = {`FWD_EXMEM}; bins memwb = {`FWD_MEMWB};
+            bins exmem = {FWD_EXMEM}; bins memwb = {FWD_MEMWB};
         }
         // a non-counting match: x0 as rd, or a producer that does not write
         cp_x0_rd: coverpoint {vif.exmem_we, vif.memwb_we} iff (vif.rs1 == 0 && (vif.exmem_rd == 0 || vif.memwb_rd == 0));

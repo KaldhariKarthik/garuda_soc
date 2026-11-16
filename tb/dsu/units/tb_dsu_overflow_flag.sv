@@ -15,7 +15,7 @@
 // tb_dsu_overflow_flag.sv
 //
 //  BLOCK      : II -- DSU (Custom-0 MAC coprocessor)
-//  RTL SOURCE : rtl/dsu/overflow_flag.v   (GARUDA_DSU_DesignSpec)
+//  RTL SOURCE : rtl/dsu/overflow_flag.sv   (GARUDA_DSU_DesignSpec)
 //  SCOPE      : DSU unit module
 //
 // Single-file SV verification environment for GARUDA overflow_flag.v

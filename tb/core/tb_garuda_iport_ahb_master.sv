@@ -1,6 +1,6 @@
 // =============================================================================
 // tb_garuda_iport_ahb_master.sv -- SV unit TB for
-//                                  rtl/core/iport_master.v
+//                                  rtl/core/iport_master.sv
 //
 // Spec: AERO-GARUDA-DS-001 Rev 1.1, Sec. 6.4 (I-port AHB-Lite operation),
 //       Sec. 6.5 (flush, dropped in-flight data), Sec. 4.1 (fixed I-port
