@@ -83,6 +83,42 @@ The 5 HAL errors:
 4. **The checklist and the flow again**, G0 to G5 and F0 to F8, every row with new
    evidence on the final tree.
 
+## F4 HAL to zero: method (2026-11-16)
+
+HAL runs with its whole default rule set: 141 rules fired on the chip, 8,539 findings (713 errors),
+128 own files and 15 third-party files (`sim/hal_zero/`, `tools/hal_zero.py --summary`).
+
+**Gate.** `tools/hal_zero.py` fails on any finding that has neither been removed from the RTL nor
+been given one row in `flow/2_static/hal_exceptions.tsv` (rule, file:line, the signal or instance,
+class), and on any row that matches no finding. Each class names a structure the chip must have,
+with its reason. No baseline, no rule switched off. `hal_baseline.txt`, `hal_waivers.txt`,
+`tools/hal_baseline.py` and `tools/hal_deck.py` go when the gate is green.
+
+**Equivalence.** Style rewrites are proven with JasperGold SEC, RTL against the committed RTL,
+module by module (`tools/sec_rtl.py`): Conformal LEC is not offered by the licence server
+("No such feature exists" for every Conformal level, 2026-11-16). SEC is sequential, so it also
+covers rewrites that touch registers. Checked both ways: it proves an unchanged module and
+fails a planted one-constant change (`wdt`).
+
+**Naming (Karthik, 2026-11-16): rename to HAL's defaults.** Active-low names end in `_n`
+(ALOWID); identifiers are 4 to 16 characters (IDLENG); no numeric suffix (NUMSUF); lower-case
+nets and instances, upper-case constants (LCVARN, UCCONN); no VHDL/AMS keywords (KEYWOD,
+AMSKWD); a clock or reset keeps its name across every port it passes (DIFCLK, DIFRST).
+Renames run through RTL, benches, SVA, specs and docs, and are checked by the full regression.
+
+**Language.** OLDALW asks for `always_ff` / `always_comb` / `always_latch`: own RTL moves to
+SystemVerilog procedural blocks. Every process block is named (NOBLKN); every if/else/always body
+has begin/end (NBGEND); one statement and one declaration per line (SEPLIN, DECLIN); lines of at
+most 80 characters (MAXLEN); no bare numeric range or literal where a constant belongs (STYVAL,
+CNSTLT); constants written with width and base, every bit (PRMVAL, PRMBSE, BITUNS, CONSBS).
+Compiler directives leave the RTL (CDNOTE, CDWARN): shared `define`s become a package,
+simulation-only checks move to bound SVA, the time unit is given once to each tool; the
+`GARUDA_SRAM_BLACKBOX` switch stays until the SRAM macros (a stated open item).
+
+**Order.** (1) real lint, own RTL then third-party, each block's regression and formal rerun;
+(2) the style rewrite, SEC per module; (3) renames, full regression; (4) per-line exceptions for
+what is left, once line numbers stop moving; (5) the gate replaces `static_lint` in both gates.
+
 ## Log
 
 | Date | Item | Change | Evidence |
