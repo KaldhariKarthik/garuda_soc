@@ -30,15 +30,15 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
  {'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_prio.v',
   'src': 'rtl/ahb/ahb_arbiter.sv',
   'header': ['MUTANT prio (bus plan B1 A2 negative control): priority swap: SBA above DMA'],
-  'subs': [('    wire [1:0] winner = req[`AHB_M_DMA]   ? `AHB_M_DMA   :\n'
-            '                        req[`AHB_M_SBA]   ? `AHB_M_SBA   :\n',
-            '    wire [1:0] winner = req[`AHB_M_SBA]   ? `AHB_M_SBA   :\n'
-            '                        req[`AHB_M_DMA]   ? `AHB_M_DMA   :\n')]},
+  'subs': [('    wire [1:0] winner = req[AHB_M_DMA]   ? AHB_M_DMA   :\n'
+            '                        req[AHB_M_SBA]   ? AHB_M_SBA   :\n',
+            '    wire [1:0] winner = req[AHB_M_SBA]   ? AHB_M_SBA   :\n'
+            '                        req[AHB_M_DMA]   ? AHB_M_DMA   :\n')]},
  {'path': 'tb/ahb/formal/mutants/ahb_decoder_mut_decode.v',
   'src': 'rtl/ahb/ahb_decoder.sv',
   'header': ['MUTANT decode (bus plan B1 A2 negative control): decode slip: DSRAM decoded at nibble 3'],
-  'subs': [("            `AHB_RGN_DSRAM : hsel_o[`AHB_S_DSRAM ] = 1'b1;\n",
-            "            4'h3           : hsel_o[`AHB_S_DSRAM ] = 1'b1;\n")]},
+  'subs': [("            AHB_RGN_DSRAM : hsel_o[AHB_S_DSRAM ] = 1'b1;\n",
+            "            4'h3           : hsel_o[AHB_S_DSRAM ] = 1'b1;\n")]},
  {'path': 'tb/ahb/formal/mutants/ahb_master_mux_mut_ahb1.v',
   'src': 'rtl/ahb/ahb_master_mux.sv',
   'header': ['MUTANT ahb1 (bus plan B1 A2 negative control): AHB-1 revert: HWDATA selected by the '
