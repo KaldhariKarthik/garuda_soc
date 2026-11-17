@@ -1,10 +1,8 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Blocks 3/4/5 : the ONLY place an SRAM/ROM macro is instantiated
 // sram_wrapper.v
 //
-// Spec: GARUDA-MEM-SPEC-001 §4.1 [N-4.1]..[N-4.3], ADR-0021
+// Spec: GARUDA-MEM-SPEC-001 Sec.4.1 [N-4.1]..[N-4.3], ADR-0021
 //
 // Interface (and no other): clk, addr, wdata, rdata, we, be.
 //   - synchronous: addr (and we/be/wdata for a write) sampled on the rising
@@ -25,25 +23,31 @@
 // INIT_FILE. On silicon this becomes a ROM macro generated from the same file.
 // =============================================================================
 
-module sram_wrapper #(
-    parameter integer WORDS     = 1024,
-    parameter integer ADDR_W        = 10,
-    parameter integer IS_ROM       = 0,
+module sram_wrapper
+    import garuda_pkg::*;
+#(
+    parameter integer WORDS     = 32'd1024,
+    parameter integer ADDR_W        = 32'd10,
+    parameter integer IS_ROM       = 32'd0,
     parameter         INIT_FILE = ""
 )(
-    input  wire          hclk,
-    input  wire          ce,
-    input  wire [ADDR_W-1:0] addr,
-    input  wire [31:0]   wdata,
-    output reg  [31:0]   rdata,
-    input  wire          we,
-    input  wire [3:0]    be
+    input wire hclk,
+    input wire ce,
+    input wire [ADDR_W - 1:0] addr,
+    input wire [WORD_W-1:0] wdata,
+    output reg [WORD_W-1:0] rdata,
+    input wire we,
+    input wire [BE_W-1:0] be
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
 `ifdef SRAM_BLACKBOX
     // Structural synthesis only (scripts/run_genus.sh): the arrays would
     // elaborate as ~1M flops. The macro boundary is kept; data reads 0.
-    always @(posedge hclk) rdata <= 32'd0;
+    always_ff @(posedge hclk) begin : p_rdata
+        rdata <= 32'd0;
+    end
     wire _unused = |{ce, addr, wdata, we, be};
 `elsif GARUDA_SRAM_MACRO
     // One NAMED macro per shape (OPEN-7 / ADR-0021), so a physical flow can
@@ -52,7 +56,9 @@ module sram_wrapper #(
     // IS_ROM's ignored writes are the macro's job. An unlisted shape fails
     // elaboration rather than falling back to flops.
     wire [31:0] rdata_m;
-    always @* rdata = rdata_m;
+    always_comb begin : c_rdata
+        rdata = rdata_m;
+    end
     generate
         if (WORDS == 16384 && IS_ROM == 0) begin : g_isram
             garuda_sram_16384x32 u_macro (.clk(hclk), .ce(ce), .we(we), .be(be),
@@ -69,7 +75,7 @@ module sram_wrapper #(
         end
     endgenerate
 `else
-    reg [31:0] mem [0:WORDS-1];
+    reg [WORD_W-1:0] mem [0:WORDS-1];
 
     generate
         if (INIT_FILE != "") begin : g_init
@@ -77,13 +83,21 @@ module sram_wrapper #(
         end
     endgenerate
 
-    always @(posedge hclk) begin
+    always_ff @(posedge hclk) begin : p_mem
         if (ce) begin
             if (we && IS_ROM == 0) begin
-                if (be[0]) mem[addr][ 7: 0] <= wdata[ 7: 0];
-                if (be[1]) mem[addr][15: 8] <= wdata[15: 8];
-                if (be[2]) mem[addr][23:16] <= wdata[23:16];
-                if (be[3]) mem[addr][31:24] <= wdata[31:24];
+                if (be[0]) begin
+                    mem[addr][7:0] <= wdata[7:0];
+                end
+                if (be[1]) begin
+                    mem[addr][15:8] <= wdata[15:8];
+                end
+                if (be[2]) begin
+                    mem[addr][23:16] <= wdata[23:16];
+                end
+                if (be[3]) begin
+                    mem[addr][31:24] <= wdata[31:24];
+                end
             end else if (!we) begin
                 rdata <= mem[addr];
             end
@@ -97,7 +111,7 @@ module sram_wrapper #(
         input [31:0]   data;
         mem[word_addr] = data;
     endtask
-    function [31:0] bd_read;
+    function automatic [31:0] bd_read;
         input [ADDR_W-1:0] word_addr;
         bd_read = mem[word_addr];
     endfunction
@@ -109,5 +123,3 @@ module sram_wrapper #(
 `endif
 
 endmodule
-
-`default_nettype wire

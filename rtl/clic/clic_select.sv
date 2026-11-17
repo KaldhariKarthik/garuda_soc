@@ -1,10 +1,8 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 10 : level selection (combinational)
 // clic_select.v
 //
-// Spec: GARUDA-CLIC-SPEC-001 Rev 2.0 §7.3 [N-7.5]..[N-7.8]
+// Spec: GARUDA-CLIC-SPEC-001 Rev 2.0 Sec.7.3 [N-7.5]..[N-7.8]
 //
 // Among IDs with enable & pending, pick the highest level; ties go to the
 // LOWEST id. Each node compares the key {level, ~id}, so one magnitude compare
@@ -14,30 +12,39 @@
 // winner is presented and the core's strict compare never takes it.
 // =============================================================================
 
-module clic_select #(
-    parameter integer NUM_SRC = 32                      // power of two
+module clic_select
+    import garuda_pkg::*;
+#(
+    parameter integer NUM_SRC = 32'd32  // power of two
 )(
-    input  wire [NUM_SRC-1:0]   cand_i,                 // enable & pending
-    input  wire [NUM_SRC*8-1:0] level_i,
-    output wire           valid_o,
-    output wire [4:0]     id_o,
-    output wire [7:0]     level_o
+    input wire [NUM_SRC - 1:0] cand_i,  // enable & pending
+    input wire [NUM_SRC * CLIC_LVL_W - 1:0] level_i,
+    output wire valid_o,
+    output wire [CLIC_ID_W-1:0] id_o,
+    output wire [CLIC_LVL_W-1:0] level_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned NUM_NODES = 2 * NUM_SRC - 1;  // the comparison tree
+    localparam int unsigned NODE_W = 32'd14;
+    localparam int unsigned XL_W = 32'd14;
+    localparam int unsigned XR_W = 32'd14;
 
     localparam integer SEL_W = $clog2(NUM_SRC);
 
     // node key = {present, level[7:0], ~id[4:0]}
-    wire [13:0] node [0:2*NUM_SRC-2];
+    wire [NODE_W-1:0] node [0:NUM_NODES-1];
 
     genvar i;
     generate
         for (i = 0; i < NUM_SRC; i = i + 1) begin : g_leaf
-            assign node[NUM_SRC-1+i] = {cand_i[i], cand_i[i] ? level_i[8*i +: 8] : 8'd0,
+            assign node[NUM_SRC - 1 + i]
+                = {cand_i[i], cand_i[i] ? level_i[8 * i+:8] : 8'd0,
                                   ~i[4:0]};
         end
         for (i = 0; i < NUM_SRC-1; i = i + 1) begin : g_tree
-            wire [13:0] l = node[2*i+1];
-            wire [13:0] r = node[2*i+2];
+            wire [XL_W-1:0] l = node[2*i+1];
+            wire [XR_W-1:0] r = node[2*i+2];
             assign node[i] = (l >= r) ? l : r;
         end
     endgenerate
@@ -47,5 +54,3 @@ module clic_select #(
     assign id_o    = valid_o ? ~node[0][4:0] : 5'd0;
 
 endmodule
-
-`default_nettype wire

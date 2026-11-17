@@ -59,7 +59,7 @@ fi
 
 # ---- elaborate once ----
 echo "elaborating snapshot..."
-xrun -f tb/soc/filelist_boot.f -top tb_boot \
+xrun -f rtl/common/filelist_pkg.f -f tb/soc/filelist_boot.f -top tb_boot \
      -xmlibdirname "$RUNDIR/xcelium.d" -snapshot garuda_boot \
      -l "$RUNDIR/elab.log" -elaborate > /dev/null 2>&1
 # An incremental run that recompiles nothing prints no "snapshot" line, so the

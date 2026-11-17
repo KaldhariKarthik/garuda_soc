@@ -1,8 +1,6 @@
 // IFV file list: the core with the inert DSU stub, pipe_ctrl_sva bound at garuda_core_top
 +incdir+rtl/common
 +incdir+rtl/core
-rtl/common/garuda_pkg.sv
-rtl/core/core_ex_pkg.sv
 rtl/core/garuda_pc_gen.sv
 rtl/core/iport_master.sv
 rtl/core/prefetch_buf.sv

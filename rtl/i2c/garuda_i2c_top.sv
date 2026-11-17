@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 15 : I2C master
 // garuda_i2c_top.v - GARUDA register layer over the OpenCores controllers
@@ -31,48 +29,57 @@
 //      is a short across a shared bus.
 // =============================================================================
 
-module garuda_i2c_top #(
+module garuda_i2c_top
+    import garuda_pkg::*;
+#(
     parameter [7:0] BLOCK_NUM = 8'd15
 )(
-    input  wire        pclk,
-    input  wire        preset_n,
-
-    // ---- APB slave, window 2 -------------------------------------------------
-    input  wire        psel_i,
-    input  wire        penable_i,
-    input  wire        pwrite_i,
-    input  wire [11:0] paddr_i,
-    input  wire [31:0] pwdata_i,
-    output wire [31:0] prdata_o,
-    output wire        pready_o,
-    output wire        pslverr_o,
-
-    // ---- CLIC ID 16 / DMA channel 1 ------------------------------------------
-    output wire        irq_o,
-    output wire        dma_req_o,
-    input  wire        dma_ack_i,
-
-    // ---- pins (open drain) -----------------------------------------------------
-    input  wire        i2c_scl_i,
-    output wire        i2c_scl_o,
-    output wire        i2c_scl_oe,
-    input  wire        i2c_sda_i,
-    output wire        i2c_sda_o,
-    output wire        i2c_sda_oe
+    input wire pclk,
+    input wire preset_n,
+    // ---- APB slave, window 2 ------------------------------------------------
+    input wire psel_i,
+    input wire penable_i,
+    input wire pwrite_i,
+    input wire [PADDR_W-1:0] paddr_i,
+    input wire [WORD_W-1:0] pwdata_i,
+    output wire [WORD_W-1:0] prdata_o,
+    output wire pready_o,
+    output wire pslverr_o,
+    // ---- CLIC ID 16 / DMA channel 1 -----------------------------------------
+    output wire irq_o,
+    output wire dma_req_o,
+    input wire dma_ack_i,
+    // ---- pins (open drain) --------------------------------------------------
+    input wire i2c_scl_i,
+    output wire i2c_scl_o,
+    output wire i2c_scl_oe,
+    input wire i2c_sda_i,
+    output wire i2c_sda_o,
+    output wire i2c_sda_oe
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned PAD_SYNC_W = 32'd2;
+    localparam int unsigned IRQSTAT_CLR_W = 32'd4;
+    localparam int unsigned ABORT_W = 32'd3;
+    localparam int unsigned EVT_W = 32'd4;
+    localparam int unsigned ABORTB_W = 32'd3;
 
     localparam [11:0] A_PRESCALE = 12'h000, A_CTRL   = 12'h004,
                       A_TXDATA   = 12'h008, A_RXDATA = 12'h00C,
                       A_CMD      = 12'h010, A_STATUS = 12'h014,
                       A_TIMEOUT  = 12'h018;
     localparam [11:0] IP_LIMIT = 12'h020;
-    localparam [63:0] IP_MAP   = 64'h0000_0000_0000_007F;   // 0x00 to 0x18; 0x1C is not a register
+    // 0x00 to 0x18; 0x1C is not a register
+    localparam [63:0] IP_MAP   = 64'h0000_0000_0000_007F;
 
-    wire        ip_psel, ip_penable, ip_pwrite;
-    wire [11:0] ip_paddr;
-    wire [31:0] ip_pwdata;
-    wire [1:0]  dmactl;
-    wire [1:0]  pad_sync;
+    wire ip_psel;
+    wire ip_penable;
+    wire ip_pwrite;
+    wire [PADDR_W-1:0] ip_paddr;
+    wire [WORD_W-1:0] ip_pwdata;
+    wire [DMACTL_W-1:0]  dmactl;
+    wire [PAD_SYNC_W-1:0]  pad_sync;
     wire        scl_sync = pad_sync[0];
     wire        sda_sync = pad_sync[1];
 
@@ -81,14 +88,22 @@ module garuda_i2c_top #(
     // =========================================================================
     // Registers
     // =========================================================================
-    reg [15:0] prescale_q, timeout_q;
+    reg [HALF_W-1:0] prescale_q;
+    reg [HALF_W-1:0] timeout_q;
     reg        en_q;
-    reg [7:0]  txdata_q;
-    reg [7:0]  rxdata_q;
+    reg [BYTE_W-1:0]  txdata_q;
+    reg [BYTE_W-1:0]  rxdata_q;
     reg        rxvalid_q;
-    reg        al_q, to_q, rxnack_q;     // sticky status
+    // sticky status
+    reg al_q;
+    reg to_q;
+    reg rxnack_q;
     reg        tip_q;
-    reg        c_sta, c_sto, c_rd, c_wr, c_nack;
+    reg c_sta;
+    reg c_sto;
+    reg c_rd;
+    reg c_wr;
+    reg c_nack;
 
     // I2C-6: a command can only be outstanding while the vendored core is
     // running. core_held is ~en_q | (|abort_q) - the core in reset - and while
@@ -100,29 +115,37 @@ module garuda_i2c_top #(
     // bus unasked. A CMD written while disabled was kept the same way.
     wire       core_held;
     wire       cmd_write = wr_hit & (ip_paddr == A_CMD);
-    // I2C-7: a CMD with none of RD, WR and STO has nothing to put on the bus. The
-    // vendored byte controller starts only on one of those three, so such a CMD
-    // used to set TIP and nothing ever cleared it. It is refused ([N-6.2c]).
+    // I2C-7: a CMD with none of RD, WR and STO has nothing to put on the bus.
+    // The vendored byte controller starts only on one of those three, so such a
+    // CMD used to set TIP and nothing ever cleared it. It is refused
+    // ([N-6.2c]).
     wire       cmd_noop  = cmd_write & ~(|pwdata_i[3:1]);
-    wire       cmd_ok    = cmd_write & ~tip_q & ~core_held & ~cmd_noop;  // ignored while busy
+    // ignored while busy
+    wire       cmd_ok    = cmd_write & ~tip_q & ~core_held & ~cmd_noop;
 
     // vendored core status
-    wire       core_ack, core_ackout, core_busy, core_al;
-    wire [7:0] core_dout;
-    wire       scl_oen, sda_oen;
-    wire       tail_w1c, shim_slverr, to_pulse;
-    wire [3:0] irqstat_clr;
+    wire core_ack;
+    wire core_ackout;
+    wire core_busy;
+    wire core_al;
+    wire [BYTE_W-1:0] core_dout;
+    wire scl_oen;
+    wire sda_oen;
+    wire tail_w1c;
+    wire shim_slverr;
+    wire to_pulse;
+    wire [IRQSTAT_CLR_W-1:0] irqstat_clr;
 
-    // ---- abort: a CTRL.ABORT write, or the timeout expiring -------------------
+    // ---- abort: a CTRL.ABORT write, or the timeout expiring -----------------
     //
     // It has to RESET the vendored controllers, not disable them. Dropping
     // their `ena` looks like the gentler option and is in fact dangerous: the
     // bit controller's divider is
-    //     else if (~|cnt || !ena || scl_sync) begin cnt <= clk_cnt; clk_en <= 1; end
-    // so with ena low, clk_en is asserted EVERY cycle and the bit state machine
-    // free-runs at pclk instead of at 4x SCL - sprinting through the rest of a
-    // transfer and toggling the pins at 125 MHz. Its state machine returns to
-    // idle only on !nReset or on arbitration loss.
+    // else if (~|cnt || !ena || scl_sync) begin cnt <= clk_cnt; clk_en <= 1;
+    // end so with ena low, clk_en is asserted EVERY cycle and the bit state
+    // machine free-runs at pclk instead of at 4x SCL - sprinting through the
+    // rest of a transfer and toggling the pins at 125 MHz. Its state machine
+    // returns to idle only on !nReset or on arbitration loss.
     //
     // So ena is tied high and nReset holds the core in reset whenever the block
     // is disabled or aborting. That also makes CTRL.EN = 0 a clean state rather
@@ -130,39 +153,46 @@ module garuda_i2c_top #(
     //
     // The core's asynchronous reset comes straight from ONE flop, i2c_rst_q -
     // the CRG-2 rule. It used to be `preset_n_i & en_q & ~(|abort_q)`: flops
-    // behind it, but an AND and a 3-input OR in the reset path, and abort_q is a
-    // down-counter whose 4->3 and 2->1 steps move bits in opposite directions,
-    // so the OR could glitch and release the reset mid-abort (HAL GLTASR, BUGS_HISTORY.md
-    // I2C-5). The flop is loaded from the NEXT values of en_q and abort_q, so it
-    // changes in the same cycle the old expression did.
-    wire       abort_req = (wr_hit & (ip_paddr == A_CTRL) & pwdata_i[1]) | to_pulse;
-    reg  [2:0] abort_q;
-    wire [2:0] abort_d   = abort_req  ? 3'd4            :
+    // behind it, but an AND and a 3-input OR in the reset path, and abort_q is
+    // a down-counter whose 4->3 and 2->1 steps move bits in opposite
+    // directions, so the OR could glitch and release the reset mid-abort (HAL
+    // GLTASR, BUGS_HISTORY.md I2C-5). The flop is loaded from the NEXT values
+    // of en_q and abort_q, so it changes in the same cycle the old expression
+    // did.
+    wire abort_req = (wr_hit & (ip_paddr == A_CTRL) & pwdata_i[1]) |to_pulse;
+    reg  [ABORTB_W-1:0] abort_q;
+    wire [ABORT_W-1:0] abort_d   = abort_req  ? 3'd4            :
                            (|abort_q) ? abort_q - 3'd1  : 3'd0;
     wire       en_d      = (wr_hit & (ip_paddr == A_CTRL)) ? pwdata_i[0] : en_q;
     reg        i2c_rst_q;
     wire       i2c_rst_n = i2c_rst_q;
     assign     core_held  = ~i2c_rst_q;
 
-    always @(posedge pclk or negedge preset_n)
-        if (!preset_n) i2c_rst_q <= 1'b0;
-        else             i2c_rst_q <= en_d & ~(|abort_d);
+    always_ff @(posedge pclk or negedge preset_n) begin : p_ic_rst
+        if (!preset_n) begin
+            i2c_rst_q <= 1'b0;
+        end else begin
+            i2c_rst_q <= en_d & ~(|abort_d);
+        end
+    end
 
     // =========================================================================
     // Bus timeout ([N-7.5]). Counts pclk while a command is outstanding; a
     // slave stretching SCL freezes the vendored divider, not this counter.
     // =========================================================================
-    reg  [15:0] tocnt_q;
+    reg  [HALF_W-1:0] tocnt_q;
     assign to_pulse = tip_q & (timeout_q != 16'd0) & (tocnt_q == 16'd1);
 
-    always @(posedge pclk or negedge preset_n) begin
+    always_ff @(posedge pclk or negedge preset_n) begin : p_tocnt
         if (!preset_n) begin
             tocnt_q <= 16'd0;
             abort_q <= 3'd0;
         end else begin
-            if (!tip_q)                tocnt_q <= timeout_q;
-            else if (tocnt_q != 16'd0) tocnt_q <= tocnt_q - 16'd1;
-
+            if (!tip_q) begin
+                tocnt_q <= timeout_q;
+            end else if (tocnt_q != 16'd0) begin
+                tocnt_q <= tocnt_q - 16'd1;
+            end
             abort_q <= abort_d;
         end
     end
@@ -170,65 +200,101 @@ module garuda_i2c_top #(
     // =========================================================================
     // Register file
     // =========================================================================
-    always @(posedge pclk or negedge preset_n) begin
+    always_ff @(posedge pclk or negedge preset_n) begin : p_prescale
         if (!preset_n) begin
-            prescale_q <= 16'd0;  timeout_q <= 16'd0;  en_q <= 1'b0;
-            txdata_q   <= 8'd0;   rxdata_q  <= 8'd0;   rxvalid_q <= 1'b0;
-            al_q <= 1'b0;  to_q <= 1'b0;  rxnack_q <= 1'b0;  tip_q <= 1'b0;
-            c_sta <= 1'b0; c_sto <= 1'b0; c_rd <= 1'b0; c_wr <= 1'b0; c_nack <= 1'b0;
+            prescale_q <= 16'd0;
+            timeout_q <= 16'd0;
+            en_q <= 1'b0;
+            txdata_q <= 8'd0;
+            rxdata_q <= 8'd0;
+            rxvalid_q <= 1'b0;
+            al_q <= 1'b0;
+            to_q <= 1'b0;
+            rxnack_q <= 1'b0;
+            tip_q <= 1'b0;
+            c_sta <= 1'b0;
+            c_sto <= 1'b0;
+            c_rd <= 1'b0;
+            c_wr <= 1'b0;
+            c_nack <= 1'b0;
         end else begin
             if (wr_hit) begin
                 case (ip_paddr)
-                    // I2C-10 (ruling D-32, 2026-11-04): PRESCALE and TIMEOUT are ignored
-                    // while TIP is set; a mid-transfer write used to change the bit timing
-                    // inside a bit, or disable the timeout already running (R-8). CTRL stays
-                    // writable: EN = 0 and ABORT are the specified ways to stop ([N-6.3]).
-                    A_PRESCALE: if (!tip_q) prescale_q <= pwdata_i[15:0];
-                    A_CTRL:     en_q       <= pwdata_i[0];
-                    A_TXDATA:   txdata_q   <= pwdata_i[7:0];
-                    A_TIMEOUT:  if (!tip_q) timeout_q  <= pwdata_i[15:0];
-                    default: ;
+                    // I2C-10 (ruling D-32, 2026-11-04): PRESCALE and TIMEOUT
+                    // are ignored while TIP is set; a mid-transfer write used
+                    // to change the bit timing inside a bit, or disable the
+                    // timeout already running (R-8). CTRL stays writable: EN =
+                    // 0 and ABORT are the specified ways to stop ([N-6.3]).
+                    A_PRESCALE: begin
+                        if (!tip_q) begin
+                            prescale_q <= pwdata_i[15:0];
+                        end
+                    end
+                    A_CTRL: en_q <= pwdata_i[0];
+                    A_TXDATA: txdata_q <= pwdata_i[7:0];
+                    A_TIMEOUT: begin
+                        if (!tip_q) begin
+                            timeout_q <= pwdata_i[15:0];
+                        end
+                    end
+                    default: begin
+                    end
                 endcase
             end
-
             // CMD is write-only and self-clearing: the bits are handed to the
             // byte controller for exactly one transfer.
             if (cmd_ok) begin
-                c_sta  <= pwdata_i[0];
-                c_sto  <= pwdata_i[1];
-                c_rd   <= pwdata_i[2];
-                c_wr   <= pwdata_i[3];
+                c_sta <= pwdata_i[0];
+                c_sto <= pwdata_i[1];
+                c_rd <= pwdata_i[2];
+                c_wr <= pwdata_i[3];
                 c_nack <= pwdata_i[4];
-                tip_q  <= 1'b1;
+                tip_q <= 1'b1;
             end else if (core_ack) begin
-                c_sta <= 1'b0; c_sto <= 1'b0; c_rd <= 1'b0; c_wr <= 1'b0;
+                c_sta <= 1'b0;
+                c_sto <= 1'b0;
+                c_rd <= 1'b0;
+                c_wr <= 1'b0;
                 tip_q <= 1'b0;
                 if (c_rd) begin
-                    rxdata_q  <= core_dout;
+                    rxdata_q <= core_dout;
                     rxvalid_q <= 1'b1;
                 end
-                if (c_wr) rxnack_q <= core_ackout;   // 1 = the slave did not ACK
+                if (c_wr) begin
+                    rxnack_q <= core_ackout;  // 1 = the slave did not ACK
+                end
             end else if (core_al | core_held) begin
                 // arbitration loss, abort and disable (I2C-6) all return the
                 // core to idle with no cmd_ack, so TIP has to be cleared here
                 // or firmware hangs
-                c_sta <= 1'b0; c_sto <= 1'b0; c_rd <= 1'b0; c_wr <= 1'b0;
+                c_sta <= 1'b0;
+                c_sto <= 1'b0;
+                c_rd <= 1'b0;
+                c_wr <= 1'b0;
                 tip_q <= 1'b0;
             end
-
             // reading RXDATA consumes the byte
-            if (ip_psel & ip_penable & ~ip_pwrite & (ip_paddr == A_RXDATA))
+            if (ip_psel &ip_penable &~ip_pwrite &(ip_paddr == A_RXDATA)) begin
                 rxvalid_q <= 1'b0;
-
+            end
             // the sticky status bits clear with their interrupt bits, so
             // firmware has one place to acknowledge a fault rather than two
-            if (irqstat_clr[1]) al_q <= 1'b0;
-            if (irqstat_clr[2]) to_q <= 1'b0;
-            // I2C-9: the event is written after the clear, so that an event in the
-            // cycle of its own clear is kept, as it is in IRQSTAT (the shim).
-            // Before, the clear came last: STATUS lost a fault IRQSTAT still showed.
-            if (core_al)  al_q <= 1'b1;
-            if (to_pulse) to_q <= 1'b1;
+            if (irqstat_clr[1]) begin
+                al_q <= 1'b0;
+            end
+            if (irqstat_clr[2]) begin
+                to_q <= 1'b0;
+            end
+            // I2C-9: the event is written after the clear, so that an event in
+            // the cycle of its own clear is kept, as it is in IRQSTAT (the
+            // shim). Before, the clear came last: STATUS lost a fault IRQSTAT
+            // still showed.
+            if (core_al) begin
+                al_q <= 1'b1;
+            end
+            if (to_pulse) begin
+                to_q <= 1'b1;
+            end
         end
     end
 
@@ -243,10 +309,14 @@ module garuda_i2c_top #(
     // core_ack is a one-cycle pulse, and c_wr / core_ackout are cleared or
     // change in that same cycle - so what the event needs is a snapshot taken
     // WITH the pulse, not the live signals one cycle later.
-    reg core_ack_q, was_wr_q, nacked_q;
-    always @(posedge pclk or negedge preset_n)
+    reg core_ack_q;
+    reg was_wr_q;
+    reg nacked_q;
+    always_ff @(posedge pclk or negedge preset_n) begin : p_core_ack
         if (!preset_n) begin
-            core_ack_q <= 1'b0; was_wr_q <= 1'b0; nacked_q <= 1'b0;
+            core_ack_q <= 1'b0;
+            was_wr_q <= 1'b0;
+            nacked_q <= 1'b0;
         end else begin
             core_ack_q <= core_ack;
             if (core_ack) begin
@@ -254,17 +324,18 @@ module garuda_i2c_top #(
                 nacked_q <= core_ackout;
             end
         end
+    end
 
-    wire [3:0] evt;
-    assign evt[0] = core_ack_q;                        // transfer complete
-    assign evt[1] = core_al;                           // arbitration lost
-    assign evt[2] = to_pulse;                          // bus timeout
+    wire [EVT_W-1:0] evt;
+    assign evt[0] = core_ack_q;  // transfer complete
+    assign evt[1] = core_al;  // arbitration lost
+    assign evt[2] = to_pulse;  // bus timeout
     assign evt[3] = core_ack_q & was_wr_q & nacked_q;  // NACK on a written byte
 
     // =========================================================================
     // Read mux for our own registers
     // =========================================================================
-    wire [31:0] reg_rdata =
+    wire [WORD_W-1:0] reg_rdata =
         (ip_paddr == A_PRESCALE) ? {16'd0, prescale_q}                       :
         (ip_paddr == A_CTRL)     ? {31'd0, en_q}                             :
         (ip_paddr == A_TXDATA)   ? {24'd0, txdata_q}                         :
@@ -279,7 +350,8 @@ module garuda_i2c_top #(
     wire cmd_busy_err = (cmd_write & tip_q) | cmd_noop;
 
     garuda_apb_shim #(
-        .N_EVT(4), .SYNC_W(2), .SYNC_RESET(8'h03), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
+        .N_EVT(4), .SYNC_W(2), .SYNC_RESET(8'h03), .IP_LIMIT(IP_LIMIT),
+            .IP_MAP(IP_MAP),
         .ADDR_SHIFT(0), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
@@ -300,7 +372,8 @@ module garuda_i2c_top #(
     // =========================================================================
     // The vendored controllers
     // =========================================================================
-    wire core_scl_o, core_sda_o;
+    wire core_scl_o;
+    wire core_sda_o;
 
     i2c_byte_ctrl u_byte (
         .pclk(pclk), .i2c_rst_n(i2c_rst_n), .ena(1'b1),
@@ -325,5 +398,3 @@ module garuda_i2c_top #(
     wire _unused = |{dmactl, ip_pwdata, core_scl_o, core_sda_o, c_nack};
 
 endmodule
-
-`default_nettype wire

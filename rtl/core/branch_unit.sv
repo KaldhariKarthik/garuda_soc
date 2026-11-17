@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 //=============================================================================
 // GARUDA SoC -- Block I: Processor Core
 // branch_unit.v -- EX-stage branch resolution, JALR target, redirect
@@ -34,34 +32,36 @@
 // redirects (trap, MRET) are muxed at core top per the redirect-mux priority.
 //=============================================================================
 
-
 module branch_unit
+    import garuda_pkg::*;
     import core_ex_pkg::*;
 (
     // id_ex payload
-    input  wire [31:0] pc,              // pc of the instruction in EX
-    input  wire [31:0] imm,             // sign-extended B-imm (is_branch) / I-imm (JALR)
-    input  wire [2:0]  funct3_fld,
+    input wire [WORD_W-1:0] pc,  // pc of the instruction in EX
+    input wire [WORD_W-1:0] imm,  // sign-extended B-imm (is_branch) / I-imm (JALR)
+    input wire [FUNCT3_W-1:0] funct3_fld,
     // forwarded operands (post MUX_A/MUX_B register path)
-    input  wire [31:0] rs1_fwd,
-    input  wire [31:0] rs2_fwd,
+    input wire [WORD_W-1:0] rs1_fwd,
+    input wire [WORD_W-1:0] rs2_fwd,
     // ctrl
-    input  wire        is_branch,          // conditional is_branch in EX
-    input  wire        jal,             // JAL in EX (target = pc + Jimm)
-    input  wire        jalr,            // JALR in EX
-    input  wire        predicted_taken, // ID's static prediction for this is_branch
+    input wire is_branch,  // conditional is_branch in EX
+    input wire jal,  // JAL in EX (target = pc + Jimm)
+    input wire jalr,  // JALR in EX
+    input wire predicted_taken,  // ID's static prediction for this is_branch
     // resolution
-    output wire        branch_taken,    // resolved direction (valid when is_branch)
-    output wire        mispredict,      // prediction != resolution
-    output wire        redirect,        // EX-origin redirect request
-    output wire [31:0] redirect_target,
+    output wire branch_taken,  // resolved direction (valid when is_branch)
+    output wire mispredict,  // prediction != resolution
+    output wire redirect,  // EX-origin redirect request
+    output wire [WORD_W-1:0] redirect_target,
     // ERRATUM T-1: instruction-address-misaligned (cause 0) detection.
     // Checked HERE rather than off `redirect`, because JAL and predicted-taken
     // branches redirect from ID (see the note above) and never assert
     // `redirect` at all - so an EX check hung off the redirect signal misses
     // exactly the JAL case that rv32mi/ma_fetch exercises.
-    output wire        target_misaligned
+    output wire target_misaligned
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     //------------------------------------------------------------------
     // Comparator
@@ -71,15 +71,16 @@ module branch_unit
     wire ltu = (rs1_fwd < rs2_fwd);
 
     reg taken_r;
-    always @(*) begin
+    always_comb begin : c_taken
         case (funct3_fld)
-            BR_BEQ:  taken_r = eq;
-            BR_BNE:  taken_r = ~eq;
-            BR_BLT:  taken_r = lt;
-            BR_BGE:  taken_r = ~lt;
+            BR_BEQ: taken_r = eq;
+            BR_BNE: taken_r = ~eq;
+            BR_BLT: taken_r = lt;
+            BR_BGE: taken_r = ~lt;
             BR_BLTU: taken_r = ltu;
             BR_BGEU: taken_r = ~ltu;
-            default:  taken_r = 1'b0;   // 010/011 reserved -> ID traps, never here
+            // 010/011 reserved -> ID traps, never here
+            default: taken_r = 1'b0;
         endcase
     end
 
@@ -93,29 +94,30 @@ module branch_unit
     //------------------------------------------------------------------
     // Targets
     //------------------------------------------------------------------
-    wire [31:0] branch_target = pc + imm;                       // pc + sext(Bimm)
-    wire [31:0] fallthrough   = pc + 32'd4;
-    wire [31:0] jalr_target   = (rs1_fwd + imm) & 32'hFFFF_FFFE; // (rs1+Iimm)&~1
+    wire [WORD_W-1:0] branch_target = pc + imm;  // pc + sext(Bimm)
+    wire [WORD_W-1:0] fallthrough   = pc + 32'd4;
+    // (rs1+Iimm)&~1
+    wire [WORD_W-1:0] jalr_target   = (rs1_fwd + imm) & 32'hFFFF_FFFE;
 
     // JALR always redirects from EX (Section 12.2). A mispredicted is_branch
     // redirects to the corrected path. jalr and is_branch are mutually
     // exclusive by decode.
     // Every taken control transfer, regardless of which stage redirects for it.
     // GARUDA has no C extension, so any target with bits[1:0] != 0 is illegal.
-    assign target_misaligned = jalr                 ? (jalr_target[1:0]   != 2'b00) :
-                               (jal | branch_taken) ? (branch_target[1:0] != 2'b00) :
+    assign target_misaligned = jalr ? (jalr_target[1:0] != 2'b00) :
+                               (jal | branch_taken)
+                                   ? (branch_target[1:0] != 2'b00) :
                                                       1'b0;
 
     // ERRATUM T-18: a JAL takes branch_target unconditionally. Its imm[14:12] /
-    // rs1 / rs2 bit fields are not a funct3_fld and operands, so taken_r is noise
-    // for it; before the fix a misaligned JAL whose fields read "not taken"
-    // reported mtval = pc+4. JAL never asserts `redirect` (it redirects from ID),
-    // so the only consumers of this for a JAL are the cause-0 mtval and RVFI.
+    // rs1 / rs2 bit fields are not a funct3_fld and operands, so taken_r is
+    // noise for it; before the fix a misaligned JAL whose fields read "not
+    // taken" reported mtval = pc+4. JAL never asserts `redirect` (it redirects
+    // from ID), so the only consumers of this for a JAL are the cause-0 mtval
+    // and RVFI.
     assign redirect        = jalr | mispredict;
     assign redirect_target = jalr             ? jalr_target
                            : (jal | taken_r)  ? branch_target
                                               : fallthrough;
 
 endmodule
-
-`default_nettype wire

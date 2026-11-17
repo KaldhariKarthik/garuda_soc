@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 20 : PWM (4 ESC outputs)
 // garuda_pwm_top.v - register file over garuda_pwm_core
@@ -12,77 +10,87 @@
 // offsets, the D-21 tail at 0xFE0 - with no inherited quirks.
 // =============================================================================
 
-module garuda_pwm_top #(
+module garuda_pwm_top
+    import garuda_pkg::*;
+#(
     parameter [7:0]   BLOCK_NUM = 8'd20,
-    parameter integer NUM_CHAN       = 4
+    parameter integer NUM_CHAN       = 32'd4
 )(
-    input  wire        pclk,
-    input  wire        preset_n,
-
-    // ---- APB slave, window 8 -------------------------------------------------
-    input  wire        psel_i,
-    input  wire        penable_i,
-    input  wire        pwrite_i,
-    input  wire [11:0] paddr_i,
-    input  wire [31:0] pwdata_i,
-    output wire [31:0] prdata_o,
-    output wire        pready_o,
-    output wire        pslverr_o,
-
-    // ---- CLIC ID 21 (no DMA channel) -----------------------------------------
-    output wire        irq_o,
-
-    // ---- pins ------------------------------------------------------------------
-    output wire [NUM_CHAN-1:0] pwm_o
+    input wire pclk,
+    input wire preset_n,
+    // ---- APB slave, window 8 ------------------------------------------------
+    input wire psel_i,
+    input wire penable_i,
+    input wire pwrite_i,
+    input wire [PADDR_W-1:0] paddr_i,
+    input wire [WORD_W-1:0] pwdata_i,
+    output wire [WORD_W-1:0] prdata_o,
+    output wire pready_o,
+    output wire pslverr_o,
+    // ---- CLIC ID 21 (no DMA channel) ----------------------------------------
+    output wire irq_o,
+    // ---- pins ---------------------------------------------------------------
+    output wire [NUM_CHAN - 1:0] pwm_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned EVT_W = 32'd2;
 
     localparam [11:0] A_PRESCALE = 12'h000, A_PERIOD = 12'h004,
                       A_CTRL     = 12'h008, A_STATUS = 12'h00C,
                       A_DUTY0    = 12'h010;
-    localparam [11:0] IP_LIMIT = 12'h020;   // 0x00..0x1C
-    localparam [63:0] IP_MAP   = 64'h0000_0000_0000_00FF;   // all eight words are registers
+    localparam [11:0] IP_LIMIT = 12'h020;  // 0x00..0x1C
+    // all eight words are registers
+    localparam [63:0] IP_MAP   = 64'h0000_0000_0000_00FF;
 
-    wire        ip_psel, ip_penable, ip_pwrite;
-    wire [11:0] ip_paddr;
-    wire [31:0] ip_pwdata;
-    wire [1:0]  dmactl;
+    wire ip_psel;
+    wire ip_penable;
+    wire ip_pwrite;
+    wire [PADDR_W-1:0] ip_paddr;
+    wire [WORD_W-1:0] ip_pwdata;
+    wire [DMACTL_W-1:0]  dmactl;
 
     wire wr_hit = ip_psel & ip_penable & ip_pwrite;
 
     // =========================================================================
     // Registers
     // =========================================================================
-    reg [15:0] prescale_q, period_q;
+    reg [HALF_W-1:0] prescale_q;
+    reg [HALF_W-1:0] period_q;
     reg        en_q;
     reg [NUM_CHAN-1:0] ch_en_q;
-    reg [15:0] duty_q [0:NUM_CHAN-1];
+    reg [DUTY_W-1:0] duty_q [0:NUM_CHAN-1];
 
-    wire [NUM_CHAN*16-1:0] duty_flat;
+    wire [NUM_CHAN*DUTY_W-1:0] duty_flat;
     genvar g;
     generate for (g = 0; g < NUM_CHAN; g = g + 1) begin : g_flat
         assign duty_flat[16*g +: 16] = duty_q[g];
     end endgenerate
 
-    integer kw;                                 // write-side loop index only (PWM-3)
-    always @(posedge pclk or negedge preset_n) begin
+    integer kw;  // write-side loop index only (PWM-3)
+    always_ff @(posedge pclk or negedge preset_n) begin : p_prescale
         if (!preset_n) begin
             prescale_q <= 16'd0;
-            period_q   <= 16'd0;
-            en_q       <= 1'b0;                 // motors off out of reset
-            ch_en_q    <= {NUM_CHAN{1'b0}};
-            for (kw = 0; kw < NUM_CHAN; kw = kw + 1) duty_q[kw] <= 16'd0;
+            period_q <= 16'd0;
+            en_q <= 1'b0;  // motors off out of reset
+            ch_en_q <= {NUM_CHAN {1'b0}};
+            for (kw = 0; kw < NUM_CHAN; kw = kw + 1) begin
+                duty_q[kw] <= 16'd0;
+            end
         end else if (wr_hit) begin
             case (ip_paddr)
                 A_PRESCALE: prescale_q <= pwdata_i[15:0];
-                A_PERIOD:   period_q   <= pwdata_i[15:0];
-                A_CTRL:     begin
-                    en_q    <= pwdata_i[0];
-                    ch_en_q <= pwdata_i[NUM_CHAN+3:4];
+                A_PERIOD: period_q <= pwdata_i[15:0];
+                A_CTRL: begin
+                    en_q <= pwdata_i[0];
+                    ch_en_q <= pwdata_i[NUM_CHAN + 3:4];
                 end
                 default: begin
-                    for (kw = 0; kw < NUM_CHAN; kw = kw + 1)
-                        if (ip_paddr == (A_DUTY0 + 12'd4 * kw[11:0]))
+                    for (kw = 0; kw < NUM_CHAN; kw = kw + 1) begin
+                        if (ip_paddr == (A_DUTY0 + 12'd4 * kw[11:0])) begin
                             duty_q[kw] <= pwdata_i[15:0];
+                        end
+                    end
                 end
             endcase
         end
@@ -93,7 +101,7 @@ module garuda_pwm_top #(
     // =========================================================================
     wire [NUM_CHAN-1:0] clamp;
     wire           wrap;
-    wire [15:0]    count;
+    wire [HALF_W-1:0]    count;
 
     garuda_pwm_core #(.NUM_CHAN(NUM_CHAN)) u_core (
         .pclk(pclk), .preset_n(preset_n),
@@ -104,7 +112,7 @@ module garuda_pwm_top #(
     // =========================================================================
     // Events (D-21): [0] period boundary, [1] a duty was clamped
     // =========================================================================
-    wire [1:0] evt;
+    wire [EVT_W-1:0] evt;
     assign evt[0] = wrap;
     assign evt[1] = |clamp;
 
@@ -115,29 +123,32 @@ module garuda_pwm_top #(
     // the case. With the loop inside `default:` the index was assigned on one
     // branch only and synthesis inferred a latch for it; it also shared `k`
     // with the write block above, so two processes drove one variable.
-    reg [15:0] duty_rd;
+    reg [DUTY_W-1:0] duty_rd;
     integer    kr;
-    always @(*) begin
+    always_comb begin : c_duty_rd
         duty_rd = 16'd0;
-        for (kr = 0; kr < NUM_CHAN; kr = kr + 1)
-            if (ip_paddr == (A_DUTY0 + 12'd4 * kr[11:0]))
+        for (kr = 0; kr < NUM_CHAN; kr = kr + 1) begin
+            if (ip_paddr == (A_DUTY0 + 12'd4 * kr[11:0])) begin
                 duty_rd = duty_q[kr];
+            end
+        end
     end
 
-    reg [31:0] reg_rdata;
-    always @(*) begin
+    reg [WORD_W-1:0] reg_rdata;
+    always_comb begin : c_reg_rdata
         reg_rdata = 32'd0;
         case (ip_paddr)
             A_PRESCALE: reg_rdata = {16'd0, prescale_q};
-            A_PERIOD:   reg_rdata = {16'd0, period_q};
-            A_CTRL:     reg_rdata = {{(28-NUM_CHAN){1'b0}}, ch_en_q, 3'd0, en_q};
-            A_STATUS:   reg_rdata = {{(16-NUM_CHAN){1'b0}}, clamp, count};
-            default:    reg_rdata = {16'd0, duty_rd};
+            A_PERIOD: reg_rdata = {16'd0, period_q};
+            A_CTRL: reg_rdata = {{(28 - NUM_CHAN) {1'b0}}, ch_en_q, 3'd0, en_q};
+            A_STATUS: reg_rdata = {{(16 - NUM_CHAN) {1'b0}}, clamp, count};
+            default: reg_rdata = {16'd0, duty_rd};
         endcase
     end
 
     garuda_apb_shim #(
-        .N_EVT(2), .SYNC_W(1), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
+        .N_EVT(2), .SYNC_W(1), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT),
+            .IP_MAP(IP_MAP),
         .ADDR_SHIFT(0), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
@@ -148,12 +159,10 @@ module garuda_pwm_top #(
         .ip_paddr_o(ip_paddr), .ip_pwdata_o(ip_pwdata), .ip_prdata_i(reg_rdata),
         .ip_pready_i(1'b1),
         .evt_i(evt), .irq_o(irq_o),
-        .rx_avail_i(1'b0), .tx_space_i(1'b0),        // no DMA channel
+        .rx_avail_i(1'b0), .tx_space_i(1'b0),  // no DMA channel
         .dma_ack_i(1'b0), .dma_req_o(), .dmactl_o(dmactl),
         .pad_async_i(1'b0), .pad_sync_o());
 
     wire _unused = |{dmactl, ip_pwdata};
 
 endmodule
-
-`default_nettype wire

@@ -14,7 +14,6 @@
 -incdir rtl/ahb
 
 // Combinational leaves
-rtl/ahb/ahb_pkg.sv
 rtl/ahb/ahb_decoder.sv
 rtl/ahb/ahb_master_mux.sv
 

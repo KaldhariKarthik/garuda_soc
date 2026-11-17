@@ -41,14 +41,17 @@ def main():
     ap.add_argument("--fl", default="rtl/soc/filelist_chip.f")
     ap.add_argument("--map", nargs="*", default=[])
     ap.add_argument("--limit", default="30m")
+    ap.add_argument("--defines", nargs="*", default=[], help="extra +define+ names (e.g. GARUDA_RVFI)")
     ap.add_argument("--imp-root", default=ROOT, help="tree holding the rewritten RTL (default: this one)")
+    ap.add_argument("--reset", default=None, help="prove from reset (a reset expression, e.g. '!core_rst_n') "
+                    "instead of from any matched state: for rewrites that drop unreachable states")
     ap.add_argument("modules", nargs="+")
     a = ap.parse_args()
     rev = subprocess.check_output(["git", "rev-parse", "--short", a.base], cwd=ROOT).decode().strip()
     spec = os.path.join(ROOT, "sim/sec/base_" + rev)
     if not os.path.isdir(spec):
         os.makedirs(spec)
-        arch = subprocess.Popen(["git", "archive", rev, "rtl", "scripts"], cwd=ROOT, stdout=subprocess.PIPE)
+        arch = subprocess.Popen(["git", "archive", rev, "rtl", "scripts", "tb"], cwd=ROOT, stdout=subprocess.PIPE)
         subprocess.check_call(["tar", "-x", "-C", spec], stdin=arch.stdout)
         arch.wait()
     sf, si = expand(spec, a.fl)
@@ -59,20 +62,22 @@ def main():
         shutil.rmtree(d, ignore_errors=True)
         os.makedirs(d)
         maps = "".join("check_sec -map -spec {%s} -imp {%s}\n" % tuple(m.split("=", 1)) for m in a.map)
-        tcl = """check_sec -analyze -spec -sv09 +define+SYNTHESIS %s %s
-check_sec -analyze -imp  -sv09 +define+SYNTHESIS %s %s
+        dfs = "".join(" +define+" + x for x in a.defines)
+        tcl = """check_sec -analyze -spec -sv09 +define+SYNTHESIS%s %s %s
+check_sec -analyze -imp  -sv09 +define+SYNTHESIS%s %s %s
 check_sec -elaborate -spec -top %s -bbox_mul 128
 check_sec -elaborate -imp  -top %s -bbox_mul 128
 check_sec -setup
 %sclock -infer
-reset -none
+%s
 set_prove_time_limit %s
 check_sec -generate_verification
 check_sec -prove
 puts "SECRESULT [check_sec -signoff -get_valid_status]"
 puts "SECSUMMARY [get_property_list -include {status proven} -task <embedded>]"
 exit
-""" % (" ".join(si), " ".join(sf), " ".join(ji), " ".join(jf), mod, mod, maps, a.limit)
+""" % (dfs, " ".join(si), " ".join(sf), dfs, " ".join(ji), " ".join(jf), mod, mod, maps,
+       ("reset -expression {%s}" % a.reset) if a.reset else "reset -none", a.limit)
         with open(os.path.join(d, "sec.tcl"), "w") as fh:
             fh.write(tcl)
         log = os.path.join(d, "sec.log")
@@ -84,7 +89,7 @@ exit
             if attempt == 1 and "ECK040" in t:
                 # a combinational module: no clock to infer
                 with open(os.path.join(d, "sec.tcl"), "w") as fh:
-                    fh.write(tcl.replace("clock -infer\nreset -none", "clock -none\nreset -none"))
+                    fh.write(tcl.replace("clock -infer\n", "clock -none\n"))
                 shutil.rmtree(os.path.join(d, "proj"), ignore_errors=True)
                 continue
             break

@@ -1,10 +1,9 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 9 : beat engine and AHB-Lite master M3
 // dma_engine.v
 //
-// Spec: GARUDA-DMA-SPEC-001 Rev 3.0 §7.1, §7.2, §7.5, §7.7; AHB-SPEC §5.1
+// Spec: GARUDA-DMA-SPEC-001 Rev 3.0 Sec.7.1, Sec.7.2, Sec.7.5, Sec.7.7;
+// AHB-SPEC Sec.5.1
 //
 // One beat = a SINGLE read at SAR then a SINGLE write at DAR ([N-7.2]). The
 // channel is latched at the start of the read and cannot change until the
@@ -26,7 +25,7 @@
 //           DAR no longer costs a source read (a P2M FIFO item).
 //   DMA-10  a SAR or DAR not aligned to SIZE is refused the same way.
 //   DMA-14  SIZE is taken once, at the grant (size_l), so a CR write during the
-//           beat (CR = 0 stops a channel) cannot change the beat's size. SAR and
+// beat (CR = 0 stops a channel) cannot change the beat's size. SAR and
 //           DAR are taken at the grant too (sar_l, dar_l): the beat is atomic
 //           ([N-7.11]), so a DAR rewritten during the read can no longer turn a
 //           checked beat into a refused one after its source read (DMA-12).
@@ -38,163 +37,197 @@
 // no second transfer queued at that point, so nothing needs cancelling.
 // =============================================================================
 
-module dma_engine #(
-    parameter integer ACK_CYCLES = 2           // dma_ack width in hclk (D-16)
+module dma_engine
+    import garuda_pkg::*;
+#(
+    parameter integer ACK_CYCLES = 32'd2  // dma_ack width in hclk (D-16)
 )(
-    input  wire        hclk,
-    input  wire        hreset_n,
-
-    // ---- arbiter -----------------------------------------------------------------
-    input  wire        grant_valid_i,
-    input  wire [2:0]  grant_ch_i,
-
-    // ---- selected channel's registers ------------------------------------------
-    input  wire [6*32-1:0] sar_i,
-    input  wire [6*32-1:0] dar_i,
-    input  wire [6*2-1:0]  size_i,
-    input  wire [5:0]      m2m_i,              // channel n is in memory-to-memory mode
-
-    // ---- per-channel results -------------------------------------------------------
-    output reg  [5:0]  beat_done_o,
-    output reg  [5:0]  beat_err_o,
-    output reg  [2:0]  err_phase_o,
-    output wire [5:0]  dma_ack_o,
-
-    // ---- AHB-Lite master ---------------------------------------------------------------
-    output reg  [31:0] haddr_o,
-    output reg  [1:0]  htrans_o,
-    output reg         hwrite_o,
-    output reg  [2:0]  hsize_o,
-    output wire [2:0]  hburst_o,
-    output reg  [31:0] hwdata_o,
-    input  wire [31:0] hrdata_i,
-    input  wire        hready_i,
-    input  wire        hresp_i,
-
-    output wire        busy_o,
-    output wire [5:0]  inflight_o              // channel n has a beat from its grant to its result (DMA-9)
+    input wire hclk,
+    input wire hreset_n,
+    // ---- arbiter ------------------------------------------------------------
+    input wire grant_valid_i,
+    input wire [DMA_CH_W-1:0] grant_ch_i,
+    // ---- selected channel's registers ---------------------------------------
+    input wire [DMA_NCH * WORD_W - 1:0] sar_i,
+    input wire [DMA_NCH * WORD_W - 1:0] dar_i,
+    input wire [DMA_NCH * DMA_SIZE_W - 1:0] size_i,
+    input wire [DMA_NCH-1:0] m2m_i,  // channel n is in memory-to-memory mode
+    // ---- per-channel results ------------------------------------------------
+    output reg [DMA_NCH-1:0] beat_done_o,
+    output reg [DMA_NCH-1:0] beat_err_o,
+    output reg [ERR_PHASE_W-1:0] err_phase_o,
+    output wire [DMA_NCH-1:0] dma_ack_o,
+    // ---- AHB-Lite master ----------------------------------------------------
+    output reg [WORD_W-1:0] haddr_o,
+    output reg [HTRANS_W-1:0] htrans_o,
+    output reg hwrite_o,
+    output reg [HSIZE_W-1:0] hsize_o,
+    output wire [HBURST_W-1:0] hburst_o,
+    output reg [WORD_W-1:0] hwdata_o,
+    input wire [WORD_W-1:0] hrdata_i,
+    input wire hready_i,
+    input wire hresp_i,
+    output wire busy_o,
+    // channel n has a beat from its grant to its result (DMA-9)
+    output wire [DMA_NCH-1:0] inflight_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned ST_W = 32'd3;
+    localparam int unsigned CH_W = 32'd3;
+    localparam int unsigned ACK_W = 32'd6;
+    localparam int unsigned ACK_CNT_W = 32'd2;
+    localparam int unsigned SZ_W = 32'd2;
 
-    localparam [2:0] E_IDLE = 3'd0, E_RA = 3'd1, E_RD = 3'd2, E_WA = 3'd3, E_WD = 3'd4;
+    localparam [2:0] E_IDLE = 3'd0, E_RA = 3'd1, E_RD = 3'd2, E_WA = 3'd3, E_WD
+        = 3'd4;
 
-    reg  [2:0]  st;
-    reg  [2:0]  ch;
-    reg  [31:0] data_q;
-    reg  [1:0]  size_l;                        // DMA-14: the beat's SIZE, taken at the grant
-    reg  [31:0] sar_l, dar_l;                  // the beat's addresses, taken at the grant
-    reg         m2m_l;                         // DMA-15: the beat's channel is M2M
+    reg  [ST_W-1:0]  st;
+    reg  [CH_W-1:0]  ch;
+    reg  [WORD_W-1:0] data_q;
+    reg  [DMA_SIZE_W-1:0]  size_l;  // DMA-14: the beat's SIZE, taken at the grant
+    // the beat's addresses, taken at the grant
+    reg [WORD_W-1:0] sar_l;
+    reg [WORD_W-1:0] dar_l;
+    reg         m2m_l;  // DMA-15: the beat's channel is M2M
 
-    wire [31:0] sar  = sar_l;
-    wire [31:0] dar  = dar_l;
-    wire [1:0]  size = size_l;
+    wire [WORD_W-1:0] sar  = sar_l;
+    wire [WORD_W-1:0] dar  = dar_l;
+    wire [DMA_SIZE_W-1:0]  size = size_l;
 
     // DMA-10: an address must be aligned to the beat size
-    function automatic misaligned(input [31:0] a, input [1:0] sz);
+    function automatic misaligned(input [WORD_W-1:0] a, input [SZ_W-1:0] sz);
         misaligned = (sz == 2'd1 && a[0]) || (sz == 2'd2 && a[1:0] != 2'b00);
     endfunction
-    wire sar_bad = (sar[31:28] == 4'h0) || (sar[31:28] == 4'h1) || misaligned(sar, size);
-    wire dar_bad = (dar[31:28] == 4'h0) || (dar[31:28] == 4'h1) || misaligned(dar, size);
+    wire sar_bad = (sar[31:28] == 4'h0) || (sar[31:28] == 4'h1)
+        || misaligned(sar, size);
+    wire dar_bad = (dar[31:28] == 4'h0) || (dar[31:28] == 4'h1)
+        || misaligned(dar, size);
 
     // DMA-13: ack_cnt is two bits wide
-    generate if (ACK_CYCLES < 1 || ACK_CYCLES > 4) begin : g_ack_cycles_out_of_range
-        dma_ACK_CYCLES_must_be_1_to_4 u_stop ();     // no such module: elaboration stops here
+    generate if (ACK_CYCLES < 1 || ACK_CYCLES > 4) begin
+        : g_ack_cycles_out_of_range
+        // no such module: elaboration stops here
+        dma_ACK_CYCLES_must_be_1_to_4 u_stop ();
     end endgenerate
 
     // lane extraction and replication for sub-word beats
-    wire [7:0]  rd_byte = hrdata_i >> (8 * sar[1:0]);
-    wire [15:0] rd_half = sar[1] ? hrdata_i[31:16] : hrdata_i[15:0];
-    wire [31:0] rd_repl = (size == 2'd0) ? {4{rd_byte}} :
+    wire [BYTE_W-1:0]  rd_byte = hrdata_i >> (8 * sar[1:0]);
+    wire [HALF_W-1:0] rd_half = sar[1] ? hrdata_i[31:16] : hrdata_i[15:0];
+    wire [WORD_W-1:0] rd_repl = (size == 2'd0) ? {4{rd_byte}} :
                           (size == 2'd1) ? {2{rd_half}} : hrdata_i;
 
     // dma_ack stretch
-    reg [5:0] ack_q;
-    reg [1:0] ack_cnt;
+    reg [ACK_W-1:0] ack_q;
+    reg [ACK_CNT_W-1:0] ack_cnt;
 
-    assign hburst_o = 3'b000;                  // SINGLE only
+    assign hburst_o = 3'b000;  // SINGLE only
     assign busy_o   = (st != E_IDLE);
-    wire   take     = (st == E_IDLE) && grant_valid_i && (beat_done_o == 6'd0) && (beat_err_o == 6'd0);
-    assign inflight_o = (st != E_IDLE) ? (6'd1 << ch) : (take ? (6'd1 << grant_ch_i) : 6'd0);
+    wire take = (st == E_IDLE) && grant_valid_i && (beat_done_o == 6'd0)
+        && (beat_err_o == 6'd0);
+    assign inflight_o = (st != E_IDLE) ? (6'd1 << ch)
+        : (take ? (6'd1 << grant_ch_i) : 6'd0);
     assign dma_ack_o = ack_q;
 
-    always @(posedge hclk or negedge hreset_n) begin
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_st
         if (!hreset_n) begin
-            st <= E_IDLE; ch <= 3'd0; data_q <= 32'd0; size_l <= 2'd2; m2m_l <= 1'b0;
-            sar_l <= 32'd0; dar_l <= 32'd0;
-            haddr_o <= 32'd0; htrans_o <= 2'b00; hwrite_o <= 1'b0;
-            hsize_o <= 3'b010; hwdata_o <= 32'd0;
-            beat_done_o <= 6'd0; beat_err_o <= 6'd0; err_phase_o <= 3'd0;
-            ack_q <= 6'd0; ack_cnt <= 2'd0;
+            st <= E_IDLE;
+            ch <= 3'd0;
+            data_q <= 32'd0;
+            size_l <= 2'd2;
+            m2m_l <= 1'b0;
+            sar_l <= 32'd0;
+            dar_l <= 32'd0;
+            haddr_o <= 32'd0;
+            htrans_o <= 2'b00;
+            hwrite_o <= 1'b0;
+            hsize_o <= 3'b010;
+            hwdata_o <= 32'd0;
+            beat_done_o <= 6'd0;
+            beat_err_o <= 6'd0;
+            err_phase_o <= 3'd0;
+            ack_q <= 6'd0;
+            ack_cnt <= 2'd0;
         end else begin
             beat_done_o <= 6'd0;
-            beat_err_o  <= 6'd0;
-
-            if (ack_cnt != 2'd0) ack_cnt <= ack_cnt - 2'd1;
-            else                 ack_q   <= 6'd0;
-
+            beat_err_o <= 6'd0;
+            if (ack_cnt != 2'd0) begin
+                ack_cnt <= ack_cnt - 2'd1;
+            end else begin
+                ack_q <= 6'd0;
+            end
             case (st)
                 E_IDLE: begin
                     // Not in the cycle a result is being reported: the channel
                     // has not yet decremented REMAINING / set its taken flag,
                     // so its eligibility is stale (would duplicate a beat).
                     if (take) begin
-                        ch     <= grant_ch_i;
-                        size_l <= size_i[2*grant_ch_i +: 2];
-                        sar_l  <= sar_i[32*grant_ch_i +: 32];
-                        dar_l  <= dar_i[32*grant_ch_i +: 32];
-                        m2m_l  <= m2m_i[grant_ch_i];
-                        st     <= E_RA;
+                        ch <= grant_ch_i;
+                        size_l <= size_i[2 * grant_ch_i+:2];
+                        sar_l <= sar_i[32 * grant_ch_i+:32];
+                        dar_l <= dar_i[32 * grant_ch_i+:32];
+                        m2m_l <= m2m_i[grant_ch_i];
+                        st <= E_RA;
                     end
                 end
                 E_RA: begin
-                    // present the read, or refuse a forbidden or misaligned source
-                    // or destination before any bus access (DMA-12, DMA-10)
+                    // present the read, or refuse a forbidden or misaligned
+                    // source or destination before any bus access (DMA-12,
+                    // DMA-10)
                     if (sar_bad) begin
-                        beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd1;
+                        beat_err_o[ch] <= 1'b1;
+                        err_phase_o <= 3'd1;
                         st <= E_IDLE;
                     end else if (dar_bad) begin
-                        beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd2;
+                        beat_err_o[ch] <= 1'b1;
+                        err_phase_o <= 3'd2;
                         st <= E_IDLE;
                     end else begin
-                        haddr_o  <= sar;
-                        htrans_o <= 2'b10;      // NONSEQ
+                        haddr_o <= sar;
+                        htrans_o <= 2'b10;  // NONSEQ
                         hwrite_o <= 1'b0;
-                        hsize_o  <= {1'b0, size};
-                        st       <= E_RD;
+                        hsize_o <= {1'b0, size};
+                        st <= E_RD;
                     end
                 end
                 E_RD: begin
-                    if (htrans_o[1] && hready_i) htrans_o <= 2'b00;    // address accepted
-                    else if (!htrans_o[1] && hready_i) begin           // data phase done
+                    if (htrans_o[1] && hready_i) begin
+                        htrans_o <= 2'b00;  // address accepted
+                    // data phase done
+                    end else if (!htrans_o[1] && hready_i) begin
                         if (hresp_i) begin
-                            beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd1;
+                            beat_err_o[ch] <= 1'b1;
+                            err_phase_o <= 3'd1;
                             st <= E_IDLE;
                         end else begin
                             data_q <= rd_repl;
-                            st     <= E_WA;
+                            st <= E_WA;
                         end
                     end
                 end
                 E_WA: begin
                     // DAR was checked in E_RA and cannot change during the beat
-                    haddr_o  <= dar;
+                    haddr_o <= dar;
                     htrans_o <= 2'b10;
                     hwrite_o <= 1'b1;
-                    hsize_o  <= {1'b0, size};
-                    st       <= E_WD;
+                    hsize_o <= {1'b0, size};
+                    st <= E_WD;
                 end
                 E_WD: begin
-                    if (htrans_o[1] && hready_i) begin                 // address accepted
+                    if (htrans_o[1] && hready_i) begin  // address accepted
                         htrans_o <= 2'b00;
-                        hwdata_o <= data_q;                            // data phase next
-                    end else if (!htrans_o[1] && hready_i) begin      // data phase done
+                        hwdata_o <= data_q;  // data phase next
+                    // data phase done
+                    end else if (!htrans_o[1] && hready_i) begin
                         hwrite_o <= 1'b0;
                         if (hresp_i) begin
-                            beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd2;
+                            beat_err_o[ch] <= 1'b1;
+                            err_phase_o <= 3'd2;
                         end else begin
                             beat_done_o[ch] <= 1'b1;
-                            if (!m2m_l) begin                          // DMA-15
+                            if (!m2m_l) begin  // DMA-15
                                 ack_q[ch] <= 1'b1;
-                                ack_cnt   <= ACK_CYCLES - 1;
+                                ack_cnt <= ACK_CYCLES - 1;
                             end
                         end
                         st <= E_IDLE;
@@ -206,5 +239,3 @@ module dma_engine #(
     end
 
 endmodule
-
-`default_nettype wire

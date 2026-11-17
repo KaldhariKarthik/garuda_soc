@@ -1,13 +1,11 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - shared peripheral shim (APB window front end)
 // garuda_apb_shim.v
 //
 // Spec: Docs/DECISIONS.md D-21 (peripheral IRQ / DMA contract), D-6 (window
 //       map), D-16 (dma_ack width), D-17 (held level interrupts);
-//       GARUDA-AHB2APB-SPEC-001 §7.4 (word-only), §7.5 (16-pclk timeout),
-//       §7.7 (PSLVERR); GARUDA-CLIC-SPEC-001 §7.2 (level-triggered sources).
+//       GARUDA-AHB2APB-SPEC-001 Sec.7.4 (word-only), Sec.7.5 (16-pclk timeout),
+// Sec.7.7 (PSLVERR); GARUDA-CLIC-SPEC-001 Sec.7.2 (level-triggered sources).
 //
 // Every peripheral window in this chip presents the same front end, whatever
 // the IP behind it does natively. This module is that front end, instantiated
@@ -25,7 +23,8 @@
 //     offset 4n is a register. Before 2026-10-13 everything below IP_LIMIT was
 //     passed on, so a hole in the vendored register file (GPIO 0x20, 0x2C to
 //     0x7C; SPI master 0x1C, 0x2C to 0xFC; I2C 0x1C) and every offset that is
-//     not word aligned answered without an error (Docs/bugs/archive/BUGS_HISTORY.md AUD-13, GPIO-2).
+// not word aligned answered without an error (Docs/bugs/archive/BUGS_HISTORY.md
+// AUD-13, GPIO-2).
 //     The rule of the chip is one: PSLVERR exactly where there is no register.
 //  2. PREADY is driven high, always. The bridge abandons a transfer after 16
 //     pclk ([N-7.15]), so a peripheral must never stall; ip_pready_i is
@@ -50,7 +49,7 @@
 // -----------------------------------------------------------------------------
 //   0xFE0 IRQSTAT  W1C, sticky   one bit per evt_i
 //   0xFE4 IRQEN    RW            irq_o = |(IRQSTAT & IRQEN)
-//   0xFE8 DMACTL   RW            [0] request on RX data, [1] request on TX space
+// 0xFE8 DMACTL RW [0] request on RX data, [1] request on TX space
 //   0xFEC ID       RO            {16'h6A5D, block number, revision}
 //
 // DMACTL[1:0] are meant to be used one at a time: a window owns one DMA
@@ -58,54 +57,55 @@
 // ORs the two conditions.
 // =============================================================================
 
-module garuda_apb_shim #(
-    parameter integer N_EVT     = 4,        // interrupt sources from the IP
-    parameter integer SYNC_W    = 1,        // asynchronous pad inputs to sync
-    parameter [7:0]   SYNC_RESET = 8'h00,   // idle level of each synced pad
-    parameter [11:0]  IP_LIMIT  = 12'h100,  // offsets < IP_LIMIT belong to the IP (at most 0x100)
-    parameter [63:0]  IP_MAP    = {64{1'b1}}, // bit n: offset 4n is a register of the IP
-    parameter integer ADDR_SHIFT = 0,       // 2 = re-map word offsets onto a
+module garuda_apb_shim
+    import garuda_pkg::*;
+#(
+    parameter integer N_EVT     = 32'd4,  // interrupt sources from the IP
+    parameter integer SYNC_W    = 32'd1,  // asynchronous pad inputs to sync
+    parameter [7:0]   SYNC_RESET = 8'h00,  // idle level of each synced pad
+    // offsets < IP_LIMIT belong to the IP (at most 0x100)
+    parameter [11:0]  IP_LIMIT  = 12'h100,
+    // bit n: offset 4n is a register of the IP
+    parameter [63:0]  IP_MAP    = {64{1'b1}},
+    parameter integer ADDR_SHIFT = 32'd0,  // 2 = re-map word offsets onto a
                                             //     byte-addressed IP (16550)
     parameter [7:0]   BLOCK_NUM = 8'd0,
     parameter [7:0]   BLOCK_REV = 8'd1
 )(
-    input  wire        pclk,
-    input  wire        preset_n,
-
+    input wire pclk,
+    input wire preset_n,
     // ---- APB from the bridge ------------------------------------------------
-    input  wire        psel_i,
-    input  wire        penable_i,
-    input  wire        pwrite_i,
-    input  wire [11:0] paddr_i,
-    input  wire [31:0] pwdata_i,
-    output reg  [31:0] prdata_o,
-    output wire        pready_o,
-    output wire        pslverr_o,
-
+    input wire psel_i,
+    input wire penable_i,
+    input wire pwrite_i,
+    input wire [PADDR_W-1:0] paddr_i,
+    input wire [WORD_W-1:0] pwdata_i,
+    output reg [WORD_W-1:0] prdata_o,
+    output wire pready_o,
+    output wire pslverr_o,
     // ---- APB to the vendored IP ---------------------------------------------
-    output wire        ip_psel_o,
-    output wire        ip_penable_o,
-    output wire        ip_pwrite_o,
-    output wire [11:0] ip_paddr_o,
-    output wire [31:0] ip_pwdata_o,
-    input  wire [31:0] ip_prdata_i,
-    input  wire        ip_pready_i,        // watched, not used (see assertion)
-
+    output wire ip_psel_o,
+    output wire ip_penable_o,
+    output wire ip_pwrite_o,
+    output wire [PADDR_W-1:0] ip_paddr_o,
+    output wire [WORD_W-1:0] ip_pwdata_o,
+    input wire [WORD_W-1:0] ip_prdata_i,
+    input wire ip_pready_i,  // watched, not used (see assertion)
     // ---- interrupts ---------------------------------------------------------
-    input  wire [N_EVT-1:0] evt_i,
-    output wire             irq_o,
-
+    input wire [N_EVT - 1:0] evt_i,
+    output wire irq_o,
     // ---- DMA ----------------------------------------------------------------
-    input  wire        rx_avail_i,         // IP has a byte/word to read
-    input  wire        tx_space_i,         // IP can accept a byte/word
-    input  wire        dma_ack_i,          // 2 hclk = 1 pclk (D-16)
-    output wire        dma_req_o,
-    output wire [1:0]  dmactl_o,           // exposed so the wrapper can gate
-
+    input wire rx_avail_i,  // IP has a byte/word to read
+    input wire tx_space_i,  // IP can accept a byte/word
+    input wire dma_ack_i,  // 2 hclk = 1 pclk (D-16)
+    output wire dma_req_o,
+    output wire [DMACTL_W-1:0] dmactl_o,  // exposed so the wrapper can gate
     // ---- pad input synchronisers --------------------------------------------
-    input  wire [SYNC_W-1:0] pad_async_i,
-    output wire [SYNC_W-1:0] pad_sync_o
+    input wire [SYNC_W - 1:0] pad_async_i,
+    output wire [SYNC_W - 1:0] pad_sync_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     localparam [11:0] A_IRQSTAT = 12'hFE0, A_IRQEN = 12'hFE4,
                       A_DMACTL  = 12'hFE8, A_ID    = 12'hFEC;
@@ -114,7 +114,8 @@ module garuda_apb_shim #(
     wire wr     = apb_access & pwrite_i;
 
     // a register of the IP: below the limit, word aligned, and in the map
-    wire in_ip   = (paddr_i < IP_LIMIT) & (paddr_i[1:0] == 2'b00) & IP_MAP[paddr_i[7:2]];
+    wire in_ip = (paddr_i < IP_LIMIT) &(paddr_i[1:0] == 2'b00)
+        &IP_MAP[paddr_i[7:2]];
     wire in_tail = (paddr_i == A_IRQSTAT) | (paddr_i == A_IRQEN) |
                    (paddr_i == A_DMACTL)  | (paddr_i == A_ID);
     wire hit     = in_ip | in_tail;
@@ -132,18 +133,21 @@ module garuda_apb_shim #(
     // =========================================================================
     // Interrupt status: sticky capture, W1C
     // =========================================================================
-    reg [N_EVT-1:0] irqstat_q, irqen_q;
+    reg [N_EVT-1:0] irqstat_q;
+    reg [N_EVT-1:0] irqen_q;
     wire [N_EVT-1:0] w1c = (wr && paddr_i == A_IRQSTAT) ? pwdata_i[N_EVT-1:0]
                                                         : {N_EVT{1'b0}};
-    always @(posedge pclk or negedge preset_n) begin
+    always_ff @(posedge pclk or negedge preset_n) begin : p_irqstat
         if (!preset_n) begin
-            irqstat_q <= {N_EVT{1'b0}};
-            irqen_q   <= {N_EVT{1'b0}};
+            irqstat_q <= {N_EVT {1'b0}};
+            irqen_q <= {N_EVT {1'b0}};
         end else begin
             // set beats clear: an event arriving in the same cycle as its W1C
             // is not lost (the DSU's FLAG-E rule, applied here)
             irqstat_q <= (irqstat_q & ~w1c) | evt_i;
-            if (wr && paddr_i == A_IRQEN) irqen_q <= pwdata_i[N_EVT-1:0];
+            if (wr && paddr_i == A_IRQEN) begin
+                irqen_q <= pwdata_i[N_EVT - 1:0];
+            end
         end
     end
     assign irq_o = |(irqstat_q & irqen_q);
@@ -151,19 +155,22 @@ module garuda_apb_shim #(
     // =========================================================================
     // DMA request with one-pclk hold-off after every ack (D-21)
     // =========================================================================
-    reg [1:0] dmactl_q;
+    reg [DMACTL_W-1:0] dmactl_q;
     reg       holdoff_q;
-    always @(posedge pclk or negedge preset_n) begin
+    always_ff @(posedge pclk or negedge preset_n) begin : p_dmactl
         if (!preset_n) begin
-            dmactl_q  <= 2'b00;
+            dmactl_q <= 2'b00;
             holdoff_q <= 1'b0;
         end else begin
-            if (wr && paddr_i == A_DMACTL) dmactl_q <= pwdata_i[1:0];
-            holdoff_q <= dma_ack_i;          // one pclk of guaranteed deassertion
+            if (wr && paddr_i == A_DMACTL) begin
+                dmactl_q <= pwdata_i[1:0];
+            end
+            holdoff_q <= dma_ack_i;  // one pclk of guaranteed deassertion
         end
     end
     assign dmactl_o  = dmactl_q;
-    assign dma_req_o = ((dmactl_q[0] & rx_avail_i) | (dmactl_q[1] & tx_space_i)) &
+    assign dma_req_o = ((dmactl_q[0] & rx_avail_i) | (dmactl_q[1] & tx_space_i))
+        &
                        ~holdoff_q & ~dma_ack_i;
 
     // =========================================================================
@@ -171,8 +178,9 @@ module garuda_apb_shim #(
     // =========================================================================
     localparam [SYNC_W-1:0] SYNC_IDLE = SYNC_RESET[SYNC_W-1:0];
 
-    reg [SYNC_W-1:0] sync0_q, sync1_q;
-    always @(posedge pclk or negedge preset_n) begin
+    reg [SYNC_W-1:0] sync0_q;
+    reg [SYNC_W-1:0] sync1_q;
+    always_ff @(posedge pclk or negedge preset_n) begin : p_synczero
         if (!preset_n) begin
             sync0_q <= SYNC_IDLE;
             sync1_q <= SYNC_IDLE;
@@ -186,33 +194,41 @@ module garuda_apb_shim #(
     // =========================================================================
     // Response
     // =========================================================================
-    always @(*) begin
-        if      (in_ip)                 prdata_o = ip_prdata_i;
-        else if (paddr_i == A_IRQSTAT)  prdata_o = {{(32-N_EVT){1'b0}}, irqstat_q};
-        else if (paddr_i == A_IRQEN)    prdata_o = {{(32-N_EVT){1'b0}}, irqen_q};
-        else if (paddr_i == A_DMACTL)   prdata_o = {30'd0, dmactl_q};
-        else if (paddr_i == A_ID)       prdata_o = {16'h6A5D, BLOCK_NUM, BLOCK_REV};
-        else                            prdata_o = 32'd0;
+    always_comb begin : c_prdata
+        if (in_ip) begin
+            prdata_o = ip_prdata_i;
+        end else if (paddr_i == A_IRQSTAT) begin
+            prdata_o = {{(32 - N_EVT) {1'b0}}, irqstat_q};
+        end else if (paddr_i == A_IRQEN) begin
+            prdata_o = {{(32 - N_EVT) {1'b0}}, irqen_q};
+        end else if (paddr_i == A_DMACTL) begin
+            prdata_o = {30'd0, dmactl_q};
+        end else if (paddr_i == A_ID) begin
+            prdata_o = {16'h6A5D, BLOCK_NUM, BLOCK_REV};
+        end else begin
+            prdata_o = 32'd0;
+        end
     end
 
-    assign pready_o  = 1'b1;                       // never stall the bridge
+    assign pready_o  = 1'b1;  // never stall the bridge
     assign pslverr_o = apb_access & ~hit;
 
 `ifndef SYNTHESIS
     // the map has 64 bits, one per word of the first 0x100 offsets
     initial if (IP_LIMIT > 12'h100) begin
-        $display("[SHIM-ASSERT] block %0d: IP_LIMIT 0x%03h is above 0x100, which IP_MAP cannot describe", BLOCK_NUM, IP_LIMIT);
+        $display("[SHIM-ASSERT] block %0d: IP_LIMIT 0x%03h is above 0x100, which IP_MAP cannot describe",
+            BLOCK_NUM, IP_LIMIT);
         $finish;
     end
     // The one upstream behaviour that would break the SoC rather than a test:
     // an IP that deasserts PREADY while it finishes a wire transaction. All
     // four vendored IPs tie it high; this fires if a re-vendor changes that.
-    always @(posedge pclk)
-        if (preset_n && ip_psel_o && !ip_pready_i)
+    always_ff @(posedge pclk) begin : p_blk
+        if (preset_n && ip_psel_o && !ip_pready_i) begin
             $display("[SHIM-ASSERT] block %0d: IP deasserted PREADY at %0t - the bridge will time out",
-                     BLOCK_NUM, $time);
+                BLOCK_NUM, $time);
+        end
+    end
 `endif
 
 endmodule
-
-`default_nettype wire

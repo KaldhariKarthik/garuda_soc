@@ -95,6 +95,30 @@ def expand(path, seen, srcs, incs, defs):
                     srcs.append(line)
 
 
+# The RTL packages, in dependency order (zero-waiver F4, 2026-11-16: the former
+# `define headers). A source that imports one gets it in front of the list, once,
+# even when the filelist handed in is a block list that does not name it: a
+# package must be compiled exactly once per run (Xcelium DLCSMD), so nested
+# filelists never list packages and only root lists include
+# rtl/common/filelist_pkg.f.
+PACKAGES = [("garuda_pkg", "rtl/common/garuda_pkg.sv"), ("core_ex_pkg", "rtl/core/core_ex_pkg.sv"),
+            ("ahb_pkg", "rtl/ahb/ahb_pkg.sv"), ("dsu_pkg", "rtl/dsu/dsu_pkg.sv"),
+            ("mem_pkg", "rtl/mem/mem_pkg.sv"), ("soc_map_pkg", "rtl/include/soc_map_pkg.sv")]
+
+
+def add_packages(srcs):
+    import re
+    need = set()
+    for s in srcs:
+        try:
+            with open(s, encoding="utf-8", errors="replace") as fh:
+                need |= set(re.findall(r"\bimport\s+(\w+)::", fh.read()))
+        except OSError:
+            pass
+    front = [f for name, f in PACKAGES if name in need and f not in srcs]
+    srcs[0:0] = front
+
+
 def main():
     if len(sys.argv) < 2:
         sys.stderr.write(__doc__)
@@ -117,6 +141,7 @@ def main():
 
     srcs, incs, defs = [], [], []
     expand(top, set(), srcs, incs, defs)
+    add_packages(srcs)
 
     missing = [s for s in srcs if not os.path.exists(s)]
     if missing:

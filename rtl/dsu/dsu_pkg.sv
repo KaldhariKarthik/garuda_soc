@@ -1,6 +1,6 @@
 // dsu_pkg.sv - constants of the former dsu_defs.vh
-// (zero-waiver F4, 2026-11-16: compiler directives leave the RTL, HAL CDNOTE; only the
-// constants the chip uses are here, HAL USEPAR).
+// (zero-waiver F4, 2026-11-16: compiler directives leave the RTL, HAL CDNOTE;
+// only the constants the chip uses are here, HAL USEPAR).
 package dsu_pkg;
     localparam ACC_FX = 2'b00;
     localparam ACC_FY = 2'b01;

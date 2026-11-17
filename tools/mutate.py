@@ -41,7 +41,7 @@ for mname, f, old, new in cfg["MUTANTS"]:
                         " && timeout 600 vvp %s/sim.vvp %s >> %s/run.log 2>&1"
                         % (cfg["TOP"], ex, ex, d, ex, d, d, cfg.get("ICARUS_ARGS", args), d), shell=True)
     else:
-        subprocess.call("irun -64bit -sv -assert -f %s/files.f -top %s %s -nclibdirname %s/INCA -l %s/run.log >/dev/null 2>&1"
+        subprocess.call("irun -64bit -sv -assert -f rtl/common/filelist_pkg.f -f %s/files.f -top %s %s -nclibdirname %s/INCA -l %s/run.log >/dev/null 2>&1"
                         % (d, cfg["TOP"], args, d, d), shell=True)
     log = open(d + "/run.log", errors="replace").read()
     fired = sorted(set(re.findall(r"\[SVA-FAIL\] (a_\w+)", log)))

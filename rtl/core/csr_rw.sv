@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 //=============================================================================
 // GARUDA SoC -- Block I: Processor Core
 // csr_rw.v -- EX-stage CSR read-modify-write seam (CSR_RW block)
@@ -28,27 +26,30 @@
 // belongs to the Hazard unit and is noted here as the integration hook.
 //=============================================================================
 
-module csr_rw (
+module csr_rw
+    import garuda_pkg::*;
+(
     // id_ex payload
-    input  wire [31:0] instr,       // EX-stage instruction word
-    input  wire [31:0] rs1_fwd,     // forwarded rs1 (register variants)
+    input wire [WORD_W-1:0] instr,  // EX-stage instruction word
+    input wire [WORD_W-1:0] rs1_fwd,  // forwarded rs1 (register variants)
     // ctrl
-    input  wire        csr_en,      // SYSTEM CSRR* in EX
-    input  wire        csr_imm,     // 1 = immediate variant (funct3[2])
-    input  wire [1:0]  csr_op,      // CSR_RW / CSR_RS / CSR_RC (= funct3[1:0])
+    input wire csr_en,  // SYSTEM CSRR* in EX
+    input wire csr_imm,  // 1 = immediate variant (funct3[2])
+    input wire [CSR_OP_W-1:0] csr_op,  // CSR_RW / CSR_RS / CSR_RC (= funct3[1:0])
     // exchange with CONTROL/CSR block
-    output wire [11:0] csr_addr,
-    output wire [31:0] csr_wdata,
-    output wire [1:0]  csr_op_out,
-    output wire        csr_en_out
+    output wire [CSR_ADDR_W-1:0] csr_addr,
+    output wire [WORD_W-1:0] csr_wdata,
+    output wire [CSR_OP_W-1:0] csr_op_out,
+    output wire csr_en_out
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     assign csr_addr   = instr[31:20];
-    assign csr_wdata  = csr_imm ? {27'b0, instr[19:15]}   // zero-extended uimm
+    // zero-extended uimm
+    assign csr_wdata = csr_imm ? {27'b000000000000000000000000000, instr[19:15]}
                                 : rs1_fwd;
     assign csr_op_out = csr_op;
     assign csr_en_out = csr_en;
 
 endmodule
-
-`default_nettype wire

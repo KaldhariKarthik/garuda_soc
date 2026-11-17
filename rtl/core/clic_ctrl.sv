@@ -1,9 +1,8 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core
 // clic_ctrl.v - CLIC interrupt take and wake conditions
-// Spec: GARUDA-CORE-SPEC-001 Rev 3.0 §7.5, GARUDA-CLIC-SPEC-001 Rev 2.0 §7.4
+// Spec: GARUDA-CORE-SPEC-001 Rev 3.0 Sec.7.5, GARUDA-CLIC-SPEC-001 Rev 2.0
+// Sec.7.4
 //
 // Core runs CLIC-mode (mtvec.MODE = 3). Block 10 presents the winning source
 // as {valid, id[4:0], level[7:0]}; the take decision is made here, next to the
@@ -18,38 +17,43 @@
 // cleared in its own peripheral, and every trap enters at mtvec BASE (D-15).
 // =============================================================================
 
-module clic_ctrl #(
-    parameter ID_W = 5
+module clic_ctrl
+    import garuda_pkg::*;
+#(
+    parameter integer ID_W = 32'd5
 )(
-    // external CLIC interface (GARUDA-CLIC-SPEC-001 §5): winning id + level,
+    // external CLIC interface (GARUDA-CLIC-SPEC-001 Sec.5): winning id + level,
     // level-triggered - there is no acknowledge and no SHV in Rev 4.0.
-    input  wire            clic_irq_valid_i,
-    input  wire [ID_W-1:0] clic_irq_id_i,
-    input  wire [7:0]      clic_irq_level_i,
-
+    input wire clic_irq_valid_i,
+    input wire [ID_W - 1:0] clic_irq_id_i,
+    input wire [CLIC_LVL_W-1:0] clic_irq_level_i,
     // from csr_file
-    input  wire            mstatus_mie_i,
-    input  wire [7:0]      mintthresh_i,
-    input  wire [7:0]      mintstatus_mil_i,
+    input wire mstatus_mie_i,
+    input wire [BYTE_W-1:0] mintthresh_i,
+    input wire [BYTE_W-1:0] mintstatus_mil_i,
     // ERRATUM CORE-4 (pre-M0 item C, 2026-10-11): mgarudactl (CSR 0x7C0) lets
-    // firmware turn this feature off if it is found broken in silicon. Timing only:
-    // architectural results are the same with the bit set (sw/tests/t_core_ctl.S).
-    input  wire            preempt_dis_i,    // mgarudactl.PREEMPT_DIS: take only at level 0
-    input  wire [31:0]     mtvec_i,          // BASE, 4-byte aligned
-
+    // firmware turn this feature off if it is found broken in silicon. Timing
+    // only: architectural results are the same with the bit set
+    // (sw/tests/t_core_ctl.S).
+    input wire preempt_dis_i,  // mgarudactl.PREEMPT_DIS: take only at level 0
+    input wire [WORD_W-1:0] mtvec_i,  // BASE, 4-byte aligned
     // to trap_ctrl
-    output wire            take_cond_o,      // CORE [N-7.15]
-    output wire            wake_cond_o,      // CORE [N-7.27], MIE-independent
-    output wire [ID_W-1:0] irq_id_o,
-    output wire [7:0]      irq_lvl_o,
-    output wire [31:0]     vector_target_o
+    output wire take_cond_o,  // CORE [N-7.15]
+    output wire wake_cond_o,  // CORE [N-7.27], MIE-independent
+    output wire [ID_W - 1:0] irq_id_o,
+    output wire [BYTE_W-1:0] irq_lvl_o,
+    output wire [WORD_W-1:0] vector_target_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
     // Both comparisons strictly greater ([N-7.16]).
     wire lvl_gt_thresh = (clic_irq_level_i > mintthresh_i);
     wire lvl_gt_active = (clic_irq_level_i > mintstatus_mil_i);
 
-    assign take_cond_o = clic_irq_valid_i & mstatus_mie_i & lvl_gt_thresh & lvl_gt_active &
-                         (~preempt_dis_i | (mintstatus_mil_i == 8'd0));        // CORE-4: PREEMPT_DIS
+    assign take_cond_o = clic_irq_valid_i &mstatus_mie_i &lvl_gt_thresh
+        &lvl_gt_active &
+                         // CORE-4: PREEMPT_DIS
+                         (~preempt_dis_i | (mintstatus_mil_i == 8'd0));
     assign wake_cond_o = clic_irq_valid_i;
 
     assign irq_id_o    = clic_irq_id_i;
@@ -59,4 +63,3 @@ module clic_ctrl #(
     // handler reads mcause[4:0] for the source id.
     assign vector_target_o = mtvec_i;
 endmodule
-`default_nettype wire

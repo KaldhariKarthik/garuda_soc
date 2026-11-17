@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core
 // pipe_ctrl.v - Pipeline Stall / Flush Composition + Redirect Mux
@@ -10,7 +8,7 @@
 // lines and generates per-register flushes, and selects the fetch redirect.
 //
 // Redirect priority (Sec. 12 / 14.4): trap/MRET > EX (JALR / mispredict) > ID
-//   (JAL / predicted-taken).  Penalties: ID-only redirect flushes IF (1 bubble);
+// (JAL / predicted-taken). Penalties: ID-only redirect flushes IF (1 bubble);
 //   EX and trap redirects flush IF+ID (2 bubbles). The redirecting EX instr
 //   (e.g. JALR writing its link) is NOT squashed - only younger slots are.
 //
@@ -28,45 +26,46 @@
 // trap_* inputs come from trap_ctrl; tie to 0 for bring-up (no traps) and the
 // block reduces to hazard + branch/jump control only.
 // =============================================================================
-module pipe_ctrl (
+module pipe_ctrl
+    import garuda_pkg::*;
+(
     // ---- hazard / wait sources ----
-    input  wire        mem_stall_i,          // D-port wait  (mem_stage.mem_stall_o)
-    input  wire        dsu_busy_i,           // DSU same-acc hold (ex_stage.dsu_busy)
-    input  wire        load_use_stall_i,     // load-use (id_stage.load_use_stall_o)
-    input  wire        wfi_hold_i,           // WFI drain-stall (trap_ctrl.wfi_hold_o)
-
+    input wire mem_stall_i,  // D-port wait  (mem_stage.mem_stall_o)
+    input wire dsu_busy_i,  // DSU same-acc hold (ex_stage.dsu_busy)
+    input wire load_use_stall_i,  // load-use (id_stage.load_use_stall_o)
+    input wire wfi_hold_i,  // WFI drain-stall (trap_ctrl.wfi_hold_o)
     // ---- redirect sources ----
-    input  wire        id_redirect_valid_i,  // JAL / predicted-taken (id_stage)
-    input  wire [31:0] id_redirect_target_i,
-    input  wire        ex_redirect_i,        // JALR / mispredict (ex_stage)
-    input  wire [31:0] ex_redirect_target_i,
-    input  wire        trap_redirect_valid_i,// trap / MRET (trap_ctrl); 0 in bring-up
-    input  wire [31:0] trap_redirect_target_i,
-
-    // ---- trap-squash of the faulting instr's own downstream reg (trap_ctrl) ----
-    input  wire        trap_squash_id_ex_i,  // 0 in bring-up
-    input  wire        trap_squash_ex_mem_i,
-    input  wire        trap_squash_mem_wb_i,
-
+    input wire id_redirect_valid_i,  // JAL / predicted-taken (id_stage)
+    input wire [WORD_W-1:0] id_redirect_target_i,
+    input wire ex_redirect_i,  // JALR / mispredict (ex_stage)
+    input wire [WORD_W-1:0] ex_redirect_target_i,
+    input wire trap_redirect_valid_i,  // trap / MRET (trap_ctrl); 0 in bring-up
+    input wire [WORD_W-1:0] trap_redirect_target_i,
+    // ---- trap-squash of the faulting instr's own downstream reg (trap_ctrl)
+    // ----
+    input wire trap_squash_id_ex_i,  // 0 in bring-up
+    input wire trap_squash_ex_mem_i,
+    input wire trap_squash_mem_wb_i,
     // ---- to fetch front-end (if_stage_top) ----
-    output wire        if_stall_o,
-    output wire        if_redirect_o,
-    output wire [31:0] if_redirect_pc_o,
-
+    output wire if_stall_o,
+    output wire if_redirect_o,
+    output wire [WORD_W-1:0] if_redirect_pc_o,
     // ---- to pipeline registers ----
-    output wire        if_id_stall_o,
-    output wire        if_id_flush_o,
-    output wire        id_ex_stall_o,
-    output wire        id_ex_flush_o,
-    output wire        ex_mem_stall_o,
-    output wire        ex_mem_flush_o,
-    output wire        mem_wb_flush_o,       // mem_wb has flush only (terminal-side)
-
-    // ---- clock gating (CORE-SPEC Rev 3.0 §7.7) ----
-    input  wire        bus_idle_i,           // no I/D-port transfer requested or in flight
-    input  wire        wfi_settled_i,        // H5 has held for 2+ cycles
-    output wire        quiescent_o           // -> core_clk_gate enable (inverted)
+    output wire if_id_stall_o,
+    output wire if_id_flush_o,
+    output wire id_ex_stall_o,
+    output wire id_ex_flush_o,
+    output wire ex_mem_stall_o,
+    output wire ex_mem_flush_o,
+    output wire mem_wb_flush_o,  // mem_wb has flush only (terminal-side)
+    // ---- clock gating (CORE-SPEC Rev 3.0 Sec.7.7) ----
+    input wire bus_idle_i,  // no I/D-port transfer requested or in flight
+    input wire wfi_settled_i,  // H5 has held for 2+ cycles
+    // -> core_clk_gate enable (inverted)
+    output wire quiescent_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
     // [N-7.28]: the pipeline is held by H5 (WFI) and nothing is in flight.
     // This is the ONLY definition of "the core is idle" in the design
     // ([N-7.29]); the clock gate consumes it and nothing re-derives it.
@@ -118,7 +117,8 @@ module pipe_ctrl (
     // Redirect selection (priority trap > ex > id), gated by ~mem_stall.
     wire redir_raw   = trap_redirect_valid_i | ex_redir_ok | id_redir_ok;
     wire redirect    = redir_raw & ~mem_stall_i;
-    wire redir_2b    = (trap_redirect_valid_i | ex_redir_ok) & ~mem_stall_i; // 2-bubble
+    // 2-bubble
+    wire redir_2b    = (trap_redirect_valid_i | ex_redir_ok) & ~mem_stall_i;
 
     assign if_redirect_o    = redirect;
     assign if_redirect_pc_o = trap_redirect_valid_i ? trap_redirect_target_i :
@@ -135,8 +135,9 @@ module pipe_ctrl (
     // WFI advance into EX and execute during the sleep.
     // WFI writes no architectural state (reg_write=0), so re-presenting it in
     // EX every held cycle is harmless.
-    wire hold_pc_ifid = mem_stall_i | dsu_busy_i | load_use_stall_i | wfi_hold_i;
-    wire hold_id_ex   = mem_stall_i | dsu_busy_i | wfi_hold_i;  // load-use flushes id_ex
+    wire hold_pc_ifid = mem_stall_i |dsu_busy_i |load_use_stall_i |wfi_hold_i;
+    // load-use flushes id_ex
+    wire hold_id_ex   = mem_stall_i | dsu_busy_i | wfi_hold_i;
     wire hold_ex_mem  = mem_stall_i;
 
     // PC
@@ -208,7 +209,7 @@ module pipe_ctrl (
                             & ~mem_stall_i;
     assign ex_mem_stall_o = hold_ex_mem & ~ex_mem_flush_o;
 
-    // MEM/WB : bubble into WB during a D-port wait, or trap-squash of a MEM fault
+    // MEM/WB : bubble into WB during a D-port wait, or trap-squash of a MEM
+    // fault
     assign mem_wb_flush_o = mem_stall_i | trap_squash_mem_wb_i;
 endmodule
-`default_nettype wire

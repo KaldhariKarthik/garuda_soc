@@ -1,10 +1,8 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 11 : machine timer
 // mtime.v
 //
-// Spec: GARUDA-TIMERS-SPEC-001 Rev 2.0 §7.1-§7.4; ADR-0010
+// Spec: GARUDA-TIMERS-SPEC-001 Rev 2.0 Sec.7.1-Sec.7.4; ADR-0010
 //
 //   mtime     64-bit up counter, +1 every hclk ([N-7.1]); writable ([N-7.3])
 //   mtimecmp  resets to all ones so mtip cannot assert before firmware sets
@@ -15,42 +13,52 @@
 //             shadow, so LO-then-HI is a coherent 64-bit read ([N-7.5])
 // =============================================================================
 
-module mtime (
-    input  wire        hclk,
-    input  wire        hreset_n,
-
-    input  wire        wr_lo_i,        // MTIME_LO write strobe (one hclk)
-    input  wire        wr_hi_i,
-    input  wire        wr_cmp_lo_i,
-    input  wire        wr_cmp_hi_i,
-    input  wire        rd_lo_i,        // MTIME_LO read strobe: latch the shadow
-    input  wire [31:0] wdata_i,
-
-    output wire [31:0] mtime_lo_o,
-    output wire [31:0] mtime_hi_shadow_o,
-    output wire [63:0] mtimecmp_o,
-    output reg         mtip_o
+module mtime
+    import garuda_pkg::*;
+(
+    input wire hclk,
+    input wire hreset_n,
+    input wire wr_lo_i,  // MTIME_LO write strobe (one hclk)
+    input wire wr_hi_i,
+    input wire wr_cmp_lo_i,
+    input wire wr_cmp_hi_i,
+    input wire rd_lo_i,  // MTIME_LO read strobe: latch the shadow
+    input wire [WORD_W-1:0] wdata_i,
+    output wire [WORD_W-1:0] mtime_lo_o,
+    output wire [WORD_W-1:0] mtime_hi_shadow_o,
+    output wire [DWORD_W-1:0] mtimecmp_o,
+    output reg mtip_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
-    reg [63:0] mtime_q, cmp_q;
-    reg [31:0] shadow_q;
+    reg [DWORD_W-1:0] mtime_q;
+    reg [DWORD_W-1:0] cmp_q;
+    reg [WORD_W-1:0] shadow_q;
 
-    always @(posedge hclk or negedge hreset_n) begin
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_mtime
         if (!hreset_n) begin
-            mtime_q  <= 64'd0;
-            cmp_q    <= {64{1'b1}};
+            mtime_q <= 64'd0;
+            cmp_q <= {64{1'b1}};
             shadow_q <= 32'd0;
-            mtip_o   <= 1'b0;
+            mtip_o <= 1'b0;
         end else begin
-            if      (wr_lo_i) mtime_q <= {mtime_q[63:32], wdata_i};
-            else if (wr_hi_i) mtime_q <= {wdata_i, mtime_q[31:0]};
-            else              mtime_q <= mtime_q + 64'd1;
-
-            if (wr_cmp_lo_i) cmp_q[31:0]  <= wdata_i;
-            if (wr_cmp_hi_i) cmp_q[63:32] <= wdata_i;
-
-            if (rd_lo_i) shadow_q <= mtime_q[63:32];
-
+            if (wr_lo_i) begin
+                mtime_q <= {mtime_q[63:32], wdata_i};
+            end else if (wr_hi_i) begin
+                mtime_q <= {wdata_i, mtime_q[31:0]};
+            end else begin
+                mtime_q <= mtime_q + 64'd1;
+            end
+            if (wr_cmp_lo_i) begin
+                cmp_q[31:0] <= wdata_i;
+            end
+            if (wr_cmp_hi_i) begin
+                cmp_q[63:32] <= wdata_i;
+            end
+            if (rd_lo_i) begin
+                shadow_q <= mtime_q[63:32];
+            end
             mtip_o <= (mtime_q >= cmp_q);
         end
     end
@@ -60,5 +68,3 @@ module mtime (
     assign mtimecmp_o        = cmp_q;
 
 endmodule
-
-`default_nettype wire

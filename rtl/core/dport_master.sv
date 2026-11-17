@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core - MEM Stage, Sub-block 2/3
 // D-Port AHB-Lite master  (Verilog)
@@ -24,32 +22,34 @@
 // Reset/idle (Sec. 16.3): out of reset, HTRANS=IDLE.
 // =============================================================================
 
-module dport_master (
-    input  wire         gclk,
-    input  wire         core_rst_n,
-
+module dport_master
+    import garuda_pkg::*;
+(
+    input wire gclk,
+    input wire core_rst_n,
     // Qualified request from Load/Store Unit + top-level misalign gating
-    input  wire          start_i,       // (mem_read | mem_write) & ~misaligned
-    input  wire          hwrite_i,
-    input  wire [31:0]  addr_i,
-    input  wire [2:0]   hsize_i,
-    input  wire [31:0]  hwdata_i,
-
+    input wire start_i,  // (mem_read | mem_write) & ~misaligned
+    input wire hwrite_i,
+    input wire [WORD_W-1:0] addr_i,
+    input wire [HSIZE_W-1:0] hsize_i,
+    input wire [WORD_W-1:0] hwdata_i,
     // AHB-Lite D-port master pins (Sec. 4.1 pin table)
-    output reg  [31:0]  d_haddr_o,
-    output reg  [1:0]   d_htrans_o,
-    output reg  [2:0]   d_hsize_o,
-    output reg           d_hwrite_o,
-    output reg  [31:0]  d_hwdata_o,
-
-    input  wire          d_hready_i,
-    input  wire          d_hresp_i,
-
+    output reg [WORD_W-1:0] d_haddr_o,
+    output reg [HTRANS_W-1:0] d_htrans_o,
+    output reg [HSIZE_W-1:0] d_hsize_o,
+    output reg d_hwrite_o,
+    output reg [WORD_W-1:0] d_hwdata_o,
+    input wire d_hready_i,
+    input wire d_hresp_i,
     // Control-facing outputs
-    output wire         mem_stall_o,   // Sec. 11.4 D-port wait-state hold
-    output wire         ok_done_o,     // this cycle's access completed OKAY
-    output wire         err_pulse_o    // this cycle's access completed ERROR
+    output wire mem_stall_o,  // Sec. 11.4 D-port wait-state hold
+    output wire ok_done_o,  // this cycle's access completed OKAY
+    // this cycle's access completed ERROR
+    output wire err_pulse_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned STATE_W = 32'd2;
 
     localparam HTRANS_IDLE   = 2'b00;
     localparam HTRANS_NONSEQ = 2'b10;
@@ -85,10 +85,10 @@ module dport_master (
     // data. That is inherent to AHB-Lite with no write buffer, not a
     // regression in throughput that can be optimised away here.
     // -----------------------------------------------------------------------
-    localparam S_ADDR = 2'd0;   // idle / presenting an address phase
-    localparam S_DATA = 2'd1;   // address accepted, data phase in progress
+    localparam S_ADDR = 2'd0;  // idle / presenting an address phase
+    localparam S_DATA = 2'd1;  // address accepted, data phase in progress
 
-    reg [1:0] state;
+    reg [STATE_W-1:0] state;
 
     // -----------------------------------------------------------------------
     // Combinational address-phase drive
@@ -96,27 +96,27 @@ module dport_master (
     // held), and re-presenting HTRANS=NONSEQ then would issue a second,
     // spurious transfer to the same address.
     // -----------------------------------------------------------------------
-    always @(*) begin
+    always_comb begin : c_d_htrans
         if ((state == S_ADDR) && start_i) begin
             d_htrans_o = HTRANS_NONSEQ;
-            d_haddr_o  = addr_i;
+            d_haddr_o = addr_i;
             d_hwrite_o = hwrite_i;
-            d_hsize_o  = hsize_i;
+            d_hsize_o = hsize_i;
         end else begin
             d_htrans_o = HTRANS_IDLE;
-            d_haddr_o  = 32'b0;
+            d_haddr_o = 32'b00000000000000000000000000000000;
             d_hwrite_o = 1'b0;
-            d_hsize_o  = 3'b010;
+            d_hsize_o = 3'b010;
         end
     end
 
     // -----------------------------------------------------------------------
     // State register
     // -----------------------------------------------------------------------
-    always @(posedge gclk or negedge core_rst_n) begin
+    always_ff @(posedge gclk or negedge core_rst_n) begin : p_state
         if (!core_rst_n) begin
-            state      <= S_ADDR;
-            d_hwdata_o <= 32'b0;
+            state <= S_ADDR;
+            d_hwdata_o <= 32'b00000000000000000000000000000000;
         end else begin
             case (state)
                 S_ADDR: begin
@@ -125,7 +125,7 @@ module dport_master (
                         // is driven in the data phase that starts next cycle,
                         // and holds there across any wait states.
                         d_hwdata_o <= hwdata_i;
-                        state      <= S_DATA;
+                        state <= S_DATA;
                     end
                 end
                 S_DATA: begin
@@ -134,8 +134,9 @@ module dport_master (
                     // for HREADY here absorbs the dead cycle - no separate
                     // master-side S_ERR2 state is needed. HTRANS is already
                     // IDLE throughout the data phase.
-                    if (d_hready_i)
+                    if (d_hready_i) begin
                         state <= S_ADDR;
+                    end
                 end
                 default: state <= S_ADDR;
             endcase
@@ -157,5 +158,3 @@ module dport_master (
                           ((state == S_DATA) && ~d_hready_i);
 
 endmodule
-
-`default_nettype wire

@@ -7,9 +7,6 @@
 -incdir rtl/common
 -incdir rtl/core
 -incdir rtl/dsu
-rtl/common/garuda_pkg.sv
-rtl/core/core_ex_pkg.sv
-rtl/dsu/dsu_pkg.sv
 rtl/core/alu_unit.sv
 rtl/core/mul32.sv
 rtl/core/branch_unit.sv

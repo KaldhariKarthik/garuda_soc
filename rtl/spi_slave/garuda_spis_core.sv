@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 14 : SPI slave shift engine
 // garuda_spis_core.v - oversampled in pclk. No second clock domain.
@@ -27,34 +25,42 @@
 // the FALLING edge, MSB first, 8 bits ([N-7.2]).
 // =============================================================================
 
-module garuda_spis_core (
-    input  wire       pclk,
-    input  wire       preset_n,
-
-    input  wire       en_i,            // CTRL.EN
-
+module garuda_spis_core
+    import garuda_pkg::*;
+(
+    input wire pclk,
+    input wire preset_n,
+    input wire en_i,  // CTRL.EN
     // already synchronised by the shim
-    input  wire       sclk_s_i,
-    input  wire       mosi_s_i,
-    input  wire       cs_n_s_i,
-
-    output wire       miso_o,
-    output wire       miso_oe_o,
-
-    input  wire [7:0] txdata_i,        // loaded at the start of each byte
-
-    output reg  [7:0] rx_byte_o,
-    output reg        rx_push_o,       // one pclk per completed byte
-    output wire       cs_active_o,
-    output reg        cs_rise_o,       // one pclk, end of packet
-    output reg        cs_fall_o        // one pclk, start of packet
+    input wire sclk_s_i,
+    input wire mosi_s_i,
+    input wire cs_n_s_i,
+    output wire miso_o,
+    output wire miso_oe_o,
+    input wire [BYTE_W-1:0] txdata_i,  // loaded at the start of each byte
+    output reg [BYTE_W-1:0] rx_byte_o,
+    output reg rx_push_o,  // one pclk per completed byte
+    output wire cs_active_o,
+    output reg cs_rise_o,  // one pclk, end of packet
+    // one pclk, start of packet
+    output reg cs_fall_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned BITCNT_W = 32'd3;
 
-    // ---- edge detection on the synchronised inputs ---------------------------
-    reg sclk_q, cs_n_q;
-    always @(posedge pclk or negedge preset_n)
-        if (!preset_n) begin sclk_q <= 1'b0; cs_n_q <= 1'b1; end
-        else             begin sclk_q <= sclk_s_i; cs_n_q <= cs_n_s_i; end
+    // ---- edge detection on the synchronised inputs --------------------------
+    reg sclk_q;
+    reg cs_n_q;
+    always_ff @(posedge pclk or negedge preset_n) begin : p_sclk
+        if (!preset_n) begin
+            sclk_q <= 1'b0;
+            cs_n_q <= 1'b1;
+        end else begin
+            sclk_q <= sclk_s_i;
+            cs_n_q <= cs_n_s_i;
+        end
+    end
 
     wire sclk_rise = ~sclk_q &  sclk_s_i;
     wire sclk_fall =  sclk_q & ~sclk_s_i;
@@ -69,44 +75,52 @@ module garuda_spis_core (
     wire cs_fall_now = cs_n_q & ~cs_n_s_i & en_i;
     reg  open_q;
 
-    always @(posedge pclk or negedge preset_n)
-        if (!preset_n)             open_q <= 1'b0;
-        else if (cs_n_s_i || !en_i)  open_q <= 1'b0;
-        else if (cs_fall_now)        open_q <= 1'b1;
+    always_ff @(posedge pclk or negedge preset_n) begin : p_open
+        if (!preset_n) begin
+            open_q <= 1'b0;
+        end else if (cs_n_s_i || !en_i) begin
+            open_q <= 1'b0;
+        end else if (cs_fall_now) begin
+            open_q <= 1'b1;
+        end
+    end
 
     assign cs_active_o = ~cs_n_s_i & en_i & (open_q | cs_fall_now);
 
-    always @(posedge pclk or negedge preset_n)
-        if (!preset_n) begin cs_fall_o <= 1'b0; cs_rise_o <= 1'b0; end
-        else begin
-            cs_fall_o <=  cs_fall_now;
-            cs_rise_o <= ~cs_n_q &  cs_n_s_i & en_i & open_q;   // only a packet that was opened can end
+    always_ff @(posedge pclk or negedge preset_n) begin : p_cs_fall
+        if (!preset_n) begin
+            cs_fall_o <= 1'b0;
+            cs_rise_o <= 1'b0;
+        end else begin
+            cs_fall_o <= cs_fall_now;
+            // only a packet that was opened can end
+            cs_rise_o <= ~cs_n_q & cs_n_s_i & en_i & open_q;
         end
+    end
 
-    // ---- receive shifter -------------------------------------------------------
+    // ---- receive shifter ----------------------------------------------------
     // The bit counter is cleared on every cs_n falling edge, so a packet always
     // starts byte-aligned whatever preceded it ([N-7.3]).
-    reg [7:0] rx_sh;
-    reg [2:0] bitcnt;
+    reg [BYTE_W-1:0] rx_sh;
+    reg [BITCNT_W-1:0] bitcnt;
 
-    always @(posedge pclk or negedge preset_n) begin
+    always_ff @(posedge pclk or negedge preset_n) begin : p_rx_sh
         if (!preset_n) begin
-            rx_sh     <= 8'd0;
-            bitcnt    <= 3'd0;
+            rx_sh <= 8'd0;
+            bitcnt <= 3'd0;
             rx_byte_o <= 8'd0;
             rx_push_o <= 1'b0;
         end else begin
             rx_push_o <= 1'b0;
-
             if (!cs_active_o) begin
                 // Deselected: hold the shifter cleared. A partial byte left by
                 // a short packet is DISCARDED, never pushed - a truncated
                 // ESP-NOW frame must not look like a valid short one
                 // ([N-7.3a]).
                 bitcnt <= 3'd0;
-                rx_sh  <= 8'd0;
+                rx_sh <= 8'd0;
             end else if (sclk_rise) begin
-                rx_sh  <= {rx_sh[6:0], mosi_s_i};
+                rx_sh <= {rx_sh[6:0], mosi_s_i};
                 bitcnt <= bitcnt + 3'd1;
                 if (bitcnt == 3'd7) begin
                     rx_byte_o <= {rx_sh[6:0], mosi_s_i};
@@ -116,24 +130,27 @@ module garuda_spis_core (
         end
     end
 
-    // ---- transmit shifter --------------------------------------------------------
+    // ---- transmit shifter ---------------------------------------------------
     // Loaded from txdata_i at the start of each byte and advanced on the
     // falling edge, so the bit is stable across the master's sampling edge.
-    reg [7:0] tx_sh;
+    reg [BYTE_W-1:0] tx_sh;
 
-    always @(posedge pclk or negedge preset_n) begin
+    always_ff @(posedge pclk or negedge preset_n) begin : p_tx_sh
         if (!preset_n) begin
             tx_sh <= 8'd0;
         end else if (cs_fall_o) begin
-            tx_sh <= txdata_i;                       // new packet: first byte
+            tx_sh <= txdata_i;  // new packet: first byte
         end else if (cs_active_o && sclk_fall) begin
             // SPIS-4: the eighth falling edge is the START of the next byte, so
             // its MSB has to be the bit on the wire. This loaded
-            // {txdata_i[6:0], 1'b0}: every byte after the first went out shifted
-            // left by one (TXDATA 0xA5 was answered A5 4A 4A ...), which a
-            // one-byte test cannot see ([N-6.2]).
-            if (bitcnt == 3'd0) tx_sh <= txdata_i;               // next byte
-            else                tx_sh <= {tx_sh[6:0], 1'b0};
+            // {txdata_i[6:0], 1'b0}: every byte after the first went out
+            // shifted left by one (TXDATA 0xA5 was answered A5 4A 4A ...),
+            // which a one-byte test cannot see ([N-6.2]).
+            if (bitcnt == 3'd0) begin
+                tx_sh <= txdata_i;  // next byte
+            end else begin
+                tx_sh <= {tx_sh[6:0], 1'b0};
+            end
         end
     end
 
@@ -144,5 +161,3 @@ module garuda_spis_core (
     assign miso_oe_o = cs_active_o;
 
 endmodule
-
-`default_nettype wire

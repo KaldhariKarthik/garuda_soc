@@ -1,6 +1,6 @@
 // garuda_pkg.sv - constants of the former garuda_defs.vh
-// (zero-waiver F4, 2026-11-16: compiler directives leave the RTL, HAL CDNOTE; only the
-// constants the chip uses are here, HAL USEPAR).
+// (zero-waiver F4, 2026-11-16: compiler directives leave the RTL, HAL CDNOTE;
+// only the constants the chip uses are here, HAL USEPAR).
 package garuda_pkg;
     localparam ALU_ADD = 4'h0;
     localparam ALU_SUB = 4'h1;
@@ -18,6 +18,56 @@ package garuda_pkg;
     localparam IMM_B = 3'h2;
     localparam IMM_U = 3'h3;
     localparam IMM_J = 3'h4;
-    localparam IMM_CSR = 3'h5;  // 5-bit zero-extended rs1, CSRRWI/SI/CI (Sec. 13.3)
+    // 5-bit zero-extended rs1, CSRRWI/SI/CI (Sec. 13.3)
+    localparam IMM_CSR = 3'h5;
     localparam IMM_NONE = 3'h6;
+    // ---- widths (HAL STYVAL: no bare numbers in declared ranges) ----
+    localparam int unsigned PADDR_W = 32'd12;
+    localparam int unsigned CSR_ADDR_W = 32'd12;
+    localparam int unsigned HTRANS_W = 32'd2;
+    localparam int unsigned HSIZE_W = 32'd3;
+    localparam int unsigned HBURST_W = 32'd3;
+    localparam int unsigned HPROT_W = 32'd4;
+    localparam int unsigned REG_IDX_W = 32'd5;
+    localparam int unsigned FUNCT3_W = 32'd3;
+    localparam int unsigned FUNCT5_W = 32'd5;
+    localparam int unsigned FUNCT7_W = 32'd7;
+    localparam int unsigned OPCODE_W = 32'd7;
+    localparam int unsigned ALU_OP_W = 32'd4;
+    localparam int unsigned CSR_OP_W = 32'd2;
+    localparam int unsigned ACC_SEL_W = 32'd2;
+    localparam int unsigned DMA_NCH = 32'd6;
+    localparam int unsigned AHB_MID_W = 32'd2;
+    localparam int unsigned APB_NWIN = 32'd12;
+    localparam int unsigned APB_WIN_W = 32'd4;
+    localparam int unsigned CLIC_ID_W = 32'd5;
+    localparam int unsigned CLIC_LVL_W = 32'd8;
+    localparam int unsigned DIV_SEL_W = 32'd2;
+    localparam int unsigned DMACTL_W = 32'd2;
+    localparam int unsigned GCTL_W = 32'd4;
+    localparam int unsigned CSR_FN_W = 32'd3;
+    localparam int unsigned IMM_SEL_W = 32'd3;
+    localparam int unsigned FWD_SEL_W = 32'd2;
+    localparam int unsigned PFB_OCC_W = 32'd3;
+    localparam int unsigned BYTE_OFF_W = 32'd2;
+    localparam int unsigned EXC_CAUSE_W = 32'd4;
+    localparam int unsigned JTAG_IR_W = 32'd5;
+    localparam int unsigned DMI_ADDR_W = 32'd7;
+    localparam int unsigned DMI_OP_W = 32'd2;
+    localparam int unsigned DMA_CH_W = 32'd3;
+    localparam int unsigned DMA_SIZE_W = 32'd2;
+    localparam int unsigned ERR_PHASE_W = 32'd3;
+    localparam int unsigned SHAMT_W = 32'd6;
+    localparam int unsigned RES_SRC_W = 32'd2;
+    localparam int unsigned NUM_ACC = 32'd3;
+    localparam int unsigned BE_W = 32'd4;
+    localparam int unsigned DUTY_W = 32'd16;
+    localparam int unsigned RST_CAUSE_W = 32'd5;
+    localparam int unsigned GPIO_W = 32'd2;
+    localparam int unsigned PERIPH_IRQ_W = 32'd7;
+    localparam int unsigned WORD_W = 32'd32;
+    localparam int unsigned BYTE_W = 32'd8;
+    localparam int unsigned HALF_W = 32'd16;
+    localparam int unsigned ACC_W = 32'd48;
+    localparam int unsigned DWORD_W = 32'd64;
 endpackage

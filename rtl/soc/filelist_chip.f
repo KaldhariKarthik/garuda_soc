@@ -1,7 +1,6 @@
 // =============================================================================
 // GARUDA SoC - garuda_chip_top (Rev 4.0): the whole chip
 // =============================================================================
-rtl/include/soc_map_pkg.sv
 -f rtl/third_party/timescale.f
 -f rtl/soc/filelist_soc.f
 -f rtl/clk_div/filelist.f

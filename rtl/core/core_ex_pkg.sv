@@ -1,6 +1,6 @@
 // core_ex_pkg.sv - constants of the former core_ex_defs.vh
-// (zero-waiver F4, 2026-11-16: compiler directives leave the RTL, HAL CDNOTE; only the
-// constants the chip uses are here, HAL USEPAR).
+// (zero-waiver F4, 2026-11-16: compiler directives leave the RTL, HAL CDNOTE;
+// only the constants the chip uses are here, HAL USEPAR).
 package core_ex_pkg;
     localparam FWD_NONE = 2'b00;  // register-file value (no hazard)
     localparam FWD_EXMEM = 2'b01;  // EX/MEM result  (EX->EX,  distance 1)

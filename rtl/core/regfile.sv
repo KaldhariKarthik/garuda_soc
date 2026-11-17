@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core - ID Stage, Sub-block 3/5
 // Register File  (Verilog)
@@ -16,25 +14,28 @@
 // discarded; x0 reads return 0.
 // =============================================================================
 
-module regfile (
-    input  wire         gclk,
-    input  wire         core_rst_n,
-
-    input  wire [4:0]  rs1_idx_i,
-    input  wire [4:0]  rs2_idx_i,
-
-    input  wire         wb_reg_write_i,
-    input  wire [4:0]  wb_rd_i,
-    input  wire [31:0] wb_data_i,
-
-    output wire [31:0] rs1_data_o,
-    output wire [31:0] rs2_data_o
+module regfile
+    import garuda_pkg::*;
+(
+    input wire gclk,
+    input wire core_rst_n,
+    input wire [REG_IDX_W-1:0] rs1_idx_i,
+    input wire [REG_IDX_W-1:0] rs2_idx_i,
+    input wire wb_reg_write_i,
+    input wire [REG_IDX_W-1:0] wb_rd_i,
+    input wire [WORD_W-1:0] wb_data_i,
+    output wire [WORD_W-1:0] rs1_data_o,
+    output wire [WORD_W-1:0] rs2_data_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned MEM_W = 32'd2;
 
-    reg [31:0] mem [1:31];   // x0 not stored - reads as 0 by construction
-    wire [31:0] rs1_raw, rs2_raw;
+    reg [WORD_W-1:0] mem [MEM_W-1:31];  // x0 not stored - reads as 0 by construction
+    wire [WORD_W-1:0] rs1_raw;
+    wire [WORD_W-1:0] rs2_raw;
 
-    always @(posedge gclk) begin
+    always_ff @(posedge gclk) begin : p_mem
         if (wb_reg_write_i && (wb_rd_i != 5'd0)) begin
             mem[wb_rd_i] <= wb_data_i;
         end
@@ -45,11 +46,11 @@ module regfile (
 
     // WB->ID bypass: same-cycle write and read to the same nonzero register
     // forwards the new value instead of the stale array read (Sec. 7.4).
-    assign rs1_data_o = (wb_reg_write_i && (wb_rd_i != 5'd0) && (wb_rd_i == rs1_idx_i))
+    assign rs1_data_o
+        = (wb_reg_write_i && (wb_rd_i != 5'd0) && (wb_rd_i == rs1_idx_i))
                            ? wb_data_i : rs1_raw;
-    assign rs2_data_o = (wb_reg_write_i && (wb_rd_i != 5'd0) && (wb_rd_i == rs2_idx_i))
+    assign rs2_data_o
+        = (wb_reg_write_i && (wb_rd_i != 5'd0) && (wb_rd_i == rs2_idx_i))
                            ? wb_data_i : rs2_raw;
 
 endmodule
-
-`default_nettype wire

@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core
 // mem_wb_reg.v - MEM/WB Pipeline Register (Sec. 5.2)
@@ -26,57 +24,55 @@
 //   but semantically wrong. Bubble-on-wait is the correct model.
 // =============================================================================
 
-module mem_wb_reg (
-    input  wire        gclk,
-    input  wire        core_rst_n,
-
+module mem_wb_reg
+    import garuda_pkg::*;
+(
+    input wire gclk,
+    input wire core_rst_n,
     // Pipeline control
-    input  wire        flush_i,        // bubble: trap flush OR MEM wait state
-
+    input wire flush_i,  // bubble: trap flush OR MEM wait state
     // From MEM stage (post mem_to_reg mux - already final, Sec. 10.3)
-    input  wire [31:0] wb_data_i,      // load-formatted value OR EX result
-    input  wire [4:0]  rd_i,
-    input  wire        reg_write_i,
-    input  wire        retire_i,       // mem_stage.retire_o - architectural retirement
-
+    input wire [WORD_W-1:0] wb_data_i,  // load-formatted value OR EX result
+    input wire [REG_IDX_W-1:0] rd_i,
+    input wire reg_write_i,
+    input wire retire_i,  // mem_stage.retire_o - architectural retirement
     // To WB stage
-    output reg  [31:0] wb_data_o,
-    output reg  [4:0]  rd_o,
-    output reg         reg_write_o,
-
+    output reg [WORD_W-1:0] wb_data_o,
+    output reg [REG_IDX_W-1:0] rd_o,
+    output reg reg_write_o,
     // To CSR file (Sec. 13.2) - minstret increment, one pulse per retired instr
-    output reg         retire_o
+    output reg retire_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     // ERRATUM CORE-1 -- flush_i must not appear in the ASYNCHRONOUS reset test.
-    // See rtl/core/if_id.sv for the full explanation; the same defect was in all
-    // three pipeline registers, and this is the one Yosys names when it refuses
-    // to synthesise the SoC ("Multiple edge sensitive events found for this
-    // signal" on mem_wb_reg.rd_o).
+    // See rtl/core/if_id.sv for the full explanation; the same defect was in
+    // all three pipeline registers, and this is the one Yosys names when it
+    // refuses to synthesise the SoC ("Multiple edge sensitive events found for
+    // this signal" on mem_wb_reg.rd_o).
     //
     // This register has no hold path by design (bubble-on-wait, never hold --
     // see the note above), so there are only three branches, not four.
-    always @(posedge gclk or negedge core_rst_n) begin
+    always_ff @(posedge gclk or negedge core_rst_n) begin : p_wb_data
         if (!core_rst_n) begin
             // Reset -> no writeback
-            wb_data_o   <= 32'd0;
-            rd_o        <= 5'd0;
-            reg_write_o <= 1'b0;    // write-enable LOW = no WB
-            retire_o    <= 1'b0;
+            wb_data_o <= 32'd0;
+            rd_o <= 5'd0;
+            reg_write_o <= 1'b0;  // write-enable LOW = no WB
+            retire_o <= 1'b0;
         end else if (flush_i) begin
             // Bubble -> no writeback
-            wb_data_o   <= 32'd0;
-            rd_o        <= 5'd0;
+            wb_data_o <= 32'd0;
+            rd_o <= 5'd0;
             reg_write_o <= 1'b0;
-            retire_o    <= 1'b0;    // a bubble never retires
+            retire_o <= 1'b0;  // a bubble never retires
         end else begin
-            wb_data_o   <= wb_data_i;
-            rd_o        <= rd_i;
+            wb_data_o <= wb_data_i;
+            rd_o <= rd_i;
             reg_write_o <= reg_write_i;
-            retire_o    <= retire_i;
+            retire_o <= retire_i;
         end
     end
 
 endmodule
-
-`default_nettype wire

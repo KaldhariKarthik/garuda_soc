@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 //=============================================================================
 // GARUDA SoC -- Block I: Processor Core
 // ex_stage.v -- Execute stage wrapper
@@ -13,7 +11,7 @@
 //   * MUX_A / MUX_B operand forwarding (Section 11.1) + pc/imm substitution
 //   * alu_unit, mul32, branch_unit, csr_rw, dsu_top instances
 //   * EX result mux, priority per Section 8.3 (erratum 6.3-E1 resolved):
-//         csr_rdata (csr_en)  >  dsu_rd_data (dsu_rd_valid)  >  mul  >  alu_unit/link
+// csr_rdata (csr_en) > dsu_rd_data (dsu_rd_valid) > mul > alu_unit/link
 //   * PC+4 link path for JAL/JALR (see INFERENCE NOTE 1)
 //   * Load/store misalignment check, pre-address-phase (Section 10.2)
 //
@@ -66,108 +64,102 @@
 //      assertion in the core testbench should check they never diverge.
 // ---------------------------------------------------------------------------
 
-
 module ex_stage
+    import garuda_pkg::*;
     import core_ex_pkg::*;
 (
-    input  wire        gclk,
-    input  wire        core_rst_n,
-
+    input wire gclk,
+    input wire core_rst_n,
     //------------------------------------------------------------------
     // id_ex payload (Section 5.2 field list)
     //------------------------------------------------------------------
-    input  wire [31:0] pc,
-    input  wire [31:0] instr,
-    input  wire [31:0] rs1_data,        // register-file read (no hazard)
-    input  wire [31:0] rs2_data,
-    input  wire [31:0] imm,
-    input  wire [4:0]  rd,
-    input  wire [2:0]  funct3_fld,
-
+    input wire [WORD_W-1:0] pc,
+    input wire [WORD_W-1:0] instr,
+    input wire [WORD_W-1:0] rs1_data,  // register-file read (no hazard)
+    input wire [WORD_W-1:0] rs2_data,
+    input wire [WORD_W-1:0] imm,
+    input wire [REG_IDX_W-1:0] rd,
+    input wire [FUNCT3_W-1:0] funct3_fld,
     //------------------------------------------------------------------
     // id_ex ctrl bundle
     //------------------------------------------------------------------
-    input  wire        reg_write,       // NOTE: ID drives 0 for ALL Custom-0
-    input  wire        mem_read,
-    input  wire        mem_write,
-    input  wire        mem_to_reg,
-    input  wire        alu_src,         // 1: op_b = imm
-    input  wire        pc_op_a,         // 1: op_a = pc (AUIPC)
-    input  wire [3:0]  alu_op,
-    input  wire        is_branch,
-    input  wire        jal,
-    input  wire        jalr,
-    input  wire        predicted_taken, // rides in ctrl (INFERENCE, branch_unit.v)
-    input  wire        mul_en,
-    input  wire        dsu_en,          // (opcode == 7'b0001011) in EX
-    input  wire        csr_en,
-    input  wire        csr_imm,
-    input  wire [1:0]  csr_op,
-
+    input wire reg_write,  // NOTE: ID drives 0 for ALL Custom-0
+    input wire mem_read,
+    input wire mem_write,
+    input wire mem_to_reg,
+    input wire alu_src,  // 1: op_b = imm
+    input wire pc_op_a,  // 1: op_a = pc (AUIPC)
+    input wire [ALU_OP_W-1:0] alu_op,
+    input wire is_branch,
+    input wire jal,
+    input wire jalr,
+    input wire predicted_taken,  // rides in ctrl (INFERENCE, branch_unit.v)
+    input wire mul_en,
+    input wire dsu_en,  // (opcode == 7'b0001011) in EX
+    input wire csr_en,
+    input wire csr_imm,
+    input wire [CSR_OP_W-1:0] csr_op,
     //------------------------------------------------------------------
     // Hazard/Forwarding unit (Section 11.1)
     //------------------------------------------------------------------
-    input  wire [1:0]  fwd_a_sel,       // FWD_NONE / FWD_EXMEM / FWD_MEMWB
-    input  wire [1:0]  fwd_b_sel,
-    input  wire [31:0] exmem_fwd_data,  // EX/MEM.ex_result
-    input  wire [31:0] memwb_fwd_data,  // MEM/WB.wb_data (post load-format)
-
+    input wire [FWD_SEL_W-1:0] fwd_a_sel,  // FWD_NONE / FWD_EXMEM / FWD_MEMWB
+    input wire [FWD_SEL_W-1:0] fwd_b_sel,
+    input wire [WORD_W-1:0] exmem_fwd_data,  // EX/MEM.ex_result
+    input wire [WORD_W-1:0] memwb_fwd_data,  // MEM/WB.wb_data (post load-format)
     //------------------------------------------------------------------
     // CONTROL/CSR/TRAP block exchange
     //------------------------------------------------------------------
-    input  wire [31:0] csr_rdata,       // combinational return (Section 8.4)
-    input  wire        csr_clear_overflow, // pulse on dsu_ovf CSR write
-    input  wire        ex_squash,       // trap-driven EX squash (see NOTE 0)
-    output wire [11:0] csr_addr,
-    output wire [31:0] csr_wdata,
-    output wire [1:0]  csr_op_out,
-    output wire        csr_en_out,
-
+    input wire [WORD_W-1:0] csr_rdata,  // combinational return (Section 8.4)
+    input wire csr_clear_overflow,  // pulse on dsu_ovf CSR write
+    input wire ex_squash,  // trap-driven EX squash (see NOTE 0)
+    output wire [CSR_ADDR_W-1:0] csr_addr,
+    output wire [WORD_W-1:0] csr_wdata,
+    output wire [CSR_OP_W-1:0] csr_op_out,
+    output wire csr_en_out,
     //------------------------------------------------------------------
     // Results toward ex_mem (register at core top)
     //------------------------------------------------------------------
-    output wire [31:0] ex_result,       // for loads/stores this IS d_haddr
-    output wire [31:0] store_data,      // forwarded rs2, to MEM lane-align
-
+    output wire [WORD_W-1:0] ex_result,  // for loads/stores this IS d_haddr
+    output wire [WORD_W-1:0] store_data,  // forwarded rs2, to MEM lane-align
     // Post-forwarding register operands, fed back to ID/EX for operand
     // capture across a multi-cycle stall. See ERRATUM F-1 in id_ex.v.
-    output wire [31:0] rs1_fwd_o,
-    output wire [31:0] rs2_fwd_o,
-    output wire [4:0]  rd_out,
-    output wire        reg_write_out,
-    output wire        mem_read_out,    // misalign-killed (Section 10.2)
-    output wire        mem_write_out,   // misalign-killed
-    output wire        mem_to_reg_out,
-
+    output wire [WORD_W-1:0] rs1_fwd_o,
+    output wire [WORD_W-1:0] rs2_fwd_o,
+    output wire [REG_IDX_W-1:0] rd_out,
+    output wire reg_write_out,
+    output wire mem_read_out,  // misalign-killed (Section 10.2)
+    output wire mem_write_out,  // misalign-killed
+    output wire mem_to_reg_out,
     //------------------------------------------------------------------
     // EX-origin redirect (into core-top redirect mux)
     //------------------------------------------------------------------
-    output wire        ex_redirect,
-    output wire [31:0] ex_redirect_target,
+    output wire ex_redirect,
+    output wire [WORD_W-1:0] ex_redirect_target,
     // ERRATUM T-1: a taken control transfer to a non-4-byte-aligned target
     // must raise instruction-address-misaligned (cause 0). GARUDA has no C
     // extension, so every instruction address is required to be 4-byte
     // aligned. See trap_ctrl.v.
-    output wire        fetch_misaligned,
-    output wire        branch_mispredict, // for perf counters / hazard
-
+    output wire fetch_misaligned,
+    output wire branch_mispredict,  // for perf counters / hazard
     //------------------------------------------------------------------
     // Exceptions raised in EX (to CONTROL, Section 14.1/14.2)
     //------------------------------------------------------------------
-    output wire        load_misaligned,   // mcause 4, mtval = ex_result
-    output wire        store_misaligned,  // mcause 6, mtval = ex_result
-    output wire        dsu_illegal_instr, // OR into mcause 2, mtval = instr
-
+    output wire load_misaligned,  // mcause 4, mtval = ex_result
+    output wire store_misaligned,  // mcause 6, mtval = ex_result
+    output wire dsu_illegal_instr,  // OR into mcause 2, mtval = instr
     //------------------------------------------------------------------
     // DSU status / hazard / debug (Sections 9.4, 13.2, 15.2)
     //------------------------------------------------------------------
-    output wire        dsu_busy,          // raw -- see integration constraint 1
-    output wire        dsu_overflow,      // sticky, read via dsu_ovf CSR
-    output wire        dsu_ovf_pending,   // DSU-14: the flag may still change this cycle
-    output wire [47:0] dbg_acc_fx,         // straight to dbg_acc_0_o
-    output wire [47:0] dbg_acc_fy,
-    output wire [47:0] dbg_acc_mag
+    output wire dsu_busy,  // raw -- see integration constraint 1
+    output wire dsu_overflow,  // sticky, read via dsu_ovf CSR
+    // DSU-14: the flag may still change this cycle
+    output wire dsu_ovf_pending,
+    output wire [ACC_W-1:0] dbg_acc_fx,  // straight to dbg_acc_0_o
+    output wire [ACC_W-1:0] dbg_acc_fy,
+    output wire [ACC_W-1:0] dbg_acc_mag
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     //==================================================================
     // Operand forwarding -- MUX_A / MUX_B (Section 11.1)
@@ -176,26 +168,26 @@ module ex_stage
     // unit's select encoding, not re-derived here: FWD_EXMEM beats
     // FWD_MEMWB at the source of fwd_*_sel.
     //==================================================================
-    reg [31:0] rs1_fwd;
-    reg [31:0] rs2_fwd;
+    reg [WORD_W-1:0] rs1_fwd;
+    reg [WORD_W-1:0] rs2_fwd;
 
-    always @(*) begin
+    always_comb begin : c_rsone_fwd
         case (fwd_a_sel)
             FWD_EXMEM: rs1_fwd = exmem_fwd_data;
             FWD_MEMWB: rs1_fwd = memwb_fwd_data;
-            default:    rs1_fwd = rs1_data;
+            default: rs1_fwd = rs1_data;
         endcase
         case (fwd_b_sel)
             FWD_EXMEM: rs2_fwd = exmem_fwd_data;
             FWD_MEMWB: rs2_fwd = memwb_fwd_data;
-            default:    rs2_fwd = rs2_data;
+            default: rs2_fwd = rs2_data;
         endcase
     end
 
     // pc/imm substitution is layered AFTER forwarding: forwarding applies
     // to register operands; AUIPC/imm selection is a ctrl decision.
-    wire [31:0] op_a = pc_op_a ? pc  : rs1_fwd;
-    wire [31:0] op_b = alu_src ? imm : rs2_fwd;
+    wire [WORD_W-1:0] op_a = pc_op_a ? pc  : rs1_fwd;
+    wire [WORD_W-1:0] op_b = alu_src ? imm : rs2_fwd;
 
     // Store data and DSU operands always take the forwarded REGISTER value
     // (Section 9.5: DSU operands ride the same EX forwarding paths).
@@ -210,7 +202,7 @@ module ex_stage
     //==================================================================
     // ALU
     //==================================================================
-    wire [31:0] alu_result;
+    wire [WORD_W-1:0] alu_result;
 
     alu_unit u_alu (
         .op_a   (op_a),
@@ -222,7 +214,7 @@ module ex_stage
     //==================================================================
     // Multiplier (Section 8.2)
     //==================================================================
-    wire [31:0] mul_result;
+    wire [WORD_W-1:0] mul_result;
 
     mul32 u_mul32 (
         .rs1_val    (rs1_fwd),
@@ -244,7 +236,7 @@ module ex_stage
         .jal             (jal),
         .jalr            (jalr),
         .predicted_taken (predicted_taken),
-        .branch_taken    (),                 // available for BTB later; unused
+        .branch_taken    (),  // available for BTB later; unused
         .mispredict      (branch_mispredict),
         .redirect        (ex_redirect),
         .redirect_target (ex_redirect_target),
@@ -269,17 +261,17 @@ module ex_stage
     //==================================================================
     // DSU -- frozen boundary per Section 9.2 / dsu_top.v
     //==================================================================
-    wire [31:0] dsu_rd_data;
+    wire [WORD_W-1:0] dsu_rd_data;
     wire        dsu_rd_valid;
-    wire [4:0]  dsu_rd_addr;
+    wire [REG_IDX_W-1:0]  dsu_rd_addr;
 
     dsu_top u_dsu (
         .gclk                (gclk),
         .core_rst_n              (core_rst_n),
-        .flush              (ex_squash),     // EX squash ONLY -- see NOTE 0
+        .flush              (ex_squash),  // EX squash ONLY -- see NOTE 0
         .dsu_en             (dsu_en),
         .instr              (instr),
-        .rs1_val                (rs1_fwd),       // post-forwarding (Section 9.5)
+        .rs1_val                (rs1_fwd),  // post-forwarding (Section 9.5)
         .rs2_val                (rs2_fwd),
         .csr_clear_overflow (csr_clear_overflow),
         .dsu_busy           (dsu_busy),
@@ -305,8 +297,8 @@ module ex_stage
     //
     // Loads override later in WB via mem_to_reg (Section 10.3).
     //==================================================================
-    wire [31:0] link        = pc + 32'd4;
-    wire [31:0] alu_or_link = (jal | jalr) ? link : alu_result;
+    wire [WORD_W-1:0] link        = pc + 32'd4;
+    wire [WORD_W-1:0] alu_or_link = (jal | jalr) ? link : alu_result;
 
     assign ex_result = csr_en       ? csr_rdata
                      : dsu_rd_valid ? dsu_rd_data
@@ -322,7 +314,7 @@ module ex_stage
     // source for DSU results (Section 9.4), and it self-gates during a
     // dsu_busy hold, satisfying constraint 2 with no extra logic.
     //==================================================================
-    assign rd_out        = dsu_rd_valid ? dsu_rd_addr : rd;    // NOTE 2
+    assign rd_out        = dsu_rd_valid ? dsu_rd_addr : rd;  // NOTE 2
     assign reg_write_out = reg_write | dsu_rd_valid;
 
     //==================================================================
@@ -344,5 +336,3 @@ module ex_stage
     assign mem_to_reg_out = mem_to_reg;
 
 endmodule
-
-`default_nettype wire

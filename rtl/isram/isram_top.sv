@@ -1,10 +1,8 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 3 : Instruction SRAM, 64 KiB at 0x0000_0000
 // isram_top.v
 //
-// Spec: GARUDA-MEM-SPEC-001 Rev 2.0 (Rev 4.0 set) §5.1, §7.4
+// Spec: GARUDA-MEM-SPEC-001 Rev 2.0 (Rev 4.0 set) Sec.5.1, Sec.7.4
 //
 // Zero-wait AHB slave on one 16K x 32 macro. Writes are refused (two-cycle
 // ERROR, no array effect) while MEMCTL.ILOCK is set, unless the granted master
@@ -14,34 +12,38 @@
 // =============================================================================
 
 module isram_top
+    import garuda_pkg::*;
     import mem_pkg::*;
 (
-    input  wire        hclk,
-    input  wire        hreset_n,
-
-    input  wire        hsel_i,
-    input  wire [31:0] haddr_i,
-    input  wire [1:0]  htrans_i,
-    input  wire        hwrite_i,
-    input  wire [2:0]  hsize_i,
-    input  wire [2:0]  hburst_i,
-    input  wire [3:0]  hprot_i,
-    input  wire [31:0] hwdata_i,
-    input  wire        hready_i,
-    output wire [31:0] hrdata_o,
-    output wire        hreadyout_o,
-    output wire        hresp_o,
-
-    input  wire        ilock_i,            // MEMCTL.ILOCK
-    input  wire        hmaster_is_sba_i    // from ahb_interconnect
+    input wire hclk,
+    input wire hreset_n,
+    input wire hsel_i,
+    input wire [WORD_W-1:0] haddr_i,
+    input wire [HTRANS_W-1:0] htrans_i,
+    input wire hwrite_i,
+    input wire [HSIZE_W-1:0] hsize_i,
+    input wire [HBURST_W-1:0] hburst_i,
+    input wire [HPROT_W-1:0] hprot_i,
+    input wire [WORD_W-1:0] hwdata_i,
+    input wire hready_i,
+    output wire [WORD_W-1:0] hrdata_o,
+    output wire hreadyout_o,
+    output wire hresp_o,
+    input wire ilock_i,  // MEMCTL.ILOCK
+    // from ahb_interconnect
+    input wire hmaster_is_sba_i
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
-    localparam integer ADDR_W = 14;             // 16,384 words
+    localparam integer ADDR_W = 32'd14;  // 16,384 words
 
-    wire          ce, we;
+    wire ce;
+    wire we;
     wire [ADDR_W-1:0] addr;
-    wire [3:0]    be;
-    wire [31:0]   wdata, rdata;
+    wire [BE_W-1:0]    be;
+    wire [WORD_W-1:0] wdata;
+    wire [WORD_W-1:0] rdata;
 
     ahb_mem_slave_if #(.ADDR_W(ADDR_W), .WRITABLE(1)) u_if (
         .hclk(hclk), .hreset_n(hreset_n),
@@ -58,18 +60,24 @@ module isram_top
         .we(we), .be(be));
 
 `ifndef SYNTHESIS
-    task bd_write;     input [31:0] byte_addr; input [31:0] data;
+    task bd_write;
+    input [31:0] byte_addr;
+    input [31:0] data;
         begin
             u_array.bd_write(byte_addr[ADDR_W+1:2], data);
 `ifndef __ICARUS__
-            u_if.u_mem_sva.forget({{(32-ADDR_W){1'b0}}, byte_addr[ADDR_W+1:2]});   // the bus-side data model (rtl/mem/mem_sva.sv) did not see this write
+            // the bus-side data model (rtl/mem/mem_sva.sv) did not see this
+            // write
+            u_if.u_mem_sva.forget({{(32-ADDR_W){1'b0}}, byte_addr[ADDR_W+1:2]});
 `endif
         end
     endtask
-    function [31:0] bd_read; input [31:0] byte_addr;
-        bd_read = u_array.bd_read(byte_addr[ADDR_W+1:2]);
+    function automatic [31:0] bd_read;
+    input [31:0] byte_addr;
+        bd_read = u_array.bd_read(byte_addr[ADDR_W + 1:2]);
     endfunction
-    task bd_load_hex;  input [1023:0] path;
+    task bd_load_hex;
+    input [1023:0] path;
         u_array.bd_load_hex(path);
     endtask
 `endif
@@ -77,5 +85,3 @@ module isram_top
     wire _unused = |{hburst_i, hprot_i};
 
 endmodule
-
-`default_nettype wire

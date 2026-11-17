@@ -1,7 +1,6 @@
 // GARUDA SoC - Block 10 : CLIC (Rev 4.0). Top module: clic_top
 // rtl/include: clic_sva.sv checks its SWI_ID against garuda_map.vh
 -incdir rtl/include
-rtl/include/soc_map_pkg.sv
 rtl/clic/clic_apb.sv
 rtl/clic/clic_select.sv
 rtl/clic/clic_top.sv

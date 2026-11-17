@@ -5,7 +5,6 @@
 // =============================================================================
 -incdir rtl/mem
 
-rtl/mem/mem_pkg.sv
 rtl/mem/sram_wrapper.sv
 rtl/mem/ahb_mem_slave_if.sv
 

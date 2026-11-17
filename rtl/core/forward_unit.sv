@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core
 // forward_unit.v - EX-side operand forwarding select (Sec. 11.1)
@@ -21,17 +19,20 @@
 // =============================================================================
 
 module forward_unit
+    import garuda_pkg::*;
     import core_ex_pkg::*;
 (
-    input  wire [4:0] id_ex_rs1_idx_i,
-    input  wire [4:0] id_ex_rs2_idx_i,
-    input  wire [4:0] exmem_rd_i,
-    input  wire       exmem_reg_write_i,
-    input  wire [4:0] memwb_rd_i,
-    input  wire       memwb_reg_write_i,
-    output wire [1:0] fwd_a_sel_o,
-    output wire [1:0] fwd_b_sel_o
+    input wire [REG_IDX_W-1:0] id_ex_rs1_idx_i,
+    input wire [REG_IDX_W-1:0] id_ex_rs2_idx_i,
+    input wire [REG_IDX_W-1:0] exmem_rd_i,
+    input wire exmem_reg_write_i,
+    input wire [REG_IDX_W-1:0] memwb_rd_i,
+    input wire memwb_reg_write_i,
+    output wire [FWD_SEL_W-1:0] fwd_a_sel_o,
+    output wire [FWD_SEL_W-1:0] fwd_b_sel_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
     wire exmem_vld = exmem_reg_write_i & (exmem_rd_i != 5'd0);
     wire memwb_vld = memwb_reg_write_i & (memwb_rd_i != 5'd0);
 
@@ -45,4 +46,3 @@ module forward_unit
         (memwb_vld && (memwb_rd_i == id_ex_rs2_idx_i)) ? FWD_MEMWB :
                                                          FWD_NONE;
 endmodule
-`default_nettype wire

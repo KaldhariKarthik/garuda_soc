@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core
 // wb_stage.v - Write-Back Stage (Sec. 5, Sec. 10.3)
@@ -17,22 +15,23 @@
 // The WB->ID bypass also lives in regfile.v; these rf_* signals feed it.
 // =============================================================================
 
-module wb_stage (
+module wb_stage
+    import garuda_pkg::*;
+(
     // From MEM/WB register
-    input  wire [31:0] wb_data_i,      // final writeback value
-    input  wire [4:0]  rd_i,           // destination register index
-    input  wire        reg_write_i,    // writeback enable
-
+    input wire [WORD_W-1:0] wb_data_i,  // final writeback value
+    input wire [REG_IDX_W-1:0] rd_i,  // destination register index
+    input wire reg_write_i,  // writeback enable
     // To register-file write port (regfile.v: wb_reg_write_i/wb_rd_i/wb_data_i)
-    output wire        rf_we_o,
-    output wire [4:0]  rf_rd_o,
-    output wire [31:0] rf_wdata_o
+    output wire rf_we_o,
+    output wire [REG_IDX_W-1:0] rf_rd_o,
+    output wire [WORD_W-1:0] rf_wdata_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     assign rf_we_o    = reg_write_i;
     assign rf_rd_o    = rd_i;
     assign rf_wdata_o = wb_data_i;
 
 endmodule
-
-`default_nettype wire

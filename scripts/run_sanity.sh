@@ -40,7 +40,7 @@ SANITY_TESTS=(
 )
 
 echo "elaborating..."
-xrun -f tb/soc/filelist_boot.f -top tb_boot \
+xrun -f rtl/common/filelist_pkg.f -f tb/soc/filelist_boot.f -top tb_boot \
      -xmlibdirname "$RUNDIR/xcelium.d" -snapshot gsan \
      -l "$RUNDIR/elab.log" -elaborate > /dev/null 2>&1
 if grep -qE "^xrun: \*[EF]|^xmelab: \*[EF]" "$RUNDIR/elab.log"; then

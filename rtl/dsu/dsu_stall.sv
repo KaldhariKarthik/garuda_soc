@@ -1,27 +1,27 @@
 //dsu_stall.v
 
-`timescale 1ns / 1ps
-
 module dsu_stall
+    import garuda_pkg::*;
     import dsu_pkg::*;
 (
     input wire gclk,
     input wire core_rst_n,
     input wire flush,
-    
-    input wire [4:0] funct5_fld,
-    input wire [2:0] funct3_fld,
-    input wire       is_custom0,
-    input wire [1:0] acc_sel,
-    
+    input wire [FUNCT5_W-1:0] funct5_fld,
+    input wire [FUNCT3_W-1:0] funct3_fld,
+    input wire is_custom0,
+    input wire [ACC_SEL_W-1:0] acc_sel,
     output wire dsu_busy
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     wire cur_is_rtype = is_custom0 & (funct3_fld == 3'b000);
     wire cur_is_itype = is_custom0 & (funct3_fld == 3'b001);
-    
+
     // -----------------------------------------------------------------------
-    // ERRATUM DSU-3 (FLAG-C / FLAG-2) -- compute -> readback was not interlocked
+    // ERRATUM DSU-3 (FLAG-C / FLAG-2) -- compute -> readback was not
+    // interlocked
     // -----------------------------------------------------------------------
     // cur_is_2cycle previously listed only the readback ops (MACRD_LO/HI,
     // MACSAT), so readback-after-readback stalled but readback-after-COMPUTE
@@ -56,10 +56,12 @@ module dsu_stall
                                           (funct5_fld == FUNCT5_MACRD_HI) |
                                           (funct5_fld == FUNCT5_MACSAT)))
                        | cur_is_compute;
-    wire cur_reads_acc = (cur_is_rtype & ((funct5_fld == FUNCT5_MACRD_LO) | (funct5_fld == FUNCT5_MACRD_HI) | (funct5_fld == FUNCT5_MACSAT))) | cur_is_itype;
-    
+    wire cur_reads_acc = (cur_is_rtype &((funct5_fld == FUNCT5_MACRD_LO)
+        |(funct5_fld == FUNCT5_MACRD_HI) |(funct5_fld == FUNCT5_MACSAT)))
+        |cur_is_itype;
+
     reg       prev_was_2cycle;
-    reg [1:0] prev_acc_sel;
+    reg [ACC_SEL_W-1:0] prev_acc_sel;
     reg       stalled_once;
 
     wire stall_now;
@@ -77,18 +79,16 @@ module dsu_stall
     // The interlock is meant to insert exactly ONE bubble, so it is now a
     // one-shot: stalled_once records that this instruction has already been
     // held and suppresses any further stall for it, letting prev_* advance.
-    always @(posedge gclk or negedge core_rst_n) begin
-        if(!core_rst_n) begin
+    always_ff @(posedge gclk or negedge core_rst_n) begin : p_prev_was_cycle
+        if (!core_rst_n) begin
             prev_was_2cycle <= 1'b0;
             prev_acc_sel <= 2'b00;
             stalled_once <= 1'b0;
-        end
-        else if (flush) begin
+        end else if (flush) begin
             prev_was_2cycle <= 1'b0;
             prev_acc_sel <= 2'b00;
             stalled_once <= 1'b0;
-        end
-        else begin
+        end else begin
             stalled_once <= stall_now;
             if (~stall_now) begin
                 prev_was_2cycle <= cur_is_2cycle;
@@ -99,7 +99,7 @@ module dsu_stall
 
     assign stall_now = prev_was_2cycle & cur_reads_acc &
                        (acc_sel == prev_acc_sel) & ~stalled_once;
-    
+
     assign dsu_busy = stall_now;
-         
-endmodule        
+
+endmodule

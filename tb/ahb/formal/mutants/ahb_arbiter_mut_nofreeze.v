@@ -1,6 +1,4 @@
 // MUTANT nofreeze (bus plan B1 A2 negative control): grant freeze removed: the grant may move under a waited address phase
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 6: AHB-Lite Interconnect
 // ahb_arbiter.v - fixed-priority master arbiter + address/data phase tracker
@@ -81,27 +79,28 @@
 // burst - whereas the converse (forcing SEQ) never happens.
 // =============================================================================
 
-
 module ahb_arbiter
+    import garuda_pkg::*;
     import ahb_pkg::*;
 (
-    input  wire        hclk,
-    input  wire        hreset_n,
-
+    input wire hclk,
+    input wire hreset_n,
     // Per-master HTRANS, flattened: htrans_i[2*m +: 2] is master m.
-    input  wire [AHB_NMASTERS*2-1:0] htrans_i,
-
+    input wire [AHB_NMASTERS * HTRANS_W - 1:0] htrans_i,
     // Shared HREADY from the data-phase slave (ahb_slave_mux).
-    input  wire        hready_i,
-
+    input wire hready_i,
     // ---- address phase ----
-    output wire [1:0]  grant_o,       // master owning the address phase
-    output wire        seq_break_o,   // rewrite this transfer's SEQ to NONSEQ
-
+    output wire [AHB_MID_W-1:0] grant_o,  // master owning the address phase
+    output wire seq_break_o,  // rewrite this transfer's SEQ to NONSEQ
     // ---- data phase ----
-    output reg         dph_valid_o,   // a data phase is in flight
-    output reg  [1:0]  dph_master_o   // ... and this master owns it
+    output reg dph_valid_o,  // a data phase is in flight
+    // ... and this master owns it
+    output reg [AHB_MID_W-1:0] dph_master_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned WINNER_W = 32'd2;
+    localparam int unsigned LAST_OWNER_W = 32'd2;
 
     // -----------------------------------------------------------------------
     // Requests. HTRANS[1] is set for NONSEQ and SEQ, clear for IDLE and BUSY.
@@ -118,13 +117,13 @@ module ahb_arbiter
     endgenerate
 
     // -----------------------------------------------------------------------
-    // Fixed priority: DMA > SBA > D-Port > I-Port (Rev 4.0 Sec. 7.1, ADR-0004). Written as a plain
-    // descending cascade rather than a loop so the priority order is legible
-    // in the source and cannot be inverted by an off-by-one in a scan.
-    // With no requester the winner is the I-Port, whose HTRANS is IDLE in that
-    // case, so the slave side sees an idle bus.
+    // Fixed priority: DMA > SBA > D-Port > I-Port (Rev 4.0 Sec. 7.1, ADR-0004).
+    // Written as a plain descending cascade rather than a loop so the priority
+    // order is legible in the source and cannot be inverted by an off-by-one in
+    // a scan. With no requester the winner is the I-Port, whose HTRANS is IDLE
+    // in that case, so the slave side sees an idle bus.
     // -----------------------------------------------------------------------
-    wire [1:0] winner = req[AHB_M_DMA]   ? AHB_M_DMA   :
+    wire [WINNER_W-1:0] winner = req[AHB_M_DMA]   ? AHB_M_DMA   :
                         req[AHB_M_SBA]   ? AHB_M_SBA   :
                         req[AHB_M_DPORT] ? AHB_M_DPORT :
                                             AHB_M_IPORT ;
@@ -133,18 +132,18 @@ module ahb_arbiter
     // Grant freeze (see header Sec. 1). hold_r is set for every cycle that
     // follows an unaccepted address phase, and cleared by acceptance.
     // -----------------------------------------------------------------------
-    reg [1:0] grant_r;
+    reg [AHB_MID_W-1:0] grant_r;
     reg       hold_r;
 
     assign grant_o = winner;
 
-    always @(posedge hclk or negedge hreset_n) begin
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_grant
         if (!hreset_n) begin
             grant_r <= AHB_M_IPORT;
-            hold_r  <= 1'b0;
+            hold_r <= 1'b0;
         end else begin
             grant_r <= grant_o;
-            hold_r  <= ~hready_i;   // not accepted this cycle -> freeze it
+            hold_r <= ~hready_i;  // not accepted this cycle -> freeze it
         end
     end
 
@@ -161,14 +160,14 @@ module ahb_arbiter
     // The HWDATA mux in particular MUST use dph_master_o, not grant_o. See
     // ERRATUM AHB-1 in ahb_master_mux.v.
     // -----------------------------------------------------------------------
-    wire [1:0] granted_htrans = htrans_i[2*grant_o +: 2];
+    wire [HTRANS_W-1:0] granted_htrans = htrans_i[2*grant_o +: 2];
 
-    always @(posedge hclk or negedge hreset_n) begin
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_dph_valid
         if (!hreset_n) begin
-            dph_valid_o  <= 1'b0;
+            dph_valid_o <= 1'b0;
             dph_master_o <= AHB_M_IPORT;
         end else if (hready_i) begin
-            dph_valid_o  <= granted_htrans[1];
+            dph_valid_o <= granted_htrans[1];
             dph_master_o <= grant_o;
         end
     end
@@ -183,12 +182,12 @@ module ahb_arbiter
     // idle cycle does not interrupt a burst on the slave side - only another
     // master's transfer does.
     // -----------------------------------------------------------------------
-    reg [1:0] last_owner_r;
+    reg [LAST_OWNER_W-1:0] last_owner_r;
     reg       last_owner_v;
 
     assign seq_break_o = ~last_owner_v || (last_owner_r != grant_o);
 
-    always @(posedge hclk or negedge hreset_n) begin
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_last_owner
         if (!hreset_n) begin
             last_owner_r <= AHB_M_IPORT;
             last_owner_v <= 1'b0;
@@ -199,5 +198,3 @@ module ahb_arbiter
     end
 
 endmodule
-
-`default_nettype wire

@@ -1,10 +1,8 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 4 : Boot ROM, 4 KiB at 0x1000_0000 (reset vector)
 // bootrom_top.v
 //
-// Spec: GARUDA-MEM-SPEC-001 Rev 2.0 (Rev 4.0 set) §5.3, §7.2, §8
+// Spec: GARUDA-MEM-SPEC-001 Rev 2.0 (Rev 4.0 set) Sec.5.3, Sec.7.2, Sec.8
 //
 // Zero-wait, read-only. Byte/half/word reads are all legal ([N-7.5], .rodata
 // may be byte-addressed); any write returns the two-cycle ERROR. Contents come
@@ -14,33 +12,37 @@
 // =============================================================================
 
 module bootrom_top
+    import garuda_pkg::*;
     import mem_pkg::*;
 #(
     parameter INIT_FILE = ""
 )(
-    input  wire        hclk,
-    input  wire        hreset_n,
-
-    input  wire        hsel_i,
-    input  wire [31:0] haddr_i,
-    input  wire [1:0]  htrans_i,
-    input  wire        hwrite_i,
-    input  wire [2:0]  hsize_i,
-    input  wire [2:0]  hburst_i,
-    input  wire [3:0]  hprot_i,
-    input  wire [31:0] hwdata_i,
-    input  wire        hready_i,
-    output wire [31:0] hrdata_o,
-    output wire        hreadyout_o,
-    output wire        hresp_o
+    input wire hclk,
+    input wire hreset_n,
+    input wire hsel_i,
+    input wire [WORD_W-1:0] haddr_i,
+    input wire [HTRANS_W-1:0] htrans_i,
+    input wire hwrite_i,
+    input wire [HSIZE_W-1:0] hsize_i,
+    input wire [HBURST_W-1:0] hburst_i,
+    input wire [HPROT_W-1:0] hprot_i,
+    input wire [WORD_W-1:0] hwdata_i,
+    input wire hready_i,
+    output wire [WORD_W-1:0] hrdata_o,
+    output wire hreadyout_o,
+    output wire hresp_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
-    localparam integer ADDR_W = 10;             // 1024 words
+    localparam integer ADDR_W = 32'd10;  // 1024 words
 
-    wire          ce, we;
+    wire ce;
+    wire we;
     wire [ADDR_W-1:0] addr;
-    wire [3:0]    be;
-    wire [31:0]   wdata, rdata;
+    wire [BE_W-1:0]    be;
+    wire [WORD_W-1:0] wdata;
+    wire [WORD_W-1:0] rdata;
 
     ahb_mem_slave_if #(.ADDR_W(ADDR_W), .WRITABLE(0)) u_if (
         .hclk(hclk), .hreset_n(hreset_n),
@@ -52,29 +54,34 @@ module bootrom_top
         .arr_ce_o(ce), .arr_addr_o(addr), .arr_we_o(we), .arr_be_o(be),
         .arr_wdata_o(wdata), .arr_rdata_i(rdata));
 
-    sram_wrapper #(.WORDS(MEM_BROM_WORDS), .ADDR_W(ADDR_W), .IS_ROM(1), .INIT_FILE(INIT_FILE)) u_array (
+    sram_wrapper #(.WORDS(MEM_BROM_WORDS), .ADDR_W(ADDR_W), .IS_ROM(1),
+        .INIT_FILE(INIT_FILE)) u_array(
         .hclk(hclk), .ce(ce), .addr(addr), .wdata(wdata), .rdata(rdata),
         .we(we), .be(be));
 
 `ifndef SYNTHESIS
-    task bd_load_hex;  input [1023:0] path;
+    task bd_load_hex;
+    input [1023:0] path;
         u_array.bd_load_hex(path);
     endtask
-    task bd_write;     input [31:0] byte_addr; input [31:0] data;
+    task bd_write;
+    input [31:0] byte_addr;
+    input [31:0] data;
         begin
             u_array.bd_write(byte_addr[ADDR_W+1:2], data);
 `ifndef __ICARUS__
-            u_if.u_mem_sva.forget({{(32-ADDR_W){1'b0}}, byte_addr[ADDR_W+1:2]});   // the bus-side data model (rtl/mem/mem_sva.sv) did not see this write
+            // the bus-side data model (rtl/mem/mem_sva.sv) did not see this
+            // write
+            u_if.u_mem_sva.forget({{(32-ADDR_W){1'b0}}, byte_addr[ADDR_W+1:2]});
 `endif
         end
     endtask
-    function [31:0] bd_read; input [31:0] byte_addr;
-        bd_read = u_array.bd_read(byte_addr[ADDR_W+1:2]);
+    function automatic [31:0] bd_read;
+    input [31:0] byte_addr;
+        bd_read = u_array.bd_read(byte_addr[ADDR_W + 1:2]);
     endfunction
 `endif
 
     wire _unused = |{hburst_i, hprot_i};
 
 endmodule
-
-`default_nettype wire

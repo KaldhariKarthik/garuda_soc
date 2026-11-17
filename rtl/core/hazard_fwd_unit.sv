@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core - ID Stage, Sub-block 5/5
 // Hazard / Forwarding unit (ID-side: load-use detection)  (Verilog)
@@ -22,19 +20,20 @@
 // happen while the consumer is still in ID.
 // =============================================================================
 
-module hazard_fwd_unit (
-    input  wire [4:0] id_rs1_idx_i,
-    input  wire [4:0] id_rs2_idx_i,
-
-    input  wire        ex_mem_read_i,   // instruction currently in EX is a load
-    input  wire [4:0] ex_rd_i,
-
-    output wire         load_use_stall_o
+module hazard_fwd_unit
+    import garuda_pkg::*;
+(
+    input wire [REG_IDX_W-1:0] id_rs1_idx_i,
+    input wire [REG_IDX_W-1:0] id_rs2_idx_i,
+    input wire ex_mem_read_i,  // instruction currently in EX is a load
+    input wire [REG_IDX_W-1:0] ex_rd_i,
+    output wire load_use_stall_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     assign load_use_stall_o = ex_mem_read_i && (ex_rd_i != 5'd0) &&
-                               ((ex_rd_i == id_rs1_idx_i) || (ex_rd_i == id_rs2_idx_i));
+                               ((ex_rd_i == id_rs1_idx_i)
+                                   || (ex_rd_i == id_rs2_idx_i));
 
 endmodule
-
-`default_nettype wire

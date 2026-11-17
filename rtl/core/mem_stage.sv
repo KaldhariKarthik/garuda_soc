@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core
 // MEM Stage (top level) - instantiates the 3 sub-blocks shown on the core
@@ -22,70 +20,70 @@
 //     sequencing) is CONTROL's job, not MEM's.
 // =============================================================================
 
-module mem_stage (
-    input  wire         gclk,
-    input  wire         core_rst_n,
-
+module mem_stage
+    import garuda_pkg::*;
+(
+    input wire gclk,
+    input wire core_rst_n,
     // -------------------------------------------------------------------
     // From ex_mem pipeline register (Sec. 5.2 field list)
     // -------------------------------------------------------------------
-    input  wire [31:0] ex_result_i,   // ALU/MUL/DSU/CSR result; address for load/store
-    input  wire [31:0] rs2_data_i,    // forwarded store operand
-    input  wire [2:0]  funct3_i,
-    input  wire [4:0]  rd_i,
-    input  wire [31:0] pc_i,           // ex_mem.pc — faulting instr PC for mepc (Sec.14.4)
-
+    // ALU/MUL/DSU/CSR result; address for load/store
+    input wire [WORD_W-1:0] ex_result_i,
+    input wire [WORD_W-1:0] rs2_data_i,  // forwarded store operand
+    input wire [FUNCT3_W-1:0] funct3_i,
+    input wire [REG_IDX_W-1:0] rd_i,
+    // ex_mem.pc - faulting instr PC for mepc (Sec.14.4)
+    input wire [WORD_W-1:0] pc_i,
     // Control bits needed in MEM (subset of the full ctrl bundle)
-    input  wire         mem_read_i,
-    input  wire         mem_write_i,
-    input  wire         mem_to_reg_i,
-    input  wire         reg_write_i,
-    input  wire         valid_i,       // ex_mem.valid — retire tag (Sec. 13.2)
-
+    input wire mem_read_i,
+    input wire mem_write_i,
+    input wire mem_to_reg_i,
+    input wire reg_write_i,
+    input wire valid_i,  // ex_mem.valid - retire tag (Sec. 13.2)
     // -------------------------------------------------------------------
     // D-port AHB-Lite master pins (Sec. 4.1)
     // -------------------------------------------------------------------
-    output wire [31:0] d_haddr_o,
-    output wire [1:0]  d_htrans_o,
-    output wire [2:0]  d_hsize_o,
-    output wire [2:0]  d_hburst_o,
-    output wire [3:0]  d_hprot_o,
-    output wire         d_hwrite_o,
-    output wire [31:0] d_hwdata_o,
-
-    input  wire [31:0] d_hrdata_i,
-    input  wire         d_hready_i,
-    input  wire         d_hresp_i,
-
+    output wire [WORD_W-1:0] d_haddr_o,
+    output wire [HTRANS_W-1:0] d_htrans_o,
+    output wire [HSIZE_W-1:0] d_hsize_o,
+    output wire [HBURST_W-1:0] d_hburst_o,
+    output wire [HPROT_W-1:0] d_hprot_o,
+    output wire d_hwrite_o,
+    output wire [WORD_W-1:0] d_hwdata_o,
+    input wire [WORD_W-1:0] d_hrdata_i,
+    input wire d_hready_i,
+    input wire d_hresp_i,
     // -------------------------------------------------------------------
     // Outputs to mem_wb pipeline register (Sec. 5.2)
     // -------------------------------------------------------------------
-    output wire [31:0] wb_data_o,
-    output wire         reg_write_o,
-    output wire [4:0]  rd_o,
-    output wire         retire_o,      // this instruction architecturally retires
-
+    output wire [WORD_W-1:0] wb_data_o,
+    output wire reg_write_o,
+    output wire [REG_IDX_W-1:0] rd_o,
+    output wire retire_o,  // this instruction architecturally retires
     // -------------------------------------------------------------------
     // Hold source (Sec. 11.4) - raw signal; composition is downstream
     // -------------------------------------------------------------------
-    output wire         mem_stall_o,
-
+    output wire mem_stall_o,
     // -------------------------------------------------------------------
     // Raw exception outputs (Sec. 14.1 causes 4/5/6/7, Sec. 14.2 mtval)
     // -------------------------------------------------------------------
-    output wire         mem_exception_valid_o,
-    output wire [31:0] mem_exception_pc_o,   // -> CONTROL: mepc source on a MEM fault
-    output wire [3:0]  mem_exception_cause_o,
-    output wire [31:0] mem_exception_mtval_o
+    output wire mem_exception_valid_o,
+    // -> CONTROL: mepc source on a MEM fault
+    output wire [WORD_W-1:0] mem_exception_pc_o,
+    output wire [EXC_CAUSE_W-1:0] mem_exception_cause_o,
+    output wire [WORD_W-1:0] mem_exception_mtval_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     // -----------------------------------------------------------------------
     // Sub-block 1: Load/Store Unit
     // -----------------------------------------------------------------------
-    wire [2:0]  hsize_w;
+    wire [HSIZE_W-1:0]  hsize_w;
     wire         load_misaligned_w;
     wire         store_misaligned_w;
-    wire [31:0] hwdata_w;
+    wire [WORD_W-1:0] hwdata_w;
 
     load_store_unit u_lsu (
         .addr_i               (ex_result_i),
@@ -143,7 +141,7 @@ module mem_stage (
     // -----------------------------------------------------------------------
     // Sub-block 3: Load Formatter
     // -----------------------------------------------------------------------
-    wire [31:0] load_data_w;
+    wire [WORD_W-1:0] load_data_w;
 
     load_formatter u_load_formatter (
         .rdata_i        (d_hrdata_i),
@@ -185,7 +183,8 @@ module mem_stage (
                                     store_err_w ? 4'd7 :
                                     4'd0;
 
-    assign mem_exception_mtval_o = ex_result_i;   // the load/store address in all 4 cases
+    // the load/store address in all 4 cases
+    assign mem_exception_mtval_o = ex_result_i;
 
     // -----------------------------------------------------------------------
     // Retire tag (Sec. 13.2). A real instruction retires when it leaves MEM
@@ -197,5 +196,3 @@ module mem_stage (
     assign retire_o = valid_i & ~mem_exception_valid_o;
 
 endmodule
-
-`default_nettype wire

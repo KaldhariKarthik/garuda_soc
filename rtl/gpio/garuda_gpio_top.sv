@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 19 : GPIO (2 pins)
 // garuda_gpio_top.v - GARUDA wrapper around pulp-platform/apb_gpio
@@ -23,43 +21,47 @@
 //      exactly how that bug would arrive.
 // =============================================================================
 
-module garuda_gpio_top #(
+module garuda_gpio_top
+    import garuda_pkg::*;
+#(
     parameter [7:0]   BLOCK_NUM = 8'd19,
-    parameter integer PAD_NUM   = 2
+    parameter integer PAD_NUM   = 32'd2
 )(
-    input  wire        pclk,
-    input  wire        preset_n,
-
-    // ---- APB slave, window 7 -------------------------------------------------
-    input  wire        psel_i,
-    input  wire        penable_i,
-    input  wire        pwrite_i,
-    input  wire [11:0] paddr_i,
-    input  wire [31:0] pwdata_i,
-    output wire [31:0] prdata_o,
-    output wire        pready_o,
-    output wire        pslverr_o,
-
-    // ---- CLIC ID 20 (no DMA channel - see [N-13.2]) --------------------------
-    output wire        irq_o,
-
-    // ---- pins ------------------------------------------------------------------
-    input  wire [PAD_NUM-1:0] gpio_i,
-    output wire [PAD_NUM-1:0] gpio_o,
-    output wire [PAD_NUM-1:0] gpio_oe
+    input wire pclk,
+    input wire preset_n,
+    // ---- APB slave, window 7 ------------------------------------------------
+    input wire psel_i,
+    input wire penable_i,
+    input wire pwrite_i,
+    input wire [PADDR_W-1:0] paddr_i,
+    input wire [WORD_W-1:0] pwdata_i,
+    output wire [WORD_W-1:0] prdata_o,
+    output wire pready_o,
+    output wire pslverr_o,
+    // ---- CLIC ID 20 (no DMA channel - see [N-13.2]) -------------------------
+    output wire irq_o,
+    // ---- pins ---------------------------------------------------------------
+    input wire [PAD_NUM - 1:0] gpio_i,
+    output wire [PAD_NUM - 1:0] gpio_o,
+    output wire [PAD_NUM - 1:0] gpio_oe
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
-    localparam [11:0] IP_LIMIT = 12'h080;   // the vendored register file
+    localparam [11:0] IP_LIMIT = 12'h080;  // the vendored register file
     // GPIO section 6: 0x00 to 0x1C, INTSTATUS 0x24, PADCFG0 0x28. The vendored
     // file answers 0x20 and 0x2C to 0x7C too (reads 0); they are not registers
     // and now answer PSLVERR (GPIO-2 item 3).
     localparam [63:0] IP_MAP   = 64'h0000_0000_0000_06FF;
 
-    wire        ip_psel, ip_penable, ip_pwrite;
-    wire [11:0] ip_paddr;
-    wire [31:0] ip_pwdata, ip_prdata;
+    wire ip_psel;
+    wire ip_penable;
+    wire ip_pwrite;
+    wire [PADDR_W-1:0] ip_paddr;
+    wire [WORD_W-1:0] ip_pwdata;
+    wire [WORD_W-1:0] ip_prdata;
     wire        ip_pready;
-    wire [1:0]  dmactl;
+    wire [DMACTL_W-1:0]  dmactl;
     wire [PAD_NUM-1:0] gpio_sync;
     wire        gpio_int;
 
@@ -68,7 +70,8 @@ module garuda_gpio_top #(
     assign evt[0] = gpio_int;
 
     garuda_apb_shim #(
-        .N_EVT(1), .SYNC_W(PAD_NUM), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
+        .N_EVT(1), .SYNC_W(PAD_NUM), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT),
+            .IP_MAP(IP_MAP),
         .ADDR_SHIFT(0), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
@@ -79,7 +82,7 @@ module garuda_gpio_top #(
         .ip_paddr_o(ip_paddr), .ip_pwdata_o(ip_pwdata), .ip_prdata_i(ip_prdata),
         .ip_pready_i(ip_pready),
         .evt_i(evt), .irq_o(irq_o),
-        .rx_avail_i(1'b0), .tx_space_i(1'b0),          // no DMA channel
+        .rx_avail_i(1'b0), .tx_space_i(1'b0),  // no DMA channel
         .dma_ack_i(1'b0), .dma_req_o(), .dmactl_o(dmactl),
         .pad_async_i(gpio_i), .pad_sync_o(gpio_sync));
 
@@ -94,7 +97,7 @@ module garuda_gpio_top #(
         .APB_ADDR_WIDTH(12), .PAD_NUM(PAD_NUM), .NBIT_PADCFG(4)
     ) u_gpio (
         .pclk(pclk), .preset_n(preset_n),
-        .dft_cg_enable_i(1'b0),                        // OPEN-G1: DFT must drive this
+        .dft_cg_enable_i(1'b0),  // OPEN-G1: DFT must drive this
         .PADDR(ip_paddr), .PWDATA(ip_pwdata), .PWRITE(ip_pwrite),
         .PSEL(ip_psel), .PENABLE(ip_penable),
         .PRDATA(ip_prdata), .PREADY(ip_pready), .PSLVERR(),
@@ -109,5 +112,3 @@ module garuda_gpio_top #(
     wire _unused = |{dmactl, padcfg_unused};
 
 endmodule
-
-`default_nettype wire

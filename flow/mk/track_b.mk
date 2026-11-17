@@ -102,7 +102,7 @@ static: static_lint static_cdc static_xprop      ## lint + clock-domain check + 
 
 static_lint:
 	@mkdir -p $(SIM_DIR)/static
-	@$(IRUN152) -hal -64bit -f rtl/soc/filelist_chip.f -top garuda_chip_top -define SYNTHESIS \
+	@$(IRUN152) -hal -64bit $(PKG_SRCS) -f rtl/soc/filelist_chip.f -top garuda_chip_top -define SYNTHESIS \
 	    -nclibdirname $(SIM_DIR)/static/INCA_libs -l $(SIM_DIR)/static/hal.log -f flow/2_static/hal.f > /dev/null 2>&1; \
 	 rm -f hal.design_facts; \
 	 n=0; new=0; \
@@ -130,7 +130,7 @@ static_lint_selfcheck:
 
 static_cdc:
 	@mkdir -p $(SIM_DIR)/static_cdc_debug
-	@$(IRUN152) -hal -64bit -f rtl/third_party/timescale.f rtl/debug/jtag_tap.sv rtl/debug/debug_dtm.sv \
+	@$(IRUN152) -hal -64bit $(PKG_SRCS) -f rtl/third_party/timescale.f rtl/debug/jtag_tap.sv rtl/debug/debug_dtm.sv \
 	    rtl/debug/dmi_cdc.sv rtl/debug/sba_master.sv rtl/debug/debug_module.sv rtl/debug/debug_top.sv \
 	    -incdir rtl/include -top debug_top -define SYNTHESIS \
 	    -nclibdirname $(SIM_DIR)/static_cdc_debug/INCA_libs -l $(SIM_DIR)/static_cdc_debug/hal_cdc.log \
@@ -149,7 +149,7 @@ static_xprop: sw
 	          "periph:+MODE=basic +TEST=sw/build/t_chip_periph.hex +MAXUS=1200" "integ:+MODE=basic +TEST=sw/build/t_chip_integ.hex +MAXUS=4000" \
 	          "swirq:+MODE=basic +TEST=sw/build/t_chip_swirq.hex"; do \
 	   n=$${t%%:*}; a=$${t#*:}; rm -f $(SIM_DIR)/xprop/chip_$$n.log; \
-	   $(XRUN) -64bit -f tb/soc/filelist_chip.f -top tb_chip -xprop F $$a \
+	   $(XRUN) $(PKG_SRCS) -64bit -f tb/soc/filelist_chip.f -top tb_chip -xprop F $$a \
 	       -xmlibdirname $(SIM_DIR)/xprop/xcelium.d -l $(SIM_DIR)/xprop/chip_$$n.log > /dev/null 2>&1; \
 	   if grep -q 'RESULT: PASSED' $(SIM_DIR)/xprop/chip_$$n.log && ! grep -qE '\*[EF],' $(SIM_DIR)/xprop/chip_$$n.log; \
 	   then echo "static_xprop  chip_$$n PASS"; else echo "static_xprop  chip_$$n FAIL"; fail=1; fi; \

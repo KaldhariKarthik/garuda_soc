@@ -3,21 +3,22 @@
 //Sets on any MAC overlfow or saruration event.
 //Cleared by CSR write (csr_clear_overflow pulse)
 
-`timescale 1ns / 1ps
-
-module overflow_flag (
-    input wire       gclk,
-    input wire       core_rst_n,
-    input wire [2:0] mac_overflow,
-    input wire       sat_overflow,
-    input wire       csr_clear_overflow,
-    
+module overflow_flag
+    import garuda_pkg::*;
+(
+    input wire gclk,
+    input wire core_rst_n,
+    input wire [NUM_ACC-1:0] mac_overflow,
+    input wire sat_overflow,
+    input wire csr_clear_overflow,
     output reg dsu_overflow
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     wire any_ovf = (|mac_overflow) | sat_overflow;
-    
-    always @(posedge gclk or negedge core_rst_n) begin
+
+    always_ff @(posedge gclk or negedge core_rst_n) begin : p_dsu_overflow
         // ERRATUM DSU-8 (FLAG-E) -- an overflow coinciding with its own clear
         // was LOST. Clear had absolute priority, so a poll-and-clear loop
         // silently dropped any overflow landing on the clear cycle. Standard
@@ -26,9 +27,13 @@ module overflow_flag (
         // now takes `any_ovf` rather than zero. Software can still always
         // clear the flag: it just cannot clear an overflow that has not
         // happened yet.
-        if(!core_rst_n)                   dsu_overflow <= 1'b0;
-        else if (csr_clear_overflow) dsu_overflow <= any_ovf;
-        else if (any_ovf)            dsu_overflow <= 1'b1;
+        if (!core_rst_n) begin
+            dsu_overflow <= 1'b0;
+        end else if (csr_clear_overflow) begin
+            dsu_overflow <= any_ovf;
+        end else if (any_ovf) begin
+            dsu_overflow <= 1'b1;
+        end
     end
-    
+
 endmodule

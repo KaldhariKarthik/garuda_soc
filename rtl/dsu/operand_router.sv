@@ -1,32 +1,39 @@
-`timescale 1ns / 1ps
 
-module operand_router (
-    input wire  [31:0] rs1_val,
-    input wire  [31:0] rs2_val,
-    input wire         abs_en,
-    input wire         dot_en,
-    output wire [15:0] a_lo,
-    output wire [15:0] b_lo,
-    output wire [15:0] a_hi,
-    output wire [15:0] b_hi
+module operand_router
+    import garuda_pkg::*;
+(
+    input wire [WORD_W-1:0] rs1_val,
+    input wire [WORD_W-1:0] rs2_val,
+    input wire abs_en,
+    input wire dot_en,
+    output wire [HALF_W-1:0] a_lo,
+    output wire [HALF_W-1:0] b_lo,
+    output wire [HALF_W-1:0] a_hi,
+    output wire [HALF_W-1:0] b_hi
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
-    function [15:0] abs16;
-        input [15:0] x;
-        begin 
-            if      (x == 16'h8000) abs16 = 16'h7FFF;
-            else if (x[15])         abs16 = (~x) + 16'b1;
-            else                    abs16 = x;
+    function automatic [15:0] abs16;
+        input [HALF_W-1:0] x;
+        begin
+            if (x == 16'h8000) begin
+                abs16 = 16'h7FFF;
+            end else if (x[15]) begin
+                abs16 = (~x) + 16'b0000000000000001;
+            end else begin
+                abs16 = x;
+            end
         end
-     endfunction
-     
-     wire [15:0] rs1_lo_abs = abs16(rs1_val[15:0]);
-     wire [15:0] rs2_lo_abs = abs16(rs2_val[15:0]);
+    endfunction
+
+     wire [HALF_W-1:0] rs1_lo_abs = abs16(rs1_val[15:0]);
+     wire [HALF_W-1:0] rs2_lo_abs = abs16(rs2_val[15:0]);
      wire        dot_active = dot_en & ~abs_en;
-     
+
      assign a_lo = abs_en ? rs1_lo_abs : rs1_val[15:0];
      assign b_lo = abs_en ? rs2_lo_abs : rs2_val[15:0];
-     assign a_hi = dot_active ? rs1_val[31:16] : 16'b0;
-     assign b_hi = dot_active ? rs2_val[31:16] : 16'b0;
-     
+     assign a_hi = dot_active ? rs1_val[31:16] : 16'b0000000000000000;
+     assign b_hi = dot_active ? rs2_val[31:16] : 16'b0000000000000000;
+
 endmodule

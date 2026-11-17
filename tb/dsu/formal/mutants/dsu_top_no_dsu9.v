@@ -2,50 +2,49 @@
 // Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal negative control: must FAIL. (tb/dsu/formal/dsu.toml dsu_no_dsu9)
 //dsu_top.v
 
-`timescale 1ns / 1ps
-
 module dsu_top
+    import garuda_pkg::*;
     import dsu_pkg::*;
 (
     input wire gclk,
     input wire core_rst_n,
     input wire flush,
-    
-    input wire        dsu_en,
-    input wire [31:0] instr,
-    input wire [31:0] rs1_val,
-    input wire [31:0] rs2_val,
-    input wire        csr_clear_overflow,
-    
-    output wire        dsu_busy,
-    output wire [31:0] dsu_rd_data,
-    output wire        dsu_rd_valid,
-    output wire [4:0] dsu_rd_addr,
-    output wire       dsu_overflow,
-    output wire       ovf_pending,      // an accumulate folds this cycle: dsu_overflow may still change (DSU-14)
-    output wire       illegal_instr,
-    
-    output wire [47:0] dbg_acc_fx,
-    output wire [47:0] dbg_acc_fy,
-    output wire [47:0] dbg_acc_mag
+    input wire dsu_en,
+    input wire [WORD_W-1:0] instr,
+    input wire [WORD_W-1:0] rs1_val,
+    input wire [WORD_W-1:0] rs2_val,
+    input wire csr_clear_overflow,
+    output wire dsu_busy,
+    output wire [WORD_W-1:0] dsu_rd_data,
+    output wire dsu_rd_valid,
+    output wire [REG_IDX_W-1:0] dsu_rd_addr,
+    output wire dsu_overflow,
+    // an accumulate folds this cycle: dsu_overflow may still change (DSU-14)
+    output wire ovf_pending,
+    output wire illegal_instr,
+    output wire [ACC_W-1:0] dbg_acc_fx,
+    output wire [ACC_W-1:0] dbg_acc_fy,
+    output wire [ACC_W-1:0] dbg_acc_mag
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     wire [MAC_CTRL_W-1:0] control;
-    wire [1:0]             acc_sel;
+    wire [ACC_SEL_W-1:0]             acc_sel;
     wire                   sat_op;
     wire                   shift_op;
-    wire [5:0]             shift_amt;
+    wire [SHAMT_W-1:0]             shift_amt;
     wire                   shift_dir;
-    wire [1:0]             shift_acc_sel;
+    wire [ACC_SEL_W-1:0]             shift_acc_sel;
     wire                   rd_lo_op;
     wire                   rd_hi_op;
-    wire [1:0]             result_src;
+    wire [RES_SRC_W-1:0]             result_src;
     wire                   writes_regfile;
-    wire [4:0]             rd_addr_w;
-    wire [4:0]             funct5_w;
-    wire [2:0]             funct3_w; 
+    wire [REG_IDX_W-1:0]             rd_addr_w;
+    wire [FUNCT5_W-1:0]             funct5_w;
+    wire [FUNCT3_W-1:0]             funct3_w;
     wire                   is_custom0_w;
-    
+
     dsu_decoder u_decoder (
         .instr (instr),
         .dsu_en (dsu_en),
@@ -67,12 +66,12 @@ module dsu_top
         .funct3_fld (funct3_w),
         .is_custom0 (is_custom0_w)
     );
-    
-    wire [47:0] cluster_out;
-    wire [47:0] sat_writeback;
+
+    wire [ACC_W-1:0] cluster_out;
+    wire [ACC_W-1:0] sat_writeback;
     wire sat_writeback_en;
     wire sat_overflow;
-    
+
     // ERRATUM DSU-12 (proposed; found by sw/tests/t_dsu_b2b.S bit 2)
     // ------------------------------------------------------------
     // MACSAT behind a MAC on the same accumulator is held for one cycle by the
@@ -91,11 +90,11 @@ module dsu_top
         .sat_writeback_en (sat_writeback_en),
         .sat_overflow (sat_overflow)
     );
-    
-    wire [2:0] mac_overflow;
-    wire [2:0] mac_pending;
+
+    wire [NUM_ACC-1:0] mac_overflow;
+    wire [NUM_ACC-1:0] mac_pending;
     assign ovf_pending = |mac_pending;
-    
+
     mac_cluster u_cluster (
         .gclk (gclk),
         .core_rst_n (core_rst_n),
@@ -110,30 +109,31 @@ module dsu_top
         .pending (mac_pending),
         .dbg_acc_fx (dbg_acc_fx),
         .dbg_acc_fy (dbg_acc_fy),
-        .dbg_acc_mag (dbg_acc_mag)        
+        .dbg_acc_mag (dbg_acc_mag)
     );
-    
-    reg [47:0] shift_input;
-    always @(*) begin
+
+    reg [ACC_W-1:0] shift_input;
+    always_comb begin : c_shift_input
         case (shift_acc_sel)
-            ACC_FX:  shift_input = dbg_acc_fx;
-            ACC_FY:  shift_input = dbg_acc_fy;
+            ACC_FX: shift_input = dbg_acc_fx;
+            ACC_FY: shift_input = dbg_acc_fy;
             ACC_MAG: shift_input = dbg_acc_mag;
-            default:  shift_input = 48'b0;
+            default : shift_input
+                = 48'b000000000000000000000000000000000000000000000000;
         endcase
-     end
-     
-     wire [31:0] shift_result;
+    end
+
+     wire [WORD_W-1:0] shift_result;
      barrel_shifter u_shifter (
         .cluster_out (shift_input),
         .shift_amt (shift_amt),
         .shift_dir (shift_dir),
         .shift_result (shift_result)
-     ); 
-    
-    wire [31:0] rd_lo_data; 
-    wire [31:0] rd_hi_data;
-    
+     );
+
+    wire [WORD_W-1:0] rd_lo_data;
+    wire [WORD_W-1:0] rd_hi_data;
+
     readback_mux u_rbmux (
         .cluster_out (cluster_out),
         .rd_lo_op (rd_lo_op),
@@ -141,7 +141,7 @@ module dsu_top
         .rd_lo_data (rd_lo_data),
         .rd_hi_data (rd_hi_data)
     );
-    
+
     result_selector u_rsel (
         .result_src (result_src),
         .rd_lo_data (rd_lo_data),
@@ -149,7 +149,7 @@ module dsu_top
         .shift_result (shift_result),
         .dsu_rd_data (dsu_rd_data)
     );
-    
+
     overflow_flag u_ovf (
         .gclk (gclk),
         .core_rst_n (core_rst_n),
@@ -158,7 +158,7 @@ module dsu_top
         .csr_clear_overflow (csr_clear_overflow),
         .dsu_overflow (dsu_overflow)
     );
-    
+
     dsu_stall u_stall (
         .gclk (gclk),
         .core_rst_n (core_rst_n),
@@ -178,8 +178,8 @@ module dsu_top
         .dsu_busy (dsu_busy_w)
     );
     assign dsu_busy = dsu_busy_w;
-    
+
     assign dsu_rd_valid = writes_regfile & ~dsu_busy;
     assign dsu_rd_addr  = rd_addr_w;
-    
+
 endmodule

@@ -1,7 +1,5 @@
 // MUTANT trap_ctrl_no_t14: rtl/core/trap_ctrl.sv with ONE fix reverted (T-14: a WFI arms while an older fault is in H2,
 // as at b90b481). Formal negative control: must FAIL. Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. (tb/core/formal/core_trap.toml trap_prove_no_t14)
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core
 // trap_ctrl.v - Exception priority, trap entry/exit, interrupt entry (Sec.14)
@@ -28,70 +26,68 @@
 // WFI (Sec.14.5): drain-stall hold; wake on clic wake_cond (MIE-independent).
 // Taking the interrupt on wake reuses this same entry path.
 // =============================================================================
-module trap_ctrl #(
-    parameter ID_W = 5
+module trap_ctrl
+    import garuda_pkg::*;
+#(
+    parameter integer ID_W = 32'd5
 )(
-    input  wire        gclk,
-    input  wire        core_rst_n,
-
+    input wire gclk,
+    input wire core_rst_n,
     // ---- EX-point instruction (id_ex + ex_stage) ----
-    input  wire [31:0] idex_pc_i,
-    input  wire [31:0] idex_instr_i,
-    input  wire        idex_fault_i,          // I-access fault bit (cause 1)
-    input  wire        idex_illegal_dec_i,    // decode illegal (cause 2)
-    input  wire        idex_is_system_i,
-    input  wire        idex_valid_i,          // ERRATUM T-4: EX holds a real instr
-    input  wire        ex_dsu_illegal_i,      // cause 2
-    input  wire        ex_csr_illegal_i,      // cause 2 (csr_file.illegal_csr)
-    input  wire        ex_load_misalign_i,    // cause 4
-    input  wire        ex_store_misalign_i,   // cause 6
-    input  wire [31:0] ex_addr_i,             // mtval for 4/6 (= ex_result)
-    input  wire        ex_fetch_misalign_i,   // cause 0 (ERRATUM T-1)
-    input  wire [31:0] ex_fetch_target_i,     // mtval for cause 0
-
+    input wire [WORD_W-1:0] idex_pc_i,
+    input wire [WORD_W-1:0] idex_instr_i,
+    input wire idex_fault_i,  // I-access fault bit (cause 1)
+    input wire idex_illegal_dec_i,  // decode illegal (cause 2)
+    input wire idex_is_system_i,
+    input wire idex_valid_i,  // ERRATUM T-4: EX holds a real instr
+    input wire ex_dsu_illegal_i,  // cause 2
+    input wire ex_csr_illegal_i,  // cause 2 (csr_file.illegal_csr)
+    input wire ex_load_misalign_i,  // cause 4
+    input wire ex_store_misalign_i,  // cause 6
+    input wire [WORD_W-1:0] ex_addr_i,  // mtval for 4/6 (= ex_result)
+    input wire ex_fetch_misalign_i,  // cause 0 (ERRATUM T-1)
+    input wire [WORD_W-1:0] ex_fetch_target_i,  // mtval for cause 0
     // ---- MEM-point (mem_stage) ----
-    input  wire        mem_stall_i,           // H2: a D-port transfer is outstanding (ERRATUM T-9)
-    input  wire        mem_exc_valid_i,
-    input  wire [3:0]  mem_exc_cause_i,       // 5 or 7
-    input  wire [31:0] mem_exc_pc_i,
-    input  wire [31:0] mem_exc_tval_i,
-
+    // H2: a D-port transfer is outstanding (ERRATUM T-9)
+    input wire mem_stall_i,
+    input wire mem_exc_valid_i,
+    input wire [EXC_CAUSE_W-1:0] mem_exc_cause_i,  // 5 or 7
+    input wire [WORD_W-1:0] mem_exc_pc_i,
+    input wire [WORD_W-1:0] mem_exc_tval_i,
     // ---- CLIC (clic_ctrl) ----
-    input  wire        clic_take_cond_i,
-    input  wire        clic_wake_cond_i,
-    input  wire [ID_W-1:0] clic_irq_id_i,
-    input  wire [7:0]  clic_irq_lvl_i,
-    input  wire [31:0] clic_vector_target_i,
-    output wire        clic_take_o,           // a CLIC interrupt is entered this cycle
-
+    input wire clic_take_cond_i,
+    input wire clic_wake_cond_i,
+    input wire [ID_W - 1:0] clic_irq_id_i,
+    input wire [BYTE_W-1:0] clic_irq_lvl_i,
+    input wire [WORD_W-1:0] clic_vector_target_i,
+    output wire clic_take_o,  // a CLIC interrupt is entered this cycle
     // ---- machine timer interrupt (Sec.14.6) ----
-    input  wire        mti_pending_i,     // mip.MTIP & mie.MTIE (NOT gated by mstatus.MIE)
-
+    input wire mti_pending_i,  // mip.MTIP & mie.MTIE (NOT gated by mstatus.MIE)
     // ---- csr_file reads ----
-    input  wire [31:0] mtvec_i,
-    input  wire [31:0] mepc_i,
-    input  wire        mstatus_mie_i,     // global enable, for the MTI take condition
-
+    input wire [WORD_W-1:0] mtvec_i,
+    input wire [WORD_W-1:0] mepc_i,
+    input wire mstatus_mie_i,  // global enable, for the MTI take condition
     // ---- csr_file trap writes ----
-    output wire        trap_enter_o,
-    output wire        is_interrupt_o,
-    output wire [7:0]  clic_level_o,
-    output wire        mret_o,
-    output wire [31:0] trap_pc_o,
-    output wire [31:0] trap_cause_o,
-    output wire [31:0] trap_tval_o,
-
+    output wire trap_enter_o,
+    output wire is_interrupt_o,
+    output wire [CLIC_LVL_W-1:0] clic_level_o,
+    output wire mret_o,
+    output wire [WORD_W-1:0] trap_pc_o,
+    output wire [WORD_W-1:0] trap_cause_o,
+    output wire [WORD_W-1:0] trap_tval_o,
     // ---- pipe_ctrl ----
-    output wire        trap_redirect_valid_o,
-    output wire [31:0] trap_redirect_target_o,
-    output wire        trap_squash_id_ex_o,
-    output wire        trap_squash_ex_mem_o,
-    output wire        trap_squash_mem_wb_o,
-    output wire        wfi_hold_o,
-
+    output wire trap_redirect_valid_o,
+    output wire [WORD_W-1:0] trap_redirect_target_o,
+    output wire trap_squash_id_ex_o,
+    output wire trap_squash_ex_mem_o,
+    output wire trap_squash_mem_wb_o,
+    output wire wfi_hold_o,
     // ---- ex_stage (DSU trap-only flush) ----
-    output wire        ex_squash_o
+    output wire ex_squash_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned EX_CAUSE_W = 32'd4;
     // SYSTEM instruction discrimination
     wire is_ecall  = idex_is_system_i & (idex_instr_i==32'h00000073);
     wire is_ebreak = idex_is_system_i & (idex_instr_i==32'h00100073);
@@ -100,11 +96,12 @@ module trap_ctrl #(
 
     // EX-point exception detect (Sec.14.1 priority 1>2>3>4>6>11)
     // ERRATUM T-17 (2026-10-11, found by the coverage test t_cov_fault): the
-    // fetch-fault bit was the one exception term not tied to a real instruction.
-    // After a fetch fault the trap flushes the prefetch buffer, whose empty slot
-    // still presents the old fault bit; IF/ID and ID/EX carried it on a bubble
-    // and cause 1 was raised again from the bubble after every redirect, so the
-    // handler never ran. A bubble carries no exception (same rule as T-4).
+    // fetch-fault bit was the one exception term not tied to a real
+    // instruction. After a fetch fault the trap flushes the prefetch buffer,
+    // whose empty slot still presents the old fault bit; IF/ID and ID/EX
+    // carried it on a bubble and cause 1 was raised again from the bubble after
+    // every redirect, so the handler never ran. A bubble carries no exception
+    // (same rule as T-4).
     wire e1  = idex_fault_i & idex_valid_i;
     wire e2  = idex_illegal_dec_i | ex_dsu_illegal_i | ex_csr_illegal_i;
     wire e3  = is_ebreak;
@@ -144,15 +141,16 @@ module trap_ctrl #(
     // -----------------------------------------------------------------------
     wire h2 = mem_stall_i;
     // ERRATUM T-16 (ruling D-32, 2026-11-04; found by the audit's formal run):
-    // the instruction behind a WFI enters EX on the edge the sleep starts, and its
-    // own exception (an illegal instruction, say) was taken while the core slept.
-    // An EX exception now waits while the WFI hold is up, and is taken in the
-    // wake cycle like any other. MEM exceptions are not gated: an older access
-    // that fails during the sleep still ends it (T-14).
+    // the instruction behind a WFI enters EX on the edge the sleep starts, and
+    // its own exception (an illegal instruction, say) was taken while the core
+    // slept. An EX exception now waits while the WFI hold is up, and is taken
+    // in the wake cycle like any other. MEM exceptions are not gated: an older
+    // access that fails during the sleep still ends it (T-14).
     wire ex_exc = (e0|e1|e2|e3|e4|e6|e11) & ~h2 & ~wfi_hold_o;
-    wire [3:0]  ex_cause = e1?4'd1 : e2?4'd2 : e0?4'd0 : e3?4'd3 :
+    wire [EX_CAUSE_W-1:0]  ex_cause = e1?4'd1 : e2?4'd2 : e0?4'd0 : e3?4'd3 :
                            e4?4'd4 : e6?4'd6 : 4'd11;
-    wire [31:0] ex_tval  = e1?idex_pc_i : e2?idex_instr_i : e0?ex_fetch_target_i :
+    wire [WORD_W-1:0] ex_tval = e1 ? idex_pc_i : e2 ? idex_instr_i : e0
+        ? ex_fetch_target_i :
                            e3?idex_pc_i : (e4|e6)?ex_addr_i : 32'd0;
 
     // WFI drain-stall hold
@@ -168,36 +166,41 @@ module trap_ctrl #(
     // some unrelated CLIC interrupt arrived. Both now use the same wake term.
     //
     // ERRATUM T-11 (2026-10-04, found by t_hold_flush_matrix with +IRQ_EVERY=71
-    // +DWAIT=5): a WFI that is SQUASHED must not arm the sleep. When an interrupt
-    // was taken in the cycle a WFI sat in EX, the trap was entered and the latch
-    // was set as well, so the core went to sleep on the first instruction of the
-    // handler. If the source had dropped its request by then nothing woke it:
-    // the handler ran only when the NEXT interrupt arrived, returned to the WFI,
-    // and the same thing happened again - every interrupt served one interrupt
-    // late, and the program never got past the WFI.
+    // +DWAIT=5): a WFI that is SQUASHED must not arm the sleep. When an
+    // interrupt was taken in the cycle a WFI sat in EX, the trap was entered
+    // and the latch was set as well, so the core went to sleep on the first
+    // instruction of the handler. If the source had dropped its request by then
+    // nothing woke it: the handler ran only when the NEXT interrupt arrived,
+    // returned to the WFI, and the same thing happened again - every interrupt
+    // served one interrupt late, and the program never got past the WFI.
     //
-    // ERRATUM T-14 (2026-10-11, found by a whole-core formal cover on trap_ctrl)
-    // T-11 covered the squash that happens in the same cycle. A WFI behind a
-    // load or store that is still waiting on the D-port (H2) armed the latch
-    // at once: EX-point traps are held off by ~h2, so wfi_squashed was 0. When
-    // that access then ended in a bus error, the trap squashed the WFI but
+    // ERRATUM T-14 (2026-10-11, found by a whole-core formal cover on
+    // trap_ctrl) T-11 covered the squash that happens in the same cycle. A WFI
+    // behind a load or store that is still waiting on the D-port (H2) armed the
+    // latch at once: EX-point traps are held off by ~h2, so wfi_squashed was 0.
+    // When that access then ended in a bus error, the trap squashed the WFI but
     // nothing cleared the latch, and the core slept in the fault handler until
     // some interrupt became pending - with none, for ever. The WFI is still in
     // EX when H2 clears (ID/EX is held by the same stall), so arming it then
     // loses nothing.
-    wire wfi_squashed;                             // assigned below, once any_int exists
+    wire wfi_squashed;  // assigned below, once any_int exists
     reg wfi_active;
-    always @(posedge gclk or negedge core_rst_n) begin
-        if (!core_rst_n)                              wfi_active <= 1'b0;
-        else if (is_wfi & ~wfi_active & ~wfi_squashed) wfi_active <= 1'b1;   // MUTANT: T-14 reverted
-        else if (wfi_active & wake_cond)           wfi_active <= 1'b0;
+    always_ff @(posedge gclk or negedge core_rst_n) begin : p_wfi_active
+        if (!core_rst_n) begin
+            wfi_active <= 1'b0;
+        end else if (is_wfi & ~wfi_active & ~wfi_squashed) begin  // MUTANT: T-14 reverted
+            wfi_active <= 1'b1;
+        end else if (wfi_active & wake_cond) begin
+            wfi_active <= 1'b0;
+        end
     end
     assign wfi_hold_o = wfi_active & ~wake_cond;
 
-    // Arbitration: MEM exc > EX exc > interrupt. (MRET is exit, handled separately.)
-    // Within interrupts, the CLIC external source outranks the machine timer
-    // (RISC-V default MEI > MTI); the CLIC has already applied its own level /
-    // mintthresh arbitration and mstatus.MIE inside clic_take_cond_i.
+    // Arbitration: MEM exc > EX exc > interrupt. (MRET is exit, handled
+    // separately.) Within interrupts, the CLIC external source outranks the
+    // machine timer (RISC-V default MEI > MTI); the CLIC has already applied
+    // its own level / mintthresh arbitration and mstatus.MIE inside
+    // clic_take_cond_i.
     wire exception    = mem_exc_valid_i | ex_exc;
 
     // -----------------------------------------------------------------------
@@ -225,10 +228,11 @@ module trap_ctrl #(
     wire take_mti     = mti_pending_i & mstatus_mie_i & ~exception & ~take_int
                         & idex_valid_i & ~h2;
     wire any_int      = take_int | take_mti;
-    assign wfi_squashed = exception | any_int;     // T-11
+    assign wfi_squashed = exception | any_int;  // T-11
 
     // -----------------------------------------------------------------------
-    // ERRATUM T-13 (2026-10-11, found by a whole-core formal cover on trap_ctrl)
+    // ERRATUM T-13 (2026-10-11, found by a whole-core formal cover on
+    // trap_ctrl)
     // -----------------------------------------------------------------------
     // trap_now was (exception | any_int) & ~is_mret, so an MRET in EX blocked
     // EVERY trap - including the MEM-point bus error of the load or store just
@@ -252,14 +256,17 @@ module trap_ctrl #(
     assign clic_level_o    = take_int ? clic_irq_lvl_i : 8'd0;
 
     assign trap_enter_o    = trap_now;
-    assign mret_o          = mret_take;               // T-9: one pop, when the wait clears
+    assign mret_o          = mret_take;  // T-9: one pop, when the wait clears
 
     // mepc / mcause / mtval selection
     assign trap_pc_o    = mem_exc_valid_i ? mem_exc_pc_i :
                           ex_exc          ? idex_pc_i     :
-                                            idex_pc_i;     // interrupt: resume @ EX instr
-    assign trap_cause_o = take_int        ? {1'b1, {(31-ID_W){1'b0}}, clic_irq_id_i} :
-                          take_mti        ? 32'h8000_0007 :   // machine timer interrupt
+                                            // interrupt: resume @ EX instr
+                                            idex_pc_i;
+    assign trap_cause_o = take_int ? {1'b1, {(31 - ID_W) {1'b0}}, clic_irq_id_i}
+        :
+                          // machine timer interrupt
+                          take_mti        ? 32'h8000_0007 :
                           mem_exc_valid_i ? {28'd0, mem_exc_cause_i} :
                                             {28'd0, ex_cause};
     assign trap_tval_o  = any_int         ? 32'd0 :
@@ -267,7 +274,7 @@ module trap_ctrl #(
 
     // ERRATUM T-3 (found by riscv-tests rv32mi/breakpoint)
     // -----------------------------------------------------
-    // mtvec BASE was masked to a 64-BYTE boundary ({mtvec_i[31:6], 6'b0}).
+    // mtvec BASE was masked to a 64-BYTE boundary ({mtvec_i[31:6], 6'b000000}).
     // The privileged spec requires only 4-byte alignment for mtvec BASE; the
     // 64-byte requirement belongs to mtvt (the CLIC vector table), which this
     // design already has as a separate CSR. So the extra masking bought
@@ -282,26 +289,28 @@ module trap_ctrl #(
     // This also removes a trap for every future firmware author: it is why the
     // GARUDA riscv-tests p-env has to force `.align 6` on its trap vector.
     // That alignment is now belt-and-braces rather than load-bearing.
-    wire [31:0] mtvec_base = {mtvec_i[31:2], 2'b0};
+    wire [WORD_W-1:0] mtvec_base = {mtvec_i[31:2], 2'b00};
 
     // Redirect: trap -> vector/base ; MRET -> mepc
     assign trap_redirect_valid_o  = trap_now | mret_take;
     assign trap_redirect_target_o = mret_take ? mepc_i :
-                                    take_int ? clic_vector_target_i : mtvec_base;
+                                    take_int ? clic_vector_target_i
+                                        : mtvec_base;
 
-    // Squash of the offending instr's own downstream reg (+younger via redirect flush)
-    assign trap_squash_mem_wb_o = mem_exc_valid_i;                 // kill MEM fault WB
+    // Squash of the offending instr's own downstream reg (+younger via redirect
+    // flush)
+    assign trap_squash_mem_wb_o = mem_exc_valid_i;  // kill MEM fault WB
     // ERRATUM T-10 (2026-10-04, found by sw/chip/t_chip_integ.c)
-    // The instruction in EX is squashed on EVERY trap. For an EX-point exception
-    // or an interrupt it is the instruction the trap is about. For a MEM-point
-    // exception (a load/store bus error) it is the instruction AFTER the faulting
-    // one, and this term used to leave it alone: it moved on into MEM, did its
-    // bus access and wrote its register before the handler ran. `lw a4,204(a4)`
-    // behind a faulting load overwrote its own base register and then trapped as
-    // misaligned when the handler returned to it; a store there would have
-    // written memory after a fault the program had not yet seen.
+    // The instruction in EX is squashed on EVERY trap. For an EX-point
+    // exception or an interrupt it is the instruction the trap is about. For a
+    // MEM-point exception (a load/store bus error) it is the instruction AFTER
+    // the faulting one, and this term used to leave it alone: it moved on into
+    // MEM, did its bus access and wrote its register before the handler ran.
+    // `lw a4,204(a4)` behind a faulting load overwrote its own base register
+    // and then trapped as misaligned when the handler returned to it; a store
+    // there would have written memory after a fault the program had not yet
+    // seen.
     assign trap_squash_ex_mem_o = exception | any_int;
-    assign trap_squash_id_ex_o  = trap_now;                        // younger
-    assign ex_squash_o          = trap_now;                        // DSU trap-only flush
+    assign trap_squash_id_ex_o  = trap_now;  // younger
+    assign ex_squash_o          = trap_now;  // DSU trap-only flush
 endmodule
-`default_nettype wire

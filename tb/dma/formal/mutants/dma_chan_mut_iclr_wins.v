@@ -1,12 +1,10 @@
 // MUTANT mut_iclr_wins: rtl/dma/dma_chan.sv with ONE change (an ICLR in the cycle COMPLETE sets clears it).
 // Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal negative control: must FAIL. (tb/dma/formal/dma.toml mut_iclr_wins, a_set_beats_clear_complete)
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 9 : one DMA channel - registers, status, request tracking
 // dma_chan.v
 //
-// Spec: GARUDA-DMA-SPEC-001 Rev 3.0 §6, §7.1, §7.3, §7.5, §7.6
+// Spec: GARUDA-DMA-SPEC-001 Rev 3.0 Sec.6, Sec.7.1, Sec.7.3, Sec.7.5, Sec.7.6
 //
 // All channel state is in hclk. Software writes arrive as one-hclk strobes
 // (dma_apb_slave edge-detects the pclk access), so every write is applied
@@ -19,7 +17,7 @@
 //   SAR/DAR  advance only on a successful beat, so they freeze at the
 //         failure point ([N-7.15]).
 //   CNT   beats to move. Setting EN (0 -> 1) loads REMAINING from CNT.
-//   STAT  [15:0] REMAINING [16] ACTIVE [17] COMPLETE [18] ERROR [21:19] ERRPHASE
+// STAT [15:0] REMAINING [16] ACTIVE [17] COMPLETE [18] ERROR [21:19] ERRPHASE
 //         REMAINING and COMPLETE change on the same edge (R-6, D-1).
 //   ICLR  W1C: [0] COMPLETE, [1] ERROR (and ERRPHASE).
 //
@@ -29,61 +27,72 @@
 // taken flag clears only when the request drops).
 // =============================================================================
 
-module dma_chan (
-    input  wire        hclk,
-    input  wire        hreset_n,
-
-    // ---- register writes (one-hclk strobes) ----------------------------------
-    input  wire        wr_cr_i,
-    input  wire        wr_sar_i,
-    input  wire        wr_dar_i,
-    input  wire        wr_cnt_i,
-    input  wire        wr_iclr_i,
-    input  wire [31:0] wdata_i,
-
-    // ---- register views ------------------------------------------------------
-    output wire [31:0] cr_o,
-    output wire [31:0] sar_o,
-    output wire [31:0] dar_o,
-    output wire [31:0] cnt_o,
-    output wire [31:0] stat_o,
-
+module dma_chan
+    import garuda_pkg::*;
+(
+    input wire hclk,
+    input wire hreset_n,
+    // ---- register writes (one-hclk strobes) ---------------------------------
+    input wire wr_cr_i,
+    input wire wr_sar_i,
+    input wire wr_dar_i,
+    input wire wr_cnt_i,
+    input wire wr_iclr_i,
+    input wire [WORD_W-1:0] wdata_i,
+    // ---- register views -----------------------------------------------------
+    output wire [WORD_W-1:0] cr_o,
+    output wire [WORD_W-1:0] sar_o,
+    output wire [WORD_W-1:0] dar_o,
+    output wire [WORD_W-1:0] cnt_o,
+    output wire [WORD_W-1:0] stat_o,
     // ---- peripheral handshake ---------------------------------------------
-    input  wire        req_i,
-
+    input wire req_i,
     // ---- to / from the engine ---------------------------------------------
-    output wire        eligible_o,
-    output wire [1:0]  size_o,
-    input  wire        beat_done_i,        // this channel's beat completed OK
-    input  wire        beat_err_i,         // this channel's beat failed
-    input  wire        inflight_i,         // a beat of this channel is in flight (DMA-9)
-    input  wire [2:0]  err_phase_i,        // 1 = read, 2 = write
-
-    // ---- interrupts ------------------------------------------------------------
-    output wire        complete_irq_o,
-    output wire        error_irq_o
+    output wire eligible_o,
+    output wire [DMA_SIZE_W-1:0] size_o,
+    input wire beat_done_i,  // this channel's beat completed OK
+    input wire beat_err_i,  // this channel's beat failed
+    input wire inflight_i,  // a beat of this channel is in flight (DMA-9)
+    input wire [ERR_PHASE_W-1:0] err_phase_i,  // 1 = read, 2 = write
+    // ---- interrupts ---------------------------------------------------------
+    output wire complete_irq_o,
+    output wire error_irq_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned MODE_W = 32'd2;
+    localparam int unsigned ERRPH_W = 32'd3;
 
     localparam [1:0] M_P2M = 2'd0, M_M2P = 2'd1, M_M2M = 2'd2;
 
-    reg        en_q, sinc_q, dinc_q, iec_q, iee_q;
-    reg [1:0]  mode_q, size_q;
-    reg [31:0] sar_q, dar_q;
-    reg [15:0] cnt_q, rem_q;
-    reg        comp_q, err_q;
-    reg [2:0]  errph_q;
+    reg en_q;
+    reg sinc_q;
+    reg dinc_q;
+    reg iec_q;
+    reg iee_q;
+    reg [MODE_W-1:0] mode_q;
+    reg [DMA_SIZE_W-1:0] size_q;
+    reg [WORD_W-1:0] sar_q;
+    reg [WORD_W-1:0] dar_q;
+    reg [HALF_W-1:0] cnt_q;
+    reg [HALF_W-1:0] rem_q;
+    reg comp_q;
+    reg err_q;
+    reg [ERRPH_W-1:0]  errph_q;
     reg        taken_q;
 
     wire active   = en_q && (rem_q != 16'd0);
     wire last     = (rem_q == 16'd1);
-    wire [31:0] step = (size_q == 2'd0) ? 32'd1 : (size_q == 2'd1) ? 32'd2 : 32'd4;
+    wire [WORD_W-1:0] step = (size_q == 2'd0) ? 32'd1 : (size_q == 2'd1) ? 32'd2
+        : 32'd4;
 
-    // ERRATUM DMA-9 (ruling D-32, 2026-11-03): a beat whose channel had EN cleared
-    // by firmware while the beat was in flight belongs to the stopped transfer.
-    // Its result updates nothing - not REMAINING, SAR, DAR, COMPLETE, ERR or EN -
-    // so a channel re-armed during that beat starts its new transfer clean
-    // (before: the old beat decremented the new REMAINING, which wrapped to 65,535
-    // with CNT = 0). The beat itself still happened on the bus.
+    // ERRATUM DMA-9 (ruling D-32, 2026-11-03): a beat whose channel had EN
+    // cleared by firmware while the beat was in flight belongs to the stopped
+    // transfer. Its result updates nothing - not REMAINING, SAR, DAR, COMPLETE,
+    // ERR or EN - so a channel re-armed during that beat starts its new
+    // transfer clean (before: the old beat decremented the new REMAINING, which
+    // wrapped to 65,535 with CNT = 0). The beat itself still happened on the
+    // bus.
     reg  stale_q;
     wire sw_clr_en = wr_cr_i && !wdata_i[0] && en_q;
     wire done = beat_done_i && !stale_q;
@@ -92,47 +101,74 @@ module dma_chan (
     // hardware-owned EN clear: completion or error ([N-7.3], [N-7.13])
     wire hw_clr_en = (done && last) || err;
 
-    always @(posedge hclk or negedge hreset_n) begin
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_en
         if (!hreset_n) begin
-            en_q <= 1'b0; mode_q <= M_P2M; sinc_q <= 1'b0; dinc_q <= 1'b0;
-            size_q <= 2'd2; iec_q <= 1'b0; iee_q <= 1'b0;
-            sar_q <= 32'd0; dar_q <= 32'd0; cnt_q <= 16'd0; rem_q <= 16'd0;
-            comp_q <= 1'b0; err_q <= 1'b0; errph_q <= 3'd0; taken_q <= 1'b0;
+            en_q <= 1'b0;
+            mode_q <= M_P2M;
+            sinc_q <= 1'b0;
+            dinc_q <= 1'b0;
+            size_q <= 2'd2;
+            iec_q <= 1'b0;
+            iee_q <= 1'b0;
+            sar_q <= 32'd0;
+            dar_q <= 32'd0;
+            cnt_q <= 16'd0;
+            rem_q <= 16'd0;
+            comp_q <= 1'b0;
+            err_q <= 1'b0;
+            errph_q <= 3'd0;
+            taken_q <= 1'b0;
             stale_q <= 1'b0;
         end else begin
-            // DMA-9: mark the beat in flight stale when firmware stops the channel
-            if (beat_done_i || beat_err_i)        stale_q <= 1'b0;
-            else if (inflight_i && sw_clr_en)     stale_q <= 1'b1;
-
-            // ---- CR: software fields ------------------------------------------
+            // DMA-9: mark the beat in flight stale when firmware stops the
+            // channel
+            if (beat_done_i || beat_err_i) begin
+                stale_q <= 1'b0;
+            end else if (inflight_i && sw_clr_en) begin
+                stale_q <= 1'b1;
+            end
+            // ---- CR: software fields ----------------------------------------
             if (wr_cr_i) begin
-                if (wdata_i[2:1] != 2'b11) mode_q <= wdata_i[2:1];
+                if (wdata_i[2:1] != 2'b11) begin
+                    mode_q <= wdata_i[2:1];
+                end
                 sinc_q <= wdata_i[3];
                 dinc_q <= wdata_i[4];
                 size_q <= (wdata_i[6:5] == 2'b11) ? size_q : wdata_i[6:5];
-                iec_q  <= wdata_i[7];
-                iee_q  <= wdata_i[8];
+                iec_q <= wdata_i[7];
+                iee_q <= wdata_i[8];
             end
-            // ---- EN: hardware wins ------------------------------------------------
+            // ---- EN: hardware wins ------------------------------------------
             // A channel enabled with nothing left (zero-length transfer)
             // completes at once and drops EN the following cycle.
-            if (hw_clr_en || (en_q && rem_q == 16'd0 && !wr_cr_i))
+            if (hw_clr_en || (en_q && rem_q == 16'd0 && !wr_cr_i)) begin
                 en_q <= 1'b0;
-            else if (wr_cr_i) begin
+            end else if (wr_cr_i) begin
                 en_q <= wdata_i[0];
-                if (wdata_i[0] && !en_q) rem_q <= cnt_q;       // arm
+                if (wdata_i[0] && !en_q) begin
+                    rem_q <= cnt_q;  // arm
+                end
             end
-            // ---- address / count registers -------------------------------------------
-            if (wr_sar_i) sar_q <= wdata_i;
-            else if (done && sinc_q) sar_q <= sar_q + step;
-            if (wr_dar_i) dar_q <= wdata_i;
-            else if (done && dinc_q) dar_q <= dar_q + step;
-            if (wr_cnt_i) cnt_q <= wdata_i[15:0];
-
-            // ---- progress / status (same edge: R-6) -----------------------------------
+            // ---- address / count registers ----------------------------------
+            if (wr_sar_i) begin
+                sar_q <= wdata_i;
+            end else if (done && sinc_q) begin
+                sar_q <= sar_q + step;
+            end
+            if (wr_dar_i) begin
+                dar_q <= wdata_i;
+            end else if (done && dinc_q) begin
+                dar_q <= dar_q + step;
+            end
+            if (wr_cnt_i) begin
+                cnt_q <= wdata_i[15:0];
+            end
+            // ---- progress / status (same edge: R-6) -------------------------
             if (done) begin
                 rem_q <= rem_q - 16'd1;
-                if (last) comp_q <= 1'b1;
+                if (last) begin
+                    comp_q <= 1'b1;
+                end
             end else if (wr_cr_i && wdata_i[0] && !en_q && !hw_clr_en) begin
                 // arming: a zero-length transfer completes at once; a real one
                 // starts with COMPLETE clear so COMPLETE => REMAINING == 0
@@ -140,23 +176,30 @@ module dma_chan (
                 comp_q <= (cnt_q == 16'd0);
             end
             if (err) begin
-                err_q   <= 1'b1;
+                err_q <= 1'b1;
                 errph_q <= err_phase_i;
             end
             if (wr_iclr_i) begin
-                if (wdata_i[0]) comp_q <= 1'b0;             // MUTANT: clear beats set
-                if (wdata_i[1] && !err) begin err_q <= 1'b0; errph_q <= 3'd0; end
+                if (wdata_i[0]) begin  // MUTANT: clear beats set
+                    comp_q <= 1'b0;
+                end
+                if (wdata_i[1] && !err) begin
+                    err_q <= 1'b0;
+                    errph_q <= 3'd0;
+                end
             end
-
-            // ---- one beat per request assertion ([N-7.10]) -----------------------------
+            // ---- one beat per request assertion ([N-7.10]) ------------------
             // ERRATUM DMA-8 (2026-10-04): only a SUCCESSFUL beat consumes the
             // request. A failed beat is never acknowledged, so the peripheral
             // is still requesting ([N-7.7]); marking that request taken left
             // the channel ACTIVE but never eligible after firmware repaired
             // the address and set EN again - a hang with no status bit set.
             // No duplicate beat is possible: the error clears EN on this edge.
-            if (!req_i)           taken_q <= 1'b0;
-            else if (beat_done_i) taken_q <= 1'b1;
+            if (!req_i) begin
+                taken_q <= 1'b0;
+            end else if (beat_done_i) begin
+                taken_q <= 1'b1;
+            end
         end
     end
 
@@ -173,5 +216,3 @@ module dma_chan (
     assign error_irq_o    = err_q  & iee_q;
 
 endmodule
-
-`default_nettype wire

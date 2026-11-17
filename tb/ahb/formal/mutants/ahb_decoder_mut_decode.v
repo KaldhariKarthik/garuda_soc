@@ -1,6 +1,4 @@
 // MUTANT decode (bus plan B1 A2 negative control): decode slip: DSRAM decoded at nibble 3
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 6: AHB-Lite Interconnect
 // ahb_decoder.v - combinational address decode -> one-hot slave select
@@ -29,25 +27,26 @@
 // an address outside the four regions gets an ERROR, from the default slave.
 // =============================================================================
 
-
 module ahb_decoder
+    import garuda_pkg::*;
     import ahb_pkg::*;
 (
-    input  wire [31:0]            haddr_i,
-    output reg  [AHB_SEL_W-1:0]  hsel_o     // one-hot, bit 4 = default slave
+    input wire [WORD_W-1:0] haddr_i,
+    // one-hot, bit 4 = default slave
+    output reg [AHB_SEL_W - 1:0] hsel_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
-    always @(*) begin
-        hsel_o = {AHB_SEL_W{1'b0}};
+    always_comb begin : c_hsel
+        hsel_o = {AHB_SEL_W {1'b0}};
         case (haddr_i[31:28])
-            AHB_RGN_ISRAM : hsel_o[AHB_S_ISRAM ] = 1'b1;
-            AHB_RGN_ROM   : hsel_o[AHB_S_ROM   ] = 1'b1;
+            AHB_RGN_ISRAM: hsel_o[AHB_S_ISRAM] = 1'b1;
+            AHB_RGN_ROM: hsel_o[AHB_S_ROM] = 1'b1;
             4'h3           : hsel_o[AHB_S_DSRAM ] = 1'b1;
             AHB_RGN_BRIDGE: hsel_o[AHB_S_BRIDGE] = 1'b1;
-            default        : hsel_o[AHB_S_DEFAULT] = 1'b1;
+            default: hsel_o[AHB_S_DEFAULT] = 1'b1;
         endcase
     end
 
 endmodule
-
-`default_nettype wire

@@ -18,6 +18,11 @@ SIM      ?= xrun
 XRUN      = xrun
 SIM_DIR   = sim
 
+# The RTL packages (zero-waiver F4, 2026-11-16), absolute paths, compiled ONCE at the front
+# of every compile command: no filelist names a package (Xcelium DLCSMD refuses a package
+# recompiled within one run), and a run-only command (xrun -R) must not get them.
+PKG_SRCS = $(foreach f,$(shell grep -v '^[[:space:]]*//' $(CURDIR)/rtl/common/filelist_pkg.f),$(CURDIR)/$(f))
+
 # Vivado xsim back-end: filelists carry -incdir/-sv, which xvlog does not accept
 # from a file, so they are stripped here and re-applied on the command line.
 XSIM_BIN ?= /home/vivado/2025.2/Vivado/bin
@@ -61,7 +66,7 @@ RUN_TEST_PASS = $(if $(filter -,$(4)),,$(if $(4),$(4),ALL CHECKS PASSED))
 ifeq ($(SIM),xsim)
 define run_test
 	@mkdir -p $(SIM_DIR)/$(WORKDIR) && cd $(SIM_DIR)/$(WORKDIR) && rm -f run.log && \
-	  $(XSIM_BIN)/xvlog -sv $(INCDIRS) \
+	  $(XSIM_BIN)/xvlog -sv $(INCDIRS) $(PKG_SRCS) \
 	    $$(grep -v '^-\|^//\|^[[:space:]]*$$' $(CURDIR)/$(1) | sed 's|^|$(CURDIR)/|') > analyze.log 2>&1 && \
 	  $(XSIM_BIN)/xelab $(2) -s $(2) -R > run.log 2>&1; rc=$$?; \
 	  grep -ihE "^ERROR" analyze.log; \
@@ -79,7 +84,7 @@ else
 # Outputs are redirected into sim/<workdir> instead of chdir-ing there.
 define run_test
 	@mkdir -p $(SIM_DIR)/$(WORKDIR) && rm -f $(SIM_DIR)/$(WORKDIR)/run.log; \
-	  $(XRUN) -f $(1) -top $(2) \
+	  $(XRUN) $(PKG_SRCS) -f $(1) -top $(2) \
 	    -xmlibdirname $(SIM_DIR)/$(WORKDIR)/xcelium.d \
 	    -l $(SIM_DIR)/$(WORKDIR)/run.log $(5) > /dev/null 2>&1; rc=$$?; \
 	  grep -ihE "FAIL|PASSED|ERROR|Built simulation snapshot" $(SIM_DIR)/$(WORKDIR)/run.log 2> /dev/null \
@@ -97,7 +102,7 @@ endif
 # also carry an inlined DUT snapshot for standalone VCS builds.
 define run_tb_top
 	@mkdir -p $(SIM_DIR)/unit_$(1) && rm -f $(SIM_DIR)/unit_$(1)/run.log; \
-	  $(XRUN) -64bit -f $(if $(2),$(2),tb/core)/filelist_$(1).f -top tb_top \
+	  $(XRUN) $(PKG_SRCS) -64bit -f $(if $(2),$(2),tb/core)/filelist_$(1).f -top tb_top \
 	    -xmlibdirname $(SIM_DIR)/unit_$(1)/xcelium.d \
 	    -l $(SIM_DIR)/unit_$(1)/run.log $(3) > /dev/null 2>&1; rc=$$?; \
 	  printf "%-22s PASS=%-5s FAIL=%-4s SVA_FAIL=%s\n" "$(1)" \
@@ -125,7 +130,7 @@ endef
 # count [PASS] lines, which these benches do not print, and showed PASS=0).
 define run_tb_elem
 	@mkdir -p $(SIM_DIR)/elem_$(1) && rm -f $(SIM_DIR)/elem_$(1)/run.log; \
-	  $(XRUN) -64bit -f $(if $(2),$(2),tb/core)/filelist_$(1).f -top tb_top \
+	  $(XRUN) $(PKG_SRCS) -64bit -f $(if $(2),$(2),tb/core)/filelist_$(1).f -top tb_top \
 	    -xmlibdirname $(SIM_DIR)/elem_$(1)/xcelium.d \
 	    -l $(SIM_DIR)/elem_$(1)/run.log $(3) > /dev/null 2>&1; rc=$$?; \
 	  n=$$(grep -ohE 'CHECKS=[0-9]+|\([0-9]+ checks' $(SIM_DIR)/elem_$(1)/run.log 2> /dev/null | grep -oE '[0-9]+' | tail -1); \
@@ -143,7 +148,7 @@ endef
 # Every one is self-checking, prints [PASS]/[FAIL] lines and "RESULT:".
 define run_blk
 	@mkdir -p $(SIM_DIR)/$(3) && rm -f $(SIM_DIR)/$(3)/run.log; \
-	  $(XRUN) -64bit -f $(1) -top $(2) -xmlibdirname $(SIM_DIR)/$(3)/xcelium.d \
+	  $(XRUN) $(PKG_SRCS) -64bit -f $(1) -top $(2) -xmlibdirname $(SIM_DIR)/$(3)/xcelium.d \
 	    -l $(SIM_DIR)/$(3)/run.log $(4) > /dev/null 2>&1; rc=$$?; \
 	  printf "%-14s " "$(3)"; grep -hE "^RESULT:|checks=|TB: .* checks" $(SIM_DIR)/$(3)/run.log 2> /dev/null | tr '\n' ' '; \
 	  n=$$(grep -c '\*E,ASRTST' $(SIM_DIR)/$(3)/run.log 2> /dev/null); \
@@ -170,7 +175,7 @@ SEED0 ?= 0
 # UVM_TAG is added to the run directory. The gates set it, so that a gate run of a
 # few seeds does not replace the 20-seed coverage databases the chart is made from.
 UVM_TAG ?=
-UVM_IRUN = $(IRUN152) -64bit -uvm -uvmhome CDNS-1.2 -coverage all -covoverwrite
+UVM_IRUN = $(IRUN152) $(PKG_SRCS) -64bit -uvm -uvmhome CDNS-1.2 -coverage all -covoverwrite
 define run_uvm
 	@export PATH=$(dir $(IRUN152)):$$PATH; \
 	 D=$(SIM_DIR)/uvm_$(1)$(UVM_TAG); mkdir -p $$D; rm -rf $$D/cov_work $$D/INCA_libs; fail=0; \

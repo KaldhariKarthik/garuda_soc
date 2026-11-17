@@ -1,10 +1,8 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 12 : DMI clock-domain crossing, tck <-> hclk
 // dmi_cdc.v
 //
-// Spec: GARUDA-DEBUG-SPEC-001 Rev 2.0 §7.5 [N-7.15]..[N-7.17]
+// Spec: GARUDA-DEBUG-SPEC-001 Rev 2.0 Sec.7.5 [N-7.15]..[N-7.17]
 //
 // THE ONLY ASYNCHRONOUS CROSSING IN THE CHIP ([N-7.16]). Everything a CDC
 // reviewer needs is in this file.
@@ -22,19 +20,21 @@
 // =============================================================================
 
 module dmi_cdc (
-    // ---- tck side --------------------------------------------------------------
-    input  wire        tck,
-    input  wire        ext_rst_n,
-    input  wire        req_tgl_i,
-    output wire        ack_tgl_sync_o,       // ack toggle, synchronised into tck
-
-    // ---- hclk side ----------------------------------------------------------------
-    input  wire        hclk,
-    input  wire        dm_rst_n,
-    output wire        req_pulse_o,          // one hclk pulse per request
-    input  wire        ack_pulse_i,          // DM finished: toggles ack
-    output reg         ack_tgl_o
+    // ---- tck side -----------------------------------------------------------
+    input wire tck,
+    input wire ext_rst_n,
+    input wire req_tgl_i,
+    output wire ack_tgl_sync_o,  // ack toggle, synchronised into tck
+    // ---- hclk side ----------------------------------------------------------
+    input wire hclk,
+    input wire dm_rst_n,
+    output wire req_pulse_o,  // one hclk pulse per request
+    input wire ack_pulse_i,  // DM finished: toggles ack
+    output reg ack_tgl_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned ARM_CNT_W = 32'd2;
 
     // tck -> hclk
     // After an hclk-side reset (e.g. a watchdog reset during a session - the
@@ -45,28 +45,40 @@ module dmi_cdc (
     // forever. Three hclk cycles fill the synchroniser, then ack is set equal
     // to the settled request toggle ("already served") and pulses are enabled.
     (* ASYNC_REG = "TRUE" *) reg [2:0] req_s;
-    reg [1:0] arm_cnt;
+    reg [ARM_CNT_W-1:0] arm_cnt;
     wire      armed = (arm_cnt == 2'd3);
-    always @(posedge hclk or negedge dm_rst_n)
-        if (!dm_rst_n) begin req_s <= 3'd0; arm_cnt <= 2'd0; end
-        else begin
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_req_s
+        if (!dm_rst_n) begin
+            req_s <= 3'd0;
+            arm_cnt <= 2'd0;
+        end else begin
             req_s <= {req_s[1:0], req_tgl_i};
-            if (!armed) arm_cnt <= arm_cnt + 2'd1;
+            if (!armed) begin
+                arm_cnt <= arm_cnt + 2'd1;
+            end
         end
+    end
     assign req_pulse_o = armed && (req_s[2] ^ req_s[1]);
 
-    always @(posedge hclk or negedge dm_rst_n)
-        if (!dm_rst_n)                  ack_tgl_o <= 1'b0;
-        else if (!armed)                ack_tgl_o <= req_s[1];
-        else if (ack_pulse_i)           ack_tgl_o <= ~ack_tgl_o;
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_ack_tgl
+        if (!dm_rst_n) begin
+            ack_tgl_o <= 1'b0;
+        end else if (!armed) begin
+            ack_tgl_o <= req_s[1];
+        end else if (ack_pulse_i) begin
+            ack_tgl_o <= ~ack_tgl_o;
+        end
+    end
 
     // hclk -> tck
     (* ASYNC_REG = "TRUE" *) reg [1:0] ack_s;
-    always @(posedge tck or negedge ext_rst_n)
-        if (!ext_rst_n) ack_s <= 2'd0;
-        else              ack_s <= {ack_s[0], ack_tgl_o};
+    always_ff @(posedge tck or negedge ext_rst_n) begin : p_ack_s
+        if (!ext_rst_n) begin
+            ack_s <= 2'd0;
+        end else begin
+            ack_s <= {ack_s[0], ack_tgl_o};
+        end
+    end
     assign ack_tgl_sync_o = ack_s[1];
 
 endmodule
-
-`default_nettype wire

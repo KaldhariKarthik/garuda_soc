@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core - ID Stage, Sub-block 1/5
 // Decode / Control  (Verilog)
@@ -20,38 +18,40 @@
 module decode_control
     import garuda_pkg::*;
 (
-    input  wire [31:0] instr_i,
-
-    output wire [6:0]  opcode_o,
-    output wire [4:0]  rd_o,
-    output wire [2:0]  funct3_o,
-    output wire [4:0]  rs1_o,
-    output wire [4:0]  rs2_o,
-
-    output reg          reg_write_o,
-    output reg          mem_read_o,
-    output reg          mem_write_o,
-    output reg          mem_to_reg_o,
-    output reg          alu_src_o,
-    output reg          alu_a_pc_o,
-    output reg  [3:0]  alu_op_o,
-    output reg          branch_o,
-    output reg          jal_o,
-    output reg          jalr_o,
-    output reg          mul_en_o,
-    output reg          dsu_en_o,
-    output reg          csr_en_o,
-    output reg  [2:0]  csr_op_o,
-    output reg          is_system_o,
-    output reg          illegal_instr_o,
-    output reg          fencei_o,          // FENCE.I: flush prefetch, refetch
-    output reg  [2:0]  imm_sel_o
+    input wire [WORD_W-1:0] instr_i,
+    output wire [OPCODE_W-1:0] opcode_o,
+    output wire [REG_IDX_W-1:0] rd_o,
+    output wire [FUNCT3_W-1:0] funct3_o,
+    output wire [REG_IDX_W-1:0] rs1_o,
+    output wire [REG_IDX_W-1:0] rs2_o,
+    output reg reg_write_o,
+    output reg mem_read_o,
+    output reg mem_write_o,
+    output reg mem_to_reg_o,
+    output reg alu_src_o,
+    output reg alu_a_pc_o,
+    output reg [ALU_OP_W-1:0] alu_op_o,
+    output reg branch_o,
+    output reg jal_o,
+    output reg jalr_o,
+    output reg mul_en_o,
+    output reg dsu_en_o,
+    output reg csr_en_o,
+    output reg [CSR_FN_W-1:0] csr_op_o,
+    output reg is_system_o,
+    output reg illegal_instr_o,
+    output reg fencei_o,  // FENCE.I: flush prefetch, refetch
+    output reg [IMM_SEL_W-1:0] imm_sel_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
-    wire [6:0] opcode;
-    wire [4:0] rd_f, rs1_f, rs2_f;
-    wire [2:0] funct3_fld;
-    wire [6:0] funct7_fld;
+    wire [OPCODE_W-1:0] opcode;
+    wire [REG_IDX_W-1:0] rd_f;
+    wire [REG_IDX_W-1:0] rs1_f;
+    wire [REG_IDX_W-1:0] rs2_f;
+    wire [FUNCT3_W-1:0] funct3_fld;
+    wire [FUNCT7_W-1:0] funct7_fld;
 
     assign opcode = instr_i[6:0];
     assign rd_f   = instr_i[11:7];
@@ -78,7 +78,7 @@ module decode_control
     localparam [6:0] OP_REG     = 7'b0110011;
     localparam [6:0] OP_SYSTEM  = 7'b1110011;
     localparam [6:0] OP_CUSTOM0 = 7'b0001011;
-    localparam [6:0] OP_MISC_MEM= 7'b0001111;   // FENCE / FENCE.I (ERRATUM C-2)
+    localparam [6:0] OP_MISC_MEM= 7'b0001111;  // FENCE / FENCE.I (ERRATUM C-2)
 
     // M-extension sub-decode (OP major opcode, funct7_fld = 0000001)
     wire is_muldiv;
@@ -91,163 +91,170 @@ module decode_control
     // DIV/DIVU/REM/REMU: funct3_fld 100/101/110/111
     assign is_div_family = is_muldiv && (funct3_fld[2] == 1'b1);
 
-    always @(*) begin
+    always_comb begin : c_reg_write
         // Defaults - NOP-equivalent
-        reg_write_o     = 1'b0;
-        mem_read_o      = 1'b0;
-        mem_write_o     = 1'b0;
-        mem_to_reg_o    = 1'b0;
-        alu_src_o       = 1'b0;
-        alu_a_pc_o      = 1'b0;
-        alu_op_o        = ALU_ADD;
-        branch_o        = 1'b0;
-        jal_o           = 1'b0;
-        jalr_o          = 1'b0;
-        mul_en_o        = 1'b0;
-        dsu_en_o        = 1'b0;
-        csr_en_o        = 1'b0;
-        csr_op_o        = 3'b000;
-        is_system_o     = 1'b0;
+        reg_write_o = 1'b0;
+        mem_read_o = 1'b0;
+        mem_write_o = 1'b0;
+        mem_to_reg_o = 1'b0;
+        alu_src_o = 1'b0;
+        alu_a_pc_o = 1'b0;
+        alu_op_o = ALU_ADD;
+        branch_o = 1'b0;
+        jal_o = 1'b0;
+        jalr_o = 1'b0;
+        mul_en_o = 1'b0;
+        dsu_en_o = 1'b0;
+        csr_en_o = 1'b0;
+        csr_op_o = 3'b000;
+        is_system_o = 1'b0;
         illegal_instr_o = 1'b0;
-        fencei_o        = 1'b0;
-        imm_sel_o       = IMM_NONE;
-
+        fencei_o = 1'b0;
+        imm_sel_o = IMM_NONE;
         case (opcode)
-
             OP_LUI: begin
                 reg_write_o = 1'b1;
-                alu_src_o   = 1'b1;
-                alu_op_o    = ALU_PASSB;
-                imm_sel_o   = IMM_U;
+                alu_src_o = 1'b1;
+                alu_op_o = ALU_PASSB;
+                imm_sel_o = IMM_U;
             end
-
             OP_AUIPC: begin
                 reg_write_o = 1'b1;
-                alu_src_o   = 1'b1;
-                alu_a_pc_o  = 1'b1;   // MUX_A = pc, reuses ALU adder (Sec. 8.1)
-                alu_op_o    = ALU_ADD;
-                imm_sel_o   = IMM_U;
+                alu_src_o = 1'b1;
+                alu_a_pc_o = 1'b1;  // MUX_A = pc, reuses ALU adder (Sec. 8.1)
+                alu_op_o = ALU_ADD;
+                imm_sel_o = IMM_U;
             end
-
             OP_JAL: begin
                 reg_write_o = 1'b1;
-                jal_o       = 1'b1;
-                imm_sel_o   = IMM_J;
+                jal_o = 1'b1;
+                imm_sel_o = IMM_J;
             end
-
             // ERRATUM C-5 (Rev 4.0 audit): JALR, BRANCH, LOAD, STORE and
             // SYSTEM had reserved funct3_fld encodings that decoded as legal. A
-            // BRANCH with funct3_fld 010/011 resolved as not-taken, a LOAD/STORE
-            // with funct3_fld 011/110/111 put HSIZE=3'b011 (64-bit) on the AHB
-            // D-port, SYSTEM funct3_fld=100 executed as a CSR op and any funct3_fld=000
-            // SYSTEM word other than ECALL/EBREAK/MRET/WFI (DRET, SRET, URET,
-            // SFENCE.VMA ...) retired as a silent NOP. Spike raises
-            // illegal-instruction for every one of them; so does this decoder
-            // now, with no side effects enabled.
+            // BRANCH with funct3_fld 010/011 resolved as not-taken, a
+            // LOAD/STORE with funct3_fld 011/110/111 put HSIZE=3'b011 (64-bit)
+            // on the AHB D-port, SYSTEM funct3_fld=100 executed as a CSR op and
+            // any funct3_fld=000 SYSTEM word other than ECALL/EBREAK/MRET/WFI
+            // (DRET, SRET, URET, SFENCE.VMA ...) retired as a silent NOP. Spike
+            // raises illegal-instruction for every one of them; so does this
+            // decoder now, with no side effects enabled.
             OP_JALR: begin
                 if (funct3_fld == 3'b000) begin
                     reg_write_o = 1'b1;
-                    jalr_o      = 1'b1;
-                    imm_sel_o   = IMM_I;
+                    jalr_o = 1'b1;
+                    imm_sel_o = IMM_I;
                 end else begin
                     illegal_instr_o = 1'b1;
                 end
             end
-
             OP_BRANCH: begin
                 if (funct3_fld == 3'b010 || funct3_fld == 3'b011) begin
                     illegal_instr_o = 1'b1;
                 end else begin
-                    branch_o  = 1'b1;
-                    alu_op_o  = ALU_SUB;  // comparison base op; funct3_fld selects relation in EX
+                    branch_o = 1'b1;
+                    // comparison base op; funct3_fld selects relation in EX
+                    alu_op_o = ALU_SUB;
                     imm_sel_o = IMM_B;
                 end
             end
-
             OP_LOAD: begin
                 // LB LH LW LBU LHU only
-                if (funct3_fld == 3'b011 || funct3_fld == 3'b110 || funct3_fld == 3'b111) begin
+                if (funct3_fld == 3'b011 || funct3_fld == 3'b110
+                    || funct3_fld == 3'b111) begin
                     illegal_instr_o = 1'b1;
                 end else begin
-                    reg_write_o  = 1'b1;
-                    mem_read_o   = 1'b1;
+                    reg_write_o = 1'b1;
+                    mem_read_o = 1'b1;
                     mem_to_reg_o = 1'b1;
-                    alu_src_o    = 1'b1;
-                    alu_op_o     = ALU_ADD;
-                    imm_sel_o    = IMM_I;
+                    alu_src_o = 1'b1;
+                    alu_op_o = ALU_ADD;
+                    imm_sel_o = IMM_I;
                 end
             end
-
             OP_STORE: begin
                 // SB SH SW only
                 if (funct3_fld[2] || funct3_fld == 3'b011) begin
                     illegal_instr_o = 1'b1;
                 end else begin
                     mem_write_o = 1'b1;
-                    alu_src_o   = 1'b1;
-                    alu_op_o    = ALU_ADD;
-                    imm_sel_o   = IMM_S;
+                    alu_src_o = 1'b1;
+                    alu_op_o = ALU_ADD;
+                    imm_sel_o = IMM_S;
                 end
             end
-
             OP_IMM: begin
                 reg_write_o = 1'b1;
-                alu_src_o   = 1'b1;
-                imm_sel_o   = IMM_I;
+                alu_src_o = 1'b1;
+                imm_sel_o = IMM_I;
                 case (funct3_fld)
-                    3'b000: alu_op_o = ALU_ADD;                                  // ADDI
-                    3'b010: alu_op_o = ALU_SLT;                                  // SLTI
-                    3'b011: alu_op_o = ALU_SLTU;                                 // SLTIU
-                    3'b100: alu_op_o = ALU_XOR;                                  // XORI
-                    3'b110: alu_op_o = ALU_OR;                                   // ORI
-                    3'b111: alu_op_o = ALU_AND;                                  // ANDI
+                    3'b000: alu_op_o = ALU_ADD;  // ADDI
+                    3'b010: alu_op_o = ALU_SLT;  // SLTI
+                    3'b011: alu_op_o = ALU_SLTU;  // SLTIU
+                    3'b100: alu_op_o = ALU_XOR;  // XORI
+                    3'b110: alu_op_o = ALU_OR;  // ORI
+                    3'b111: alu_op_o = ALU_AND;  // ANDI
                     // ERRATUM C-1 (found by riscv-tests rv32mi/shamt)
                     // The shift-immediate forms carry the shift amount in
                     // instr[24:20] and RV32 requires instr[31:25] to be exactly
                     // 0000000 (SLLI/SRLI) or 0100000 (SRAI). Previously only
-                    // funct7_fld[5] was examined and the remaining six bits were
-                    // ignored, so `slli x1,x1,32` - encoded with instr[25] set -
-                    // executed as a shift by 0 instead of raising an illegal
-                    // instruction. Spike traps it; GARUDA did not.
-                    3'b001: if (funct7_fld == 7'b0000000) alu_op_o = ALU_SLL;        // SLLI
-                            else                      illegal_instr_o = 1'b1;
-                    3'b101: if (funct7_fld == 7'b0000000) alu_op_o = ALU_SRL;        // SRLI
-                            else if (funct7_fld == 7'b0100000) alu_op_o = ALU_SRA;   // SRAI
-                            else                      illegal_instr_o = 1'b1;
+                    // funct7_fld[5] was examined and the remaining six bits
+                    // were ignored, so `slli x1,x1,32` - encoded with instr[25]
+                    // set - executed as a shift by 0 instead of raising an
+                    // illegal instruction. Spike traps it; GARUDA did not.
+                    3'b001: begin
+                        if (funct7_fld == 7'b0000000) begin
+                            alu_op_o = ALU_SLL;  // SLLI
+                        end else begin
+                            illegal_instr_o = 1'b1;
+                        end
+                    end
+                    3'b101: begin
+                        if (funct7_fld == 7'b0000000) begin
+                            alu_op_o = ALU_SRL;  // SRLI
+                        end else if (funct7_fld == 7'b0100000) begin
+                            alu_op_o = ALU_SRA;  // SRAI
+                        end else begin
+                            illegal_instr_o = 1'b1;
+                        end
+                    end
                     default: illegal_instr_o = 1'b1;
                 endcase
             end
-
             OP_REG: begin
                 if (is_mul_family) begin
                     reg_write_o = 1'b1;
-                    mul_en_o    = 1'b1;
+                    mul_en_o = 1'b1;
                 end else if (is_div_family) begin
-                    // DIV/DIVU/REM/REMU decoded but not executed (Sec. 7.2) -> illegal
+                    // DIV/DIVU/REM/REMU decoded but not executed (Sec. 7.2) ->
+                    // illegal
                     illegal_instr_o = 1'b1;
-                // ERRATUM C-13 (2026-10-04): funct7_fld = 0100000 exists only for
-                // SUB (funct3_fld 000) and SRA (funct3_fld 101). It was accepted for
-                // every funct3_fld, so e.g. 0x40209133 ran as SLL where Spike raises
-                // illegal-instruction. Same class as C-1, on the register forms.
-                end else if (funct7_fld == 7'b0000000 ||
-                             (funct7_fld == 7'b0100000 && (funct3_fld == 3'b000 || funct3_fld == 3'b101))) begin
+                    // ERRATUM C-13 (2026-10-04): funct7_fld = 0100000 exists
+                    // only for SUB (funct3_fld 000) and SRA (funct3_fld 101).
+                    // It was accepted for every funct3_fld, so e.g. 0x40209133
+                    // ran as SLL where Spike raises illegal-instruction. Same
+                    // class as C-1, on the register forms.
+                end else if (funct7_fld == 7'b0000000
+                    || (funct7_fld == 7'b0100000
+                    && (funct3_fld == 3'b000 || funct3_fld == 3'b101))) begin
                     reg_write_o = 1'b1;
                     case (funct3_fld)
-                        3'b000:  alu_op_o = funct7_fld[5] ? ALU_SUB : ALU_ADD;      // SUB/ADD
-                        3'b001:  alu_op_o = ALU_SLL;
-                        3'b010:  alu_op_o = ALU_SLT;
-                        3'b011:  alu_op_o = ALU_SLTU;
-                        3'b100:  alu_op_o = ALU_XOR;
-                        3'b101:  alu_op_o = funct7_fld[5] ? ALU_SRA : ALU_SRL;      // SRA/SRL
-                        3'b110:  alu_op_o = ALU_OR;
-                        3'b111:  alu_op_o = ALU_AND;
+                        // SUB/ADD
+                        3'b000: alu_op_o = funct7_fld[5] ? ALU_SUB : ALU_ADD;
+                        3'b001: alu_op_o = ALU_SLL;
+                        3'b010: alu_op_o = ALU_SLT;
+                        3'b011: alu_op_o = ALU_SLTU;
+                        3'b100: alu_op_o = ALU_XOR;
+                        // SRA/SRL
+                        3'b101: alu_op_o = funct7_fld[5] ? ALU_SRA : ALU_SRL;
+                        3'b110: alu_op_o = ALU_OR;
+                        3'b111: alu_op_o = ALU_AND;
                         default: illegal_instr_o = 1'b1;
                     endcase
                 end else begin
                     illegal_instr_o = 1'b1;
                 end
             end
-
             OP_SYSTEM: begin
                 is_system_o = 1'b1;
                 if (funct3_fld == 3'b100) begin
@@ -255,20 +262,23 @@ module decode_control
                 end else if (funct3_fld == 3'b000) begin
                     // Only these four exist on an M-mode-only, no-debug-mode
                     // core; trap_ctrl discriminates them by the same words.
-                    if (instr_i != 32'h0000_0073 && instr_i != 32'h0010_0073 &&
-                        instr_i != 32'h3020_0073 && instr_i != 32'h1050_0073)
+                    if (instr_i != 32'h0000_0073 && instr_i != 32'h0010_0073
+                        && instr_i != 32'h3020_0073
+                        && instr_i != 32'h1050_0073) begin
                         illegal_instr_o = 1'b1;
+                    end
                 end else begin
                     // CSRRW/CSRRS/CSRRC/CSRRWI/CSRRSI/CSRRCI
-                    csr_en_o    = 1'b1;
-                    csr_op_o    = funct3_fld;
-                    reg_write_o = 1'b1;   // old CSR value returned to rd (Sec. 13.3)
-                    imm_sel_o   = IMM_CSR;
+                    csr_en_o = 1'b1;
+                    csr_op_o = funct3_fld;
+                    // old CSR value returned to rd (Sec. 13.3)
+                    reg_write_o = 1'b1;
+                    imm_sel_o = IMM_CSR;
                 end
-                // funct3_fld == 000: ECALL/EBREAK/MRET/WFI - discriminated in EX/CONTROL
-                // from instr[31:20]; no ID-stage regfile/ALU side effects here.
+                // funct3_fld == 000: ECALL/EBREAK/MRET/WFI - discriminated in
+                // EX/CONTROL from instr[31:20]; no ID-stage regfile/ALU side
+                // effects here.
             end
-
             // ERRATUM C-2 (found while porting riscv-tests)
             // ------------------------------------------------
             // OP_MISC_MEM had no case at all, so FENCE fell through to the
@@ -278,8 +288,8 @@ module decode_control
             // RVTEST_PASS macro - took an illegal-instruction trap on a core
             // that is otherwise executing it correctly.
             //
-            // FENCE (funct3_fld=000) is a no-op here: GARUDA has a single hart and
-            // no store buffer or cache, so there is nothing to order.
+            // FENCE (funct3_fld=000) is a no-op here: GARUDA has a single hart
+            // and no store buffer or cache, so there is nothing to order.
             //
             // FENCE.I (funct3_fld=001) is now IMPLEMENTED (ERRATUM C-3). It was
             // previously illegal because the prefetch buffer holds already
@@ -294,41 +304,41 @@ module decode_control
             //
             // Any other funct3_fld in MISC-MEM remains illegal.
             OP_MISC_MEM: begin
-                if      (funct3_fld == 3'b000) ;                    // FENCE: no-op
-                else if (funct3_fld == 3'b001) fencei_o = 1'b1;     // FENCE.I
-                else                       illegal_instr_o = 1'b1;
+                if (funct3_fld == 3'b000) begin
+                end else if (funct3_fld == 3'b001) begin
+                    fencei_o = 1'b1;  // FENCE.I
+                end else begin
+                    illegal_instr_o = 1'b1;
+                end
             end
-
             OP_CUSTOM0: begin
-                // Custom-0 (DSU). Core does not interpret funct5/acc_sel/imm - it
-                // drives the full instruction word to the DSU (Sec. 9.1/9.2).
+                // Custom-0 (DSU). Core does not interpret funct5/acc_sel/imm -
+                // it drives the full instruction word to the DSU (Sec.
+                // 9.1/9.2).
                 dsu_en_o = 1'b1;
-                // reg_write for DSU ops is determined by the DSU's dsu_rd_valid in
-                // EX, not decoded here (Sec. 9.4) - left low in ID.
+                // reg_write for DSU ops is determined by the DSU's dsu_rd_valid
+                // in EX, not decoded here (Sec. 9.4) - left low in ID.
             end
-
             default: begin
                 illegal_instr_o = 1'b1;
             end
         endcase
-
         // ERRATUM C-14 (2026-10-04): an illegal instruction presents an inert
-        // bundle. OP_IMM set reg_write before it examined funct7_fld, so a reserved
-        // shift-immediate reached EX flagged illegal with reg_write still high.
-        // Forced here, once, so no case above can leave a side effect enabled.
+        // bundle. OP_IMM set reg_write before it examined funct7_fld, so a
+        // reserved shift-immediate reached EX flagged illegal with reg_write
+        // still high. Forced here, once, so no case above can leave a side
+        // effect enabled.
         if (illegal_instr_o) begin
             reg_write_o = 1'b0;
-            mem_read_o  = 1'b0;
+            mem_read_o = 1'b0;
             mem_write_o = 1'b0;
-            branch_o    = 1'b0;
-            jal_o       = 1'b0;
-            jalr_o      = 1'b0;
-            mul_en_o    = 1'b0;
-            dsu_en_o    = 1'b0;
-            csr_en_o    = 1'b0;
+            branch_o = 1'b0;
+            jal_o = 1'b0;
+            jalr_o = 1'b0;
+            mul_en_o = 1'b0;
+            dsu_en_o = 1'b0;
+            csr_en_o = 1'b0;
         end
     end
 
 endmodule
-
-`default_nettype wire

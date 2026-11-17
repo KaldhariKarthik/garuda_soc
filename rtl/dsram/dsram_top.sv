@@ -1,10 +1,8 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 5 : Data SRAM, 64 KiB at 0x2000_0000, 4 x 16 KiB macros
 // dsram_top.v
 //
-// Spec: GARUDA-MEM-SPEC-001 Rev 2.0 (Rev 4.0 set) §5.2, §7.5; ADR-0007
+// Spec: GARUDA-MEM-SPEC-001 Rev 2.0 (Rev 4.0 set) Sec.5.2, Sec.7.5; ADR-0007
 //
 // One AHB slave port, four macros selected by haddr[15:14] ([N-7.11]). All
 // four see the same address and write data; only the selected bank gets CE
@@ -15,34 +13,40 @@
 // =============================================================================
 
 module dsram_top
+    import garuda_pkg::*;
     import mem_pkg::*;
 (
-    input  wire        hclk,
-    input  wire        hreset_n,
-
-    input  wire        hsel_i,
-    input  wire [31:0] haddr_i,
-    input  wire [1:0]  htrans_i,
-    input  wire        hwrite_i,
-    input  wire [2:0]  hsize_i,
-    input  wire [2:0]  hburst_i,
-    input  wire [3:0]  hprot_i,
-    input  wire [31:0] hwdata_i,
-    input  wire        hready_i,
-    output wire [31:0] hrdata_o,
-    output wire        hreadyout_o,
-    output wire        hresp_o
+    input wire hclk,
+    input wire hreset_n,
+    input wire hsel_i,
+    input wire [WORD_W-1:0] haddr_i,
+    input wire [HTRANS_W-1:0] htrans_i,
+    input wire hwrite_i,
+    input wire [HSIZE_W-1:0] hsize_i,
+    input wire [HBURST_W-1:0] hburst_i,
+    input wire [HPROT_W-1:0] hprot_i,
+    input wire [WORD_W-1:0] hwdata_i,
+    input wire hready_i,
+    output wire [WORD_W-1:0] hrdata_o,
+    output wire hreadyout_o,
+    output wire hresp_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned RDATA_W = 32'd4;
+    localparam int unsigned BANK_W = 32'd2;
+    localparam int unsigned RD_BANK_W = 32'd2;
 
-    localparam integer ADDR_W  = 14;            // 16,384 words total
-    localparam integer BANK_ADDR_W = 12;            // 4,096 words per bank
+    localparam integer ADDR_W  = 32'd14;  // 16,384 words total
+    localparam integer BANK_ADDR_W = 32'd12;  // 4,096 words per bank
 
-    wire          ce, we;
+    wire ce;
+    wire we;
     wire [ADDR_W-1:0] addr;
-    wire [3:0]    be;
-    wire [31:0]   wdata;
-    wire [31:0]   rdata [0:3];
-    reg  [1:0]    rd_bank_q;
+    wire [BE_W-1:0]    be;
+    wire [WORD_W-1:0]   wdata;
+    wire [WORD_W-1:0]   rdata [0:RDATA_W-1];
+    reg  [RD_BANK_W-1:0]    rd_bank_q;
 
     ahb_mem_slave_if #(.ADDR_W(ADDR_W), .WRITABLE(1)) u_if (
         .hclk(hclk), .hreset_n(hreset_n),
@@ -54,23 +58,30 @@ module dsram_top
         .arr_ce_o(ce), .arr_addr_o(addr), .arr_we_o(we), .arr_be_o(be),
         .arr_wdata_o(wdata), .arr_rdata_i(rdata[rd_bank_q]));
 
-    wire [1:0] bank = addr[ADDR_W-1:BANK_ADDR_W];
+    wire [BANK_W-1:0] bank = addr[ADDR_W-1:BANK_ADDR_W];
 
     // bank of the most recent read; its data is what arrives next cycle
-    always @(posedge hclk or negedge hreset_n)
-        if (!hreset_n)     rd_bank_q <= 2'd0;
-        else if (ce && !we)  rd_bank_q <= bank;
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_rd_bank
+        if (!hreset_n) begin
+            rd_bank_q <= 2'd0;
+        end else if (ce && !we) begin
+            rd_bank_q <= bank;
+        end
+    end
 
     genvar b;
     generate for (b = 0; b < 4; b = b + 1) begin : g_bank
-        sram_wrapper #(.WORDS(MEM_DSRAM_BANK_WORDS), .ADDR_W(BANK_ADDR_W)) u_array (
+        sram_wrapper #(.WORDS(MEM_DSRAM_BANK_WORDS),
+            .ADDR_W(BANK_ADDR_W)) u_array(
             .hclk(hclk), .ce(ce && bank == b), .addr(addr[BANK_ADDR_W-1:0]),
             .wdata(wdata), .rdata(rdata[b]), .we(we), .be(be));
     end endgenerate
 
 `ifndef SYNTHESIS
     // Byte-addressed backdoor; the testbench never sees the banking.
-    task bd_write; input [31:0] byte_addr; input [31:0] data;
+    task bd_write;
+    input [31:0] byte_addr;
+    input [31:0] data;
         begin
             case (byte_addr[15:14])
                 2'd0: g_bank[0].u_array.bd_write(byte_addr[13:2], data);
@@ -79,11 +90,14 @@ module dsram_top
                 default: g_bank[3].u_array.bd_write(byte_addr[13:2], data);
             endcase
 `ifndef __ICARUS__
-            u_if.u_mem_sva.forget({18'd0, byte_addr[15:2]});   // the bus-side data model (rtl/mem/mem_sva.sv) did not see this write
+            // the bus-side data model (rtl/mem/mem_sva.sv) did not see this
+            // write
+            u_if.u_mem_sva.forget({18'd0, byte_addr[15:2]});
 `endif
         end
     endtask
-    function [31:0] bd_read; input [31:0] byte_addr;
+    function automatic [31:0] bd_read;
+    input [31:0] byte_addr;
         case (byte_addr[15:14])
             2'd0: bd_read = g_bank[0].u_array.bd_read(byte_addr[13:2]);
             2'd1: bd_read = g_bank[1].u_array.bd_read(byte_addr[13:2]);
@@ -96,5 +110,3 @@ module dsram_top
     wire _unused = |{hburst_i, hprot_i};
 
 endmodule
-
-`default_nettype wire

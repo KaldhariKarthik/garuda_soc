@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 6: AHB-Lite Interconnect
 // ahb_dflt_slave.v - two-cycle ERROR responder for unmapped addresses
@@ -43,27 +41,28 @@
 // HREADYOUT low stalls the whole shared layer.
 // =============================================================================
 
-
 module ahb_dflt_slave
+    import garuda_pkg::*;
     import ahb_pkg::*;
 (
-    input  wire        hclk,
-    input  wire        hreset_n,
-
-    input  wire        hsel_i,
-    input  wire [1:0]  htrans_i,
-    input  wire        hready_i,      // global HREADY (address phase accepted)
-
-    output wire [31:0] hrdata_o,
-    output reg         hreadyout_o,
-    output reg         hresp_o
+    input wire hclk,
+    input wire hreset_n,
+    input wire hsel_i,
+    input wire [HTRANS_W-1:0] htrans_i,
+    input wire hready_i,  // global HREADY (address phase accepted)
+    output wire [WORD_W-1:0] hrdata_o,
+    output reg hreadyout_o,
+    output reg hresp_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned STATE_W = 32'd2;
 
     localparam [1:0] S_IDLE = 2'd0,
                      S_ERR1 = 2'd1,
                      S_ERR2 = 2'd2;
 
-    reg [1:0] state;
+    reg [STATE_W-1:0] state;
 
     // A transfer is taken when this slave is selected, the global HREADY is
     // high (so the address phase completes this cycle) and HTRANS is
@@ -72,25 +71,38 @@ module ahb_dflt_slave
 
     // Moore outputs: a pure function of state, so the response waveform is
     // identical whatever the address phase is doing around it.
-    always @(*) begin
+    always_comb begin : c_hreadyout
         case (state)
-            S_ERR1:  begin hreadyout_o = 1'b0; hresp_o = AHB_RESP_ERROR; end
-            S_ERR2:  begin hreadyout_o = 1'b1; hresp_o = AHB_RESP_ERROR; end
-            default: begin hreadyout_o = 1'b1; hresp_o = AHB_RESP_OKAY;  end
+            S_ERR1: begin
+                hreadyout_o = 1'b0;
+                hresp_o = AHB_RESP_ERROR;
+            end
+            S_ERR2: begin
+                hreadyout_o = 1'b1;
+                hresp_o = AHB_RESP_ERROR;
+            end
+            default: begin
+                hreadyout_o = 1'b1;
+                hresp_o = AHB_RESP_OKAY;
+            end
         endcase
     end
 
-    always @(posedge hclk or negedge hreset_n) begin
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_state
         if (!hreset_n) begin
             state <= S_IDLE;
         end else begin
             case (state)
-                S_IDLE:  if (accept) state <= S_ERR1;
+                S_IDLE: begin
+                    if (accept) begin
+                        state <= S_ERR1;
+                    end
+                end
                 // In S_ERR1 the global HREADY is low (this slave is driving
                 // it low), so no address phase can be accepted - `accept` is
                 // structurally impossible here and is not tested.
-                S_ERR1:  state <= S_ERR2;
-                S_ERR2:  state <= accept ? S_ERR1 : S_IDLE;
+                S_ERR1: state <= S_ERR2;
+                S_ERR2: state <= accept ? S_ERR1 : S_IDLE;
                 default: state <= S_IDLE;
             endcase
         end
@@ -101,5 +113,3 @@ module ahb_dflt_slave
     assign hrdata_o = 32'h0000_0000;
 
 endmodule
-
-`default_nettype wire

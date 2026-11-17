@@ -139,10 +139,10 @@ DV_TESTS ?=
 DV_MAXCYC ?= 600000
 riscv_dv:                                        ## random programs in lockstep with Spike
 	@export RISCV_DV_ROOT=$(RISCV_DV_ROOT); D=$(SIM_DIR)/riscv_dv; mkdir -p $$D/asm; rm -f $$D/.fail; \
-	 $(XRUN) -64bit -access +rwc -f $(RISCV_DV_ROOT)/files.f +incdir+tb/core/riscv_dv/target +incdir+$(RISCV_DV_ROOT)/user_extension \
+	 $(XRUN) $(PKG_SRCS) -64bit -access +rwc -f $(RISCV_DV_ROOT)/files.f +incdir+tb/core/riscv_dv/target +incdir+$(RISCV_DV_ROOT)/user_extension \
 	    -q -sv -uvm -uvmhome CDNS-1.2 -vlog_ext +.vh -elaborate -xmlibdirpath $$D -l $$D/compile.log > /dev/null 2>&1; \
 	 if grep -qE '\*[EF],' $$D/compile.log; then echo "riscv_dv: generator did not compile, see $$D/compile.log"; exit 1; fi; \
-	 $(XRUN) -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname $$D/rtl.d -snapshot garuda_boot -elaborate -l $$D/elab.log > /dev/null 2>&1; \
+	 $(XRUN) $(PKG_SRCS) -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname $$D/rtl.d -snapshot garuda_boot -elaborate -l $$D/elab.log > /dev/null 2>&1; \
 	 if grep -qE '^(xrun|xmelab|xmvlog): \*[EF]' $$D/elab.log; then echo "riscv_dv: RTL did not elaborate, see $$D/elab.log"; exit 1; fi; \
 	 printf "%-22s %-9s %-9s %s\n" PROGRAM RTL LOCKSTEP NOTE; \
 	 grep -vE '^ *(#|$$)' tb/core/riscv_dv/testlist | while read name gen opts; do \
@@ -180,7 +180,7 @@ archtest_xrun:                                   ## riscv-arch-test on Xcelium, 
 	@D=$(SIM_DIR)/archtest_xrun; B=logs/core/raw/archtest_build; mkdir -p $$D; rm -f $$D/.fail; \
 	 RISCV_BIN=$(dir $(RISCV_GNU)) RISCV_PREFIX=$(notdir $(RISCV_GNU))- python3.12 tools/archtest/build_archtest.py > $$D/build.log 2>&1 \
 	   || { echo "archtest_xrun: build failed, see $$D/build.log"; exit 1; }; \
-	 $(XRUN) -f tb/soc/filelist_boot_mem2m.f -top tb_boot -xmlibdirname $$D/rtl.d -snapshot garuda_boot -elaborate -l $$D/elab.log > /dev/null 2>&1; \
+	 $(XRUN) $(PKG_SRCS) -f tb/soc/filelist_boot_mem2m.f -top tb_boot -xmlibdirname $$D/rtl.d -snapshot garuda_boot -elaborate -l $$D/elab.log > /dev/null 2>&1; \
 	 if grep -qE '^(xrun|xmelab|xmvlog): \*[EF]' $$D/elab.log; then echo "archtest_xrun: RTL did not elaborate, see $$D/elab.log"; exit 1; fi; \
 	 printf "%-30s %-6s %s\n" TEST RTL SIGNATURE; \
 	 for e in $$B/*.elf; do t=$$(basename $$e .elf); \
@@ -208,7 +208,7 @@ BENCH_ARGS ?=
 bench:                                           ## CoreMark + Dhrystone: score per MHz, lockstep with Spike
 	@D=$(SIM_DIR)/bench; S=sw/bench/build; mkdir -p $$D; rm -f $$D/.fail; \
 	 $(MAKE) --no-print-directory -C sw/bench > $$D/build.log 2>&1 || { echo "bench: build failed, see $$D/build.log"; exit 1; }; \
-	 $(XRUN) -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname $$D/rtl.d -snapshot garuda_boot -elaborate -l $$D/elab.log > /dev/null 2>&1; \
+	 $(XRUN) $(PKG_SRCS) -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname $$D/rtl.d -snapshot garuda_boot -elaborate -l $$D/elab.log > /dev/null 2>&1; \
 	 if grep -qE '^(xrun|xmelab|xmvlog): \*[EF]' $$D/elab.log; then echo "bench: RTL did not elaborate, see $$D/elab.log"; exit 1; fi; \
 	 for t in dhrystone coremark dhrystone_ls coremark_ls; do \
 	   th=$$($(RISCV_GNU)-nm $$S/$$t.elf | awk '$$3=="tohost"{print $$1}'); rm -f $$D/$$t.sig; \
@@ -229,7 +229,7 @@ csr_map:                                        ## CSR existence, RTL against Sp
 	 $(RISCV_GNU)-gcc -march=rv32im_zicsr -mabi=ilp32 -mno-relax -fno-pic -static -nostdlib -nostartfiles -Wa,--no-warn \
 	    -T sw/common/link.ld -no-pie -Wl,--no-warn-rwx-segments $$D/csr_sweep.S -o $$D/csr_sweep.elf 2> $$D/build.log; \
 	 $(RISCV_GNU)-objcopy -O binary $$D/csr_sweep.elf $$D/csr_sweep.bin; python3 tools/elf2hex.py $$D/csr_sweep.bin $$D/csr_sweep.hex > /dev/null; \
-	 $(XRUN) -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname $$D/rtl.d -snapshot garuda_boot -l $$D/run.log \
+	 $(XRUN) $(PKG_SRCS) -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname $$D/rtl.d -snapshot garuda_boot -l $$D/run.log \
 	    +HEX=$$D/csr_sweep.hex +COMMIT=$$D/commit.log +MAXCYC=400000 +QUIET > /dev/null 2>&1; \
 	 grep -q 'TOHOST=1 -> PASSED' $$D/run.log || { echo "csr_map: the sweep did not finish on the RTL, see $$D/run.log"; exit 1; }; \
 	 $(SPIKE) --isa=rv32im_zicsr_zifencei_zicntr --pmpregions=0 --triggers=0 -m0x10000000:0x40000 --disable-dtb --priv=m \
@@ -250,7 +250,7 @@ BOOT_ARGS = -f tb/soc/filelist_boot.f -top tb_boot
 # the result used to be the recipe's exit status, and it matches FAILED as well.
 define boot_run
 	@mkdir -p $(SIM_DIR)/tb_boot && rm -f $(SIM_DIR)/tb_boot/$(1).log; \
-	 $(XRUN) $(BOOT_ARGS) -xmlibdirname $(SIM_DIR)/tb_boot/xcelium.d \
+	 $(XRUN) $(PKG_SRCS) $(BOOT_ARGS) -xmlibdirname $(SIM_DIR)/tb_boot/xcelium.d \
 	   -l $(SIM_DIR)/tb_boot/$(1).log \
 	   +HEX=$(2) +COMMIT=$(SIM_DIR)/tb_boot/$(3) $(4) > /dev/null 2>&1; rc=$$?; \
 	 grep -E "$(5)" $(SIM_DIR)/tb_boot/$(1).log 2> /dev/null | head -40; \
@@ -278,7 +278,7 @@ test_dsu:
 	@python3 tools/gen/DSU_gen.py --count $(DSU_TESTS) --seed $(DSU_SEED) \
 	   --outdir $(SIM_DIR)/dsu | tail -1
 	@rm -f $(SIM_DIR)/dsu/run.log; \
-	 $(XRUN) -64bit -f tb/dsu/filelist_dsu_top.f -top tb_dsu_top \
+	 $(XRUN) $(PKG_SRCS) -64bit -f tb/dsu/filelist_dsu_top.f -top tb_dsu_top \
 	   -xmlibdirname $(SIM_DIR)/dsu/xcelium.d -l $(SIM_DIR)/dsu/run.log \
 	   +STIM=$(SIM_DIR)/dsu/dsu_stim.mem +EXP=$(SIM_DIR)/dsu/dsu_expected.mem \
 	   > /dev/null 2>&1; rc=$$?; \
@@ -299,7 +299,7 @@ test_dsu_stream:
 	   iverilog -g2012 -s tb_dsu_top $$($$ex --incdirs) -o $$d/tb.vvp $$($$ex) > $$d/run.log 2>&1 \
 	     && vvp $$d/tb.vvp $$args >> $$d/run.log 2>&1; rc=$$?; \
 	 else \
-	   $(XRUN) -64bit -f tb/dsu/filelist_dsu_top.f -top tb_dsu_top \
+	   $(XRUN) $(PKG_SRCS) -64bit -f tb/dsu/filelist_dsu_top.f -top tb_dsu_top \
 	     -xmlibdirname $$d/xcelium.d -l $$d/run.log $$args > /dev/null 2>&1; rc=$$?; \
 	 fi; \
 	 grep -E "tests compared|mismatches|interlock held|RESULT" $$d/run.log 2> /dev/null; \

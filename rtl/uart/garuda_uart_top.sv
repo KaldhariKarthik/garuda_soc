@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Blocks 16/17/18 : UART (one design, three instances)
 // garuda_uart_top.v - GARUDA wrapper around pulp-platform/apb_uart_sv
@@ -23,7 +21,8 @@
 //      available input to the wrong flag:
 //          .RDA_i ( regs_n[LSR][5] )   <- THRE, the TRANSMIT fifo empty bit
 //      where regs_n[LSR][0] (DR) belongs. Every event this block reports is
-//      derived here from LSR instead ([N-7.5], errata ERR-U1, Docs/bugs/archive/BUGS_HISTORY.md).
+// derived here from LSR instead ([N-7.5], errata ERR-U1,
+// Docs/bugs/archive/BUGS_HISTORY.md).
 //
 //   3. FIFO state as a level. tx_elements/rx_elements are internal signals,
 //      not ports, so - exactly as garuda_spim_top does with the SPI STATUS
@@ -40,46 +39,52 @@
 //   [3] FE   framing error at head  (both come from patch 0001 - see below)
 // =============================================================================
 
-module garuda_uart_top #(
-    parameter [7:0] BLOCK_NUM = 8'd16       // 16 = uart0, 17 = uart1, 18 = uart2
+module garuda_uart_top
+    import garuda_pkg::*;
+#(
+    parameter [7:0] BLOCK_NUM = 8'd16  // 16 = uart0, 17 = uart1, 18 = uart2
 )(
-    input  wire        pclk,
-    input  wire        preset_n,
-
-    // ---- APB slave, window 3 / 4 / 6 -----------------------------------------
-    input  wire        psel_i,
-    input  wire        penable_i,
-    input  wire        pwrite_i,
-    input  wire [11:0] paddr_i,
-    input  wire [31:0] pwdata_i,
-    output wire [31:0] prdata_o,
-    output wire        pready_o,
-    output wire        pslverr_o,
-
-    // ---- CLIC ID 17/18/19, DMA channel 2/3/5 ---------------------------------
-    output wire        irq_o,
-    output wire        dma_req_o,
-    input  wire        dma_ack_i,
-
-    // ---- pins ------------------------------------------------------------------
-    output wire        uart_tx_o,
-    input  wire        uart_rx_i
+    input wire pclk,
+    input wire preset_n,
+    // ---- APB slave, window 3 / 4 / 6 ----------------------------------------
+    input wire psel_i,
+    input wire penable_i,
+    input wire pwrite_i,
+    input wire [PADDR_W-1:0] paddr_i,
+    input wire [WORD_W-1:0] pwdata_i,
+    output wire [WORD_W-1:0] prdata_o,
+    output wire pready_o,
+    output wire pslverr_o,
+    // ---- CLIC ID 17/18/19, DMA channel 2/3/5 --------------------------------
+    output wire irq_o,
+    output wire dma_req_o,
+    input wire dma_ack_i,
+    // ---- pins ---------------------------------------------------------------
+    output wire uart_tx_o,
+    input wire uart_rx_i
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned EVT_W = 32'd3;
 
-    localparam [11:0] IP_LIMIT = 12'h020;   // our word offsets 0x00..0x1C
-    // all eight words are 16550 register positions. MCR, MSR and SCR (0x10, 0x18,
-    // 0x1C) are not implemented upstream and read 0; they stay registers, so a
-    // 16550 driver that writes MCR gets no bus error (UART [N-13.1], [N-13.2]).
+    localparam [11:0] IP_LIMIT = 12'h020;  // our word offsets 0x00..0x1C
+    // all eight words are 16550 register positions. MCR, MSR and SCR (0x10,
+    // 0x18, 0x1C) are not implemented upstream and read 0; they stay registers,
+    // so a 16550 driver that writes MCR gets no bus error (UART [N-13.1],
+    // [N-13.2]).
     localparam [63:0] IP_MAP   = 64'h0000_0000_0000_00FF;
-    localparam [11:0] A_LCR    = 12'h00C;   // word offset of LCR (byte index 3)
-    localparam [11:0] B_LSR    = 12'h005;   // BYTE index of LSR, for the poll
+    localparam [11:0] A_LCR    = 12'h00C;  // word offset of LCR (byte index 3)
+    localparam [11:0] B_LSR    = 12'h005;  // BYTE index of LSR, for the poll
 
-    wire        ip_psel, ip_penable, ip_pwrite;
-    wire [11:0] ip_paddr;
-    wire [31:0] ip_pwdata, ip_prdata;
+    wire ip_psel;
+    wire ip_penable;
+    wire ip_pwrite;
+    wire [PADDR_W-1:0] ip_paddr;
+    wire [WORD_W-1:0] ip_pwdata;
+    wire [WORD_W-1:0] ip_prdata;
     wire        ip_pready;
     wire        rx_sync;
-    wire [1:0]  dmactl;
+    wire [DMACTL_W-1:0]  dmactl;
     wire        shim_dma_req;
 
     // SYNC_RESET=1: an idle serial line is HIGH. A synchroniser that reset to
@@ -90,17 +95,21 @@ module garuda_uart_top #(
     // =========================================================================
     // Line status, sampled in the window's idle cycles ([N-7.4])
     // =========================================================================
-    wire poll = ~psel_i;                    // window idle: our cycle to use
+    wire poll = ~psel_i;  // window idle: our cycle to use
 
-    reg [7:0] lsr_q;
-    always @(posedge pclk or negedge preset_n)
-        if (!preset_n)  lsr_q <= 8'h60;   // THRE | TEMT: nothing to send
-        else if (poll)    lsr_q <= ip_prdata[7:0];
+    reg [BYTE_W-1:0] lsr_q;
+    always_ff @(posedge pclk or negedge preset_n) begin : p_lsr
+        if (!preset_n) begin
+            lsr_q <= 8'h60;  // THRE | TEMT: nothing to send
+        end else if (poll) begin
+            lsr_q <= ip_prdata[7:0];
+        end
+    end
 
-    wire lsr_dr   = lsr_q[0];               // a received byte is waiting
-    wire lsr_pe   = lsr_q[2];               // parity error on that byte
-    wire lsr_fe   = lsr_q[3];               // framing error on that byte
-    wire lsr_thre = lsr_q[5];               // the TX FIFO has room
+    wire lsr_dr   = lsr_q[0];  // a received byte is waiting
+    wire lsr_pe   = lsr_q[2];  // parity error on that byte
+    wire lsr_fe   = lsr_q[3];  // framing error on that byte
+    wire lsr_thre = lsr_q[5];  // the TX FIFO has room
 
     // One "line error" event covers both. Firmware reads LSR to tell them
     // apart - parity says noise, framing says the baud rate is wrong - but the
@@ -124,20 +133,25 @@ module garuda_uart_top #(
     // silently overwritten with payload bytes.
     // =========================================================================
     reg dlab_q;
-    always @(posedge pclk or negedge preset_n)
-        if (!preset_n)                                            dlab_q <= 1'b0;
-        else if (psel_i & penable_i & pwrite_i & (paddr_i == A_LCR)) dlab_q <= pwdata_i[7];
+    always_ff @(posedge pclk or negedge preset_n) begin : p_dlab
+        if (!preset_n) begin
+            dlab_q <= 1'b0;
+        end else if (psel_i & penable_i & pwrite_i & (paddr_i == A_LCR)) begin
+            dlab_q <= pwdata_i[7];
+        end
+    end
 
     // =========================================================================
     // Shim: decode, tail registers, sticky IRQ, DMA hold-off, rx sync
     // =========================================================================
-    wire [2:0] evt;
-    assign evt[0] = lsr_dr;                 // RX data available
-    assign evt[1] = lsr_thre;               // TX holding register empty
-    assign evt[2] = lsr_err;                // line error: parity or framing
+    wire [EVT_W-1:0] evt;
+    assign evt[0] = lsr_dr;  // RX data available
+    assign evt[1] = lsr_thre;  // TX holding register empty
+    assign evt[2] = lsr_err;  // line error: parity or framing
 
     garuda_apb_shim #(
-        .N_EVT(3), .SYNC_W(1), .SYNC_RESET(8'h01), .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
+        .N_EVT(3), .SYNC_W(1), .SYNC_RESET(8'h01), .IP_LIMIT(IP_LIMIT),
+            .IP_MAP(IP_MAP),
         .ADDR_SHIFT(2), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
@@ -166,7 +180,7 @@ module garuda_uart_top #(
     wire        eff_psel    = poll ? 1'b1  : ip_psel;
     wire        eff_penable = poll ? 1'b1  : ip_penable;
     wire        eff_pwrite  = poll ? 1'b0  : ip_pwrite;
-    wire [11:0] eff_paddr   = poll ? B_LSR : ip_paddr;
+    wire [PADDR_W-1:0] eff_paddr   = poll ? B_LSR : ip_paddr;
 
     apb_uart_sv #(
         .APB_ADDR_WIDTH(12)
@@ -176,10 +190,8 @@ module garuda_uart_top #(
         .PSEL(eff_psel), .PENABLE(eff_penable),
         .PRDATA(ip_prdata), .PREADY(ip_pready), .PSLVERR(),
         .rx_i(rx_sync), .tx_o(uart_tx_o),
-        .event_o());                        // unused on purpose - ERR-U1
+        .event_o());  // unused on purpose - ERR-U1
 
     wire _unused = |{dmactl, lsr_q[7:6], lsr_q[4], lsr_q[1]};
 
 endmodule
-
-`default_nettype wire

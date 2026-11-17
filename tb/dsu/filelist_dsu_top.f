@@ -7,7 +7,6 @@
 // =============================================================================
 -incdir rtl/dsu
 
-rtl/dsu/dsu_pkg.sv
 rtl/dsu/csa_3to2.sv
 rtl/dsu/kogge_stone_49.sv
 rtl/dsu/mult_16x16.sv

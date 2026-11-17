@@ -1,11 +1,9 @@
 // MUTANT dma_apb_slave_mut_aud13: rtl/dma/dma_apb_slave.sv with ONE change. Formal negative control: must FAIL.
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 9 : DMA APB register interface (window 5, 0x4000_5000)
 // dma_apb_slave.v
 //
-// Spec: GARUDA-DMA-SPEC-001 Rev 3.0 §6, §9 ([N-5.1]: pclk port, NO CDC);
+// Spec: GARUDA-DMA-SPEC-001 Rev 3.0 Sec.6, Sec.9 ([N-5.1]: pclk port, NO CDC);
 //       ADR-0002 Rev 2.
 //
 // TWO CLOCKS. The APB protocol side runs on pclk; the registers themselves
@@ -28,40 +26,45 @@
 //
 // =============================================================================
 
-module dma_apb_slave (
-    input  wire        hclk,
-    input  wire        hreset_n,
-    input  wire        pclk,          // APB side (ADR-0002 Rev 2)
-    input  wire        preset_n,
-
-    input  wire        psel_i,
-    input  wire        penable_i,
-    input  wire        pwrite_i,
-    input  wire [11:0] paddr_i,
-    input  wire [31:0] pwdata_i,
-    output wire [31:0] prdata_o,
-    output wire        pready_o,
-    output wire        pslverr_o,
-
+module dma_apb_slave
+    import garuda_pkg::*;
+(
+    input wire hclk,
+    input wire hreset_n,
+    input wire pclk,  // APB side (ADR-0002 Rev 2)
+    input wire preset_n,
+    input wire psel_i,
+    input wire penable_i,
+    input wire pwrite_i,
+    input wire [PADDR_W-1:0] paddr_i,
+    input wire [WORD_W-1:0] pwdata_i,
+    output wire [WORD_W-1:0] prdata_o,
+    output wire pready_o,
+    output wire pslverr_o,
     // one-hclk write strobes, per channel
-    output wire [5:0]  wr_cr_o,
-    output wire [5:0]  wr_sar_o,
-    output wire [5:0]  wr_dar_o,
-    output wire [5:0]  wr_cnt_o,
-    output wire [5:0]  wr_iclr_o,
-    output wire [31:0] wdata_o,
-
+    output wire [DMA_NCH-1:0] wr_cr_o,
+    output wire [DMA_NCH-1:0] wr_sar_o,
+    output wire [DMA_NCH-1:0] wr_dar_o,
+    output wire [DMA_NCH-1:0] wr_cnt_o,
+    output wire [DMA_NCH-1:0] wr_iclr_o,
+    output wire [WORD_W-1:0] wdata_o,
     // register views
-    input  wire [6*32-1:0] cr_i,
-    input  wire [6*32-1:0] sar_i,
-    input  wire [6*32-1:0] dar_i,
-    input  wire [6*32-1:0] cnt_i,
-    input  wire [6*32-1:0] stat_i
+    input wire [DMA_NCH * WORD_W - 1:0] cr_i,
+    input wire [DMA_NCH * WORD_W - 1:0] sar_i,
+    input wire [DMA_NCH * WORD_W - 1:0] dar_i,
+    input wire [DMA_NCH * WORD_W - 1:0] cnt_i,
+    input wire [DMA_NCH * WORD_W - 1:0] stat_i
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned CH_W = 32'd3;
+    localparam int unsigned REG_W = 32'd3;
+    localparam int unsigned CHSEL_W = 32'd6;
 
-    wire [2:0] ch  = paddr_i[7:5];
-    wire [2:0] reg_ = paddr_i[4:2];
-    wire chan_rgn  = (paddr_i[11:8] == 4'h0) && (ch < 3'd6) && (paddr_i[1:0] == 2'b00) &&
+    wire [CH_W-1:0] ch  = paddr_i[7:5];
+    wire [REG_W-1:0] reg_ = paddr_i[4:2];
+    wire chan_rgn = (paddr_i[11:8] == 4'h0) && (ch < 3'd6)
+        && (paddr_i[1:0] == 2'b00) &&
                      (reg_ <= 3'd5);
     wire gstat     = (paddr_i == 12'h100);
     wire hit       = chan_rgn | gstat;
@@ -71,12 +74,16 @@ module dma_apb_slave (
     // cycles that phase spans.
     wire acc_wr = psel_i & penable_i & pwrite_i & chan_rgn;
     reg  acc_wr_q;
-    always @(posedge hclk or negedge hreset_n)
-        if (!hreset_n) acc_wr_q <= 1'b0;
-        else             acc_wr_q <= acc_wr;
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_acc_wr
+        if (!hreset_n) begin
+            acc_wr_q <= 1'b0;
+        end else begin
+            acc_wr_q <= acc_wr;
+        end
+    end
     wire wstb = acc_wr & ~acc_wr_q;
 
-    wire [5:0] chsel = 6'd1 << ch;
+    wire [CHSEL_W-1:0] chsel = 6'd1 << ch;
     assign wr_cr_o   = {6{wstb && reg_ == 3'd0}} & chsel;
     assign wr_sar_o  = {6{wstb && reg_ == 3'd1}} & chsel;
     assign wr_dar_o  = {6{wstb && reg_ == 3'd2}} & chsel;
@@ -85,48 +92,52 @@ module dma_apb_slave (
     assign wdata_o   = pwdata_i;
 
     // GSTAT
-    reg [31:0] gstat_v;
+    reg [WORD_W-1:0] gstat_v;
     integer n;
-    always @(*) begin
+    always_comb begin : c_gstat_v
         gstat_v = 32'd0;
         for (n = 0; n < 6; n = n + 1) begin
-            gstat_v[n]      = stat_i[32*n + 16];
-            gstat_v[8 + n]  = stat_i[32*n + 17];
-            gstat_v[16 + n] = stat_i[32*n + 18];
+            gstat_v[n] = stat_i[32 * n + 16];
+            gstat_v[8 + n] = stat_i[32 * n + 17];
+            gstat_v[16 + n] = stat_i[32 * n + 18];
         end
     end
 
-    reg [31:0] rd_mux;
-    always @(*) begin
+    reg [WORD_W-1:0] rd_mux;
+    always_comb begin : c_rd_mux
         rd_mux = 32'd0;
-        if (gstat) rd_mux = gstat_v;
-        else if (chan_rgn) begin
+        if (gstat) begin
+            rd_mux = gstat_v;
+        end else if (chan_rgn) begin
             case (reg_)
-                3'd0: rd_mux = cr_i  [32*ch +: 32];
-                3'd1: rd_mux = sar_i [32*ch +: 32];
-                3'd2: rd_mux = dar_i [32*ch +: 32];
-                3'd3: rd_mux = cnt_i [32*ch +: 32];
-                3'd4: rd_mux = stat_i[32*ch +: 32];
-                default: rd_mux = 32'd0;             // ICLR reads 0
+                3'd0: rd_mux = cr_i[32 * ch+:32];
+                3'd1: rd_mux = sar_i[32 * ch+:32];
+                3'd2: rd_mux = dar_i[32 * ch+:32];
+                3'd3: rd_mux = cnt_i[32 * ch+:32];
+                3'd4: rd_mux = stat_i[32 * ch+:32];
+                default: rd_mux = 32'd0;  // ICLR reads 0
             endcase
         end
     end
 
     // Registered on pclk at the setup-to-access edge: stable for the whole
     // access phase, so what leaves for the bridge is a pclk-to-pclk path.
-    reg [31:0] prdata_q;
-    always @(posedge pclk or negedge preset_n)
-        if (!preset_n)              prdata_q <= 32'd0;
-        else if (psel_i & ~penable_i) prdata_q <= rd_mux;
+    reg [WORD_W-1:0] prdata_q;
+    always_ff @(posedge pclk or negedge preset_n) begin : p_prdata
+        if (!preset_n) begin
+            prdata_q <= 32'd0;
+        end else if (psel_i & ~penable_i) begin
+            prdata_q <= rd_mux;
+        end
+    end
     assign prdata_o = prdata_q;
 
     assign pready_o  = 1'b1;
     // ERRATUM AUD-13 (2026-10-12, Karthik's plan task 0.5): PSLVERR only for an
-    // offset that is not a register. A write to a read-only register (STAT, GSTAT)
-    // is ignored without an error: no write strobe exists for it, so nothing
-    // changes. Until this fix such a write answered PSLVERR like an unmapped offset.
+    // offset that is not a register. A write to a read-only register (STAT,
+    // GSTAT) is ignored without an error: no write strobe exists for it, so
+    // nothing changes. Until this fix such a write answered PSLVERR like an
+    // unmapped offset.
     assign pslverr_o = psel_i & penable_i & (~hit | (pwrite_i & (gstat | (chan_rgn & reg_ == 3'd4))));   // MUTANT: AUD-13 reverted
 
 endmodule
-
-`default_nettype wire

@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 //=============================================================================
 // GARUDA SoC -- Block I: Processor Core
 // alu_unit.v -- 32-bit combinational ALU
@@ -13,35 +11,38 @@
 // the link/target computation cannot collide with a coincident ALU use.
 //=============================================================================
 
-
 module alu_unit
-    import garuda_pkg::*; import core_ex_pkg::*;
+    import garuda_pkg::*;
+    import core_ex_pkg::*;
 (
-    input  wire [31:0] op_a,
-    input  wire [31:0] op_b,
-    input  wire [3:0]  alu_op,
-    output reg  [31:0] result
+    input wire [WORD_W-1:0] op_a,
+    input wire [WORD_W-1:0] op_b,
+    input wire [ALU_OP_W-1:0] alu_op,
+    output reg [WORD_W-1:0] result
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned SHAMTB_W = 32'd5;
 
-    wire [4:0] shamt = op_b[4:0];
+    wire [SHAMTB_W-1:0] shamt = op_b[4:0];
 
-    always @(*) begin
+    always_comb begin : c_result
         case (alu_op)
-            ALU_ADD:  result = op_a + op_b;
-            ALU_SUB:  result = op_a - op_b;
-            ALU_AND:  result = op_a & op_b;
-            ALU_OR:   result = op_a | op_b;
-            ALU_XOR:  result = op_a ^ op_b;
-            ALU_SLL:  result = op_a << shamt;
-            ALU_SRL:  result = op_a >> shamt;
-            ALU_SRA:  result = $signed(op_a) >>> shamt;
-            ALU_SLT:  result = {31'b0, ($signed(op_a) < $signed(op_b))};
-            ALU_SLTU: result = {31'b0, (op_a < op_b)};
-            ALU_PASSB: result = op_b;                    // LUI: pass immediate (Sec. 8.1)
-            default:   result = op_a + op_b;   // safe default: ADD
+            ALU_ADD: result = op_a + op_b;
+            ALU_SUB: result = op_a - op_b;
+            ALU_AND: result = op_a & op_b;
+            ALU_OR: result = op_a | op_b;
+            ALU_XOR: result = op_a ^ op_b;
+            ALU_SLL: result = op_a << shamt;
+            ALU_SRL: result = op_a >> shamt;
+            ALU_SRA: result = $signed(op_a) >>> shamt;
+            ALU_SLT : result = {31'b0000000000000000000000000000000,
+                ($signed(op_a) < $signed(op_b))};
+            ALU_SLTU : result
+                = {31'b0000000000000000000000000000000, (op_a < op_b)};
+            ALU_PASSB: result = op_b;  // LUI: pass immediate (Sec. 8.1)
+            default: result = op_a + op_b;  // safe default: ADD
         endcase
     end
 
 endmodule
-
-`default_nettype wire

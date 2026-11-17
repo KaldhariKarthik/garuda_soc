@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 6: AHB-Lite Interconnect
 // ahb_slave_mux.v - data-phase slave-select register + return-path muxes
@@ -51,58 +49,67 @@
 // would break the cancel while still looking correct on a data-only test.
 // =============================================================================
 
-
 module ahb_slave_mux
+    import garuda_pkg::*;
     import ahb_pkg::*;
 (
-    input  wire        hclk,
-    input  wire        hreset_n,
-
+    input wire hclk,
+    input wire hreset_n,
     // Address-phase one-hot select from the decoder.
-    input  wire [AHB_SEL_W-1:0] hsel_i,
+    input wire [AHB_SEL_W - 1:0] hsel_i,
     // "A data phase is in flight", from ahb_arbiter.
-    input  wire        dph_valid_i,
-
+    input wire dph_valid_i,
     // Per-slave return paths. Index order matches `AHB_S_* in ahb_defs.vh;
     // the default slave occupies the top position.
-    input  wire [31:0] hrdata_s0_i,  input wire hreadyout_s0_i, input wire hresp_s0_i,
-    input  wire [31:0] hrdata_s1_i,  input wire hreadyout_s1_i, input wire hresp_s1_i,
-    input  wire [31:0] hrdata_s2_i,  input wire hreadyout_s2_i, input wire hresp_s2_i,
-    input  wire [31:0] hrdata_s3_i,  input wire hreadyout_s3_i, input wire hresp_s3_i,
-    input  wire [31:0] hrdata_df_i,  input wire hreadyout_df_i, input wire hresp_df_i,
-
+    input wire [WORD_W-1:0] hrdata_s0_i,
+    input wire hreadyout_s0_i,
+    input wire hresp_s0_i,
+    input wire [WORD_W-1:0] hrdata_s1_i,
+    input wire hreadyout_s1_i,
+    input wire hresp_s1_i,
+    input wire [WORD_W-1:0] hrdata_s2_i,
+    input wire hreadyout_s2_i,
+    input wire hresp_s2_i,
+    input wire [WORD_W-1:0] hrdata_s3_i,
+    input wire hreadyout_s3_i,
+    input wire hresp_s3_i,
+    input wire [WORD_W-1:0] hrdata_df_i,
+    input wire hreadyout_df_i,
+    input wire hresp_df_i,
     // Shared return to the master side.
-    output reg  [31:0] hrdata_o,
-    output reg         hresp_o,
-    output wire        hready_o,     // also the global HREADY driven to slaves
-
+    output reg [WORD_W-1:0] hrdata_o,
+    output reg hresp_o,
+    output wire hready_o,  // also the global HREADY driven to slaves
     // Registered data-phase select, exported for coverage / assertions.
-    output reg  [AHB_SEL_W-1:0] dph_sel_o
+    output reg [AHB_SEL_W - 1:0] dph_sel_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     // -----------------------------------------------------------------------
     // Data-phase select register (Sec. 7.5). Updated on every accepted address
     // phase, i.e. every cycle HREADY is high.
     // -----------------------------------------------------------------------
-    always @(posedge hclk or negedge hreset_n) begin
-        if (!hreset_n)
-            dph_sel_o <= {AHB_SEL_W{1'b0}};
-        else if (hready_o)
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_dph_sel
+        if (!hreset_n) begin
+            dph_sel_o <= {AHB_SEL_W {1'b0}};
+        end else if (hready_o) begin
             dph_sel_o <= hsel_i;
+        end
     end
 
     // -----------------------------------------------------------------------
     // HREADY: from the data-phase slave, or high on an idle bus (see header).
     // -----------------------------------------------------------------------
     reg hreadyout_sel;
-    always @(*) begin
+    always_comb begin : c_hreadyout_sel
         case (1'b1)
-            dph_sel_o[AHB_S_ISRAM  ]: hreadyout_sel = hreadyout_s0_i;
-            dph_sel_o[AHB_S_ROM    ]: hreadyout_sel = hreadyout_s1_i;
-            dph_sel_o[AHB_S_DSRAM  ]: hreadyout_sel = hreadyout_s2_i;
-            dph_sel_o[AHB_S_BRIDGE ]: hreadyout_sel = hreadyout_s3_i;
+            dph_sel_o[AHB_S_ISRAM]: hreadyout_sel = hreadyout_s0_i;
+            dph_sel_o[AHB_S_ROM]: hreadyout_sel = hreadyout_s1_i;
+            dph_sel_o[AHB_S_DSRAM]: hreadyout_sel = hreadyout_s2_i;
+            dph_sel_o[AHB_S_BRIDGE]: hreadyout_sel = hreadyout_s3_i;
             dph_sel_o[AHB_S_DEFAULT]: hreadyout_sel = hreadyout_df_i;
-            default:                   hreadyout_sel = 1'b1;
+            default: hreadyout_sel = 1'b1;
         endcase
     end
 
@@ -115,22 +122,38 @@ module ahb_slave_mux
     // propagates straight into a master's data path and shows up three blocks
     // away looking like a decode failure.
     // -----------------------------------------------------------------------
-    always @(*) begin
+    always_comb begin : c_hrdata
         if (!dph_valid_i) begin
             hrdata_o = 32'h0000_0000;
-            hresp_o  = AHB_RESP_OKAY;
+            hresp_o = AHB_RESP_OKAY;
         end else begin
             case (1'b1)
-                dph_sel_o[AHB_S_ISRAM  ]: begin hrdata_o = hrdata_s0_i; hresp_o = hresp_s0_i; end
-                dph_sel_o[AHB_S_ROM    ]: begin hrdata_o = hrdata_s1_i; hresp_o = hresp_s1_i; end
-                dph_sel_o[AHB_S_DSRAM  ]: begin hrdata_o = hrdata_s2_i; hresp_o = hresp_s2_i; end
-                dph_sel_o[AHB_S_BRIDGE ]: begin hrdata_o = hrdata_s3_i; hresp_o = hresp_s3_i; end
-                dph_sel_o[AHB_S_DEFAULT]: begin hrdata_o = hrdata_df_i; hresp_o = hresp_df_i; end
-                default:                   begin hrdata_o = 32'h0000_0000; hresp_o = AHB_RESP_OKAY; end
+                dph_sel_o[AHB_S_ISRAM]: begin
+                    hrdata_o = hrdata_s0_i;
+                    hresp_o = hresp_s0_i;
+                end
+                dph_sel_o[AHB_S_ROM]: begin
+                    hrdata_o = hrdata_s1_i;
+                    hresp_o = hresp_s1_i;
+                end
+                dph_sel_o[AHB_S_DSRAM]: begin
+                    hrdata_o = hrdata_s2_i;
+                    hresp_o = hresp_s2_i;
+                end
+                dph_sel_o[AHB_S_BRIDGE]: begin
+                    hrdata_o = hrdata_s3_i;
+                    hresp_o = hresp_s3_i;
+                end
+                dph_sel_o[AHB_S_DEFAULT]: begin
+                    hrdata_o = hrdata_df_i;
+                    hresp_o = hresp_df_i;
+                end
+                default: begin
+                    hrdata_o = 32'h0000_0000;
+                    hresp_o = AHB_RESP_OKAY;
+                end
             endcase
         end
     end
 
 endmodule
-
-`default_nettype wire

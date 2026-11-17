@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 //=============================================================================
 // GARUDA SoC -- Block I: Processor Core
 // mul32.v -- single-cycle 32x32 multiplier (MUL / MULH / MULHSU / MULHU)
@@ -28,15 +26,20 @@
 // registers").
 //=============================================================================
 
-
 module mul32
+    import garuda_pkg::*;
     import core_ex_pkg::*;
 (
-    input  wire [31:0] rs1_val,
-    input  wire [31:0] rs2_val,
-    input  wire [2:0]  funct3_fld,
-    output wire [31:0] result
+    input wire [WORD_W-1:0] rs1_val,
+    input wire [WORD_W-1:0] rs2_val,
+    input wire [FUNCT3_W-1:0] funct3_fld,
+    output wire [WORD_W-1:0] result
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned A_EXT_W = 32'd33;
+    localparam int unsigned B_EXT_W = 32'd33;
+    localparam int unsigned PRODUCT_W = 32'd66;
 
     // Operand signedness per funct3_fld:
     //   rs1_val is signed for MUL, MULH, MULHSU; unsigned for MULHU.
@@ -45,14 +48,12 @@ module mul32
                     (funct3_fld == MUL_MULHSU);
     wire b_signed = (funct3_fld == MUL_MUL) | (funct3_fld == MUL_MULH);
 
-    wire signed [32:0] a_ext = {a_signed & rs1_val[31], rs1_val};
-    wire signed [32:0] b_ext = {b_signed & rs2_val[31], rs2_val};
+    wire signed [A_EXT_W-1:0] a_ext = {a_signed & rs1_val[31], rs1_val};
+    wire signed [B_EXT_W-1:0] b_ext = {b_signed & rs2_val[31], rs2_val};
 
-    wire signed [65:0] product = a_ext * b_ext;
+    wire signed [PRODUCT_W-1:0] product = a_ext * b_ext;
 
     assign result = (funct3_fld == MUL_MUL) ? product[31:0]
                                          : product[63:32];
 
 endmodule
-
-`default_nettype wire

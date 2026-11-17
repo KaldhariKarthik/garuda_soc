@@ -1,19 +1,17 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 21 : clock divider
 // clk_div.v
 //
-// Spec: GARUDA-CLKRST-SPEC-001 Rev 2.0 (Rev 4.0 set), §5.1, §7.1, §7.6
+// Spec: GARUDA-CLKRST-SPEC-001 Rev 2.0 (Rev 4.0 set), Sec.5.1, Sec.7.1, Sec.7.6
 //       Rulings: Docs/DECISIONS.md D-5 (pclk exists), D-14 (always-on clock)
 //
-//   refclk 500 MHz ──▶ [÷2 toggle] ─ t1 (250 MHz) ─▶ aon_clk, and DIV2 source
-//                           │
-//                           └─▶ [3-bit counter clocked by t1] ─ t2, t3, t4
+//   refclk 500 MHz --> [/2 toggle] - t1 (250 MHz) -> aon_clk, and DIV2 source
+//                           |
+//                           `-> [3-bit counter clocked by t1] - t2, t3, t4
 //
 //   hclk_o = one of t1/t2/t3/t4 (DIV 2/4/8/16), switched glitch-free
-//   pclk_o = hclk ÷ 2 toggle flop, 50% duty (blocking assignment: SIM-1, below)
-//   pclk_phase_o = 1 on the hclk cycle whose closing edge raises pclk (own flop)
+//   pclk_o = hclk / 2 toggle flop, 50% duty (blocking assignment: SIM-1, below)
+// pclk_phase_o = 1 on the hclk cycle whose closing edge raises pclk (own flop)
 //
 // -----------------------------------------------------------------------------
 // WHY t2..t4 ARE A COUNTER ON t1 (and not on refclk, and not a ripple chain)
@@ -56,96 +54,127 @@
 // The divider flops use raw_rst_n_i (ext_rst_n straight from the pad): the
 // divider must run during reset, because the reset stretch counter and the
 // release synchronisers are clocked from it. The select resets to DIV2.
-// pclk resets high so pclk_phase_o resets low (§5.1 reset value).
+// pclk resets high so pclk_phase_o resets low (Sec.5.1 reset value).
 // =============================================================================
 
-module clk_div (
-    input  wire       refclk,       // 500 MHz, pad
-    input  wire       ext_rst_n,    // ext_rst_n, unstretched, unsynchronised
-    input  wire [1:0] div_sel_i,      // 00=DIV2 01=DIV4 10=DIV8 11=DIV16 (RSTCTL.DIVSEL)
-
-    output reg        aon_clk,      // refclk/2, always on, ratio-independent (D-14)
-    output wire       hclk,         // 250 MHz at DIV2
-    output wire       pclk,         // hclk/2
-    output wire       pclk_phase_o,   // hclk domain
-    output wire [1:0] div_act_o,      // CLKSTAT.DIVACT
-    output wire       div_busy_o      // CLKSTAT.DIVBUSY
+module clk_div
+    import garuda_pkg::*;
+(
+    input wire refclk,  // 500 MHz, pad
+    input wire ext_rst_n,  // ext_rst_n, unstretched, unsynchronised
+    // 00=DIV2 01=DIV4 10=DIV8 11=DIV16 (RSTCTL.DIVSEL)
+    input wire [DIV_SEL_W-1:0] div_sel_i,
+    output reg aon_clk,  // refclk/2, always on, ratio-independent (D-14)
+    output wire hclk,  // 250 MHz at DIV2
+    output wire pclk,  // hclk/2
+    output wire pclk_phase_o,  // hclk domain
+    output wire [DIV_SEL_W-1:0] div_act_o,  // CLKSTAT.DIVACT
+    // CLKSTAT.DIVBUSY
+    output wire div_busy_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned SEL_REQ_W = 32'd2;
+    localparam int unsigned SEL_ACT_W = 32'd2;
 
     // ---- the only 500 MHz flop in the chip ([N-7.1]) ------------------------
-    always @(posedge refclk or negedge ext_rst_n)
-        if (!ext_rst_n) aon_clk <= 1'b0;
-        else              aon_clk <= ~aon_clk;
+    always_ff @(posedge refclk or negedge ext_rst_n) begin : p_aon_clk
+        if (!ext_rst_n) begin
+            aon_clk <= 1'b0;
+        end else begin
+            aon_clk <= ~aon_clk;
+        end
+    end
 
     // ---- programmable further division, all three flops clocked by t1 -------
     // (PD-11: was a ripple chain t1 -> t2 -> t3 -> t4; same waveforms.)
-    reg t2_q, t3_q, t4_q;
-    always @(posedge aon_clk or negedge ext_rst_n)
+    reg t2_q;
+    reg t3_q;
+    reg t4_q;
+    always_ff @(posedge aon_clk or negedge ext_rst_n) begin : p_tx
         if (!ext_rst_n) begin
             t2_q <= 1'b0;
             t3_q <= 1'b0;
             t4_q <= 1'b0;
         end else begin
             t2_q <= ~t2_q;
-            t3_q <= t3_q ^ ~t2_q;               // toggles where t2 rises
-            t4_q <= t4_q ^ (~t2_q & ~t3_q);     // toggles where t3 rises
+            t3_q <= t3_q ^ ~t2_q;  // toggles where t2 rises
+            t4_q <= t4_q ^ (~t2_q & ~t3_q);  // toggles where t3 rises
         end
+    end
 
-    // ---- ratio select --------------------------------------------------------
+    // ---- ratio select -------------------------------------------------------
     // div_sel_i comes from a pclk-domain register. It is first registered on
     // the t1 rising edge (a synchronous path: pclk edges are t1 edges), then
     // moved into the active select on the t1 falling edge at the all-low point.
-    reg [1:0] sel_req_q;
-    always @(posedge aon_clk or negedge ext_rst_n)
-        if (!ext_rst_n) sel_req_q <= 2'b00;
-        else              sel_req_q <= div_sel_i;
+    reg [SEL_REQ_W-1:0] sel_req_q;
+    always_ff @(posedge aon_clk or negedge ext_rst_n) begin : p_sel_req
+        if (!ext_rst_n) begin
+            sel_req_q <= 2'b00;
+        end else begin
+            sel_req_q <= div_sel_i;
+        end
+    end
 
     // At a t1 falling edge t2..t4 are stable (they only move on t1 rising
     // edges); if all are low they will all rise on the next t1 rising edge.
     wire all_low_next = ~t2_q & ~t3_q & ~t4_q;
 
-    reg [1:0] sel_act_q;
-    always @(negedge aon_clk or negedge ext_rst_n)
-        if (!ext_rst_n)      sel_act_q <= 2'b00;
-        else if (all_low_next) sel_act_q <= sel_req_q;
+    reg [SEL_ACT_W-1:0] sel_act_q;
+    always_ff @(negedge aon_clk or negedge ext_rst_n) begin : p_sel_act
+        if (!ext_rst_n) begin
+            sel_act_q <= 2'b00;
+        end else if (all_low_next) begin
+            sel_act_q <= sel_req_q;
+        end
+    end
 
     // Output clock mux. Select only changes while every input is low.
     reg hclk_mux;
-    always @(*) begin
+    always_comb begin : c_hclk_mux
         case (sel_act_q)
-            2'b00:   hclk_mux = aon_clk;
-            2'b01:   hclk_mux = t2_q;
-            2'b10:   hclk_mux = t3_q;
+            2'b00: hclk_mux = aon_clk;
+            2'b01: hclk_mux = t2_q;
+            2'b10: hclk_mux = t3_q;
             default: hclk_mux = t4_q;
         endcase
     end
 
-    // ---- pclk = hclk / 2 toggle ([N-7.3]) ------------------------------------
-    // ERRATUM SIM-1 (2026-10-14). pclk is a CLOCK made by a flop on hclk. Written
-    // with a non-blocking assignment, the pclk edge reached the simulator one
-    // step AFTER every hclk flop had taken its new value, so a pclk flop that
-    // captures from an hclk flop saw the value launched on that same edge. On
-    // silicon the two clock trees are balanced and it sees the value from
-    // before the edge. RTL simulation and the chip disagreed by one hclk cycle
-    // on every such capture: a WDTVAL read returned one count less than the chip
-    // will. The assignment below is BLOCKING for that reason and no other: the
-    // pclk edge is then in the same simulation step as the hclk edge, before
-    // any non-blocking update, as two balanced clocks are. Synthesis builds the
-    // same toggle flop. (HAL reports the blocking assignment in a clocked
-    // block; it is waived in flow/2_static/hal_waivers.txt with this reason.)
+    // ---- pclk = hclk / 2 toggle ([N-7.3]) -----------------------------------
+    // ERRATUM SIM-1 (2026-10-14). pclk is a CLOCK made by a flop on hclk.
+    // Written with a non-blocking assignment, the pclk edge reached the
+    // simulator one step AFTER every hclk flop had taken its new value, so a
+    // pclk flop that captures from an hclk flop saw the value launched on that
+    // same edge. On silicon the two clock trees are balanced and it sees the
+    // value from before the edge. RTL simulation and the chip disagreed by one
+    // hclk cycle on every such capture: a WDTVAL read returned one count less
+    // than the chip will. The assignment below is BLOCKING for that reason and
+    // no other: the pclk edge is then in the same simulation step as the hclk
+    // edge, before any non-blocking update, as two balanced clocks are.
+    // Synthesis builds the same toggle flop. (HAL reports the blocking
+    // assignment in a clocked block; it is waived in
+    // flow/2_static/hal_waivers.txt with this reason.)
     reg pclk_q;
-    always @(posedge hclk_mux or negedge ext_rst_n)
-        if (!ext_rst_n) pclk_q = 1'b1;
-        else              pclk_q = ~pclk_q;
+    always_ff @(posedge hclk_mux or negedge ext_rst_n) begin : p_pclk
+        if (!ext_rst_n) begin
+            pclk_q = 1'b1;
+        end else begin
+            pclk_q = ~pclk_q;
+        end
+    end
 
     // pclk_phase is DATA in the hclk domain: 1 in the hclk cycle whose closing
     // edge raises pclk. It has a flop of its own, non-blocking like every other
     // hclk flop, so that hclk logic sampling it has no race against the
     // blocking toggle above; it is ~pclk_q at every instant between edges.
     reg phase_q;
-    always @(posedge hclk_mux or negedge ext_rst_n)
-        if (!ext_rst_n) phase_q <= 1'b0;
-        else              phase_q <= ~phase_q;
+    always_ff @(posedge hclk_mux or negedge ext_rst_n) begin : p_phase
+        if (!ext_rst_n) begin
+            phase_q <= 1'b0;
+        end else begin
+            phase_q <= ~phase_q;
+        end
+    end
 
     assign hclk       = hclk_mux;
     assign pclk       = pclk_q;
@@ -154,5 +183,3 @@ module clk_div (
     assign div_busy_o   = (sel_act_q != sel_req_q) || (sel_req_q != div_sel_i);
 
 endmodule
-
-`default_nettype wire

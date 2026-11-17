@@ -1,83 +1,77 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block I: Processor Core
 // ID Stage (top level) - instantiates the 5 sub-blocks shown on the core
 // block diagram: Decode/Control, Immediate Gen, Register File,
 // Branch Predict, Hazard/Forwarding.  (Verilog)
 //
-// Spec reference: AERO-GARUDA-DS-001 Rev 1.0, Sec. 5, Sec. 7, Sec. 11.1-11.2, Sec. 12.1-12.2
+// Spec reference: AERO-GARUDA-DS-001 Rev 1.0, Sec. 5, Sec. 7, Sec. 11.1-11.2,
+// Sec. 12.1-12.2
 // =============================================================================
 
-module id_stage (
-    input  wire         gclk,
-    input  wire         core_rst_n,
-
+module id_stage
+    import garuda_pkg::*;
+(
+    input wire gclk,
+    input wire core_rst_n,
     // -------------------------------------------------------------------
     // From IF/ID pipeline register (Sec. 5.2 - instr, pc, fault, valid)
     // -------------------------------------------------------------------
-    input  wire [31:0] if_id_instr_i,
-    input  wire [31:0] if_id_pc_i,
-    input  wire         if_id_fault_i,   // I-port access-fault tag, carried through
-    input  wire         if_id_valid_i,
-    input  wire         bp_dis_i,        // CORE-4: mgarudactl.BP_DIS
-
+    input wire [WORD_W-1:0] if_id_instr_i,
+    input wire [WORD_W-1:0] if_id_pc_i,
+    input wire if_id_fault_i,  // I-port access-fault tag, carried through
+    input wire if_id_valid_i,
+    input wire bp_dis_i,  // CORE-4: mgarudactl.BP_DIS
     // -------------------------------------------------------------------
     // Register-file write port (from WB stage)
     // -------------------------------------------------------------------
-    input  wire         wb_reg_write_i,
-    input  wire [4:0]  wb_rd_i,
-    input  wire [31:0] wb_data_i,
-
+    input wire wb_reg_write_i,
+    input wire [REG_IDX_W-1:0] wb_rd_i,
+    input wire [WORD_W-1:0] wb_data_i,
     // -------------------------------------------------------------------
     // Load-use hazard inputs: instruction currently in EX (Sec. 11.2)
     // -------------------------------------------------------------------
-    input  wire         ex_mem_read_i,
-    input  wire [4:0]  ex_rd_i,
-
+    input wire ex_mem_read_i,
+    input wire [REG_IDX_W-1:0] ex_rd_i,
     // -------------------------------------------------------------------
     // Outputs to id_ex pipeline register (Sec. 5.2 field list)
     // -------------------------------------------------------------------
-    output wire         reg_write_o,
-    output wire         mem_read_o,
-    output wire         mem_write_o,
-    output wire         mem_to_reg_o,
-    output wire         alu_src_o,
-    output wire         alu_a_pc_o,
-    output wire [3:0]  alu_op_o,
-    output wire         branch_o,
-    output wire         jal_o,
-    output wire         jalr_o,
-    output wire         mul_en_o,
-    output wire         dsu_en_o,
-    output wire         csr_en_o,
-    output wire [2:0]  csr_op_o,
-    output wire         is_system_o,
-    output wire         illegal_instr_dec_o,   // decode-side illegal (combined below)
-
-    output wire [31:0] rs1_data_o,
-    output wire [31:0] rs2_data_o,
-    output wire [31:0] imm_o,
-    output wire [31:0] pc_o,
-    output wire [4:0]  rs1_idx_o,
-    output wire [4:0]  rs2_idx_o,
-    output wire [4:0]  rd_o,
-    output wire [2:0]  funct3_o,
-    output wire [31:0] instr_o,
-    output wire         fault_o,        // propagate I-port fault tag to CONTROL (Sec. 6.4/Sec. 14.1)
-
+    output wire reg_write_o,
+    output wire mem_read_o,
+    output wire mem_write_o,
+    output wire mem_to_reg_o,
+    output wire alu_src_o,
+    output wire alu_a_pc_o,
+    output wire [ALU_OP_W-1:0] alu_op_o,
+    output wire branch_o,
+    output wire jal_o,
+    output wire jalr_o,
+    output wire mul_en_o,
+    output wire dsu_en_o,
+    output wire csr_en_o,
+    output wire [CSR_FN_W-1:0] csr_op_o,
+    output wire is_system_o,
+    output wire illegal_instr_dec_o,  // decode-side illegal (combined below)
+    output wire [WORD_W-1:0] rs1_data_o,
+    output wire [WORD_W-1:0] rs2_data_o,
+    output wire [WORD_W-1:0] imm_o,
+    output wire [WORD_W-1:0] pc_o,
+    output wire [REG_IDX_W-1:0] rs1_idx_o,
+    output wire [REG_IDX_W-1:0] rs2_idx_o,
+    output wire [REG_IDX_W-1:0] rd_o,
+    output wire [FUNCT3_W-1:0] funct3_o,
+    output wire [WORD_W-1:0] instr_o,
+    // propagate I-port fault tag to CONTROL (Sec. 6.4/Sec. 14.1)
+    output wire fault_o,
     // -------------------------------------------------------------------
     // Load-use hazard output (Sec. 11.2) - raw signal; hold/flush composition
     // is done downstream per Sec. 11.4
     // -------------------------------------------------------------------
-    output wire         load_use_stall_o,
-
+    output wire load_use_stall_o,
     // -------------------------------------------------------------------
     // ID-stage redirect: static-predicted-taken branch, or JAL (Sec. 12.1/12.2)
     // -------------------------------------------------------------------
-    output wire         id_redirect_valid_o,
-    output wire [31:0] id_redirect_target_o,
-
+    output wire id_redirect_valid_o,
+    output wire [WORD_W-1:0] id_redirect_target_o,
     // -------------------------------------------------------------------
     // Static prediction bit -> id_ex register (Sec. 5.2 field list).
     // EX resolves the actual branch condition and compares against this
@@ -86,24 +80,27 @@ module id_stage (
     // and drive its own 2-bubble EX redirect. Previously this bit was
     // computed in branch_predict but dropped here; it must ride id_ex.
     // -------------------------------------------------------------------
-    output wire         predict_taken_o,
-
+    output wire predict_taken_o,
     // -------------------------------------------------------------------
     // Retire tag (Sec. 13.2): asserted for a real fetched instruction, low
     // for the NOP injected when if_id_valid_i is low. Rides the pipeline to
     // csr_file.instret_i so minstret counts architectural retirement rather
     // than register-file writes (stores/branches retire but do not write).
     // -------------------------------------------------------------------
-    output wire         valid_o
+    output wire valid_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     // -----------------------------------------------------------------------
     // Sub-block 1: Decode / Control
     // -----------------------------------------------------------------------
-    wire [4:0] rd_w, rs1_idx_w, rs2_idx_w;
-    wire [2:0] funct3_w;
-    wire [2:0] imm_sel_w;
-    wire [31:0] id_instr = if_id_valid_i ? if_id_instr_i : 32'h0000_0013;
+    wire [REG_IDX_W-1:0] rd_w;
+    wire [REG_IDX_W-1:0] rs1_idx_w;
+    wire [REG_IDX_W-1:0] rs2_idx_w;
+    wire [FUNCT3_W-1:0] funct3_w;
+    wire [IMM_SEL_W-1:0] imm_sel_w;
+    wire [WORD_W-1:0] id_instr = if_id_valid_i ? if_id_instr_i : 32'h0000_0013;
 
     // FENCE.I (ERRATUM C-3): decode_control raises it, branch_predict turns it
     // into an ID redirect to pc+4, which flushes the prefetch buffer.
@@ -141,8 +138,9 @@ module id_stage (
     // -----------------------------------------------------------------------
     // Sub-block 2: Immediate Generator
     // -----------------------------------------------------------------------
-    wire [31:0] imm_w;
-    wire [31:0] imm_b_w, imm_j_w;
+    wire [WORD_W-1:0] imm_w;
+    wire [WORD_W-1:0] imm_b_w;
+    wire [WORD_W-1:0] imm_j_w;
 
     imm_gen u_imm_gen (
         .instr_i    (id_instr),
@@ -156,7 +154,8 @@ module id_stage (
     // -----------------------------------------------------------------------
     // Sub-block 3: Register File
     // -----------------------------------------------------------------------
-    wire [31:0] rs1_data_w, rs2_data_w;
+    wire [WORD_W-1:0] rs1_data_w;
+    wire [WORD_W-1:0] rs2_data_w;
 
     regfile u_regfile (
         .gclk           (gclk),
@@ -183,9 +182,9 @@ module id_stage (
         .branch_i                (branch_o),
         .jal_i                   (jal_o),
         .fencei_i                (fencei_w),
-        .bp_dis_i                (bp_dis_i),          // CORE-4
+        .bp_dis_i                (bp_dis_i),  // CORE-4
 
-        .predict_taken_o         (predict_taken_o),   // -> id_ex (Sec. 5.2)
+        .predict_taken_o         (predict_taken_o),  // -> id_ex (Sec. 5.2)
         .id_redirect_valid_o     (id_redirect_valid_o),
         .id_redirect_target_o    (id_redirect_target_o)
     );
@@ -219,5 +218,3 @@ module id_stage (
     assign valid_o      = if_id_valid_i;
 
 endmodule
-
-`default_nettype wire

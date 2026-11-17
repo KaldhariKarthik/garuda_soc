@@ -1,10 +1,8 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 11 : watchdog
 // watchdog.v
 //
-// Spec: GARUDA-TIMERS-SPEC-001 Rev 2.0 §6.2-§6.4, §7.5-§7.7, §9
+// Spec: GARUDA-TIMERS-SPEC-001 Rev 2.0 Sec.6.2-Sec.6.4, Sec.7.5-Sec.7.7, Sec.9
 //
 //   WDTCTL.EN      RW1S, sticky, cleared only by reset ([N-6.2])
 //   WDTCTL.WARNEN  RW
@@ -25,59 +23,77 @@
 //   The counter keeps running while the core is held in hartreset ([N-7.23]).
 // =============================================================================
 
-module watchdog (
-    input  wire        hclk,
-    input  wire        hreset_n,
-    input  wire        ext_hrst_n,     // ext-only reset (reset_ctrl.ext_hrst_n)
-
-    input  wire        wr_ctl_i,
-    input  wire        wr_load_i,
-    input  wire        wr_kick_i,
-    input  wire        wr_warn_i,
-    input  wire [31:0] wdata_i,
-
-    output wire [31:0] ctl_o,
-    output wire [31:0] load_o,
-    output wire [31:0] val_o,
-    output wire [31:0] warn_o,
-
-    output wire        warn_irq_o,      // CLIC ID 22
-    output reg         rst_req_o        // to reset_ctrl
+module watchdog
+    import garuda_pkg::*;
+(
+    input wire hclk,
+    input wire hreset_n,
+    input wire ext_hrst_n,  // ext-only reset (reset_ctrl.ext_hrst_n)
+    input wire wr_ctl_i,
+    input wire wr_load_i,
+    input wire wr_kick_i,
+    input wire wr_warn_i,
+    input wire [WORD_W-1:0] wdata_i,
+    output wire [WORD_W-1:0] ctl_o,
+    output wire [WORD_W-1:0] load_o,
+    output wire [WORD_W-1:0] val_o,
+    output wire [WORD_W-1:0] warn_o,
+    output wire warn_irq_o,  // CLIC ID 22
+    // to reset_ctrl
+    output reg rst_req_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     localparam [31:0] KICK_MAGIC = 32'h5A5A_C3C3;
 
-    reg        en_q, warnen_q;
-    reg [31:0] load_q, warn_q, ctr_q;
+    reg en_q;
+    reg warnen_q;
+    reg [WORD_W-1:0] load_q;
+    reg [WORD_W-1:0] warn_q;
+    reg [WORD_W-1:0] ctr_q;
 
     wire kick = wr_kick_i && (wdata_i == KICK_MAGIC);
 
-    always @(posedge hclk or negedge hreset_n) begin
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_en
         if (!hreset_n) begin
-            en_q     <= 1'b0;
+            en_q <= 1'b0;
             warnen_q <= 1'b0;
-            load_q   <= 32'hFFFF_FFFF;
-            warn_q   <= 32'd0;
-            ctr_q    <= 32'hFFFF_FFFF;
+            load_q <= 32'hFFFF_FFFF;
+            warn_q <= 32'd0;
+            ctr_q <= 32'hFFFF_FFFF;
         end else begin
             if (wr_ctl_i) begin
-                if (wdata_i[0]) en_q <= 1'b1;             // RW1S, sticky
+                if (wdata_i[0]) begin
+                    en_q <= 1'b1;  // RW1S, sticky
+                end
                 warnen_q <= wdata_i[1];
             end
-            if (wr_load_i) load_q <= wdata_i;
-            if (wr_warn_i) warn_q <= wdata_i;
-
-            if (!en_q)             ctr_q <= load_q;       // idle: tracks WDTLOAD
-            else if (kick)         ctr_q <= load_q;
-            else if (ctr_q != 0)   ctr_q <= ctr_q - 32'd1;
+            if (wr_load_i) begin
+                load_q <= wdata_i;
+            end
+            if (wr_warn_i) begin
+                warn_q <= wdata_i;
+            end
+            if (!en_q) begin
+                ctr_q <= load_q;  // idle: tracks WDTLOAD
+            end else if (kick) begin
+                ctr_q <= load_q;
+            end else if (ctr_q != 0) begin
+                ctr_q <= ctr_q - 32'd1;
+            end
         end
     end
 
     // reset request: ext-only domain, cleared once the system reset is in force
-    always @(posedge hclk or negedge ext_hrst_n) begin
-        if (!ext_hrst_n)     rst_req_o <= 1'b0;
-        else if (!hreset_n) rst_req_o <= 1'b0;
-        else if (en_q && ctr_q == 32'd0) rst_req_o <= 1'b1;
+    always_ff @(posedge hclk or negedge ext_hrst_n) begin : p_rst_req
+        if (!ext_hrst_n) begin
+            rst_req_o <= 1'b0;
+        end else if (!hreset_n) begin
+            rst_req_o <= 1'b0;
+        end else if (en_q && ctr_q == 32'd0) begin
+            rst_req_o <= 1'b1;
+        end
     end
 
     assign warn_irq_o = en_q && warnen_q && (ctr_q <= warn_q);
@@ -88,5 +104,3 @@ module watchdog (
     assign warn_o = warn_q;
 
 endmodule
-
-`default_nettype wire

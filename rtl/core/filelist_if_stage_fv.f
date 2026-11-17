@@ -1,6 +1,5 @@
 // formal of the IF stage: PC unit, instruction port and prefetch buffer together, with their properties
 -incdir rtl/core
-rtl/core/core_ex_pkg.sv
 rtl/core/garuda_pc_gen.sv
 rtl/core/iport_master.sv
 rtl/core/prefetch_buf.sv

@@ -1,10 +1,8 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 11 : timers APB interface (window 11, 0x4000_B000)
 // timers_apb.v
 //
-// Spec: GARUDA-TIMERS-SPEC-001 Rev 2.0 §6, §9 [N-9.1]; ADR-0002 Rev 2.
+// Spec: GARUDA-TIMERS-SPEC-001 Rev 2.0 Sec.6, Sec.9 [N-9.1]; ADR-0002 Rev 2.
 //
 // -----------------------------------------------------------------------------
 // TWO CLOCKS, AND WHY
@@ -44,7 +42,8 @@
 //
 //   pclk edge Ts    setup phase begins
 //   hclk cycle Ts   rs is high for this ONE cycle
-//   hclk edge Ts+1  mtime.v latches the shadow; lo_cap latches MTIME_LO  <- same edge
+// hclk edge Ts+1 mtime.v latches the shadow; lo_cap latches MTIME_LO <- same
+// edge
 //   pclk edge Ts+2  access phase begins; prdata_q registers lo_cap
 //   pclk edge Ts+4  bridge samples PRDATA - stable for the whole phase
 //
@@ -54,34 +53,46 @@
 //   A write to WDTVAL is ignored without an error (AUD-13, ruled 2026-10-10).
 // =============================================================================
 
-module timers_apb (
-    input  wire        hclk,
-    input  wire        hreset_n,
-    input  wire        pclk,          // APB side (ADR-0002 Rev 2)
-    input  wire        preset_n,
-
-    input  wire        psel_i,
-    input  wire        penable_i,
-    input  wire        pwrite_i,
-    input  wire [11:0] paddr_i,
-    input  wire [31:0] pwdata_i,
-    output wire [31:0] prdata_o,
-    output wire        pready_o,
-    output wire        pslverr_o,
-
-    output wire        wr_mtime_lo_o, wr_mtime_hi_o, wr_cmp_lo_o, wr_cmp_hi_o,
-    output wire        rd_mtime_lo_o,
-    output wire        wr_wdtctl_o, wr_wdtload_o, wr_wdtkick_o, wr_wdtwarn_o,
-    output wire [31:0] wdata_o,
-
-    input  wire [31:0] mtime_lo_i,
-    input  wire [31:0] mtime_hi_i,
-    input  wire [63:0] mtimecmp_i,
-    input  wire [31:0] wdtctl_i, wdtload_i, wdtval_i, wdtwarn_i
+module timers_apb
+    import garuda_pkg::*;
+(
+    input wire hclk,
+    input wire hreset_n,
+    input wire pclk,  // APB side (ADR-0002 Rev 2)
+    input wire preset_n,
+    input wire psel_i,
+    input wire penable_i,
+    input wire pwrite_i,
+    input wire [PADDR_W-1:0] paddr_i,
+    input wire [WORD_W-1:0] pwdata_i,
+    output wire [WORD_W-1:0] prdata_o,
+    output wire pready_o,
+    output wire pslverr_o,
+    output wire wr_mtime_lo_o,
+    output wire wr_mtime_hi_o,
+    output wire wr_cmp_lo_o,
+    output wire wr_cmp_hi_o,
+    output wire rd_mtime_lo_o,
+    output wire wr_wdtctl_o,
+    output wire wr_wdtload_o,
+    output wire wr_wdtkick_o,
+    output wire wr_wdtwarn_o,
+    output wire [WORD_W-1:0] wdata_o,
+    input wire [WORD_W-1:0] mtime_lo_i,
+    input wire [WORD_W-1:0] mtime_hi_i,
+    input wire [DWORD_W-1:0] mtimecmp_i,
+    input wire [WORD_W-1:0] wdtctl_i,
+    input wire [WORD_W-1:0] wdtload_i,
+    input wire [WORD_W-1:0] wdtval_i,
+    input wire [WORD_W-1:0] wdtwarn_i
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned XW_W = 32'd6;
 
-    wire [5:0] w = paddr_i[7:2];
-    wire hit = (paddr_i[11:8] == 4'h0) && (paddr_i[1:0] == 2'b00) && (w <= 6'd8);
+    wire [XW_W-1:0] w = paddr_i[7:2];
+    wire hit = (paddr_i[11:8] == 4'h0) && (paddr_i[1:0] == 2'b00)
+        && (w <= 6'd8);
 
     // =========================================================================
     // pclk side. An APB phase is one pclk cycle and setup never repeats
@@ -90,17 +101,24 @@ module timers_apb (
     wire setup = psel_i & ~penable_i & hit;
     wire acc   = psel_i &  penable_i & hit;
 
-    wire rd_req = setup & ~pwrite_i;              // capture reads during setup
-    wire wr_req = acc   &  pwrite_i;              // apply writes during access
+    wire rd_req = setup & ~pwrite_i;  // capture reads during setup
+    wire wr_req = acc   &  pwrite_i;  // apply writes during access
 
     // =========================================================================
     // hclk side. Each request is high for one pclk = two hclk cycles; the
     // edge detect turns it into exactly one hclk strobe, in the first of them.
     // =========================================================================
-    reg rd_d, wr_d;
-    always @(posedge hclk or negedge hreset_n)
-        if (!hreset_n) begin rd_d <= 1'b0; wr_d <= 1'b0; end
-        else             begin rd_d <= rd_req;  wr_d <= wr_req; end
+    reg rd_d;
+    reg wr_d;
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_rd
+        if (!hreset_n) begin
+            rd_d <= 1'b0;
+            wr_d <= 1'b0;
+        end else begin
+            rd_d <= rd_req;
+            wr_d <= wr_req;
+        end
+    end
 
     wire rs = rd_req & ~rd_d;
     wire ws = wr_req & ~wr_d;
@@ -118,18 +136,22 @@ module timers_apb (
 
     // MTIME_LO is captured on the same hclk edge that latches the shadow, so
     // the pair the bridge returns came from one cycle of the counter.
-    reg [31:0] lo_cap;
-    always @(posedge hclk or negedge hreset_n)
-        if (!hreset_n)        lo_cap <= 32'd0;
-        else if (rd_mtime_lo_o) lo_cap <= mtime_lo_i;
+    reg [WORD_W-1:0] lo_cap;
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_lo_cap
+        if (!hreset_n) begin
+            lo_cap <= 32'd0;
+        end else if (rd_mtime_lo_o) begin
+            lo_cap <= mtime_lo_i;
+        end
+    end
 
     // =========================================================================
     // Read mux, and the pclk register in front of the bus
     // =========================================================================
-    reg [31:0] rd_mux;
-    always @(*) begin
+    reg [WORD_W-1:0] rd_mux;
+    always_comb begin : c_rd_mux
         case (w)
-            6'd0: rd_mux = lo_cap;                 // captured during setup
+            6'd0: rd_mux = lo_cap;  // captured during setup
             6'd1: rd_mux = mtime_hi_i;
             6'd2: rd_mux = mtimecmp_i[31:0];
             6'd3: rd_mux = mtimecmp_i[63:32];
@@ -137,22 +159,25 @@ module timers_apb (
             6'd5: rd_mux = wdtload_i;
             6'd6: rd_mux = wdtval_i;
             6'd8: rd_mux = wdtwarn_i;
-            default: rd_mux = 32'd0;               // WDTKICK reads 0
+            default: rd_mux = 32'd0;  // WDTKICK reads 0
         endcase
     end
 
-    reg [31:0] prdata_q;
-    always @(posedge pclk or negedge preset_n)
-        if (!preset_n)              prdata_q <= 32'd0;
-        else if (psel_i & ~penable_i) prdata_q <= hit ? rd_mux : 32'd0;
+    reg [WORD_W-1:0] prdata_q;
+    always_ff @(posedge pclk or negedge preset_n) begin : p_prdata
+        if (!preset_n) begin
+            prdata_q <= 32'd0;
+        end else if (psel_i & ~penable_i) begin
+            prdata_q <= hit ? rd_mux : 32'd0;
+        end
+    end
 
     assign prdata_o  = prdata_q;
     assign pready_o  = 1'b1;
     // PSLVERR only for an offset that is not a register (the rule for the whole
-    // chip, Docs/bugs/archive/BUGS_HISTORY.md AUD-13). A write to the read-only WDTVAL (word 6) has
-    // no write strobe above, so it is ignored, and it raises no error.
+    // chip, Docs/bugs/archive/BUGS_HISTORY.md AUD-13). A write to the read-only
+    // WDTVAL (word 6) has no write strobe above, so it is ignored, and it
+    // raises no error.
     assign pslverr_o = psel_i & penable_i & ~hit;
 
 endmodule
-
-`default_nettype wire

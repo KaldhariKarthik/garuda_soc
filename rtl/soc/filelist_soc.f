@@ -8,7 +8,6 @@
 -incdir rtl/ahb
 -incdir rtl/mem
 
-rtl/include/soc_map_pkg.sv
 -f rtl/core/filelist_core_dsu.f
 -f rtl/dma/filelist.f
 -f rtl/ahb/filelist.f

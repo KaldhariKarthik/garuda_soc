@@ -2,8 +2,6 @@
 -incdir rtl/core
 
 // IF
-rtl/common/garuda_pkg.sv
-rtl/core/core_ex_pkg.sv
 rtl/core/garuda_pc_gen.sv
 rtl/core/iport_master.sv
 rtl/core/prefetch_buf.sv

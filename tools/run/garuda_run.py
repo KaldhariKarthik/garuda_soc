@@ -115,11 +115,32 @@ def tool_version(exe):
 
 
 # ------------------------------------------------------------------- filelists
+# The RTL packages in dependency order (zero-waiver F4, 2026-11-16), as in
+# scripts/expand_filelist.py: a source that imports one gets it in front, once.
+PACKAGES = [("garuda_pkg", "rtl/common/garuda_pkg.sv"), ("core_ex_pkg", "rtl/core/core_ex_pkg.sv"),
+            ("ahb_pkg", "rtl/ahb/ahb_pkg.sv"), ("dsu_pkg", "rtl/dsu/dsu_pkg.sv"),
+            ("mem_pkg", "rtl/mem/mem_pkg.sv"), ("soc_map_pkg", "rtl/include/soc_map_pkg.sv")]
+
+
 def expand_flist(path, seen=None, srcs=None, incs=None, defs=None):
     """Expand a .f filelist the way scripts/expand_filelist.py does (same
-    recursion, order, de-duplication) but KEEP -define lines (TOOL-15)."""
+    recursion, order, de-duplication, packages in front) but KEEP -define lines
+    (TOOL-15)."""
     if seen is None:
-        seen, srcs, incs, defs = set(), [], [], []
+        srcs, incs, defs = _expand_flist(path, set(), [], [], [])
+        need = set()
+        for s in srcs:
+            try:
+                with open(os.path.join(ROOT, s), errors="replace") as fh:
+                    need |= set(re.findall(r"\bimport\s+(\w+)::", fh.read()))
+            except OSError:
+                pass
+        srcs[0:0] = [f for name, f in PACKAGES if name in need and f not in srcs]
+        return srcs, incs, defs
+    return _expand_flist(path, seen, srcs, incs, defs)
+
+
+def _expand_flist(path, seen, srcs, incs, defs):
     path = os.path.normpath(path)
     if path in seen:
         return srcs, incs, defs
@@ -136,7 +157,7 @@ def expand_flist(path, seen=None, srcs=None, incs=None, defs=None):
                 nxt = line[3:].strip()
                 if not os.path.exists(os.path.join(ROOT, nxt)):
                     nxt = os.path.join(base, nxt)
-                expand_flist(nxt, seen, srcs, incs, defs)
+                _expand_flist(nxt, seen, srcs, incs, defs)
             elif line.startswith("-incdir"):
                 d = line.split(None, 1)[1].strip()
                 if d not in incs:

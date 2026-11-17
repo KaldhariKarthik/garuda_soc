@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 10 : Core-Local Interrupt Controller
 // clic_top.v
@@ -22,41 +20,44 @@
 // low (ID 0 is the sentinel, [N-7.12]).
 // =============================================================================
 
-module clic_top #(
-    parameter integer NUM_SRC       = 32,
+module clic_top
+    import garuda_pkg::*;
+#(
+    parameter integer NUM_SRC       = 32'd32,
     parameter [31:0]  IE_MASK = 32'h00FF_FF7E,
-    parameter integer SWI_ID  = 32'd23        // = GARUDA_CLIC_ID_SOFTWARE, checked in clic_sva
+    // = GARUDA_CLIC_ID_SOFTWARE, checked in clic_sva
+    parameter integer SWI_ID  = 32'd23
 )(
-    input  wire          hclk,
-    input  wire          hreset_n,
-    input  wire          pclk,
-    input  wire          preset_n,
-
+    input wire hclk,
+    input wire hreset_n,
+    input wire pclk,
+    input wire preset_n,
     // ---- APB slave, window 10 ----------------------------------------------
-    input  wire          psel_i,
-    input  wire          penable_i,
-    input  wire          pwrite_i,
-    input  wire [11:0]   paddr_i,
-    input  wire [31:0]   pwdata_i,
-    output wire [31:0]   prdata_o,
-    output wire          pready_o,
-    output wire          pslverr_o,
-
-    // ---- sources (hclk domain, level) ----------------------------------------
-    input  wire [NUM_SRC-1:0]  irq_src_i,
-
-    // ---- to the core ------------------------------------------------------------
-    output wire          clic_irq_valid_o,
-    output wire [4:0]    clic_irq_id_o,
-    output wire [7:0]    clic_irq_level_o
+    input wire psel_i,
+    input wire penable_i,
+    input wire pwrite_i,
+    input wire [PADDR_W-1:0] paddr_i,
+    input wire [WORD_W-1:0] pwdata_i,
+    output wire [WORD_W-1:0] prdata_o,
+    output wire pready_o,
+    output wire pslverr_o,
+    // ---- sources (hclk domain, level) ---------------------------------------
+    input wire [NUM_SRC - 1:0] irq_src_i,
+    // ---- to the core --------------------------------------------------------
+    output wire clic_irq_valid_o,
+    output wire [CLIC_ID_W-1:0] clic_irq_id_o,
+    output wire [CLIC_LVL_W-1:0] clic_irq_level_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     wire [NUM_SRC-1:0]   ie;
-    wire [NUM_SRC*8-1:0] level;
+    wire [NUM_SRC*CLIC_LVL_W-1:0] level;
     wire           swi;
     // The software interrupt joins the sources inside this block; the SoC ties
     // irq_src_i[SWI_ID] low. It is then a level source like any other.
-    wire [NUM_SRC-1:0]   src = irq_src_i | ({{(NUM_SRC-1){1'b0}}, swi} << SWI_ID);
+    wire [NUM_SRC - 1:0] src = irq_src_i
+        |({{(NUM_SRC - 1) {1'b0}}, swi} << SWI_ID);
 
     clic_apb #(.NUM_SRC(NUM_SRC), .IE_MASK(IE_MASK)) u_apb (
         .pclk(pclk), .preset_n(preset_n),
@@ -67,10 +68,9 @@ module clic_top #(
 
     clic_select #(.NUM_SRC(NUM_SRC)) u_sel (
         .cand_i(src & ie), .level_i(level),
-        .valid_o(clic_irq_valid_o), .id_o(clic_irq_id_o), .level_o(clic_irq_level_o));
+        .valid_o(clic_irq_valid_o), .id_o(clic_irq_id_o),
+            .level_o(clic_irq_level_o));
 
     wire _unused = |{hclk, hreset_n};
 
 endmodule
-
-`default_nettype wire

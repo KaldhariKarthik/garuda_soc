@@ -2,7 +2,6 @@
 
 -incdir rtl/dsu
 
-rtl/dsu/dsu_pkg.sv
 rtl/dsu/barrel_shifter.sv
 rtl/dsu/csa_3to2.sv
 rtl/dsu/dsu_decoder.sv
