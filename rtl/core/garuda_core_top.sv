@@ -147,7 +147,6 @@ module garuda_core_top
     wire id_reg_write;
     wire id_mem_read;
     wire id_mem_write;
-    wire id_mem_to_reg;
     wire id_alu_src;
     wire id_alu_a_pc;
     wire [ALU_OP_W-1:0] id_alu_op;
@@ -188,7 +187,6 @@ module garuda_core_top
     wire xe_reg_write;
     wire xe_mem_read;
     wire xe_mem_write;
-    wire xe_mem_to_reg;
     wire xe_alu_src;
     wire xe_pc_op_a;
     wire [ALU_OP_W-1:0] xe_alu_op;
@@ -212,20 +210,16 @@ module garuda_core_top
     // post-forward operands -> ID/EX (ERRATUM F-1)
     wire [WORD_W-1:0] ex_rs1_fwd;
     wire [WORD_W-1:0] ex_rs2_fwd;
-    wire [PADDR_W-1:0] ex_csr_addr_w;
+    // the CSR access in EX goes to csr_file straight from ID/EX (F4)
+    wire [CSR_ADDR_W-1:0] ex_csr_addr_w = xe_instr[31:20];
     wire [WORD_W-1:0] ex_csr_wdata;
-    wire [CSR_OP_W-1:0] ex_csr_op_out;
-    wire ex_csr_en_out;
     wire [WORD_W-1:0] ex_result;
-    wire [WORD_W-1:0] ex_store_data;
     wire [REG_IDX_W-1:0] ex_rd_out;
     wire ex_reg_write_out;
     wire ex_mem_read_out;
     wire ex_mem_write_out;
-    wire ex_mem_to_reg_out;
     wire ex_redirect;
     wire [WORD_W-1:0] ex_redirect_target;
-    wire ex_branch_mispredict;
     wire ex_load_mis;
     wire ex_store_mis;
     wire ex_dsu_illegal;
@@ -241,7 +235,6 @@ module garuda_core_top
     wire [REG_IDX_W-1:0] em_rd;
     wire em_mem_read;
     wire em_mem_write;
-    wire em_mem_to_reg;
     wire em_reg_write;
     wire em_valid;
     // MEM outputs
@@ -278,14 +271,13 @@ module garuda_core_top
     wire [CLIC_IDB_W-1:0] clic_id;
     wire [BYTE_W-1:0] clic_lvl;
     wire [WORD_W-1:0] clic_vec_target;
-    wire clic_take;
     // trap
     wire tr_enter;
     wire tr_is_int;
     wire tr_mret;
     wire [CLIC_LVL_W-1:0] tr_level;
     wire [WORD_W-1:0] tr_pc;
-    wire [WORD_W-1:0] tr_cause;
+    wire [TRAP_CODE_W-1:0] tr_cause;
     wire [WORD_W-1:0] tr_tval;
     wire tr_redir_v;
     wire [WORD_W-1:0] tr_redir_t;
@@ -293,7 +285,6 @@ module garuda_core_top
     wire tr_sq_exm;
     wire tr_sq_mwb;
     wire tr_wfi_hold;
-    wire tr_ex_squash;
     // pipe_ctrl
     wire pc_if_stall;
     wire pc_if_redir;
@@ -315,10 +306,15 @@ module garuda_core_top
     // =========================================================================
     // Root clock gate (R11). Everything below this point is clocked by gclk.
     // =========================================================================
+    // The gate's enable: the core not quiescent, or gating off (CLK_GATE = 0,
+    // or
+    // CORE-4's CG_DIS = mgarudactl[3]), or scan. scan_en is tied off until scan
+    // is inserted (G7; the stated DFT open item).
+    wire scan_en = 1'b0;
+    wire cg_en   = ~quiescent | (CLK_GATE == 0) | csr_ctl[3] | scan_en;
+
     core_clk_gate u_cg (
-        // CORE-4: CG_DIS
-        .hclk(hclk), .en_i(~quiescent | (CLK_GATE == 0) | csr_ctl[3]),
-        .test_en_i(1'b0), .gclk_o(gclk)
+        .hclk(hclk), .en_i(cg_en), .gclk_o(gclk)
     );
     assign core_sleep_o = quiescent;
 
@@ -352,8 +348,9 @@ module garuda_core_top
     // by wait states finished its data phase, moved into MEM/WB, and the gate
     // closed on it in that same cycle - so it sat in MEM/WB, unretired and with
     // a load's register write not yet done, for the whole sleep.
-    wire bus_idle = ~i_htrans_o[1] & ~d_htrans_o[1] & ~i_dph_q & ~d_dph_q &
-                    ~em_valid & ~mw_retire & ~mw_reg_write;
+    // neither port presents an address or owns a data phase
+    wire ports_idle = ~i_htrans_o[1] & ~d_htrans_o[1] & ~i_dph_q & ~d_dph_q;
+    wire bus_idle   = ports_idle & ~em_valid & ~mw_retire & ~mw_reg_write;
     // RDC-1: no address presented and no data phase owned on either port, now
     // or in the next clock. The hart reset falls one hclk after the Debug
     // Module's grant (D-36), so a load or store in EX or MEM, which would
@@ -361,7 +358,7 @@ module garuda_core_top
     // 2026-11-16 the reset fell in the grant's own clock and the port part
     // alone was enough; JasperGold a_d_addr_stable). The I-port presents
     // nothing new: fetch is stopped by halt_req_i, held through the grant.
-    assign halt_safe_o = ~i_htrans_o[1] & ~d_htrans_o[1] & ~i_dph_q & ~d_dph_q &
+    assign halt_safe_o = ports_idle &
                          ~(xe_valid & (xe_mem_read | xe_mem_write)) &
                          ~(em_valid & (em_mem_read | em_mem_write));
 
@@ -393,14 +390,13 @@ module garuda_core_top
     // ID stage (regfile internal)
     // =========================================================================
     id_stage u_id (
-        .gclk(gclk), .core_rst_n(core_rst_n),
+        .gclk(gclk),
         .if_id_instr_i(fd_instr), .if_id_pc_i(fd_pc), .if_id_fault_i(fd_fault),
             .if_id_valid_i(fd_valid),
         .wb_reg_write_i(rf_we), .wb_rd_i(rf_rd), .wb_data_i(rf_wdata),
         .ex_mem_read_i(xe_mem_read), .ex_rd_i(xe_rd),
         .reg_write_o(id_reg_write), .mem_read_o(id_mem_read),
-            .mem_write_o(id_mem_write),
-        .mem_to_reg_o(id_mem_to_reg), .alu_src_o(id_alu_src),
+            .mem_write_o(id_mem_write), .alu_src_o(id_alu_src),
             .alu_a_pc_o(id_alu_a_pc),
         .alu_op_o(id_alu_op), .branch_o(id_branch), .jal_o(id_jal),
             .jalr_o(id_jalr),
@@ -427,8 +423,7 @@ module garuda_core_top
         .imm_i(id_imm), .rs1_idx_i(id_rs1_idx), .rs2_idx_i(id_rs2_idx),
             .rd_i(id_rd), .funct3_i(id_funct3_fld),
         .reg_write_i(id_reg_write), .mem_read_i(id_mem_read),
-            .mem_write_i(id_mem_write),
-        .mem_to_reg_i(id_mem_to_reg), .alu_src_i(id_alu_src),
+            .mem_write_i(id_mem_write), .alu_src_i(id_alu_src),
             .pc_op_a_i(id_alu_a_pc),
         .alu_op_i(id_alu_op), .branch_i(id_branch), .jal_i(id_jal),
             .jalr_i(id_jalr),
@@ -443,8 +438,7 @@ module garuda_core_top
         .rs1_idx_o(xe_rs1i), .rs2_idx_o(xe_rs2i), .rd_o(xe_rd),
             .funct3_o(xe_funct3_fld),
         .reg_write_o(xe_reg_write), .mem_read_o(xe_mem_read),
-            .mem_write_o(xe_mem_write),
-        .mem_to_reg_o(xe_mem_to_reg), .alu_src_o(xe_alu_src),
+            .mem_write_o(xe_mem_write), .alu_src_o(xe_alu_src),
             .pc_op_a_o(xe_pc_op_a),
         .alu_op_o(xe_alu_op), .branch_o(xe_branch), .jal_o(xe_jal),
             .jalr_o(xe_jalr),
@@ -464,32 +458,34 @@ module garuda_core_top
         .memwb_rd_i(mw_rd), .memwb_reg_write_i(mw_reg_write),
         .fwd_a_sel_o(fwd_a_sel), .fwd_b_sel_o(fwd_b_sel)
     );
+    // the DSU is enabled for the instruction in EX unless it is parked
+    wire ex_dsu_go = xe_dsu_en & ~ex_parked;
+
     ex_stage u_ex (
         .gclk(gclk), .core_rst_n(core_rst_n),
         .pc(xe_pc), .instr(xe_instr), .rs1_data(xe_rs1_val),
             .rs2_data(xe_rs2_val), .imm(xe_imm),
         .rd(xe_rd), .funct3_fld(xe_funct3_fld), .reg_write(xe_reg_write),
             .mem_read(xe_mem_read),
-        .mem_write(xe_mem_write), .mem_to_reg(xe_mem_to_reg),
+        .mem_write(xe_mem_write),
             .alu_src(xe_alu_src),
         .pc_op_a(xe_pc_op_a), .alu_op(xe_alu_op), .is_branch(xe_branch),
             .jal(xe_jal), .jalr(xe_jalr),
         .predicted_taken(xe_predicted_taken), .mul_en(xe_mul_en),
-            .dsu_en(xe_dsu_en & ~ex_parked),
-        .csr_en(xe_csr_en), .csr_imm(xe_csr_imm), .csr_op(xe_csr_op),
+            .dsu_en(ex_dsu_go),
+        .csr_en(xe_csr_en), .csr_imm(xe_csr_imm),
         .fwd_a_sel(fwd_a_sel), .fwd_b_sel(fwd_b_sel),
         .exmem_fwd_data(em_result), .memwb_fwd_data(mw_data),
         .csr_rdata(csr_rdata), .csr_clear_overflow(csr_clear_ovf),
-            .ex_squash(tr_ex_squash),
-        .csr_addr(ex_csr_addr_w), .csr_wdata(ex_csr_wdata),
-            .csr_op_out(ex_csr_op_out), .csr_en_out(ex_csr_en_out),
-        .ex_result(ex_result), .store_data(ex_store_data),
+            .ex_squash(tr_sq_ide),  // trap_now: the DSU's trap-only flush
+        .csr_wdata(ex_csr_wdata),
+        .ex_result(ex_result),
         .rs1_fwd_o(ex_rs1_fwd), .rs2_fwd_o(ex_rs2_fwd),
             .fetch_misaligned(ex_fetch_mis), .rd_out(ex_rd_out),
         .reg_write_out(ex_reg_write_out), .mem_read_out(ex_mem_read_out),
-        .mem_write_out(ex_mem_write_out), .mem_to_reg_out(ex_mem_to_reg_out),
+        .mem_write_out(ex_mem_write_out),
         .ex_redirect(ex_redirect), .ex_redirect_target(ex_redirect_target),
-        .branch_mispredict(ex_branch_mispredict), .load_misaligned(ex_load_mis),
+        .load_misaligned(ex_load_mis),
         .store_misaligned(ex_store_mis), .dsu_illegal_instr(ex_dsu_illegal),
         .dsu_busy(ex_dsu_busy), .dsu_overflow(ex_dsu_overflow),
             .dsu_ovf_pending(ex_dsu_ovf_pending),
@@ -499,16 +495,15 @@ module garuda_core_top
     ex_mem u_exmem (
         .gclk(gclk), .core_rst_n(core_rst_n), .stall_i(pc_exmem_s),
             .flush_i(pc_exmem_f),
-        .ex_result_i(ex_result), .store_data_i(ex_store_data),
+        .ex_result_i(ex_result), .store_data_i(ex_rs2_fwd),
             .funct3_i(xe_funct3_fld),
         .rd_i(ex_rd_out), .pc_i(xe_pc), .mem_read_i(ex_mem_read_out),
-            .mem_write_i(ex_mem_write_out),
-        .mem_to_reg_i(ex_mem_to_reg_out), .reg_write_i(ex_reg_write_out),
+            .mem_write_i(ex_mem_write_out), .reg_write_i(ex_reg_write_out),
             .valid_i(xe_valid),
         .ex_result_o(em_result), .store_data_o(em_store),
             .funct3_o(em_funct3_fld), .rd_o(em_rd),
         .pc_o(em_pc), .mem_read_o(em_mem_read), .mem_write_o(em_mem_write),
-        .mem_to_reg_o(em_mem_to_reg), .reg_write_o(em_reg_write),
+            .reg_write_o(em_reg_write),
             .valid_o(em_valid)
     );
 
@@ -520,7 +515,7 @@ module garuda_core_top
         .ex_result_i(em_result), .rs2_data_i(em_store),
             .funct3_i(em_funct3_fld), .rd_i(em_rd),
         .pc_i(em_pc), .mem_read_i(em_mem_read), .mem_write_i(em_mem_write),
-        .mem_to_reg_i(em_mem_to_reg), .reg_write_i(em_reg_write),
+            .reg_write_i(em_reg_write),
             .valid_i(em_valid),
         .d_haddr_o(d_haddr_o), .d_htrans_o(d_htrans_o), .d_hsize_o(d_hsize_o),
         .d_hburst_o(d_hburst_o), .d_hprot_o(d_hprot_o), .d_hwrite_o(d_hwrite_o),
@@ -564,15 +559,15 @@ module garuda_core_top
     // (and its read-to-clear raced the set). It is now held one cycle in EX,
     // through the DSU hold path (PC, IF/ID, ID/EX held, a bubble into EX/MEM),
     // and does not commit.
-    wire ovf_rd_hold = xe_valid &ex_csr_en_out &(ex_csr_addr_w == 12'hBC0)
+    wire ovf_rd_hold = xe_valid &xe_csr_en &(ex_csr_addr_w == 12'hBC0)
         &ex_dsu_ovf_pending;
-    assign ex_commit = ~ex_parked & ~tr_ex_squash & ~ovf_rd_hold;
+    assign ex_commit = ~ex_parked & ~tr_sq_ide & ~ovf_rd_hold;
 
     csr_file u_csr (
         .gclk(gclk), .core_rst_n(core_rst_n),
-        .csr_en_i(ex_csr_en_out), .commit_i(ex_commit),
+        .csr_en_i(xe_csr_en), .commit_i(ex_commit),
             .csr_addr_i(ex_csr_addr_w), .csr_wdata_i(ex_csr_wdata),
-        .csr_op_i(ex_csr_op_out), .csr_rdata_o(csr_rdata),
+        .csr_op_i(xe_csr_op), .csr_rdata_o(csr_rdata),
             .illegal_csr_o(csr_illegal),
         .instret_i(mw_retire),  // true architectural retire
         .ret_mem_i(mem_retire),  // C-17: counted on a read of minstret
@@ -615,15 +610,14 @@ module garuda_core_top
         .clic_take_cond_i(clic_take_cond), .clic_wake_cond_i(clic_wake_cond),
         .clic_irq_id_i(clic_id), .clic_irq_lvl_i(clic_lvl),
             .clic_vector_target_i(clic_vec_target),
-        .clic_take_o(clic_take), .mti_pending_i(csr_mti_pending),
+            .mti_pending_i(csr_mti_pending),
         .mtvec_i(csr_mtvec), .mepc_i(csr_mepc), .mstatus_mie_i(csr_mstatus_mie),
         .trap_enter_o(tr_enter), .is_interrupt_o(tr_is_int),
             .clic_level_o(tr_level), .mret_o(tr_mret),
         .trap_pc_o(tr_pc), .trap_cause_o(tr_cause), .trap_tval_o(tr_tval),
         .trap_redirect_valid_o(tr_redir_v), .trap_redirect_target_o(tr_redir_t),
-        .trap_squash_id_ex_o(tr_sq_ide), .trap_squash_ex_mem_o(tr_sq_exm),
-        .trap_squash_mem_wb_o(tr_sq_mwb), .wfi_hold_o(tr_wfi_hold),
-            .ex_squash_o(tr_ex_squash)
+        .trap_squash_ex_mem_o(tr_sq_exm),
+        .trap_squash_mem_wb_o(tr_sq_mwb), .wfi_hold_o(tr_wfi_hold)
     );
     // ERRATUM C-15 (2026-10-04, found by t_hold_flush_matrix bit 6 with
     // +DWAIT): FENCE.I redirects from ID, so its refetch went out on the I-port
@@ -638,9 +632,20 @@ module garuda_core_top
     wire fencei_wait  = id_is_fencei & ((xe_valid & xe_mem_write) |
                                         (em_valid & em_mem_write & mem_stall));
 
+    // IF/ID flush = any redirect: pipe_ctrl's if_redirect_o
+    assign pc_ifid_f = pc_if_redir;
+    // a trap squashes ID/EX (trap_ctrl's trap_squash_id_ex_o, its alias, went
+    // in F4)
+    assign tr_sq_ide = tr_enter;
+    assign pc_ifid_s = pc_if_stall;
+
+    // the stall sources pipe_ctrl sees (named: HAL EXPIPC)
+    wire pipe_busy = ex_dsu_busy | ovf_rd_hold;
+    wire pipe_hold = id_load_use | fencei_wait;
+
     pipe_ctrl u_pipe (
-        .mem_stall_i(mem_stall), .dsu_busy_i(ex_dsu_busy | ovf_rd_hold),
-            .load_use_stall_i(id_load_use | fencei_wait),
+        .mem_stall_i(mem_stall), .dsu_busy_i(pipe_busy),
+            .load_use_stall_i(pipe_hold),
             .wfi_hold_i(tr_wfi_hold),
         .id_redirect_valid_i(id_redir_v), .id_redirect_target_i(id_redir_t),
         .ex_redirect_i(ex_redirect), .ex_redirect_target_i(ex_redirect_target),
@@ -650,7 +655,6 @@ module garuda_core_top
             .trap_squash_mem_wb_i(tr_sq_mwb),
         .if_stall_o(pc_if_stall), .if_redirect_o(pc_if_redir),
             .if_redirect_pc_o(pc_if_redir_pc),
-        .if_id_stall_o(pc_ifid_s), .if_id_flush_o(pc_ifid_f),
         .id_ex_stall_o(pc_idex_s), .id_ex_flush_o(pc_idex_f),
         .ex_mem_stall_o(pc_exmem_s), .ex_mem_flush_o(pc_exmem_f),
             .mem_wb_flush_o(pc_mwb_f)

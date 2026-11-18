@@ -56,8 +56,10 @@ module ahb2apb_apb_fsm
     reg  [DIV_CNT_W-1:0] div_cnt;
     reg  [TO_CNT_W-1:0] to_cnt;
 
-    wire [DIV_SEL_W-1:0] div_sel = (win_i < 4'd12) ? APB_DIV[2*win_i +: 2] : 2'b00;
-    wire [DIV_LOAD_W-1:0] div_load = (3'd1 << div_sel) - 3'd1;  // 0,1,3,7 extra cycles
+    wire [DIV_SEL_W-1:0] div_sel
+        = (win_i < 4'd12) ? APB_DIV[2*win_i +: 2] : 2'b00;
+    // 0,1,3,7 extra cycles
+    wire [DIV_LOAD_W-1:0] div_load = (3'd1 << div_sel) - 3'd1;
 
     // Address, direction and write data come straight from the stable capture.
     assign pwrite_o = write_i;

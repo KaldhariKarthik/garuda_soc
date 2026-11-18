@@ -18,7 +18,8 @@ module mac_cluster
     input wire sat_writeback_en,
     output wire [ACC_W-1:0] cluster_out,
     output wire [NUM_ACC-1:0] overflow,
-    output wire [NUM_ACC-1:0] pending,  // per unit: a fold commits this cycle (DSU-14)
+    // per unit: a fold commits this cycle (DSU-14)
+    output wire [NUM_ACC-1:0] pending,
     output wire [ACC_W-1:0] dbg_acc_fx,
     output wire [ACC_W-1:0] dbg_acc_fy,
     output wire [ACC_W-1:0] dbg_acc_mag

@@ -513,7 +513,6 @@ module tb_top;
 
     regfile dut (
         .gclk          (clk),
-        .core_rst_n        (vif.rst_n),
         .rs1_idx_i      (vif.rs1_idx),
         .rs2_idx_i      (vif.rs2_idx),
         .wb_reg_write_i (vif.wb_write),

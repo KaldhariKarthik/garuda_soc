@@ -45,7 +45,11 @@ foreach c $CLKS {
     set p [split $c :]
     if {[llength $p] == 1} { clock [lindex $p 0] } else { clock [lindex $p 0] -factor [lindex $p 1] -phase 1 }
 }
-if {![info exists ::env(COMB)]} {
+# RSTS "-": a clocked block with no reset (the register file): every state
+# starts free, and its properties need none
+if {![info exists ::env(COMB)] && [string trim $RSTS] eq "-"} {
+    reset -none
+} elseif {![info exists ::env(COMB)]} {
     set r {}
     foreach x $RSTS { lappend r "!$x" }
     reset -expression {*}$r

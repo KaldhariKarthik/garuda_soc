@@ -130,7 +130,7 @@ One row per file in `rtl/core/`, grouped by stage. How each one works, stage by 
 | Stage | Module (file) | Role |
 |---|---|---|
 | IF | `garuda_if_stage_top` | Wires the three IF sub-blocks. |
-| IF | `garuda_pc_gen` | Architectural PC and the speculative fetch PC; reset vector 0x1000_0000. |
+| IF | `garuda_pc_gen` | The fetch PC (the I-port's next address); reset vector 0x1000_0000. The PC of an instruction is its prefetch-buffer tag (D-37). |
 | IF | `garuda_iport_ahb_master` | I-port AHB-Lite master (M0): INCR bursts, discards data across a redirect. |
 | IF | `garuda_prefetch_buffer` | 4-entry instruction FIFO with PC and fault tags; flushed whole on a redirect. |
 | — | `if_id`, `id_ex`, `ex_mem`, `mem_wb_reg` | The four pipeline registers. |

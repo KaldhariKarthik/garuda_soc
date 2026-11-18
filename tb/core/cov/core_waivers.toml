@@ -232,36 +232,6 @@ reviewer = "pending: Sreyesh"
 # every hole below is explained by its rule's evidence)
 # =============================================================================
 [[waiver]]
-id       = "CT-CAUSE-csr_file"
-metric   = "toggle"
-file     = "rtl/core/csr_file.sv"
-match    = "^(trap_cause_i\\[10\\]:0\\->1|trap_cause_i\\[10\\]:1\\->0|trap_cause_i\\[11\\]:0\\->1|trap_cause_i\\[11\\]:1\\->0|trap_cause_i\\[12\\]:0\\->1|trap_cause_i\\[12\\]:1\\->0|trap_cause_i\\[13\\]:0\\->1|trap_cause_i\\[13\\]:1\\->0|trap_cause_i\\[14\\]:0\\->1|trap_cause_i\\[14\\]:1\\->0|trap_cause_i\\[15\\]:0\\->1|trap_cause_i\\[15\\]:1\\->0|trap_cause_i\\[16\\]:0\\->1|trap_cause_i\\[16\\]:1\\->0|trap_cause_i\\[17\\]:0\\->1|trap_cause_i\\[17\\]:1\\->0|trap_cause_i\\[18\\]:0\\->1|trap_cause_i\\[18\\]:1\\->0|trap_cause_i\\[19\\]:0\\->1|trap_cause_i\\[19\\]:1\\->0|trap_cause_i\\[20\\]:0\\->1|trap_cause_i\\[20\\]:1\\->0|trap_cause_i\\[21\\]:0\\->1|trap_cause_i\\[21\\]:1\\->0|trap_cause_i\\[22\\]:0\\->1|trap_cause_i\\[22\\]:1\\->0|trap_cause_i\\[23\\]:0\\->1|trap_cause_i\\[23\\]:1\\->0|trap_cause_i\\[24\\]:0\\->1|trap_cause_i\\[24\\]:1\\->0|trap_cause_i\\[25\\]:0\\->1|trap_cause_i\\[25\\]:1\\->0|trap_cause_i\\[26\\]:0\\->1|trap_cause_i\\[26\\]:1\\->0|trap_cause_i\\[27\\]:0\\->1|trap_cause_i\\[27\\]:1\\->0|trap_cause_i\\[28\\]:0\\->1|trap_cause_i\\[28\\]:1\\->0|trap_cause_i\\[29\\]:0\\->1|trap_cause_i\\[29\\]:1\\->0|trap_cause_i\\[30\\]:0\\->1|trap_cause_i\\[30\\]:1\\->0|trap_cause_i\\[5\\]:0\\->1|trap_cause_i\\[5\\]:1\\->0|trap_cause_i\\[6\\]:0\\->1|trap_cause_i\\[6\\]:1\\->0|trap_cause_i\\[7\\]:0\\->1|trap_cause_i\\[7\\]:1\\->0|trap_cause_i\\[8\\]:0\\->1|trap_cause_i\\[8\\]:1\\->0|trap_cause_i\\[9\\]:0\\->1|trap_cause_i\\[9\\]:1\\->0)$"
-category = "constant"
-reason   = "Exception and interrupt codes are < 32 (5-bit CLIC id, cause <= 11); bits 30:5 are 0, bit 31 is the interrupt flag (T-12 puts mpil in mcause[23:16] in csr_file, not on this bus)."
-evidence = "PROVEN a_cause_field (fv_cov)"
-reviewer = "pending: Sreyesh"
-
-[[waiver]]
-id       = "CT-CAUSE-garuda_core_top"
-metric   = "toggle"
-file     = "rtl/core/garuda_core_top.sv"
-match    = "^(tr_cause\\[10\\]:0\\->1|tr_cause\\[10\\]:1\\->0|tr_cause\\[11\\]:0\\->1|tr_cause\\[11\\]:1\\->0|tr_cause\\[12\\]:0\\->1|tr_cause\\[12\\]:1\\->0|tr_cause\\[13\\]:0\\->1|tr_cause\\[13\\]:1\\->0|tr_cause\\[14\\]:0\\->1|tr_cause\\[14\\]:1\\->0|tr_cause\\[15\\]:0\\->1|tr_cause\\[15\\]:1\\->0|tr_cause\\[16\\]:0\\->1|tr_cause\\[16\\]:1\\->0|tr_cause\\[17\\]:0\\->1|tr_cause\\[17\\]:1\\->0|tr_cause\\[18\\]:0\\->1|tr_cause\\[18\\]:1\\->0|tr_cause\\[19\\]:0\\->1|tr_cause\\[19\\]:1\\->0|tr_cause\\[20\\]:0\\->1|tr_cause\\[20\\]:1\\->0|tr_cause\\[21\\]:0\\->1|tr_cause\\[21\\]:1\\->0|tr_cause\\[22\\]:0\\->1|tr_cause\\[22\\]:1\\->0|tr_cause\\[23\\]:0\\->1|tr_cause\\[23\\]:1\\->0|tr_cause\\[24\\]:0\\->1|tr_cause\\[24\\]:1\\->0|tr_cause\\[25\\]:0\\->1|tr_cause\\[25\\]:1\\->0|tr_cause\\[26\\]:0\\->1|tr_cause\\[26\\]:1\\->0|tr_cause\\[27\\]:0\\->1|tr_cause\\[27\\]:1\\->0|tr_cause\\[28\\]:0\\->1|tr_cause\\[28\\]:1\\->0|tr_cause\\[29\\]:0\\->1|tr_cause\\[29\\]:1\\->0|tr_cause\\[30\\]:0\\->1|tr_cause\\[30\\]:1\\->0|tr_cause\\[5\\]:0\\->1|tr_cause\\[5\\]:1\\->0|tr_cause\\[6\\]:0\\->1|tr_cause\\[6\\]:1\\->0|tr_cause\\[7\\]:0\\->1|tr_cause\\[7\\]:1\\->0|tr_cause\\[8\\]:0\\->1|tr_cause\\[8\\]:1\\->0|tr_cause\\[9\\]:0\\->1|tr_cause\\[9\\]:1\\->0)$"
-category = "constant"
-reason   = "Exception and interrupt codes are < 32 (5-bit CLIC id, cause <= 11); bits 30:5 are 0, bit 31 is the interrupt flag (T-12 puts mpil in mcause[23:16] in csr_file, not on this bus)."
-evidence = "PROVEN a_cause_field (fv_cov)"
-reviewer = "pending: Sreyesh"
-
-[[waiver]]
-id       = "CT-CAUSE-trap_ctrl"
-metric   = "toggle"
-file     = "rtl/core/trap_ctrl.sv"
-match    = "^(trap_cause_o\\[10\\]:0\\->1|trap_cause_o\\[10\\]:1\\->0|trap_cause_o\\[11\\]:0\\->1|trap_cause_o\\[11\\]:1\\->0|trap_cause_o\\[12\\]:0\\->1|trap_cause_o\\[12\\]:1\\->0|trap_cause_o\\[13\\]:0\\->1|trap_cause_o\\[13\\]:1\\->0|trap_cause_o\\[14\\]:0\\->1|trap_cause_o\\[14\\]:1\\->0|trap_cause_o\\[15\\]:0\\->1|trap_cause_o\\[15\\]:1\\->0|trap_cause_o\\[16\\]:0\\->1|trap_cause_o\\[16\\]:1\\->0|trap_cause_o\\[17\\]:0\\->1|trap_cause_o\\[17\\]:1\\->0|trap_cause_o\\[18\\]:0\\->1|trap_cause_o\\[18\\]:1\\->0|trap_cause_o\\[19\\]:0\\->1|trap_cause_o\\[19\\]:1\\->0|trap_cause_o\\[20\\]:0\\->1|trap_cause_o\\[20\\]:1\\->0|trap_cause_o\\[21\\]:0\\->1|trap_cause_o\\[21\\]:1\\->0|trap_cause_o\\[22\\]:0\\->1|trap_cause_o\\[22\\]:1\\->0|trap_cause_o\\[23\\]:0\\->1|trap_cause_o\\[23\\]:1\\->0|trap_cause_o\\[24\\]:0\\->1|trap_cause_o\\[24\\]:1\\->0|trap_cause_o\\[25\\]:0\\->1|trap_cause_o\\[25\\]:1\\->0|trap_cause_o\\[26\\]:0\\->1|trap_cause_o\\[26\\]:1\\->0|trap_cause_o\\[27\\]:0\\->1|trap_cause_o\\[27\\]:1\\->0|trap_cause_o\\[28\\]:0\\->1|trap_cause_o\\[28\\]:1\\->0|trap_cause_o\\[29\\]:0\\->1|trap_cause_o\\[29\\]:1\\->0|trap_cause_o\\[30\\]:0\\->1|trap_cause_o\\[30\\]:1\\->0|trap_cause_o\\[5\\]:0\\->1|trap_cause_o\\[5\\]:1\\->0|trap_cause_o\\[6\\]:0\\->1|trap_cause_o\\[6\\]:1\\->0|trap_cause_o\\[7\\]:0\\->1|trap_cause_o\\[7\\]:1\\->0|trap_cause_o\\[8\\]:0\\->1|trap_cause_o\\[8\\]:1\\->0|trap_cause_o\\[9\\]:0\\->1|trap_cause_o\\[9\\]:1\\->0)$"
-category = "constant"
-reason   = "Exception and interrupt codes are < 32 (5-bit CLIC id, cause <= 11); bits 30:5 are 0, bit 31 is the interrupt flag (T-12 puts mpil in mcause[23:16] in csr_file, not on this bus)."
-evidence = "PROVEN a_cause_field (fv_cov)"
-reviewer = "pending: Sreyesh"
-
-[[waiver]]
 id       = "CT-CSRLAYOUT-csr_file"
 metric   = "toggle"
 file     = "rtl/core/csr_file.sv"

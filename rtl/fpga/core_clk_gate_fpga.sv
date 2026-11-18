@@ -20,11 +20,10 @@
 module core_clk_gate (
     input  wire hclk,
     input  wire en_i,
-    input  wire test_en_i,
     output wire gclk_o
 );
     BUFGCE #(.CE_TYPE("SYNC")) u_bufgce (
-        .I(hclk), .CE(en_i | test_en_i), .O(gclk_o));
+        .I(hclk), .CE(en_i), .O(gclk_o));  // en_i includes the scan enable
 endmodule
 
 `default_nettype wire

@@ -30,7 +30,7 @@
 module iport_master
     import garuda_pkg::*;
 #(
-    parameter integer FIFO_DEPTH = 32'd4
+    parameter int unsigned FIFO_DEPTH = 32'd4
 ) (
     input wire gclk,
     input wire core_rst_n,
@@ -179,18 +179,22 @@ module iport_master
     // ones are still owed data, silently exceeding FIFO_DEPTH.
     wire [OCC_PLUS_LANDI_W-1:0] occ_plus_landing = {1'b0, fifo_occupancy_i} +
                                   (data_phase_done ? 4'd1 : 4'd0);
-    wire [OCC_AFTER_POP_W-1:0] occ_after_pop    = (fifo_rd_en_i && occ_plus_landing != 4'd0)
-                                   ? occ_plus_landing - 4'd1
-                                   : occ_plus_landing;
+    wire [OCC_AFTER_POP_W-1:0] occ_after_pop
+        = (fifo_rd_en_i && occ_plus_landing != 4'd0)
+              ? occ_plus_landing - 4'd1
+              : occ_plus_landing;
 
     wire [INFLIGHT_W-1:0] inflight = {3'b000, addr_outstanding} +
                           {3'b000, data_outstanding} -
                           (data_phase_done ? 4'd1 : 4'd0);
 
-    wire [PROJECTED_OCC_W-1:0] projected_occ = occ_after_pop + inflight;
+    wire [PROJECTED_OCC_W-1:0] projected_occ
+        = PROJECTED_OCC_W'(occ_after_pop + inflight);
 
-    // CORE-4: PF_DIS
-    wire room_for_new_fetch = (projected_occ < (pf_dis_i ? 4'd1 : FIFO_DEPTH));
+    // CORE-4: PF_DIS lets one entry in at a time
+    wire [PROJECTED_OCC_W-1:0] room_limit
+        = pf_dis_i ? PROJECTED_OCC_W'(1'b1) : PROJECTED_OCC_W'(FIFO_DEPTH);
+    wire room_for_new_fetch = (projected_occ < room_limit);
 
     // Issue a new address phase when: the bus is ready, the previous address
     // phase has been accepted (or is being accepted this cycle), the buffer
@@ -250,19 +254,19 @@ module iport_master
             //     obliged to see through to acceptance (this erratum)
             // The last two are mutually exclusive -- addr_phase_done tells
             // them apart -- so at most two are ever counted, within drop_cnt.
-            drop_cnt <= ((data_outstanding & ~data_phase_done) ? 2'd1 : 2'd0)
-                +(addr_phase_done ? 2'd1 : 2'd0)
-                +((addr_outstanding & ~addr_phase_done) ? 2'd1 : 2'd0);
+            drop_cnt <= ((data_outstanding && !data_phase_done) ? 2'd1 : 2'd0)
+                + (addr_phase_done ? 2'd1 : 2'd0)
+                + ((addr_outstanding && !addr_phase_done) ? 2'd1 : 2'd0);
             data_outstanding <= (data_outstanding & ~data_phase_done)
                 |addr_phase_done;
             need_nonseq <= 1'b1;
-            if (addr_outstanding & ~addr_phase_done) begin
-                // Presented but not accepted: HOLD it. Deliberately no
-                // assignment to i_haddr_o / i_htrans_o / addr_outstanding --
-                // the transfer stays exactly as presented until HREADY rises,
-                // at which point the normal path below turns it into a data
-                // phase that drop_cnt has already marked for discard.
-            end else begin
+            // Presented but not accepted: HOLD it. Deliberately no assignment
+            // to
+            // i_haddr_o / i_htrans_o / addr_outstanding then -- the transfer
+            // stays exactly as presented until HREADY rises, at which point the
+            // normal path below turns it into a data phase that drop_cnt has
+            // already marked for discard. Otherwise nothing is presented:
+            if (!addr_outstanding || addr_phase_done) begin
                 addr_outstanding <= 1'b0;
                 i_htrans_o <= HTRANS_IDLE;  // legal: nothing presented
             end
@@ -286,11 +290,9 @@ module iport_master
                 addr_outstanding <= 1'b1;
                 addr_pc <= fetch_pc_i;
                 need_nonseq <= 1'b0;
-            end else if (addr_outstanding && !addr_phase_done) begin
-                // Wait state in progress (HREADY was low): hold HADDR and
-                // HTRANS exactly as they were - do NOT touch them here.
-                // (No assignment = register retains its value.)
-            end else begin
+            end else if (!addr_outstanding || addr_phase_done) begin
+                // (A wait state in progress - HREADY low - holds HADDR and
+                // HTRANS exactly as they were: no assignment on that path.)
                 // Nothing to present this cycle (buffer full, or a just-
                 // accepted address phase with no follow-on issue).
                 //

@@ -51,11 +51,17 @@ package garuda_pkg;
     localparam int unsigned PFB_OCC_W = 32'd3;
     localparam int unsigned BYTE_OFF_W = 32'd2;
     localparam int unsigned EXC_CAUSE_W = 32'd4;
+    // a trap's mcause code: exceptions < 16, CLIC IDs < 32, the timer 7
+    localparam int unsigned TRAP_CODE_W = 32'd5;
     localparam int unsigned JTAG_IR_W = 32'd5;
     localparam int unsigned DMI_ADDR_W = 32'd7;
     localparam int unsigned DMI_OP_W = 32'd2;
     localparam int unsigned DMA_CH_W = 32'd3;
     localparam int unsigned DMA_SIZE_W = 32'd2;
+    // a load/store's size: funct3[1:0]
+    // addi x0, x0, 0: the canonical NOP a bubble or an empty slot carries
+    localparam logic [31:0] NOP_INSTR = 32'h0000_0013;
+    localparam int unsigned MEM_SIZE_W = 32'd2;
     localparam int unsigned ERR_PHASE_W = 32'd3;
     localparam int unsigned SHAMT_W = 32'd6;
     localparam int unsigned RES_SRC_W = 32'd2;

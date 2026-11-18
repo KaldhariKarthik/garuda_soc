@@ -216,7 +216,7 @@ module garuda_apb_shim
 `ifndef SYNTHESIS
     // the map has 64 bits, one per word of the first 0x100 offsets
     initial if (IP_LIMIT > 12'h100) begin
-        $display("[SHIM-ASSERT] block %0d: IP_LIMIT 0x%03h is above 0x100, which IP_MAP cannot describe",
+        $display("[SHIM-ASSERT] block %0d: IP_LIMIT 0x%03h > 0x100 (IP_MAP)",
             BLOCK_NUM, IP_LIMIT);
         $finish;
     end
@@ -225,7 +225,7 @@ module garuda_apb_shim
     // four vendored IPs tie it high; this fires if a re-vendor changes that.
     always_ff @(posedge pclk) begin : p_blk
         if (preset_n && ip_psel_o && !ip_pready_i) begin
-            $display("[SHIM-ASSERT] block %0d: IP deasserted PREADY at %0t - the bridge will time out",
+            $display("[SHIM-ASSERT] block %0d: PREADY low at %0t (timeout)",
                 BLOCK_NUM, $time);
         end
     end

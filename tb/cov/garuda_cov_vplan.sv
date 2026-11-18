@@ -258,13 +258,13 @@ bind garuda_core_top garuda_cov_vplan u_cov_vplan (
     .clk_i(hclk), .rst_n_i(core_rst_n),
     .xe_valid(xe_valid), .xe_mul_en(xe_mul_en), .xe_dsu_en(xe_dsu_en), .xe_csr_en(xe_csr_en),
     .xe_branch(xe_branch), .xe_jal(xe_jal), .xe_jalr(xe_jalr),
-    .xe_pred_taken(xe_predicted_taken), .ex_mispredict(ex_branch_mispredict),
+    .xe_pred_taken(xe_predicted_taken), .ex_mispredict(u_ex.u_branch.mispredict),
     // the EX operands after forwarding (the values the ALU / multiplier use; xe_rs1_val/2 can be stale)
     .xe_instr(xe_instr), .xe_rs1(ex_rs1_fwd), .xe_rs2(ex_rs2_fwd), .xe_rd(xe_rd),
     .mem_stall(mem_stall), .dsu_busy(ex_dsu_busy), .load_use(id_load_use),
     .id_valid(id_valid), .id_illegal(id_illegal), .id_fault(id_fault), .id_instr(id_instr),
     .ex_redir(ex_redirect), .tr_redir(tr_redir_v),
-    .tr_enter(tr_enter), .tr_is_int(tr_is_int), .tr_mret(tr_mret), .tr_cause(tr_cause),
+    .tr_enter(tr_enter), .tr_is_int(tr_is_int), .tr_mret(tr_mret), .tr_cause({tr_is_int, 26'd0, tr_cause}),
     .csr_illegal(csr_illegal),
     .irq_valid(clic_irq_valid_i), .mtip(mtip_i), .take_cond(clic_take_cond), .mie(csr_mstatus_mie),
     .quiescent(quiescent)

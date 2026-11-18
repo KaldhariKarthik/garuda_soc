@@ -442,12 +442,14 @@ module tb_top;
         .jal               (vif.jal),
         .jalr              (vif.jalr),
         .predicted_taken   (vif.predicted_taken),
-        .branch_taken      (vif.branch_taken),
-        .mispredict        (vif.mispredict),
         .redirect          (vif.redirect),
         .redirect_target   (vif.redirect_target),
         .target_misaligned (vif.target_misaligned)
     );
+
+    // the resolved direction has no port since F4 (2026-11-16): read inside the unit
+    assign vif.branch_taken = dut.branch_taken;
+    assign vif.mispredict   = dut.mispredict;  // no port since F4
 
     br_env env;
 

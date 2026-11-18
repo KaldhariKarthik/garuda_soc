@@ -43,7 +43,7 @@ def main():
     ap.add_argument("--limit", default="30m")
     ap.add_argument("--defines", nargs="*", default=[], help="extra +define+ names (e.g. GARUDA_RVFI)")
     ap.add_argument("--imp-root", default=ROOT, help="tree holding the rewritten RTL (default: this one)")
-    ap.add_argument("--reset", default=None, help="prove from reset (a reset expression, e.g. '!core_rst_n') "
+    ap.add_argument("--reset", default=None, help="prove from reset (a reset expression, e.g. '!core_rst_n'; several separated by commas) "
                     "instead of from any matched state: for rewrites that drop unreachable states")
     ap.add_argument("modules", nargs="+")
     a = ap.parse_args()
@@ -77,7 +77,7 @@ puts "SECRESULT [check_sec -signoff -get_valid_status]"
 puts "SECSUMMARY [get_property_list -include {status proven} -task <embedded>]"
 exit
 """ % (dfs, " ".join(si), " ".join(sf), dfs, " ".join(ji), " ".join(jf), mod, mod, maps,
-       ("reset -expression {%s}" % a.reset) if a.reset else "reset -none", a.limit)
+       ("reset -expression " + " ".join("{%s}" % r.strip() for r in a.reset.split(","))) if a.reset else "reset -none", a.limit)
         with open(os.path.join(d, "sec.tcl"), "w") as fh:
             fh.write(tcl)
         log = os.path.join(d, "sec.log")

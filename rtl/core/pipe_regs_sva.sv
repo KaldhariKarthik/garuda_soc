@@ -57,13 +57,13 @@ endmodule
 
 module ex_mem_sva (
     input wire gclk, core_rst_n, stall_i, flush_i,
-    input wire valid_i, reg_write_i, mem_read_i, mem_write_i, mem_to_reg_i,
+    input wire valid_i, reg_write_i, mem_read_i, mem_write_i,
     input wire [31:0] ex_result_i, store_data_i, pc_i, input wire [4:0] rd_i,
-    input wire valid_o, reg_write_o, mem_read_o, mem_write_o, mem_to_reg_o,
+    input wire valid_o, reg_write_o, mem_read_o, mem_write_o,
     input wire [31:0] ex_result_o, store_data_o, pc_o, input wire [4:0] rd_o
 );
     a_exmem_flush: assert property (@(posedge gclk) disable iff (!core_rst_n)
-        (core_rst_n && flush_i) |=> !(valid_o || reg_write_o || mem_read_o || mem_write_o || mem_to_reg_o) )
+        (core_rst_n && flush_i) |=> !(valid_o || reg_write_o || mem_read_o || mem_write_o) )
         else $error("[SVA-FAIL] a_exmem_flush: EX/MEM is not a bubble after a flush");
     a_exmem_hold: assert property (@(posedge gclk) disable iff (!core_rst_n)
         (core_rst_n && stall_i && !flush_i) |=> $stable({valid_o, reg_write_o, mem_read_o, mem_write_o, ex_result_o, store_data_o, pc_o, rd_o}) )

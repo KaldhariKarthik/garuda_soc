@@ -121,7 +121,7 @@ bind garuda_core_top garuda_core_cov_ext u_cov_ext (
     .clk_i(hclk), .rst_n_i(core_rst_n),
     .csr_en(ex_csr_en_out), .csr_commit(ex_commit), .csr_illegal(csr_illegal),
     .csr_addr(ex_csr_addr_w), .csr_op(ex_csr_op_out), .csr_wdata(ex_csr_wdata),
-    .tr_enter(tr_enter), .tr_is_int(tr_is_int), .tr_mret(tr_mret), .tr_cause(tr_cause),
+    .tr_enter(tr_enter), .tr_is_int(tr_is_int), .tr_mret(tr_mret), .tr_cause({tr_is_int, 26'd0, tr_cause}),
     .clic_take_cond(clic_take_cond), .clic_wake_cond(clic_wake_cond),
     .clic_id(clic_id), .clic_lvl(clic_lvl), .mil(csr_mil), .mintthresh(csr_mintthresh),
     .mie(csr_mstatus_mie), .mti_pending(csr_mti_pending),

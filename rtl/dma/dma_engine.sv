@@ -85,7 +85,8 @@ module dma_engine
     reg  [ST_W-1:0]  st;
     reg  [CH_W-1:0]  ch;
     reg  [WORD_W-1:0] data_q;
-    reg  [DMA_SIZE_W-1:0]  size_l;  // DMA-14: the beat's SIZE, taken at the grant
+    // DMA-14: the beat's SIZE, taken at the grant
+    reg  [DMA_SIZE_W-1:0]  size_l;
     // the beat's addresses, taken at the grant
     reg [WORD_W-1:0] sar_l;
     reg [WORD_W-1:0] dar_l;

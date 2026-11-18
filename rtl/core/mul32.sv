@@ -39,7 +39,6 @@ module mul32
     timeprecision 1ps;
     localparam int unsigned A_EXT_W = 32'd33;
     localparam int unsigned B_EXT_W = 32'd33;
-    localparam int unsigned PRODUCT_W = 32'd66;
 
     // Operand signedness per funct3_fld:
     //   rs1_val is signed for MUL, MULH, MULHSU; unsigned for MULHU.
@@ -48,10 +47,14 @@ module mul32
                     (funct3_fld == MUL_MULHSU);
     wire b_signed = (funct3_fld == MUL_MUL) | (funct3_fld == MUL_MULH);
 
-    wire signed [A_EXT_W-1:0] a_ext = {a_signed & rs1_val[31], rs1_val};
-    wire signed [B_EXT_W-1:0] b_ext = {b_signed & rs2_val[31], rs2_val};
+    wire signed [A_EXT_W-1:0] a_ext
+        = $signed({a_signed & rs1_val[31], rs1_val});
+    wire signed [B_EXT_W-1:0] b_ext
+        = $signed({b_signed & rs2_val[31], rs2_val});
 
-    wire signed [PRODUCT_W-1:0] product = a_ext * b_ext;
+    // The 33x33 product is 66 bits; its top two are the sign extension of the
+    // 64-bit result, so only 64 are kept (HAL URDWIR).
+    wire signed [DWORD_W-1:0] product = DWORD_W'(a_ext * b_ext);
 
     assign result = (funct3_fld == MUL_MUL) ? product[31:0]
                                          : product[63:32];

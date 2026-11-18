@@ -49,7 +49,7 @@ interface mem_stage_if (input bit clk, input bit rst_n);
     logic [31:0] ex_result, rs2_data, pc_in;
     logic [2:0]  funct3;
     logic [4:0]  rd_in;
-    logic        mem_read, mem_write, mem_to_reg, reg_write, valid;
+    logic        mem_read, mem_write, reg_write, valid;
     logic [31:0] d_haddr, d_hwdata;
     logic [1:0]  d_htrans;
     logic [2:0]  d_hsize, d_hburst;
@@ -121,10 +121,10 @@ interface mem_stage_if (input bit clk, input bit rst_n);
     // A7: the mux-in-MEM contract (Sec. 10.3) -- non-load instructions pass
     //     the EX result straight through, already final.
     property p_non_load_passes_ex_result;
-        @(posedge clk) (!mem_to_reg) |-> (wb_data == ex_result);
+        @(posedge clk) (!mem_read) |-> (wb_data == ex_result);
     endproperty
     a_mux_in_mem: assert property (p_non_load_passes_ex_result)
-        else $error("[SVA-FAIL] wb_data_o is not the EX result when mem_to_reg is low");
+        else $error("[SVA-FAIL] wb_data_o is not the EX result for a non-load");
 
     // A8: an instruction that requests no memory access never STARTS one.
     //     Stated on d_htrans rather than on mem_stall: a data phase already
@@ -160,7 +160,6 @@ module tb_top;
         .pc_i                  (vif.pc_in),
         .mem_read_i            (vif.mem_read),
         .mem_write_i           (vif.mem_write),
-        .mem_to_reg_i          (vif.mem_to_reg),
         .reg_write_i           (vif.reg_write),
         .valid_i               (vif.valid),
         .d_haddr_o             (vif.d_haddr),
@@ -216,7 +215,7 @@ module tb_top;
     task automatic clr();
         vif.ex_result = 32'h2000_0000; vif.rs2_data = 32'd0;
         vif.pc_in = 32'h1000_0000; vif.funct3 = `F3_W; vif.rd_in = 5'd5;
-        vif.mem_read = 0; vif.mem_write = 0; vif.mem_to_reg = 0;
+        vif.mem_read = 0; vif.mem_write = 0;
         vif.reg_write = 0; vif.valid = 1;
         vif.d_hrdata = 32'd0; vif.d_hready = 1; vif.d_hresp = 0;
     endtask
@@ -235,7 +234,7 @@ module tb_top;
         // LOAD WORD -- address phase, then data phase with real HRDATA
         // =============================================================
         @(negedge clk);
-        clr(); vif.mem_read = 1; vif.mem_to_reg = 1; vif.reg_write = 1;
+        clr(); vif.mem_read = 1; vif.reg_write = 1;
         vif.ex_result = 32'h2000_0010; vif.funct3 = `F3_W; vif.rd_in = 5'd9;
         #1;
         sb.chk ("lw", "HADDR",           vif.d_haddr,  32'h2000_0010);
@@ -253,21 +252,21 @@ module tb_top;
 
         // ---- LB sign-extension through the real bus path ---------------
         @(negedge clk);
-        clr(); vif.mem_read = 1; vif.mem_to_reg = 1; vif.reg_write = 1;
+        clr(); vif.mem_read = 1; vif.reg_write = 1;
         vif.ex_result = 32'h2000_0021; vif.funct3 = `F3_B;    // byte lane 1
         tick();
         @(negedge clk); vif.d_hrdata = 32'h0000_80FF; #1;     // lane 1 = 0x80
         sb.chk("lb", "sign-extended", vif.wb_data, 32'hFFFF_FF80);
         @(negedge clk);
-        clr(); vif.mem_read = 1; vif.mem_to_reg = 1; vif.reg_write = 1;
+        clr(); vif.mem_read = 1; vif.reg_write = 1;
         vif.ex_result = 32'h2000_0021; vif.funct3 = `F3_BU;
         tick();
         @(negedge clk); vif.d_hrdata = 32'h0000_80FF; #1;
         sb.chk("lbu", "zero-extended", vif.wb_data, 32'h0000_0080);
 
-        // ---- non-load: mem_to_reg low passes the EX result through ------
+        // ---- non-load: mem_read low passes the EX result through ------
         @(negedge clk);
-        clr(); vif.reg_write = 1; vif.mem_to_reg = 0;
+        clr(); vif.reg_write = 1;
         vif.ex_result = 32'h1234_5678; vif.d_hrdata = 32'hFFFF_FFFF; vif.rd_in = 5'd3;
         #1;
         sb.chk ("alu_op", "wb_data is the EX result", vif.wb_data, 32'h1234_5678);
@@ -320,7 +319,7 @@ module tb_top;
         // to leak onto the bus.
         // =============================================================
         @(negedge clk);
-        clr(); vif.mem_read = 1; vif.mem_to_reg = 1; vif.reg_write = 1;
+        clr(); vif.mem_read = 1; vif.reg_write = 1;
         vif.ex_result = 32'h2000_0002; vif.funct3 = `F3_W;   // misaligned word load
         repeat (6) tick();
         sb.chk ("misaligned_lw", "HTRANS stayed idle", vif.d_htrans, HTRANS_IDLE);
@@ -338,7 +337,7 @@ module tb_top;
 
         // a BYTE access is never misaligned -- it must still go to the bus
         @(negedge clk);
-        clr(); vif.mem_read = 1; vif.mem_to_reg = 1;
+        clr(); vif.mem_read = 1;
         vif.ex_result = 32'h2000_0003; vif.funct3 = `F3_B;
         #1;
         sb.chk("byte_at_odd_addr", "still issues", vif.d_htrans, HTRANS_NONSEQ);
@@ -348,7 +347,7 @@ module tb_top;
         // D-PORT WAIT STATES (Sec. 10.4 / 11.4)
         // =============================================================
         @(negedge clk);
-        clr(); vif.mem_read = 1; vif.mem_to_reg = 1; vif.reg_write = 1;
+        clr(); vif.mem_read = 1; vif.reg_write = 1;
         vif.ex_result = 32'h2000_0060; vif.funct3 = `F3_W;
         tick();                                     // address phase accepted
         @(negedge clk); vif.d_hready = 0; #1;
@@ -368,7 +367,7 @@ module tb_top;
         // mem_read/mem_write cause split cannot pass both.
         // =============================================================
         @(negedge clk);
-        clr(); vif.mem_read = 1; vif.mem_to_reg = 1; vif.reg_write = 1;
+        clr(); vif.mem_read = 1; vif.reg_write = 1;
         vif.ex_result = 32'h4000_0000; vif.funct3 = `F3_W; vif.pc_in = 32'h1000_0200;
         tick();
         @(negedge clk); vif.d_hready = 0; vif.d_hresp = 1; #1;   // ERROR cycle 1
@@ -416,7 +415,6 @@ module tb_top;
                 automatic bit do_store = !do_load && ($urandom_range(0, 99) < 50);
                 vif.mem_read   = do_load;
                 vif.mem_write  = do_store;
-                vif.mem_to_reg = do_load;
                 vif.reg_write  = do_load;
                 vif.valid      = $urandom_range(0, 99) < 90;
                 vif.ex_result  = $urandom();

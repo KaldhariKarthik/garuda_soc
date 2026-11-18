@@ -31,7 +31,8 @@
 module cov_const_top (
     input wire        clk, rst_n,
     input wire [31:0] i_haddr, if_pc, fd_pc, id_pc, xe_pc, em_pc, mem_exc_pc, tr_pc, csr_mepc,
-    input wire [31:0] redir_pc, id_redir_t, tr_redir_t, tr_cause,
+    input wire [31:0] redir_pc, id_redir_t, tr_redir_t,
+    input wire [4:0]  tr_cause,  // the mcause code since F4 (no constant bits left)
     input wire [3:0]  mem_exc_cause
 );
     a_pc_aligned: assert property (@(posedge clk) disable iff (!rst_n)
@@ -39,7 +40,6 @@ module cov_const_top (
     a_mepc_aligned:       assert property (@(posedge clk) disable iff (!rst_n) csr_mepc[1:0] == 2'b00);
     a_redir_pc_bit0:      assert property (@(posedge clk) disable iff (!rst_n) (redir_pc[0] | id_redir_t[0]) == 1'b0);
     a_trap_redir_aligned: assert property (@(posedge clk) disable iff (!rst_n) tr_redir_t[1:0] == 2'b00);
-    a_cause_field:        assert property (@(posedge clk) disable iff (!rst_n) tr_cause[30:5] == 26'd0);
     a_mexc_cause_bit3:    assert property (@(posedge clk) disable iff (!rst_n) mem_exc_cause[3] == 1'b0);
 endmodule
 

@@ -75,9 +75,6 @@ module if_stage_top
         .redirect_i    (redirect_i),
         .redirect_pc_i (redirect_pc_i),
         .fetch_issue_i (fetch_issue),
-        .commit_i      (fifo_rd_en),
-        .commit_pc_i   (instr_pc_o),  // PC of the entry being popped
-        .pc_o          (/* architectural pc - expose if ID/debug need it */),
         .fetch_pc_o    (fetch_pc)
     );
 
@@ -132,7 +129,6 @@ module if_stage_top
         .instr_fault_o (instr_fault_o),
         .instr_valid_o (instr_valid_o),
 
-        .full_o (),
         .empty_o       (fifo_empty),
         .occupancy_o   (fifo_occupancy)
     );

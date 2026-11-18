@@ -102,7 +102,7 @@ interface id_stage_if (input bit clk);
     logic         ex_mem_read;
     logic [4:0]  ex_rd;
 
-    logic         reg_write, mem_read, mem_write, mem_to_reg, alu_src, alu_a_pc;
+    logic         reg_write, mem_read, mem_write, alu_src, alu_a_pc;
     logic [3:0]  alu_op;
     logic         branch, jal, jalr, mul_en, dsu_en, csr_en;
     logic [2:0]  csr_op;
@@ -459,7 +459,7 @@ endclass
 //    persist across the whole run rather than being reset per sequence.
 // -------------------------------------------------------------
 typedef struct packed {
-    bit         reg_write, mem_read, mem_write, mem_to_reg, alu_src, alu_a_pc;
+    bit         reg_write, mem_read, mem_write, alu_src, alu_a_pc;
     bit [3:0]  alu_op;
     bit         branch, jal, jalr, mul_en, dsu_en, csr_en;
     bit [2:0]  csr_op;
@@ -489,7 +489,7 @@ class id_stage_ref_model;
             7'b1100011: if (f3 == 3'b010 || f3 == 3'b011) r.illegal = 1;
                         else begin r.branch=1; r.alu_op=ALU_SUB; r.imm_sel=IMM_B; end
             7'b0000011: if (f3 inside {3'b011, 3'b110, 3'b111}) r.illegal = 1;
-                        else begin r.reg_write=1; r.mem_read=1; r.mem_to_reg=1; r.alu_src=1; r.alu_op=ALU_ADD; r.imm_sel=IMM_I; end
+                        else begin r.reg_write=1; r.mem_read=1; r.alu_src=1; r.alu_op=ALU_ADD; r.imm_sel=IMM_I; end
             7'b0100011: if (f3[2] || f3 == 3'b011) r.illegal = 1;
                         else begin r.mem_write=1; r.alu_src=1; r.alu_op=ALU_ADD; r.imm_sel=IMM_S; end
             7'b0010011: begin
@@ -702,7 +702,7 @@ class id_monitor;
         r = new();
         r.decode_actual = '{
             reg_write: vif.reg_write, mem_read: vif.mem_read, mem_write: vif.mem_write,
-            mem_to_reg: vif.mem_to_reg, alu_src: vif.alu_src, alu_a_pc: vif.alu_a_pc,
+            alu_src: vif.alu_src, alu_a_pc: vif.alu_a_pc,
             alu_op: vif.alu_op, branch: vif.branch, jal: vif.jal, jalr: vif.jalr,
             mul_en: vif.mul_en, dsu_en: vif.dsu_en, csr_en: vif.csr_en, csr_op: vif.csr_op,
             is_system: vif.is_system, illegal: vif.illegal_instr_dec, imm_sel: 3'b0
@@ -902,7 +902,6 @@ module tb_top;
     id_stage dut (
         .bp_dis_i              (1'b0),           // CORE-4 (mgarudactl): predictor on
         .gclk                 (clk),
-        .core_rst_n               (vif.rst_n),
         .if_id_instr_i         (vif.if_id_instr),
         .if_id_pc_i            (vif.if_id_pc),
         .if_id_fault_i         (vif.if_id_fault),
@@ -915,7 +914,6 @@ module tb_top;
         .reg_write_o           (vif.reg_write),
         .mem_read_o            (vif.mem_read),
         .mem_write_o           (vif.mem_write),
-        .mem_to_reg_o          (vif.mem_to_reg),
         .alu_src_o             (vif.alu_src),
         .alu_a_pc_o            (vif.alu_a_pc),
         .alu_op_o              (vif.alu_op),

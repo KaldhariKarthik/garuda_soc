@@ -380,13 +380,15 @@ module tb_top;
 
     load_store_unit dut (
         .addr_i             (vif.addr),
-        .funct3_i           (vif.funct3),
+        .size_i             (vif.funct3[1:0]),
         .rs2_data_i         (vif.rs2_data),
         .hsize_o            (vif.hsize),
-        .load_misaligned_o  (vif.load_mis),
-        .store_misaligned_o (vif.store_mis),
+        .misaligned_o       (vif.load_mis),
         .hwdata_o           (vif.hwdata)
     );
+    // one misaligned output since F4 (2026-11-16): load and store read the same
+    assign vif.store_mis = vif.load_mis;
+
 
     lsu_env env;
 

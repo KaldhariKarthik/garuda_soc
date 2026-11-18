@@ -54,8 +54,6 @@ CORE_RULES = [
  ("DBUS", r"^(garuda_core_top|mem_stage|dport_master|load_store_unit)$", r"^(d_hburst_o|d_hprot_o|d_hsize_o|hsize_i|hsize_o|hsize_w|d_htrans_o)$", None, "constant",
   "D-port attributes: SINGLE transfers (hburst 0), data-access HPROT, size <= word (hsize[2] = 0), HTRANS only IDLE / NONSEQ (bit 0 = 0).",
   "literal rtl/core/mem_stage.sv:140-141; rtl/core/load_store_unit.sv:32 hsize_o = {1'b0, size}; dport_master.v:101,106 HTRANS_NONSEQ / HTRANS_IDLE"),
- ("CAUSE", r".*", r"^(tr_cause|trap_cause_o|trap_cause_i)$", set(range(5, 31)), "constant",
-  "Exception and interrupt codes are < 32 (5-bit CLIC id, cause <= 11); bits 30:5 are 0, bit 31 is the interrupt flag (T-12 puts mpil in mcause[23:16] in csr_file, not on this bus).", "PROVEN a_cause_field (fv_cov)"),
  ("MEMCAUSE", r".*", r"^(mem_exc_cause|mem_exception_cause_o|mem_exc_cause_i)$", {3}, "constant",
   "MEM-stage causes are 5 and 7 only (4-bit field, bit 3 = 0).", "literal rtl/core/mem_stage.sv:184 (4'd5 / 4'd7 / 0); PROVEN a_mexc_cause_bit3"),
  ("CSRLAYOUT", r"^csr_file$", r"^(mstatus_val|misa_val|mintstatus_val|mintstatus_std_val|mip_val)$", None, "constant",

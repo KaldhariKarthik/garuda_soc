@@ -74,11 +74,11 @@ module hazard_forward_unit_sva (
 endmodule
 
 module load_store_unit_sva (
-    input wire [31:0] addr_i, rs2_data_i, hwdata_o, input wire [2:0] funct3_i, hsize_o,
+    input wire [31:0] addr_i, rs2_data_i, hwdata_o, input wire [1:0] size_i, input wire [2:0] hsize_o,
     input wire load_misaligned_o, store_misaligned_o
 );
-    wire [1:0] sz = funct3_i[1:0];                      // LB/LBU/SB 00, LH/LHU/SH 01, LW/SW 10
-    always @(*) if (!$isunknown({addr_i, funct3_i, rs2_data_i})) begin
+    wire [1:0] sz = size_i;                             // LB/LBU/SB 00, LH/LHU/SH 01, LW/SW 10
+    always @(*) if (!$isunknown({addr_i, size_i, rs2_data_i})) begin
         a_lsu_size: assert #0 (hsize_o == {1'b0, sz})
             else $error("[SVA-FAIL] a_lsu_size: HSIZE does not follow funct3");
         a_lsu_misaligned: assert #0 (load_misaligned_o == ((sz == 2'b01 && addr_i[0]) || (sz == 2'b10 && addr_i[1:0] != 0)) &&
@@ -93,21 +93,18 @@ module load_store_unit_sva (
 endmodule
 
 module garuda_pc_gen_sva (
-    input wire gclk, core_rst_n, redirect_i, fetch_issue_i, commit_i,
-    input wire [31:0] redirect_pc_i, commit_pc_i, pc_o, fetch_pc_o
+    input wire gclk, core_rst_n, redirect_i, fetch_issue_i,
+    input wire [31:0] redirect_pc_i, fetch_pc_o
 );
     a_pc_redirect: assert property (@(posedge gclk) disable iff (!core_rst_n)
-        (core_rst_n && redirect_i) |=> (pc_o == $past(redirect_pc_i) && fetch_pc_o == $past(redirect_pc_i)) )
-        else $error("[SVA-FAIL] a_pc_redirect: a redirect did not move both PCs");
+        (core_rst_n && redirect_i) |=> fetch_pc_o == $past(redirect_pc_i) )
+        else $error("[SVA-FAIL] a_pc_redirect: a redirect did not move the fetch PC");
     a_pc_fetch_next: assert property (@(posedge gclk) disable iff (!core_rst_n)
         (core_rst_n && !redirect_i && fetch_issue_i) |=> fetch_pc_o == $past(fetch_pc_o) + 32'd4 )
         else $error("[SVA-FAIL] a_pc_fetch_next: the fetch PC did not advance by 4");
     a_pc_fetch_hold: assert property (@(posedge gclk) disable iff (!core_rst_n)
         (core_rst_n && !redirect_i && !fetch_issue_i) |=> $stable(fetch_pc_o) )
         else $error("[SVA-FAIL] a_pc_fetch_hold: the fetch PC moved without a fetch");
-    a_pc_commit: assert property (@(posedge gclk) disable iff (!core_rst_n)
-        (core_rst_n && !redirect_i && commit_i) |=> pc_o == $past(commit_pc_i) + 32'd4 )
-        else $error("[SVA-FAIL] a_pc_commit: the PC is not the committed one plus 4");
 endmodule
 
 module garuda_prefetch_buffer_sva (
@@ -143,8 +140,10 @@ endmodule
 bind branch_unit branch_unit_sva u_branch_unit_sva (.*);
 bind forward_unit forward_unit_sva u_forward_unit_sva (.*);
 bind hazard_fwd_unit hazard_forward_unit_sva u_hazard_sva (.*);
-bind load_store_unit load_store_unit_sva u_lsu_sva (.*);
+bind load_store_unit load_store_unit_sva u_lsu_sva (.*, .load_misaligned_o(misaligned_o), .store_misaligned_o(misaligned_o));
 bind garuda_pc_gen garuda_pc_gen_sva u_pc_gen_sva (.*);
-bind prefetch_buf garuda_prefetch_buffer_sva u_pfb_sva (.*);
+// full: named here since F4 (no wire in the unit)
+bind prefetch_buf garuda_prefetch_buffer_sva u_pfb_sva (.*,
+    .full_o(occupancy == FIFO_DEPTH));
 `endif
 `endif

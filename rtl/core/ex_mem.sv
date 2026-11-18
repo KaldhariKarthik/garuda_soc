@@ -32,7 +32,6 @@ module ex_mem
     input wire [WORD_W-1:0] pc_i,  // id_ex.pc (around EX) - mepc
     input wire mem_read_i,  // ex_stage.mem_read_out
     input wire mem_write_i,  // ex_stage.mem_write_out
-    input wire mem_to_reg_i,  // ex_stage.mem_to_reg_out
     input wire reg_write_i,  // ex_stage.reg_write_out
     input wire valid_i,  // id_ex.valid (around EX) - retire tag, Sec.13.2
     output reg [WORD_W-1:0] ex_result_o,
@@ -42,7 +41,6 @@ module ex_mem
     output reg [WORD_W-1:0] pc_o,
     output reg mem_read_o,
     output reg mem_write_o,
-    output reg mem_to_reg_o,
     output reg reg_write_o,
     output reg valid_o
 );
@@ -52,6 +50,10 @@ module ex_mem
     // See rtl/core/if_id.sv for the full explanation; the same defect was in
     // all three pipeline registers. Priority is unchanged: reset, then flush,
     // then stall.
+    // the register loads unless the pipeline holds it (Sec. 11.4: flush wins
+    // over hold, so flush is checked first)
+    wire advance = ~stall_i;
+
     always_ff @(posedge gclk or negedge core_rst_n) begin : p_ex_result
         if (!core_rst_n) begin
             ex_result_o <= 32'd0;
@@ -61,7 +63,6 @@ module ex_mem
             pc_o <= 32'd0;
             mem_read_o <= 1'b0;
             mem_write_o <= 1'b0;
-            mem_to_reg_o <= 1'b0;
             reg_write_o <= 1'b0;
             valid_o <= 1'b0;
         end else if (flush_i) begin
@@ -72,12 +73,9 @@ module ex_mem
             pc_o <= 32'd0;
             mem_read_o <= 1'b0;
             mem_write_o <= 1'b0;
-            mem_to_reg_o <= 1'b0;
             reg_write_o <= 1'b0;
             valid_o <= 1'b0;
-        end else if (stall_i) begin
-            // hold: retain all outputs
-        end else begin
+        end else if (advance) begin
             ex_result_o <= ex_result_i;
             store_data_o <= store_data_i;
             funct3_o <= funct3_i;
@@ -85,7 +83,6 @@ module ex_mem
             pc_o <= pc_i;
             mem_read_o <= mem_read_i;
             mem_write_o <= mem_write_i;
-            mem_to_reg_o <= mem_to_reg_i;
             reg_write_o <= reg_write_i;
             valid_o <= valid_i;
         end

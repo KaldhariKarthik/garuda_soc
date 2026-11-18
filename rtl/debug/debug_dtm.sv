@@ -54,8 +54,9 @@ module debug_dtm
 
     wire busy = (req_tgl_o != ack_seen);
 
-    wire [WORD_W-1:0] dtmcs = {14'd0, 1'b0 /*hardreset*/, 1'b0 /*dmireset*/, 1'b0,
-                         3'd5, dmistat, 6'd7, 4'd1};
+    // dtmcs: hardreset, dmireset and bit 15 read 0; idle 5, abits 7, version 1
+    wire [WORD_W-1:0] dtmcs = {14'd0, 1'b0, 1'b0, 1'b0,
+                               3'd5, dmistat, 6'd7, 4'd1};
 
     always_ff @(posedge tck or negedge ext_rst_n) begin : p_sh
         if (!ext_rst_n) begin

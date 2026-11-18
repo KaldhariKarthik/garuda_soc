@@ -43,20 +43,22 @@ module if_id
     // The bubble body is identical either way, so it is simply moved into its
     // own synchronous branch. Priority is unchanged: reset, then flush, then
     // stall -- flush still wins over stall (Sec. 11.4, "flush wins over hold").
+    // the register loads unless the pipeline holds it (Sec. 11.4: flush wins
+    // over hold, so flush is checked first)
+    wire advance = ~stall_i;
+
     always_ff @(posedge gclk or negedge core_rst_n) begin : p_instr
         if (!core_rst_n) begin
-            instr_o <= 32'h0000_0013;
+            instr_o <= NOP_INSTR;
             pc_o <= 32'd0;
             valid_o <= 1'b0;
             fault_o <= 1'b0;
         end else if (flush_i) begin
-            instr_o <= 32'h0000_0013;
+            instr_o <= NOP_INSTR;
             pc_o <= 32'd0;
             valid_o <= 1'b0;
             fault_o <= 1'b0;
-        end else if (stall_i) begin
-            // hold
-        end else begin
+        end else if (advance) begin
             instr_o <= instr_i;
             pc_o <= pc_i;
             valid_o <= valid_i;

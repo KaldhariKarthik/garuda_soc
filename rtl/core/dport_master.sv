@@ -43,13 +43,11 @@ module dport_master
     input wire d_hresp_i,
     // Control-facing outputs
     output wire mem_stall_o,  // Sec. 11.4 D-port wait-state hold
-    output wire ok_done_o,  // this cycle's access completed OKAY
     // this cycle's access completed ERROR
     output wire err_pulse_o
 );
     timeunit 1ns;
     timeprecision 1ps;
-    localparam int unsigned STATE_W = 32'd2;
 
     localparam HTRANS_IDLE   = 2'b00;
     localparam HTRANS_NONSEQ = 2'b10;
@@ -85,10 +83,10 @@ module dport_master
     // data. That is inherent to AHB-Lite with no write buffer, not a
     // regression in throughput that can be optimised away here.
     // -----------------------------------------------------------------------
-    localparam S_ADDR = 2'd0;  // idle / presenting an address phase
-    localparam S_DATA = 2'd1;  // address accepted, data phase in progress
+    localparam logic S_ADDR = 1'b0;  // idle / presenting an address phase
+    localparam logic S_DATA = 1'b1;  // address accepted, data phase in progress
 
-    reg [STATE_W-1:0] state;
+    reg state;
 
     // -----------------------------------------------------------------------
     // Combinational address-phase drive
@@ -111,45 +109,56 @@ module dport_master
     end
 
     // -----------------------------------------------------------------------
+    // Next state. The slave signals ERROR as the AMBA two-cycle response
+    // (HREADY=0/HRESP=1, then HREADY=1/HRESP=1), so waiting for HREADY in
+    // S_DATA absorbs the dead cycle - no separate master-side S_ERR2 state is
+    // needed. HTRANS is already IDLE throughout the data phase. (A function, so
+    // the state register below reads no other process's variable: HAL REVROP.)
+    // -----------------------------------------------------------------------
+    function automatic logic next_state_of(input logic st, input logic start,
+                                           input logic ready);
+        begin
+            if (st == S_ADDR) begin
+                next_state_of = (start && ready) ? S_DATA : S_ADDR;
+            end else begin
+                next_state_of = ready ? S_ADDR : S_DATA;
+            end
+        end
+    endfunction
+
+    wire state_next = next_state_of(state, start_i, d_hready_i);
+
+    // -----------------------------------------------------------------------
     // State register
     // -----------------------------------------------------------------------
     always_ff @(posedge gclk or negedge core_rst_n) begin : p_state
         if (!core_rst_n) begin
             state <= S_ADDR;
-            d_hwdata_o <= 32'b00000000000000000000000000000000;
         end else begin
-            case (state)
-                S_ADDR: begin
-                    if (start_i && d_hready_i) begin
-                        // Address phase accepted; capture the write data so it
-                        // is driven in the data phase that starts next cycle,
-                        // and holds there across any wait states.
-                        d_hwdata_o <= hwdata_i;
-                        state <= S_DATA;
-                    end
-                end
-                S_DATA: begin
-                    // The slave signals ERROR as the AMBA two-cycle response
-                    // (HREADY=0/HRESP=1, then HREADY=1/HRESP=1), so waiting
-                    // for HREADY here absorbs the dead cycle - no separate
-                    // master-side S_ERR2 state is needed. HTRANS is already
-                    // IDLE throughout the data phase.
-                    if (d_hready_i) begin
-                        state <= S_ADDR;
-                    end
-                end
-                default: state <= S_ADDR;
-            endcase
+            state <= state_next;
+        end
+    end
+
+    // Address phase accepted: capture the write data so it is driven in the
+    // data phase that starts next cycle, and holds there across wait states.
+    wire addr_accept = (state == S_ADDR) && start_i && d_hready_i;
+
+    always_ff @(posedge gclk or negedge core_rst_n) begin : p_hwdata
+        if (!core_rst_n) begin
+            d_hwdata_o <= '0;
+        end else if (addr_accept) begin
+            d_hwdata_o <= hwdata_i;
         end
     end
 
     // -----------------------------------------------------------------------
     // Control-facing status (Sec. 10.4, Sec. 11.4)
-    // Completion is a DATA-phase event: ok_done_o fires in the same cycle the
+    // Completion is a DATA-phase event: an OKAY completion is the cycle the
     // slave presents valid HRDATA, which is the cycle load_formatter samples
-    // it and MEM/WB captures the result.
+    // it and MEM/WB captures the result (mem_stall_o drops). The unit's SVA
+    // and bench name that cycle themselves (F4: no wire here, nothing in the
+    // chip reads it).
     // -----------------------------------------------------------------------
-    assign ok_done_o    = (state == S_DATA) && d_hready_i && ~d_hresp_i;
     assign err_pulse_o  = (state == S_DATA) && d_hready_i &&  d_hresp_i;
 
     // Hold MEM for the address phase and for the data phase, releasing only

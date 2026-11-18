@@ -53,11 +53,14 @@ module pipe_ctrl_fv (
         .trap_squash_id_ex_i(trap_sq_id_ex), .trap_squash_ex_mem_i(trap_sq_ex_mem),
         .trap_squash_mem_wb_i(trap_sq_mem_wb),
         .if_stall_o(if_stall), .if_redirect_o(if_redirect), .if_redirect_pc_o(if_redirect_pc),
-        .if_id_stall_o(if_id_stall), .if_id_flush_o(if_id_flush),
         .id_ex_stall_o(id_ex_stall), .id_ex_flush_o(id_ex_flush),
         .ex_mem_stall_o(ex_mem_stall), .ex_mem_flush_o(ex_mem_flush),
         .mem_wb_flush_o(mem_wb_flush),
         .bus_idle_i(bus_idle), .wfi_settled_i(wfi_settled), .quiescent_o(quiescent));
+    // the IF/ID flush is the redirect (pipe_ctrl's if_id_flush_o, its alias, went in F4)
+    assign if_id_flush = if_redirect;
+    assign if_id_stall = if_stall;  // if_id_stall_o, its alias, went in F4
+
 
     // ---- the one environment assumption ----
     // A1: no ID/EX trap squash while H2 holds. trap_squash_id_ex_i flushes

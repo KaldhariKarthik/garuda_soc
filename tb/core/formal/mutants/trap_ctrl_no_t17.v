@@ -60,7 +60,6 @@ module trap_ctrl
     input wire [ID_W - 1:0] clic_irq_id_i,
     input wire [BYTE_W-1:0] clic_irq_lvl_i,
     input wire [WORD_W-1:0] clic_vector_target_i,
-    output wire clic_take_o,  // a CLIC interrupt is entered this cycle
     // ---- machine timer interrupt (Sec.14.6) ----
     input wire mti_pending_i,  // mip.MTIP & mie.MTIE (NOT gated by mstatus.MIE)
     // ---- csr_file reads ----
@@ -73,17 +72,17 @@ module trap_ctrl
     output wire [CLIC_LVL_W-1:0] clic_level_o,
     output wire mret_o,
     output wire [WORD_W-1:0] trap_pc_o,
-    output wire [WORD_W-1:0] trap_cause_o,
+    // the mcause code; is_interrupt_o is mcause[31] and csr_file adds mpil
+    output wire [TRAP_CODE_W-1:0] trap_cause_o,
     output wire [WORD_W-1:0] trap_tval_o,
     // ---- pipe_ctrl ----
     output wire trap_redirect_valid_o,
     output wire [WORD_W-1:0] trap_redirect_target_o,
-    output wire trap_squash_id_ex_o,
     output wire trap_squash_ex_mem_o,
     output wire trap_squash_mem_wb_o,
-    output wire wfi_hold_o,
-    // ---- ex_stage (DSU trap-only flush) ----
-    output wire ex_squash_o
+    // ID/EX is squashed by trap_enter_o (every trap kills the younger
+    // instructions; it is also the DSU's trap-only flush in ex_stage)
+    output wire wfi_hold_o
 );
     timeunit 1ns;
     timeprecision 1ps;
@@ -151,7 +150,7 @@ module trap_ctrl
                            e4?4'd4 : e6?4'd6 : 4'd11;
     wire [WORD_W-1:0] ex_tval = e1 ? idex_pc_i : e2 ? idex_instr_i : e0
         ? ex_fetch_target_i :
-                           e3?idex_pc_i : (e4|e6)?ex_addr_i : 32'd0;
+                           e3?idex_pc_i : (e4 || e6)?ex_addr_i : 32'd0;
 
     // WFI drain-stall hold
     // WFI wakes on ANY pending-and-locally-enabled interrupt, CLIC or timer,
@@ -188,9 +187,9 @@ module trap_ctrl
     always_ff @(posedge gclk or negedge core_rst_n) begin : p_wfi_active
         if (!core_rst_n) begin
             wfi_active <= 1'b0;
-        end else if (is_wfi & ~wfi_active & ~wfi_squashed & ~h2) begin
+        end else if (is_wfi && !wfi_active && !wfi_squashed && !h2) begin
             wfi_active <= 1'b1;
-        end else if (wfi_active & wake_cond) begin
+        end else if (wfi_active && wake_cond) begin
             wfi_active <= 1'b0;
         end
     end
@@ -224,9 +223,11 @@ module trap_ctrl
     // Exceptions need no such gate: they are raised BY an instruction, so one
     // is present by construction.
     // -----------------------------------------------------------------------
-    wire take_int      = clic_take_cond_i & ~exception & idex_valid_i & ~h2;
+    // an interrupt may be taken: an instruction in EX, no D-port wait
+    wire int_slot     = idex_valid_i & ~h2;
+    wire take_int      = clic_take_cond_i & ~exception & int_slot;
     wire take_mti     = mti_pending_i & mstatus_mie_i & ~exception & ~take_int
-                        & idex_valid_i & ~h2;
+                        & int_slot;
     wire any_int      = take_int | take_mti;
     assign wfi_squashed = exception | any_int;  // T-11
 
@@ -251,7 +252,6 @@ module trap_ctrl
     wire mret_take    = is_mret & ~h2 & ~mem_exc_valid_i;
 
     // MTI is not a CLIC source: no CLIC level to push, so it enters at mil 0.
-    assign clic_take_o     = take_int;
     assign is_interrupt_o  = any_int;
     assign clic_level_o    = take_int ? clic_irq_lvl_i : 8'd0;
 
@@ -263,12 +263,12 @@ module trap_ctrl
                           ex_exc          ? idex_pc_i     :
                                             // interrupt: resume @ EX instr
                                             idex_pc_i;
-    assign trap_cause_o = take_int ? {1'b1, {(31 - ID_W) {1'b0}}, clic_irq_id_i}
-        :
+    // the code only (F4): bits 30:5 of the old 32-bit cause were constant
+    assign trap_cause_o = take_int        ? TRAP_CODE_W'(clic_irq_id_i) :
                           // machine timer interrupt
-                          take_mti        ? 32'h8000_0007 :
-                          mem_exc_valid_i ? {28'd0, mem_exc_cause_i} :
-                                            {28'd0, ex_cause};
+                          take_mti        ? TRAP_CODE_W'(7) :
+                          mem_exc_valid_i ? TRAP_CODE_W'(mem_exc_cause_i) :
+                                            TRAP_CODE_W'(ex_cause);
     assign trap_tval_o  = any_int         ? 32'd0 :
                           mem_exc_valid_i ? mem_exc_tval_i : ex_tval;
 
@@ -310,7 +310,5 @@ module trap_ctrl
     // and then trapped as misaligned when the handler returned to it; a store
     // there would have written memory after a fault the program had not yet
     // seen.
-    assign trap_squash_ex_mem_o = exception | any_int;
-    assign trap_squash_id_ex_o  = trap_now;  // younger
-    assign ex_squash_o          = trap_now;  // DSU trap-only flush
+    assign trap_squash_ex_mem_o = wfi_squashed;  // exception | any_int
 endmodule

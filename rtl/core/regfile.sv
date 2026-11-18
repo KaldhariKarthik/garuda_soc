@@ -18,7 +18,6 @@ module regfile
     import garuda_pkg::*;
 (
     input wire gclk,
-    input wire core_rst_n,
     input wire [REG_IDX_W-1:0] rs1_idx_i,
     input wire [REG_IDX_W-1:0] rs2_idx_i,
     input wire wb_reg_write_i,
@@ -29,9 +28,11 @@ module regfile
 );
     timeunit 1ns;
     timeprecision 1ps;
-    localparam int unsigned MEM_W = 32'd2;
+    localparam int unsigned NUM_XREG = 32'd32;
 
-    reg [WORD_W-1:0] mem [MEM_W-1:31];  // x0 not stored - reads as 0 by construction
+    // indexed by the full 5-bit register number; x0's entry is never written
+    // (and never read: x0 reads 0 below), so synthesis keeps no flops for it
+    reg [WORD_W-1:0] mem [0:NUM_XREG-1];
     wire [WORD_W-1:0] rs1_raw;
     wire [WORD_W-1:0] rs2_raw;
 

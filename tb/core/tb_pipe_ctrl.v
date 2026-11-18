@@ -12,9 +12,11 @@ module tb_pipe_ctrl;
     .trap_redirect_valid_i(trv),.trap_redirect_target_i(trt),
     .trap_squash_id_ex_i(sq_ide),.trap_squash_ex_mem_i(sq_exm),.trap_squash_mem_wb_i(sq_mwb),
     .if_stall_o(if_stall),.if_redirect_o(if_redir),.if_redirect_pc_o(if_rpc),
-    .if_id_stall_o(ifid_s),.if_id_flush_o(ifid_f),
     .id_ex_stall_o(idex_s),.id_ex_flush_o(idex_f),
     .ex_mem_stall_o(exmem_s),.ex_mem_flush_o(exmem_f),.mem_wb_flush_o(memwb_f));
+  assign ifid_f = if_redir;  // the IF/ID flush is the redirect (if_id_flush_o removed, F4)
+  assign ifid_s = if_stall;  // one stall for PC and IF/ID (if_id_stall_o removed, F4)
+
 
   // packed order: {if_stall,if_redir, ifid_s,ifid_f, idex_s,idex_f, exmem_s,exmem_f, memwb_f}
   wire [8:0] obs = {if_stall,if_redir,ifid_s,ifid_f,idex_s,idex_f,exmem_s,exmem_f,memwb_f};

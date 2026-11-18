@@ -9,7 +9,6 @@
 module core_clk_gate (
     input  wire hclk,
     input  wire en_i,
-    input  wire test_en_i,
     output wire gclk_o
 );
     assign gclk_o = hclk;

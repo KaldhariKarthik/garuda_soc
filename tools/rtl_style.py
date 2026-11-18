@@ -837,7 +837,9 @@ def module_level(text):
         if e < 0 or e < pos:
             continue
         out.append(text[pos:e + 1])
-        out.append("\n" + IND + "timeunit %s;\n%stimeprecision %s;" % (unit, IND, prec))
+        # idempotent: a module that already declares its timeunit keeps it
+        if not re.match(r"\s*timeunit\b", m_[e + 1:]):
+            out.append("\n" + IND + "timeunit %s;\n%stimeprecision %s;" % (unit, IND, prec))
         pos = e + 1
     out.append(text[pos:])
     text = "".join(out)

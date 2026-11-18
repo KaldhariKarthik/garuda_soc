@@ -29,27 +29,17 @@
 module csr_rw
     import garuda_pkg::*;
 (
-    // id_ex payload
-    input wire [WORD_W-1:0] instr,  // EX-stage instruction word
     input wire [WORD_W-1:0] rs1_fwd,  // forwarded rs1 (register variants)
-    // ctrl
-    input wire csr_en,  // SYSTEM CSRR* in EX
     input wire csr_imm,  // 1 = immediate variant (funct3[2])
-    input wire [CSR_OP_W-1:0] csr_op,  // CSR_RW / CSR_RS / CSR_RC (= funct3[1:0])
-    // exchange with CONTROL/CSR block
-    output wire [CSR_ADDR_W-1:0] csr_addr,
-    output wire [WORD_W-1:0] csr_wdata,
-    output wire [CSR_OP_W-1:0] csr_op_out,
-    output wire csr_en_out
+    input wire [REG_IDX_W-1:0] zimm,  // instr[19:15]: the immediate's uimm
+    output wire [WORD_W-1:0] csr_wdata
 );
     timeunit 1ns;
     timeprecision 1ps;
 
-    assign csr_addr   = instr[31:20];
-    // zero-extended uimm
-    assign csr_wdata = csr_imm ? {27'b000000000000000000000000000, instr[19:15]}
-                                : rs1_fwd;
-    assign csr_op_out = csr_op;
-    assign csr_en_out = csr_en;
+    // F4 (2026-11-17): the CSR address, op and enable no longer pass through
+    // here; csr_file takes them from ID/EX directly (they were feedthroughs).
+    // zero-extended uimm, or the register operand
+    assign csr_wdata = csr_imm ? WORD_W'(zimm) : rs1_fwd;
 
 endmodule

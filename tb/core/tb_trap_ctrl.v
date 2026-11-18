@@ -8,7 +8,7 @@ module tb_trap_ctrl;
   reg mstall;                              // D-port wait (H2), T-9/T-13/T-14
   reg tkcond,wkcond,mtip_pend,mstat_mie; reg [11:0] irqid; reg [7:0] irqlvl; reg [31:0] vectgt;
   wire tk_ack, trap_en, is_int, mret, tr_rv, sq_ide, sq_exm, sq_mwb, wfih, exsq;
-  wire [7:0] clvl; wire [31:0] tpc,tcause,ttval,trtgt;
+  wire [7:0] clvl; wire [31:0] tpc,tcause,ttval,trtgt; wire [4:0] tcode;
   trap_ctrl dut(.gclk(clk),.core_rst_n(rst_n),
     .idex_pc_i(idpc),.idex_instr_i(idinstr),.idex_fault_i(idflt),
     .idex_illegal_dec_i(idill),.idex_is_system_i(idsys),.ex_dsu_illegal_i(dsuill),
@@ -23,14 +23,20 @@ module tb_trap_ctrl;
     .mem_stall_i(mstall),
     .mem_exc_valid_i(memv),.mem_exc_cause_i(memc),.mem_exc_pc_i(mpc),.mem_exc_tval_i(mtval),
     .clic_take_cond_i(tkcond),.clic_wake_cond_i(wkcond),.clic_irq_id_i(irqid),
-    .clic_irq_lvl_i(irqlvl),.clic_vector_target_i(vectgt),.clic_take_o(tk_ack),
+    .clic_irq_lvl_i(irqlvl),.clic_vector_target_i(vectgt),
     .mti_pending_i(mtip_pend),
     .mtvec_i(mtvec),.mepc_i(mepc),.mstatus_mie_i(mstat_mie),
     .trap_enter_o(trap_en),.is_interrupt_o(is_int),.clic_level_o(clvl),.mret_o(mret),
-    .trap_pc_o(tpc),.trap_cause_o(tcause),.trap_tval_o(ttval),
+    .trap_pc_o(tpc),.trap_cause_o(tcode),.trap_tval_o(ttval),
     .trap_redirect_valid_o(tr_rv),.trap_redirect_target_o(trtgt),
-    .trap_squash_id_ex_o(sq_ide),.trap_squash_ex_mem_o(sq_exm),.trap_squash_mem_wb_o(sq_mwb),
-    .wfi_hold_o(wfih),.ex_squash_o(exsq));
+    .trap_squash_ex_mem_o(sq_exm),.trap_squash_mem_wb_o(sq_mwb),
+    .wfi_hold_o(wfih));
+  // no ports since F4 (2026-11-16): the CLIC take acknowledge is internal, and
+  // the DSU flush and the ID/EX squash are trap_enter_o
+  assign tcause = {is_int, 26'd0, tcode};  // the mcause word (the port is the code since F4)
+  assign tk_ack = dut.take_int;
+  assign sq_ide = trap_en;
+  assign exsq = sq_ide;
   task c(input [255:0] n,input g,input e);
     begin checks=checks+1; if(g!==e)begin $display("[FAIL] %0s got %b exp %b",n,g,e);errors=errors+1;end end endtask
   task c32(input [255:0] n,input [31:0] g,input [31:0] e);

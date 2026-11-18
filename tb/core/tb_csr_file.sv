@@ -9,7 +9,7 @@ module tb_csr_file;
   csr_file dut(.gclk(clk),.core_rst_n(rst_n),.csr_en_i(csr_en),.commit_i(1'b1),.csr_addr_i(addr),
     .csr_wdata_i(wdata),.csr_op_i(op),.csr_rdata_o(rdata),.illegal_csr_o(illegal),
     .instret_i(instret),.ret_mem_i(1'b0),.dsu_overflow_i(dsu_ovf),.csr_clear_overflow_o(clr_ovf),
-    .trap_enter_i(trap_enter),.mret_i(mret),.is_interrupt_i(1'b0),.clic_level_i(8'd0),.trap_pc_i(tpc),.trap_cause_i(tcause),
+    .trap_enter_i(trap_enter),.mret_i(mret),.is_interrupt_i(1'b0),.clic_level_i(8'd0),.trap_pc_i(tpc),.trap_cause_i(tcause[4:0]),
     .trap_tval_i(ttval),.mtip_i(mtip),.mstatus_mie_o(mie),.mtvec_o(mtvec),
     .mti_pending_o(),.mepc_o(mepc),.mintthresh_o(ithr),.mintstatus_mil_o());
   task c32(input [127:0] n,input [31:0] g,input [31:0] e);

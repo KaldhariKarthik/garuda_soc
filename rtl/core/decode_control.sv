@@ -19,7 +19,6 @@ module decode_control
     import garuda_pkg::*;
 (
     input wire [WORD_W-1:0] instr_i,
-    output wire [OPCODE_W-1:0] opcode_o,
     output wire [REG_IDX_W-1:0] rd_o,
     output wire [FUNCT3_W-1:0] funct3_o,
     output wire [REG_IDX_W-1:0] rs1_o,
@@ -27,7 +26,6 @@ module decode_control
     output reg reg_write_o,
     output reg mem_read_o,
     output reg mem_write_o,
-    output reg mem_to_reg_o,
     output reg alu_src_o,
     output reg alu_a_pc_o,
     output reg [ALU_OP_W-1:0] alu_op_o,
@@ -60,7 +58,6 @@ module decode_control
     assign rs2_f  = instr_i[24:20];
     assign funct7_fld = instr_i[31:25];
 
-    assign opcode_o = opcode;
     assign rd_o     = rd_f;
     assign funct3_o = funct3_fld;
     assign rs1_o    = rs1_f;
@@ -91,12 +88,19 @@ module decode_control
     // DIV/DIVU/REM/REMU: funct3_fld 100/101/110/111
     assign is_div_family = is_muldiv && (funct3_fld[2] == 1'b1);
 
+    // ECALL, EBREAK, MRET and WFI are the only funct3 000 SYSTEM words on an
+    // M-mode-only core without debug mode (ERRATUM C-5)
+    // ECALL, EBREAK, MRET, WFI: the only SYSTEM words with funct3 = 000
+    wire sys_word_bad = !((instr_i == 32'h0000_0073) ||
+                          (instr_i == 32'h0010_0073) ||
+                          (instr_i == 32'h3020_0073) ||
+                          (instr_i == 32'h1050_0073));
+
     always_comb begin : c_reg_write
         // Defaults - NOP-equivalent
         reg_write_o = 1'b0;
         mem_read_o = 1'b0;
         mem_write_o = 1'b0;
-        mem_to_reg_o = 1'b0;
         alu_src_o = 1'b0;
         alu_a_pc_o = 1'b0;
         alu_op_o = ALU_ADD;
@@ -166,7 +170,6 @@ module decode_control
                 end else begin
                     reg_write_o = 1'b1;
                     mem_read_o = 1'b1;
-                    mem_to_reg_o = 1'b1;
                     alu_src_o = 1'b1;
                     alu_op_o = ALU_ADD;
                     imm_sel_o = IMM_I;
@@ -184,16 +187,37 @@ module decode_control
                 end
             end
             OP_IMM: begin
-                reg_write_o = 1'b1;
+                // ERRATUM C-14 (2026-10-04): an illegal instruction presents an
+                // inert bundle, so reg_write is set only on the legal paths
+                // below (it was set here, before funct7_fld was examined, and
+                // cleared again by an override at the end of the block).
                 alu_src_o = 1'b1;
                 imm_sel_o = IMM_I;
                 case (funct3_fld)
-                    3'b000: alu_op_o = ALU_ADD;  // ADDI
-                    3'b010: alu_op_o = ALU_SLT;  // SLTI
-                    3'b011: alu_op_o = ALU_SLTU;  // SLTIU
-                    3'b100: alu_op_o = ALU_XOR;  // XORI
-                    3'b110: alu_op_o = ALU_OR;  // ORI
-                    3'b111: alu_op_o = ALU_AND;  // ANDI
+                    3'b000: begin
+                        reg_write_o = 1'b1;
+                        alu_op_o = ALU_ADD;  // ADDI
+                    end
+                    3'b010: begin
+                        reg_write_o = 1'b1;
+                        alu_op_o = ALU_SLT;  // SLTI
+                    end
+                    3'b011: begin
+                        reg_write_o = 1'b1;
+                        alu_op_o = ALU_SLTU;  // SLTIU
+                    end
+                    3'b100: begin
+                        reg_write_o = 1'b1;
+                        alu_op_o = ALU_XOR;  // XORI
+                    end
+                    3'b110: begin
+                        reg_write_o = 1'b1;
+                        alu_op_o = ALU_OR;  // ORI
+                    end
+                    3'b111: begin
+                        reg_write_o = 1'b1;
+                        alu_op_o = ALU_AND;  // ANDI
+                    end
                     // ERRATUM C-1 (found by riscv-tests rv32mi/shamt)
                     // The shift-immediate forms carry the shift amount in
                     // instr[24:20] and RV32 requires instr[31:25] to be exactly
@@ -204,21 +228,24 @@ module decode_control
                     // illegal instruction. Spike traps it; GARUDA did not.
                     3'b001: begin
                         if (funct7_fld == 7'b0000000) begin
+                            reg_write_o = 1'b1;
                             alu_op_o = ALU_SLL;  // SLLI
                         end else begin
                             illegal_instr_o = 1'b1;
                         end
                     end
-                    3'b101: begin
+                    // 3'b101, the last encoding (the case lists every value)
+                    default: begin
                         if (funct7_fld == 7'b0000000) begin
+                            reg_write_o = 1'b1;
                             alu_op_o = ALU_SRL;  // SRLI
                         end else if (funct7_fld == 7'b0100000) begin
+                            reg_write_o = 1'b1;
                             alu_op_o = ALU_SRA;  // SRAI
                         end else begin
                             illegal_instr_o = 1'b1;
                         end
                     end
-                    default: illegal_instr_o = 1'b1;
                 endcase
             end
             OP_REG: begin
@@ -248,8 +275,8 @@ module decode_control
                         // SRA/SRL
                         3'b101: alu_op_o = funct7_fld[5] ? ALU_SRA : ALU_SRL;
                         3'b110: alu_op_o = ALU_OR;
-                        3'b111: alu_op_o = ALU_AND;
-                        default: illegal_instr_o = 1'b1;
+                        // 3'b111, the last encoding
+                        default: alu_op_o = ALU_AND;
                     endcase
                 end else begin
                     illegal_instr_o = 1'b1;
@@ -262,9 +289,7 @@ module decode_control
                 end else if (funct3_fld == 3'b000) begin
                     // Only these four exist on an M-mode-only, no-debug-mode
                     // core; trap_ctrl discriminates them by the same words.
-                    if (instr_i != 32'h0000_0073 && instr_i != 32'h0010_0073
-                        && instr_i != 32'h3020_0073
-                        && instr_i != 32'h1050_0073) begin
+                    if (sys_word_bad) begin
                         illegal_instr_o = 1'b1;
                     end
                 end else begin
@@ -304,10 +329,9 @@ module decode_control
             //
             // Any other funct3_fld in MISC-MEM remains illegal.
             OP_MISC_MEM: begin
-                if (funct3_fld == 3'b000) begin
-                end else if (funct3_fld == 3'b001) begin
+                if (funct3_fld == 3'b001) begin
                     fencei_o = 1'b1;  // FENCE.I
-                end else begin
+                end else if (funct3_fld != 3'b000) begin
                     illegal_instr_o = 1'b1;
                 end
             end
@@ -324,21 +348,9 @@ module decode_control
             end
         endcase
         // ERRATUM C-14 (2026-10-04): an illegal instruction presents an inert
-        // bundle. OP_IMM set reg_write before it examined funct7_fld, so a
-        // reserved shift-immediate reached EX flagged illegal with reg_write
-        // still high. Forced here, once, so no case above can leave a side
-        // effect enabled.
-        if (illegal_instr_o) begin
-            reg_write_o = 1'b0;
-            mem_read_o = 1'b0;
-            mem_write_o = 1'b0;
-            branch_o = 1'b0;
-            jal_o = 1'b0;
-            jalr_o = 1'b0;
-            mul_en_o = 1'b0;
-            dsu_en_o = 1'b0;
-            csr_en_o = 1'b0;
-        end
+        // bundle. Every arm above enables a side effect only on its legal path
+        // (OP_IMM was the one that did not; it now does), so no override is
+        // needed here.
     end
 
 endmodule

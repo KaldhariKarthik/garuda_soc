@@ -9,46 +9,31 @@
 // the clock is LOW, so the gated clock can only ever produce whole pulses.
 // Its enable is ~pipe_ctrl.quiescent and nothing else ([N-7.29]).
 //
-// `GARUDA_ICG_CELL` : instantiate the library ICG here (PD handoff).
-// otherwise         : behavioural model. The latch below is the intended ICG
-//                     latch, not an inference accident; it is the only latch
-//                     in the design and synthesis must map this module to the
-//                     library ICG cell (dont_touch / set_clock_gating_check).
-// test_en_i forces the clock on for scan.
+// The behavioural model: the latch below is the intended ICG latch, not an
+// inference accident; it is the only latch in the design. The physical flow
+// reads flow/pd/asap7/core_clk_gate_icg.sv in place of this file (the library
+// ICG), the FPGA build rtl/fpga/core_clk_gate_fpga.sv (a BUFGCE); F4
+// (2026-11-17) took the `ifdef GARUDA_ICG_CELL out of this file.
+// The enable arrives already ORed with the scan enable (the cell's ENA | SE),
+// so this module holds the latch and the AND and nothing else (HAL CLKGNP).
 // =============================================================================
 
 module core_clk_gate (
     input wire hclk,
     input wire en_i,
-    input wire test_en_i,
     output wire gclk_o
 );
     timeunit 1ns;
     timeprecision 1ps;
 
-`ifdef GARUDA_ICG_CELL
-    // Library ICG through the flow's generic clock-gate module. OpenROAD-flow-
-    // scripts maps OPENROAD_CLKGATE to the platform cell in its
-    // CLKGATE_MAP_FILE (ASAP7: platforms/asap7/yoSys/cells_clkgate_R.v ->
-    // ICGx1_ASAP7_75t_R, latch_posedge_precontrol). That map is a plain wire
-    // (GCK = CK) unless OPENROAD_CLKGATE is defined, which would silently
-    // remove the gate, so a build with GARUDA_ICG_CELL but without
-    // OPENROAD_CLKGATE fails elaboration on the unresolved module below
-    // instead. OPENROAD_CLKGATE has no SE pin: test_en_i is ORed into the
-    // enable, the same function as the cell's ENA | SE. For the 28 nm library,
-    // the flow's map (or this instance) names the foundry ICG instead.
-`ifndef OPENROAD_CLKGATE
-    GARUDA_ICG_CELL_requires_OPENROAD_CLKGATE_define u_missing_define ();
-`endif
-    OPENROAD_CLKGATE u_icg (.CK(hclk), .E(en_i | test_en_i), .GCK(gclk_o));
-`else
-    reg en_l;
-    always_comb begin : c_en_l
-        if (!hclk) begin
-            en_l = en_i | test_en_i;
+    // the latch is open while the clock is low
+    wire hclk_low = ~hclk;
+    reg  en_l;
+    always_latch begin : l_en
+        if (hclk_low) begin
+            en_l <= en_i;
         end
     end
     assign gclk_o = hclk & en_l;
-`endif
 
 endmodule

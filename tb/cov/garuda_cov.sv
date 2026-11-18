@@ -306,7 +306,7 @@ bind garuda_core_top garuda_cov u_cov (
     .xe_mul_en(xe_mul_en), .xe_dsu_en(xe_dsu_en), .xe_csr_en(xe_csr_en),
     .fwd_a_sel(fwd_a_sel), .fwd_b_sel(fwd_b_sel),
     .load_use(id_load_use), .mem_stall(mem_stall), .dsu_busy(ex_dsu_busy),
-    .trap_enter(tr_enter), .trap_cause(tr_cause),
+    .trap_enter(tr_enter), .trap_cause({tr_is_int, 26'd0, tr_cause}),
     // TB-40 (2026-10-11): cg_ldst samples on an EX-stage condition (xe_valid,
     // xe_mem_read/write), so the size and address must be EX-stage too: the
     // funct3 and effective address of the SAME instruction. They were the MEM

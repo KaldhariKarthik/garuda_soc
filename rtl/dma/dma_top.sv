@@ -68,7 +68,8 @@ module dma_top
     wire [DMA_NCH*WORD_W-1:0] stat;
     wire [DMA_NCH*DMA_SIZE_W-1:0]  size;
     wire [DMA_NCH-1:0]      m2m;  // CR.MODE == M2M, per channel (DMA-15)
-    wire [DMA_NCH-1:0]      inflight;  // a beat of channel n is in flight (DMA-9)
+    // a beat of channel n is in flight (DMA-9)
+    wire [DMA_NCH-1:0]      inflight;
     genvar m;
     generate for (m = 0; m < 6; m = m + 1) begin : g_m2m
         assign m2m[m] = (cr[32*m + 1 +: 2] == 2'd2);

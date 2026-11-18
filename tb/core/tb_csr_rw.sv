@@ -337,16 +337,18 @@ module tb_top;
     csr_rw_if vif(clk);
 
     csr_rw dut (
-        .instr      (vif.instr),
         .rs1_fwd    (vif.rs1_fwd),
-        .csr_en     (vif.csr_en),
         .csr_imm    (vif.csr_imm),
-        .csr_op     (vif.csr_op),
-        .csr_addr   (vif.csr_addr),
-        .csr_wdata  (vif.csr_wdata),
-        .csr_op_out (vif.csr_op_out),
-        .csr_en_out (vif.csr_en_out)
+        .zimm       (vif.instr[19:15]),
+        .csr_wdata  (vif.csr_wdata)
     );
+    // F4 (2026-11-17): the address, op and enable no longer pass through the
+    // unit; the core top takes them from ID/EX. The bench keeps its model and
+    // drives those three as the core top wires them, so the checks of them
+    // here now check that wiring rule, and the operand mux is the unit's.
+    assign vif.csr_addr   = vif.instr[31:20];
+    assign vif.csr_op_out = vif.csr_op;
+    assign vif.csr_en_out = vif.csr_en;
 
     csr_env env;
 

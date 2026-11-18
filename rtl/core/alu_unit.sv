@@ -25,6 +25,13 @@ module alu_unit
     localparam int unsigned SHAMTB_W = 32'd5;
 
     wire [SHAMTB_W-1:0] shamt = op_b[4:0];
+    // the signed results, each converted once and explicitly (HAL IMPDTC,
+    // MXUANS)
+    wire                signed_lt = $signed(op_a) < $signed(op_b);
+    wire                unsign_lt = op_a < op_b;
+    // both shift operands signed; the amount is non-negative by its zero top
+    wire [WORD_W-1:0]   sra_val
+        = $unsigned($signed(op_a) >>> $signed({1'b0, shamt}));
 
     always_comb begin : c_result
         case (alu_op)
@@ -35,11 +42,9 @@ module alu_unit
             ALU_XOR: result = op_a ^ op_b;
             ALU_SLL: result = op_a << shamt;
             ALU_SRL: result = op_a >> shamt;
-            ALU_SRA: result = $signed(op_a) >>> shamt;
-            ALU_SLT : result = {31'b0000000000000000000000000000000,
-                ($signed(op_a) < $signed(op_b))};
-            ALU_SLTU : result
-                = {31'b0000000000000000000000000000000, (op_a < op_b)};
+            ALU_SRA: result = sra_val;
+            ALU_SLT: result = WORD_W'(signed_lt);
+            ALU_SLTU: result = WORD_W'(unsign_lt);
             ALU_PASSB: result = op_b;  // LUI: pass immediate (Sec. 8.1)
             default: result = op_a + op_b;  // safe default: ADD
         endcase

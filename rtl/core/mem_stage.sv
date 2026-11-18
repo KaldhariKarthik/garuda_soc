@@ -38,7 +38,6 @@ module mem_stage
     // Control bits needed in MEM (subset of the full ctrl bundle)
     input wire mem_read_i,
     input wire mem_write_i,
-    input wire mem_to_reg_i,
     input wire reg_write_i,
     input wire valid_i,  // ex_mem.valid - retire tag (Sec. 13.2)
     // -------------------------------------------------------------------
@@ -81,25 +80,23 @@ module mem_stage
     // Sub-block 1: Load/Store Unit
     // -----------------------------------------------------------------------
     wire [HSIZE_W-1:0]  hsize_w;
-    wire         load_misaligned_w;
-    wire         store_misaligned_w;
+    wire         misaligned_w;
     wire [WORD_W-1:0] hwdata_w;
 
     load_store_unit u_lsu (
         .addr_i               (ex_result_i),
-        .funct3_i              (funct3_i),
+        .size_i                (funct3_i[1:0]),
         .rs2_data_i            (rs2_data_i),
 
         .hsize_o               (hsize_w),
-        .load_misaligned_o     (load_misaligned_w),
-        .store_misaligned_o    (store_misaligned_w),
+        .misaligned_o          (misaligned_w),
         .hwdata_o              (hwdata_w)
     );
 
     // Sec. 10.2: misalignment check completes before the address phase
     // commits - gate the bus start here, before the AHB master ever sees it.
-    wire misaligned_load_w  = mem_read_i  & load_misaligned_w;
-    wire misaligned_store_w = mem_write_i & store_misaligned_w;
+    wire misaligned_load_w  = mem_read_i  & misaligned_w;
+    wire misaligned_store_w = mem_write_i & misaligned_w;
     wire any_misaligned_w   = misaligned_load_w | misaligned_store_w;
 
     wire start_w = (mem_read_i | mem_write_i) & ~any_misaligned_w;
@@ -129,7 +126,6 @@ module mem_stage
         .d_hresp_i    (d_hresp_i),
 
         .mem_stall_o  (mem_stall_o),
-        .ok_done_o (),
         .err_pulse_o  (err_pulse_w)
     );
 
@@ -152,11 +148,12 @@ module mem_stage
     );
 
     // -----------------------------------------------------------------------
-    // Sec. 10.3: mem_to_reg overrides the EX result with the formatted
+    // Sec. 10.3: a load (mem_read; F4: the separate mem_to_reg bit, always
+    // equal to it, is gone) overrides the EX result with the formatted
     // load value. mem_wb only carries a single wb_data field (Sec. 5.2),
     // so this mux happens here, not in WB.
     // -----------------------------------------------------------------------
-    assign wb_data_o  = mem_to_reg_i ? load_data_w : ex_result_i;
+    assign wb_data_o  = mem_read_i ? load_data_w : ex_result_i;
     assign reg_write_o = reg_write_i;
     assign rd_o         = rd_i;
 

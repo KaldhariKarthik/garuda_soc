@@ -86,7 +86,6 @@ module ex_stage
     input wire reg_write,  // NOTE: ID drives 0 for ALL Custom-0
     input wire mem_read,
     input wire mem_write,
-    input wire mem_to_reg,
     input wire alu_src,  // 1: op_b = imm
     input wire pc_op_a,  // 1: op_a = pc (AUIPC)
     input wire [ALU_OP_W-1:0] alu_op,
@@ -98,38 +97,34 @@ module ex_stage
     input wire dsu_en,  // (opcode == 7'b0001011) in EX
     input wire csr_en,
     input wire csr_imm,
-    input wire [CSR_OP_W-1:0] csr_op,
     //------------------------------------------------------------------
     // Hazard/Forwarding unit (Section 11.1)
     //------------------------------------------------------------------
     input wire [FWD_SEL_W-1:0] fwd_a_sel,  // FWD_NONE / FWD_EXMEM / FWD_MEMWB
     input wire [FWD_SEL_W-1:0] fwd_b_sel,
     input wire [WORD_W-1:0] exmem_fwd_data,  // EX/MEM.ex_result
-    input wire [WORD_W-1:0] memwb_fwd_data,  // MEM/WB.wb_data (post load-format)
+    // MEM/WB.wb_data (post load-format)
+    input wire [WORD_W-1:0] memwb_fwd_data,
     //------------------------------------------------------------------
     // CONTROL/CSR/TRAP block exchange
     //------------------------------------------------------------------
     input wire [WORD_W-1:0] csr_rdata,  // combinational return (Section 8.4)
     input wire csr_clear_overflow,  // pulse on dsu_ovf CSR write
     input wire ex_squash,  // trap-driven EX squash (see NOTE 0)
-    output wire [CSR_ADDR_W-1:0] csr_addr,
     output wire [WORD_W-1:0] csr_wdata,
-    output wire [CSR_OP_W-1:0] csr_op_out,
-    output wire csr_en_out,
     //------------------------------------------------------------------
     // Results toward ex_mem (register at core top)
     //------------------------------------------------------------------
     output wire [WORD_W-1:0] ex_result,  // for loads/stores this IS d_haddr
-    output wire [WORD_W-1:0] store_data,  // forwarded rs2, to MEM lane-align
     // Post-forwarding register operands, fed back to ID/EX for operand
-    // capture across a multi-cycle stall. See ERRATUM F-1 in id_ex.v.
+    // capture across a multi-cycle stall (ERRATUM F-1 in id_ex.v); rs2_fwd_o is
+    // also the store data, to MEM lane-align.
     output wire [WORD_W-1:0] rs1_fwd_o,
     output wire [WORD_W-1:0] rs2_fwd_o,
     output wire [REG_IDX_W-1:0] rd_out,
     output wire reg_write_out,
     output wire mem_read_out,  // misalign-killed (Section 10.2)
     output wire mem_write_out,  // misalign-killed
-    output wire mem_to_reg_out,
     //------------------------------------------------------------------
     // EX-origin redirect (into core-top redirect mux)
     //------------------------------------------------------------------
@@ -140,7 +135,6 @@ module ex_stage
     // extension, so every instruction address is required to be 4-byte
     // aligned. See trap_ctrl.v.
     output wire fetch_misaligned,
-    output wire branch_mispredict,  // for perf counters / hazard
     //------------------------------------------------------------------
     // Exceptions raised in EX (to CONTROL, Section 14.1/14.2)
     //------------------------------------------------------------------
@@ -168,21 +162,24 @@ module ex_stage
     // unit's select encoding, not re-derived here: FWD_EXMEM beats
     // FWD_MEMWB at the source of fwd_*_sel.
     //==================================================================
-    reg [WORD_W-1:0] rs1_fwd;
-    reg [WORD_W-1:0] rs2_fwd;
+    function automatic logic [WORD_W-1:0] fwd_mux(
+        input logic [FWD_SEL_W-1:0] sel,
+        input logic [WORD_W-1:0] reg_val,
+        input logic [WORD_W-1:0] exmem_val,
+        input logic [WORD_W-1:0] memwb_val);
+        begin
+            case (sel)
+                FWD_EXMEM: fwd_mux = exmem_val;
+                FWD_MEMWB: fwd_mux = memwb_val;
+                default: fwd_mux = reg_val;  // FWD_NONE
+            endcase
+        end
+    endfunction
 
-    always_comb begin : c_rsone_fwd
-        case (fwd_a_sel)
-            FWD_EXMEM: rs1_fwd = exmem_fwd_data;
-            FWD_MEMWB: rs1_fwd = memwb_fwd_data;
-            default: rs1_fwd = rs1_data;
-        endcase
-        case (fwd_b_sel)
-            FWD_EXMEM: rs2_fwd = exmem_fwd_data;
-            FWD_MEMWB: rs2_fwd = memwb_fwd_data;
-            default: rs2_fwd = rs2_data;
-        endcase
-    end
+    wire [WORD_W-1:0] rs1_fwd = fwd_mux(fwd_a_sel, rs1_data, exmem_fwd_data,
+                                        memwb_fwd_data);
+    wire [WORD_W-1:0] rs2_fwd = fwd_mux(fwd_b_sel, rs2_data, exmem_fwd_data,
+                                        memwb_fwd_data);
 
     // pc/imm substitution is layered AFTER forwarding: forwarding applies
     // to register operands; AUIPC/imm selection is a ctrl decision.
@@ -190,8 +187,8 @@ module ex_stage
     wire [WORD_W-1:0] op_b = alu_src ? imm : rs2_fwd;
 
     // Store data and DSU operands always take the forwarded REGISTER value
-    // (Section 9.5: DSU operands ride the same EX forwarding paths).
-    assign store_data = rs2_fwd;
+    // (Section 9.5: DSU operands ride the same EX forwarding paths): the store
+    // data is rs2_fwd_o.
 
     // Reported on the is_branch/jump itself, not on the target instruction
     // (RISC-V priv spec: "reported on the is_branch or jump that caused the
@@ -236,8 +233,6 @@ module ex_stage
         .jal             (jal),
         .jalr            (jalr),
         .predicted_taken (predicted_taken),
-        .branch_taken    (),  // available for BTB later; unused
-        .mispredict      (branch_mispredict),
         .redirect        (ex_redirect),
         .redirect_target (ex_redirect_target),
         .target_misaligned (fetch_misaligned)
@@ -247,15 +242,10 @@ module ex_stage
     // CSR read-modify-write seam (Sections 8.3 / 8.4)
     //==================================================================
     csr_rw u_csr_rw (
-        .instr      (instr),
         .rs1_fwd    (rs1_fwd),
-        .csr_en     (csr_en),
         .csr_imm    (csr_imm),
-        .csr_op     (csr_op),
-        .csr_addr   (csr_addr),
-        .csr_wdata  (csr_wdata),
-        .csr_op_out (csr_op_out),
-        .csr_en_out (csr_en_out)
+        .zimm       (instr[19:15]),
+        .csr_wdata  (csr_wdata)
     );
 
     //==================================================================
@@ -295,10 +285,10 @@ module ex_stage
     //   3. mul_result  when mul_en
     //   4. alu_or_link otherwise
     //
-    // Loads override later in WB via mem_to_reg (Section 10.3).
+    // Loads override it in MEM, selected by mem_read (Section 10.3).
     //==================================================================
     wire [WORD_W-1:0] link        = pc + 32'd4;
-    wire [WORD_W-1:0] alu_or_link = (jal | jalr) ? link : alu_result;
+    wire [WORD_W-1:0] alu_or_link = (jal || jalr) ? link : alu_result;
 
     assign ex_result = csr_en       ? csr_rdata
                      : dsu_rd_valid ? dsu_rd_data
@@ -333,6 +323,5 @@ module ex_stage
 
     assign mem_read_out   = mem_read  & ~misaligned;
     assign mem_write_out  = mem_write & ~misaligned;
-    assign mem_to_reg_out = mem_to_reg;
 
 endmodule

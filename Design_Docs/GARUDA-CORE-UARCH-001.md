@@ -49,7 +49,6 @@ Files: `garuda_if_stage_top.v` (wiring only), `garuda_pc_gen.v`, `garuda_iport_a
 | Element | What it holds or does |
 |---|---|
 | `pc_gen.fetch_pc_o` | The address the I-port fetches next. It advances by 4 each time the I-port's address phase is accepted, so it runs up to four words ahead of the pipeline. |
-| `pc_gen.pc_o` | The address of the instruction entering ID: the PC tag of the popped entry, plus 4. |
 | `prefetch_buffer` | A 4-entry circular FIFO. Each entry holds `{instr[31:0], pc[31:0], fault}`. `fault` is set when the I-port got an AHB ERROR for that word. The reset contents are NOPs (`addi x0,x0,0`). |
 | `iport_ahb_master` | Issues fetches only while (buffered + outstanding) < 4 can hold another word, so the FIFO can never overflow. |
 

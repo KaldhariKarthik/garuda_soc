@@ -51,8 +51,6 @@ module pipe_ctrl
     output wire if_redirect_o,
     output wire [WORD_W-1:0] if_redirect_pc_o,
     // ---- to pipeline registers ----
-    output wire if_id_stall_o,
-    output wire if_id_flush_o,
     output wire id_ex_stall_o,
     output wire id_ex_flush_o,
     output wire ex_mem_stall_o,
@@ -140,12 +138,10 @@ module pipe_ctrl
     wire hold_id_ex   = mem_stall_i | dsu_busy_i | wfi_hold_i;
     wire hold_ex_mem  = mem_stall_i;
 
-    // PC
+    // PC and IF/ID hold together, so one signal stalls both (F4: the separate
+    // if_id_stall_o, always equal, is gone). IF/ID is flushed by
+    // if_redirect_o (any redirect: the wrongly fetched slot).
     assign if_stall_o    = hold_pc_ifid & ~redirect;
-
-    // IF/ID : any redirect flushes the wrongly-fetched slot
-    assign if_id_flush_o = redirect;
-    assign if_id_stall_o = hold_pc_ifid & ~if_id_flush_o;
 
     // ID/EX : 2-bubble redirect OR load-use OR trap-squash bubbles it
     //

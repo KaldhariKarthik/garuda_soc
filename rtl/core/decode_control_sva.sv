@@ -12,7 +12,7 @@
 `ifndef __ICARUS__
 module decode_control_sva (
     input wire [31:0] instr_i,
-    input wire reg_write_o, mem_read_o, mem_write_o, mem_to_reg_o, branch_o, jal_o, jalr_o,
+    input wire reg_write_o, mem_read_o, mem_write_o, branch_o, jal_o, jalr_o,
     input wire mul_en_o, dsu_en_o, csr_en_o, is_system_o, illegal_instr_o, fencei_o,
     input wire [4:0] rd_o, rs1_o, rs2_o, input wire [2:0] funct3_o
 );
@@ -44,7 +44,7 @@ module decode_control_sva (
         a_dec_illegal_quiet: assert #0 (!illegal_instr_o || !(reg_write_o || mem_read_o || mem_write_o || branch_o ||
                                          jal_o || jalr_o || mul_en_o || dsu_en_o || csr_en_o || fencei_o))
             else $error("[SVA-FAIL] a_dec_illegal_quiet: %h is illegal but enables something", instr_i);
-        a_dec_load:  assert #0 (!(legal && load)  || (mem_read_o && mem_to_reg_o && reg_write_o && !mem_write_o))
+        a_dec_load:  assert #0 (!(legal && load)  || (mem_read_o && reg_write_o && !mem_write_o))
             else $error("[SVA-FAIL] a_dec_load: %h is a load", instr_i);
         a_dec_store: assert #0 (!(legal && store) || (mem_write_o && !mem_read_o && !reg_write_o))
             else $error("[SVA-FAIL] a_dec_store: %h is a store", instr_i);

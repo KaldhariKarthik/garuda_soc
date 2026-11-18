@@ -58,8 +58,16 @@ if ! command -v yosys > /dev/null 2>&1; then
 fi
 
 echo "=== expanding $FLIST ==="
-python3 scripts/expand_filelist.py "$FLIST" --yosys > "$OUT/read.ys" || exit 1
-echo "    $(grep -c read_verilog "$OUT/read.ys") source files"
+# yosys-slang reads the design (TOOL-A23, 2026-11-18): yosys's own Verilog
+# parser stops at `module m import pkg::*;`, which every own module uses since
+# the packages came in (0e5e464). The SymbiYosys runs read it the same way
+# (tools/run/garuda_fv.py).
+SRCS=$(python3 scripts/expand_filelist.py "$FLIST" | tr '\n' ' ') || exit 1
+INCS=$(python3 scripts/expand_filelist.py "$FLIST" --incdirs) || exit 1
+DEFS=$(python3 scripts/expand_filelist.py "$FLIST" --defines) || exit 1
+{ echo "plugin -i slang"
+  echo "read_slang -DSYNTHESIS $INCS $DEFS $SRCS --top $TOP"; } > "$OUT/read.ys"
+echo "    $(echo $SRCS | wc -w) source files"
 
 cat > "$OUT/synth.ys" <<EOF
 # ---- read -------------------------------------------------------------------
@@ -94,8 +102,11 @@ stat
 # text yosys actually writes. A gate that cannot fail is not a gate -- see
 # TOOL-4, TOOL-5 and TB-11 in Docs/bugs/archive/BUGS_HISTORY.md for the same defect three times.
 tee -q -o __LATCHFILE__ select -list t:\$dlatch t:\$_DLATCH_* %u
+# each latch's source location: yosys-slang flattens the design, so a latch
+# is known by the file it comes from, not by its hierarchical name
+tee -q -o __LATCHSRC__ printattrs t:\$dlatch t:\$_DLATCH_* %u
 EOF
-sed -i "s|__LATCHFILE__|$OUT/latches.txt|" "$OUT/synth.ys"
+sed -i "s|__LATCHFILE__|$OUT/latches.txt|; s|__LATCHSRC__|$OUT/latch_src.txt|" "$OUT/synth.ys"
 
 echo "=== running yosys ==="
 yosys -q -l "$OUT/yosys.log" "$OUT/synth.ys"
@@ -139,7 +150,10 @@ if [ ! -f "$LATCHFILE" ]; then
     exit 1
 fi
 LATCH_ALL=$(grep -c . "$LATCHFILE")
-LATCH_BAD=$(grep -v "core_clk_gate" "$LATCHFILE" | grep -c .)
+# one src line per latch; the clock gate's latch is the only one allowed
+LATCH_SRC=$(grep -c "src=\"" "$OUT/latch_src.txt")
+LATCH_BAD=$(( LATCH_ALL - $(grep "src=\"" "$OUT/latch_src.txt" | grep -c "rtl/core/core_clk_gate.sv") ))
+[ "$LATCH_SRC" -eq "$LATCH_ALL" ] || { echo "*** LATCH GATE: $LATCH_ALL latches but $LATCH_SRC source locations ***"; exit 1; }
 echo "Latches: $LATCH_ALL total, $LATCH_BAD unexpected"
 echo "  (core_clk_gate's ICG enable latch is expected and allowed by name)"
 if [ "$LATCH_BAD" -gt 0 ]; then

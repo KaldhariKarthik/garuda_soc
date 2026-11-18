@@ -10,13 +10,13 @@ module tb_exmem_ifid;
   reg rst_n, stall, flush;
 
   // ex_mem
-  reg [31:0] xr,sd,pc; reg [2:0] f3; reg [4:0] rd; reg mr,mw,m2r,rw;
-  wire [31:0] xr_o,sd_o,pc_o; wire [2:0] f3_o; wire [4:0] rd_o; wire mr_o,mw_o,m2r_o,rw_o;
+  reg [31:0] xr,sd,pc; reg [2:0] f3; reg [4:0] rd; reg mr,mw,rw;
+  wire [31:0] xr_o,sd_o,pc_o; wire [2:0] f3_o; wire [4:0] rd_o; wire mr_o,mw_o,rw_o;
   ex_mem xm(.gclk(clk),.core_rst_n(rst_n),.stall_i(stall),.flush_i(flush),
     .ex_result_i(xr),.store_data_i(sd),.funct3_i(f3),.rd_i(rd),.pc_i(pc),
-    .mem_read_i(mr),.mem_write_i(mw),.mem_to_reg_i(m2r),.reg_write_i(rw),
+    .mem_read_i(mr),.mem_write_i(mw),.reg_write_i(rw),
     .ex_result_o(xr_o),.store_data_o(sd_o),.funct3_o(f3_o),.rd_o(rd_o),.pc_o(pc_o),
-    .mem_read_o(mr_o),.mem_write_o(mw_o),.mem_to_reg_o(m2r_o),.reg_write_o(rw_o));
+    .mem_read_o(mr_o),.mem_write_o(mw_o),.reg_write_o(rw_o));
 
   // if_id
   reg [31:0] ii,ipc; reg iv,iflt;
@@ -27,7 +27,7 @@ module tb_exmem_ifid;
 
   initial begin
     rst_n=0; stall=0; flush=0;
-    xr=32'hCAFEBABE; sd=32'h1234; f3=3'b010; rd=5'd12; pc=32'h8000_0040; mr=1; mw=0; m2r=1; rw=1;
+    xr=32'hCAFEBABE; sd=32'h1234; f3=3'b010; rd=5'd12; pc=32'h8000_0040; mr=1; mw=0; rw=1;
     ii=32'h00A05093; ipc=32'h1000_0000; iv=1; iflt=0;  // (some real-ish instr word)
     @(negedge clk) rst_n=1;
     // reset->bubble

@@ -49,7 +49,8 @@ module ahb_master_mux
     import ahb_pkg::*;
 (
     input wire [AHB_MID_W-1:0] grant_i,  // address-phase owner
-    input wire [AHB_MID_W-1:0] dph_master_i,  // data-phase owner (ERRATUM AHB-1)
+    // data-phase owner (ERRATUM AHB-1)
+    input wire [AHB_MID_W-1:0] dph_master_i,
     input wire seq_break_i,  // force NONSEQ (ERRATUM AHB-3)
     // ---- M0 : CPU I-Port ----
     input wire [WORD_W-1:0] i_haddr_i,

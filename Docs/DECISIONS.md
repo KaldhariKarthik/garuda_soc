@@ -713,6 +713,36 @@ the reset convergence inside the core and the AND gate are gone. Benches that dr
 
 ---
 
+## D-37 — Core logic nothing reads is removed (F4 lint, 2026-11-17)
+
+**Context.** The zero-waiver ruling (D-36) runs HAL with every rule on. In the core it reported
+logic whose value no part of the chip reads: registers and ports that duplicate another signal
+bit for bit, outputs read only by a bench, and port bits that are constant.
+
+**Decision.** Such logic is removed, not excepted. Benches, SVA and coverage that read it
+compute it themselves or read the signal it duplicated. In the core:
+- `garuda_pc_gen` keeps the fetch pointer only; its "architectural PC" register and the commit
+  inputs that advanced it are gone (nothing read it: the PC of the instruction in ID is the
+  prefetch buffer's tag).
+- `mem_to_reg` is gone from decode through MEM: it equalled `mem_read` at every stage (two
+  duplicate flops); MEM selects the load data on `mem_read`.
+- Duplicate outputs go: `pipe_ctrl.if_id_stall_o` (= `if_stall_o`), `if_id_flush_o`
+  (= `if_redirect_o`), `trap_ctrl.trap_squash_id_ex_o` (= `trap_enter_o`); `ex_squash_o`,
+  `clic_take_o` and the D-port `ok_done_o`, prefetch `full_o` and branch `mispredict` ports
+  that only benches read.
+- The trap cause is the 5-bit code: `trap_ctrl` sent a 32-bit mcause whose bits 30:5 were
+  always 0 (three coverage waivers covered them). `csr_file` forms mcause from
+  `is_interrupt`, mil (mpil) and the code.
+- `csr_rw` is the CSR write-data mux only; address, op and enable go from ID/EX to `csr_file`.
+- The register file and `id_stage` lose the reset port neither used.
+
+**Consequences.** Each module is proven equal to the committed RTL by JasperGold SEC, the core
+top 20/20 from reset; changed ports are proven at the level that contains them. Specs: CORE
+[Sec. 6.2] fetch PC only. The scan enable of the core clock gate is a tied wire in the core
+top until scan insertion (G7).
+
+---
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. None blocks RTL.

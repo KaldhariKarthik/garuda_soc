@@ -130,8 +130,9 @@ module debug_module
                              // RDC-1: halted = granted
                              ~grant_q, ~grant_q, grant_q, grant_q,
                              1'b1, 3'b000, 4'd2};
-    wire [WORD_W-1:0] sbcs = {3'd1, 6'd0, sbbusyerror, sbbusy, sbreadonaddr, sbaccess,
-                             sbautoinc, sbreadondata, sberror, 7'd32, 5'b00100};
+    wire [WORD_W-1:0] sbcs = {3'd1, 6'd0, sbbusyerror, sbbusy, sbreadonaddr,
+                              sbaccess, sbautoinc, sbreadondata, sberror,
+                              7'd32, 5'b00100};
 
     wire rd = req_i && op_i == 2'd1;
     wire wr = req_i && op_i == 2'd2;

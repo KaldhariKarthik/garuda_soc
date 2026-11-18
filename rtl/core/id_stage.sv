@@ -12,7 +12,6 @@ module id_stage
     import garuda_pkg::*;
 (
     input wire gclk,
-    input wire core_rst_n,
     // -------------------------------------------------------------------
     // From IF/ID pipeline register (Sec. 5.2 - instr, pc, fault, valid)
     // -------------------------------------------------------------------
@@ -38,7 +37,6 @@ module id_stage
     output wire reg_write_o,
     output wire mem_read_o,
     output wire mem_write_o,
-    output wire mem_to_reg_o,
     output wire alu_src_o,
     output wire alu_a_pc_o,
     output wire [ALU_OP_W-1:0] alu_op_o,
@@ -100,7 +98,7 @@ module id_stage
     wire [REG_IDX_W-1:0] rs2_idx_w;
     wire [FUNCT3_W-1:0] funct3_w;
     wire [IMM_SEL_W-1:0] imm_sel_w;
-    wire [WORD_W-1:0] id_instr = if_id_valid_i ? if_id_instr_i : 32'h0000_0013;
+    wire [WORD_W-1:0] id_instr = if_id_valid_i ? if_id_instr_i : NOP_INSTR;
 
     // FENCE.I (ERRATUM C-3): decode_control raises it, branch_predict turns it
     // into an ID redirect to pc+4, which flushes the prefetch buffer.
@@ -109,7 +107,6 @@ module id_stage
     decode_control u_decode_control (
         .instr_i          (id_instr),
 
-        .opcode_o (),
         .rd_o              (rd_w),
         .funct3_o          (funct3_w),
         .rs1_o             (rs1_idx_w),
@@ -118,7 +115,6 @@ module id_stage
         .reg_write_o       (reg_write_o),
         .mem_read_o        (mem_read_o),
         .mem_write_o       (mem_write_o),
-        .mem_to_reg_o      (mem_to_reg_o),
         .alu_src_o         (alu_src_o),
         .alu_a_pc_o        (alu_a_pc_o),
         .alu_op_o          (alu_op_o),
@@ -159,7 +155,6 @@ module id_stage
 
     regfile u_regfile (
         .gclk           (gclk),
-        .core_rst_n         (core_rst_n),
 
         .rs1_idx_i       (rs1_idx_w),
         .rs2_idx_i       (rs2_idx_w),

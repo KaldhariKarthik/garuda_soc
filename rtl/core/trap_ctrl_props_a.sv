@@ -156,11 +156,11 @@ bind trap_ctrl trap_ctrl_props_a u_trap_sva (
     .redirect_valid (trap_redirect_valid_o),
     .redirect_target(trap_redirect_target_o),
     .mtvec          (mtvec_i),
-    .squash_id_ex   (trap_squash_id_ex_o),
-    .clic_take      (clic_take_o),
+    .squash_id_ex   (trap_enter_o),  // one signal since F4
+    .clic_take      (take_int),  // no port since F4
     .clic_level     (clic_level_o),
     .idex_valid     (idex_valid_i),
-    .trap_cause     (trap_cause_o),
+    .trap_cause     ({is_interrupt_o, 26'd0, trap_cause_o}),  // the mcause word
     .trap_tval      (trap_tval_o)
 );
 `endif

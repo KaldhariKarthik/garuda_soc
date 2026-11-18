@@ -31,7 +31,7 @@ module csr_file
     input wire csr_en_i,
     // the instruction in EX leaves EX this cycle, unsquashed (ERRATUM P-6)
     input wire commit_i,
-    input wire [PADDR_W-1:0] csr_addr_i,
+    input wire [CSR_ADDR_W-1:0] csr_addr_i,
     input wire [WORD_W-1:0] csr_wdata_i,
     input wire [CSR_OP_W-1:0] csr_op_i,
     output reg [WORD_W-1:0] csr_rdata_o,
@@ -50,7 +50,8 @@ module csr_file
     input wire is_interrupt_i,
     input wire [CLIC_LVL_W-1:0] clic_level_i,  // taken interrupt level
     input wire [WORD_W-1:0] trap_pc_i,  // -> mepc
-    input wire [WORD_W-1:0] trap_cause_i,  // -> mcause (bit31 = interrupt)
+    // the mcause code; mcause[31] is is_interrupt_i
+    input wire [TRAP_CODE_W-1:0] trap_cause_i,
     input wire [WORD_W-1:0] trap_tval_i,  // -> mtval
     input wire mtip_i,  // machine timer interrupt from block 11 (ADR-0010)
     // ---- architectural exports (to trap_ctrl / clic_ctrl) ----
@@ -71,7 +72,6 @@ module csr_file
 );
     timeunit 1ns;
     timeprecision 1ps;
-    localparam int unsigned CTL_W = 32'd4;
     // ---------------- addresses (Sec. 13.2) ----------------
     localparam MISA=12'h301, MVENDORID=12'hF11, MARCHID=12'hF12, MIMPID=12'hF13,
                MHARTID=12'hF14, MSTATUS=12'h300, MTVEC=12'h305,
@@ -156,7 +156,7 @@ module csr_file
     // rtl/core/csr_file_props_a.sv.
     // -------------------------------------------------------------------------
     reg [BYTE_W-1:0]  mil_r;  // mintstatus.mil: current interrupt level
-    reg [CTL_W-1:0]  ctl_r;  // mgarudactl (CORE-4)
+    reg [GCTL_W-1:0] ctl_r;  // mgarudactl (CORE-4)
     reg [DWORD_W-1:0] mcycle_r;
     reg [DWORD_W-1:0] minstret_r;
     // ERRATUM C-17 (ruling D-32, 2026-11-04): minstret_r counts at WB, so a
@@ -169,16 +169,14 @@ module csr_file
     wire [DWORD_W-1:0] instret_arch = minstret_r +{63'd0, ret_mem_i}
         +{63'd0, instret_i};
 
-    wire [WORD_W-1:0] mstatus_val
-        = {19'd0, 2'b11, 3'd0, mstatus_mpie, 3'd0, mstatus_mie, 3'd0};
     // CORE-SPEC Rev 3.0 Sec.6.1: 0x4000_1100, RV32IM. The X bit is not set: the
     // DSU's Custom-0 space is a non-standard extension but misa.X is optional
     // and the spec value is normative.
-    wire [WORD_W-1:0] misa_val    = {2'b01 /*MXL=32*/, 4'd0, 26'h0001100 /*I+M*/};
+    // MXL = 32, extensions I and M
+    wire [WORD_W-1:0] misa_val    = {2'b01, 4'd0, 26'h0001100};
     // T-12 (R2/R3): 0x346, GARUDA's address, holds mil in [7:0]; 0xFB1, the
     // ratified Smclic address, uses the ratified layout (mil in [31:24]).
-    wire [WORD_W-1:0] mintstatus_val     = {24'd0, mil_r};
-    wire [WORD_W-1:0] mintstatus_std_val = {mil_r, 24'd0};
+    // (the two layouts are built in the read mux below, from mil_r)
 
     // mip is read-only hardware state: MTIP[7] only (CORE Sec.6.1, [N-6.1]).
     // CLIC interrupts do not appear in mip/mie in CLIC mode.
@@ -186,47 +184,57 @@ module csr_file
     localparam integer MTIE_BIT = 32'd7;
     assign mti_pending_o = mtip_i & mie_r[MTIE_BIT];
 
-    // ---------------- read mux + implemented? ----------------
-    reg [WORD_W-1:0] rdata;
-    reg        implemented;
-    always_comb begin : c_implemented
-        implemented = 1'b1;
+    // ---------------- read mux ----------------
+    // An unimplemented or read-zero address reads 0. The mux drives only the
+    // output: nothing in this module reads csr_rdata_o (HAL REVROP).
+    always_comb begin : c_rdata
         case (csr_addr_i)
-            MISA: rdata = misa_val;
-            MVENDORID: rdata = 32'd0;
-            MARCHID: rdata = 32'd0;
-            MIMPID: rdata = 32'h0000_0110;  // Rev 1.1
-            MHARTID: rdata = 32'd0;
-            MSTATUS: rdata = mstatus_val;
+            MISA: csr_rdata_o = misa_val;
+            MIMPID: csr_rdata_o = 32'h0000_0110;  // Rev 1.1
+            MSTATUS: csr_rdata_o = {19'd0, 2'b11, 3'd0, mstatus_mpie, 3'd0,
+                                    mstatus_mie, 3'd0};
             // MODE hardwired to 3 (CLIC)
-            MTVEC: rdata = {mtvec_r[31:2], 2'b11};
-            MIE_CSR: rdata = mie_r;
-            MIP_CSR: rdata = mip_val;
-            MEPC: rdata = mepc_r;
-            MCAUSE: rdata = mcause_r;
-            MTVAL: rdata = mtval_r;
-            MSCRATCH: rdata = mscratch_r;
-            MINTSTATUS: rdata = mintstatus_val;
-            MINTSTATUS_STD: rdata = mintstatus_std_val;
-            MNXTI: rdata = 32'd0;  // not implemented, reads 0 (Sec.13)
-            MINTTHRESH: rdata = {24'd0, mintthresh_r};
-            MCYCLE: rdata = mcycle_r[31:0];
-            MCYCLEH: rdata = mcycle_r[63:32];
-            MINSTRET: rdata = instret_arch[31:0];
-            MINSTRETH: rdata = instret_arch[63:32];
-            DSU_OVF: rdata = {31'd0, dsu_overflow_i};
-            MGARUDACTL: rdata = {28'd0, ctl_r};  // CORE-4
-            CYCLE: rdata = mcycle_r[31:0];  // Zicntr read-only aliases
-            CYCLEH: rdata = mcycle_r[63:32];
-            INSTRET: rdata = instret_arch[31:0];
-            INSTRETH: rdata = instret_arch[63:32];
-            default: begin
-                rdata = 32'd0;
-                implemented = is_readzero;
-            end
+            MTVEC: csr_rdata_o = {mtvec_r[31:2], 2'b11};
+            MIE_CSR: csr_rdata_o = mie_r;
+            MIP_CSR: csr_rdata_o = mip_val;
+            MEPC: csr_rdata_o = mepc_r;
+            MCAUSE: csr_rdata_o = mcause_r;
+            MTVAL: csr_rdata_o = mtval_r;
+            MSCRATCH: csr_rdata_o = mscratch_r;
+            MINTSTATUS: csr_rdata_o = {24'd0, mil_r};
+            MINTSTATUS_STD: csr_rdata_o = {mil_r, 24'd0};
+            MINTTHRESH: csr_rdata_o = {24'd0, mintthresh_r};
+            MCYCLE: csr_rdata_o = mcycle_r[31:0];
+            MCYCLEH: csr_rdata_o = mcycle_r[63:32];
+            MINSTRET: csr_rdata_o = instret_arch[31:0];
+            MINSTRETH: csr_rdata_o = instret_arch[63:32];
+            DSU_OVF: csr_rdata_o = {31'd0, dsu_overflow_i};
+            MGARUDACTL: csr_rdata_o = {28'd0, ctl_r};  // CORE-4
+            CYCLE: csr_rdata_o = mcycle_r[31:0];  // Zicntr read-only aliases
+            CYCLEH: csr_rdata_o = mcycle_r[63:32];
+            INSTRET: csr_rdata_o = instret_arch[31:0];
+            INSTRETH: csr_rdata_o = instret_arch[63:32];
+            // mvendorid, marchid, mhartid and mnxti (Sec.13) read 0, as do the
+            // read-zero CSRs and every unimplemented address
+            default: csr_rdata_o = 32'd0;
         endcase
-        csr_rdata_o = rdata;
     end
+
+    // The implemented CSRs (the read-zero ones are is_readzero).
+    function automatic logic known_csr(input logic [CSR_ADDR_W-1:0] a);
+        begin
+            case (a)
+                MISA, MVENDORID, MARCHID, MIMPID, MHARTID, MSTATUS, MTVEC,
+                MIE_CSR, MIP_CSR, MEPC, MCAUSE, MTVAL, MSCRATCH, MINTSTATUS,
+                MINTSTATUS_STD, MNXTI, MINTTHRESH, MCYCLE, MCYCLEH, MINSTRET,
+                MINSTRETH, DSU_OVF, MGARUDACTL, CYCLE, CYCLEH, INSTRET,
+                INSTRETH: known_csr = 1'b1;
+                default: known_csr = 1'b0;
+            endcase
+        end
+    endfunction
+
+    wire implemented = known_csr(csr_addr_i) || is_readzero;
 
     // ERRATUM T-2 (found by riscv-tests rv32mi/ma_fetch)
     // ------------------------------------------------
@@ -264,20 +272,56 @@ module csr_file
     assign csr_clear_overflow_o = csr_en_i && commit_i
         && (csr_addr_i == DSU_OVF) && (csr_op_i != 2'b00);
 
-    // next value of a written CSR under RW/RS/RC
-    function automatic [31:0] nextv;
-    input [WORD_W-1:0] cur;
-    input [WORD_W-1:0] w;
-    input [CSR_OP_W-1:0] op;
+    // The next value of a written CSR under RW/RS/RC, in the width of what is
+    // stored (HAL URDWIR: no wider intermediate). op 00 never writes (is_write
+    // needs csr_access), so RC, the last encoding, is the default.
+    function automatic logic [WORD_W-1:0] nextv(input logic [WORD_W-1:0] cur,
+                                                input logic [WORD_W-1:0] w,
+                                                input logic [CSR_OP_W-1:0] op);
         begin
             case (op)
                 CSR_RW: nextv = w;
                 CSR_RS: nextv = cur | w;
-                CSR_RC: nextv = cur & ~w;
-                default: nextv = cur;
+                default: nextv = cur & ~w;  // CSR_RC
             endcase
         end
     endfunction
+
+    function automatic logic [BYTE_W-1:0] next_byte(
+        input logic [BYTE_W-1:0] cur, input logic [BYTE_W-1:0] w,
+        input logic [CSR_OP_W-1:0] op);
+        begin
+            case (op)
+                CSR_RW: next_byte = w;
+                CSR_RS: next_byte = cur | w;
+                default: next_byte = cur & ~w;  // CSR_RC
+            endcase
+        end
+    endfunction
+
+    function automatic logic [GCTL_W-1:0] next_ctl(
+        input logic [GCTL_W-1:0] cur, input logic [GCTL_W-1:0] w,
+        input logic [CSR_OP_W-1:0] op);
+        begin
+            case (op)
+                CSR_RW: next_ctl = w;
+                CSR_RS: next_ctl = cur | w;
+                default: next_ctl = cur & ~w;  // CSR_RC
+            endcase
+        end
+    endfunction
+
+    function automatic logic next_bit(input logic cur, input logic w,
+                                      input logic [CSR_OP_W-1:0] op);
+        begin
+            case (op)
+                CSR_RW: next_bit = w;
+                CSR_RS: next_bit = cur | w;
+                default: next_bit = cur & ~w;  // CSR_RC
+            endcase
+        end
+    endfunction
+
     // ERRATUM P-6 (2026-10-04, found by sw/tests/t_hold_flush_matrix.S bits 7,
     // 14) A CSR instruction wrote its CSR in EVERY cycle it sat in EX, and in
     // the cycle it was squashed there. Held behind a load or store (H2) or
@@ -290,9 +334,11 @@ module csr_file
     // an illegal csr_access (illegal_csr_o) is not gated: it has to be visible
     // to trap_ctrl, which applies its own hold.
     wire wr_ok = is_write && !is_ro && implemented && commit_i;
-    wire [WORD_W-1:0] mstatus_next    = nextv(mstatus_val, csr_wdata_i, csr_op_i);
-    wire [WORD_W-1:0] mintthresh_next
-        = nextv({24'd0, mintthresh_r}, csr_wdata_i, csr_op_i);
+    // one select per written CSR (HAL IFSMCD: no condition shared by a chain)
+    wire wr_mcycle     = wr_ok && (csr_addr_i == MCYCLE);
+    wire wr_mcycleh    = wr_ok && (csr_addr_i == MCYCLEH);
+    wire wr_minstret   = wr_ok && (csr_addr_i == MINSTRET);
+    wire wr_minstreth  = wr_ok && (csr_addr_i == MINSTRETH);
 
     assign mstatus_mie_o = mstatus_mie;
     // BASE; MODE is implied (CLIC)
@@ -301,7 +347,6 @@ module csr_file
     assign mintthresh_o    = mintthresh_r;
     assign mintstatus_mil_o= mil_r;
     assign mgarudactl_o    = ctl_r;  // CORE-4
-    wire [WORD_W-1:0] ctl_next   = nextv({28'd0, ctl_r}, csr_wdata_i, csr_op_i);
 
     always_ff @(posedge gclk or negedge core_rst_n) begin : p_mstatus_mie
         if (!core_rst_n) begin
@@ -321,19 +366,19 @@ module csr_file
         end else begin
             // Counters. mcycle/minstret are RW (CORE Sec.6.1): a CSR write
             // replaces the half it targets and wins over the increment.
-            if (wr_ok && csr_addr_i == MCYCLE) begin
+            if (wr_mcycle) begin
                 mcycle_r[31:0] <= nextv(mcycle_r[31:0], csr_wdata_i, csr_op_i);
-            end else if (wr_ok && csr_addr_i == MCYCLEH) begin
+            end else if (wr_mcycleh) begin
                 mcycle_r[63:32]
                     <= nextv(mcycle_r[63:32], csr_wdata_i, csr_op_i);
             end else begin
                 mcycle_r <= mcycle_r + 64'd1;
             end
-            if (wr_ok && csr_addr_i == MINSTRET) begin
+            if (wr_minstret) begin
                 minstret_r <= {instret_arch[63:32],
                     nextv(instret_arch[31:0], csr_wdata_i, csr_op_i)} -{63'd0,
                     ret_mem_i} -64'd1;
-            end else if (wr_ok && csr_addr_i == MINSTRETH) begin
+            end else if (wr_minstreth) begin
                 minstret_r
                     <= {nextv(instret_arch[63:32], csr_wdata_i, csr_op_i),
                     instret_arch[31:0]} -{63'd0, ret_mem_i} -64'd1;
@@ -344,7 +389,7 @@ module csr_file
             if (trap_enter_i) begin
                 mepc_r <= trap_pc_i;
                 // T-12: every trap pushes the level it leaves into mcause.mpil
-                mcause_r    <= trap_cause_i;                       // MUTANT: no mpil push
+                mcause_r <= {is_interrupt_i, 7'd0, 8'd0, 16'(trap_cause_i)};  // MUTANT: no mpil push
                 mtval_r <= trap_tval_i;
                 mstatus_mpie <= mstatus_mie;
                 mstatus_mie <= 1'b0;
@@ -358,33 +403,59 @@ module csr_file
                 mstatus_mpie <= 1'b1;
                 mil_r       <= 8'd0;             // MUTANT: mret drops the level to 0
             end else if (wr_ok) begin
+                // a CSR instruction's write; the addresses are distinct, so
+                // one case (HAL DNSTIF: no deep if/else-if chain)
                 case (csr_addr_i)
                     MSTATUS: begin
-                        mstatus_mie <= mstatus_next[3];
-                        mstatus_mpie <= mstatus_next[7];
+                        mstatus_mie <= next_bit(mstatus_mie, csr_wdata_i[3],
+                                                csr_op_i);
+                        mstatus_mpie <= next_bit(mstatus_mpie, csr_wdata_i[7],
+                                                 csr_op_i);
                     end
-                    MTVEC: mtvec_r <= nextv(mtvec_r, csr_wdata_i, csr_op_i);
-                    // mie: only MTIE is implemented (CORE Sec.6.1).
-                    MIE_CSR : mie_r <= nextv(mie_r, csr_wdata_i, csr_op_i)
-                        &32'h0000_0080;
-                    // ERRATUM T-15 (2026-10-05, found by riscv-tests
-                    // local/csr_warl.S in lockstep with Spike). Only bit 0 was
-                    // masked. GARUDA has no compressed instructions, so IALIGN
-                    // is 32 and the privileged specification makes mepc[1:0]
-                    // always zero. With bit 1 writable, `csrw mepc` of an
-                    // address with bit 1 set read back unchanged (Spike: bit 1
-                    // cleared) and an mret to it put a misaligned address on
-                    // the instruction port, which the bus checker reports as
-                    // HADDR not aligned to HSIZE.
-                    MEPC : mepc_r <= nextv(mepc_r, csr_wdata_i, csr_op_i)
-                        &~32'd3;
-                    MCAUSE: mcause_r <= nextv(mcause_r, csr_wdata_i, csr_op_i);
-                    MTVAL: mtval_r <= nextv(mtval_r, csr_wdata_i, csr_op_i);
-                    MSCRATCH : mscratch_r
-                        <= nextv(mscratch_r, csr_wdata_i, csr_op_i);
-                    MINTTHRESH: mintthresh_r <= mintthresh_next[7:0];
-                    MGARUDACTL: ctl_r <= ctl_next[3:0];  // CORE-4
-                    default: begin  // counters/RO handled elsewhere or ignored
+                    MTVEC: begin
+                        mtvec_r <= nextv(mtvec_r, csr_wdata_i, csr_op_i);
+                    end
+                    MIE_CSR: begin
+                        // mie: only MTIE is implemented (CORE Sec.6.1).
+                        mie_r <= nextv(mie_r, csr_wdata_i, csr_op_i)
+                                 & 32'h0000_0080;
+                    end
+                    MEPC: begin
+                        // ERRATUM T-15 (2026-10-05, found by riscv-tests
+                        // local/csr_warl.S in lockstep with Spike). Only bit 0
+                        // was masked. GARUDA has no compressed instructions,
+                        // so IALIGN is 32 and the privileged specification
+                        // makes mepc[1:0] always zero. With bit 1 writable,
+                        // `csrw mepc` of an address with bit 1 set read back
+                        // unchanged (Spike: bit 1 cleared) and an mret to it
+                        // put a misaligned address on the instruction port,
+                        // which the bus checker reports as HADDR not aligned
+                        // to HSIZE.
+                        mepc_r <= nextv(mepc_r, csr_wdata_i, csr_op_i)
+                                  & ~32'd3;
+                    end
+                    MCAUSE: begin
+                        mcause_r <= nextv(mcause_r, csr_wdata_i, csr_op_i);
+                    end
+                    MTVAL: begin
+                        mtval_r <= nextv(mtval_r, csr_wdata_i, csr_op_i);
+                    end
+                    MSCRATCH: begin
+                        mscratch_r <= nextv(mscratch_r, csr_wdata_i,
+                                            csr_op_i);
+                    end
+                    MINTTHRESH: begin
+                        mintthresh_r <= next_byte(mintthresh_r,
+                                                  csr_wdata_i[7:0], csr_op_i);
+                    end
+                    MGARUDACTL: begin
+                        // CORE-4
+                        ctl_r <= next_ctl(ctl_r, csr_wdata_i[3:0], csr_op_i);
+                    end
+                    default: begin
+                        // a counter (written above) or a read-only CSR:
+                        // nothing in this chain changes
+                        ctl_r <= ctl_r;
                     end
                 endcase
             end

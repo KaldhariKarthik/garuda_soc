@@ -15,7 +15,7 @@ module tb_ex_smoke;
     reg  [31:0] pc, instr, rs1_data, rs2_data, imm;
     reg  [4:0]  rd;
     reg  [2:0]  funct3;
-    reg         reg_write, mem_read, mem_write, mem_to_reg;
+    reg         reg_write, mem_read, mem_write;
     reg         alu_src, pc_op_a;
     reg  [3:0]  alu_op;
     reg         branch, jal, jalr, predicted_taken, mul_en, dsu_en;
@@ -28,11 +28,9 @@ module tb_ex_smoke;
 
     wire [11:0] csr_addr;
     wire [31:0] csr_wdata;
-    wire [1:0]  csr_op_out;
-    wire        csr_en_out;
     wire [31:0] ex_result, store_data, ex_redirect_target;
     wire [4:0]  rd_out;
-    wire        reg_write_out, mem_read_out, mem_write_out, mem_to_reg_out;
+    wire        reg_write_out, mem_read_out, mem_write_out;
     wire        ex_redirect, branch_mispredict;
     wire        load_misaligned, store_misaligned, dsu_illegal_instr;
     wire        dsu_busy, dsu_overflow;
@@ -53,7 +51,6 @@ module tb_ex_smoke;
         .reg_write(reg_write),
         .mem_read(mem_read),
         .mem_write(mem_write),
-        .mem_to_reg(mem_to_reg),
         .alu_src(alu_src),
         .pc_op_a(pc_op_a),
         .alu_op(alu_op),
@@ -65,7 +62,6 @@ module tb_ex_smoke;
         .dsu_en(dsu_en),
         .csr_en(csr_en),
         .csr_imm(csr_imm),
-        .csr_op(csr_op),
         .fwd_a_sel(fwd_a_sel),
         .fwd_b_sel(fwd_b_sel),
         .exmem_fwd_data(exmem_fwd_data),
@@ -73,20 +69,15 @@ module tb_ex_smoke;
         .csr_rdata(csr_rdata),
         .csr_clear_overflow(csr_clear_overflow),
         .ex_squash(ex_squash),
-        .csr_addr(csr_addr),
         .csr_wdata(csr_wdata),
-        .csr_op_out(csr_op_out),
-        .csr_en_out(csr_en_out),
         .ex_result(ex_result),
-        .store_data(store_data),
         .rd_out(rd_out),
         .reg_write_out(reg_write_out),
         .mem_read_out(mem_read_out),
         .mem_write_out(mem_write_out),
-        .mem_to_reg_out(mem_to_reg_out),
         .ex_redirect(ex_redirect),
         .ex_redirect_target(ex_redirect_target),
-        .branch_mispredict(branch_mispredict),
+        .rs2_fwd_o(store_data),
         .load_misaligned(load_misaligned),
         .store_misaligned(store_misaligned),
         .dsu_illegal_instr(dsu_illegal_instr),
@@ -97,13 +88,17 @@ module tb_ex_smoke;
         .dbg_acc_mag(dbg_acc_2)
     );
 
+    // the CSR address leaves EX as instr[31:20] at the core top since F4
+    assign csr_addr = dut.instr[31:20];
+    assign branch_mispredict = dut.u_branch.mispredict;  // no port since F4 (2026-11-16)
+
     always #2.5 clk = ~clk;   // 200 MHz
 
     task clear_inputs;
         begin
             {pc, instr, rs1_data, rs2_data, imm} = 0;
             {rd, funct3} = 0;
-            {reg_write, mem_read, mem_write, mem_to_reg} = 0;
+            {reg_write, mem_read, mem_write} = 0;
             {alu_src, pc_op_a} = 0; alu_op = ALU_ADD;
             {branch, jal, jalr, predicted_taken, mul_en, dsu_en} = 0;
             {csr_en, csr_imm, csr_op} = 0;

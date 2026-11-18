@@ -233,8 +233,8 @@ bind garuda_core_top pipe_ctrl_sva u_pipe_sva (
     .ex_redir      (u_pipe.ex_redirect_i),
     .if_redirect   (u_pipe.if_redirect_o),
     .if_redirect_pc(u_pipe.if_redirect_pc_o),
-    .if_id_stall   (u_pipe.if_id_stall_o),
-    .if_id_flush   (u_pipe.if_id_flush_o),
+    .if_id_stall   (u_pipe.if_stall_o),  // one stall for PC and IF/ID (F4)
+    .if_id_flush   (u_pipe.if_redirect_o),  // the IF/ID flush is the redirect (F4)
     .id_ex_stall   (u_pipe.id_ex_stall_o),
     .id_ex_flush   (u_pipe.id_ex_flush_o),
     .ex_mem_stall  (u_pipe.ex_mem_stall_o),

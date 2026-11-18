@@ -139,7 +139,9 @@ module tb_boot;
     // it drops the request on the core's own take strobe (whitebox), which is
     // what a peripheral cleared by the ISR looks like from the core's side.
     reg  irq_req;
-    wire irq_ack = dut.clic_take;
+    // the trap's mcause word (the core carries the 5-bit code since F4)
+    wire [31:0] tr_cause_w = {dut.tr_is_int, 26'd0, dut.tr_cause};
+    wire irq_ack = dut.u_trap.take_int;  // the CLIC take (no core wire since F4)
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) irq_req <= 1'b0;
         else if (irq_ack) irq_req <= 1'b0;
@@ -198,7 +200,7 @@ module tb_boot;
     wire    core_sleep;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) mtip <= 1'b0;
-        else if (dut.tr_enter && dut.tr_cause == 32'h8000_0007) mtip <= 1'b0;
+        else if (dut.tr_enter && tr_cause_w == 32'h8000_0007) mtip <= 1'b0;
         // software "advances mtimecmp": a store to 0x1000_F100 drops mtip
         else if (d_htrans[1] && d_hwrite && d_hready && d_haddr == 32'h1000_F100) mtip <= 1'b0;
         else if (mtip_at > 0 && cyc == mtip_at) mtip <= 1'b1;
@@ -412,9 +414,9 @@ module tb_boot;
         if (rst_n && dut.tr_enter && dut.tr_is_int) begin
             if (negctl == "irq_drop" && !neg_done) neg_done = 1'b1;              // the RTL's interrupt is lost
             else begin
-                garuda_cosim_interrupt(dut.tr_cause, {24'd0, dut.tr_level}, {24'd0, dut.csr_mintthresh});
+                garuda_cosim_interrupt(tr_cause_w, {24'd0, dut.tr_level}, {24'd0, dut.csr_mintthresh});
                 if (negctl == "irq_extra" && !neg_done) begin                 // a spurious second one
-                    garuda_cosim_interrupt(dut.tr_cause, {24'd0, dut.tr_level}, {24'd0, dut.csr_mintthresh});
+                    garuda_cosim_interrupt(tr_cause_w, {24'd0, dut.tr_level}, {24'd0, dut.csr_mintthresh});
                     neg_done = 1'b1;
                 end
             end
@@ -490,7 +492,7 @@ module tb_boot;
 
     always @(posedge clk)
         if (rst_n && dut.tr_enter)
-            $fwrite(fh_commit, "TRAP %08x %08x %08x\n", dut.tr_cause, dut.tr_pc, dut.tr_tval);
+            $fwrite(fh_commit, "TRAP %08x %08x %08x\n", tr_cause_w, dut.tr_pc, dut.tr_tval);
 
     // A CSR instruction acts in the cycle it leaves EX. Its CSR is read half a
     // cycle later, straight from the registers, so the record holds the value
@@ -500,7 +502,7 @@ module tb_boot;
     always @(posedge clk or negedge rst_n)
         if (!rst_n) csr_pend <= 1'b0;
         else begin
-            csr_pend <= dut.ex_csr_en_out && dut.ex_commit && (dut.ex_csr_op_out != 2'b00) && !dut.csr_illegal;
+            csr_pend <= dut.xe_csr_en && dut.ex_commit && (dut.xe_csr_op != 2'b00) && !dut.csr_illegal;  // ID/EX straight to csr_file (F4)
             csr_pa   <= dut.ex_csr_addr_w;
         end
     reg [31:0] csr_v; reg csr_known;
@@ -508,7 +510,7 @@ module tb_boot;
         if (rst_n && csr_pend) begin
             csr_known = 1'b1;
             case (csr_pa)
-                12'h300: csr_v = dut.u_csr.mstatus_val;
+                12'h300: csr_v = {19'd0, 2'b11, 3'd0, dut.u_csr.mstatus_mpie, 3'd0, dut.u_csr.mstatus_mie, 3'd0};  // the read layout (no wire since F4)
                 12'h301: csr_v = dut.u_csr.misa_val;
                 12'h304: csr_v = dut.u_csr.mie_r;
                 12'h305: csr_v = {dut.u_csr.mtvec_r[31:2], 2'b11};
@@ -737,7 +739,7 @@ module tb_boot;
         end
         if (rst_n && $test$plusargs("DBGTRAP") && cyc >= dbgfrom && cyc < dbgto) begin
             $display("c%0d TRAP: enter=%b cause=%08x tpc=%08x redir=%b tgt=%08x | id_ill=%b xe_ill=%b dsu_ill=%b dsu_busy=%b lmis=%b smis=%b memexc=%b | exredir=%b extgt=%08x",
-                     cyc, dut.tr_enter, dut.tr_cause, dut.tr_pc, dut.tr_redir_v, dut.tr_redir_t,
+                     cyc, dut.tr_enter, tr_cause_w, dut.tr_pc, dut.tr_redir_v, dut.tr_redir_t,
                      dut.id_illegal, dut.xe_illegal, dut.ex_dsu_illegal, dut.ex_dsu_busy,
                      dut.ex_load_mis, dut.ex_store_mis, dut.mem_exc_v,
                      dut.ex_redirect, dut.ex_redirect_target);

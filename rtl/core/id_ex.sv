@@ -43,7 +43,6 @@ module id_ex
     input wire reg_write_i,
     input wire mem_read_i,
     input wire mem_write_i,
-    input wire mem_to_reg_i,
     input wire alu_src_i,
     input wire pc_op_a_i,  // <- id_stage.alu_a_pc_o
     input wire [ALU_OP_W-1:0] alu_op_i,
@@ -74,7 +73,6 @@ module id_ex
     output reg reg_write_o,
     output reg mem_read_o,
     output reg mem_write_o,
-    output reg mem_to_reg_o,
     output reg alu_src_o,
     output reg pc_op_a_o,
     output reg [ALU_OP_W-1:0] alu_op_o,
@@ -104,7 +102,6 @@ module id_ex
             reg_write_o <= 1'b0;
             mem_read_o <= 1'b0;
             mem_write_o <= 1'b0;
-            mem_to_reg_o <= 1'b0;
             branch_o <= 1'b0;
             jal_o <= 1'b0;
             jalr_o <= 1'b0;
@@ -116,7 +113,7 @@ module id_ex
             illegal_instr_dec_o <= 1'b0;
             fault_o <= 1'b0;
             valid_o <= 1'b0;  // a bubble never retires
-            instr_o <= 32'h0000_0013;
+            instr_o <= NOP_INSTR;
             alu_op_o <= 4'h0;
             alu_src_o <= 1'b0;
             pc_op_a_o <= 1'b0;
@@ -134,7 +131,6 @@ module id_ex
             reg_write_o <= 1'b0;
             mem_read_o <= 1'b0;
             mem_write_o <= 1'b0;
-            mem_to_reg_o <= 1'b0;
             branch_o <= 1'b0;
             jal_o <= 1'b0;
             jalr_o <= 1'b0;
@@ -146,7 +142,7 @@ module id_ex
             illegal_instr_dec_o <= 1'b0;
             fault_o <= 1'b0;
             valid_o <= 1'b0;  // a bubble never retires
-            instr_o <= 32'h0000_0013;
+            instr_o <= NOP_INSTR;
             alu_op_o <= 4'h0;
             alu_src_o <= 1'b0;
             pc_op_a_o <= 1'b0;
@@ -202,7 +198,6 @@ module id_ex
             reg_write_o <= reg_write_i;
             mem_read_o <= mem_read_i;
             mem_write_o <= mem_write_i;
-            mem_to_reg_o <= mem_to_reg_i;
             alu_src_o <= alu_src_i;
             pc_op_a_o <= pc_op_a_i;
             alu_op_o <= alu_op_i;

@@ -40,7 +40,8 @@ module branch_unit
 (
     // id_ex payload
     input wire [WORD_W-1:0] pc,  // pc of the instruction in EX
-    input wire [WORD_W-1:0] imm,  // sign-extended B-imm (is_branch) / I-imm (JALR)
+    // sign-extended B-imm (is_branch) / I-imm (JALR)
+    input wire [WORD_W-1:0] imm,
     input wire [FUNCT3_W-1:0] funct3_fld,
     // forwarded operands (post MUX_A/MUX_B register path)
     input wire [WORD_W-1:0] rs1_fwd,
@@ -51,8 +52,6 @@ module branch_unit
     input wire jalr,  // JALR in EX
     input wire predicted_taken,  // ID's static prediction for this is_branch
     // resolution
-    output wire branch_taken,  // resolved direction (valid when is_branch)
-    output wire mispredict,  // prediction != resolution
     output wire redirect,  // EX-origin redirect request
     output wire [WORD_W-1:0] redirect_target,
     // ERRATUM T-1: instruction-address-misaligned (cause 0) detection.
@@ -72,26 +71,36 @@ module branch_unit
     wire lt  = ($signed(rs1_fwd) < $signed(rs2_fwd));
     wire ltu = (rs1_fwd < rs2_fwd);
 
-    reg taken_r;
-    always_comb begin : c_taken
-        case (funct3_fld)
-            BR_BEQ: taken_r = eq;
-            BR_BNE: taken_r = ~eq;
-            BR_BLT: taken_r = lt;
-            BR_BGE: taken_r = ~lt;
-            BR_BLTU: taken_r = ltu;
-            BR_BGEU: taken_r = ~ltu;
-            // 010/011 reserved -> ID traps, never here
-            default: taken_r = 1'b0;
-        endcase
-    end
+    // The compare named by funct3. 010 and 011 are reserved (a branch with them
+    // traps in ID) and give "not taken"; the target mux below reads this for
+    // every instruction in EX, so the default is a real arm, not a dead one.
+    function automatic logic taken_of(input logic [FUNCT3_W-1:0] cmp_sel,
+                                      input logic e, input logic l,
+                                      input logic lu);
+        begin
+            case (cmp_sel)
+                BR_BEQ: taken_of = e;
+                BR_BNE: taken_of = ~e;
+                BR_BLT: taken_of = l;
+                BR_BGE: taken_of = ~l;
+                BR_BLTU: taken_of = lu;
+                BR_BGEU: taken_of = ~lu;
+                default: taken_of = 1'b0;  // 010, 011
+            endcase
+        end
+    endfunction
 
-    assign branch_taken = is_branch & taken_r;
+    wire taken_r = taken_of(funct3_fld, eq, lt, ltu);
+    // the resolved direction (valid when is_branch); read by the unit's SVA
+    // and bench, no port: nothing outside the unit uses it
+    wire branch_taken = is_branch & taken_r;
 
     //------------------------------------------------------------------
     // Mispredict detection (Section 12.3)
     //------------------------------------------------------------------
-    assign mispredict = is_branch & (taken_r ^ predicted_taken);
+    // prediction != resolution (internal since F4: it feeds redirect; the
+    // unit's SVA, bench and the core coverage read it by name)
+    wire mispredict = is_branch & (taken_r ^ predicted_taken);
 
     //------------------------------------------------------------------
     // Targets
@@ -107,7 +116,7 @@ module branch_unit
     // Every taken control transfer, regardless of which stage redirects for it.
     // GARUDA has no C extension, so any target with bits[1:0] != 0 is illegal.
     assign target_misaligned = jalr ? (jalr_target[1:0] != 2'b00) :
-                               (jal | branch_taken)
+                               (jal || branch_taken)
                                    ? (branch_target[1:0] != 2'b00) :
                                                       1'b0;
 
@@ -118,8 +127,8 @@ module branch_unit
     // from ID), so the only consumers of this for a JAL are the cause-0 mtval
     // and RVFI.
     assign redirect        = jalr | mispredict;
-    assign redirect_target = jalr    ? jalr_target
-                           : taken_r ? branch_target
-                                     : fallthrough;
+    assign redirect_target = jalr             ? jalr_target
+                           : taken_r          ? branch_target  // MUTANT: T-18 reverted
+                                              : fallthrough;
 
 endmodule

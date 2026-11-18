@@ -32,7 +32,10 @@ export GARUDA_ROOT ?= /home/aneesh/garuda_soc
 # simulations and scripts/run_synth.sh use (scripts/expand_filelist.py), so
 # synthesis cannot drift from the simulated source list. Plus one PD-only
 # file: black-box declarations of the named memory macros (P3).
-export VERILOG_FILES = $(shell cd $(GARUDA_ROOT) && python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f | sed 's|^|$(GARUDA_ROOT)/|')
+# The core clock gate: the library-ICG build of core_clk_gate replaces the
+# behavioural one (F4: file selection, no `ifdef in the RTL).
+export VERILOG_FILES = $(shell cd $(GARUDA_ROOT) && python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f | grep -v '^rtl/core/core_clk_gate.sv$$' | sed 's|^|$(GARUDA_ROOT)/|') \
+                       $(GARUDA_ROOT)/flow/pd/asap7/core_clk_gate_icg.sv
 # Memory macros: with BLOCKS set (default), ORFS hardens the PD-only mock models
 # (flow/pd/asap7/mock/) into LEF + liberty and reads them as black boxes. With
 # BLOCKS empty (e.g. `make ... BLOCKS=`), the stub declarations stand in.
@@ -41,9 +44,10 @@ ifeq ($(BLOCKS),)
   export VERILOG_FILES += $(GARUDA_ROOT)/flow/pd/asap7/garuda_sram_stubs.v
 endif
 export VERILOG_INCLUDE_DIRS = $(shell cd $(GARUDA_ROOT) && python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --incdirs | sed 's|-I|$(GARUDA_ROOT)/|g')
-# P1: GARUDA_ICG_CELL + OPENROAD_CLKGATE map core_clk_gate onto the platform ICG
-#     (ASAP7 ICGx1_ASAP7_75t_R via CLKGATE_MAP_FILE). Without OPENROAD_CLKGATE
-#     the map would be a wire; P1's guard then fails elaboration.
+# P1: core_clk_gate_icg.sv + OPENROAD_CLKGATE map core_clk_gate onto the
+#     platform ICG (ASAP7 ICGx1_ASAP7_75t_R via CLKGATE_MAP_FILE). Without
+#     OPENROAD_CLKGATE the map would be a wire; the file's guard then fails
+#     elaboration.
 # P3: GARUDA_SRAM_MACRO makes sram_wrapper instantiate the named macros
 #     garuda_sram_16384x32 / garuda_sram_4096x32 / garuda_rom_1024x32, declared
 #     as black boxes in garuda_sram_stubs.v. SRAM_BLACKBOX is NOT
@@ -51,7 +55,7 @@ export VERILOG_INCLUDE_DIRS = $(shell cd $(GARUDA_ROOT) && python3 scripts/expan
 #     SYNTH_MEMORY_MAX_BITS stays at 4096 and SYNTH_MOCK_LARGE_MEMORIES at 0,
 #     so ORFS aborts if any memory were inferred as flops.
 export VERILOG_DEFINES = $(shell cd $(GARUDA_ROOT) && python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --defines) \
-                         -D GARUDA_ICG_CELL -D OPENROAD_CLKGATE -D GARUDA_SRAM_MACRO
+                         -D OPENROAD_CLKGATE -D GARUDA_SRAM_MACRO
 
 # Constraints (ASAP7 time unit = 1 ps): the implementation is driven by the
 # PRIMARY scenario, DIV2. The other DIVSEL modes are checked by separate STA

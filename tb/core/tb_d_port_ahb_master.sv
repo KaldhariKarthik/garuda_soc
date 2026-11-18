@@ -142,9 +142,12 @@ module tb_top;
         .d_hready_i  (vif.d_hready),
         .d_hresp_i   (vif.d_hresp),
         .mem_stall_o (vif.mem_stall),
-        .ok_done_o   (vif.ok_done),
         .err_pulse_o (vif.err_pulse)
     );
+    // the OKAY completion: a data phase that ends with HREADY and no error
+    // (no port or wire since F4, 2026-11-16)
+    assign vif.ok_done = (dut.state == dut.S_DATA) && vif.d_hready && !vif.d_hresp;
+
 
     garuda_tb_pkg::scoreboard sb;
     int ok_count, err_count;

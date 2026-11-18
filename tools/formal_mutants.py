@@ -112,11 +112,9 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
   'header': ["MUTANT (negative control for T-18): branch_unit.v BEFORE the fix -- a JAL's",
              'redirect_target follows the fake branch compare of its bit fields. Do not use.'],
   'subs': [('    assign redirect_target = jalr             ? jalr_target\n'
-            '                           : (jal | taken_r)  ? branch_target\n'
-            '                                              : fallthrough;\n',
-            '    assign redirect_target = jalr    ? jalr_target\n'
-            '                           : taken_r ? branch_target\n'
-            '                                     : fallthrough;\n')]},
+            '                           : (jal || taken_r) ? branch_target\n',
+            '    assign redirect_target = jalr             ? jalr_target\n'
+            '                           : taken_r          ? branch_target  // MUTANT: T-18 reverted\n')]},
  {'path': 'tb/core/formal/mutants/clic_ctrl_no_preempt.v',
   'src': 'rtl/core/clic_ctrl.sv',
   'header': ['MUTANT clic_ctrl_no_preempt: rtl/core/clic_ctrl.sv with ONE change (PREEMPT_DIS ignored).',
@@ -130,20 +128,17 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
              'trap again).',
              'Formal negative control: must FAIL. Regenerated 2026-11-16 from the current RTL; it differs '
              'from it by this change only. (tb/core/formal/csr_file.toml csr_prove_no_c16)'],
-  'subs': [('            default: begin\n'
-            "                rdata = 32'd0;\n"
-            '                implemented = is_readzero;\n'
-            '            end\n',
-            "            default:   begin rdata = 32'd0; implemented = 1'b0; end   // MUTANT: C-16 "
-            'reverted\n')]},
+  'subs': [('    wire implemented = known_csr(csr_addr_i) || is_readzero;\n',
+            '    wire implemented = known_csr(csr_addr_i);  // MUTANT: C-16 reverted\n')]},
  {'path': 'tb/core/formal/mutants/csr_file_no_t12.v',
   'src': 'rtl/core/csr_file.sv',
   'header': ['MUTANT csr_file_no_t12: rtl/core/csr_file.sv with ONE fix reverted (T-12: no mpil push, mret '
              'drops the level).',
              'Formal negative control: must FAIL. Regenerated 2026-11-16 from the current RTL; it differs '
              'from it by this change only. (tb/core/formal/csr_file.toml csr_prove_no_t12)'],
-  'subs': [('                mcause_r <= {trap_cause_i[31:24], mil_r, trap_cause_i[15:0]};\n',
-            '                mcause_r    <= trap_cause_i;                       // MUTANT: no mpil push\n'),
+  'subs': [("                mcause_r <= {is_interrupt_i, 7'd0, mil_r, 16'(trap_cause_i)};\n",
+            "                mcause_r <= {is_interrupt_i, 7'd0, 8'd0, 16'(trap_cause_i)};  // MUTANT: no "
+            'mpil push\n'),
            ('                mil_r <= mcause_r[23:16];  // T-12: restore from mcause.mpil\n',
             "                mil_r       <= 8'd0;             // MUTANT: mret drops the level to 0\n")]},
  {'path': 'tb/core/formal/mutants/debug_module_rawgrant.v',
@@ -160,9 +155,8 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
   'src': 'rtl/core/garuda_core_top.sv',
   'header': ['MUTANT garuda_core_top_no_cgdis: rtl/core/garuda_core_top.sv with ONE change (CG_DIS ignored).',
              'Formal negative control in tb/core/formal/core_trap.toml: must FAIL.'],
-  'subs': [('        .hclk(hclk), .en_i(~quiescent | (CLK_GATE == 0) | csr_ctl[3]),\n',
-            '        .hclk(hclk), .en_i(~quiescent | (CLK_GATE == 0)),   // MUTANT: CG_DIS ignored   // '
-            'CORE-4: CG_DIS\n')]},
+  'subs': [('    wire cg_en   = ~quiescent | (CLK_GATE == 0) | csr_ctl[3] | scan_en;\n',
+            '    wire cg_en   = ~quiescent | (CLK_GATE == 0) | scan_en;  // MUTANT: CG_DIS ignored\n')]},
  {'path': 'tb/core/formal/mutants/garuda_iport_ahb_master_no_buse.v',
   'src': 'rtl/core/iport_master.sv',
   'header': ['MUTANT garuda_iport_ahb_master_no_buse: rtl/core/iport_master.sv with ONE change. Formal '
@@ -176,9 +170,8 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
              'ignored).',
              'Formal negative control: must FAIL. Regenerated 2026-11-16 from the current RTL; it differs '
              'from it by this change only. (tb/core/formal/core_trap.toml ctl_no_pfdis)'],
-  'subs': [("    wire room_for_new_fetch = (projected_occ < (pf_dis_i ? 4'd1 : FIFO_DEPTH));\n",
-            '    wire room_for_new_fetch = (projected_occ < FIFO_DEPTH);   // MUTANT: PF_DIS ignored   // '
-            'CORE-4: PF_DIS\n')]},
+  'subs': [("        = pf_dis_i ? PROJECTED_OCC_W'(1'b1) : PROJECTED_OCC_W'(FIFO_DEPTH);\n",
+            "        = PROJECTED_OCC_W'(FIFO_DEPTH);  // MUTANT: PF_DIS ignored\n")]},
  {'path': 'tb/core/formal/mutants/trap_ctrl_no_t13.v',
   'src': 'rtl/core/trap_ctrl.sv',
   'header': ['MUTANT trap_ctrl_no_t13: rtl/core/trap_ctrl.sv with ONE fix reverted (T-13: an MRET in EX '
@@ -197,8 +190,9 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
              'as at b90b481). Formal negative control: must FAIL. Regenerated 2026-11-16 from the current '
              'RTL; it differs from it by this change only. (tb/core/formal/core_trap.toml '
              'trap_prove_no_t14)'],
-  'subs': [('        end else if (is_wfi & ~wfi_active & ~wfi_squashed & ~h2) begin\n',
-            '        end else if (is_wfi & ~wfi_active & ~wfi_squashed) begin  // MUTANT: T-14 reverted\n')]},
+  'subs': [('        end else if (is_wfi && !wfi_active && !wfi_squashed && !h2) begin\n',
+            '        end else if (is_wfi && !wfi_active && !wfi_squashed) begin  // MUTANT: T-14 '
+            'reverted\n')]},
  {'path': 'tb/core/formal/mutants/trap_ctrl_no_t17.v',
   'src': 'rtl/core/trap_ctrl.sv',
   'header': ['MUTANT trap_ctrl_no_t17: rtl/core/trap_ctrl.sv with ONE fix reverted (T-17: a fetch-fault bit '

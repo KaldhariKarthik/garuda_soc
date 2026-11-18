@@ -128,7 +128,7 @@ bind csr_file csr_file_props_a u_csr_sva (
     .mret     (mret_i),
     .is_int   (is_interrupt_i),
     .lvl      (clic_level_i),
-    .cause    (trap_cause_i),
+    .cause    ({is_interrupt_i, 26'd0, trap_cause_i}),  // the cause word
     .mil      (mil_r),
     .mcause   (mcause_r),
     .ctl      (ctl_r)

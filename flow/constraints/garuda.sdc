@@ -119,7 +119,7 @@ set_false_path -from [get_ports {gpio_i[1]}] -to [get_pins u_gpio/u_shim/sync0_q
 set_false_path -from [get_ports i2c_scl_i]   -to [get_pins u_i2c/u_shim/sync0_q_reg[0]/D]
 set_false_path -from [get_ports i2c_sda_i]   -to [get_pins u_i2c/u_shim/sync0_q_reg[1]/D]
 
-# 9. Clock gating: with P1 (GARUDA_ICG_CELL + the flow's OPENROAD_CLKGATE) the
+# 9. Clock gating: with P1 (core_clk_gate_icg.sv + the flow's OPENROAD_CLKGATE) the
 #    gate is the library ICG, whose clock-gating check comes from its liberty;
 #    the 28 nm flow must map OPENROAD_CLKGATE (or the instance) to the foundry ICG.
 # 10. Not set: max transition/cap/fanout, drive cells, loads, hold uncertainty.

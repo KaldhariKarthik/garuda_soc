@@ -54,7 +54,7 @@ WIDTHS = [
     ("DMI_OP_W", 2, r"req_op|^op_i$"),
     ("DMA_NCH", 6, r"wr_(cr|sar|dar|cnt|iclr)|dma_(complete|error)|^(cr|sar|dar|cnt|stat|size)(_i|_o)?$"),
     ("DMA_CH_W", 3, r"grant_ch"),
-    ("DMA_SIZE_W", 2, r"(^|_)size"),
+    ("DMA_SIZE_W", 2, r"^size_[io]$|^size$"),
     ("ERR_PHASE_W", 3, r"err_phase"),
     ("SHAMT_W", 6, r"shift_amt"),
     ("RES_SRC_W", 2, r"result_src"),

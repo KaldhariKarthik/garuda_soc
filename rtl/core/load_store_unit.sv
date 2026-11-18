@@ -17,44 +17,50 @@ module load_store_unit
     import garuda_pkg::*;
 (
     input wire [WORD_W-1:0] addr_i,  // ex_result (address, computed in EX)
-    input wire [FUNCT3_W-1:0] funct3_i,
+    // the access size, funct3[1:0]: 00 byte, 01 half, 10 word (Sec. 10.1)
+    input wire [MEM_SIZE_W-1:0] size_i,
     input wire [WORD_W-1:0] rs2_data_i,  // raw (forwarded) store operand
     output wire [HSIZE_W-1:0] hsize_o,  // 000=byte, 001=half, 010=word
-    output wire load_misaligned_o,  // cause 4 candidate (Sec. 14.1)
-    output wire store_misaligned_o,  // cause 6 candidate (Sec. 14.1)
+    // cause 4 (load) or 6 (store) candidate (Sec. 14.1): the caller ANDs it
+    // with mem_read / mem_write
+    output wire misaligned_o,
     // lane-aligned store data
-    output reg [WORD_W-1:0] hwdata_o
+    output wire [WORD_W-1:0] hwdata_o
 );
     timeunit 1ns;
     timeprecision 1ps;
 
-    wire [DMA_SIZE_W-1:0] size;
-    assign size = funct3_i[1:0];  // 00=byte, 01=half, 10=word (Sec. 10.1)
 
-    assign hsize_o = {1'b0, size};
+    assign hsize_o = {1'b0, size_i};
 
     // Misalignment (Sec. 10.2): byte never misaligns; halfword needs
-    // addr[0]=0; word needs addr[1:0]=00. Caller AND's this with
-    // mem_read_i/mem_write_i to pick load vs store cause.
-    wire misaligned;
-    assign misaligned = (size == 2'b01) ? addr_i[0]     :
-                         (size == 2'b10) ? (|addr_i[1:0]) :
-                         1'b0;
+    // addr[0]=0; word needs addr[1:0]=00.
+    assign misaligned_o = (size_i == 2'b01) ? addr_i[0]     :
+                          (size_i == 2'b10) ? (|addr_i[1:0]) :
+                          1'b0;
 
-    assign load_misaligned_o  = misaligned;
-    assign store_misaligned_o = misaligned;
+    // Store-data lane alignment (Sec. 10.1): the byte or halfword goes onto
+    // the lane addr[1:0] names, every other lane zero; a word goes as it is.
+    // (A lane mux, not a shift by the address: HAL SHFTNC.)
+    function automatic logic [WORD_W-1:0] lanes(
+        input logic [MEM_SIZE_W-1:0] sz, input logic [BYTE_OFF_W-1:0] off,
+        input logic [WORD_W-1:0] d);
+        begin
+            case (sz)
+                2'b00: begin
+                    case (off)
+                        2'b00: lanes = {24'd0, d[7:0]};
+                        2'b01: lanes = {16'd0, d[7:0], 8'd0};
+                        2'b10: lanes = {8'd0, d[7:0], 16'd0};
+                        default: lanes = {d[7:0], 24'd0};  // 2'b11
+                    endcase
+                end
+                2'b01: lanes = off[1] ? {d[15:0], 16'd0} : {16'd0, d[15:0]};
+                default: lanes = d;  // word: no shift
+            endcase
+        end
+    endfunction
 
-    // Store-data lane alignment (Sec. 10.1): shift the byte/halfword onto
-    // the lane matching addr[1:0]; zero-extend to 32 bits FIRST so the
-    // shift doesn't truncate, then Verilog's << zero-fills the rest.
-    always_comb begin : c_hwdata
-        case (size)
-            2'b00 : hwdata_o = {24'b000000000000000000000000,
-                rs2_data_i[7:0]} << (addr_i[1:0] * 8);
-            2'b01 : hwdata_o
-                = {16'b0000000000000000, rs2_data_i[15:0]} << (addr_i[1] * 16);
-            default: hwdata_o = rs2_data_i;  // word: no shift
-        endcase
-    end
+    assign hwdata_o = lanes(size_i, addr_i[1:0], rs2_data_i);
 
 endmodule

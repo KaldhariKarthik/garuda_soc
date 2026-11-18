@@ -61,7 +61,7 @@ interface decode_if (input bit clk);
     logic [2:0]  funct3;
     logic [4:0]  rs1;
     logic [4:0]  rs2;
-    logic         reg_write, mem_read, mem_write, mem_to_reg, alu_src, alu_a_pc;
+    logic         reg_write, mem_read, mem_write, alu_src, alu_a_pc;
     logic [3:0]  alu_op;
     logic         branch, jal, jalr, mul_en, dsu_en, csr_en;
     logic [2:0]  csr_op;
@@ -126,7 +126,7 @@ interface decode_if (input bit clk);
     // A7: X-propagation.
     property p_no_x_propagation;
         @(posedge clk) (!$isunknown(instr)) |->
-        (!$isunknown({reg_write, mem_read, mem_write, mem_to_reg, alu_src, alu_a_pc, alu_op,
+        (!$isunknown({reg_write, mem_read, mem_write, alu_src, alu_a_pc, alu_op,
                       branch, jal, jalr, mul_en, dsu_en, csr_en, csr_op, is_system, illegal_instr, fencei, imm_sel}));
     endproperty
     a_no_x_propagation: assert property (p_no_x_propagation)
@@ -375,7 +375,7 @@ endclass
 //    another, unlike one monolithic case statement checked against itself.
 // -------------------------------------------------------------
 typedef struct packed {
-    bit         reg_write, mem_read, mem_write, mem_to_reg, alu_src, alu_a_pc;
+    bit         reg_write, mem_read, mem_write, alu_src, alu_a_pc;
     bit [3:0]  alu_op;
     bit         branch, jal, jalr, mul_en, dsu_en, csr_en;
     bit [2:0]  csr_op;
@@ -418,7 +418,7 @@ class decode_ref_model;
     endfunction
     static function decode_result_t decode_load();
         decode_result_t r = base_defaults();
-        r.reg_write = 1; r.mem_read = 1; r.mem_to_reg = 1; r.alu_src = 1; r.alu_op = ALU_ADD; r.imm_sel = IMM_I;
+        r.reg_write = 1; r.mem_read = 1; r.alu_src = 1; r.alu_op = ALU_ADD; r.imm_sel = IMM_I;
         return r;
     endfunction
     static function decode_result_t decode_store();
@@ -687,7 +687,7 @@ class decode_monitor;
         #1; // allow combinational logic to settle after apply_cycle()'s NBA update
         actual = '{
             reg_write: vif.reg_write, mem_read: vif.mem_read, mem_write: vif.mem_write,
-            mem_to_reg: vif.mem_to_reg, alu_src: vif.alu_src, alu_a_pc: vif.alu_a_pc,
+            alu_src: vif.alu_src, alu_a_pc: vif.alu_a_pc,
             alu_op: vif.alu_op, branch: vif.branch, jal: vif.jal, jalr: vif.jalr,
             mul_en: vif.mul_en, dsu_en: vif.dsu_en, csr_en: vif.csr_en, csr_op: vif.csr_op,
             is_system: vif.is_system, illegal: vif.illegal_instr, fencei: vif.fencei, imm_sel: vif.imm_sel
@@ -813,7 +813,6 @@ module tb_top;
 
     decode_control dut (
         .instr_i         (vif.instr),
-        .opcode_o        (vif.opcode),
         .rd_o            (vif.rd),
         .funct3_o        (vif.funct3),
         .rs1_o           (vif.rs1),
@@ -821,7 +820,6 @@ module tb_top;
         .reg_write_o     (vif.reg_write),
         .mem_read_o      (vif.mem_read),
         .mem_write_o     (vif.mem_write),
-        .mem_to_reg_o    (vif.mem_to_reg),
         .alu_src_o       (vif.alu_src),
         .alu_a_pc_o      (vif.alu_a_pc),
         .alu_op_o        (vif.alu_op),
@@ -837,6 +835,8 @@ module tb_top;
         .fencei_o        (vif.fencei),
         .imm_sel_o       (vif.imm_sel)
     );
+    assign vif.opcode = dut.opcode;  // no port since F4 (2026-11-16): nothing in the core reads it
+
 
     decode_test test;
 

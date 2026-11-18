@@ -71,11 +71,11 @@ module branch_predict_sva (
 endmodule
 
 module csr_rw_sva (
-    input wire [31:0] instr, rs1_fwd, csr_wdata, input wire csr_imm, input wire [11:0] csr_addr
+    input wire [31:0] rs1_fwd, csr_wdata, input wire csr_imm, input wire [4:0] zimm
 );
-    always @(*) if (!$isunknown({instr, rs1_fwd, csr_imm}))
-        a_csr_fields: assert #0 (csr_addr == instr[31:20] && csr_wdata == (csr_imm ? {27'd0, instr[19:15]} : rs1_fwd))
-            else $error("[SVA-FAIL] a_csr_fields: CSR address or operand is not the ISA's (uimm zero-extended)");
+    always @(*) if (!$isunknown({zimm, rs1_fwd, csr_imm}))
+        a_csr_fields: assert #0 (csr_wdata == (csr_imm ? {27'd0, zimm} : rs1_fwd))
+            else $error("[SVA-FAIL] a_csr_fields: the CSR write operand is not the ISA's (uimm zero-extended)");
 endmodule
 
 bind iport_master garuda_iport_sva #(.FIFO_DEPTH(FIFO_DEPTH)) u_iport_sva (.*);

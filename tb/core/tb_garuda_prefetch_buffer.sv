@@ -110,10 +110,11 @@ module tb_top;
         .instr_pc_o    (vif.instr_pc),
         .instr_fault_o (vif.instr_fault),
         .instr_valid_o (vif.instr_valid),
-        .full_o        (vif.full),
         .empty_o       (vif.empty),
         .occupancy_o   (vif.occupancy)
     );
+
+    assign vif.full = (vif.occupancy == 3'd4);  // no port or wire since F4
 
     garuda_tb_pkg::scoreboard sb;
 

@@ -23,27 +23,28 @@ module load_formatter
     timeunit 1ns;
     timeprecision 1ps;
 
-    wire [DMA_SIZE_W-1:0] size;
+    wire [MEM_SIZE_W-1:0] size;
     wire        unsigned_ext;
 
     assign size         = funct3_i[1:0];  // 00=byte,01=half,10=word
     assign unsigned_ext = funct3_i[2];  // 1 = LBU/LHU (zero-extend)
 
-    reg [BYTE_W-1:0]  byte_sel;
-    reg [HALF_W-1:0] half_sel;
+    // The byte and halfword addr_lsbs_i names (functions: HAL REVROP, MICAWS).
+    function automatic logic [BYTE_W-1:0] pick_byte(
+        input logic [BYTE_OFF_W-1:0] off, input logic [WORD_W-1:0] d);
+        begin
+            case (off)
+                2'b00: pick_byte = d[7:0];
+                2'b01: pick_byte = d[15:8];
+                2'b10: pick_byte = d[23:16];
+                default: pick_byte = d[31:24];  // 2'b11
+            endcase
+        end
+    endfunction
 
-    always_comb begin : c_byte_sel
-        case (addr_lsbs_i)
-            2'b00: byte_sel = rdata_i[7:0];
-            2'b01: byte_sel = rdata_i[15:8];
-            2'b10: byte_sel = rdata_i[23:16];
-            2'b11: byte_sel = rdata_i[31:24];
-        endcase
-        case (addr_lsbs_i[1])
-            1'b0: half_sel = rdata_i[15:0];
-            1'b1: half_sel = rdata_i[31:16];
-        endcase
-    end
+    wire [BYTE_W-1:0] byte_sel = pick_byte(addr_lsbs_i, rdata_i);
+    wire [HALF_W-1:0] half_sel
+        = addr_lsbs_i[1] ? rdata_i[31:16] : rdata_i[15:0];
 
     always_comb begin : c_load_data
         case (size)

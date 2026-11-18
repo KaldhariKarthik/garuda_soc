@@ -40,7 +40,7 @@ module d_port_sva (
     input wire [2:0] hsize_i,
     input wire [1:0] d_htrans_o, input wire [31:0] d_haddr_o, d_hwdata_o, input wire d_hwrite_o,
     input wire d_hready_i, d_hresp_i, mem_stall_o, ok_done_o, err_pulse_o,
-    input wire [1:0] state
+    input wire state  // S_ADDR 0, S_DATA 1
 );
     // what the core guarantees (assumed in formal): an access is presented aligned and held
     // while the port stalls the pipeline
@@ -81,7 +81,7 @@ module csr_file_sva (
     input wire csr_en_i, commit_i, illegal_csr_o,
     input wire [11:0] csr_addr_i, input wire [1:0] csr_op_i, input wire [31:0] csr_wdata_i,
     input wire [7:0] clic_level_i,
-    input wire [31:0] trap_pc_i, trap_cause_i,
+    input wire [31:0] trap_pc_i, input wire [4:0] trap_cause_i,
     input wire mstatus_mie, mstatus_mpie,
     input wire [7:0] mil_r, mpil_r,
     input wire [31:0] mepc_r, mcause_r
@@ -99,7 +99,7 @@ module csr_file_sva (
     // T-12 (ruling, track A 2026-10-15): every trap also saves the level it leaves in mcause[23:16] (mcause.mpil)
     a_trap_mepc_mcause: assert property (@(posedge gclk) disable iff (!core_rst_n)
         trap_enter_i |=> (mepc_r == $past(trap_pc_i) &&
-                          mcause_r == {$past(trap_cause_i[31:24]), $past(mil_r), $past(trap_cause_i[15:0])}) )
+                          mcause_r == {$past(is_interrupt_i), 7'd0, $past(mil_r), 11'd0, $past(trap_cause_i)}) )
         else $error("[SVA-FAIL] a_trap_mepc_mcause: MEPC or MCAUSE not taken from the trap");
     // CORE 14.3, 14.4: an interrupt pushes the level, MRET pops it; an exception leaves it.
     // T-12 (ruling R1): only a CLIC interrupt (level >= 1) sets mil; the machine timer (level 0)
@@ -130,15 +130,14 @@ module csr_file_sva (
 endmodule
 
 module regfile_sva (
-    input wire gclk, core_rst_n, wb_reg_write_i,
+    input wire gclk, wb_reg_write_i,
     input wire [4:0] rs1_idx_i, rs2_idx_i, wb_rd_i,
     input wire [31:0] wb_data_i, rs1_data_o, rs2_data_o
 );
-    // a shadow copy of the 31 registers, written when the port writes
-    reg [31:0] shadow [1:31]; reg [31:1] known = 31'd0;
-    always @(posedge gclk or negedge core_rst_n)
-        if (!core_rst_n) known <= 31'd0;                       // a proof has no initial values, only reset
-        else if (wb_reg_write_i && wb_rd_i != 5'd0) begin shadow[wb_rd_i] <= wb_data_i; known[wb_rd_i] <= 1'b1; end
+    // F4 (2026-11-17): the register file has no reset, so neither has this
+    // checker. A write is followed with local variables instead of a shadow
+    // copy that a reset had to mark empty: a register reads the last value
+    // written to it, for as long as nothing writes it again.
     a_x0_rs1: assert property (@(posedge gclk) rs1_idx_i == 5'd0 |-> rs1_data_o == 32'd0 )
         else $error("[SVA-FAIL] a_x0_rs1: x0 read non-zero");
     a_x0_rs2: assert property (@(posedge gclk) rs2_idx_i == 5'd0 |-> rs2_data_o == 32'd0 )
@@ -148,16 +147,23 @@ module regfile_sva (
         (wb_reg_write_i && wb_rd_i != 5'd0 && wb_rd_i == rs1_idx_i) |-> rs1_data_o === wb_data_i )
         else $error("[SVA-FAIL] a_bypass_rs1: a same-cycle write was not bypassed to rs1");
     // otherwise it reads the last value written
-    a_read_last_rs1: assert property (@(posedge gclk)
-        (rs1_idx_i != 5'd0 && known[rs1_idx_i] && !(wb_reg_write_i && wb_rd_i == rs1_idx_i)) |-> rs1_data_o === shadow[rs1_idx_i] )
-        else $error("[SVA-FAIL] a_read_last_rs1: x%0d read %h, last written %h", rs1_idx_i, rs1_data_o, shadow[rs1_idx_i]);
-    a_read_last_rs2: assert property (@(posedge gclk)
-        (rs2_idx_i != 5'd0 && known[rs2_idx_i] && !(wb_reg_write_i && wb_rd_i == rs2_idx_i)) |-> rs2_data_o === shadow[rs2_idx_i] )
-        else $error("[SVA-FAIL] a_read_last_rs2: x%0d read %h, last written %h", rs2_idx_i, rs2_data_o, shadow[rs2_idx_i]);
+    property p_read_last(logic [4:0] idx, logic [31:0] data);
+        logic [4:0] r; logic [31:0] d;
+        @(posedge gclk)
+        (wb_reg_write_i && wb_rd_i != 5'd0, r = wb_rd_i, d = wb_data_i)
+            ##1 (!(wb_reg_write_i && wb_rd_i == r))[*1:$] ##0 (idx == r)
+        |-> data === d;
+    endproperty
+    a_read_last_rs1: assert property (p_read_last(rs1_idx_i, rs1_data_o))
+        else $error("[SVA-FAIL] a_read_last_rs1: x%0d did not read the last value written", rs1_idx_i);
+    a_read_last_rs2: assert property (p_read_last(rs2_idx_i, rs2_data_o))
+        else $error("[SVA-FAIL] a_read_last_rs2: x%0d did not read the last value written", rs2_idx_i);
 endmodule
 
 bind clic_ctrl clic_ctrl_sva #(.ID_W(ID_W)) u_clic_ctrl_sva (.*);
-bind dport_master d_port_sva u_d_port_sva (.*, .state(state));
+// ok_done: the OKAY completion, named here since F4 (no wire in the unit)
+bind dport_master d_port_sva u_d_port_sva (.*, .state(state),
+    .ok_done_o((state == S_DATA) && d_hready_i && !d_hresp_i));
 bind csr_file csr_file_sva u_csr_file_sva (.*, .mstatus_mie(mstatus_mie), .mstatus_mpie(mstatus_mpie),
     .mil_r(mil_r), .mpil_r(mcause_r[23:16]), .mepc_r(mepc_r), .mcause_r(mcause_r));   // T-12: mpil lives in mcause
 bind regfile regfile_sva u_regfile_sva (.*);
