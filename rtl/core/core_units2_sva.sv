@@ -137,7 +137,7 @@ module garuda_prefetch_buffer_sva (
     c_pfb_wr_rd_full: cover property (@(posedge gclk) full_o && wr_en_i && rd_en_i);
 endmodule
 
-bind branch_unit branch_unit_sva u_branch_unit_sva (.*);
+bind branch_unit branch_unit_sva u_branch_unit_sva (.*, .funct3(funct3_fld), .branch(is_branch));
 bind forward_unit forward_unit_sva u_forward_unit_sva (.*);
 bind hazard_fwd_unit hazard_forward_unit_sva u_hazard_sva (.*);
 bind load_store_unit load_store_unit_sva u_lsu_sva (.*, .load_misaligned_o(misaligned_o), .store_misaligned_o(misaligned_o));

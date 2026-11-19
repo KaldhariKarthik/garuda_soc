@@ -376,7 +376,8 @@ whatever the IP behind it does natively. Four rules, implemented once:
    32-bit words.
 
 Common register tail in every window: `0xFE0 IRQSTAT` (W1C), `0xFE4 IRQEN`,
-`0xFE8 DMACTL`, `0xFEC ID`.
+`0xFE8 DMACTL`, `0xFEC ID`. (D-39: DMACTL reads 0 in PWM and GPIO, which have
+no DMA channel.)
 
 ## D-22 — Third-party RTL is vendored, never edited
 
@@ -760,6 +761,30 @@ for the I-Port, SINGLE for the rest); a shared-bus checker gets the granted mast
 **Consequences.** Less logic, no exception for unread protocol fields. AHB spec [N-5.2],
 [N-5.4] and the port tables updated. The master-mux HPROT formal property (`a_hprot_const`)
 and bench checks T10 are removed with the feature.
+
+---
+
+## D-39 — DMACTL only where there is a DMA channel (Karthik, 2026-11-19)
+
+**Context.** F4 HAL with every rule on flagged the generic APB shim: PWM and GPIO
+tied its DMA inputs to 0 and left its request output and pad synchroniser ports open.
+A HAL probe showed that default-valued ports do not help (UNCONN, INPASN, UNCONO
+still fire). The PWM and GPIO specs had DMACTL "RW 0, present for uniformity; no
+DMA channel": a register that held two bits and did nothing.
+
+**Decision (Karthik: "Read-as-zero").** The shim keeps what every window has: the
+decode, IRQSTAT, IRQEN and ID. DMACTL and the request with its one-pclk hold-off
+become `garuda_apb_dma`, instantiated only by UART, I2C, SPI master and SPI slave,
+which OR its read data into the shim's. In PWM and GPIO DMACTL answers OKAY, reads 0
+and ignores writes; the window tail and PSLVERR map are unchanged. The pad
+synchronisers become `garuda_sync_bit` / `garuda_pad_sync`, instantiated by the
+wrappers with pads.
+
+**Consequences.** PWM/GPIO specs, register descriptions (`Design_Docs/regs`), UVM
+register models and predictors updated; PWM R-4 and the PWM/GPIO "no DMA request"
+properties (F06, F09) become "DMACTL reads 0" (`a_dmactl_zero`). The shim's DMA
+assertions and coverage move to `garuda_apb_dma_sva` / `garuda_apb_dma_cov`. The
+synchroniser flops are renamed in the trial-synthesis constraints.
 
 ---
 

@@ -10,7 +10,7 @@
 module garuda_iport_sva #(parameter FIFO_DEPTH = 4) (
     input wire gclk, core_rst_n, redirect_i, fifo_rd_en_i,
     input wire [31:0] fetch_pc_i, input wire [2:0] fifo_occupancy_i,
-    input wire [31:0] i_haddr_o, input wire [1:0] i_htrans_o, input wire [2:0] i_hsize_o, i_hburst_o,
+    input wire [31:0] i_haddr_o, input wire [1:0] i_htrans_o, input wire [2:0] i_hsize_o,
     input wire i_hwrite_o, i_hready_i, i_hresp_i, fetch_issue_o, data_valid_o
 );
     // surroundings: the prefetch buffer never claims more than its depth, the slave's ERROR is two
@@ -21,7 +21,7 @@ module garuda_iport_sva #(parameter FIFO_DEPTH = 4) (
     assume_slave_err2: assume property (@(posedge gclk) disable iff (!core_rst_n) (i_hresp_i && !i_hready_i) |=> (i_hresp_i && i_hready_i));
 
     // AHB-Lite, instruction fetch: read only, words, INCR bursts
-    a_ip_fixed: assert property (@(posedge gclk) disable iff (!core_rst_n) !i_hwrite_o && i_hsize_o == 3'b010 && i_hburst_o == 3'b001 )
+    a_ip_fixed: assert property (@(posedge gclk) disable iff (!core_rst_n) !i_hwrite_o && i_hsize_o == 3'b010 )
         else $error("[SVA-FAIL] a_ip_fixed: the I-port is not a word-read INCR master");
     a_ip_no_busy: assert property (@(posedge gclk) disable iff (!core_rst_n) i_htrans_o != 2'b01 )
         else $error("[SVA-FAIL] a_ip_no_busy: BUSY issued");

@@ -33,11 +33,14 @@
 //     (GPIO) or a state bit (16550 IIR). Each bit is captured STICKY here, so
 //     the line the CLIC sees is a held level that only firmware clears - the
 //     D-17 rule, applied uniformly rather than per IP.
-//  4. DMA request with hold-off. dma_chan.v takes exactly one beat per request
+//  4. (D-39, 2026-11-18) DMA request and DMACTL: garuda_apb_dma, only in the
+//     blocks with a DMA channel; DMACTL reads 0 in the others. Before:
+//     DMA request with hold-off. dma_chan.v takes exactly one beat per request
 //     assertion (its taken_q clears only when req drops), so a FIFO-level
 //     request that stays high would move one beat and then stall forever.
 //     req_o therefore drops for one pclk after every dma_ack_i.
-//  5. Pad input synchronisers, for the wrapper to use (SYNC_W bits). Their
+//  5. (F4) Pad input synchronisers: garuda_pad_sync / garuda_sync_bit, in the
+//     wrappers with pads. Before: Pad input synchronisers, (SYNC_W bits). Their
 //     RESET VALUE is SYNC_RESET, one bit per pad, because a synchroniser that
 //     resets to the wrong idle level presents a false signal to the IP for two
 //     pclk out of reset. For a UART that is a low rx line, which is a start
@@ -61,8 +64,6 @@ module garuda_apb_shim
     import garuda_pkg::*;
 #(
     parameter int unsigned N_EVT = 32'd4,  // interrupt sources from the IP
-    parameter int unsigned SYNC_W = 32'd1,  // asynchronous pad inputs to sync
-    parameter [7:0]   SYNC_RESET = 8'h00,  // idle level of each synced pad
     // offsets < IP_LIMIT belong to the IP (at most 0x100)
     parameter [11:0]  IP_LIMIT  = 12'h100,
     // bit n: offset 4n is a register of the IP
@@ -87,15 +88,7 @@ module garuda_apb_shim
     input wire [WORD_W-1:0] ip_prdata_i,
     // ---- interrupts ---------------------------------------------------------
     input wire [N_EVT - 1:0] evt_i,
-    output wire irq_o,
-    // ---- DMA ----------------------------------------------------------------
-    input wire rx_avail_i,  // IP has a byte/word to read
-    input wire tx_space_i,  // IP can accept a byte/word
-    input wire dma_ack_i,  // 2 hclk = 1 pclk (D-16)
-    output wire dma_req_o,
-    // ---- pad input synchronisers --------------------------------------------
-    input wire [SYNC_W - 1:0] pad_async_i,
-    output wire [SYNC_W - 1:0] pad_sync_o
+    output wire irq_o
 );
     timeunit 1ns;
     timeprecision 1ps;
@@ -107,10 +100,13 @@ module garuda_apb_shim
     wire wr     = apb_access & pwrite_i;
 
     // a register of the IP: below the limit, word aligned, and in the map
-    wire in_ip = (paddr_i < IP_LIMIT) &(paddr_i[1:0] == 2'b00)
-        &IP_MAP[paddr_i[7:2]];
-    wire in_tail = (paddr_i == A_IRQSTAT) | (paddr_i == A_IRQEN) |
-                   (paddr_i == A_DMACTL)  | (paddr_i == A_ID);
+    // (IP_LIMIT is at most 0x100: below it means [11:8] zero and, unless the
+    // limit is 0x100, [7:0] below its low byte; two compares of 8 bits or less)
+    wire below = ~|paddr_i[11:8]
+        && (IP_LIMIT[8] || (paddr_i[7:0] < IP_LIMIT[7:0]));
+    wire in_ip = below && (paddr_i[1:0] == 2'b00) && IP_MAP[paddr_i[7:2]];
+    wire in_tail = at12(paddr_i, A_IRQSTAT) | at12(paddr_i, A_IRQEN) |
+                   at12(paddr_i, A_DMACTL)  | at12(paddr_i, A_ID);
     wire hit     = in_ip | in_tail;
 
     // =========================================================================
@@ -126,7 +122,7 @@ module garuda_apb_shim
     // =========================================================================
     reg [N_EVT-1:0] irqstat_q;
     reg [N_EVT-1:0] irqen_q;
-    wire [N_EVT-1:0] w1c = (wr && paddr_i == A_IRQSTAT) ? pwdata_i[N_EVT-1:0]
+    wire [N_EVT-1:0] w1c = (wr && at12(paddr_i, A_IRQSTAT)) ? pwdata_i[N_EVT-1:0]
                                                         : {N_EVT{1'b0}};
     always_ff @(posedge pclk or negedge preset_n) begin : p_irqstat
         if (!preset_n) begin
@@ -136,7 +132,7 @@ module garuda_apb_shim
             // set beats clear: an event arriving in the same cycle as its W1C
             // is not lost (the DSU's FLAG-E rule, applied here)
             irqstat_q <= (irqstat_q & ~w1c) | evt_i;
-            if (wr && paddr_i == A_IRQEN) begin
+            if (wr && at12(paddr_i, A_IRQEN)) begin
                 irqen_q <= pwdata_i[N_EVT - 1:0];
             end
         end
@@ -144,56 +140,18 @@ module garuda_apb_shim
     assign irq_o = |(irqstat_q & irqen_q);
 
     // =========================================================================
-    // DMA request with one-pclk hold-off after every ack (D-21)
-    // =========================================================================
-    reg [DMACTL_W-1:0] dmactl_q;
-    reg       holdoff_q;
-    always_ff @(posedge pclk or negedge preset_n) begin : p_dmactl
-        if (!preset_n) begin
-            dmactl_q <= 2'b00;
-            holdoff_q <= 1'b0;
-        end else begin
-            if (wr && paddr_i == A_DMACTL) begin
-                dmactl_q <= pwdata_i[1:0];
-            end
-            holdoff_q <= dma_ack_i;  // one pclk of guaranteed deassertion
-        end
-    end
-    assign dma_req_o = ((dmactl_q[0] & rx_avail_i) | (dmactl_q[1] & tx_space_i))
-        &
-                       ~holdoff_q & ~dma_ack_i;
-
-    // =========================================================================
-    // Pad input synchronisers
-    // =========================================================================
-    localparam [SYNC_W-1:0] SYNC_IDLE = SYNC_RESET[SYNC_W-1:0];
-
-    reg [SYNC_W-1:0] sync0_q;
-    reg [SYNC_W-1:0] sync1_q;
-    always_ff @(posedge pclk or negedge preset_n) begin : p_synczero
-        if (!preset_n) begin
-            sync0_q <= SYNC_IDLE;
-            sync1_q <= SYNC_IDLE;
-        end else begin
-            sync0_q <= pad_async_i;
-            sync1_q <= sync0_q;
-        end
-    end
-    assign pad_sync_o = sync1_q;
-
-    // =========================================================================
     // Response
     // =========================================================================
     always_comb begin : c_prdata
         if (in_ip) begin
             prdata_o = ip_prdata_i;
-        end else if (paddr_i == A_IRQSTAT) begin
+        end else if (at12(paddr_i, A_IRQSTAT)) begin
             prdata_o = {{(32 - N_EVT) {1'b0}}, irqstat_q};
-        end else if (paddr_i == A_IRQEN) begin
+        end else if (at12(paddr_i, A_IRQEN)) begin
             prdata_o = {{(32 - N_EVT) {1'b0}}, irqen_q};
-        end else if (paddr_i == A_DMACTL) begin
-            prdata_o = {30'd0, dmactl_q};
-        end else if (paddr_i == A_ID) begin
+        // A_DMACTL reads 0 here: the blocks with a DMA channel OR in their
+        // DMACTL from garuda_apb_dma (D-39)
+        end else if (at12(paddr_i, A_ID)) begin
             prdata_o = {16'h6A5D, BLOCK_NUM, BLOCK_REV};
         end else begin
             prdata_o = 32'd0;

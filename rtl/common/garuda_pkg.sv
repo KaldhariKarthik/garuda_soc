@@ -2,6 +2,8 @@
 // (zero-waiver F4, 2026-11-16: compiler directives leave the RTL, HAL CDNOTE;
 // only the constants the chip uses are here, HAL USEPAR).
 package garuda_pkg;
+    timeunit 1ns;
+    timeprecision 1ps;
     localparam ALU_ADD = 4'h0;
     localparam ALU_SUB = 4'h1;
     localparam ALU_AND = 4'h2;
@@ -26,8 +28,6 @@ package garuda_pkg;
     localparam int unsigned CSR_ADDR_W = 32'd12;
     localparam int unsigned HTRANS_W = 32'd2;
     localparam int unsigned HSIZE_W = 32'd3;
-    localparam int unsigned HBURST_W = 32'd3;
-    localparam int unsigned HPROT_W = 32'd4;
     localparam int unsigned REG_IDX_W = 32'd5;
     localparam int unsigned FUNCT3_W = 32'd3;
     localparam int unsigned FUNCT5_W = 32'd5;
@@ -82,4 +82,11 @@ package garuda_pkg;
     localparam int unsigned HALF_W = 32'd16;
     localparam int unsigned ACC_W = 32'd48;
     localparam int unsigned DWORD_W = 32'd64;
+
+    // A 12-bit register offset or CSR number compared with a constant, as its
+    // two fields [11:6] and [5:0] (F4, 2026-11-19: HAL LRGOPR flags a compare
+    // of more than 8 bits; the gates are the same).
+    function automatic logic at12(input logic [11:0] a, input logic [11:0] k);
+        at12 = (a[11:6] == k[11:6]) && (a[5:0] == k[5:0]);
+    endfunction
 endpackage

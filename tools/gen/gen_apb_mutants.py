@@ -20,34 +20,42 @@ import os, sys
 
 R = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 KILL = r"^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]"
-B, F, X = "ahb2apb_bridge.v", "ahb2apb_apb_fsm.v", "ahb2apb_fabric.v"
+B, F, X = "ahb2apb_bridge.sv", "ahb2apb_apb_fsm.sv", "ahb2apb_fabric.sv"
+H, P = "brg_ahb_fsm.sv", "apb_phase_fsm.sv"  # the two state machines (F4, 2026-11-17)
 MUTANTS = [
- ("P01", B, "                H_IDLE, H_OK, H_ERR2: begin", "                H_IDLE: begin", "BRG-1 reverted: a new transfer is accepted only from H_IDLE"),
- ("P02", B, "    wire       win_ok  = WINDOW_MASK[win] && (haddr_i[27:16] == 12'h000);", "    wire       win_ok  = WINDOW_MASK[win];",
+ ("P01", H, "                end else if (xfer_i) begin", "                end else if (xfer_i && hstate == H_IDLE) begin",
+  "BRG-1 reverted: a new transfer is accepted only from H_IDLE"),
+ ("P02", B, "    wire       win_ok  = WINDOW_MASK[win] && ~|haddr_i[27:16];", "    wire       win_ok  = WINDOW_MASK[win];",
   "APB-2 reverted: no aperture check"),
  ("P03", B, "    wire       word_ok = (hsize_i == 3'b010);", "    wire       word_ok = 1'b1;", "sub-word accesses passed to APB"),
- ("P04", F, "                    end else if (to_cnt == TIMEOUT - 1) begin", "                    end else if (to_cnt == TIMEOUT - 2) begin",
+ ("P04", F, "    wire to_last = (to_cnt == TO_CNT_W'(TIMEOUT - 32'd1));", "    wire to_last = (to_cnt == TO_CNT_W'(TIMEOUT - 32'd2));",
   "timeout one sample early (15)"),
- ("P05", F, "                    end else if (to_cnt == TIMEOUT - 1) begin", "                    end else if (to_cnt == TIMEOUT) begin",
+ ("P05", F, "    wire to_last = (to_cnt == TO_CNT_W'(TIMEOUT - 32'd1));", "    wire to_last = (to_cnt == TO_CNT_W'(TIMEOUT));",
   "timeout one sample late (17)"),
- ("P06", F, "                        psel_o   <= 12'd1 << win_i;", "                        psel_o   <= 12'd1 << (win_i ^ 4'd1);", "PSEL on the neighbouring window"),
- ("P07", F, "                        psel_o   <= 12'd1 << win_i;\n                        state    <= P_SETUP;",
-  "                        psel_o   <= 12'd1 << win_i;\n                        penable_o <= 1'b1;\n                        state    <= P_SETUP;",
+ ("P06", F, "        assign win_hot[k] = (win_i == APB_WIN_W'(k));", "        assign win_hot[k] = ((win_i ^ 4'd1) == APB_WIN_W'(k));",
+  "PSEL on the neighbouring window"),
+ ("P07", F, "            psel_o <= win_hot;\n", "            psel_o <= win_hot;\n            penable_o <= 1'b1;\n",
   "PENABLE with PSEL (no SETUP cycle)"),
- ("P08", B, "    assign hreadyout_o = prst_ok_q &&", "    assign hreadyout_o = 1'b1 &&", "[N-9.2] gate removed: HREADYOUT while PRESET is asserted"),
- ("P09", B, "                H_ERR1:  hstate <= H_ERR2;", "                H_ERR1:  hstate <= H_IDLE;", "one-cycle ERROR (no second cycle)"),
- ("P10", B, "                        hrdata_o <= apb_rdata;", "                        hrdata_o <= 32'd0;", "read data not returned"),
- ("P11", B, "                    if (write_cap) wdata_cap <= hwdata_i;", "                    if (write_cap) wdata_cap <= wdata_cap;",
+ ("P08", H, "                hreadyout_o = prst_ok_i;", "                hreadyout_o = 1'b1;", "[N-9.2] gate removed: HREADYOUT while PRESET is asserted"),
+ ("P09", H, "                hresp_o = 1'b1;\n                hstate_next = H_ERR2;", "                hresp_o = 1'b1;\n                hstate_next = H_IDLE;",
+  "one-cycle ERROR (no second cycle)"),
+ ("P10", B, "            hrdata_o <= apb_rdata;", "            hrdata_o <= 32'd0;", "read data not returned"),
+ ("P11", B, "            wdata_cap <= hwdata_i;", "            wdata_cap <= wdata_cap;",
   "write data not captured (the previous write's data goes out)"),
- ("P12", F, "                    div_cnt   <= div_load;", "                    div_cnt   <= 3'd0;", "APB_DIV ignored: every window /1"),
- ("P13", F, "                        err_o     <= pslverr_sel_i;", "                        err_o     <= 1'b0;", "PSLVERR ignored: an erroring target answers OKAY"),
+ ("P12", F, "            div_cnt <= div_load;", "            div_cnt <= 3'd0;", "APB_DIV ignored: every window /1"),
+ ("P13", F, "            err_o <= done_ok ? pslverr_sel_i : 1'b1;", "            err_o <= done_ok ? 1'b0 : 1'b1;",
+  "PSLVERR ignored: an erroring target answers OKAY"),
  ("P14", X, "    assign pslverr_o = |(psel_i & pslverr_i);", "    assign pslverr_o = |pslverr_i;", "fabric: PSLVERR from any window, not the selected one"),
- ("P15", F, "                default: state <= P_IDLE;                // P_DONE: one idle pclk",
-  "                default: begin state <= P_IDLE; ack_tgl_o <= ~ack_tgl_o; end   // P_DONE: one idle pclk",
+ ("P15", P, "            default: begin  // P_DONE: one idle pclk\n                state_next = P_IDLE;",
+  "            default: begin  // P_DONE: one idle pclk\n                done_ok_o = 1'b1;\n                state_next = P_IDLE;",
   "a second acknowledge toggle after DONE (one request, two responses)"),
- ("P16", B, "                        if (!win_ok || !word_ok) begin", "                        if (!word_ok) begin",
+ ("P16", B, "    wire       allowed = win_ok && word_ok;", "    wire       allowed = word_ok;",
   "absent / out-of-aperture windows passed to APB (only sub-word rejected)"),
+ # unit-bench negative control (tb/ahb2apb/run/units.toml): written, not in the mutation run
+ ("RDY", X, "    assign pready_o  = |(psel_i & pready_i);", "    assign pready_o  = |({psel_i[10:0], psel_i[11]} & pready_i);",
+  "PREADY taken from the neighbouring window"),
 ]
+UNIT_ONLY = ["RDY"]
 
 
 UNIT_FABRIC = {"P14"}
@@ -61,9 +69,10 @@ def main():
         n = src.count(pat)
         if n != 1:
             sys.exit(f"{mid}: pattern matches {n} times in rtl/ahb2apb/{f}")
-        out = f"tb/ahb2apb/mut/{f[:-2]}_mut_{mid.lower()}.v"
+        out = f"tb/ahb2apb/mut/{f[:-3]}_mut_{mid.lower()}.v"
         open(os.path.join(R, out), "w").write(f"// MUTANT {mid} (bus plan B2): {what}\n" + src.replace(pat, rep))
-        rows.append((mid, f, out, what))
+        if mid not in UNIT_ONLY:
+            rows.append((mid, f, out, what))
     with open(os.path.join(R, "tb/ahb2apb/run/apb_mut.toml"), "w") as m:
         m.write("# Bus plan B2 / recipe R10: AHB-to-APB bridge planted defects. GENERATED by\n"
                 "# tools/gen/gen_apb_mutants.py -- do not edit by hand. Every row must FAIL for a\n"

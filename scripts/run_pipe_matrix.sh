@@ -3,7 +3,7 @@
 # actually reaches. See Docs/bugs/archive/BUGS_HISTORY.md AUD-8.
 set -u
 D=sim/pipe_matrix; mkdir -p "$D"
-xrun -f rtl/common/filelist_pkg.f -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname "$D/xcelium.d" \
+xrun -xmerror CUVDSI -f rtl/common/filelist_pkg.f -f tb/soc/filelist_boot.f -top tb_boot -xmlibdirname "$D/xcelium.d" \
      -snapshot pmx -l "$D/elab.log" -elaborate > /dev/null 2>&1
 grep -qE "^xrun: \*[EF]|^xmelab: \*[EF]" "$D/elab.log" && { echo "ELAB FAILED"; exit 1; }
 for h in sw/build/*.hex; do

@@ -27,7 +27,6 @@ module sba_master
     output reg [HTRANS_W-1:0] htrans_o,
     output reg hwrite_o,
     output wire [HSIZE_W-1:0] hsize_o,
-    output wire [HBURST_W-1:0] hburst_o,
     output reg [WORD_W-1:0] hwdata_o,
     input wire [WORD_W-1:0] hrdata_i,
     input wire hready_i,
@@ -38,7 +37,6 @@ module sba_master
     reg [WORD_W-1:0] wbuf;
 
     assign hsize_o  = 3'b010;
-    assign hburst_o = 3'b000;
 
     // the transfer's state machine (sba_fsm)
     wire idle;

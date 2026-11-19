@@ -9,7 +9,7 @@
 `ifndef __ICARUS__
 module chip_pads_sva (
     input wire refclk, ext_rst_n,
-    input wire tdo_o, tdo_oe, scl_o, scl_oe, sda_o, sda_oe, miso_o, miso_oe,
+    input wire tdo_o, tdo_oe, scl_oe, sda_oe, miso_o, miso_oe,
     input wire [1:0] gpio_o, gpio_oe,
     input wire tdo, i2c_scl, i2c_sda, gpio0, gpio1, spis_miso
 );
@@ -23,9 +23,9 @@ module chip_pads_sva (
         else $error("[SVA-FAIL] a_pad_gpio0: GPIO0 pad does not carry its output while enabled");
     a_pad_gpio1: assert property (@(posedge refclk) disable iff (!ext_rst_n) gpio_oe[1] |-> gpio1 === gpio_o[1] )
         else $error("[SVA-FAIL] a_pad_gpio1: GPIO1 pad does not carry its output while enabled");
-    a_pad_scl_low: assert property (@(posedge refclk) disable iff (!ext_rst_n) (scl_oe && !scl_o) |-> i2c_scl === 1'b0 )
+    a_pad_scl_low: assert property (@(posedge refclk) disable iff (!ext_rst_n) scl_oe |-> i2c_scl === 1'b0 )
         else $error("[SVA-FAIL] a_pad_scl_low: SCL not low while the chip pulls it");
-    a_pad_sda_low: assert property (@(posedge refclk) disable iff (!ext_rst_n) (sda_oe && !sda_o) |-> i2c_sda === 1'b0 )
+    a_pad_sda_low: assert property (@(posedge refclk) disable iff (!ext_rst_n) sda_oe |-> i2c_sda === 1'b0 )
         else $error("[SVA-FAIL] a_pad_sda_low: SDA not low while the chip pulls it");
 endmodule
 bind garuda_chip_top chip_pads_sva u_pads_sva (.*);

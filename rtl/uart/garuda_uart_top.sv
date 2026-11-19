@@ -139,7 +139,7 @@ module garuda_uart_top
     always_ff @(posedge pclk or negedge preset_n) begin : p_dlab
         if (!preset_n) begin
             dlab_q <= 1'b0;
-        end else if (psel_i & penable_i & pwrite_i & (paddr_i == A_LCR)) begin
+        end else if (psel_i & penable_i & pwrite_i & at12(paddr_i, A_LCR)) begin
             dlab_q <= pwdata_i[7];
         end
     end
@@ -152,20 +152,33 @@ module garuda_uart_top
     assign evt[1] = lsr_thre;  // TX holding register empty
     assign evt[2] = lsr_err;  // line error: parity or framing
 
+    wire [WORD_W-1:0] shim_prdata;
+    wire [WORD_W-1:0] dma_rdata;
     garuda_apb_shim #(
-        .N_EVT(3), .SYNC_W(1), .SYNC_RESET(8'h01), .IP_LIMIT(IP_LIMIT),
+        .N_EVT(3), .IP_LIMIT(IP_LIMIT),
             .IP_MAP(IP_MAP), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
-        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
+        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(shim_prdata),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
         .ip_psel_o(ip_psel), .ip_prdata_i(ip_prdata),
-        .evt_i(evt), .irq_o(irq_o),
-        .rx_avail_i(lsr_dr),
-        .tx_space_i(lsr_thre),
-        .dma_ack_i(dma_ack_i), .dma_req_o(shim_dma_req),
-        .pad_async_i(uart_rx_i), .pad_sync_o(rx_sync));
+        .evt_i(evt), .irq_o(irq_o));
+
+    // DMACTL and the request (D-39: only the blocks with a DMA channel)
+    garuda_apb_dma u_dma (
+        .pclk(pclk), .preset_n(preset_n),
+        .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
+        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .rdata_o(dma_rdata),
+        .src_i({lsr_thre, lsr_dr}), .dma_ack_i(dma_ack_i), .dma_req_o(shim_dma_req));
+    assign prdata_o = shim_prdata | dma_rdata;
+
+    // pad input synchronisers (F4: out of the shim)
+    // RX idles HIGH
+    garuda_sync_bit #(.IDLE(1'b1)) u_sync (
+        .pclk(pclk), .preset_n(preset_n), .pad_i(uart_rx_i),
+        .sync_o(rx_sync)
+    );
 
     // The divisor latch is never a DMA target ([N-7.6b]). Gating outside the
     // shim is safe: it can only hold the request lower, never longer.

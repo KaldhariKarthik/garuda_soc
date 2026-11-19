@@ -8,6 +8,8 @@
 #
 # tb/<dir>/uvm/planted.txt lists the defects, one per line:
 #     <RTL file> @@ <sed -E expression that plants the defect> @@ <what the defect is>
+#   The expression runs with -z (TOOL-A24, 2026-11-19): the file is one record, so \n
+#   matches a line end and a defect can span the lines of one process.
 # For each one a copy of rtl/ and tb/ is made under sim/planted/<block>/, the
 # expression is applied to the copy, and the register test, the directed test and
 # two random seeds are run on it. A defect is CAUGHT when at least one of them
@@ -72,7 +74,7 @@ while IFS= read -r line; do
     file=$(echo $file); what=$(echo $what); expr=$(printf '%s' "$expr" | sed 's/^ *//; s/ *$//')
     n=$((n+1))
     cp "$ROOT/$file" "$W/$file.orig"
-    sed -i -E "$expr" "$W/$file"
+    sed -i -E -z "$expr" "$W/$file"
     if cmp -s "$W/$file" "$W/$file.orig"; then
         echo "$n. NOT PLANTED (the expression changed nothing): $what" >> "$OUT"; bad=1
     elif first=$(run_all d$n); then

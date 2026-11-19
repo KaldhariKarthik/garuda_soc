@@ -68,7 +68,7 @@ package pwm_env_pkg;
         bit [15:0] prescale, period, duty[4];
         bit        en; bit [3:0] ch_en;
         // the shim registers (D-21)
-        bit [1:0]  irqstat, irqen, dmactl;
+        bit [1:0]  irqstat, irqen;
         // time base and double buffer (PWM section 7)
         bit [15:0] pre, cnt, duty_s[4];
         bit [3:0]  clamp;
@@ -80,7 +80,7 @@ package pwm_env_pkg;
         function new(string name = "pwm_ref_model"); super.new(name); reset(); endfunction
 
         function void reset();
-            prescale = 0; period = 0; en = 0; ch_en = 0; irqstat = 0; irqen = 0; dmactl = 0;
+            prescale = 0; period = 0; en = 0; ch_en = 0; irqstat = 0; irqen = 0;
             pre = 0; cnt = 0; clamp = 0; pin_q = 0;
             foreach (duty[i]) begin duty[i] = 0; duty_s[i] = 0; end
             ev_wr = 0; ev_wrap = 0; ev_load = 0; ev_evt = 0; ev_clr = 0;
@@ -88,7 +88,7 @@ package pwm_env_pkg;
 
         function void copy_state(pwm_ref_model o);
             prescale = o.prescale; period = o.period; en = o.en; ch_en = o.ch_en;
-            irqstat = o.irqstat; irqen = o.irqen; dmactl = o.dmactl; pre = o.pre; cnt = o.cnt; clamp = o.clamp;
+            irqstat = o.irqstat; irqen = o.irqen; pre = o.pre; cnt = o.cnt; clamp = o.clamp;
             pin_q = o.pin_q;
             foreach (duty[i]) begin duty[i] = o.duty[i]; duty_s[i] = o.duty_s[i]; end
         endfunction
@@ -123,7 +123,7 @@ package pwm_env_pkg;
                 12'h010, 12'h014, 12'h018, 12'h01C: return {16'd0, duty[a[3:2]]};
                 12'hFE0: return {30'd0, irqstat};
                 12'hFE4: return {30'd0, irqen};
-                12'hFE8: return {30'd0, dmactl};
+                12'hFE8: return 32'd0;                      // D-39: no DMA channel
                 default: return PWM_ID;
             endcase
         endfunction
@@ -157,7 +157,6 @@ package pwm_env_pkg;
                 12'h008: begin en = it.pwdata[0]; ch_en = it.pwdata[7:4]; end
                 12'h010, 12'h014, 12'h018, 12'h01C: duty[it.paddr[3:2]] = it.pwdata[15:0];
                 12'hFE4: irqen  = it.pwdata[1:0];
-                12'hFE8: dmactl = it.pwdata[1:0];
                 default: ;                                           // STATUS and ID are read-only; IRQSTAT handled above
             endcase
         endfunction

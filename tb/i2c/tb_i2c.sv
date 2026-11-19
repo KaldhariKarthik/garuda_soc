@@ -19,7 +19,7 @@ module tb_i2c;
 
     logic dma_ack = 0;
     wire  irq, dma_req;
-    wire  scl_o, scl_oe, sda_o, sda_oe;
+    wire  scl_oe, sda_oe;
 
     // the bus: open drain with board pull-ups
     wire scl, sda;
@@ -32,8 +32,8 @@ module tb_i2c;
     pullup (weak1) p_scl (scl);
     pullup (weak1) p_sda (sda);
 `endif
-    assign scl = scl_oe ? scl_o : 1'bz;
-    assign sda = sda_oe ? sda_o : 1'bz;
+    assign scl = scl_oe ? 1'b0 : 1'bz;  // open drain (no data outputs since F4)
+    assign sda = sda_oe ? 1'b0 : 1'bz;
 
     garuda_i2c_top dut (
         .pclk(pclk), .preset_n(preset_n),
@@ -41,8 +41,8 @@ module tb_i2c;
         .paddr_i(bfm.paddr), .pwdata_i(bfm.pwdata), .prdata_o(bfm.prdata),
         .pready_o(bfm.pready), .pslverr_o(bfm.pslverr),
         .irq_o(irq), .dma_req_o(dma_req), .dma_ack_i(dma_ack),
-        .i2c_scl_i(scl), .i2c_scl_o(scl_o), .i2c_scl_oe(scl_oe),
-        .i2c_sda_i(sda), .i2c_sda_o(sda_o), .i2c_sda_oe(sda_oe));
+        .i2c_scl_i(scl), .i2c_scl_oe(scl_oe),
+        .i2c_sda_i(sda), .i2c_sda_oe(sda_oe));
 
     i2c_slave_model #(.ADDR(7'h48)) u_slv (.scl(scl), .sda(sda));
 
@@ -53,9 +53,8 @@ module tb_i2c;
     int pready_viol = 0, drive_high = 0;
     always @(posedge pclk) begin
         if (preset_n && bfm.psel && !bfm.pready) pready_viol++;
-        // R-9: the block may only ever pull a line LOW or release it
-        if (preset_n && ((scl_oe && scl_o !== 1'b0) || (sda_oe && sda_o !== 1'b0)))
-            drive_high++;
+        // R-9 (only LOW or released) holds by construction since F4: the
+        // wrapper has enables only, the pads drive 0
     end
     // The MINIMUM falling-edge gap is one SCL period; single samples catch
     // START/STOP and ACK boundaries, which are longer.

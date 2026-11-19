@@ -141,7 +141,7 @@ set_false_path -from [get_ports ext_rst_n] \
 #      period. Assumptions: (a) a pad + board budget of that size is enough; (b)
 #      the SPI flash/IMU part numbers are unknown, so spim_* are treated as
 #      generic outputs launched in pclk; spim_miso is synchronised in RTL
-#      (u_spim.u_shim.sync0_q) and is therefore an async input; (c) the JTAG probe
+#      (u_spim.u_sync.meta_q) and is therefore an async input; (c) the JTAG probe
 #      drives tms/tdi off tck falling and samples tdo on tck rising (IEEE 1149.1
 #      convention, part not known); (d) no output load or drive cell is set.
 #      Replace each with datasheet values before any sign-off use.
@@ -163,18 +163,18 @@ set_output_delay -min 0 -clock pclk $OUTS_PCLK
 
 # ---- 8. asynchronous inputs, each into a named first synchroniser stage
 #      (checked in synth_r1: each port's only load is that D pin). Port -> pin only.
-set_false_path -from [get_ports spim_miso] -to [get_pins {{u_spim.u_shim.sync0_q$_DFF_PN0_/D}}]
-set_false_path -from [get_ports uart0_rx]  -to [get_pins {{g_uart?0?.u_uart.u_shim.sync0_q$_DFF_PN1_/D}}]
-set_false_path -from [get_ports uart1_rx]  -to [get_pins {{g_uart?1?.u_uart.u_shim.sync0_q$_DFF_PN1_/D}}]
-set_false_path -from [get_ports uart2_rx]  -to [get_pins {{g_uart?2?.u_uart.u_shim.sync0_q$_DFF_PN1_/D}}]
+set_false_path -from [get_ports spim_miso] -to [get_pins {{u_spim.u_sync.meta_q$_DFF_PN0_/D}}]
+set_false_path -from [get_ports uart0_rx]  -to [get_pins {{g_uart?0?.u_uart.u_sync.meta_q$_DFF_PN1_/D}}]
+set_false_path -from [get_ports uart1_rx]  -to [get_pins {{g_uart?1?.u_uart.u_sync.meta_q$_DFF_PN1_/D}}]
+set_false_path -from [get_ports uart2_rx]  -to [get_pins {{g_uart?2?.u_uart.u_sync.meta_q$_DFF_PN1_/D}}]
 set_false_path -from [get_ports boot_sel]  -to [get_pins {{u_reset_ctrl.u_apb.bsel_q?0?$_DFF_PN0_/D}}]
-set_false_path -from [get_ports spis_sclk] -to [get_pins {{g_spis.u_spis.u_shim.sync0_q?0?$_DFF_PN0_/D}}]
-set_false_path -from [get_ports spis_mosi] -to [get_pins {{g_spis.u_spis.u_shim.sync0_q?1?$_DFF_PN0_/D}}]
-set_false_path -from [get_ports spis_cs_n] -to [get_pins {{g_spis.u_spis.u_shim.sync0_q?2?$_DFF_PN1_/D}}]
-set_false_path -from [get_ports {{gpio_i[0]}}] -to [get_pins {{u_gpio.u_shim.sync0_q?0?$_DFF_PN0_/D}}]
-set_false_path -from [get_ports {{gpio_i[1]}}] -to [get_pins {{u_gpio.u_shim.sync0_q?1?$_DFF_PN0_/D}}]
-set_false_path -from [get_ports i2c_scl_i] -to [get_pins {{u_i2c.u_shim.sync0_q?0?$_DFF_PN1_/D}}]
-set_false_path -from [get_ports i2c_sda_i] -to [get_pins {{u_i2c.u_shim.sync0_q?1?$_DFF_PN1_/D}}]
+set_false_path -from [get_ports spis_sclk] -to [get_pins {{g_spis.u_spis.u_sync.g_line?0?.u_sync.meta_q$_DFF_PN0_/D}}]
+set_false_path -from [get_ports spis_mosi] -to [get_pins {{g_spis.u_spis.u_sync.g_line?1?.u_sync.meta_q$_DFF_PN0_/D}}]
+set_false_path -from [get_ports spis_cs_n] -to [get_pins {{g_spis.u_spis.u_sync.g_line?2?.u_sync.meta_q$_DFF_PN1_/D}}]
+set_false_path -from [get_ports {{gpio_i[0]}}] -to [get_pins {{u_gpio.u_sync.g_line?0?.u_sync.meta_q$_DFF_PN0_/D}}]
+set_false_path -from [get_ports {{gpio_i[1]}}] -to [get_pins {{u_gpio.u_sync.g_line?1?.u_sync.meta_q$_DFF_PN0_/D}}]
+set_false_path -from [get_ports i2c_scl_i] -to [get_pins {{u_i2c.u_sync.g_line?0?.u_sync.meta_q$_DFF_PN1_/D}}]
+set_false_path -from [get_ports i2c_sda_i] -to [get_pins {{u_i2c.u_sync.g_line?1?.u_sync.meta_q$_DFF_PN1_/D}}]
 
 # ---- 9. not set (library / package dependent): max transition/cap/fanout,
 #      driving cells, output loads, uncertainty on derived clocks (no document

@@ -22,7 +22,7 @@ module gpio_sva (
     input wire [1:0]  padin,          // what PADIN reads
     input wire [1:0]  en,             // GPIOEN
     input wire        ip_rd_status,   // the vendored block sees a read of INTSTATUS
-    input wire        dma_req
+    input wire [31:0] prdata_o
 );
     wire wr_paddir = psel_i && penable_i && pwrite_i && (paddr_i == 12'h000);
 
@@ -62,9 +62,10 @@ module gpio_sva (
     a_no_intstatus_poll: assert property (@(posedge pclk) disable iff (!preset_n)
         ip_rd_status |-> (psel_i && penable_i && !pwrite_i && paddr_i[11:7] == 5'd0 && paddr_i[6:2] == 5'd9))
         else $error("[SVA-FAIL] a_no_intstatus_poll");
-    // ---- F09: no DMA request, whatever DMACTL holds ----------------------------------
-    a_no_dma_req: assert property (@(posedge pclk) disable iff (!preset_n) !dma_req)
-        else $error("[SVA-FAIL] a_no_dma_req");
+    // ---- F09 (D-39): no DMA channel; DMACTL reads 0 and keeps no write ------
+    a_dmactl_zero: assert property (@(posedge pclk) disable iff (!preset_n)
+        (psel_i && penable_i && !pwrite_i && paddr_i == 12'hFE8) |-> (prdata_o == 32'd0))
+        else $error("[SVA-FAIL] a_dmactl_zero");
 
     c_status_read: cover property (@(posedge pclk) preset_n && ip_rd_status);
 endmodule
@@ -75,6 +76,6 @@ bind garuda_gpio_top gpio_sva u_gpio_sva (
     .gpio_i(gpio_i), .gpio_o(gpio_o), .gpio_oe(gpio_oe),
     .padin(u_gpio.r_gpio_in), .en(u_gpio.r_gpio_en),
     .ip_rd_status(u_gpio.PSEL && u_gpio.PENABLE && !u_gpio.PWRITE && (u_gpio.PADDR[6:2] == 5'd9)),
-    .dma_req(u_shim.dma_req_o));
+    .prdata_o(prdata_o));
 `endif
 `endif

@@ -24,8 +24,6 @@ module bootrom_top
     input wire [HTRANS_W-1:0] htrans_i,
     input wire hwrite_i,
     input wire [HSIZE_W-1:0] hsize_i,
-    input wire [HBURST_W-1:0] hburst_i,
-    input wire [HPROT_W-1:0] hprot_i,
     input wire [WORD_W-1:0] hwdata_i,
     input wire hready_i,
     output wire [WORD_W-1:0] hrdata_o,
@@ -82,6 +80,5 @@ module bootrom_top
     endfunction
 `endif
 
-    wire _unused = |{hburst_i, hprot_i};
 
 endmodule

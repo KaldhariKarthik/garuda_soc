@@ -58,25 +58,25 @@ module tb_chip;
     wire [31:0] vi, vd, vs, vm, vsl;
     ahb_lite_checker u_ci (.clk_i(hclk), .rst_n_i(hrst),
         .haddr_i(dut.u_core.u_soc.i_haddr), .htrans_i(dut.u_core.u_soc.i_htrans), .hsize_i(dut.u_core.u_soc.i_hsize),
-        .hburst_i(dut.u_core.u_soc.i_hburst), .hwrite_i(dut.u_core.u_soc.i_hwrite), .hwdata_i(dut.u_core.u_soc.i_hwdata),
+        .hburst_i(3'b001), .hwrite_i(dut.u_core.u_soc.i_hwrite), .hwdata_i(dut.u_core.u_soc.i_hwdata),
         .hready_i(dut.u_core.u_soc.i_hready), .hresp_i(dut.u_core.u_soc.i_hresp), .viol_count_o(vi));
     ahb_lite_checker u_cd (.clk_i(hclk), .rst_n_i(hrst),
         .haddr_i(dut.u_core.u_soc.d_haddr), .htrans_i(dut.u_core.u_soc.d_htrans), .hsize_i(dut.u_core.u_soc.d_hsize),
-        .hburst_i(dut.u_core.u_soc.d_hburst), .hwrite_i(dut.u_core.u_soc.d_hwrite), .hwdata_i(dut.u_core.u_soc.d_hwdata),
+        .hburst_i(3'b000), .hwrite_i(dut.u_core.u_soc.d_hwrite), .hwdata_i(dut.u_core.u_soc.d_hwdata),
         .hready_i(dut.u_core.u_soc.d_hready), .hresp_i(dut.u_core.u_soc.d_hresp), .viol_count_o(vd));
     ahb_lite_checker u_cs (.clk_i(hclk), .rst_n_i(hrst),
         .haddr_i(dut.u_core.u_soc.s_haddr), .htrans_i(dut.u_core.u_soc.s_htrans), .hsize_i(dut.u_core.u_soc.s_hsize),
-        .hburst_i(dut.u_core.u_soc.s_hburst), .hwrite_i(dut.u_core.u_soc.s_hwrite), .hwdata_i(dut.u_core.u_soc.s_hwdata),
+        .hburst_i(3'b000), .hwrite_i(dut.u_core.u_soc.s_hwrite), .hwdata_i(dut.u_core.u_soc.s_hwdata),
         .hready_i(dut.u_core.u_soc.s_hready), .hresp_i(dut.u_core.u_soc.s_hresp), .viol_count_o(vs));
     ahb_lite_checker u_cm (.clk_i(hclk), .rst_n_i(hrst),
         .haddr_i(dut.u_core.u_soc.m_haddr), .htrans_i(dut.u_core.u_soc.m_htrans), .hsize_i(dut.u_core.u_soc.m_hsize),
-        .hburst_i(dut.u_core.u_soc.m_hburst), .hwrite_i(dut.u_core.u_soc.m_hwrite), .hwdata_i(dut.u_core.u_soc.m_hwdata),
+        .hburst_i(3'b000), .hwrite_i(dut.u_core.u_soc.m_hwrite), .hwdata_i(dut.u_core.u_soc.m_hwdata),
         .hready_i(dut.u_core.u_soc.m_hready), .hresp_i(dut.u_core.u_soc.m_hresp), .viol_count_o(vm));
     // the slave-side stream: misaligned/unmapped accesses are deliberately issued
     // by t_chip_basic, so this one reports but only the master checkers gate
     ahb_lite_checker u_csl (.clk_i(hclk), .rst_n_i(hrst),
         .haddr_i(dut.u_core.u_soc.haddr), .htrans_i(dut.u_core.u_soc.htrans), .hsize_i(dut.u_core.u_soc.hsize),
-        .hburst_i(dut.u_core.u_soc.hburst), .hwrite_i(dut.u_core.u_soc.hwrite), .hwdata_i(dut.u_core.u_soc.hwdata),
+        .hburst_i(dut.u_core.u_soc.u_ahb.grant == 2'd0 ? 3'b001 : 3'b000), .hwrite_i(dut.u_core.u_soc.hwrite), .hwdata_i(dut.u_core.u_soc.hwdata),
         .hready_i(dut.u_core.u_soc.hready),
         .hresp_i(dut.u_core.u_soc.hresp_isram | dut.u_core.u_soc.hresp_rom | dut.u_core.u_soc.hresp_dsram |
                  dut.u_core.u_soc.hresp_bridge | dut.u_core.u_soc.u_ahb.hresp_df),
@@ -86,7 +86,7 @@ module tb_chip;
     integer n_retire = 0, n_sleep = 0, n_hreset_fall = 0;
     always @(posedge hclk) if (hrst) begin
         if (dut.u_core.u_soc.u_core.mw_retire) n_retire++;
-        if (dut.u_core.u_soc.core_sleep_o)     n_sleep++;
+        if (dut.u_core.u_soc.u_core.quiescent)     n_sleep++;
     end
 
     // ---- JTAG bit-bang (20 MHz) ------------------------------------------------------------
@@ -121,6 +121,7 @@ module tb_chip;
     reg [1023:0] test_hex;
     reg [8*8-1:0] mode;
     reg [31:0] img [0:16383];
+    reg [31:0] img_ones [0:16383];  // the same image over all-ones: see the load below
     integer maxus, nwords, i;
     reg [31:0] th, r;
     integer rc;
@@ -205,9 +206,18 @@ module tb_chip;
             u_flash.bd_load_hex(test_hex);
             $display("[tb_chip] flash image %0s loaded, booting from SPI", test_hex);
         end else begin
-            for (i = 0; i < 16384; i++) img[i] = 32'hx;
+            // TB-B7 (2026-11-20): the image ends at the first word $readmemh did
+            // not write. It was found as the first X word, which a 2-state
+            // simulator reads as 0: under Verilator the JTAG load streamed all
+            // 16384 words and timed out. A word is loaded where two copies of the
+            // image, one over zeros and one over all-ones, agree.
+            for (i = 0; i < 16384; i++) begin
+                img[i] = 32'h0000_0000;
+                img_ones[i] = 32'hFFFF_FFFF;
+            end
             $readmemh(test_hex, img);
-            for (nwords = 0; nwords < 16384 && img[nwords] !== 32'hx; nwords++) ;
+            $readmemh(test_hex, img_ones);
+            for (nwords = 0; nwords < 16384 && img[nwords] == img_ones[nwords]; nwords++) ;
             if (mode != "jtag") begin
                 for (i = 0; i < nwords; i++) dut.u_core.u_soc.u_isram.bd_write(4 * i, img[i]);
                 post_mailbox();
@@ -260,7 +270,7 @@ module tb_chip;
                 // a program can leave a breadcrumb with `csrw mscratch, n`
                 $display("        mscratch = %0d, mcause = 0x%08h, mepc = 0x%08h, asleep = %0b",
                          dut.u_core.u_soc.u_core.u_csr.mscratch_r, dut.u_core.u_soc.u_core.u_csr.mcause_r,
-                         dut.u_core.u_soc.u_core.u_csr.mepc_r, dut.u_core.u_soc.core_sleep_o);
+                         dut.u_core.u_soc.u_core.u_csr.mepc_r, dut.u_core.u_soc.u_core.quiescent);
                 $display("RESULT: FAILED");
                 $finish;
             end

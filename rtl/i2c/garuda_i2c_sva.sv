@@ -21,7 +21,7 @@ module garuda_i2c_sva (
     input wire        irq_o,
     input wire        dma_req_o,
     input wire        dma_ack_i,
-    input wire        i2c_scl_o, i2c_sda_o, i2c_scl_oe, i2c_sda_oe,
+    input wire        i2c_scl_oe, i2c_sda_oe,
     input wire        scl_sync,
     input wire        i2c_scl_i,       // the raw SCL and SDA pins (the formal bus model below)
     input wire        i2c_sda_i,
@@ -40,8 +40,6 @@ module garuda_i2c_sva (
         else $error("[SVA-FAIL] a_pready: pready_o low");
 
     // ---- F27: the block can pull a line low or release it, never drive it high
-    a_never_high: assert property (@(posedge pclk) !i2c_scl_o && !i2c_sda_o)
-        else $error("[SVA-FAIL] a_never_high: scl_o %0b sda_o %0b", i2c_scl_o, i2c_sda_o);
 
     // ---- F28: both lines released in reset and until firmware starts a transfer
     reg seen_cmd;
@@ -178,7 +176,7 @@ endmodule
 bind garuda_i2c_top garuda_i2c_sva u_i2c_sva (
     .pclk(pclk), .preset_n(preset_n), .pready_o(pready_o), .pslverr_o(pslverr_o), .irq_o(irq_o),
     .dma_req_o(dma_req_o), .dma_ack_i(dma_ack_i),
-    .i2c_scl_o(i2c_scl_o), .i2c_sda_o(i2c_sda_o), .i2c_scl_oe(i2c_scl_oe), .i2c_sda_oe(i2c_sda_oe),
+    .i2c_scl_oe(i2c_scl_oe), .i2c_sda_oe(i2c_sda_oe),
     .scl_sync(scl_sync), .i2c_scl_i(i2c_scl_i), .i2c_sda_i(i2c_sda_i), .en_q(en_q), .tip_q(tip_q), .al_q(al_q), .to_q(to_q), .rxvalid_q(rxvalid_q),
     .cmd_write(cmd_write), .cmd_ok(cmd_ok), .cmd_bits(pwdata_i[4:0]),
     .rd_rx(ip_psel & penable_i & ~pwrite_i & (paddr_i == A_RXDATA)),

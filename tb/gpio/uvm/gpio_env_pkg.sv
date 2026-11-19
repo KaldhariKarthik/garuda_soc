@@ -102,7 +102,7 @@ package gpio_env_pkg;
         bit [1:0] itype[2];
         bit [7:0] padcfg;
         // the shim registers (D-21)
-        bit       irqstat, irqen; bit [1:0] dmactl;
+        bit       irqstat, irqen;
         // input path: two shim flops, then the vendored block's two flops and the value PADIN reads
         bit [1:0] shim0, shim1, s0, s1, pin_in;
         // what the last step did, for the scoreboard and the coverage
@@ -113,13 +113,13 @@ package gpio_env_pkg;
 
         function void reset();
             dir = 0; en = 0; out = 0; inten = 0; status = 0; itype[0] = 0; itype[1] = 0; padcfg = 0;
-            irqstat = 0; irqen = 0; dmactl = 0; shim0 = 0; shim1 = 0; s0 = 0; s1 = 0; pin_in = 0;
+            irqstat = 0; irqen = 0; shim0 = 0; shim1 = 0; s0 = 0; s1 = 0; pin_in = 0;
             ev_wr = 0; ev_rd = 0; ev_clr = 0; ev_int = 0; ev_rise = 0; ev_fall = 0;
         endfunction
 
         function void copy_state(gpio_ref_model o);
             dir = o.dir; en = o.en; out = o.out; inten = o.inten; status = o.status; itype[0] = o.itype[0]; itype[1] = o.itype[1];
-            padcfg = o.padcfg; irqstat = o.irqstat; irqen = o.irqen; dmactl = o.dmactl;
+            padcfg = o.padcfg; irqstat = o.irqstat; irqen = o.irqen;
             shim0 = o.shim0; shim1 = o.shim1; s0 = o.s0; s1 = o.s1; pin_in = o.pin_in;
         endfunction
 
@@ -150,7 +150,7 @@ package gpio_env_pkg;
             case (a)
                 12'hFE0: return {31'd0, irqstat};
                 12'hFE4: return {31'd0, irqen};
-                12'hFE8: return {30'd0, dmactl};
+                12'hFE8: return 32'd0;                      // D-39: no DMA channel
                 12'hFEC: return GPIO_ID;
                 default: return 32'd0;
             endcase
@@ -193,7 +193,6 @@ package gpio_env_pkg;
                 default: ;
             endcase
             if (ev_wr && it.paddr == 12'hFE4) irqen  = it.pwdata[0];
-            if (ev_wr && it.paddr == 12'hFE8) dmactl = it.pwdata[1:0];
         endfunction
     endclass
 

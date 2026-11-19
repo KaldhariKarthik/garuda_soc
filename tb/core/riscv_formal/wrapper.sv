@@ -27,13 +27,13 @@ module rvfi_wrapper (
     garuda_core_top uut (
         .hclk(clock), .core_rst_n(!reset),
         .halt_req_i(1'b0), .halt_safe_o(),
-        .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(), .i_hburst_o(), .i_hprot_o(),
+        .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(), 
         .i_hwrite_o(), .i_hwdata_o(), .i_hrdata_i(i_hrdata), .i_hready_i(i_hready), .i_hresp_i(1'b0),
-        .d_haddr_o(d_haddr), .d_htrans_o(d_htrans), .d_hsize_o(), .d_hburst_o(), .d_hprot_o(),
+        .d_haddr_o(d_haddr), .d_htrans_o(d_htrans), .d_hsize_o(), 
         .d_hwrite_o(d_hwrite), .d_hwdata_o(d_hwdata), .d_hrdata_i(d_hrdata), .d_hready_i(d_hready),
         .d_hresp_i(1'b0),
         .clic_irq_valid_i(1'b0), .clic_irq_id_i(5'd0), .clic_irq_level_i(8'd0), .mtip_i(1'b0),
-        .dbg_acc_0_o(), .dbg_acc_1_o(), .dbg_acc_2_o(), .dsu_ovf_o(), .core_sleep_o(),
+        .dbg_acc_0_o(), .dbg_acc_1_o(), .dbg_acc_2_o(), .dsu_ovf_o(),
         `RVFI_CONN
     );
 

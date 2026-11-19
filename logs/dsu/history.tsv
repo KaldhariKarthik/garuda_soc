@@ -497,3 +497,10 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-19T15:44:38+05:30	202625b450c1	True	fv_dsu	dsu_mut_no_interlock	-	FAIL	XFAIL:PLANTED	[16 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_fires
 2026-11-19T15:44:38+05:30	202625b450c1	True	fv_dsu	dsu_mut_ovf_not_sticky	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_sticky
 2026-11-19T15:44:38+05:30	202625b450c1	True	fv_dsu	dsu_mut_ovf_clear_drops_set	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_set_beats_clear
+2026-11-19T23:59:43+05:30	b21ef9a530ff	True	fv_dsu	dsu_bmc	-	BOUNDED(16)	OK	[18 asserts, 6 covers in model] 
+2026-11-19T23:59:43+05:30	b21ef9a530ff	True	fv_dsu	dsu_prove	-	PROVEN	OK	[18 asserts, 6 covers in model] 
+2026-11-19T23:59:43+05:30	b21ef9a530ff	True	fv_dsu	dsu_cover	-	COVERED	OK	[18 asserts, 6 covers in model] 
+2026-11-19T23:59:43+05:30	b21ef9a530ff	True	fv_dsu	dsu_no_dsu9	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_per_acc
+2026-11-19T23:59:43+05:30	b21ef9a530ff	True	fv_dsu	dsu_mut_no_interlock	-	FAIL	XFAIL:PLANTED	[16 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_fires
+2026-11-19T23:59:43+05:30	b21ef9a530ff	True	fv_dsu	dsu_mut_ovf_not_sticky	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_sticky
+2026-11-19T23:59:43+05:30	b21ef9a530ff	True	fv_dsu	dsu_mut_ovf_clear_drops_set	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_set_beats_clear

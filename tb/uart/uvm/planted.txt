@@ -1,10 +1,10 @@
 # <RTL file> @@ <sed -E expression> @@ <what the defect is>
 rtl/uart/garuda_uart_top.sv @@ s/wire lsr_err  = lsr_dr \& \(lsr_pe \| lsr_fe\);/wire lsr_err  = lsr_pe | lsr_fe;/ @@ the line-error event is raised with no byte waiting (UART-5)
 rtl/uart/garuda_uart_top.sv @@ s/assign dma_req_o = shim_dma_req \& ~dlab_q;/assign dma_req_o = shim_dma_req;/ @@ the DMA request is not held off while DLAB is set
-rtl/uart/garuda_uart_top.sv @@ s/\.ADDR_SHIFT\(2\)/.ADDR_SHIFT(0)/ @@ word offsets are not turned into the 16550's byte offsets
+rtl/uart/garuda_uart_top.sv @@ s/wire \[PADDR_W-1:0\] ip_paddr = \{2'b00, paddr_i\[11:2\]\};/wire [PADDR_W-1:0] ip_paddr = paddr_i;/ @@ word offsets are not turned into the 16550's byte offsets
 rtl/uart/garuda_uart_top.sv @@ s/assign evt\[1\] = lsr_thre; /assign evt[1] = lsr_q[6]; / @@ the transmit-empty event follows TEMT instead of THRE
-rtl/uart/garuda_uart_top.sv @@ s/\.rx_avail_i\(lsr_dr\),/.rx_avail_i(1'b0),/ @@ no DMA request for a received byte
-rtl/uart/garuda_uart_top.sv @@ s/wire        eff_pwrite  = poll \? 1'b0  : ip_pwrite;/wire        eff_pwrite  = ip_pwrite;/ @@ the wrapper's poll is not forced to be a read
+rtl/uart/garuda_uart_top.sv @@ s/\.src_i\(\{lsr_thre, lsr_dr\}\)/.src_i({lsr_thre, 1'b0})/ @@ no DMA request for a received byte
+rtl/uart/garuda_uart_top.sv @@ s/wire        eff_pwrite  = poll \? 1'b0  : pwrite_i;/wire        eff_pwrite  = pwrite_i;/ @@ the wrapper's poll is not forced to be a read
 rtl/uart/garuda_uart_top.sv @@ s/IP_MAP   = 64'h0000_0000_0000_00FF;/IP_MAP   = 64'h0000_0000_0000_00EF;/ @@ MCR at 0x10 answers with PSLVERR
 rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv @@ s/if\(parity_bit != reg_rx_sync\[2\]\)/if(1'b0)/ @@ a parity error is never flagged
 rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv @@ s/parity_bit_next = parity_bit \^ reg_data\[0\];/parity_bit_next = ~(parity_bit ^ reg_data[0]);/ @@ the parity bit sent is wrong

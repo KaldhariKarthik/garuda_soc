@@ -4,15 +4,16 @@
 //shift_dir: 0: arithematic right shift, 1 = logical left shift
 //Operates on full 48-bit acc, returns low 32 bits
 
-`timescale 1ns / 1ps
-
-module barrel_shifter (
-    input wire [47:0] cluster_out,
-    input wire [5:0]  shift_amt,
-    input wire        shift_dir,
-    
-    output wire [31:0] shift_result
+module barrel_shifter
+    import garuda_pkg::*;
+(
+    input wire [ACC_W-1:0] cluster_out,
+    input wire [SHAMT_W-1:0] shift_amt,
+    input wire shift_dir,
+    output wire [WORD_W-1:0] shift_result
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     // -----------------------------------------------------------------------
     // ERRATUM DSU-5 -- the arithmetic right shift was actually LOGICAL
@@ -41,12 +42,13 @@ module barrel_shifter (
     // Each shift now has its own wire, so the signed operand keeps its signed
     // context and `>>>` means what it says.
     // -----------------------------------------------------------------------
-    wire signed [47:0] acc_signed    = cluster_out;
-    wire        [47:0] left_shifted  = cluster_out << shift_amt;
-    wire        [47:0] right_shifted = cluster_out >> shift_amt;
+    // F4: only the low word is returned, so each shift keeps 32 bits; the
+    // arithmetic shift has both operands signed (the amount's top bit is 0)
+    wire signed [ACC_W-1:0] acc_signed    = $signed(cluster_out);
+    wire        [WORD_W-1:0] left_shifted = WORD_W'(cluster_out << shift_amt);
+    wire        [WORD_W-1:0] right_shifted
+        = WORD_W'(cluster_out >> shift_amt);
 
-    wire [47:0] shifted = shift_dir ? left_shifted : right_shifted;
-
-    assign shift_result = shifted[31:0];
+    assign shift_result = shift_dir ? left_shifted : right_shifted;
 
 endmodule

@@ -43,7 +43,7 @@ module garuda_chip_top
 #(
     parameter         BROM_INIT_FILE = "",
     parameter integer         CORE_CLK_GATE  = 32'd1,
-    parameter integer         WITH_SPI_SLAVE = 32'd1,
+    parameter bit             WITH_SPI_SLAVE = 1'b1,
     parameter [23:0]  APB_DIV        = 24'h000000,
     parameter [15:0]  APB_WINDOW_MASK = (16'd1 << WIN_DMA)    |
                                         (16'd1 << WIN_RESET_CTRL) |
@@ -94,14 +94,14 @@ module garuda_chip_top
     timeprecision 1ps;
     wire tdo_o;
     wire tdo_oe;
-    wire scl_o;
     wire scl_oe;
-    wire sda_o;
     wire sda_oe;
     wire miso_o;
     wire miso_oe;
     wire [GPIO_W-1:0] gpio_o;
     wire [GPIO_W-1:0] gpio_oe;
+
+    wire [1:0] gpio_in = {gpio1, gpio0};  // the GPIO pads' input side
 
     garuda_chip_core #(
         .BROM_INIT_FILE(BROM_INIT_FILE), .CORE_CLK_GATE(CORE_CLK_GATE),
@@ -112,20 +112,21 @@ module garuda_chip_top
         .tck(tck), .tms(tms), .tdi(tdi), .tdo_o(tdo_o), .tdo_oe_o(tdo_oe),
         .spim_sclk(spim_sclk), .spim_mosi(spim_mosi), .spim_miso(spim_miso),
         .spim_cs_flash_n(spim_cs_flash_n), .spim_cs_imu_n(spim_cs_imu_n),
-        .i2c_scl_i(i2c_scl), .i2c_scl_o(scl_o), .i2c_scl_oe_o(scl_oe),
-        .i2c_sda_i(i2c_sda), .i2c_sda_o(sda_o), .i2c_sda_oe_o(sda_oe),
+        .i2c_scl_i(i2c_scl), .i2c_scl_oe_o(scl_oe),
+        .i2c_sda_i(i2c_sda), .i2c_sda_oe_o(sda_oe),
         .uart0_rx(uart0_rx), .uart0_tx(uart0_tx),
         .uart1_rx(uart1_rx), .uart1_tx(uart1_tx),
         .uart2_rx(uart2_rx), .uart2_tx(uart2_tx),
         .pwm0(pwm0), .pwm1(pwm1), .pwm2(pwm2), .pwm3(pwm3),
-        .gpio_i({gpio1, gpio0}), .gpio_o(gpio_o), .gpio_oe_o(gpio_oe),
+        .gpio_i(gpio_in), .gpio_o(gpio_o), .gpio_oe_o(gpio_oe),
         .boot_sel(boot_sel),
         .spis_sclk(spis_sclk), .spis_mosi(spis_mosi),
         .spis_miso_o(miso_o), .spis_miso_oe_o(miso_oe), .spis_cs_n(spis_cs_n));
 
     assign tdo       = tdo_oe     ? tdo_o     : 1'bz;
-    assign i2c_scl   = scl_oe     ? scl_o     : 1'bz;
-    assign i2c_sda   = sda_oe     ? sda_o     : 1'bz;
+    // I2C is open drain: 0 when enabled, released otherwise
+    assign i2c_scl   = scl_oe     ? 1'b0      : 1'bz;
+    assign i2c_sda   = sda_oe     ? 1'b0      : 1'bz;
     assign gpio0     = gpio_oe[0] ? gpio_o[0] : 1'bz;
     assign gpio1     = gpio_oe[1] ? gpio_o[1] : 1'bz;
     assign spis_miso = miso_oe    ? miso_o    : 1'bz;

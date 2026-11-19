@@ -16,8 +16,7 @@ module garuda_apb_shim_cov #(parameter integer N_EVT = 4) (
     input wire        access, pwrite_i, in_ip, in_tail, pslverr_o,
     input wire [11:0] paddr_i,
     input wire [N_EVT-1:0] evt_i, w1c, irqstat_q, irqen_q,
-    input wire        irq_o, dma_req_o, dma_ack_i, holdoff_q,
-    input wire [1:0]  dmactl_q
+    input wire        irq_o
 );
     covergroup cg_access @(posedge pclk_i iff (preset_n_i && access));
         option.per_instance = 1;
@@ -37,19 +36,31 @@ module garuda_apb_shim_cov #(parameter integer N_EVT = 4) (
         cp_irq: coverpoint irq_o;
         cp_pending_masked: coverpoint |(irqstat_q & ~irqen_q);
     endgroup
+    cg_access ca = new(); cg_irq ci = new();
+endmodule
+
+bind garuda_apb_shim garuda_apb_shim_cov #(.N_EVT(N_EVT)) u_shim_cov (
+    .pclk_i(pclk), .preset_n_i(preset_n), .access(apb_access), .pwrite_i(pwrite_i),
+    .in_ip(in_ip), .in_tail(in_tail), .pslverr_o(pslverr_o), .paddr_i(paddr_i),
+    .evt_i(evt_i), .w1c(w1c), .irqstat_q(irqstat_q), .irqen_q(irqen_q), .irq_o(irq_o));
+
+// garuda_apb_dma (D-39): one instance per block with a DMA channel
+module garuda_apb_dma_cov (
+    input wire        pclk_i, preset_n_i,
+    input wire        dma_req_o, dma_ack_i, holdoff_q,
+    input wire [1:0]  dmactl_q
+);
     covergroup cg_dma @(posedge pclk_i iff (preset_n_i && (dma_ack_i || dma_req_o)));
         option.per_instance = 1;
         cp_mode: coverpoint dmactl_q { bins rx = {1}; bins tx = {2}; bins both = {3}; }
         cp_ack: coverpoint dma_ack_i;
         cp_holdoff: coverpoint holdoff_q;
     endgroup
-    cg_access ca = new(); cg_irq ci = new(); cg_dma cd = new();
+    cg_dma cd = new();
 endmodule
 
-bind garuda_apb_shim garuda_apb_shim_cov #(.N_EVT(N_EVT)) u_shim_cov (
-    .pclk_i(pclk), .preset_n_i(preset_n), .access(apb_access), .pwrite_i(pwrite_i),
-    .in_ip(in_ip), .in_tail(in_tail), .pslverr_o(pslverr_o), .paddr_i(paddr_i),
-    .evt_i(evt_i), .w1c(w1c), .irqstat_q(irqstat_q), .irqen_q(irqen_q), .irq_o(irq_o),
+bind garuda_apb_dma garuda_apb_dma_cov u_dma_cov (
+    .pclk_i(pclk), .preset_n_i(preset_n),
     .dma_req_o(dma_req_o), .dma_ack_i(dma_ack_i), .holdoff_q(holdoff_q), .dmactl_q(dmactl_q));
 `endif
 `endif

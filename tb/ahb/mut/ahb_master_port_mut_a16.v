@@ -1,6 +1,4 @@
 // MUTANT A16 (bus plan B1 A9): a held read is overridden by the live bus
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 6: AHB-Lite Interconnect
 // ahb_master_port.v - per-master hold rule + one-deep response hold
@@ -86,33 +84,31 @@
 // DMA is the highest-priority master and can never be the one preempted.
 // =============================================================================
 
-
 module ahb_master_port
+    import garuda_pkg::*;
     import ahb_pkg::*;
 (
-    input  wire        hclk,
-    input  wire        hreset_n,
-
+    input wire hclk,
+    input wire hreset_n,
     // ---- this master's address phase ----
-    input  wire [1:0]  htrans_i,
-
+    input wire req_i,  // HTRANS[1]: the master presents a transfer
     // ---- arbitration context ----
-    input  wire        granted_i,      // the arbiter's grant points at me
-    input  wire        dph_own_i,      // the data phase in flight is mine
-
+    input wire granted_i,  // the arbiter's grant points at me
+    input wire dph_own_i,  // the data phase in flight is mine
     // ---- shared slave-side return ----
-    input  wire        hready_shared_i,
-    input  wire [31:0] hrdata_shared_i,
-    input  wire        hresp_shared_i,
-
+    input wire hready_shared_i,
+    input wire [WORD_W-1:0] hrdata_shared_i,
+    input wire hresp_shared_i,
     // ---- what this master actually sees ----
-    output wire        hready_o,
-    output wire [31:0] hrdata_o,
-    output wire        hresp_o
+    output wire hready_o,
+    output wire [WORD_W-1:0] hrdata_o,
+    output wire hresp_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     // An address phase is on the bus from this master.
-    wire presenting = htrans_i[1];
+    wire presenting = req_i;
 
     // Entitled to see the shared HREADY:
     //   - because I am granted, so accepting my address phase is legitimate;
@@ -140,7 +136,7 @@ module ahb_master_port
     // Response hold (ERRATUM AHB-2, see header)
     // -----------------------------------------------------------------------
     reg        hold_valid;
-    reg [31:0] hold_data;
+    reg [WORD_W-1:0] hold_data;
     reg        hold_resp;
 
     // The data phase is mine, it completes this cycle, and the bus has been
@@ -150,15 +146,15 @@ module ahb_master_port
 
     assign hready_o = pending ? (hready_shared_i && entitled) : 1'b1;
 
-    always @(posedge hclk or negedge hreset_n) begin
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_hold_valid
         if (!hreset_n) begin
             hold_valid <= 1'b0;
-            hold_data  <= 32'h0000_0000;
-            hold_resp  <= AHB_RESP_OKAY;
+            hold_data <= 32'h0000_0000;
+            hold_resp <= AHB_RESP_OKAY;
         end else if (capture) begin
             hold_valid <= 1'b1;
-            hold_data  <= hrdata_shared_i;
-            hold_resp  <= hresp_shared_i;
+            hold_data <= hrdata_shared_i;
+            hold_resp <= hresp_shared_i;
         end else if (hold_valid && hready_o) begin
             // Delivered: the master has taken it in this cycle.
             hold_valid <= 1'b0;
@@ -176,5 +172,3 @@ module ahb_master_port
                       dph_own_i  ? hresp_shared_i : AHB_RESP_OKAY;
 
 endmodule
-
-`default_nettype wire

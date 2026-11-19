@@ -36,17 +36,26 @@ module tb_apb_shim;
     logic [31:0] ip_prdata;
     logic        ip_pready = 1;
 
-    garuda_apb_shim #(.N_EVT(N_EVT), .SYNC_W(1), .IP_LIMIT(12'h100),
+    // DUT A is put together as a wrapper with a DMA channel and a pad does it
+    // (F4, D-39): the shim, garuda_apb_dma beside it with the read data ORed,
+    // and one garuda_sync_bit
+    wire [31:0] shim_rd, dma_rd;
+    garuda_apb_shim #(.N_EVT(N_EVT), .IP_LIMIT(12'h100),
                       .BLOCK_NUM(8'd13)) dut (
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(bfm.psel), .penable_i(bfm.penable), .pwrite_i(bfm.pwrite),
-        .paddr_i(bfm.paddr), .pwdata_i(bfm.pwdata), .prdata_o(bfm.prdata),
+        .paddr_i(bfm.paddr), .pwdata_i(bfm.pwdata), .prdata_o(shim_rd),
         .pready_o(bfm.pready), .pslverr_o(bfm.pslverr),
         .ip_psel_o(ip_psel), .ip_prdata_i(ip_prdata),
-        .evt_i(evt), .irq_o(irq),
-        .rx_avail_i(rx_avail), .tx_space_i(tx_space), .dma_ack_i(dma_ack),
-        .dma_req_o(dma_req),
-        .pad_async_i(pad_async), .pad_sync_o(pad_sync));
+        .evt_i(evt), .irq_o(irq));
+    garuda_apb_dma u_dma (
+        .pclk(pclk), .preset_n(preset_n),
+        .psel_i(bfm.psel), .penable_i(bfm.penable), .pwrite_i(bfm.pwrite),
+        .paddr_i(bfm.paddr), .pwdata_i(bfm.pwdata), .rdata_o(dma_rd),
+        .src_i({tx_space, rx_avail}), .dma_ack_i(dma_ack), .dma_req_o(dma_req));
+    assign bfm.prdata = shim_rd | dma_rd;
+    garuda_sync_bit #(.IDLE(1'b0)) u_sync (
+        .pclk(pclk), .preset_n(preset_n), .pad_i(pad_async), .sync_o(pad_sync));
 
     // F4 (2026-11-18): the shim passes only PSEL to the IP; the IP takes
     // PENABLE, PWRITE, PADDR and PWDATA from the bus (as the wrappers do)
@@ -54,7 +63,7 @@ module tb_apb_shim;
     assign ip_pwrite  = bfm.pwrite;
     assign ip_paddr   = bfm.paddr;
     assign ip_pwdata  = bfm.pwdata;
-    assign dmactl     = dut.dmactl_q;
+    assign dmactl     = u_dma.dmactl_q;
 
     // a trivial word-addressed IP: 8 registers, PREADY high
     logic [31:0] ipregs [0:7];
@@ -94,16 +103,14 @@ module tb_apb_shim;
     wire  [31:0] bip_pwdata;
     logic [31:0] bip_prdata;
 
-    garuda_apb_shim #(.N_EVT(1), .SYNC_W(1), .IP_LIMIT(12'h020),
+    garuda_apb_shim #(.N_EVT(1), .IP_LIMIT(12'h020),
                       .BLOCK_NUM(8'd16)) dut_b (
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(b_psel), .penable_i(b_penable), .pwrite_i(b_pwrite),
         .paddr_i(b_paddr), .pwdata_i(b_pwdata), .prdata_o(b_prdata),
         .pready_o(b_pready), .pslverr_o(b_pslverr),
         .ip_psel_o(bip_psel), .ip_prdata_i(bip_prdata),
-        .evt_i(1'b0), .irq_o(), .rx_avail_i(1'b0), .tx_space_i(1'b0),
-        .dma_ack_i(1'b0), .dma_req_o(),
-        .pad_async_i(1'b0), .pad_sync_o());
+        .evt_i(1'b0), .irq_o());
 
     // the byte-addressed IP takes word offsets: the wrapper re-maps them
     // (the shim's ADDR_SHIFT went in F4; the UART wrapper does the same)
@@ -137,6 +144,14 @@ module tb_apb_shim;
         @(posedge pclk); #0.1 b_psel = 0; b_penable = 0; b_pwrite = 0;
     endtask
 
+    // DUT B read: the data is sampled in the ACCESS cycle
+    task automatic bread(input [11:0] a, output [31:0] d, output bit err);
+        @(posedge pclk); #0.1 b_psel = 1; b_pwrite = 0; b_paddr = a; b_penable = 0;
+        @(posedge pclk); #0.1 b_penable = 1;
+        @(posedge pclk); d = b_prdata; err = b_pslverr;
+        #0.1 b_psel = 0; b_penable = 0;
+    endtask
+
     logic [31:0] d;
     bit e;
     int i, t0;
@@ -166,6 +181,11 @@ module tb_apb_shim;
         bfm.write(12'hFE8, 32'h3, e);
         bfm.read(12'hFE8, d, e);
         check(d == 32'h3 && dmactl == 2'b11, "DMACTL is RW");
+        // D-39: a block without a DMA channel (PWM, GPIO; DUT B has no
+        // garuda_apb_dma) answers OKAY at DMACTL, reads 0 and keeps no write
+        bwrite(12'hFE8, 32'h3);
+        bread(12'hFE8, d, e);
+        check(d == 32'h0 && !e, "no DMA part: DMACTL reads 0, OKAY");
 
         // ---- PSLVERR / PREADY ----------------------------------------------------
         bfm.read(12'h800, d, e);

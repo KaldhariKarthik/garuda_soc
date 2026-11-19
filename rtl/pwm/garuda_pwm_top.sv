@@ -39,6 +39,8 @@ module garuda_pwm_top
     localparam [11:0] A_PRESCALE = 12'h000, A_PERIOD = 12'h004,
                       A_CTRL     = 12'h008, A_STATUS = 12'h00C,
                       A_DUTY0    = 12'h010;
+    // DUTY0..DUTY3 sit at A_DUTY0 | 4k: A_DUTY0 is 16-byte aligned and
+    // NUM_CHAN is at most 4, so the offsets need no adder
     localparam [11:0] IP_LIMIT = 12'h020;  // 0x00..0x1C
     // all eight words are registers
     localparam [63:0] IP_MAP   = 64'h0000_0000_0000_00FF;
@@ -82,7 +84,7 @@ module garuda_pwm_top
                 end
                 default: begin
                     for (kw = 0; kw < NUM_CHAN; kw = kw + 1) begin
-                        if (paddr_i == (A_DUTY0 + 12'd4 * kw[11:0])) begin
+                        if (at12(paddr_i, A_DUTY0 | {8'd0, kw[1:0], 2'b00})) begin
                             duty_q[kw] <= pwdata_i[15:0];
                         end
                     end
@@ -123,7 +125,7 @@ module garuda_pwm_top
     always_comb begin : c_duty_rd
         duty_rd = 16'd0;
         for (kr = 0; kr < NUM_CHAN; kr = kr + 1) begin
-            if (paddr_i == (A_DUTY0 + 12'd4 * kr[11:0])) begin
+            if (at12(paddr_i, A_DUTY0 | {8'd0, kr[1:0], 2'b00})) begin
                 duty_rd = duty_q[kr];
             end
         end
@@ -142,7 +144,7 @@ module garuda_pwm_top
     end
 
     garuda_apb_shim #(
-        .N_EVT(2), .SYNC_W(1), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT),
+        .N_EVT(2), .IP_LIMIT(IP_LIMIT),
             .IP_MAP(IP_MAP), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
@@ -150,10 +152,7 @@ module garuda_pwm_top
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
         .ip_psel_o(ip_psel), .ip_prdata_i(reg_rdata),
-        .evt_i(evt), .irq_o(irq_o),
-        .rx_avail_i(1'b0), .tx_space_i(1'b0),  // no DMA channel
-        .dma_ack_i(1'b0), .dma_req_o(),
-        .pad_async_i(1'b0), .pad_sync_o());
+        .evt_i(evt), .irq_o(irq_o));
 
 
 endmodule

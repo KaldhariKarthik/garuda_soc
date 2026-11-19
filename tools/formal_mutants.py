@@ -81,8 +81,8 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
              'reverted (APB-2: no aperture check).',
              'Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal '
              'negative control: must FAIL. (tb/ahb2apb/formal/apb.toml mut_apb2)'],
-  'subs': [("    wire       win_ok  = WINDOW_MASK[win] && (haddr_i[27:16] == 12'h000);\n",
-            '    wire       win_ok  = WINDOW_MASK[win];   // MUTANT: APB-2 reverted\n')]},
+  'subs': [('    wire       win_ok  = WINDOW_MASK[win] && ~|haddr_i[27:16];\n',
+            '    wire       win_ok  = WINDOW_MASK[win];  // MUTANT: APB-2 reverted (no aperture check)\n')]},
  {'path': 'tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_brg1.v',
   'src': 'rtl/ahb2apb/brg_ahb_fsm.sv',
   'header': ['MUTANT brg1 (bus plan B2 negative control): rtl/ahb2apb/ahb2apb_bridge.sv with ONE fix '
@@ -261,7 +261,8 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
              'cycle a result is reported).',
              'Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal '
              'negative control: must FAIL. (tb/dma/formal/dma.toml mut_eng1, a_no_grant_while_reporting)'],
-  'subs': [("    wire take = idle && grant_valid_i && (beat_done_o == 6'd0)\n        && (beat_err_o == 6'd0);\n",
+  'subs': [("    wire take = idle && grant_valid_i && (beat_done_o == 6'd0)\n"
+            "        && (beat_err_o == 6'd0);\n",
             '    wire take = idle && grant_valid_i;  // MUTANT: ENG-1 guard removed\n')]},
  {'path': 'tb/dsu/formal/mutants/dsu_top_no_dsu9.v',
   'src': 'rtl/dsu/dsu_top.sv',

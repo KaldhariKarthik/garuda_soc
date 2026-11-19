@@ -15,7 +15,7 @@
 # =============================================================
 
 SIM      ?= xrun
-XRUN      = xrun
+XRUN      = xrun -xmerror CUVDSI  # a bind input left unconnected is an error (2026-11-19)
 SIM_DIR   = sim
 
 # The RTL packages (zero-waiver F4, 2026-11-16), absolute paths, compiled ONCE at the front
@@ -175,7 +175,7 @@ SEED0 ?= 0
 # UVM_TAG is added to the run directory. The gates set it, so that a gate run of a
 # few seeds does not replace the 20-seed coverage databases the chart is made from.
 UVM_TAG ?=
-UVM_IRUN = $(IRUN152) $(PKG_SRCS) -64bit -uvm -uvmhome CDNS-1.2 -coverage all -covoverwrite
+UVM_IRUN = $(IRUN152) $(PKG_SRCS) -64bit -ncerror CUVDSI -uvm -uvmhome CDNS-1.2 -coverage all -covoverwrite
 define run_uvm
 	@export PATH=$(dir $(IRUN152)):$$PATH; \
 	 D=$(SIM_DIR)/uvm_$(1)$(UVM_TAG); mkdir -p $$D; rm -rf $$D/cov_work $$D/INCA_libs; fail=0; \

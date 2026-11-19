@@ -78,7 +78,7 @@ module dma_chan
     reg [ERR_PHASE_W-1:0] errph_q;
     reg        taken_q;
 
-    wire active   = en_q && (rem_q != 16'd0);
+    wire active   = en_q && |rem_q;
     wire last     = (rem_q == 16'd1);
     wire [WORD_W-1:0] step = (size_q == 2'd0) ? 32'd1 : (size_q == 2'd1) ? 32'd2
         : 32'd4;
@@ -138,7 +138,7 @@ module dma_chan
     end
 
     // EN: the hardware clear wins over a software write (D-2)
-    wire hw_off = hw_clr_en || (en_q && rem_q == 16'd0 && !wr_cr_i);
+    wire hw_off = hw_clr_en || (en_q && ~|rem_q && !wr_cr_i);
     // a software write that sets EN from 0 arms the channel
     wire arm    = !hw_off && wr_cr_i && wdata_i[0] && !en_q;
 
@@ -206,7 +206,7 @@ module dma_chan
                 comp_q <= 1'b1;
             end
         end else if (arm_comp) begin
-            comp_q <= (cnt_q == 16'd0);
+            comp_q <= ~|cnt_q;
         end
     end
 

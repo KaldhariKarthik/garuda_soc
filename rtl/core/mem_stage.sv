@@ -46,8 +46,6 @@ module mem_stage
     output wire [WORD_W-1:0] d_haddr_o,
     output wire [HTRANS_W-1:0] d_htrans_o,
     output wire [HSIZE_W-1:0] d_hsize_o,
-    output wire [HBURST_W-1:0] d_hburst_o,
-    output wire [HPROT_W-1:0] d_hprot_o,
     output wire d_hwrite_o,
     output wire [WORD_W-1:0] d_hwdata_o,
     input wire [WORD_W-1:0] d_hrdata_i,
@@ -131,8 +129,6 @@ module mem_stage
 
     // Static per the pin contract (Sec. 4.1): D-port always SINGLE burst,
     // always privileged/data protection.
-    assign d_hburst_o = 3'b000;
-    assign d_hprot_o  = 4'b0011;
 
     // -----------------------------------------------------------------------
     // Sub-block 3: Load Formatter

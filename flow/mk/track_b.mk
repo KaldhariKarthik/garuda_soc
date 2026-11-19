@@ -279,7 +279,7 @@ applicability:
 	@python3 tools/gen/applicability.py
 
 check_tree:
-	@python3 tools/check_tree.py && python3 tools/gen/applicability.py --check && python3 tools/formal_mutants.py && python3 tools/vendor_sync.py --check
+	@python3 tools/check_tree.py && python3 tools/gen/applicability.py --check && python3 tools/formal_mutants.py && python3 tools/check_mutants.py && python3 tools/vendor_sync.py --check
 
 check_tree_selfcheck:
 	@f=flow/planted_for_check_tree.lib; echo "library (planted) { }" > $$f; git add -N $$f; \

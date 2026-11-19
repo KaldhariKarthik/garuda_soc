@@ -68,7 +68,7 @@ bind garuda_chip_core chip_cov u_chip_cov (
     .hclk(hclk), .hreset_n(hreset_n), .aon_clk(aon_clk),
     .irq_src(u_soc.irq_src), .dma_req(dma_req), .dma_ack(dma_ack),
     .wdt_rst_req(wdt_rst_req), .ndmreset(ndmreset), .hartreset(hartreset), .core_rst_n(core_rst_n),
-    .ilock(ilock), .core_sleep(u_soc.core_sleep_o), .reason(u_reset_ctrl.reason_q),
+    .ilock(ilock), .core_sleep(u_soc.u_core.quiescent), .reason(u_reset_ctrl.reason_q),
     .div_act(div_act), .div_busy(div_busy), .gpio_oe(gpio_oe_o), .scl_oe(i2c_scl_oe_o), .sda_oe(i2c_sda_oe_o), .tdo_oe(tdo_oe_o));
 `endif
 `endif

@@ -26,7 +26,7 @@ module tb_clic_uvm;
     garuda_apb_if apb (.pclk(pclk), .preset_n(sif.rst_n));
 
     clic_top #(.IE_MASK(`GARUDA_CLIC_ID_MASK)) dut (
-        .hclk(hclk), .hreset_n(sif.rst_n), .pclk(pclk), .preset_n(sif.rst_n),
+        .pclk(pclk), .preset_n(sif.rst_n),
         .psel_i(apb.psel), .penable_i(apb.penable), .pwrite_i(apb.pwrite), .paddr_i(apb.paddr),
         .pwdata_i(apb.pwdata), .prdata_o(apb.prdata), .pready_o(apb.pready), .pslverr_o(apb.pslverr),
         .irq_src_i(sif.irq_src),

@@ -28,7 +28,7 @@ module tb_clic;
     wire [7:0]  level;
 
     clic_top dut (
-        .hclk(hclk), .hreset_n(rst_n), .pclk(pclk), .preset_n(rst_n),
+        .pclk(pclk), .preset_n(rst_n),
         .psel_i(psel), .penable_i(penable), .pwrite_i(pwrite), .paddr_i(paddr),
         .pwdata_i(pwdata), .prdata_o(prdata), .pready_o(pready), .pslverr_o(pslverr),
         .irq_src_i(src), .clic_irq_valid_o(valid), .clic_irq_id_o(id),

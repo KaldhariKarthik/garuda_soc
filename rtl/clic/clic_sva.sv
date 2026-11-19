@@ -25,7 +25,6 @@ module clic_sva
     parameter [31:0]  IE_MASK = 32'h00FF_FF7E,
     parameter integer SWI_ID  = 32'd23
 )(
-    input wire           hclk,
     input wire           pclk,
     input wire           preset_n,
     input wire           psel_i,
@@ -47,51 +46,53 @@ module clic_sva
     wire [N-1:0] cand = irq_src_i & ie;
     wire [7:0]   lvl_of_winner = level[8*clic_irq_id_o +: 8];
 
+    // The selection is combinational: each property below is an equality
+    // between the inputs and the outputs at the same instant, checked as a
+    // deferred immediate assertion on every change (F4, 2026-11-18: no clock
+    // needed, so clic_top has no hclk port; before, they were sampled on hclk)
+
     // ---- F03, F17, F18: IDs with no source can never be enabled or win ------
-    a_reserved_ids: assert property (@(posedge hclk) (ie & ~IE_MASK[N-1:0]) == {N{1'b0}})
-        else $error("[SVA-FAIL] a_reserved_ids: an unassigned enable bit is set (ie=%h)", ie);
-    a_id0_never_wins: assert property (@(posedge hclk) disable iff (!preset_n)
-        clic_irq_valid_o |-> (clic_irq_id_o != 5'd0))
-        else $error("[SVA-FAIL] a_id0_never_wins");
-    a_reserved_never_win: assert property (@(posedge hclk) disable iff (!preset_n)
-        clic_irq_valid_o |-> IE_MASK[clic_irq_id_o])
-        else $error("[SVA-FAIL] a_reserved_never_win: id=%0d", clic_irq_id_o);
-
-    // ---- F12, F19: valid is the OR of enabled pending sources, same cycle ---
-    a_valid_correct: assert property (@(posedge hclk) disable iff (!preset_n)
-        clic_irq_valid_o == (|cand))
-        else $error("[SVA-FAIL] a_valid_correct: valid=%b cand=%h", clic_irq_valid_o, cand);
-
-    // ---- F13: the winner is enabled, pending, and presents its own level -----
-    a_winner_legit: assert property (@(posedge hclk) disable iff (!preset_n)
-        clic_irq_valid_o |-> cand[clic_irq_id_o])
-        else $error("[SVA-FAIL] a_winner_legit: id=%0d cand=%h", clic_irq_id_o, cand);
-    a_winner_own_level: assert property (@(posedge hclk) disable iff (!preset_n)
-        clic_irq_valid_o |-> (clic_irq_level_o == lvl_of_winner))
-        else $error("[SVA-FAIL] a_winner_own_level: id=%0d level=%0d cfg=%0d",
-                    clic_irq_id_o, clic_irq_level_o, lvl_of_winner);
+    always_comb begin : c_ids
+        a_reserved_ids: assert #0 ((ie & ~IE_MASK[N-1:0]) == {N{1'b0}})
+            else $error("[SVA-FAIL] a_reserved_ids: an unassigned enable bit is set (ie=%h)", ie);
+        if (preset_n) begin
+            a_id0_never_wins: assert #0 (!clic_irq_valid_o || (clic_irq_id_o != 5'd0))
+                else $error("[SVA-FAIL] a_id0_never_wins");
+            a_reserved_never_win: assert #0 (!clic_irq_valid_o || IE_MASK[clic_irq_id_o])
+                else $error("[SVA-FAIL] a_reserved_never_win: id=%0d", clic_irq_id_o);
+            // ---- F12, F19: valid is the OR of enabled pending sources -------
+            a_valid_correct: assert #0 (clic_irq_valid_o == (|cand))
+                else $error("[SVA-FAIL] a_valid_correct: valid=%b cand=%h", clic_irq_valid_o, cand);
+            // ---- F13: the winner is enabled, pending, and presents its level
+            a_winner_legit: assert #0 (!clic_irq_valid_o || cand[clic_irq_id_o])
+                else $error("[SVA-FAIL] a_winner_legit: id=%0d cand=%h", clic_irq_id_o, cand);
+            a_winner_own_level: assert #0 (!clic_irq_valid_o || (clic_irq_level_o == lvl_of_winner))
+                else $error("[SVA-FAIL] a_winner_own_level: id=%0d level=%0d cfg=%0d",
+                            clic_irq_id_o, clic_irq_level_o, lvl_of_winner);
+            // ---- F16: nothing pending -> the sentinel -----------------------
+            a_idle_outputs: assert #0 (clic_irq_valid_o || (clic_irq_id_o == 5'd0 && clic_irq_level_o == 8'd0))
+                else $error("[SVA-FAIL] a_idle_outputs: id=%0d level=%0d", clic_irq_id_o, clic_irq_level_o);
+        end
+    end
 
     // ---- F13, F14: no candidate has a higher level; none below has the same --
     genvar n;
     generate for (n = 0; n < N; n = n + 1) begin : g_n
         wire [7:0] lvl_n = level[8*n +: 8];
-        a_winner_max_level: assert property (@(posedge hclk) disable iff (!preset_n)
-            (clic_irq_valid_o && cand[n]) |-> (lvl_n <= clic_irq_level_o))
-            else $error("[SVA-FAIL] a_winner_max_level: id %0d (level %0d) beats winner %0d (level %0d)",
-                        n, lvl_n, clic_irq_id_o, clic_irq_level_o);
-        // for the highest ID the compare is true by range, which Verilator reports
-        /* verilator lint_off CMPCONST */
-        a_tiebreak_lowest_id: assert property (@(posedge hclk) disable iff (!preset_n)
-            (clic_irq_valid_o && cand[n] && (lvl_n == clic_irq_level_o)) |-> (n >= clic_irq_id_o))
-            else $error("[SVA-FAIL] a_tiebreak_lowest_id: id %0d ties with winner %0d and is lower",
-                        n, clic_irq_id_o);
-        /* verilator lint_on CMPCONST */
+        always_comb begin : c_rank
+            if (preset_n) begin
+                a_winner_max_level: assert #0 (!(clic_irq_valid_o && cand[n]) || (lvl_n <= clic_irq_level_o))
+                    else $error("[SVA-FAIL] a_winner_max_level: id %0d (level %0d) beats winner %0d (level %0d)",
+                                n, lvl_n, clic_irq_id_o, clic_irq_level_o);
+                // for the highest ID the compare is true by range, which Verilator reports
+                /* verilator lint_off CMPCONST */
+                a_tiebreak_lowest_id: assert #0 (!(clic_irq_valid_o && cand[n] && (lvl_n == clic_irq_level_o)) || (n >= clic_irq_id_o))
+                    else $error("[SVA-FAIL] a_tiebreak_lowest_id: id %0d ties with winner %0d and is lower",
+                                n, clic_irq_id_o);
+                /* verilator lint_on CMPCONST */
+            end
+        end
     end endgenerate
-
-    // ---- F16: nothing pending -> the sentinel -----------------------------------
-    a_idle_outputs: assert property (@(posedge hclk) disable iff (!preset_n)
-        !clic_irq_valid_o |-> (clic_irq_id_o == 5'd0 && clic_irq_level_o == 8'd0))
-        else $error("[SVA-FAIL] a_idle_outputs: id=%0d level=%0d", clic_irq_id_o, clic_irq_level_o);
 
     // ---- F04, F11: CLICIP is the source lines, whatever was written to it ----
     a_pending_comb: assert property (@(posedge pclk) disable iff (!preset_n)
@@ -116,18 +117,21 @@ module clic_sva
         else $error("[SVA-FAIL] a_pready");
 
     // ---- F10: reset leaves everything disabled -------------------------------------
-    a_reset_disabled: assert property (@(posedge hclk)
-        !preset_n |-> (ie == {N{1'b0}} && level == {(N*8){1'b0}} && !clic_irq_valid_o))
-        else $error("[SVA-FAIL] a_reset_disabled");
+    always_comb begin : c_reset_state
+        if (!preset_n) begin
+            a_reset_disabled: assert #0 (ie == {N{1'b0}} && level == {(N*8){1'b0}} && !clic_irq_valid_o)
+                else $error("[SVA-FAIL] a_reset_disabled");
+        end
+    end
 
     // ---- each implication above must be seen to trigger (sign-off criterion 4) ----
-    c_valid:        cover property (@(posedge hclk) preset_n && clic_irq_valid_o);
-    c_idle:         cover property (@(posedge hclk) preset_n && !clic_irq_valid_o);
-    c_tie:          cover property (@(posedge hclk) preset_n && clic_irq_valid_o &&
+    c_valid:        cover property (@(posedge pclk) preset_n && clic_irq_valid_o);
+    c_idle:         cover property (@(posedge pclk) preset_n && !clic_irq_valid_o);
+    c_tie:          cover property (@(posedge pclk) preset_n && clic_irq_valid_o &&
                                     (|(cand & ~(32'd1 << clic_irq_id_o))));
     c_clicip_read:  cover property (@(posedge pclk) preset_n && psel_i && !pwrite_i && paddr_i == 12'h008 && |irq_src_i);
     c_err_write:    cover property (@(posedge pclk) preset_n && psel_i && penable_i && pwrite_i && pslverr_o);
-    c_reset:        cover property (@(posedge hclk) !preset_n ##1 preset_n);
+    c_reset:        cover property (@(posedge pclk) !preset_n ##1 preset_n);
 
     // ---- [N-6.9] CLICSWI: the software interrupt (ID SWI_ID) ------------------
     // A write to 0x00C sets the source to pwdata[0] at that pclk edge; the source
@@ -135,9 +139,12 @@ module clic_sva
     a_swi_write: assert property (@(posedge pclk) disable iff (!preset_n)
         (psel_i && penable_i && pwrite_i && paddr_i == 12'h00C) |=> (swi == $past(pwdata_i[0])))
         else $error("[SVA-FAIL] a_swi_write: CLICSWI did not take the written value");
-    a_swi_source: assert property (@(posedge hclk) disable iff (!preset_n)
-        swi |-> irq_src_i[SWI_ID])
-        else $error("[SVA-FAIL] a_swi_source: CLICSWI set but ID %0d not pending", SWI_ID);
+    always_comb begin : c_swi
+        if (preset_n) begin
+            a_swi_source: assert #0 (!swi || irq_src_i[SWI_ID])
+                else $error("[SVA-FAIL] a_swi_source: CLICSWI set but ID %0d not pending", SWI_ID);
+        end
+    end
     a_swi_read: assert property (@(posedge pclk) disable iff (!preset_n)
         (psel_i && !pwrite_i && paddr_i == 12'h00C) |-> (prdata_o == {31'd0, swi}))
         else $error("[SVA-FAIL] a_swi_read");
@@ -145,12 +152,12 @@ module clic_sva
     // the one the yaml gives the software source
     initial if (SWI_ID != ID_SOFTWARE)
         $error("[SVA-FAIL] clic SWI_ID %0d is not GARUDA_CLIC_ID_SOFTWARE %0d", SWI_ID, ID_SOFTWARE);
-    c_swi_taken:    cover property (@(posedge hclk) preset_n && clic_irq_valid_o && clic_irq_id_o == SWI_ID);
+    c_swi_taken:    cover property (@(posedge pclk) preset_n && clic_irq_valid_o && clic_irq_id_o == SWI_ID);
     c_swi_clear:    cover property (@(posedge pclk) preset_n && swi ##1 !swi);
 endmodule
 
 bind clic_top clic_sva #(.N(NUM_SRC), .IE_MASK(IE_MASK), .SWI_ID(SWI_ID)) u_clic_sva (
-    .hclk(hclk), .pclk(pclk), .preset_n(preset_n),
+    .pclk(pclk), .preset_n(preset_n),
     .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i), .paddr_i(paddr_i),
     .prdata_o(prdata_o), .pready_o(pready_o), .pslverr_o(pslverr_o),
     .irq_src_i(src), .pwdata_i(pwdata_i), .swi(swi), .ie(ie), .level(level),

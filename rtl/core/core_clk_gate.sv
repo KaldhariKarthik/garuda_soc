@@ -31,7 +31,7 @@ module core_clk_gate (
     reg  en_l;
     always_latch begin : l_en
         if (hclk_low) begin
-            en_l <= en_i;
+            en_l = en_i;  // a latch: blocking, as Verilator COMBDLY asks
         end
     end
     assign gclk_o = hclk & en_l;

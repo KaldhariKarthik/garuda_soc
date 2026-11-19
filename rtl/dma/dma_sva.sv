@@ -26,7 +26,7 @@ module dma_top_sva #(
     input wire [31:0] haddr_o, hwdata_o,
     input wire [1:0]  htrans_o,
     input wire        hwrite_o, hready_i, hresp_i,
-    input wire [2:0]  hsize_o, hburst_o,
+    input wire [2:0]  hsize_o,
     input wire [5:0]  dma_req_i, dma_ack_o,
     // internals
     input wire [2:0]  st, ch,
@@ -53,8 +53,6 @@ module dma_top_sva #(
 
     // ---- AHB master ----------------------------------------------------------
     // [N-7.2] SINGLE transfers only
-    a_single: assert property (@(posedge hclk) disable iff (!hreset_n) hburst_o == 3'b000 )
-        else $error("[SVA-FAIL] a_single: HBURST is not SINGLE");
     a_no_seq: assert property (@(posedge hclk) disable iff (!hreset_n) htrans_o != 2'b11 && htrans_o != 2'b01 )
         else $error("[SVA-FAIL] a_no_seq: the DMA issued SEQ or BUSY");
     // AHB-Lite: the address phase holds until accepted
@@ -227,7 +225,7 @@ bind dma_top dma_top_sva #(.PRIO(PRIO), .ACK_CYCLES(ACK_CYCLES)) u_dma_sva (
     .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i), .paddr_i(paddr_i),
     .pready_o(pready_o), .pslverr_o(pslverr_o), .prdata_o(prdata_o),
     .haddr_o(haddr_o), .hwdata_o(hwdata_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o),
-    .hready_i(hready_i), .hresp_i(hresp_i), .hsize_o(hsize_o), .hburst_o(hburst_o),
+    .hready_i(hready_i), .hresp_i(hresp_i), .hsize_o(hsize_o), 
     .dma_req_i(dma_req_i), .dma_ack_o(dma_ack_o),
     .st(u_eng.u_fsm.st), .ch(u_eng.ch), .m2m(u_eng.m2m_l), .eligible(eligible), .beat_done(beat_done), .beat_err(beat_err),
     .err_phase(err_phase), .grant_valid(grant_valid), .grant_ch(grant_ch));

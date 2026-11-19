@@ -46,8 +46,8 @@ dma_mut	mut_m14	FAIL	PLANTED	DMA-7 reverted: dma_ack one hclk wide
 dma_mut	mut_m15	FAIL	PLANTED	ENG-1 reverted: regrant before the channel has counted the beat
 dma_mut	mut_m16	FAIL	PLANTED	write ERROR reported as ERRPHASE = read
 dma_mut	mut_m17	FAIL	PLANTED	byte beats always take lane 0
-dma_mut	mut_m18	FAIL	PLANTED	read ERROR ignored: the beat writes garbage
-dma_mut	mut_m19	FAIL	PLANTED	read address dropped while HREADY is low (AHB violation)
+dma_mut	mut_m18	FAIL	PLANTED	read ERROR not reported: the beat is dropped silently
+dma_mut	mut_m19	FAIL	PLANTED	address dropped while HREADY is low (AHB violation)
 dma_mut	mut_m20	FAIL	PLANTED	every APB write applied twice (two strobes)
 dma_mut	mut_m21	FAIL	PLANTED	AUD-13 reverted: a write to read-only STAT / GSTAT answers PSLVERR
 dma_mut	mut_m22	FAIL	PLANTED	GSTAT COMPLETE bits show ERROR

@@ -127,7 +127,9 @@ bind ahb_interconnect ahb_fv_env u_fv_env (
     .m_trans({m_htrans_i, s_htrans_i, d_htrans_i, i_htrans_i}),
     .m_wr   ({m_hwrite_i, s_hwrite_i, d_hwrite_i, i_hwrite_i}),
     .m_size ({m_hsize_i,  s_hsize_i,  d_hsize_i,  i_hsize_i}),
-    .m_burst({m_hburst_i, s_hburst_i, d_hburst_i, i_hburst_i}),
+    // HBURST left the bus in F4 (D-38): it was INCR for the I-Port, SINGLE
+    // for the others, always
+    .m_burst({3'b000, 3'b000, 3'b000, 3'b001}),
     .m_wdata({m_hwdata_i, s_hwdata_i, d_hwdata_i, i_hwdata_i}),
     .m_rdy  ({m_hready_o, s_hready_o, d_hready_o, i_hready_o}),
     .m_err  ({m_hresp_o,  s_hresp_o,  d_hresp_o,  i_hresp_o}),

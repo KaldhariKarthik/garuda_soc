@@ -18,7 +18,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p01.v" }
+replace = { "rtl/ahb2apb/brg_ahb_fsm.sv" = "tb/ahb2apb/mut/brg_ahb_fsm_mut_p01.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P02: APB-2 reverted: no aperture check
@@ -88,7 +88,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p08.v" }
+replace = { "rtl/ahb2apb/brg_ahb_fsm.sv" = "tb/ahb2apb/mut/brg_ahb_fsm_mut_p08.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P09: one-cycle ERROR (no second cycle)
@@ -98,7 +98,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/mut/ahb2apb_bridge_mut_p09.v" }
+replace = { "rtl/ahb2apb/brg_ahb_fsm.sv" = "tb/ahb2apb/mut/brg_ahb_fsm_mut_p09.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P10: read data not returned
@@ -157,7 +157,7 @@ flist = "tb/ahb2apb/env/filelist_apb_env.f"
 top = "tb_apb_env"
 plusargs = ["+TEST=mut"]
 defines = ["APB_ENV_DIV=24'hE4E4E4"]
-replace = { "rtl/ahb2apb/ahb2apb_apb_fsm.sv" = "tb/ahb2apb/mut/ahb2apb_apb_fsm_mut_p15.v" }
+replace = { "rtl/ahb2apb/apb_phase_fsm.sv" = "tb/ahb2apb/mut/apb_phase_fsm_mut_p15.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_apb_sva\.|\[SVA-FAIL\]'
 
 # P16: absent / out-of-aperture windows passed to APB (only sub-word rejected)

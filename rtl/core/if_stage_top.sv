@@ -25,8 +25,6 @@ module if_stage_top
     output wire [WORD_W-1:0] i_haddr_o,
     output wire [HTRANS_W-1:0] i_htrans_o,
     output wire [HSIZE_W-1:0] i_hsize_o,
-    output wire [HBURST_W-1:0] i_hburst_o,
-    output wire [HPROT_W-1:0] i_hprot_o,
     output wire i_hwrite_o,
     output wire [WORD_W-1:0] i_hwdata_o,
     input wire [WORD_W-1:0] i_hrdata_i,
@@ -94,8 +92,7 @@ module if_stage_top
         .i_haddr_o     (i_haddr_o),
         .i_htrans_o    (i_htrans_o),
         .i_hsize_o     (i_hsize_o),
-        .i_hburst_o    (i_hburst_o),
-        .i_hprot_o     (i_hprot_o),
+        
         .i_hwrite_o    (i_hwrite_o),
         .i_hwdata_o    (i_hwdata_o),
 

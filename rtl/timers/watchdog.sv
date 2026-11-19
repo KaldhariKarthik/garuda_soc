@@ -91,7 +91,7 @@ module watchdog
             rst_req_o <= 1'b0;
         end else if (!hreset_n) begin
             rst_req_o <= 1'b0;
-        end else if (en_q && ctr_q == 32'd0) begin
+        end else if (en_q && ~|ctr_q) begin
             rst_req_o <= 1'b1;
         end
     end

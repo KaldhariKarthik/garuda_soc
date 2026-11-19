@@ -2,6 +2,8 @@
 -f rtl/third_party/pulp/apb_uart_sv/filelist.f
 -sv
 rtl/common/garuda_apb_shim.sv
+rtl/common/garuda_sync_bit.sv
+rtl/common/garuda_apb_dma.sv
 rtl/common/garuda_apb_shim_sva.sv
 rtl/uart/garuda_uart_top.sv
 rtl/uart/garuda_uart_sva.sv

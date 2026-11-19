@@ -129,7 +129,7 @@ Machine-readable source: `Design_Docs/regs/pwm.rdl` (SystemRDL; the UVM register
 | 0x1C | `DUTY3` | RW | 0 | channel 3 |
 | 0xFE0 | `IRQSTAT` | W1C | 0 | `[0]` period boundary, `[1]` a duty was clamped |
 | 0xFE4 | `IRQEN` | RW | 0 | mask; `irq_o = \|(IRQSTAT & IRQEN)` |
-| 0xFE8 | `DMACTL` | RW | 0 | present for uniformity; no DMA channel |
+| 0xFE8 | `DMACTL` | RO | 0 | reads 0, writes ignored: no DMA channel (D-39) |
 | 0xFEC | `ID` | RO | — | `{16'h6A5D, 8'd20, rev}` |
 
 **[N-6.1]** `CTRL.EN` is the master switch and `CTRL[7:4]` are per-channel.

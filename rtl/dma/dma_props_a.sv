@@ -68,7 +68,6 @@ module dma_sva #(
     input wire [1:0]  htrans_o,
     input wire        hwrite_o,
     input wire [2:0]  hsize_o,
-    input wire [2:0]  hburst_o,
     input wire [31:0] hwdata_o,
     input wire [31:0] hrdata_i,
     input wire        hready_i,
@@ -603,8 +602,8 @@ module dma_sva #(
         $onehot0(beat_done | beat_err) && ((beat_done & beat_err) == 6'd0))
         else $error("[SVA-FAIL] a_one_result: done=%06b err=%06b (F27)", beat_done, beat_err);
     a_single_only: assert property (@(posedge hclk) disable iff (!hreset_n)
-        hburst_o == 3'b000 && (htrans_o == T_IDLE || htrans_o == T_NONSEQ))
-        else $error("[SVA-FAIL] a_single_only: htrans=%b hburst=%b (F16)", htrans_o, hburst_o);
+        (htrans_o == T_IDLE || htrans_o == T_NONSEQ))
+        else $error("[SVA-FAIL] a_single_only: htrans=%b (F16)", htrans_o);
     a_hsize_legal: assert property (@(posedge hclk) disable iff (!hreset_n)
         !htrans_o[1] || (hsize_o inside {3'b000, 3'b001, 3'b010}))
         else $error("[SVA-FAIL] a_hsize_legal: hsize=%b (F03)", hsize_o);
@@ -695,7 +694,7 @@ bind dma_top dma_sva #(.PRIO(PRIO), .ACK_CYCLES(ACK_CYCLES)) u_dma_props_a (
     .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i), .paddr_i(paddr_i),
     .pwdata_i(pwdata_i), .prdata_o(prdata_o), .pready_o(pready_o), .pslverr_o(pslverr_o),
     .haddr_o(haddr_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o), .hsize_o(hsize_o),
-    .hburst_o(hburst_o), .hwdata_o(hwdata_o), .hrdata_i(hrdata_i), .hready_i(hready_i),
+    .hwdata_o(hwdata_o), .hrdata_i(hrdata_i), .hready_i(hready_i),
     .hresp_i(hresp_i),
     .dma_req_i(dma_req_i), .dma_ack_o(dma_ack_o),
     .dma_complete_o(dma_complete_o), .dma_error_o(dma_error_o),

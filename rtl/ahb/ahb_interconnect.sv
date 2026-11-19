@@ -90,8 +90,6 @@ module ahb_interconnect
     input wire [HTRANS_W-1:0] i_htrans_i,
     input wire i_hwrite_i,
     input wire [HSIZE_W-1:0] i_hsize_i,
-    input wire [HBURST_W-1:0] i_hburst_i,
-    input wire [HPROT_W-1:0] i_hprot_i,
     input wire [WORD_W-1:0] i_hwdata_i,
     output wire [WORD_W-1:0] i_hrdata_o,
     output wire i_hready_o,
@@ -101,8 +99,6 @@ module ahb_interconnect
     input wire [HTRANS_W-1:0] d_htrans_i,
     input wire d_hwrite_i,
     input wire [HSIZE_W-1:0] d_hsize_i,
-    input wire [HBURST_W-1:0] d_hburst_i,
-    input wire [HPROT_W-1:0] d_hprot_i,
     input wire [WORD_W-1:0] d_hwdata_i,
     output wire [WORD_W-1:0] d_hrdata_o,
     output wire d_hready_o,
@@ -112,7 +108,6 @@ module ahb_interconnect
     input wire [HTRANS_W-1:0] s_htrans_i,
     input wire s_hwrite_i,
     input wire [HSIZE_W-1:0] s_hsize_i,
-    input wire [HBURST_W-1:0] s_hburst_i,
     input wire [WORD_W-1:0] s_hwdata_i,
     output wire [WORD_W-1:0] s_hrdata_o,
     output wire s_hready_o,
@@ -122,7 +117,6 @@ module ahb_interconnect
     input wire [HTRANS_W-1:0] m_htrans_i,
     input wire m_hwrite_i,
     input wire [HSIZE_W-1:0] m_hsize_i,
-    input wire [HBURST_W-1:0] m_hburst_i,
     input wire [WORD_W-1:0] m_hwdata_i,
     output wire [WORD_W-1:0] m_hrdata_o,
     output wire m_hready_o,
@@ -138,8 +132,6 @@ module ahb_interconnect
     output wire [HTRANS_W-1:0] htrans_o,
     output wire hwrite_o,
     output wire [HSIZE_W-1:0] hsize_o,
-    output wire [HBURST_W-1:0] hburst_o,
-    output wire [HPROT_W-1:0] hprot_o,
     output wire [WORD_W-1:0] hwdata_o,
     output wire hready_o,  // global HREADY to every slave
     // to ISRAM only: address phase is M2 (R-7, [N-7.14])
@@ -191,23 +183,23 @@ module ahb_interconnect
         .seq_break_i  (seq_break),
 
         .i_haddr_i(i_haddr_i), .i_htrans_i(i_htrans_i), .i_hwrite_i(i_hwrite_i),
-        .i_hsize_i (i_hsize_i), .i_hburst_i(i_hburst_i), .i_hprot_i (i_hprot_i),
+        .i_hsize_i (i_hsize_i), 
         .i_hwdata_i(i_hwdata_i),
 
         .d_haddr_i(d_haddr_i), .d_htrans_i(d_htrans_i), .d_hwrite_i(d_hwrite_i),
-        .d_hsize_i (d_hsize_i), .d_hburst_i(d_hburst_i), .d_hprot_i (d_hprot_i),
+        .d_hsize_i (d_hsize_i), 
         .d_hwdata_i(d_hwdata_i),
 
         .s_haddr_i(s_haddr_i), .s_htrans_i(s_htrans_i), .s_hwrite_i(s_hwrite_i),
-        .s_hsize_i (s_hsize_i), .s_hburst_i(s_hburst_i),
+        .s_hsize_i (s_hsize_i), 
         .s_hwdata_i(s_hwdata_i),
 
         .m_haddr_i(m_haddr_i), .m_htrans_i(m_htrans_i), .m_hwrite_i(m_hwrite_i),
-        .m_hsize_i (m_hsize_i), .m_hburst_i(m_hburst_i),
+        .m_hsize_i (m_hsize_i), 
         .m_hwdata_i(m_hwdata_i),
 
         .haddr_o (haddr_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o),
-        .hsize_o (hsize_o), .hburst_o(hburst_o), .hprot_o (hprot_o),
+        .hsize_o (hsize_o), 
         .hwdata_o(hwdata_o)
     );
 

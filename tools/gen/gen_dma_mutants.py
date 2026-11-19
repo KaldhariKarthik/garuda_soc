@@ -27,50 +27,58 @@ ENV, REGS, BLOCK = "env", "regs", "block"
 # a named check; on the block bench the open DMA-10 detector fires on today's RTL by
 # design (known in tb/dma/run/dma.toml), so it never counts as a kill
 KILL = r"^\[FAIL\] |\[SVA-FAIL\] (?!a_no_read_before_refusal\b)"
-E_WD_ERR = ("if (hresp_i) begin\n                            beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd2;",
-            "if (hresp_i) begin\n                            beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd1;")
-# id, file, pattern, replacement, bench, what it models
+C, E, A, S, T = "dma_chan.sv", "dma_engine.sv", "dma_arbiter.sv", "dma_apb_slave.sv", "dma_top.sv"
 MUTANTS = [
- ("M01", "dma_chan.v", "if (hw_clr_en || (en_q && rem_q == 16'd0 && !wr_cr_i))",
-  "if (!wr_cr_i && (hw_clr_en || (en_q && rem_q == 16'd0)))", ENV, "D-2 reverted: a software CR write beats the hardware EN clear"),
- ("M02", "dma_chan.v", "else if (beat_done_i) taken_q <= 1'b1;", "else if (beat_done_i || beat_err_i) taken_q <= 1'b1;", ENV,
+ ("M01", C, "        end else if (hw_off) begin\n            en_q <= 1'b0;\n        end else if (wr_cr_i) begin\n            en_q <= wdata_i[0];\n        end",
+  "        end else if (wr_cr_i) begin\n            en_q <= wdata_i[0];\n        end else if (hw_off) begin\n            en_q <= 1'b0;\n        end",
+  ENV, "D-2 reverted: a software CR write beats the hardware EN clear"),
+ ("M02", C, "            if (beat_done_i) begin\n                taken_q <= 1'b1;", "            if (beat_done_i || beat_err_i) begin\n                taken_q <= 1'b1;", ENV,
   "DMA-8 reverted: a failed beat consumes the request"),
- ("M03", "dma_chan.v", "else if (beat_done_i) taken_q <= 1'b1;", "else if (1'b0) taken_q <= 1'b1;", ENV,
+ ("M03", C, "            if (beat_done_i) begin\n                taken_q <= 1'b1;", "            if (1'b0) begin\n                taken_q <= 1'b1;", ENV,
   "one beat per request lost: a request still high gives another beat"),
- ("M04", "dma_chan.v", "if (wdata_i[0] && !(done && last)) comp_q <= 1'b0;", "if (wdata_i[0]) comp_q <= 1'b0;", ENV,
+ ("M04", C, "    wire iclr_comp = wr_iclr_i && wdata_i[0] && !(done && last);", "    wire iclr_comp = wr_iclr_i && wdata_i[0];", ENV,
   "set-beats-clear reverted: ICLR beats a same-cycle COMPLETE set (completion lost)"),
- ("M05", "dma_chan.v", "(size_q == 2'd1) ? 32'd2 : 32'd4", "(size_q == 2'd1) ? 32'd1 : 32'd4", ENV, "halfword address step 1 instead of 2"),
- ("M06", "dma_chan.v", "if (wdata_i[2:1] != 2'b11) mode_q <= wdata_i[2:1];", "mode_q <= wdata_i[2:1];", REGS, "MODE = 3 accepted"),
- ("M07", "dma_chan.v", "assign error_irq_o    = err_q  & iee_q;", "assign error_irq_o    = err_q  & iec_q;", ENV,
+ ("M05", C, "(size_q == 2'd1) ? 32'd2", "(size_q == 2'd1) ? 32'd1", ENV, "halfword address step 1 instead of 2"),
+ ("M06", C, "            if (wdata_i[2:1] != 2'b11) begin\n                mode_q <= wdata_i[2:1];",
+  "            if (1'b1) begin\n                mode_q <= wdata_i[2:1];", REGS, "MODE = 3 accepted"),
+ ("M07", C, "    assign error_irq_o    = err_q  & iee_q;", "    assign error_irq_o    = err_q  & iec_q;", ENV,
   "error interrupt gated by IE_COMP instead of IE_ERR"),
- ("M08", "dma_chan.v", "if (wdata_i[1] && !err) begin err_q <= 1'b0; errph_q <= 3'd0; end",
-  "if (wdata_i[1] && !err) begin err_q <= 1'b0; end", ENV, "ICLR ERROR leaves ERRPHASE set"),
- ("M09", "dma_chan.v", "if (last) comp_q <= 1'b1;", "if (rem_q == 16'd2) comp_q <= 1'b1;", ENV, "COMPLETE one beat early (D-1 shape)"),
- ("M10", "dma_chan.v", "else if (done && sinc_q) sar_q <= sar_q + step;",
-  "else if ((done || err) && sinc_q) sar_q <= sar_q + step;", ENV, "SAR advances on a failed beat (no freeze, [N-7.15])"),
- ("M11", "dma_arbiter.v", "PRIO[3*n +: 3] > best", "PRIO[3*n +: 3] < best", ENV, "priority inverted: the lowest priority wins"),
- ("M13", "dma_engine.v", "if (dar_bad) begin", "if (1'b0) begin", BLOCK, "R-9 DAR check removed: writes to ISRAM / Boot ROM"),
- ("M14", "dma_engine.v", "ack_cnt   <= ACK_CYCLES - 1;", "ack_cnt   <= 2'd0;", ENV, "DMA-7 reverted: dma_ack one hclk wide"),
- ("M15", "dma_engine.v", "wire   take     = (st == E_IDLE) && grant_valid_i && (beat_done_o == 6'd0) && (beat_err_o == 6'd0);", "wire   take     = (st == E_IDLE) && grant_valid_i;", ENV,
-  "ENG-1 reverted: regrant before the channel has counted the beat"),
- ("M16", "dma_engine.v", E_WD_ERR[0], E_WD_ERR[1], ENV, "write ERROR reported as ERRPHASE = read"),
- ("M17", "dma_engine.v", "wire [7:0]  rd_byte = hrdata_i >> (8 * sar[1:0]);", "wire [7:0]  rd_byte = hrdata_i[7:0];", ENV,
+ ("M08", C, "        end else if (iclr_err) begin\n            err_q <= 1'b0;\n            errph_q <= '0;",
+  "        end else if (iclr_err) begin\n            err_q <= 1'b0;", ENV, "ICLR ERROR leaves ERRPHASE set"),
+ ("M09", C, "            if (last) begin\n                comp_q <= 1'b1;", "            if (rem_q == 16'd2) begin\n                comp_q <= 1'b1;", ENV,
+  "COMPLETE one beat early (D-1 shape)"),
+ ("M10", C, "        end else if (done && sinc_q) begin", "        end else if ((done || err) && sinc_q) begin", ENV,
+  "SAR advances on a failed beat (no freeze, [N-7.15])"),
+ ("M11", A, "PRIO[BEST_W*c +: BEST_W] > best", "PRIO[BEST_W*c +: BEST_W] < best", ENV, "priority inverted: the lowest priority wins"),
+ ("M13", E, ".dar_bad_i(dar_bad)", ".dar_bad_i(1'b0)", BLOCK, "R-9 DAR check removed: writes to ISRAM / Boot ROM"),
+ ("M14", E, "                fire_q <= ack_fire;", "                fire_q <= 1'b0;", ENV, "DMA-7 reverted: dma_ack one hclk wide"),
+ ("M15", E, "    wire take = idle && grant_valid_i && (beat_done_o == 6'd0)\n        && (beat_err_o == 6'd0);",
+  "    wire take = idle && grant_valid_i;", ENV, "ENG-1 reverted: regrant before the channel has counted the beat"),
+ ("M16", E, "        end else if (ra_rd_err || rd_err) begin\n            err_phase_o <= 2'd1;\n        end else if (ra_wr_err || wr_err) begin",
+  "        end else if (ra_rd_err || rd_err || wr_err) begin\n            err_phase_o <= 2'd1;\n        end else if (ra_wr_err) begin",
+  ENV, "write ERROR reported as ERRPHASE = read"),
+ ("M17", E, "    wire [BYTE_W-1:0]  rd_byte = pick_byte(sar[1:0], hrdata_i);", "    wire [BYTE_W-1:0]  rd_byte = hrdata_i[7:0];", ENV,
   "byte beats always take lane 0"),
- ("M18", "dma_engine.v", "if (hresp_i) begin\n                            beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd1;",
-  "if (1'b0) begin\n                            beat_err_o[ch] <= 1'b1; err_phase_o <= 3'd1;", ENV, "read ERROR ignored: the beat writes garbage"),
- ("M19", "dma_engine.v", "if (htrans_o[1] && hready_i) htrans_o <= 2'b00;    // address accepted",
-  "if (htrans_o[1]) htrans_o <= 2'b00;    // address accepted", ENV, "read address dropped while HREADY is low (AHB violation)"),
- ("M20", "dma_apb_slave.v", "wire wstb = acc_wr & ~acc_wr_q;", "wire wstb = acc_wr;", REGS, "every APB write applied twice (two strobes)"),
- ("M21", "dma_apb_slave.v", "assign pslverr_o = psel_i & penable_i & ~hit;",
-  "assign pslverr_o = psel_i & penable_i & (~hit | (pwrite_i & (gstat | (chan_rgn & reg_ == 3'd4))));", REGS,
+ ("M18", E, "    wire rd_err    = rd_end && hresp_i;", "    wire rd_err    = 1'b0;", ENV,
+  "read ERROR not reported: the beat is dropped silently"),
+ ("M19", E, "        end else if (rd_acc || wd_acc) begin\n            htrans_o <= 2'b00;  // address accepted",
+  "        end else if (htrans_o[1]) begin\n            htrans_o <= 2'b00;  // address accepted", ENV,
+  "address dropped while HREADY is low (AHB violation)"),
+ ("M20", S, "    wire wstb = acc_wr & ~acc_wr_q;", "    wire wstb = acc_wr;", REGS, "every APB write applied twice (two strobes)"),
+ ("M21", S, "    assign pslverr_o = psel_i & penable_i & ~hit;",
+  "    assign pslverr_o = psel_i & penable_i & (~hit | (pwrite_i & (gstat | (chan_rgn & reg_ == 3'd4))));", REGS,
   "AUD-13 reverted: a write to read-only STAT / GSTAT answers PSLVERR"),
- ("M22", "dma_apb_slave.v", "gstat_v[8 + n]  = stat_i[32*n + 17];", "gstat_v[8 + n]  = stat_i[32*n + 18];", REGS, "GSTAT COMPLETE bits show ERROR"),
- ("M23", "dma_apb_slave.v", "(ch < 3'd6)", "(ch < 3'd5)", REGS, "channel 5 registers not decoded"),
- ("M24", "dma_apb_slave.v", "assign wr_cnt_o  = {6{wstb && reg_ == 3'd3}} & chsel;", "assign wr_cnt_o  = {6{wstb && reg_ == 3'd2}} & chsel;", REGS,
+ ("M22", S, "            assign gstat_v[8 + k]  = stat_a[k][17];", "            assign gstat_v[8 + k]  = stat_a[k][18];", REGS,
+  "GSTAT COMPLETE bits show ERROR"),
+ ("M23", S, "(ch < 3'd6)", "(ch < 3'd5)", REGS, "channel 5 registers not decoded"),
+ ("M24", S, "    assign wr_cnt_o  = {6{wstb && reg_ == 3'd3}} & chsel;", "    assign wr_cnt_o  = {6{wstb && reg_ == 3'd2}} & chsel;", REGS,
   "a DAR write also lands in CNT; CNT never writable"),
- ("M25", "dma_top.v", ".complete_irq_o(dma_complete_o[n]), .error_irq_o(dma_error_o[n])",
+ ("M25", T, ".complete_irq_o(dma_complete_o[n]), .error_irq_o(dma_error_o[n])",
   ".complete_irq_o(dma_error_o[n]), .error_irq_o(dma_complete_o[n])", ENV, "completion and error interrupt lines swapped"),
+ # unit and register-bench negative controls (TOOL-A24): written, not in the mutation run
+ ("SIZE_RESET", C, "            size_q <= 2'd2;", "            size_q <= 2'd0;", REGS, "SIZE resets to byte"),
 ]
+UNIT_ONLY = ["SIZE_RESET"]
 EQUIVALENT = [
  ("M12", "dma_arbiter.v: PRIO[3*n +: 3] > best -> >= best (a tie goes to the higher index)",
   "No two channels share a priority in the shipped map (dma_top.v:20: 5, 3, 1, 2, 4, 0), so > and >= pick the same "
@@ -103,9 +111,11 @@ timeout = 1800
         n = src.count(pat)
         if n != 1:
             raise SystemExit(f"{mid}: pattern found {n} times in rtl/dma/{f}")
-        out = f"tb/dma/mut/{f[:-2]}_mut_{mid.lower()}.v"
+        out = f"tb/dma/mut/{f[:-3]}_mut_{mid.lower()}.v"
         open(f"{R}/{out}", "w").write(f"// MUTANT dma_mut/{mid} (GENERATED by tools/gen/gen_dma_mutants.py): {what}\n"
                                        + src.replace(pat, rep))
+        if mid in UNIT_ONLY:
+            continue
         fl, top, pa = BENCH[bench]
         rows.append(f"# {mid}: {what}\n[[test]]\nname = {q('mut_' + mid.lower())}\nflist = {q(fl)}\ntop = {q(top)}\n"
                     f"plusargs = {q(pa)}\nreplace = {{ {q('rtl/dma/' + f)} = {q(out)} }}\nfail_reason = {q(KILL)}\n")
@@ -115,7 +125,7 @@ timeout = 1800
     p = f"{R}/tb/dma/run/xfail.tsv"
     keep = [l for l in open(p).read().splitlines() if not l.startswith("dma_mut\t")]
     open(p, "w").write("\n".join(keep + xf) + "\n")
-    print(f"{len(MUTANTS)} mutants -> tb/dma/run/dma_mut.toml; {len(EQUIVALENT)} equivalent (not run)")
+    print(f"{len(MUTANTS) - len(UNIT_ONLY)} mutants -> tb/dma/run/dma_mut.toml; {len(EQUIVALENT)} equivalent (not run)")
 
 def summary():
     """classify each row of the last run from its log: the first named check that fired"""

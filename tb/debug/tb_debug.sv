@@ -55,7 +55,8 @@ module tb_debug;
     always @(posedge hclk) if (rst_n && htrans_m[1] && !gnt) arb_stalls = arb_stalls + 1;
     assign htrans   = (htrans_m[1] && !gnt) ? 2'b00 : htrans_m;   // what the slaves see
     assign hready_m = (htrans_m[1] && !gnt) ? 1'b0  : hready;     // what the SBA sees
-    wire [2:0]  hsize, hburst;
+    wire [2:0]  hsize;
+    wire [2:0]  hburst = 3'b000;  // HBURST/HPROT left the bus (D-38): the constant this master drove (SINGLE)
 
     debug_top dut (
         .tck(tck), .tms_i(tms), .tdi_i(tdi), .tdo_o(tdo), .tdo_oe_o(tdo_oe), .ext_rst_n(por_n),
@@ -63,7 +64,7 @@ module tb_debug;
         .halt_req_o(), .halt_safe_i(1'b1),     // RDC-1: no core here, always at a safe point
         .dsu_acc0_i(acc0), .dsu_acc1_i(acc1), .dsu_acc2_i(acc2), .dsu_ovf_i(ovf),
         .haddr_o(haddr), .htrans_o(htrans_m), .hwrite_o(hwrite), .hsize_o(hsize),
-        .hburst_o(hburst), .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready_m),
+        .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready_m),
         .hresp_i(hresp));
 
     // ---- slaves: ISRAM (real, locked) + DSRAM model --------------------------------
@@ -79,8 +80,8 @@ module tb_debug;
     reg       d_rand  = 1'b1;
 
     isram_top u_isram (.hclk(hclk), .hreset_n(rst_n), .hsel_i(sel_i), .haddr_i(haddr),
-        .htrans_i(htrans), .hwrite_i(hwrite), .hsize_i(hsize), .hburst_i(hburst),
-        .hprot_i(4'h3), .hwdata_i(hwdata), .hready_i(hready),
+        .htrans_i(htrans), .hwrite_i(hwrite), .hsize_i(hsize), 
+        .hwdata_i(hwdata), .hready_i(hready),
         .hrdata_o(rd_i), .hreadyout_o(ro_i), .hresp_o(re_i),
         .ilock_i(1'b1), .hmaster_is_sba_i(1'b1));             // only SBA drives this bus
     ahb_lite_sram #(.BASE_ADDR(32'h2000_0000), .SIZE_BYTES(65536)) u_dsram (

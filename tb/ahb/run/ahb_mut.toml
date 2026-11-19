@@ -107,7 +107,7 @@ name = "mut_a12"
 flist = "tb/ahb/env/filelist_ahb_env.f"
 top = "tb_ahb_env"
 plusargs = ["+TEST=mut"]
-replace = { "rtl/ahb/ahb_dflt_slave.sv" = "tb/ahb/mut/ahb_default_slave_mut_a12.v" }
+replace = { "rtl/ahb/ahb_dflt_slave.sv" = "tb/ahb/mut/ahb_dflt_slave_mut_a12.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_ahb_props_a\.'
 
 # A13: default slave: an undecoded access answers OKAY
@@ -116,7 +116,7 @@ name = "mut_a13"
 flist = "tb/ahb/env/filelist_ahb_env.f"
 top = "tb_ahb_env"
 plusargs = ["+TEST=mut"]
-replace = { "rtl/ahb/ahb_dflt_slave.sv" = "tb/ahb/mut/ahb_default_slave_mut_a13.v" }
+replace = { "rtl/ahb/ahb_dflt_slave.sv" = "tb/ahb/mut/ahb_dflt_slave_mut_a13.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_ahb_props_a\.'
 
 # A14: slave mux: the data-phase select moves in a wait state
@@ -171,15 +171,6 @@ flist = "tb/ahb/env/filelist_ahb_env.f"
 top = "tb_ahb_env"
 plusargs = ["+TEST=mut"]
 replace = { "rtl/ahb/ahb_interconnect.sv" = "tb/ahb/mut/ahb_interconnect_mut_a20.v" }
-fail_reason = '^\[FAIL\] |Assertion failed in \S*u_ahb_props_a\.'
-
-# A21: DMA HPROT substitution wrong
-[[test]]
-name = "mut_a21"
-flist = "tb/ahb/env/filelist_ahb_env.f"
-top = "tb_ahb_env"
-plusargs = ["+TEST=mut"]
-replace = { "rtl/ahb/ahb_master_mux.sv" = "tb/ahb/mut/ahb_master_mux_mut_a21.v" }
 fail_reason = '^\[FAIL\] |Assertion failed in \S*u_ahb_props_a\.'
 
 # A22: SBA address phase carries the D-port's address

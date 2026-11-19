@@ -96,7 +96,7 @@ module ahb2apb_bridge
     end
 
     wire [APB_WIN_W-1:0] win     = haddr_i[15:12];
-    wire       win_ok  = WINDOW_MASK[win] && (haddr_i[27:16] == 12'h000);
+    wire       win_ok  = WINDOW_MASK[win] && ~|haddr_i[27:16];
     wire       word_ok = 1'b1;   // MUTANT: sub-word passed
     wire       xfer    = hsel_i & htrans_i[1] & hready_i;
     wire       allowed = win_ok && word_ok;
@@ -140,13 +140,23 @@ module ahb2apb_bridge
     // the write data is on the bus in the cycle after the address (CAPT)
     always_ff @(posedge hclk or negedge hreset_n) begin : p_send
         if (!hreset_n) begin
-            wdata_cap <= 32'd0;
             req_tgl <= 1'b0;
         end else if (send) begin
-            if (write_cap) begin
-                wdata_cap <= hwdata_i;
-            end
             req_tgl <= ~req_tgl;
+        end
+    end
+
+    // the write data, a flop straight to PWDATA (F4, 2026-11-19: HAL CBPAHI
+    // traced every APB register of the chip to a mux on this output). A read
+    // clears it as its address is captured, so the lines are zero for a read
+    // (a_read_wdata_zero); capture and send are never in the same cycle.
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_wdata
+        if (!hreset_n) begin
+            wdata_cap <= 32'd0;
+        end else if (capture && !hwrite_i) begin
+            wdata_cap <= 32'd0;
+        end else if (send && write_cap) begin
+            wdata_cap <= hwdata_i;
         end
     end
 
@@ -164,7 +174,7 @@ module ahb2apb_bridge
     // through the APB access (F4: no longer passed through ahb2apb_apb_fsm)
     assign pwrite_o = write_cap;
     assign paddr_o  = addr_cap;
-    assign pwdata_o = write_cap ? wdata_cap : 32'd0;
+    assign pwdata_o = wdata_cap;
 
     wire [WORD_W-1:0] prdata_sel;
     wire pready_sel;

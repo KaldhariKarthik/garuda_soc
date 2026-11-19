@@ -1,12 +1,10 @@
 // MUTANT P06 (bus plan B2): PSEL on the neighbouring window
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 8 : APB3 master state machine (pclk)
 // ahb2apb_apb_fsm.v
 //
-// Spec: GARUDA-AHB2APB-SPEC-001 §7.1 (IDLE->SETUP->ACCESS->DONE), §7.3
-//       (per-window APB_DIV), §7.5 (16-pclk timeout)
+// Spec: GARUDA-AHB2APB-SPEC-001 Sec.7.1 (IDLE->SETUP->ACCESS->DONE), Sec.7.3
+//       (per-window APB_DIV), Sec.7.5 (16-pclk timeout)
 //
 // Inputs from the hclk side (win/addr/write/wdata, req toggle) are hclk flops
 // that are stable whenever this FSM samples them; the paths are synchronous
@@ -18,99 +16,124 @@
 // PREADY low and abandons the transfer on the 16th ([N-7.15]).
 // =============================================================================
 
-module ahb2apb_apb_fsm #(
-    parameter [23:0] APB_DIV = 24'h0,
-    parameter integer TIMEOUT = 16
+module ahb2apb_apb_fsm
+    import garuda_pkg::*;
+#(
+    parameter [23:0] APB_DIV = 24'h000000,
+    parameter int unsigned TIMEOUT = 32'd16
 )(
-    input  wire        pclk,
-    input  wire        preset_n,
-
-    input  wire        req_tgl_i,
-    input  wire [3:0]  win_i,
-    input  wire [11:0] addr_i,
-    input  wire        write_i,
-    input  wire [31:0] wdata_i,
-    output reg         ack_tgl_o,
-    output reg         err_o,
-    output reg  [31:0] rdata_o,
-
-    output reg  [11:0] psel_o,
-    output reg         penable_o,
-    output wire        pwrite_o,
-    output wire [11:0] paddr_o,
-    output wire [31:0] pwdata_o,
-    input  wire [31:0] prdata_sel_i,
-    input  wire        pready_sel_i,
-    input  wire        pslverr_sel_i
+    input wire pclk,
+    input wire preset_n,
+    input wire req_tgl_i,
+    input wire [APB_WIN_W-1:0] win_i,
+    output reg ack_tgl_o,
+    output reg err_o,
+    output reg [WORD_W-1:0] rdata_o,
+    output reg [APB_NWIN-1:0] psel_o,
+    output reg penable_o,
+    input wire [WORD_W-1:0] prdata_sel_i,
+    input wire pready_sel_i,
+    input wire pslverr_sel_i
 );
+    timeunit 1ns;
+    timeprecision 1ps;
+    localparam int unsigned DIV_LOAD_W = 32'd3;
+    localparam int unsigned DIV_CNT_W = 32'd3;
+    localparam int unsigned TO_CNT_W = 32'd5;
+    localparam int unsigned WIN_SLOTS = 32'd16;  // 2**APB_WIN_W
 
-    localparam [1:0] P_IDLE = 2'd0, P_SETUP = 2'd1, P_ACCESS = 2'd2, P_DONE = 2'd3;
-
-    reg  [1:0] state;
     reg        req_seen;
-    reg  [2:0] div_cnt;
-    reg  [4:0] to_cnt;
+    reg  [DIV_CNT_W-1:0] div_cnt;
+    reg  [TO_CNT_W-1:0] to_cnt;
 
-    wire [1:0] div_sel = (win_i < 4'd12) ? APB_DIV[2*win_i +: 2] : 2'b00;
-    wire [2:0] div_load = (3'd1 << div_sel) - 3'd1;       // 0,1,3,7 extra cycles
+    // F4 (2026-11-17): the window's divider and select from arrays and
+    // compares, not from a product index or a shift (HAL INDXOP, SHFTNC); the
+    // windows past 11 have no divider (0)
+    wire [DIV_SEL_W-1:0] div_a [0:WIN_SLOTS-1];
+    genvar k;
+    generate for (k = 0; k < WIN_SLOTS; k = k + 1) begin : g_win
+        if (k < 12) begin : g_div
+            assign div_a[k] = APB_DIV[2*k +: 2];
+        end else begin : g_none
+            assign div_a[k] = 2'b00;
+        end
+    end endgenerate
+    wire [DIV_SEL_W-1:0] div_sel = div_a[win_i];
+    // extra pclk cycles: 0, 1, 3, 7
+    wire [DIV_LOAD_W-1:0] div_load = (div_sel == 2'd0) ? 3'd0 :
+                                     (div_sel == 2'd1) ? 3'd1 :
+                                     (div_sel == 2'd2) ? 3'd3 : 3'd7;
+    wire [APB_NWIN-1:0] win_hot;
+    generate for (k = 0; k < APB_NWIN; k = k + 1) begin : g_hot
+        assign win_hot[k] = ((win_i ^ 4'd1) == APB_WIN_W'(k));
+    end endgenerate
 
-    // Address, direction and write data come straight from the stable capture.
-    assign pwrite_o = write_i;
-    assign paddr_o  = addr_i;
-    assign pwdata_o = write_i ? wdata_i : 32'd0;
+    // ---- the transfer's state machine (apb_phase_fsm) -----------------------
+    wire start;
+    wire arm;
+    wire div_dec;
+    wire done_ok;
+    wire done_to;
+    wire to_inc;
+    wire new_req = (req_tgl_i != req_seen);
+    wire div_zero = (div_cnt == '0);
+    wire to_last = (to_cnt == TO_CNT_W'(TIMEOUT - 32'd1));
+    apb_phase_fsm u_phase (
+        .pclk(pclk), .preset_n(preset_n), .new_req_i(new_req),
+        .div_zero_i(div_zero), .pready_i(pready_sel_i), .to_last_i(to_last),
+        .start_o(start), .arm_o(arm), .div_dec_o(div_dec),
+        .done_ok_o(done_ok), .done_to_o(done_to), .to_inc_o(to_inc)
+    );
+    wire done = done_ok || done_to;
 
-    always @(posedge pclk or negedge preset_n) begin
+    // F4: one process per register (HAL MULNBA, BADFSM)
+    always_ff @(posedge pclk or negedge preset_n) begin : p_req_seen
         if (!preset_n) begin
-            state     <= P_IDLE;
-            req_seen  <= 1'b0;
-            ack_tgl_o <= 1'b0;
-            err_o     <= 1'b0;
-            rdata_o   <= 32'd0;
-            psel_o    <= 12'd0;
+            req_seen <= 1'b0;
+        end else if (start) begin
+            req_seen <= req_tgl_i;
+        end
+    end
+
+    always_ff @(posedge pclk or negedge preset_n) begin : p_psel
+        if (!preset_n) begin
+            psel_o <= 12'd0;
             penable_o <= 1'b0;
-            div_cnt   <= 3'd0;
-            to_cnt    <= 5'd0;
-        end else begin
-            case (state)
-                P_IDLE: begin
-                    if (req_tgl_i != req_seen) begin
-                        req_seen <= req_tgl_i;
-                        psel_o   <= 12'd1 << (win_i ^ 4'd1);
-                        state    <= P_SETUP;
-                    end
-                end
-                P_SETUP: begin
-                    penable_o <= 1'b1;
-                    div_cnt   <= div_load;
-                    to_cnt    <= 5'd0;
-                    state     <= P_ACCESS;
-                end
-                P_ACCESS: begin
-                    if (div_cnt != 3'd0) begin
-                        div_cnt <= div_cnt - 3'd1;
-                    end else if (pready_sel_i) begin
-                        rdata_o   <= prdata_sel_i;
-                        err_o     <= pslverr_sel_i;
-                        psel_o    <= 12'd0;
-                        penable_o <= 1'b0;
-                        ack_tgl_o <= ~ack_tgl_o;
-                        state     <= P_DONE;
-                    end else if (to_cnt == TIMEOUT - 1) begin
-                        rdata_o   <= 32'd0;
-                        err_o     <= 1'b1;               // timeout
-                        psel_o    <= 12'd0;
-                        penable_o <= 1'b0;
-                        ack_tgl_o <= ~ack_tgl_o;
-                        state     <= P_DONE;
-                    end else begin
-                        to_cnt <= to_cnt + 5'd1;
-                    end
-                end
-                default: state <= P_IDLE;                // P_DONE: one idle pclk
-            endcase
+        end else if (start) begin
+            psel_o <= win_hot;
+        end else if (arm) begin
+            penable_o <= 1'b1;
+        end else if (done) begin
+            psel_o <= 12'd0;
+            penable_o <= 1'b0;
+        end
+    end
+
+    always_ff @(posedge pclk or negedge preset_n) begin : p_cnt
+        if (!preset_n) begin
+            div_cnt <= 3'd0;
+            to_cnt <= 5'd0;
+        end else if (arm) begin
+            div_cnt <= div_load;
+            to_cnt <= 5'd0;
+        end else if (div_dec) begin
+            div_cnt <= DIV_CNT_W'(div_cnt - 3'd1);
+        end else if (to_inc) begin
+            to_cnt <= TO_CNT_W'(to_cnt + 5'd1);
+        end
+    end
+
+    // the answer: the window's read data and PSLVERR, or a timeout error
+    always_ff @(posedge pclk or negedge preset_n) begin : p_answer
+        if (!preset_n) begin
+            rdata_o <= 32'd0;
+            err_o <= 1'b0;
+            ack_tgl_o <= 1'b0;
+        end else if (done) begin
+            rdata_o <= done_ok ? prdata_sel_i : 32'd0;
+            err_o <= done_ok ? pslverr_sel_i : 1'b1;
+            ack_tgl_o <= ~ack_tgl_o;
         end
     end
 
 endmodule
-
-`default_nettype wire

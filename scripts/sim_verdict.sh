@@ -10,6 +10,7 @@
 #   - the simulator exited 0
 #   - the log has no Cadence *E / *F message (IMPDLL excepted, as in the
 #     uvm_* targets) and no xsim ERROR: line
+#   - no CUVDSI warning (a bound assertion with an input left unconnected)
 #   - no [FAIL], [SVA-FAIL], "FAIL <name>", "RESULT: FAILED" or
 #     "CHECK(S) FAILED" line
 #   - the pass regex, when one is given, matches
@@ -27,6 +28,10 @@ fi
 [ "$rc" = 0 ] || why="$why simulator exit $rc;"
 n=$(grep -E '\*[EF],' "$log" | grep -vc IMPDLL)
 [ "$n" = 0 ] || why="$why $n *E/*F message(s);"
+# a bind whose .* left an assertion input unconnected (CUVDSI) is a property that
+# checks nothing; it went unnoticed for three commits after the F4 renames (2026-11-19)
+n=$(grep -c '\*W,CUVDSI' "$log")
+[ "$n" = 0 ] || why="$why $n bind input(s) left unconnected (CUVDSI);"
 n=$(grep -cE '^ERROR:' "$log")
 [ "$n" = 0 ] || why="$why $n ERROR line(s);"
 n=$(grep -cE '\[FAIL\]|\[SVA-FAIL\]|^FAIL |RESULT: *FAILED|CHECK\(S\) FAILED' "$log")

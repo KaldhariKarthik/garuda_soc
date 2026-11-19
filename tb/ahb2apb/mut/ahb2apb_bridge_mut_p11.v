@@ -1,6 +1,4 @@
 // MUTANT P11 (bus plan B2): write data not captured (the previous write's data goes out)
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 8 : AHB-Lite to APB3 bridge (with Block 7, the APB fabric)
 // ahb2apb_bridge.v - AHB slave side (hclk) + instances of the APB FSM (pclk)
@@ -52,138 +50,134 @@
 // directly - it releases on a pclk edge, which is an hclk edge.
 // =============================================================================
 
-module ahb2apb_bridge #(
-    parameter [15:0] WINDOW_MASK = 16'h0FFE,      // GARUDA_APB_WINDOW_MASK_ALL
-    parameter [23:0] APB_DIV     = 24'h0,         // 2 bits per window 0..11
-    parameter integer TIMEOUT    = 16             // GARUDA_APB_TIMEOUT_PCLK
+module ahb2apb_bridge
+    import garuda_pkg::*;
+#(
+    parameter [15:0] WINDOW_MASK = 16'h0FFE,  // GARUDA_APB_WINDOW_MASK_ALL
+    parameter [23:0] APB_DIV     = 24'h000000,  // 2 bits per window 0..11
+    parameter int unsigned TIMEOUT = 32'd16  // GARUDA_APB_TIMEOUT_PCLK
 )(
-    input  wire        hclk,
-    input  wire        hreset_n,
-    input  wire        pclk,
-    input  wire        preset_n,
-    input  wire        pclk_phase_i,
-
-    // ---- AHB-Lite slave ------------------------------------------------------
-    input  wire        hsel_i,
-    input  wire [31:0] haddr_i,
-    input  wire [1:0]  htrans_i,
-    input  wire        hwrite_i,
-    input  wire [2:0]  hsize_i,
-    input  wire [31:0] hwdata_i,
-    input  wire        hready_i,
-    output reg  [31:0] hrdata_o,
-    output wire        hreadyout_o,
-    output wire        hresp_o,
-
+    input wire hclk,
+    input wire hreset_n,
+    input wire pclk,
+    input wire preset_n,
+    input wire pclk_phase_i,
+    // ---- AHB-Lite slave -----------------------------------------------------
+    input wire hsel_i,
+    input wire [WORD_W-1:0] haddr_i,
+    input wire [HTRANS_W-1:0] htrans_i,
+    input wire hwrite_i,
+    input wire [HSIZE_W-1:0] hsize_i,
+    input wire [WORD_W-1:0] hwdata_i,
+    input wire hready_i,
+    output reg [WORD_W-1:0] hrdata_o,
+    output logic hreadyout_o,
+    output logic hresp_o,
     // ---- APB3 master (pclk), one PSEL per window ----------------------------
-    output wire [11:0] psel_o,
-    output wire        penable_o,
-    output wire        pwrite_o,
-    output wire [11:0] paddr_o,
-    output wire [31:0] pwdata_o,
-    input  wire [12*32-1:0] prdata_i,             // window n at [32n +: 32]
-    input  wire [11:0] pready_i,
-    input  wire [11:0] pslverr_i
+    output wire [APB_NWIN-1:0] psel_o,
+    output wire penable_o,
+    output wire pwrite_o,
+    output wire [PADDR_W-1:0] paddr_o,
+    output wire [WORD_W-1:0] pwdata_o,
+    input wire [APB_NWIN * WORD_W - 1:0] prdata_i,  // window n at [32n +: 32]
+    input wire [APB_NWIN-1:0] pready_i,
+    input wire [APB_NWIN-1:0] pslverr_i
 );
-
-    localparam [2:0] H_IDLE = 3'd0, H_CAPT = 3'd1, H_WAIT = 3'd2,
-                     H_OK   = 3'd3, H_ERR1 = 3'd4, H_ERR2 = 3'd5;
-
-    // =========================================================================
-    // Reset release gate
-    // =========================================================================
+    timeunit 1ns;
+    timeprecision 1ps;
     reg prst_ok_q;
-    always @(posedge hclk or negedge hreset_n)
-        if (!hreset_n) prst_ok_q <= 1'b0;
-        else             prst_ok_q <= preset_n;
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_prst_ok
+        if (!hreset_n) begin
+            prst_ok_q <= 1'b0;
+        end else begin
+            prst_ok_q <= preset_n;
+        end
+    end
 
-    // =========================================================================
-    // Address-phase decode
-    // =========================================================================
-    wire [3:0] win     = haddr_i[15:12];
-    // ERRATUM APB-2: the window comes from HADDR[15:12] only, so any address in
-    // region 0x4 above the 48 KiB aperture (e.g. 0x4001_5000) aliased a live
-    // window. Out-of-aperture addresses now take the existing two-cycle ERROR path
-    // with no PSEL (garuda_system.yaml: APB = 0x4000_0000, 48 KiB).
-    wire       win_ok  = WINDOW_MASK[win] && (haddr_i[27:16] == 12'h000);
+    wire [APB_WIN_W-1:0] win     = haddr_i[15:12];
+    wire       win_ok  = WINDOW_MASK[win] && ~|haddr_i[27:16];
     wire       word_ok = (hsize_i == 3'b010);
     wire       xfer    = hsel_i & htrans_i[1] & hready_i;
+    wire       allowed = win_ok && word_ok;
 
-    // =========================================================================
-    // hclk-side FSM and capture
-    // =========================================================================
-    reg  [2:0]  hstate;
-    reg  [3:0]  win_cap;
-    reg  [11:0] addr_cap;
+    reg  [APB_WIN_W-1:0]  win_cap;
+    reg  [PADDR_W-1:0] addr_cap;
     reg         write_cap;
-    reg  [31:0] wdata_cap;
+    reg  [WORD_W-1:0] wdata_cap;
     reg         req_tgl;
 
     wire        ack_tgl;
     wire        apb_err;
-    wire [31:0] apb_rdata;
+    wire [WORD_W-1:0] apb_rdata;
     reg         ack_seen;
     wire        ack_new = (ack_tgl != ack_seen);
 
-    always @(posedge hclk or negedge hreset_n) begin
+    // ---- the AHB side's state machine (brg_ahb_fsm) -------------------------
+    wire capture;
+    wire send;
+    wire answer;
+    brg_ahb_fsm u_ahb (
+        .hclk(hclk), .hreset_n(hreset_n), .prst_ok_i(prst_ok_q),
+        .xfer_i(xfer), .allowed_i(allowed), .ack_new_i(ack_new),
+        .apb_err_i(apb_err), .capture_o(capture), .send_o(send),
+        .answer_o(answer), .hreadyout_o(hreadyout_o), .hresp_o(hresp_o)
+    );
+
+    // F4 (2026-11-17): one process per register group (HAL BADFSM, EXTFSM)
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_capture
         if (!hreset_n) begin
-            hstate    <= H_IDLE;
-            win_cap   <= 4'd0;
-            addr_cap  <= 12'd0;
+            win_cap <= 4'd0;
+            addr_cap <= 12'd0;
             write_cap <= 1'b0;
-            wdata_cap <= 32'd0;
-            req_tgl   <= 1'b0;
-            ack_seen  <= 1'b0;
-            hrdata_o  <= 32'd0;
-        end else begin
-            case (hstate)
-                H_IDLE, H_OK, H_ERR2: begin
-                    // A new address phase can be accepted in any cycle where
-                    // the bus is ready. One accepted during the [N-9.2] window
-                    // (APB side still in reset) is captured and simply waits:
-                    // the pclk FSM picks it up when preset_n releases.
-                    if (!prst_ok_q && hstate == H_ERR2) begin
-                        hstate <= H_ERR2;          // hold the 2nd ERROR cycle
-                    end else if (xfer) begin
-                        if (!win_ok || !word_ok) begin
-                            hstate <= H_ERR1;
-                        end else begin
-                            hstate    <= H_CAPT;
-                            win_cap   <= win;
-                            addr_cap  <= haddr_i[11:0];
-                            write_cap <= hwrite_i;
-                        end
-                    end else begin
-                        hstate <= H_IDLE;
-                    end
-                end
-                H_CAPT: begin
-                    if (write_cap) wdata_cap <= wdata_cap;
-                    req_tgl <= ~req_tgl;
-                    hstate  <= H_WAIT;
-                end
-                H_WAIT: begin
-                    if (ack_new) begin
-                        ack_seen <= ack_tgl;
-                        hrdata_o <= apb_rdata;
-                        hstate   <= apb_err ? H_ERR1 : H_OK;
-                    end
-                end
-                H_ERR1:  hstate <= H_ERR2;
-                default: hstate <= H_IDLE;
-            endcase
+        end else if (capture) begin
+            win_cap <= win;
+            addr_cap <= haddr_i[11:0];
+            write_cap <= hwrite_i;
         end
     end
 
-    assign hreadyout_o = prst_ok_q &&
-                         (hstate == H_IDLE || hstate == H_OK || hstate == H_ERR2);
-    assign hresp_o     = (hstate == H_ERR1) || (hstate == H_ERR2);
+    // the write data is on the bus in the cycle after the address (CAPT)
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_send
+        if (!hreset_n) begin
+            req_tgl <= 1'b0;
+        end else if (send) begin
+            req_tgl <= ~req_tgl;
+        end
+    end
 
-    // =========================================================================
-    // APB side (pclk)
-    // =========================================================================
-    wire [31:0] prdata_sel;
-    wire        pready_sel, pslverr_sel;
+    // the write data, a flop straight to PWDATA (F4, 2026-11-19: HAL CBPAHI
+    // traced every APB register of the chip to a mux on this output). A read
+    // clears it as its address is captured, so the lines are zero for a read
+    // (a_read_wdata_zero); capture and send are never in the same cycle.
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_wdata
+        if (!hreset_n) begin
+            wdata_cap <= 32'd0;
+        end else if (capture && !hwrite_i) begin
+            wdata_cap <= 32'd0;
+        end else if (send && write_cap) begin
+            wdata_cap <= wdata_cap;
+        end
+    end
+
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_answer
+        if (!hreset_n) begin
+            ack_seen <= 1'b0;
+            hrdata_o <= 32'd0;
+        end else if (answer) begin
+            ack_seen <= ack_tgl;
+            hrdata_o <= apb_rdata;
+        end
+    end
+
+    // the APB address, direction and write data: the captured transfer, held
+    // through the APB access (F4: no longer passed through ahb2apb_apb_fsm)
+    assign pwrite_o = write_cap;
+    assign paddr_o  = addr_cap;
+    assign pwdata_o = wdata_cap;
+
+    wire [WORD_W-1:0] prdata_sel;
+    wire pready_sel;
+    wire pslverr_sel;
 
     ahb2apb_apb_fsm #(
         .APB_DIV (APB_DIV),
@@ -193,17 +187,11 @@ module ahb2apb_bridge #(
         .preset_n    (preset_n),
         .req_tgl_i     (req_tgl),
         .win_i         (win_cap),
-        .addr_i        (addr_cap),
-        .write_i       (write_cap),
-        .wdata_i       (wdata_cap),
         .ack_tgl_o     (ack_tgl),
         .err_o         (apb_err),
         .rdata_o       (apb_rdata),
         .psel_o        (psel_o),
         .penable_o     (penable_o),
-        .pwrite_o      (pwrite_o),
-        .paddr_o       (paddr_o),
-        .pwdata_o      (pwdata_o),
         .prdata_sel_i  (prdata_sel),
         .pready_sel_i  (pready_sel),
         .pslverr_sel_i (pslverr_sel)
@@ -219,10 +207,9 @@ module ahb2apb_bridge #(
         .pslverr_o     (pslverr_sel)
     );
 
-    // TB-49: a_capture_stable_at_phase used to be a `$display("[BRG-ASSERT] ...")` here,
-    // which no regression counted as a failure. It is now a bound, formally PROVEN
-    // property in rtl/ahb2apb/ahb2apb_sva.sv (verification only, not synthesised).
+    // TB-49: a_capture_stable_at_phase used to be a `$display("[BRG-ASSERT]
+    // ...")` here, which no regression counted as a failure. It is now a bound,
+    // formally PROVEN property in rtl/ahb2apb/ahb2apb_sva.sv (verification
+    // only, not synthesised).
 
 endmodule
-
-`default_nettype wire

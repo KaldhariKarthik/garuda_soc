@@ -1,4 +1,4 @@
-# garuda-fv 1 suite=fv_dma_cov block=dma date=2026-11-19T23:52:02+05:30 design=202625b450c1664cced99d534ce8a3329ed3dfda rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+# garuda-fv 1 suite=fv_dma_cov block=dma date=2026-11-20T00:14:42+05:30 design=b21ef9a530ffca39574ca38d76e10d411f9f3d30 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
 task	mode	result	class	secs	detail	log
 cov_prove	prove	PROVEN	OK	2	[4 asserts, 306 covers in model] 	logs/dma/raw/fv_dma_cov/fv_cov_prove.log
 cov_reach	cover	COVERED	OK	1	[0 asserts, 3 covers in model] 	logs/dma/raw/fv_dma_cov/fv_cov_reach.log

@@ -1842,3 +1842,20 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-19T23:52:02+05:30	202625b450c1	True	fv_dma_cov	cov_prove	-	PROVEN	OK	[4 asserts, 306 covers in model] 
 2026-11-19T23:52:02+05:30	202625b450c1	True	fv_dma_cov	cov_reach	-	COVERED	OK	[0 asserts, 3 covers in model] 
 2026-11-19T23:52:02+05:30	202625b450c1	True	fv_dma_cov	mut_cov_prio_inv	-	FAIL	XFAIL:PLANTED	[1 asserts, 306 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone
+2026-11-20T00:02:57+05:30	b21ef9a530ff	True	fv_dma_arb	arb_prove	-	PROVEN	OK	[10 asserts, 3 covers in model] 
+2026-11-20T00:02:57+05:30	b21ef9a530ff	True	fv_dma_arb	arb_cover	-	COVERED	OK	[10 asserts, 3 covers in model] 
+2026-11-20T00:02:57+05:30	b21ef9a530ff	True	fv_dma_arb	arb_mut_tie_high	-	FAIL	XFAIL:PLANTED	[10 asserts, 3 covers in model] props: u_equal.a_grant, u_pairs.a_grant
+2026-11-20T00:02:57+05:30	b21ef9a530ff	True	fv_dma_arb	arb_mut_tie_high_shipped	-	BOUNDED(2)	OK	[2 asserts, 3 covers in model] 
+2026-11-20T00:03:05+05:30	b21ef9a530ff	True	fv_dma_2clk	pclk_prove	-	PROVEN	OK	[10 asserts, 303 covers in model] 
+2026-11-20T00:03:05+05:30	b21ef9a530ff	True	fv_dma_2clk	pclk_cover	-	COVERED	OK	[387 asserts, 3 covers in model] 
+2026-11-20T00:14:40+05:30	b21ef9a530ff	True	fv_dma	dma_cover	-	COVERED	OK	[381 asserts, 300 covers in model] 
+2026-11-20T00:14:40+05:30	b21ef9a530ff	True	fv_dma	dma_bmc	-	BOUNDED(32)	OK	[381 asserts, 303 covers in model] 
+2026-11-20T00:14:40+05:30	b21ef9a530ff	True	fv_dma	dma_prove	-	PROVEN	OK	[369 asserts, 303 covers in model] 
+2026-11-20T00:14:40+05:30	b21ef9a530ff	True	fv_dma	mut_eng1	-	FAIL	XFAIL:PLANTED	[1 asserts, 303 covers in model] props: u_dma_props_a.a_no_grant_while_reporting
+2026-11-20T00:14:40+05:30	b21ef9a530ff	True	fv_dma	mut_d2	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[5].a_hw_wins_en
+2026-11-20T00:14:40+05:30	b21ef9a530ff	True	fv_dma	mut_dma8	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[0].a_failed_beat_keeps_request
+2026-11-20T00:14:40+05:30	b21ef9a530ff	True	fv_dma	mut_iclr_wins	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[0].a_set_beats_clear_complete
+2026-11-20T00:14:40+05:30	b21ef9a530ff	True	fv_dma	mut_aud13	-	FAIL	XFAIL:PLANTED	[1 asserts, 303 covers in model] props: u_dma_props_a.a_pslverr_rule
+2026-11-20T00:14:42+05:30	b21ef9a530ff	True	fv_dma_cov	cov_prove	-	PROVEN	OK	[4 asserts, 306 covers in model] 
+2026-11-20T00:14:42+05:30	b21ef9a530ff	True	fv_dma_cov	cov_reach	-	COVERED	OK	[0 asserts, 3 covers in model] 
+2026-11-20T00:14:42+05:30	b21ef9a530ff	True	fv_dma_cov	mut_cov_prio_inv	-	FAIL	XFAIL:PLANTED	[1 asserts, 306 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone

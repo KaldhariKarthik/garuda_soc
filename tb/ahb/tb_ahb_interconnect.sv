@@ -154,8 +154,9 @@ module tb_ahb_interconnect;
     wire [31:0] haddr_s;
     wire [1:0]  htrans_s;
     wire        hwrite_s;
-    wire [2:0]  hsize_s, hburst_s;
-    wire [3:0]  hprot_s;
+    wire [2:0]  hsize_s;
+    // the granted master's HBURST (D-38: the interconnect no longer carries it)
+    wire [2:0]  hburst_s;
     wire [31:0] hwdata_s;
     wire        hready_s;
 
@@ -217,26 +218,30 @@ module tb_ahb_interconnect;
     // -----------------------------------------------------------------------
     // DUT
     // -----------------------------------------------------------------------
+    assign hburst_s = (u_ic.grant == 2'd0) ? m0_hburst :
+                      (u_ic.grant == 2'd1) ? m1_hburst :
+                      (u_ic.grant == 2'd2) ? ms_hburst : m2_hburst;
+
     ahb_interconnect u_ic (
         .hclk(hclk), .hreset_n(hreset_n),
 
         .i_haddr_i(m0_haddr), .i_htrans_i(m0_htrans), .i_hwrite_i(m0_hwrite),
-        .i_hsize_i(m0_hsize), .i_hburst_i(m0_hburst), .i_hprot_i(m0_hprot),
+        .i_hsize_i(m0_hsize), 
         .i_hwdata_i(m0_hwdata),
         .i_hrdata_o(m0_hrdata), .i_hready_o(m0_hready), .i_hresp_o(m0_hresp),
 
         .d_haddr_i(m1_haddr), .d_htrans_i(m1_htrans), .d_hwrite_i(m1_hwrite),
-        .d_hsize_i(m1_hsize), .d_hburst_i(m1_hburst), .d_hprot_i(m1_hprot),
+        .d_hsize_i(m1_hsize), 
         .d_hwdata_i(m1_hwdata),
         .d_hrdata_o(m1_hrdata), .d_hready_o(m1_hready), .d_hresp_o(m1_hresp),
 
         .s_haddr_i(ms_haddr), .s_htrans_i(ms_htrans), .s_hwrite_i(ms_hwrite),
-        .s_hsize_i(ms_hsize), .s_hburst_i(ms_hburst),
+        .s_hsize_i(ms_hsize), 
         .s_hwdata_i(ms_hwdata),
         .s_hrdata_o(ms_hrdata), .s_hready_o(ms_hready), .s_hresp_o(ms_hresp),
 
         .m_haddr_i(m2_haddr), .m_htrans_i(m2_htrans), .m_hwrite_i(m2_hwrite),
-        .m_hsize_i(m2_hsize), .m_hburst_i(m2_hburst),
+        .m_hsize_i(m2_hsize), 
         .m_hwdata_i(m2_hwdata),
         .m_hrdata_o(m2_hrdata), .m_hready_o(m2_hready), .m_hresp_o(m2_hresp),
 
@@ -244,7 +249,7 @@ module tb_ahb_interconnect;
         .hsel_dsram_o(hsel_s2), .hsel_bridge_o(hsel_s3),
 
         .haddr_o(haddr_s), .htrans_o(htrans_s), .hwrite_o(hwrite_s),
-        .hsize_o(hsize_s), .hburst_o(hburst_s), .hprot_o(hprot_s),
+        .hsize_o(hsize_s), 
         .hwdata_o(hwdata_s), .hready_o(hready_s), .hmaster_is_sba_o(is_sba),
 
         .hrdata_isram_i(hrdata_s0),  .hreadyout_isram_i(hreadyout_s0),  .hresp_isram_i(hresp_s0),
@@ -353,7 +358,6 @@ module tb_ahb_interconnect;
     // -----------------------------------------------------------------------
     integer sel_onehot_viol;          // T2 : HSEL must be one-hot every cycle
     integer grant_swing_viol;         // T5 : grant must not move while HREADY low
-    integer hprot_dma_viol;           // T10: HPROT must be 0x3 whenever DMA granted
     integer sba_ind_viol = 0;         // T17: hmaster_is_sba tracks the grant
     always @(posedge hclk) if (hreset_n && (is_sba !== (u_ic.grant == 2'd2))) sba_ind_viol = sba_ind_viol + 1;
     reg [1:0] prev_grant;
@@ -365,7 +369,6 @@ module tb_ahb_interconnect;
         if (!hreset_n) begin
             sel_onehot_viol  <= 0;
             grant_swing_viol <= 0;
-            hprot_dma_viol   <= 0;
             prev_grant       <= 2'd0;
             prev_hready      <= 1'b1;
         end else begin
@@ -379,8 +382,6 @@ module tb_ahb_interconnect;
                 grant_swing_viol <= grant_swing_viol + 1;
 
             // Sec. 7.6: DMA has no HPROT; the fabric substitutes 0x3.
-            if ((u_ic.grant == 2'd3) && (hprot_s !== 4'b0011))
-                hprot_dma_viol <= hprot_dma_viol + 1;
 
             prev_grant  <= u_ic.grant;
             prev_hready <= hready_s;
@@ -654,12 +655,10 @@ module tb_ahb_interconnect;
         // T10 - HPROT pass-through and the DMA substitution (Sec. 7.6)
         // ===================================================================
         $display("--- T10: HPROT ---");
-        chk_eq(hprot_dma_viol, 0, "T10: HPROT was 0x3 on every DMA-granted cycle");
         clear_rsp();
         u_m0.push_xfer(32'h0000_0600, 1'b0, 32'h0, SZ_W, BURST_SINGLE, T_NONSEQ, 8'd0);
         @(posedge hclk);
         while (!(hready_s && htrans_s[1] && u_ic.grant == 2'd0)) @(posedge hclk);
-        chk_eq(hprot_s, 4'b0010, "T10: I-Port HPROT reaches the slave unchanged");
         drain();
 
         // ===================================================================
@@ -857,7 +856,6 @@ module tb_ahb_interconnect;
         chk_eq(v_sl, 0, "protocol: SLAVE-SIDE bus clean");
         chk_eq(sel_onehot_viol,  0, "final: HSEL one-hot throughout");
         chk_eq(grant_swing_viol, 0, "final: grant never swung mid-beat");
-        chk_eq(hprot_dma_viol,   0, "final: HPROT=0x3 whenever the DMA was granted");
 
         $display("");
         $display("=====================================================");

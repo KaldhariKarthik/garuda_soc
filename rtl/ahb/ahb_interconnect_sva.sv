@@ -25,7 +25,6 @@ module ahb_interconnect_sva (
     input wire [1:0]  i_htrans_i, d_htrans_i, s_htrans_i, m_htrans_i,
     input wire        i_hwrite_i, d_hwrite_i, s_hwrite_i, m_hwrite_i,
     input wire [2:0]  i_hsize_i, d_hsize_i, s_hsize_i, m_hsize_i,
-    input wire [2:0]  i_hburst_i, d_hburst_i, s_hburst_i, m_hburst_i,
     input wire [31:0] i_hwdata_i, d_hwdata_i, s_hwdata_i, m_hwdata_i,
     input wire        i_hready_o, d_hready_o, s_hready_o, m_hready_o,
     input wire        i_hresp_o, d_hresp_o, s_hresp_o, m_hresp_o,
@@ -53,10 +52,10 @@ module ahb_interconnect_sva (
     `define AHB_ASSUME_MASTER(P, T, A, W, S, B, RDY) \
     assume_``P``_holds: assume property (@(posedge hclk) disable iff (!hreset_n) \
         (T[1] && !RDY) |=> $stable({T, A, W, S, B}) );
-    `AHB_ASSUME_MASTER(i, i_htrans_i, i_haddr_i, i_hwrite_i, i_hsize_i, i_hburst_i, i_hready_o)
-    `AHB_ASSUME_MASTER(d, d_htrans_i, d_haddr_i, d_hwrite_i, d_hsize_i, d_hburst_i, d_hready_o)
-    `AHB_ASSUME_MASTER(s, s_htrans_i, s_haddr_i, s_hwrite_i, s_hsize_i, s_hburst_i, s_hready_o)
-    `AHB_ASSUME_MASTER(m, m_htrans_i, m_haddr_i, m_hwrite_i, m_hsize_i, m_hburst_i, m_hready_o)
+    `AHB_ASSUME_MASTER(i, i_htrans_i, i_haddr_i, i_hwrite_i, i_hsize_i, 3'b001, i_hready_o)
+    `AHB_ASSUME_MASTER(d, d_htrans_i, d_haddr_i, d_hwrite_i, d_hsize_i, 3'b000, d_hready_o)
+    `AHB_ASSUME_MASTER(s, s_htrans_i, s_haddr_i, s_hwrite_i, s_hsize_i, 3'b000, s_hready_o)
+    `AHB_ASSUME_MASTER(m, m_htrans_i, m_haddr_i, m_hwrite_i, m_hsize_i, 3'b000, m_hready_o)
     `define AHB_ASSUME_SLAVE(N, RDY, RESP) \
     assume_``N``_error2: assume property (@(posedge hclk) disable iff (!hreset_n) \
         (RESP && !RDY) |=> (RESP && RDY) );
@@ -170,7 +169,6 @@ bind ahb_interconnect ahb_interconnect_sva u_ahb_sva (
     .i_htrans_i(i_htrans_i), .d_htrans_i(d_htrans_i), .s_htrans_i(s_htrans_i), .m_htrans_i(m_htrans_i),
     .i_hwrite_i(i_hwrite_i), .d_hwrite_i(d_hwrite_i), .s_hwrite_i(s_hwrite_i), .m_hwrite_i(m_hwrite_i),
     .i_hsize_i(i_hsize_i), .d_hsize_i(d_hsize_i), .s_hsize_i(s_hsize_i), .m_hsize_i(m_hsize_i),
-    .i_hburst_i(i_hburst_i), .d_hburst_i(d_hburst_i), .s_hburst_i(s_hburst_i), .m_hburst_i(m_hburst_i),
     .i_hwdata_i(i_hwdata_i), .d_hwdata_i(d_hwdata_i), .s_hwdata_i(s_hwdata_i), .m_hwdata_i(m_hwdata_i),
     .i_hready_o(i_hready_o), .d_hready_o(d_hready_o), .s_hready_o(s_hready_o), .m_hready_o(m_hready_o),
     .i_hresp_o(i_hresp_o), .d_hresp_o(d_hresp_o), .s_hresp_o(s_hresp_o), .m_hresp_o(m_hresp_o),

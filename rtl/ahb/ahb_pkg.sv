@@ -2,6 +2,8 @@
 // (zero-waiver F4, 2026-11-16: compiler directives leave the RTL, HAL CDNOTE;
 // only the constants the chip uses are here, HAL USEPAR).
 package ahb_pkg;
+    timeunit 1ns;
+    timeprecision 1ps;
     localparam int unsigned AHB_NMASTERS = 32'd4;
     localparam AHB_M_IPORT = 2'd0;  // M0 - CPU I-Port   (lowest priority)
     localparam AHB_M_DPORT = 2'd1;  // M1 - CPU D-Port
@@ -24,7 +26,5 @@ package ahb_pkg;
     localparam AHB_TRANS_SEQ = 2'b11;
     localparam AHB_RESP_OKAY = 1'b0;
     localparam AHB_RESP_ERROR = 1'b1;
-    localparam AHB_HPROT_DMA = 4'b0011;
-    localparam AHB_HPROT_SBA = 4'b0011;
     localparam int unsigned AHB_RGN_W = 32'd4;  // HADDR[31:28], the region
 endpackage

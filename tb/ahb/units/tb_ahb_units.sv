@@ -68,18 +68,18 @@ module tb_ahb_units;
     logic [1:0] mm_grant, mm_dph; logic mm_seqb;
     logic [3:0][31:0] mm_addr, mm_wdata; logic [3:0][1:0] mm_trans; logic [3:0] mm_wr;
     logic [3:0][2:0] mm_size, mm_burst; logic [3:0] mm_iprot, mm_dprot;
-    wire [31:0] mm_haddr, mm_hwdata; wire [1:0] mm_htrans; wire mm_hwrite; wire [2:0] mm_hsize, mm_hburst; wire [3:0] mm_hprot;
+    wire [31:0] mm_haddr, mm_hwdata; wire [1:0] mm_htrans; wire mm_hwrite; wire [2:0] mm_hsize;
     ahb_master_mux u_mm (.grant_i(mm_grant), .dph_master_i(mm_dph), .seq_break_i(mm_seqb),
         .i_haddr_i(mm_addr[0]), .i_htrans_i(mm_trans[0]), .i_hwrite_i(mm_wr[0]), .i_hsize_i(mm_size[0]),
-        .i_hburst_i(mm_burst[0]), .i_hprot_i(mm_iprot), .i_hwdata_i(mm_wdata[0]),
+        .i_hwdata_i(mm_wdata[0]),
         .d_haddr_i(mm_addr[1]), .d_htrans_i(mm_trans[1]), .d_hwrite_i(mm_wr[1]), .d_hsize_i(mm_size[1]),
-        .d_hburst_i(mm_burst[1]), .d_hprot_i(mm_dprot), .d_hwdata_i(mm_wdata[1]),
+        .d_hwdata_i(mm_wdata[1]),
         .s_haddr_i(mm_addr[2]), .s_htrans_i(mm_trans[2]), .s_hwrite_i(mm_wr[2]), .s_hsize_i(mm_size[2]),
-        .s_hburst_i(mm_burst[2]), .s_hwdata_i(mm_wdata[2]),
+        .s_hwdata_i(mm_wdata[2]),
         .m_haddr_i(mm_addr[3]), .m_htrans_i(mm_trans[3]), .m_hwrite_i(mm_wr[3]), .m_hsize_i(mm_size[3]),
-        .m_hburst_i(mm_burst[3]), .m_hwdata_i(mm_wdata[3]),
+        .m_hwdata_i(mm_wdata[3]),
         .haddr_o(mm_haddr), .htrans_o(mm_htrans), .hwrite_o(mm_hwrite), .hsize_o(mm_hsize),
-        .hburst_o(mm_hburst), .hprot_o(mm_hprot), .hwdata_o(mm_hwdata));
+        .hwdata_o(mm_hwdata));
 
     // ======================= references (from the spec) =========================
     function automatic [4:0] ref_dec(input [31:0] a);
@@ -199,11 +199,10 @@ module tb_ahb_units;
                 mm_iprot = $urandom; mm_dprot = $urandom;
                 #1;
                 g = mm_grant; d = mm_dph; t = mm_trans[g];
-                check(mm_haddr == mm_addr[g] && mm_hwrite == mm_wr[g] && mm_hsize == mm_size[g] && mm_hburst == mm_burst[g],
+                check(mm_haddr == mm_addr[g] && mm_hwrite == mm_wr[g] && mm_hsize == mm_size[g],
                       "[N-7.2] address and control from the address-phase grant");
                 check(mm_htrans == ((mm_seqb && t == 2'b11) ? 2'b10 : t), "[AHB-3] SEQ -> NONSEQ only on seq_break");
                 check(mm_hwdata == mm_wdata[d], "[AHB-1] HWDATA from the data-phase owner");
-                check(mm_hprot == ((g == 0) ? mm_iprot : (g == 1) ? mm_dprot : 4'b0011), "[N-5.2] HPROT pass-through / substitution");
                 @(negedge clk);
             end
         end

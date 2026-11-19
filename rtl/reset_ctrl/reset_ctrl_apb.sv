@@ -57,21 +57,21 @@ module reset_ctrl_apb
     wire apb_access = psel_i & penable_i;
     wire wr     = apb_access &  pwrite_i;
 
-    wire hit = (paddr_i == A_RSTREASON) | (paddr_i == A_RSTCTL) |
-               (paddr_i == A_CLKSTAT)   | (paddr_i == A_MEMCTL);
+    wire hit = at12(paddr_i, A_RSTREASON) | at12(paddr_i, A_RSTCTL) |
+               at12(paddr_i, A_CLKSTAT)   | at12(paddr_i, A_MEMCTL);
 
     // ---- strobes -----------------------------------------------------------
-    assign reason_w1c_o = (wr && paddr_i == A_RSTREASON) ? pwdata_i[4:0]
+    assign reason_w1c_o = (wr && at12(paddr_i, A_RSTREASON)) ? pwdata_i[4:0]
         : 5'b00000;
-    assign swrst_o        =  wr && paddr_i == A_RSTCTL && pwdata_i[0];
-    assign bootfail_set_o =  wr && paddr_i == A_RSTCTL && pwdata_i[4];
+    assign swrst_o        =  wr && at12(paddr_i, A_RSTCTL) && pwdata_i[0];
+    assign bootfail_set_o =  wr && at12(paddr_i, A_RSTCTL) && pwdata_i[4];
 
     // ---- DIVSEL: survives every reset but the pin ---------------------------
     reg [DIV_SEL_W-1:0] div_sel_q;
     always_ff @(posedge pclk or negedge ext_prst_n) begin : p_div_sel
         if (!ext_prst_n) begin
             div_sel_q <= 2'b00;
-        end else if (wr && paddr_i == A_RSTCTL) begin
+        end else if (wr && at12(paddr_i, A_RSTCTL)) begin
             div_sel_q <= pwdata_i[9:8];
         end
     end
@@ -82,7 +82,7 @@ module reset_ctrl_apb
     always_ff @(posedge pclk or negedge preset_n) begin : p_ilock
         if (!preset_n) begin
             ilock_q <= 1'b0;
-        end else if (wr && paddr_i == A_MEMCTL && pwdata_i[0]) begin
+        end else if (wr && at12(paddr_i, A_MEMCTL) && pwdata_i[0]) begin
             ilock_q <= 1'b1;
         end
     end

@@ -96,23 +96,35 @@ module garuda_spim_top
         end
     end
 
+    // the DMA sources: RX words waiting, TX words free
+    wire spim_rx = |rx_words;
+    wire spim_tx = (tx_words < BUFFER_DEPTH[4:0]);
+    wire [WORD_W-1:0] shim_prdata;
+    wire [WORD_W-1:0] dma_rdata;
     garuda_apb_shim #(
-        // SPIM section 6: 0x00 to 0x18, RXFIFO 0x20, INTCFG 0x24, INTSTA 0x28.
-        // 0x1C and 0x2C to 0xFC are not registers and answer PSLVERR.
-        .N_EVT(3), .SYNC_W(1), .IP_LIMIT(12'h100),
-            .IP_MAP(64'h0000_0000_0000_077F),
-        .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
+        .N_EVT(3), .IP_LIMIT(12'h100),
+            .IP_MAP(64'h0000_0000_0000_077F), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
-        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
+        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(shim_prdata),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
         .ip_psel_o(ip_psel), .ip_prdata_i(ip_prdata),
-        .evt_i(evt), .irq_o(irq_o),
-        .rx_avail_i(|rx_words),
-        .tx_space_i(tx_words < BUFFER_DEPTH[4:0]),
-        .dma_ack_i(dma_ack_i), .dma_req_o(dma_req_o),
-        .pad_async_i(spim_miso_i), .pad_sync_o(miso_sync));
+        .evt_i(evt), .irq_o(irq_o));
+
+    // DMACTL and the request (D-39: only the blocks with a DMA channel)
+    garuda_apb_dma u_dma (
+        .pclk(pclk), .preset_n(preset_n),
+        .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
+        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .rdata_o(dma_rdata),
+        .src_i({spim_tx, spim_rx}), .dma_ack_i(dma_ack_i), .dma_req_o(dma_req_o));
+    assign prdata_o = shim_prdata | dma_rdata;
+
+    // pad input synchronisers (F4: out of the shim)
+    garuda_sync_bit #(.IDLE(1'b0)) u_sync (
+        .pclk(pclk), .preset_n(preset_n), .pad_i(spim_miso_i),
+        .sync_o(miso_sync)
+    );
 
     // =========================================================================
     // Interrupt sources (SPIM [N-7.7])
@@ -142,7 +154,7 @@ module garuda_spim_top
     // no quad pins, so a write to STATUS reaches the engine with those two bits
     // cleared and the engine stays in single-bit mode whatever firmware writes
     // ([N-7.5]).
-    wire [WORD_W-1:0] eff_pwdata = (pwrite_i && paddr_i == 12'h000)
+    wire [WORD_W-1:0] eff_pwdata = (pwrite_i && at12(paddr_i, 12'h000))
         ? (pwdata_i & ~32'h0000_000C) : pwdata_i;
 
     apb_spi_master #(

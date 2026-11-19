@@ -125,7 +125,7 @@ case "$T" in
   *) echo "[FAIL] run_test.sh: unknown test '$T'"; echo "GARUDA_RESULT: FAIL $T"; exit 1 ;;
 esac
 
-irun $COMMON $SEEDOPT -f rtl/common/filelist_pkg.f -f "$FL" -top "$TOP" $ARGS
+irun -ncerror CUVDSI $COMMON $SEEDOPT -f rtl/common/filelist_pkg.f -f "$FL" -top "$TOP" $ARGS
 
 fail=0
 grep -qE "$MARK" "$LOG"                               || { echo "[FAIL] $T: pass marker not found in the log"; fail=1; }

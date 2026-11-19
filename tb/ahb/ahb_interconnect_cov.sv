@@ -17,7 +17,7 @@ module ahb_interconnect_cov (
     input wire [1:0]  i_htrans_i, d_htrans_i, s_htrans_i, m_htrans_i,
     input wire [31:0] haddr_o,
     input wire [1:0]  htrans_o,
-    input wire [2:0]  hsize_o, hburst_o,
+    input wire [2:0]  hsize_o,
     input wire        hwrite_o, hready_o,
     input wire [1:0]  grant, dph_master, htrans_sel,
     input wire        seq_break, dph_valid, hresp_shared,
@@ -90,7 +90,7 @@ endmodule
 bind ahb_interconnect ahb_interconnect_cov u_ahb_cov (
     .hclk_i(hclk), .hreset_n_i(hreset_n),
     .i_htrans_i(i_htrans_i), .d_htrans_i(d_htrans_i), .s_htrans_i(s_htrans_i), .m_htrans_i(m_htrans_i),
-    .haddr_o(haddr_o), .htrans_o(htrans_o), .hsize_o(hsize_o), .hburst_o(hburst_o),
+    .haddr_o(haddr_o), .htrans_o(htrans_o), .hsize_o(hsize_o),
     .hwrite_o(hwrite_o), .hready_o(hready_o),
     .grant(grant), .dph_master(dph_master), .htrans_sel(u_mmux.c_haddr.htrans_sel),
     .seq_break(seq_break), .dph_valid(dph_valid), .hresp_shared(hresp_shared), .hsel(hsel),

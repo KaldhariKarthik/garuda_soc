@@ -17,13 +17,15 @@ module tb_i2c_uvm;
                 .pwrite(apb.pwrite), .paddr(apb.paddr), .pwdata(apb.pwdata));
     assign iif.prdata = apb.prdata; assign iif.pready = apb.pready; assign iif.pslverr = apb.pslverr;
 
+    assign iif.scl_o = 1'b0;  // open drain: the wrapper drives only enables (F4)
+    assign iif.sda_o = 1'b0;
     garuda_i2c_top dut (
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(apb.psel), .penable_i(apb.penable), .pwrite_i(apb.pwrite), .paddr_i(apb.paddr),
         .pwdata_i(apb.pwdata), .prdata_o(apb.prdata), .pready_o(apb.pready), .pslverr_o(apb.pslverr),
         .irq_o(iif.irq), .dma_req_o(iif.dma_req), .dma_ack_i(iif.dma_ack),
-        .i2c_scl_i(iif.scl), .i2c_scl_o(iif.scl_o), .i2c_scl_oe(iif.scl_oe),
-        .i2c_sda_i(iif.sda), .i2c_sda_o(iif.sda_o), .i2c_sda_oe(iif.sda_oe));
+        .i2c_scl_i(iif.scl), .i2c_scl_oe(iif.scl_oe),
+        .i2c_sda_i(iif.sda), .i2c_sda_oe(iif.sda_oe));
 
     wire [31:0] apbviol;
     apb_checker u_apbchk (

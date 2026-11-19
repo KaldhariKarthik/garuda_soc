@@ -2,6 +2,8 @@
 // (zero-waiver F4, 2026-11-16: compiler directives leave the RTL, HAL CDNOTE;
 // only the constants the chip uses are here, HAL USEPAR).
 package core_ex_pkg;
+    timeunit 1ns;
+    timeprecision 1ps;
     localparam FWD_NONE = 2'b00;  // register-file value (no hazard)
     localparam FWD_EXMEM = 2'b01;  // EX/MEM result  (EX->EX,  distance 1)
     localparam FWD_MEMWB = 2'b10;  // MEM/WB result  (MEM->EX, distance 2)

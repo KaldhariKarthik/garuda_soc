@@ -54,7 +54,7 @@ bind garuda_spim_top spim_cov u_spim_cov (
     .pclk_i(pclk), .preset_n_i(preset_n), .psel_i(psel_i), .penable_i(penable_i),
     .pwrite_i(pwrite_i), .paddr_i(paddr_i), .pwdata_i(pwdata_i), .clk_div(u_spi.spi_clk_div),
     .cmd_len(u_spi.spi_cmd_len), .addr_len(u_spi.spi_addr_len), .data_len(u_spi.spi_data_len),
-    .dma_req_o(dma_req_o), .dma_ack_i(dma_ack_i), .dmactl(u_shim.dmactl_q));
+    .dma_req_o(dma_req_o), .dma_ack_i(dma_ack_i), .dmactl(u_dma.dmactl_q));
 `endif
 `endif
 `endif

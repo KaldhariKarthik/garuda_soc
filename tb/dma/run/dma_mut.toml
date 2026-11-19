@@ -155,7 +155,7 @@ plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_engine.sv" = "tb/dma/mut/dma_engine_mut_m17.v" }
 fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
 
-# M18: read ERROR ignored: the beat writes garbage
+# M18: read ERROR not reported: the beat is dropped silently
 [[test]]
 name = "mut_m18"
 flist = "tb/dma/env/filelist_dma_env.f"
@@ -164,7 +164,7 @@ plusargs = ["+TEST=mut", "+ITER=10"]
 replace = { "rtl/dma/dma_engine.sv" = "tb/dma/mut/dma_engine_mut_m18.v" }
 fail_reason = "^\\[FAIL\\] |\\[SVA-FAIL\\] (?!a_no_read_before_refusal\\b)"
 
-# M19: read address dropped while HREADY is low (AHB violation)
+# M19: address dropped while HREADY is low (AHB violation)
 [[test]]
 name = "mut_m19"
 flist = "tb/dma/env/filelist_dma_env.f"

@@ -21,49 +21,48 @@ R = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 KILL = r"^\[FAIL\] |Assertion failed in \S*u_ahb_props_a\."
 # id, file, pattern, replacement, what it models
 MUTANTS = [
- ("A01", "ahb_master_mux.v", "case (dph_master_i)", "case (grant_i)", "AHB-1 reverted: HWDATA follows the address-phase grant"),
- ("A02", "ahb_master_port.v", "wire capture = dph_own_i && !granted_i && presenting && hready_shared_i;",
+ ("A01", "ahb_master_mux.sv", "case (dph_master_i)", "case (grant_i)", "AHB-1 reverted: HWDATA follows the address-phase grant"),
+ ("A02", "ahb_master_port.sv", "wire capture = dph_own_i && !granted_i && presenting && hready_shared_i;",
   "wire capture = 1'b0;", "AHB-2 reverted: no response hold for a preempted master"),
- ("A03", "ahb_arbiter.v", "assign seq_break_o = ~last_owner_v || (last_owner_r != grant_o);", "assign seq_break_o = 1'b0;",
+ ("A03", "ahb_arbiter.sv", "assign seq_break_o = ~last_owner_v || (last_owner_r != grant_o);", "assign seq_break_o = 1'b0;",
   "AHB-3 reverted: an interrupted SEQ is not re-opened as NONSEQ"),
- ("A04", "ahb_master_port.v", "assign hready_o = pending ? (hready_shared_i && entitled) : 1'b1;",
+ ("A04", "ahb_master_port.sv", "assign hready_o = pending ? (hready_shared_i && entitled) : 1'b1;",
   "assign hready_o = hready_shared_i && entitled;", "AHB-4 reverted: the hold rule gates an idle master too"),
- ("A05", "ahb_arbiter.v", "    wire [1:0] winner = req[`AHB_M_DMA]   ? `AHB_M_DMA   :\n                        req[`AHB_M_SBA]   ? `AHB_M_SBA   :",
-  "    wire [1:0] winner = req[`AHB_M_SBA]   ? `AHB_M_SBA   :\n                        req[`AHB_M_DMA]   ? `AHB_M_DMA   :", "priority: SBA above DMA"),
- ("A06", "ahb_arbiter.v", "                        req[`AHB_M_SBA]   ? `AHB_M_SBA   :\n                        req[`AHB_M_DPORT] ? `AHB_M_DPORT :",
-  "                        req[`AHB_M_DPORT] ? `AHB_M_DPORT :\n                        req[`AHB_M_SBA]   ? `AHB_M_SBA   :", "priority: D-port above SBA"),
- ("A07", "ahb_decoder.v", "`AHB_RGN_DSRAM : hsel_o[`AHB_S_DSRAM ] = 1'b1;", "4'h3           : hsel_o[`AHB_S_DSRAM ] = 1'b1;",
+ ("A05", "ahb_arbiter.sv", "winner = req[AHB_M_DMA]   ? AHB_M_DMA   :\n                        req[AHB_M_SBA]   ? AHB_M_SBA   :",
+  "winner = req[AHB_M_SBA]   ? AHB_M_SBA   :\n                        req[AHB_M_DMA]   ? AHB_M_DMA   :", "priority: SBA above DMA"),
+ ("A06", "ahb_arbiter.sv", "                        req[AHB_M_SBA]   ? AHB_M_SBA   :\n                        req[AHB_M_DPORT] ? AHB_M_DPORT :",
+  "                        req[AHB_M_DPORT] ? AHB_M_DPORT :\n                        req[AHB_M_SBA]   ? AHB_M_SBA   :", "priority: D-port above SBA"),
+ ("A07", "ahb_decoder.sv", "AHB_RGN_DSRAM: hsel_o[AHB_S_DSRAM] = 1'b1;", "4'h3: hsel_o[AHB_S_DSRAM] = 1'b1;",
   "decode: DSRAM decoded at nibble 3"),
- ("A08", "ahb_decoder.v", "`AHB_RGN_BRIDGE: hsel_o[`AHB_S_BRIDGE] = 1'b1;", "4'h5          : hsel_o[`AHB_S_BRIDGE] = 1'b1;",
+ ("A08", "ahb_decoder.sv", "AHB_RGN_BRIDGE: hsel_o[AHB_S_BRIDGE] = 1'b1;", "4'h5: hsel_o[AHB_S_BRIDGE] = 1'b1;",
   "decode: the bridge decoded at nibble 5"),
- ("A09", "ahb_arbiter.v", "assign grant_o = hold_r ? grant_r : winner;", "assign grant_o = winner;",
+ ("A09", "ahb_arbiter.sv", "assign grant_o = hold_r ? grant_r : winner;", "assign grant_o = winner;",
   "grant freeze removed: the grant moves under a waited address phase"),
- ("A10", "ahb_arbiter.v", "            dph_valid_o  <= granted_htrans[1];", "            dph_valid_o  <= 1'b1;",
+ ("A10", "ahb_arbiter.sv", "            dph_valid_o <= granted_act;", "            dph_valid_o <= 1'b1;",
   "data-phase tracker: an IDLE cycle counts as a data phase"),
- ("A11", "ahb_arbiter.v", "        end else if (hready_i) begin\n            dph_valid_o  <= granted_htrans[1];",
-  "        end else begin\n            dph_valid_o  <= granted_htrans[1];", "data-phase tracker updated in wait states"),
- ("A12", "ahb_dflt_slave.v", "S_ERR1:  begin hreadyout_o = 1'b0; hresp_o = `AHB_RESP_ERROR; end",
-  "S_ERR1:  begin hreadyout_o = 1'b1; hresp_o = `AHB_RESP_ERROR; end", "default slave: one-cycle ERROR"),
- ("A13", "ahb_dflt_slave.v", "wire accept = hsel_i && hready_i && htrans_i[1];", "wire accept = 1'b0;",
+ ("A11", "ahb_arbiter.sv", "        end else if (hready_i) begin\n            dph_valid_o <= granted_act;",
+  "        end else begin\n            dph_valid_o <= granted_act;", "data-phase tracker updated in wait states"),
+ ("A12", "ahb_dflt_slave.sv", "            S_ERR1: begin\n                hreadyout_o = 1'b0;",
+  "            S_ERR1: begin\n                hreadyout_o = 1'b1;", "default slave: one-cycle ERROR"),
+ ("A13", "ahb_dflt_slave.sv", "wire accept = hsel_i && hready_i && req_i;", "wire accept = 1'b0;",
   "default slave: an undecoded access answers OKAY"),
- ("A14", "ahb_slave_mux.v", "        else if (hready_o)\n            dph_sel_o <= hsel_i;", "        else\n            dph_sel_o <= hsel_i;",
-  "slave mux: the data-phase select moves in a wait state"),
- ("A15", "ahb_master_port.v", "assign hresp_o  = hold_valid ? hold_resp :\n                      dph_own_i  ? hresp_shared_i : `AHB_RESP_OKAY;",
+ ("A14", "ahb_slave_mux.sv", "        end else if (hready_o) begin\n            dph_sel <= hsel_i;",
+  "        end else begin\n            dph_sel <= hsel_i;", "slave mux: the data-phase select moves in a wait state"),
+ ("A15", "ahb_master_port.sv", "assign hresp_o  = hold_valid ? hold_resp :\n                      dph_own_i  ? hresp_shared_i : AHB_RESP_OKAY;",
   "assign hresp_o  = hold_valid ? hold_resp : hresp_shared_i;", "HRESP broadcast to every master"),
- ("A16", "ahb_master_port.v", "assign hrdata_o = hold_valid ? hold_data :\n                      dph_own_i  ? hrdata_shared_i : 32'h0000_0000;",
+ ("A16", "ahb_master_port.sv", "assign hrdata_o = hold_valid ? hold_data :\n                      dph_own_i  ? hrdata_shared_i : 32'h0000_0000;",
   "assign hrdata_o = dph_own_i ? hrdata_shared_i : hold_data;", "a held read is overridden by the live bus"),
- ("A17", "ahb_master_port.v", "wire entitled = granted_i || (dph_own_i && !presenting);", "wire entitled = granted_i || dph_own_i;",
+ ("A17", "ahb_master_port.sv", "wire entitled = granted_i || (dph_own_i && !presenting);", "wire entitled = granted_i || dph_own_i;",
   "a presenting data-phase owner sees HREADY: its next address phase is wrongly accepted"),
- ("A18", "ahb_master_port.v", "        end else if (hold_valid && hready_o) begin", "        end else if (1'b0) begin",
+ ("A18", "ahb_master_port.sv", "        end else if (hold_valid && hready_o) begin", "        end else if (1'b0) begin",
   "a held response is never released (replayed forever)"),
- ("A19", "ahb_master_mux.v", "if (seq_break_i && (htrans_sel == `AHB_TRANS_SEQ))", "if (seq_break_i && (htrans_sel == `AHB_TRANS_NONSEQ))",
+ ("A19", "ahb_master_mux.sv", "if (seq_break_i && (htrans_sel == AHB_TRANS_SEQ))", "if (seq_break_i && (htrans_sel == AHB_TRANS_NONSEQ))",
   "AHB-3 rewrite inverted: a NONSEQ after an owner change becomes NONSEQ->NONSEQ, a SEQ passes"),
- ("A20", "ahb_interconnect.v", "assign hmaster_is_sba_o = (grant == `AHB_M_SBA);", "assign hmaster_is_sba_o = (grant == `AHB_M_DMA);",
+ ("A20", "ahb_interconnect.sv", "assign hmaster_is_sba_o = s_gnt;", "assign hmaster_is_sba_o = (grant == AHB_M_DMA);",
   "SBA indication marks the DMA (ISRAM lock bypassed for the wrong master)"),
- ("A21", "ahb_master_mux.v", "hprot_o    = `AHB_HPROT_DMA;   // Sec. 7.6 substitution", "hprot_o    = 4'b0001;   // Sec. 7.6 substitution",
-  "DMA HPROT substitution wrong"),
- ("A22", "ahb_master_mux.v", "            `AHB_M_SBA: begin\n                haddr_o    = s_haddr_i;",
-  "            `AHB_M_SBA: begin\n                haddr_o    = d_haddr_i;", "SBA address phase carries the D-port's address"),
+ # A21 (DMA HPROT substitution wrong) retired with HPROT itself (D-38, 2026-11-18)
+ ("A22", "ahb_master_mux.sv", "            AHB_M_SBA: begin\n                haddr_o = s_haddr_i;",
+  "            AHB_M_SBA: begin\n                haddr_o = d_haddr_i;", "SBA address phase carries the D-port's address"),
 ]
 # Mutants proven equivalent (not run; each keeps a formal proof in tb/ahb/formal/ahb.toml):
 #  A10 dph_valid set after an IDLE cycle: the "phantom" data phase points at a slave that
@@ -82,15 +81,16 @@ def main():
     os.makedirs(os.path.join(R, "tb/ahb/mut"), exist_ok=True)
     rows = []
     for mid, f, pat, rep, what in MUTANTS:
-        if mid in EQUIVALENT:
-            continue
         src = open(os.path.join(R, "rtl/ahb", f)).read()
         n = src.count(pat)
         if n != 1:
             sys.exit(f"{mid}: pattern matches {n} times in rtl/ahb/{f}")
-        out = f"tb/ahb/mut/{f[:-2]}_mut_{mid.lower()}.v"
+        out = f"tb/ahb/mut/{f[:-3]}_mut_{mid.lower()}.v"
         open(os.path.join(R, out), "w").write(f"// MUTANT {mid} (bus plan B1 A9): {what}\n" + src.replace(pat, rep))
-        rows.append((mid, f, out, what))
+        # TOOL-A24: the equivalent ones are written too (fv_ahb equiv_a10/equiv_a16
+        # swap them in), so they cannot go stale; they are not run in simulation
+        if mid not in EQUIVALENT:
+            rows.append((mid, f, out, what))
     with open(os.path.join(R, "tb/ahb/run/ahb_mut.toml"), "w") as m:
         m.write("# Bus plan B1 A9 / recipe R10: AHB interconnect planted defects. GENERATED by\n"
                 "# tools/gen/gen_ahb_mutants.py -- do not edit by hand. Every row must FAIL for a\n"

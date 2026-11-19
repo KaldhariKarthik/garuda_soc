@@ -117,10 +117,12 @@ module csr_file
     // sw/riscv-tests/local/csr_readzero.S (lockstep), make core_csr_map.
     // Property: a_readzero_csrs (rtl/core/csr_file_props_a.sv).
     // -------------------------------------------------------------------------
-    wire is_readzero = (csr_addr_i == MSTATUSH) || (csr_addr_i == MCONFIGPTR) ||
-                       (csr_addr_i >= 12'hB03 && csr_addr_i <= 12'hB1F) ||
-                       (csr_addr_i >= 12'hB83 && csr_addr_i <= 12'hB9F) ||
-                       (csr_addr_i >= 12'h323 && csr_addr_i <= 12'h33F);
+    wire is_readzero = at12(csr_addr_i, MSTATUSH) || at12(csr_addr_i, MCONFIGPTR) ||
+                       // 0xB03..0xB1F, 0xB83..0xB9F, 0x323..0x33F: the
+                       // counter pages [11:5] with an index [4:0] of 3 or more
+                       ((csr_addr_i[11:5] == 7'h58) && (csr_addr_i[4:0] >= 5'd3)) ||
+                       ((csr_addr_i[11:5] == 7'h5C) && (csr_addr_i[4:0] >= 5'd3)) ||
+                       ((csr_addr_i[11:5] == 7'h19) && (csr_addr_i[4:0] >= 5'd3));
 
     // ---------------- state ----------------
     // MPP fixed 2'b11 (M-only)
@@ -249,26 +251,26 @@ module csr_file
     //
     // MISA is absent from the write-enable decode below, so writes already
     // have no effect; it only had to stop being reported as illegal.
-    wire is_ro = (csr_addr_i == MVENDORID) || (csr_addr_i == MARCHID)
-        || (csr_addr_i == MIMPID) ||
-                 (csr_addr_i==MHARTID)||(csr_addr_i==MINTSTATUS)||
-                 (csr_addr_i==MINTSTATUS_STD)||(csr_addr_i==MNXTI)||
-                 (csr_addr_i==DSU_OVF)||(csr_addr_i==MIP_CSR)||
+    wire is_ro = at12(csr_addr_i, MVENDORID) || at12(csr_addr_i, MARCHID)
+        || at12(csr_addr_i, MIMPID) ||
+                 at12(csr_addr_i, MHARTID)||at12(csr_addr_i, MINTSTATUS)||
+                 at12(csr_addr_i, MINTSTATUS_STD)||at12(csr_addr_i, MNXTI)||
+                 at12(csr_addr_i, DSU_OVF)||at12(csr_addr_i, MIP_CSR)||
                  // Zicntr shadows are read-only by architecture: writes go to
                  // the machine counters, never through these addresses.
-                 (csr_addr_i==CYCLE)||(csr_addr_i==CYCLEH)||
-                 (csr_addr_i==INSTRET)||(csr_addr_i==INSTRETH)||
+                 at12(csr_addr_i, CYCLE)||at12(csr_addr_i, CYCLEH)||
+                 at12(csr_addr_i, INSTRET)||at12(csr_addr_i, INSTRETH)||
                  // C-16: mconfigptr is read-only by its address (0xC00-0xFFF)
-                 (csr_addr_i==MCONFIGPTR);
+                 at12(csr_addr_i, MCONFIGPTR);
     wire csr_access      = csr_en_i && (csr_op_i != 2'b00);
     wire is_write    = csr_access && (csr_op_i == CSR_RW ||
                                   ((csr_op_i == CSR_RS || csr_op_i == CSR_RC)
-                                      && (csr_wdata_i != 32'd0)));
+                                      && |csr_wdata_i));
     assign illegal_csr_o = csr_access && (!implemented || (is_write && is_ro));
 
     // dsu_ovf read clears overflow (Sec. 13.2)
     assign csr_clear_overflow_o = csr_en_i && commit_i
-        && (csr_addr_i == DSU_OVF) && (csr_op_i != 2'b00);
+        && at12(csr_addr_i, DSU_OVF) && (csr_op_i != 2'b00);
 
     // The next value of a written CSR under RW/RS/RC, in the width of what is
     // stored (HAL URDWIR: no wider intermediate). op 00 never writes (is_write
@@ -333,10 +335,10 @@ module csr_file
     // to trap_ctrl, which applies its own hold.
     wire wr_ok = is_write && !is_ro && implemented && commit_i;
     // one select per written CSR (HAL IFSMCD: no condition shared by a chain)
-    wire wr_mcycle     = wr_ok && (csr_addr_i == MCYCLE);
-    wire wr_mcycleh    = wr_ok && (csr_addr_i == MCYCLEH);
-    wire wr_minstret   = wr_ok && (csr_addr_i == MINSTRET);
-    wire wr_minstreth  = wr_ok && (csr_addr_i == MINSTRETH);
+    wire wr_mcycle     = wr_ok && at12(csr_addr_i, MCYCLE);
+    wire wr_mcycleh    = wr_ok && at12(csr_addr_i, MCYCLEH);
+    wire wr_minstret   = wr_ok && at12(csr_addr_i, MINSTRET);
+    wire wr_minstreth  = wr_ok && at12(csr_addr_i, MINSTRETH);
 
     assign mstatus_mie_o = mstatus_mie;
     // BASE; MODE is implied (CLIC)

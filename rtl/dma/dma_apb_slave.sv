@@ -63,7 +63,7 @@ module dma_apb_slave
     wire chan_rgn = (paddr_i[11:8] == 4'h0) && (ch < 3'd6)
         && (paddr_i[1:0] == 2'b00) &&
                      (reg_ <= 3'd5);
-    wire gstat     = (paddr_i == 12'h100);
+    wire gstat     = at12(paddr_i, 12'h100);
     wire hit       = chan_rgn | gstat;
 
     // A write request is one pclk cycle (the access phase); edge-detecting it

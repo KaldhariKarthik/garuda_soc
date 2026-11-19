@@ -46,7 +46,8 @@ module tb_dma_top;
     wire [31:0] haddr, hwdata, hrdata;
     wire [1:0]  htrans;
     wire        hwrite, hready, hresp;
-    wire [2:0]  hsize, hburst;
+    wire [2:0]  hsize;
+    wire  [2:0]  hburst = 3'b000;  // HBURST left the bus (D-38): the DMA drove SINGLE
 
     reg  [5:0]  req = 0;
     wire [5:0]  ack, comp, err;
@@ -56,7 +57,7 @@ module tb_dma_top;
         .psel_i(psel), .penable_i(penable), .pwrite_i(pwrite), .paddr_i(paddr),
         .pwdata_i(pwdata), .prdata_o(prdata), .pready_o(pready), .pslverr_o(pslverr),
         .haddr_o(haddr), .htrans_o(htrans), .hwrite_o(hwrite), .hsize_o(hsize),
-        .hburst_o(hburst), .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready),
+        .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready),
         .hresp_i(hresp), .dma_req_i(req), .dma_ack_o(ack),
         .dma_complete_o(comp), .dma_error_o(err));
 

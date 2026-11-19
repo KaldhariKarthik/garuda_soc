@@ -64,7 +64,6 @@ module dma_engine
     output reg [HTRANS_W-1:0] htrans_o,
     output reg hwrite_o,
     output reg [HSIZE_W-1:0] hsize_o,
-    output wire [HBURST_W-1:0] hburst_o,
     output reg [WORD_W-1:0] hwdata_o,
     input wire [WORD_W-1:0] hrdata_i,
     input wire hready_i,
@@ -154,7 +153,6 @@ module dma_engine
     // dma_ack stretch
     reg [ACK_W-1:0] ack_q;
 
-    assign hburst_o = 3'b000;  // SINGLE only
     // ---- the beat's state machine (dma_eng_fsm) -----------------------------
     wire idle;
     wire addr_ok;    // RA: the read address goes out

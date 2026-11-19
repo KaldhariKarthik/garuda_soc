@@ -38,7 +38,7 @@ addrmap pwm {
           field { sw = rw; hw = r; reset = 2'b00; } en[1:0];
     } IRQEN @ 0xFE4;
     reg { name = "DMA request control";
-          field { sw = rw; hw = r; reset = 2'b00; desc = "Present in every window; the PWM has no DMA channel"; } req[1:0];
+          field { sw = r; hw = na; reset = 2'b00; desc = "Reads 0, writes ignored: the PWM has no DMA channel (D-39)"; } req[1:0];
     } DMACTL @ 0xFE8;
     reg { name = "Block identity";
           field { sw = r; hw = na; reset = 32'h6A5D_1401; desc = "0x6A5D, block number 20, revision 1"; } value[31:0];

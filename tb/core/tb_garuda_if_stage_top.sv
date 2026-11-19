@@ -35,8 +35,7 @@ interface if_top_if (input bit clk, input bit rst_n);
     logic [31:0] redirect_pc;
     logic [31:0] i_haddr, i_hwdata;
     logic [1:0]  i_htrans;
-    logic [2:0]  i_hsize, i_hburst;
-    logic [3:0]  i_hprot;
+    logic [2:0]  i_hsize;
     logic        i_hwrite;
     logic [31:0] i_hrdata;
     logic        i_hready, i_hresp;
@@ -51,7 +50,7 @@ interface if_top_if (input bit clk, input bit rst_n);
 
     // A1: the fixed I-port pins (Sec. 4.1) survive integration.
     property p_fixed_pins;
-        @(posedge clk) (i_hsize == 3'b010) && (i_hprot == 4'b0010) &&
+        @(posedge clk) (i_hsize == 3'b010) &&
                        (i_hwrite == 1'b0)  && (i_hwdata == 32'b0);
     endproperty
     a_fixed_pins: assert property (p_fixed_pins)
@@ -111,8 +110,6 @@ module tb_top;
         .i_haddr_o     (vif.i_haddr),
         .i_htrans_o    (vif.i_htrans),
         .i_hsize_o     (vif.i_hsize),
-        .i_hburst_o    (vif.i_hburst),
-        .i_hprot_o     (vif.i_hprot),
         .i_hwrite_o    (vif.i_hwrite),
         .i_hwdata_o    (vif.i_hwdata),
         .i_hrdata_i    (vif.i_hrdata),

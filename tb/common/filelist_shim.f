@@ -1,6 +1,9 @@
 // tb_apb_shim: the shared peripheral front end
 -sv
 rtl/common/garuda_apb_shim.sv
+rtl/common/garuda_sync_bit.sv
+rtl/common/garuda_pad_sync.sv
+rtl/common/garuda_apb_dma.sv
 tb/common/apb_checker.v
 tb/common/garuda_apb_bfm.sv
 tb/common/dma_req_checker.sv

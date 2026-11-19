@@ -43,11 +43,10 @@ module rdc1_top (
 );
     wire [31:0] i_haddr, i_hwdata, d_haddr, d_hwdata;
     wire [1:0]  i_htrans, d_htrans;
-    wire [2:0]  i_hsize, i_hburst, d_hsize, d_hburst;
-    wire [3:0]  i_hprot, d_hprot;
+    wire [2:0]  i_hsize, d_hsize;
     wire        i_hwrite, d_hwrite;
     wire [47:0] acc0, acc1, acc2;
-    wire        dsu_ovf, core_sleep, hartreset, ndmreset, halt_req, halt_safe;
+    wire        dsu_ovf, hartreset, ndmreset, halt_req, halt_safe;
     // The core's reset as on the chip (D-36): reset_ctrl's core_rst_sync.
     wire        core_rst_n;
     core_rst_sync u_core_rst_sync (.hclk(clk), .core_clr(~rst_n), .hartreset_req_i(hartreset),
@@ -58,15 +57,15 @@ module rdc1_top (
     garuda_core_top #(.RESET_VECTOR(32'h1000_0000), .CLK_GATE(0)) u_core (
         .hclk(clk), .core_rst_n(core_rst_n),
         .halt_req_i(halt_req), .halt_safe_o(halt_safe),
-        .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize), .i_hburst_o(i_hburst),
-        .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite), .i_hwdata_o(i_hwdata),
+        .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize), 
+        .i_hwrite_o(i_hwrite), .i_hwdata_o(i_hwdata),
         .i_hrdata_i(i_hrdata), .i_hready_i(i_hready), .i_hresp_i(i_hresp),
-        .d_haddr_o(d_haddr), .d_htrans_o(d_htrans), .d_hsize_o(d_hsize), .d_hburst_o(d_hburst),
-        .d_hprot_o(d_hprot), .d_hwrite_o(d_hwrite), .d_hwdata_o(d_hwdata),
+        .d_haddr_o(d_haddr), .d_htrans_o(d_htrans), .d_hsize_o(d_hsize), 
+        .d_hwrite_o(d_hwrite), .d_hwdata_o(d_hwdata),
         .d_hrdata_i(d_hrdata), .d_hready_i(d_hready), .d_hresp_i(d_hresp),
         .clic_irq_valid_i(irq_valid), .clic_irq_id_i(irq_id), .clic_irq_level_i(irq_lvl),
         .mtip_i(mtip), .dbg_acc_0_o(acc0), .dbg_acc_1_o(acc1), .dbg_acc_2_o(acc2),
-        .dsu_ovf_o(dsu_ovf), .core_sleep_o(core_sleep));
+        .dsu_ovf_o(dsu_ovf));
 
     debug_module u_dm (
         .hclk(clk), .dm_rst_n(rst_n),

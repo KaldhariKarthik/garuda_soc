@@ -23,8 +23,6 @@ module dsram_top
     input wire [HTRANS_W-1:0] htrans_i,
     input wire hwrite_i,
     input wire [HSIZE_W-1:0] hsize_i,
-    input wire [HBURST_W-1:0] hburst_i,
-    input wire [HPROT_W-1:0] hprot_i,
     input wire [WORD_W-1:0] hwdata_i,
     input wire hready_i,
     output wire [WORD_W-1:0] hrdata_o,
@@ -37,8 +35,8 @@ module dsram_top
     localparam int unsigned BANK_W = 32'd2;
     localparam int unsigned RD_BANK_W = 32'd2;
 
-    localparam integer ADDR_W  = 32'd14;  // 16,384 words total
-    localparam integer BANK_ADDR_W = 32'd12;  // 4,096 words per bank
+    localparam int unsigned ADDR_W  = 32'd14;  // 16,384 words total
+    localparam int unsigned BANK_ADDR_W = 32'd12;  // 4,096 words per bank
 
     wire ce;
     wire we;
@@ -70,10 +68,13 @@ module dsram_top
     end
 
     genvar b;
+    wire [BANK_ADDR_W-1:0] bank_addr = addr[BANK_ADDR_W-1:0];
     generate for (b = 0; b < 4; b = b + 1) begin : g_bank
+        // this bank is addressed
+        wire bank_ce = ce && (bank == BANK_W'(b));
         sram_wrapper #(.WORDS(MEM_DSRAM_BANK_WORDS),
             .ADDR_W(BANK_ADDR_W)) u_array(
-            .hclk(hclk), .ce(ce && bank == b), .addr(addr[BANK_ADDR_W-1:0]),
+            .hclk(hclk), .ce(bank_ce), .addr(bank_addr),
             .wdata(wdata), .rdata(rdata[b]), .we(we), .be(be));
     end endgenerate
 
@@ -107,6 +108,5 @@ module dsram_top
     endfunction
 `endif
 
-    wire _unused = |{hburst_i, hprot_i};
 
 endmodule

@@ -51,10 +51,10 @@ module clic_apb
 
     wire wr     = psel_i & penable_i & pwrite_i;
     wire is_cfg = (paddr_i[11:8] == 4'h1) && (paddr_i[1:0] == 2'b00)
-        && ({26'd0, paddr_i[7:2]} < NUM_SRC);
-    wire hit = (paddr_i == 12'h000) |(paddr_i == 12'h004) |(paddr_i == 12'h008)
+        && ({1'b0, paddr_i[7:2]} < 7'(NUM_SRC));  // NUM_SRC <= 64
+    wire hit = at12(paddr_i, 12'h000) |at12(paddr_i, 12'h004) |at12(paddr_i, 12'h008)
         |
-                  (paddr_i == 12'h00C) | is_cfg;
+                  at12(paddr_i, 12'h00C) | is_cfg;
     wire [CFG_W-1:0] cfg_n = paddr_i[6:2];
 
     reg [NUM_SRC-1:0]  ie_q;
@@ -70,10 +70,10 @@ module clic_apb
                 lvl_q[k] <= 8'd0;
             end
         end else if (wr) begin
-            if (paddr_i == 12'h004) begin
+            if (at12(paddr_i, 12'h004)) begin
                 ie_q <= pwdata_i[NUM_SRC - 1:0] & IE_MASK[NUM_SRC - 1:0];
             end
-            if (paddr_i == 12'h00C) begin
+            if (at12(paddr_i, 12'h00C)) begin
                 swi_q <= pwdata_i[0];
             end
             if (is_cfg) begin
@@ -84,13 +84,13 @@ module clic_apb
 
     always_comb begin : c_prdata
         prdata_o = 32'd0;
-        if (paddr_i == 12'h000) begin
+        if (at12(paddr_i, 12'h000)) begin
             prdata_o = CLICINFO;
-        end else if (paddr_i == 12'h004) begin
+        end else if (at12(paddr_i, 12'h004)) begin
             prdata_o = ie_q;
-        end else if (paddr_i == 12'h008) begin
+        end else if (at12(paddr_i, 12'h008)) begin
             prdata_o = pending_i;
-        end else if (paddr_i == 12'h00C) begin
+        end else if (at12(paddr_i, 12'h00C)) begin
             prdata_o = {31'd0, swi_q};
         end else if (is_cfg) begin
             prdata_o = {24'd0, lvl_q[cfg_n]};

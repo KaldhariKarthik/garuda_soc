@@ -79,7 +79,7 @@ module garuda_spis_top
     reg ovr_q;
     reg done_q;
 
-    wire rxflush = wr_hit & (paddr_i == A_CTRL) & pwdata_i[1];
+    wire rxflush = wr_hit & at12(paddr_i, A_CTRL) & pwdata_i[1];
 
     // =========================================================================
     // The shift engine
@@ -112,7 +112,7 @@ module garuda_spis_top
     wire         full  = (level == PTR_W'(FIFO_DEPTH));
     wire         empty = (level == '0);
 
-    wire pop  = rd_hit && (paddr_i == A_RXDATA) && !empty;
+    wire pop  = rd_hit && at12(paddr_i, A_RXDATA) && !empty;
     wire push = rx_push && !full;
 
     // F4 (2026-11-17): pointers, data and the control registers each in a
@@ -147,9 +147,9 @@ module garuda_spis_top
         if (!preset_n) begin
             en_q <= 1'b0;
             txdata_q <= 8'd0;
-        end else if (wr_hit && (paddr_i == A_CTRL)) begin
+        end else if (wr_hit && at12(paddr_i, A_CTRL)) begin
             en_q <= pwdata_i[0];
-        end else if (wr_hit && (paddr_i == A_TXDATA)) begin
+        end else if (wr_hit && at12(paddr_i, A_TXDATA)) begin
             txdata_q <= pwdata_i[7:0];
         end
     end
@@ -176,7 +176,7 @@ module garuda_spis_top
         end
     end
 
-    assign tail_w1c    = psel_i & penable_i & pwrite_i & (paddr_i == 12'hFE0);
+    assign tail_w1c    = psel_i & penable_i & pwrite_i & at12(paddr_i, 12'hFE0);
     assign irqstat_clr = tail_w1c ? pwdata_i[2:0] : 3'd0;
 
     // =========================================================================
@@ -191,32 +191,45 @@ module garuda_spis_top
     // Read mux
     // =========================================================================
     wire [WORD_W-1:0] reg_rdata =
-        (paddr_i == A_RXDATA)
+        at12(paddr_i, A_RXDATA)
             ? {24'd0, empty ? 8'd0 : fifo[rptr[ADDR_W - 1:0]]} :
-        (paddr_i == A_TXDATA) ? {24'd0, txdata_q}                          :
-        (paddr_i == A_CTRL)   ? {31'd0, en_q}                              :
-        (paddr_i == A_STATUS) ? {23'd0, level[4:0], done_q, ovr_q,
+        at12(paddr_i, A_TXDATA) ? {24'd0, txdata_q}                          :
+        at12(paddr_i, A_CTRL)   ? {31'd0, en_q}                              :
+        at12(paddr_i, A_STATUS) ? {23'd0, level[4:0], done_q, ovr_q,
                                          cs_active, rxvalid}                :
                                  32'd0;
 
     // the pads to synchronise: {cs_n, mosi, sclk}
     wire [PAD_SYNC_W-1:0] pads = {spis_cs_n_i, spis_mosi_i, spis_sclk_i};
 
+    // the DMA source: a received byte waiting (the SPI slave has no TX DMA)
+    wire [DMACTL_W-1:0] dma_src = {1'b0, rxvalid};
+    wire [WORD_W-1:0] shim_prdata;
+    wire [WORD_W-1:0] dma_rdata;
     garuda_apb_shim #(
-        .N_EVT(3), .SYNC_W(3), .SYNC_RESET(8'h04),  // cs_n idles HIGH
-        .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
-        .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
+        .N_EVT(3),
+        .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
-        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
+        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(shim_prdata),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
         .ip_psel_o(ip_psel), .ip_prdata_i(reg_rdata),
-        .evt_i(evt), .irq_o(irq_o),
-        .rx_avail_i(rxvalid), .tx_space_i(1'b0),
-        .dma_ack_i(dma_ack_i), .dma_req_o(dma_req_o),
-        .pad_async_i(pads),
-        .pad_sync_o(pad_sync));
+        .evt_i(evt), .irq_o(irq_o));
+
+    // DMACTL and the request (D-39: only the blocks with a DMA channel)
+    garuda_apb_dma u_dma (
+        .pclk(pclk), .preset_n(preset_n),
+        .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
+        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .rdata_o(dma_rdata),
+        .src_i(dma_src), .dma_ack_i(dma_ack_i), .dma_req_o(dma_req_o));
+    assign prdata_o = shim_prdata | dma_rdata;
+
+    // pad input synchronisers (F4: out of the shim)
+    // cs_n idles HIGH
+    garuda_pad_sync #(.WIDTH(PAD_SYNC_W), .IDLE(8'h04)) u_sync (
+        .pclk(pclk), .preset_n(preset_n), .pad_i(pads), .sync_o(pad_sync)
+    );
 
 
 endmodule

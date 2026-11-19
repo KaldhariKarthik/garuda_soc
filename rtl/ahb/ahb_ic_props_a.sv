@@ -52,24 +52,24 @@ module ahb_ic_props_a (
     input wire        hreset_n,
     // ---- M0 I-port ----
     input wire [31:0] i_haddr_i,  input wire [1:0] i_htrans_i, input wire i_hwrite_i,
-    input wire [2:0]  i_hsize_i,  input wire [2:0] i_hburst_i, input wire [3:0] i_hprot_i,
+    input wire [2:0]  i_hsize_i,
     input wire [31:0] i_hwdata_i, input wire [31:0] i_hrdata_o, input wire i_hready_o, input wire i_hresp_o,
     // ---- M1 D-port ----
     input wire [31:0] d_haddr_i,  input wire [1:0] d_htrans_i, input wire d_hwrite_i,
-    input wire [2:0]  d_hsize_i,  input wire [2:0] d_hburst_i, input wire [3:0] d_hprot_i,
+    input wire [2:0]  d_hsize_i,
     input wire [31:0] d_hwdata_i, input wire [31:0] d_hrdata_o, input wire d_hready_o, input wire d_hresp_o,
     // ---- M2 SBA ----
     input wire [31:0] s_haddr_i,  input wire [1:0] s_htrans_i, input wire s_hwrite_i,
-    input wire [2:0]  s_hsize_i,  input wire [2:0] s_hburst_i,
+    input wire [2:0]  s_hsize_i,
     input wire [31:0] s_hwdata_i, input wire [31:0] s_hrdata_o, input wire s_hready_o, input wire s_hresp_o,
     // ---- M3 DMA ----
     input wire [31:0] m_haddr_i,  input wire [1:0] m_htrans_i, input wire m_hwrite_i,
-    input wire [2:0]  m_hsize_i,  input wire [2:0] m_hburst_i,
+    input wire [2:0]  m_hsize_i,
     input wire [31:0] m_hwdata_i, input wire [31:0] m_hrdata_o, input wire m_hready_o, input wire m_hresp_o,
     // ---- slave side ----
     input wire        hsel_isram_o, input wire hsel_rom_o, input wire hsel_dsram_o, input wire hsel_bridge_o,
     input wire [31:0] haddr_o,  input wire [1:0] htrans_o, input wire hwrite_o,
-    input wire [2:0]  hsize_o,  input wire [2:0] hburst_o, input wire [3:0] hprot_o,
+    input wire [2:0]  hsize_o,
     input wire [31:0] hwdata_o, input wire hready_o, input wire hmaster_is_sba_o,
     input wire [31:0] hrdata_isram_i,  input wire hreadyout_isram_i,  input wire hresp_isram_i,
     input wire [31:0] hrdata_rom_i,    input wire hreadyout_rom_i,    input wire hresp_rom_i,
@@ -86,7 +86,6 @@ module ahb_ic_props_a (
     input wire [1:0]  def_state       // the default slave's state (coverage evidence)
 );
     localparam [1:0] T_IDLE = 2'b00, T_NONSEQ = 2'b10, T_SEQ = 2'b11;
-    localparam [3:0] HPROT_CONST = 4'b0011;          // [N-5.2] SBA / DMA substitution
     localparam integer S_DEF = 4;
 
     // ---- the four masters as arrays (index = master number = priority) ------
@@ -232,7 +231,7 @@ module ahb_ic_props_a (
         !(past_ok && $past(!hready_o && htrans_o[1])) ||
         ($past(err_first) && htrans_o == T_IDLE) ||
         (haddr_o == $past(haddr_o) && htrans_o == $past(htrans_o) && hwrite_o == $past(hwrite_o) &&
-         hsize_o == $past(hsize_o) && hburst_o == $past(hburst_o)));
+         hsize_o == $past(hsize_o)));
     c_cancel_after_error: cover property (@(posedge hclk) disable iff (!hreset_n)
         past_ok && $past(!hready_o && htrans_o[1] && err_first) && htrans_o == T_IDLE);
     c_wait_preempt: cover property (@(posedge hclk) disable iff (!hreset_n)
@@ -346,10 +345,6 @@ module ahb_ic_props_a (
         acc[2] && hsel_isram_o && hwrite_o);
 
     // =========================================================================
-    // [N-5.2] HPROT: passed through for the core ports, the constant for SBA / DMA
-    // =========================================================================
-    a_hprot_const: assert property (@(posedge hclk) disable iff (!hreset_n)
-        !(|acc) || hprot_o == (acc[0] ? i_hprot_i : acc[1] ? d_hprot_i : HPROT_CONST));
 
     // =========================================================================
     // F22: the first cycle out of reset: no data phase (shared HREADY high), no
@@ -370,20 +365,20 @@ endmodule
 bind ahb_interconnect ahb_ic_props_a u_ahb_props_a (
     .hclk(hclk), .hreset_n(hreset_n),
     .i_haddr_i(i_haddr_i), .i_htrans_i(i_htrans_i), .i_hwrite_i(i_hwrite_i), .i_hsize_i(i_hsize_i),
-    .i_hburst_i(i_hburst_i), .i_hprot_i(i_hprot_i), .i_hwdata_i(i_hwdata_i),
+    .i_hwdata_i(i_hwdata_i),
     .i_hrdata_o(i_hrdata_o), .i_hready_o(i_hready_o), .i_hresp_o(i_hresp_o),
     .d_haddr_i(d_haddr_i), .d_htrans_i(d_htrans_i), .d_hwrite_i(d_hwrite_i), .d_hsize_i(d_hsize_i),
-    .d_hburst_i(d_hburst_i), .d_hprot_i(d_hprot_i), .d_hwdata_i(d_hwdata_i),
+    .d_hwdata_i(d_hwdata_i),
     .d_hrdata_o(d_hrdata_o), .d_hready_o(d_hready_o), .d_hresp_o(d_hresp_o),
     .s_haddr_i(s_haddr_i), .s_htrans_i(s_htrans_i), .s_hwrite_i(s_hwrite_i), .s_hsize_i(s_hsize_i),
-    .s_hburst_i(s_hburst_i), .s_hwdata_i(s_hwdata_i),
+    .s_hwdata_i(s_hwdata_i),
     .s_hrdata_o(s_hrdata_o), .s_hready_o(s_hready_o), .s_hresp_o(s_hresp_o),
     .m_haddr_i(m_haddr_i), .m_htrans_i(m_htrans_i), .m_hwrite_i(m_hwrite_i), .m_hsize_i(m_hsize_i),
-    .m_hburst_i(m_hburst_i), .m_hwdata_i(m_hwdata_i),
+    .m_hwdata_i(m_hwdata_i),
     .m_hrdata_o(m_hrdata_o), .m_hready_o(m_hready_o), .m_hresp_o(m_hresp_o),
     .hsel_isram_o(hsel_isram_o), .hsel_rom_o(hsel_rom_o), .hsel_dsram_o(hsel_dsram_o), .hsel_bridge_o(hsel_bridge_o),
-    .haddr_o(haddr_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o), .hsize_o(hsize_o), .hburst_o(hburst_o),
-    .hprot_o(hprot_o), .hwdata_o(hwdata_o), .hready_o(hready_o), .hmaster_is_sba_o(hmaster_is_sba_o),
+    .haddr_o(haddr_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o), .hsize_o(hsize_o), 
+    .hwdata_o(hwdata_o), .hready_o(hready_o), .hmaster_is_sba_o(hmaster_is_sba_o),
     .hrdata_isram_i(hrdata_isram_i),   .hreadyout_isram_i(hreadyout_isram_i),   .hresp_isram_i(hresp_isram_i),
     .hrdata_rom_i(hrdata_rom_i),       .hreadyout_rom_i(hreadyout_rom_i),       .hresp_rom_i(hresp_rom_i),
     .hrdata_dsram_i(hrdata_dsram_i),   .hreadyout_dsram_i(hreadyout_dsram_i),   .hresp_dsram_i(hresp_dsram_i),

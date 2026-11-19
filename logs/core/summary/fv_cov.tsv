@@ -1,5 +1,5 @@
-# garuda-fv 1 suite=fv_cov block=core date=2026-11-19T15:16:57+05:30 design=202625b450c1664cced99d534ce8a3329ed3dfda rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+# garuda-fv 1 suite=fv_cov block=core date=2026-11-19T23:59:05+05:30 design=b21ef9a530ffca39574ca38d76e10d411f9f3d30 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
 task	mode	result	class	secs	detail	log
-cov_bmc	bmc	BOUNDED(24)	OK	9	[55 asserts, 36 covers in model] 	logs/core/raw/fv_cov/fv_cov_bmc.log
-cov_prove	prove	PROVEN	OK	9	[48 asserts, 36 covers in model] 	logs/core/raw/fv_cov/fv_cov_prove.log
-cov_reach	cover	COVERED	OK	24	[55 asserts, 35 covers in model] 	logs/core/raw/fv_cov/fv_cov_reach.log
+cov_bmc	bmc	BOUNDED(24)	OK	8	[55 asserts, 36 covers in model] 	logs/core/raw/fv_cov/fv_cov_bmc.log
+cov_prove	prove	PROVEN	OK	8	[48 asserts, 36 covers in model] 	logs/core/raw/fv_cov/fv_cov_prove.log
+cov_reach	cover	COVERED	OK	21	[55 asserts, 35 covers in model] 	logs/core/raw/fv_cov/fv_cov_reach.log

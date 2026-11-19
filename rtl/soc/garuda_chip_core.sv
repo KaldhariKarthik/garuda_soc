@@ -18,7 +18,7 @@ module garuda_chip_core
     // RTL is present either way - set this to 0 and the block is not
     // instantiated, window 0 stays masked and the pins sit at safe idle,
     // which is exactly the 28-pin build.
-    parameter integer         WITH_SPI_SLAVE = 32'd1,
+    parameter bit             WITH_SPI_SLAVE = 1'b1,
     // Per-window APB access-rate divider (2 bits each, /1 /2 /4 /8). The escape
     // hatch for a peripheral IP whose INTERFACE timing cannot take an 8 ns
     // access; it does not slow the IP's own flops (AHB2APB [N-7.10]).
@@ -50,10 +50,8 @@ module garuda_chip_core
     output wire spim_cs_flash_n,  // 10
     output wire spim_cs_imu_n,  // 11
     input wire i2c_scl_i,  // 12  open-drain pad: in
-    output wire i2c_scl_o,  // 12                  out
     output wire i2c_scl_oe_o,  // 12                  enable
     input wire i2c_sda_i,  // 13  open-drain pad: in
-    output wire i2c_sda_o,  // 13                  out
     output wire i2c_sda_oe_o,  // 13                  enable
     input wire uart0_rx,  // 14
     output wire uart0_tx,  // 15
@@ -118,7 +116,7 @@ module garuda_chip_core
     wire ndmreset;
     wire hartreset;
 
-    wire [APB_NWIN-1:0] ext_psel;
+    wire [APB_NEXT-1:0] ext_psel;
     wire [PADDR_W-1:0] ext_paddr;
     wire ext_penable;
     wire ext_pwrite;
@@ -132,7 +130,7 @@ module garuda_chip_core
         .ext_rst_n(ext_rst_n), .wdt_rst_req_i(wdt_rst_req),
         .ndm_rst_req_i(ndmreset), .hartreset_req_i(hartreset),
             .boot_sel_i(boot_sel),
-        .psel_i(ext_psel[WIN_RESET_CTRL]), .penable_i(ext_penable),
+        .psel_i(ext_psel[EXT_RESET_CTRL]), .penable_i(ext_penable),
         .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
         .prdata_o(rst_prdata), .pready_o(rst_pready), .pslverr_o(rst_pslverr),
         .div_sel_o(div_sel), .div_act_i(div_act), .div_busy_i(div_busy),
@@ -152,7 +150,7 @@ module garuda_chip_core
 
     garuda_spim_top u_spim (
         .pclk(pclk), .preset_n(preset_n),
-        .psel_i(ext_psel[WIN_SPI_MASTER]), .penable_i(ext_penable),
+        .psel_i(ext_psel[EXT_SPI_MASTER]), .penable_i(ext_penable),
         .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
         .prdata_o(spim_prdata), .pready_o(spim_pready),
             .pslverr_o(spim_pslverr),
@@ -169,19 +167,17 @@ module garuda_chip_core
     wire i2c_pslverr;
     wire i2c_irq;
     wire i2c_dma_req;
-    wire i2c_scl_out;
     wire i2c_scl_oe;
-    wire i2c_sda_out;
     wire i2c_sda_oe;
 
     garuda_i2c_top u_i2c (
         .pclk(pclk), .preset_n(preset_n),
-        .psel_i(ext_psel[WIN_I2C]), .penable_i(ext_penable),
+        .psel_i(ext_psel[EXT_I2C]), .penable_i(ext_penable),
         .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
         .prdata_o(i2c_prdata), .pready_o(i2c_pready), .pslverr_o(i2c_pslverr),
         .irq_o(i2c_irq), .dma_req_o(i2c_dma_req), .dma_ack_i(dma_ack[1]),
-        .i2c_scl_i(i2c_scl_i), .i2c_scl_o(i2c_scl_out), .i2c_scl_oe(i2c_scl_oe),
-        .i2c_sda_i(i2c_sda_i), .i2c_sda_o(i2c_sda_out),
+        .i2c_scl_i(i2c_scl_i), .i2c_scl_oe(i2c_scl_oe),
+        .i2c_sda_i(i2c_sda_i),
             .i2c_sda_oe(i2c_sda_oe));
 
     // =========================================================================
@@ -207,14 +203,16 @@ module garuda_chip_core
     // iteration.
     genvar u;
     generate for (u = 0; u < 3; u = u + 1) begin : g_uart
-        localparam integer APB_WIN = (u == 32'd0) ? WIN_UART_ZERO :
-                                 (u == 1) ? WIN_UART_ONE :
-                                            WIN_UART_TWO;
-        localparam integer DMA_CHAN = (u == 32'd0) ? 2 : (u == 32'd1) ? 3 : 5;
+        // the UART's expansion index (soc_map_pkg)
+        localparam int unsigned EXT_WIN = (u == 32'd0) ? EXT_UART_ZERO :
+                                          (u == 32'd1) ? EXT_UART_ONE :
+                                                         EXT_UART_TWO;
+        localparam int unsigned DMA_CHAN = (u == 32'd0) ? 32'd2 :
+                                           (u == 32'd1) ? 32'd3 : 32'd5;
 
         garuda_uart_top #(.BLOCK_NUM(8'd16 + u[7:0])) u_uart (
             .pclk(pclk), .preset_n(preset_n),
-            .psel_i(ext_psel[APB_WIN]), .penable_i(ext_penable),
+            .psel_i(ext_psel[EXT_WIN]), .penable_i(ext_penable),
             .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
             .prdata_o(uart_prdata[u]), .pready_o(uart_pready[u]),
             .pslverr_o(uart_pslverr[u]),
@@ -238,7 +236,7 @@ module garuda_chip_core
 
     garuda_gpio_top #(.BLOCK_NUM(8'd19), .PAD_NUM(2)) u_gpio (
         .pclk(pclk), .preset_n(preset_n),
-        .psel_i(ext_psel[WIN_GPIO]), .penable_i(ext_penable),
+        .psel_i(ext_psel[EXT_GPIO]), .penable_i(ext_penable),
         .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
         .prdata_o(gpio_prdata), .pready_o(gpio_pready),
             .pslverr_o(gpio_pslverr),
@@ -256,7 +254,7 @@ module garuda_chip_core
 
     garuda_pwm_top #(.BLOCK_NUM(8'd20), .NUM_CHAN(4)) u_pwm (
         .pclk(pclk), .preset_n(preset_n),
-        .psel_i(ext_psel[WIN_PWM]), .penable_i(ext_penable),
+        .psel_i(ext_psel[EXT_PWM]), .penable_i(ext_penable),
         .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
         .prdata_o(pwm_prdata), .pready_o(pwm_pready), .pslverr_o(pwm_pslverr),
         .irq_o(pwm_irq), .pwm_o(pwm_pins));
@@ -275,7 +273,7 @@ module garuda_chip_core
     generate if (WITH_SPI_SLAVE) begin : g_spis
         garuda_spis_top #(.BLOCK_NUM(8'd14), .FIFO_DEPTH(16)) u_spis (
             .pclk(pclk), .preset_n(preset_n),
-            .psel_i(ext_psel[WIN_SPI_SLAVE]), .penable_i(ext_penable),
+            .psel_i(ext_psel[EXT_SPI_SLAVE]), .penable_i(ext_penable),
             .pwrite_i(ext_pwrite), .paddr_i(ext_paddr), .pwdata_i(ext_pwdata),
             .prdata_o(spis_prdata), .pready_o(spis_pready),
             .pslverr_o(spis_pslverr),
@@ -305,53 +303,38 @@ module garuda_chip_core
     // every other external window has no IP yet (masked in the bridge, so an
     // access faults rather than hangs; answers SLVERR if unmasked).
     // =========================================================================
-    wire [APB_NWIN*WORD_W-1:0] ext_prdata;
-    wire [APB_NWIN-1:0] ext_pready;
-    wire [APB_NWIN-1:0] ext_pslverr;
-    genvar w;
-    generate for (w = 0; w < 12; w = w + 1) begin : g_ext
-        if (w == WIN_RESET_CTRL) begin : g_rst
-            assign ext_prdata[32*w +: 32] = rst_prdata;
-            assign ext_pready[w]          = rst_pready;
-            assign ext_pslverr[w]         = rst_pslverr;
-        end else if (w == 0) begin : g_spis_rt
-            assign ext_prdata[32*w +: 32] = spis_prdata;
-            assign ext_pready[w]          = spis_pready;
-            assign ext_pslverr[w]         = spis_pslverr;
-        end else if (w == WIN_SPI_MASTER) begin : g_spim
-            assign ext_prdata[32*w +: 32] = spim_prdata;
-            assign ext_pready[w]          = spim_pready;
-            assign ext_pslverr[w]         = spim_pslverr;
-        end else if (w == WIN_I2C) begin : g_i2c
-            assign ext_prdata[32*w +: 32] = i2c_prdata;
-            assign ext_pready[w]          = i2c_pready;
-            assign ext_pslverr[w]         = i2c_pslverr;
-        end else if (w == WIN_UART_ZERO) begin : g_uart0
-            assign ext_prdata[32*w +: 32] = uart_prdata[0];
-            assign ext_pready[w]          = uart_pready[0];
-            assign ext_pslverr[w]         = uart_pslverr[0];
-        end else if (w == WIN_UART_ONE) begin : g_uart1
-            assign ext_prdata[32*w +: 32] = uart_prdata[1];
-            assign ext_pready[w]          = uart_pready[1];
-            assign ext_pslverr[w]         = uart_pslverr[1];
-        end else if (w == WIN_UART_TWO) begin : g_uart2
-            assign ext_prdata[32*w +: 32] = uart_prdata[2];
-            assign ext_pready[w]          = uart_pready[2];
-            assign ext_pslverr[w]         = uart_pslverr[2];
-        end else if (w == WIN_GPIO) begin : g_gpio
-            assign ext_prdata[32*w +: 32] = gpio_prdata;
-            assign ext_pready[w]          = gpio_pready;
-            assign ext_pslverr[w]         = gpio_pslverr;
-        end else if (w == WIN_PWM) begin : g_pwm
-            assign ext_prdata[32*w +: 32] = pwm_prdata;
-            assign ext_pready[w]          = pwm_pready;
-            assign ext_pslverr[w]         = pwm_pslverr;
-        end else begin : g_none
-            assign ext_prdata[32*w +: 32] = 32'd0;
-            assign ext_pready[w]          = 1'b1;
-            assign ext_pslverr[w]         = 1'b1;
-        end
-    end endgenerate
+    wire [APB_NEXT*WORD_W-1:0] ext_prdata;
+    wire [APB_NEXT-1:0] ext_pready;
+    wire [APB_NEXT-1:0] ext_pslverr;
+    // by expansion index (soc_map_pkg EXT_*): every window outside the SoC top
+    // has its IP (F4: no placeholder return path)
+    assign ext_prdata[32*EXT_RESET_CTRL +: 32] = rst_prdata;
+    assign ext_pready[EXT_RESET_CTRL]          = rst_pready;
+    assign ext_pslverr[EXT_RESET_CTRL]         = rst_pslverr;
+    assign ext_prdata[32*EXT_SPI_SLAVE +: 32]  = spis_prdata;
+    assign ext_pready[EXT_SPI_SLAVE]           = spis_pready;
+    assign ext_pslverr[EXT_SPI_SLAVE]          = spis_pslverr;
+    assign ext_prdata[32*EXT_SPI_MASTER +: 32] = spim_prdata;
+    assign ext_pready[EXT_SPI_MASTER]          = spim_pready;
+    assign ext_pslverr[EXT_SPI_MASTER]         = spim_pslverr;
+    assign ext_prdata[32*EXT_I2C +: 32]        = i2c_prdata;
+    assign ext_pready[EXT_I2C]                 = i2c_pready;
+    assign ext_pslverr[EXT_I2C]                = i2c_pslverr;
+    assign ext_prdata[32*EXT_UART_ZERO +: 32]  = uart_prdata[0];
+    assign ext_pready[EXT_UART_ZERO]           = uart_pready[0];
+    assign ext_pslverr[EXT_UART_ZERO]          = uart_pslverr[0];
+    assign ext_prdata[32*EXT_UART_ONE +: 32]   = uart_prdata[1];
+    assign ext_pready[EXT_UART_ONE]            = uart_pready[1];
+    assign ext_pslverr[EXT_UART_ONE]           = uart_pslverr[1];
+    assign ext_prdata[32*EXT_UART_TWO +: 32]   = uart_prdata[2];
+    assign ext_pready[EXT_UART_TWO]            = uart_pready[2];
+    assign ext_pslverr[EXT_UART_TWO]           = uart_pslverr[2];
+    assign ext_prdata[32*EXT_GPIO +: 32]       = gpio_prdata;
+    assign ext_pready[EXT_GPIO]                = gpio_pready;
+    assign ext_pslverr[EXT_GPIO]               = gpio_pslverr;
+    assign ext_prdata[32*EXT_PWM +: 32]        = pwm_prdata;
+    assign ext_pready[EXT_PWM]                 = pwm_pready;
+    assign ext_pslverr[EXT_PWM]                = pwm_pslverr;
 
     // =========================================================================
     // The SoC
@@ -389,8 +372,7 @@ module garuda_chip_core
         .apb_ext_prdata_i(ext_prdata), .apb_ext_pready_i(ext_pready),
         .apb_ext_pslverr_i(ext_pslverr),
         .periph_irq_i(periph_irq), .spis_irq_i(spis_irq),
-        .dma_req_i(dma_req), .dma_ack_o(dma_ack),
-        .core_sleep_o());
+        .dma_req_i(dma_req), .dma_ack_o(dma_ack));
 
     // =========================================================================
     // Pins
@@ -402,9 +384,7 @@ module garuda_chip_core
     // still at safe idle.
     // I2C is open drain: the block only ever pulls a line low or releases it,
     // so these become pad OE controls with the output tied low at PD.
-    assign i2c_scl_o = i2c_scl_out;
     assign i2c_scl_oe_o = i2c_scl_oe;
-    assign i2c_sda_o = i2c_sda_out;
     assign i2c_sda_oe_o = i2c_sda_oe;
     assign pwm0 = pwm_pins[0];
     assign pwm1 = pwm_pins[1];

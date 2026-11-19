@@ -77,7 +77,7 @@ fail_reason = '^\[FAIL\] '
 [[test]]
 name        = "negctl_default_slave_a12"
 plusargs    = ["+UNIT=default_slave", "+CYCLES=5000"]
-replace     = { "rtl/ahb/ahb_dflt_slave.sv" = "tb/ahb/mut/ahb_default_slave_mut_a12.v" }
+replace     = { "rtl/ahb/ahb_dflt_slave.sv" = "tb/ahb/mut/ahb_dflt_slave_mut_a12.v" }
 fail_reason = '^\[FAIL\] '
 
 # negative control: select moves in a wait state

@@ -16,6 +16,8 @@
 module pwm_sva (
     input wire        pclk,
     input wire        preset_n,
+    input wire        psel_i, penable_i, pwrite_i,
+    input wire [11:0] paddr_i,
     input wire [3:0]  pwm_o,
     input wire        en_q,
     input wire [3:0]  ch_en_q,
@@ -25,7 +27,7 @@ module pwm_sva (
     input wire [15:0] cnt_q,
     input wire [15:0] duty_s0, duty_s1, duty_s2, duty_s3,
     input wire        wrap,
-    input wire        dma_req
+    input wire [31:0] prdata_o
 );
     // packed, not an unpacked array: Verilator 5 cannot take $stable() of an
     // unpacked-array element (TOOL-B2)
@@ -90,9 +92,10 @@ module pwm_sva (
     a_stopped_at_zero: assert property (@(posedge pclk) disable iff (!preset_n)
         (preset_n && !en_q) |=> (cnt_q == 16'd0))
         else $error("[SVA-FAIL] a_stopped_at_zero");
-    // ---- F06: no DMA request, whatever DMACTL holds --------------------------
-    a_no_dma_req: assert property (@(posedge pclk) disable iff (!preset_n) !dma_req)
-        else $error("[SVA-FAIL] a_no_dma_req");
+    // ---- F06 (D-39): no DMA channel; DMACTL reads 0 and keeps no write ------
+    a_dmactl_zero: assert property (@(posedge pclk) disable iff (!preset_n)
+        (psel_i && penable_i && !pwrite_i && paddr_i == 12'hFE8) |-> (prdata_o == 32'd0))
+        else $error("[SVA-FAIL] a_dmactl_zero");
 
     c_wrap:      cover property (@(posedge pclk) preset_n && wrap);
     c_prescale_lowered: cover property (@(posedge pclk) preset_n && en_q && pre_q > prescale_q);
@@ -101,10 +104,11 @@ endmodule
 
 bind garuda_pwm_top pwm_sva u_pwm_sva (
     .pclk(pclk), .preset_n(preset_n), .pwm_o(pwm_o),
+    .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i), .paddr_i(paddr_i),
     .en_q(en_q), .ch_en_q(ch_en_q), .period_q(period_q), .prescale_q(prescale_q), .pre_q(u_core.pre_q),
     .cnt_q(u_core.cnt_q),
     .duty_s0(u_core.duty_s[0]), .duty_s1(u_core.duty_s[1]),
     .duty_s2(u_core.duty_s[2]), .duty_s3(u_core.duty_s[3]),
-    .wrap(wrap), .dma_req(u_shim.dma_req_o));
+    .wrap(wrap), .prdata_o(prdata_o));
 `endif
 `endif

@@ -60,8 +60,6 @@ module iport_master
     output reg [WORD_W-1:0] i_haddr_o,
     output reg [HTRANS_W-1:0] i_htrans_o,
     output wire [HSIZE_W-1:0] i_hsize_o,
-    output wire [HBURST_W-1:0] i_hburst_o,
-    output wire [HPROT_W-1:0] i_hprot_o,
     output wire i_hwrite_o,
     output wire [WORD_W-1:0] i_hwdata_o,
     input wire [WORD_W-1:0] i_hrdata_i,
@@ -90,7 +88,6 @@ module iport_master
 
     // Fixed I-port outputs (Sec.4.1)
     assign i_hsize_o  = 3'b010;
-    assign i_hprot_o  = 4'b0010;
     assign i_hwrite_o = 1'b0;
     assign i_hwdata_o = 32'b00000000000000000000000000000000;
     // -----------------------------------------------------------------------
@@ -109,7 +106,6 @@ module iport_master
     // length including one, so a lone fetch needs no special case, and being
     // a constant it cannot vary across beats or across a wait state.
     // -----------------------------------------------------------------------
-    assign i_hburst_o = 3'b001;  // INCR, always
 
     // -----------------------------------------------------------------------
     // ERRATUM I-1 (found by tb_boot, first full-pipeline run)

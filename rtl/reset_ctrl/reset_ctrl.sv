@@ -119,8 +119,8 @@ module reset_ctrl
     reg [CNT_W-1:0] cnt_q;
     reg          dm_scope_q;
     wire [CNT_W-1:0] cnt_nxt = req_any       ? STRETCH[CNT_W-1:0] :
-                            (cnt_q != '0) ? CNT_W'(cnt_q - 1'b1) : cnt_q;
-    wire stretching   = (cnt_nxt != '0);
+                            |cnt_q ? CNT_W'(cnt_q - 1'b1) : cnt_q;
+    wire stretching   = |cnt_nxt;
     wire dm_scope_nxt = (ext_held || req_dm_scope) ? 1'b1 :
                         !stretching                ? 1'b0 : dm_scope_q;
 

@@ -280,6 +280,9 @@ verdict_of() {
     local x
     x=$(cat "sim/$1/exit_status" 2> /dev/null)
     [ -n "$x" ] && [ "$x" != 0 ] && [ "$v" = PASSED ] && v="EXIT-$x"
+    # TB-A10: a bench that prints its own PASSED after the simulator reported
+    # failed assertions has failed; tb_ahb2apb printed "FAIL=359 PASSED" for weeks
+    [ "${f:-0}" != 0 ] && [ "$v" = PASSED ] && v="FAILED-LINES"
     echo "${c:-0} ${f:-0} $v"
 }
 

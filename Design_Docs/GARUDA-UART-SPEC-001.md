@@ -411,8 +411,9 @@ transmitter to the idle line state, and the wrapper adds nothing: a UART line
 held low is a continuous break condition to whatever is on the other end.
 
 **The receive side needs the same care and did not get it for free.** The
-shim's pad synchronisers reset to `SYNC_RESET`, and this block passes
-`SYNC_RESET = 1` because **an idle serial line is high**. With the shim's
+RX pad synchroniser (`garuda_sync_bit`, out of the shim since F4) resets to
+its `IDLE` parameter, and this block passes `IDLE = 1` because **an idle serial
+line is high**. With the shim's
 original reset-to-zero, the receiver saw a low `rx` for two `pclk` out of reset,
 framed that as a start bit, and left a garbage byte at the head of the RX FIFO —
 after which *every* read returned the previous byte, for ever. It cost an hour

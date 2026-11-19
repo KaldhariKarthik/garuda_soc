@@ -73,22 +73,21 @@ module garuda_soc_top
     output wire tdo_oe_o,
     // ---- APB expansion: windows not implemented inside this level -----------
     // (window 9 = reset_ctrl in garuda_chip_top; 1-4,6-8 = sourced peripherals)
-    output wire [APB_NWIN-1:0] apb_ext_psel_o,
+    // the expansion port: the APB_NEXT windows served outside (soc_map_pkg)
+    output wire [APB_NEXT-1:0] apb_ext_psel_o,
     output wire apb_ext_penable_o,
     output wire apb_ext_pwrite_o,
     output wire [PADDR_W-1:0] apb_ext_paddr_o,
     output wire [WORD_W-1:0] apb_ext_pwdata_o,
-    input wire [APB_NWIN * WORD_W - 1:0] apb_ext_prdata_i,
-    input wire [APB_NWIN-1:0] apb_ext_pready_i,
-    input wire [APB_NWIN-1:0] apb_ext_pslverr_i,
+    input wire [APB_NEXT * WORD_W - 1:0] apb_ext_prdata_i,
+    input wire [APB_NEXT-1:0] apb_ext_pready_i,
+    input wire [APB_NEXT-1:0] apb_ext_pslverr_i,
     // ---- peripheral sideband (deferred IP plugs in here) --------------------
     // CLIC 15..21: spi, i2c, uart0/1/2, gpio, pwm
     input wire [PERIPH_IRQ_W-1:0] periph_irq_i,
     input wire spis_irq_i,  // CLIC 14: spi_slave (block 14)
     input wire [DMA_NCH-1:0] dma_req_i,  // all six channels live
-    output wire [DMA_NCH-1:0] dma_ack_o,
-    // ---- observability ------------------------------------------------------
-    output wire core_sleep_o
+    output wire [DMA_NCH-1:0] dma_ack_o
 );
     timeunit 1ns;
     timeprecision 1ps;
@@ -102,8 +101,6 @@ module garuda_soc_top
     wire [WORD_W-1:0] i_hrdata;
     wire [HTRANS_W-1:0] i_htrans;
     wire [HSIZE_W-1:0] i_hsize;
-    wire [HBURST_W-1:0] i_hburst;
-    wire [HPROT_W-1:0]  i_hprot;
     wire i_hwrite;
     wire i_hready;
     wire i_hresp;
@@ -112,8 +109,6 @@ module garuda_soc_top
     wire [WORD_W-1:0] d_hrdata;
     wire [HTRANS_W-1:0] d_htrans;
     wire [HSIZE_W-1:0] d_hsize;
-    wire [HBURST_W-1:0] d_hburst;
-    wire [HPROT_W-1:0]  d_hprot;
     wire d_hwrite;
     wire d_hready;
     wire d_hresp;
@@ -122,7 +117,6 @@ module garuda_soc_top
     wire [WORD_W-1:0] s_hrdata;
     wire [HTRANS_W-1:0] s_htrans;
     wire [HSIZE_W-1:0] s_hsize;
-    wire [HBURST_W-1:0] s_hburst;
     wire s_hwrite;
     wire s_hready;
     wire s_hresp;
@@ -131,7 +125,6 @@ module garuda_soc_top
     wire [WORD_W-1:0] m_hrdata;
     wire [HTRANS_W-1:0] m_htrans;
     wire [HSIZE_W-1:0] m_hsize;
-    wire [HBURST_W-1:0] m_hburst;
     wire m_hwrite;
     wire m_hready;
     wire m_hresp;
@@ -148,8 +141,6 @@ module garuda_soc_top
     wire hwrite;
     wire hready;
     wire [HSIZE_W-1:0] hsize;
-    wire [HBURST_W-1:0] hburst;
-    wire [HPROT_W-1:0] hprot;
     wire [WORD_W-1:0] hrdata_isram;
     wire [WORD_W-1:0] hrdata_rom;
     wire [WORD_W-1:0] hrdata_dsram;
@@ -188,19 +179,16 @@ module garuda_soc_top
         .hclk(hclk), .core_rst_n(core_rst_n),
         .halt_req_i(dm_halt_req), .halt_safe_o(core_halt_safe),
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize),
-            .i_hburst_o(i_hburst),
-        .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite), .i_hwdata_o(i_hwdata),
+        .i_hwrite_o(i_hwrite), .i_hwdata_o(i_hwdata),
         .i_hrdata_i(i_hrdata), .i_hready_i(i_hready), .i_hresp_i(i_hresp),
         .d_haddr_o(d_haddr), .d_htrans_o(d_htrans), .d_hsize_o(d_hsize),
-            .d_hburst_o(d_hburst),
-        .d_hprot_o(d_hprot), .d_hwrite_o(d_hwrite), .d_hwdata_o(d_hwdata),
+        .d_hwrite_o(d_hwrite), .d_hwdata_o(d_hwdata),
         .d_hrdata_i(d_hrdata), .d_hready_i(d_hready), .d_hresp_i(d_hresp),
         .clic_irq_valid_i(clic_valid), .clic_irq_id_i(clic_id),
             .clic_irq_level_i(clic_level),
         .mtip_i(mtip),
         .dbg_acc_0_o(acc_fx), .dbg_acc_1_o(acc_fy), .dbg_acc_2_o(acc_mag),
-            .dsu_ovf_o(dsu_ovf),
-        .core_sleep_o(core_sleep_o));
+            .dsu_ovf_o(dsu_ovf));
 
     // =========================================================================
     // Block 12: debug (JTAG + DM + SBA master M2)
@@ -216,7 +204,7 @@ module garuda_soc_top
             .dsu_ovf_i(dsu_ovf),
         .haddr_o(s_haddr), .htrans_o(s_htrans), .hwrite_o(s_hwrite),
             .hsize_o(s_hsize),
-        .hburst_o(s_hburst), .hwdata_o(s_hwdata), .hrdata_i(s_hrdata),
+        .hwdata_o(s_hwdata), .hrdata_i(s_hrdata),
         .hready_i(s_hready), .hresp_i(s_hresp));
     assign hartreset_o = dm_hartreset;
 
@@ -246,7 +234,7 @@ module garuda_soc_top
         .pslverr_o(err_dma),
         .haddr_o(m_haddr), .htrans_o(m_htrans), .hwrite_o(m_hwrite),
             .hsize_o(m_hsize),
-        .hburst_o(m_hburst), .hwdata_o(m_hwdata), .hrdata_i(m_hrdata),
+        .hwdata_o(m_hwdata), .hrdata_i(m_hrdata),
             .hready_i(m_hready),
         .hresp_i(m_hresp),
         // Channel 4 is the SPI SLAVE's (ESP-NOW mesh), per ADR-0020 Rev 2 and
@@ -264,25 +252,25 @@ module garuda_soc_top
         .hclk(hclk), .hreset_n(hreset_n),
         .i_haddr_i(i_haddr), .i_htrans_i(i_htrans), .i_hwrite_i(i_hwrite),
             .i_hsize_i(i_hsize),
-        .i_hburst_i(i_hburst), .i_hprot_i(i_hprot), .i_hwdata_i(i_hwdata),
+        .i_hwdata_i(i_hwdata),
         .i_hrdata_o(i_hrdata), .i_hready_o(i_hready), .i_hresp_o(i_hresp),
         .d_haddr_i(d_haddr), .d_htrans_i(d_htrans), .d_hwrite_i(d_hwrite),
             .d_hsize_i(d_hsize),
-        .d_hburst_i(d_hburst), .d_hprot_i(d_hprot), .d_hwdata_i(d_hwdata),
+        .d_hwdata_i(d_hwdata),
         .d_hrdata_o(d_hrdata), .d_hready_o(d_hready), .d_hresp_o(d_hresp),
         .s_haddr_i(s_haddr), .s_htrans_i(s_htrans), .s_hwrite_i(s_hwrite),
             .s_hsize_i(s_hsize),
-        .s_hburst_i(s_hburst), .s_hwdata_i(s_hwdata),
+        .s_hwdata_i(s_hwdata),
         .s_hrdata_o(s_hrdata), .s_hready_o(s_hready), .s_hresp_o(s_hresp),
         .m_haddr_i(m_haddr), .m_htrans_i(m_htrans), .m_hwrite_i(m_hwrite),
             .m_hsize_i(m_hsize),
-        .m_hburst_i(m_hburst), .m_hwdata_i(m_hwdata),
+        .m_hwdata_i(m_hwdata),
         .m_hrdata_o(m_hrdata), .m_hready_o(m_hready), .m_hresp_o(m_hresp),
         .hsel_isram_o(hsel_isram), .hsel_rom_o(hsel_rom),
             .hsel_dsram_o(hsel_dsram),
         .hsel_bridge_o(hsel_bridge),
         .haddr_o(haddr), .htrans_o(htrans), .hwrite_o(hwrite), .hsize_o(hsize),
-        .hburst_o(hburst), .hprot_o(hprot), .hwdata_o(hwdata),
+        .hwdata_o(hwdata),
             .hready_o(hready),
         .hmaster_is_sba_o(hmaster_is_sba),
         .hrdata_isram_i(hrdata_isram), .hreadyout_isram_i(hro_isram),
@@ -300,23 +288,20 @@ module garuda_soc_top
     isram_top u_isram (
         .hclk(hclk), .hreset_n(hreset_n), .hsel_i(hsel_isram), .haddr_i(haddr),
         .htrans_i(htrans), .hwrite_i(hwrite), .hsize_i(hsize),
-            .hburst_i(hburst),
-        .hprot_i(hprot), .hwdata_i(hwdata), .hready_i(hready),
+        .hwdata_i(hwdata), .hready_i(hready),
         .hrdata_o(hrdata_isram), .hreadyout_o(hro_isram), .hresp_o(hresp_isram),
         .ilock_i(ilock_i), .hmaster_is_sba_i(hmaster_is_sba));
 
     bootrom_top #(.INIT_FILE(BROM_INIT_FILE)) u_brom (
         .hclk(hclk), .hreset_n(hreset_n), .hsel_i(hsel_rom), .haddr_i(haddr),
         .htrans_i(htrans), .hwrite_i(hwrite), .hsize_i(hsize),
-            .hburst_i(hburst),
-        .hprot_i(hprot), .hwdata_i(hwdata), .hready_i(hready),
+        .hwdata_i(hwdata), .hready_i(hready),
         .hrdata_o(hrdata_rom), .hreadyout_o(hro_rom), .hresp_o(hresp_rom));
 
     dsram_top u_dsram (
         .hclk(hclk), .hreset_n(hreset_n), .hsel_i(hsel_dsram), .haddr_i(haddr),
         .htrans_i(htrans), .hwrite_i(hwrite), .hsize_i(hsize),
-            .hburst_i(hburst),
-        .hprot_i(hprot), .hwdata_i(hwdata), .hready_i(hready),
+        .hwdata_i(hwdata), .hready_i(hready),
         .hrdata_o(hrdata_dsram), .hreadyout_o(hro_dsram),
             .hresp_o(hresp_dsram));
 
@@ -327,26 +312,23 @@ module garuda_soc_top
     wire [APB_NWIN-1:0] pready_all;
     wire [APB_NWIN-1:0] pslverr_all;
 
-    // internal windows override the expansion port's return path
-    genvar w;
-    generate for (w = 0; w < 12; w = w + 1) begin : g_ret
-        if (w == WIN_DMA) begin : g_dma
-            assign prdata_all[32*w +: 32] = prd_dma;
-            assign pready_all[w] = rdy_dma;
-            assign pslverr_all[w] = err_dma;
-        end else if (w == WIN_CLIC) begin : g_clic
-            assign prdata_all[32*w +: 32] = prd_clic;
-            assign pready_all[w] = rdy_clic;
-            assign pslverr_all[w] = err_clic;
-        end else if (w == WIN_TIMERS) begin : g_tmr
-            assign prdata_all[32*w +: 32] = prd_tmr;
-            assign pready_all[w] = rdy_tmr;
-            assign pslverr_all[w] = err_tmr;
-        end else begin : g_ext
-            assign prdata_all[32*w +: 32] = apb_ext_prdata_i[32*w +: 32];
-            assign pready_all[w]  = apb_ext_pready_i[w];
-            assign pslverr_all[w] = apb_ext_pslverr_i[w];
-        end
+    // the three windows served here, and the expansion port's for the rest
+    // (F4: the port carries only the windows served outside)
+    assign prdata_all[32*WIN_DMA +: 32]    = prd_dma;
+    assign pready_all[WIN_DMA]             = rdy_dma;
+    assign pslverr_all[WIN_DMA]            = err_dma;
+    assign prdata_all[32*WIN_CLIC +: 32]   = prd_clic;
+    assign pready_all[WIN_CLIC]            = rdy_clic;
+    assign pslverr_all[WIN_CLIC]           = err_clic;
+    assign prdata_all[32*WIN_TIMERS +: 32] = prd_tmr;
+    assign pready_all[WIN_TIMERS]          = rdy_tmr;
+    assign pslverr_all[WIN_TIMERS]         = err_tmr;
+    genvar e;
+    generate for (e = 0; e < APB_NEXT; e = e + 1) begin : g_ext
+        assign prdata_all[32*ext_win(e) +: 32] = apb_ext_prdata_i[32*e +: 32];
+        assign pready_all[ext_win(e)]          = apb_ext_pready_i[e];
+        assign pslverr_all[ext_win(e)]         = apb_ext_pslverr_i[e];
+        assign apb_ext_psel_o[e]               = psel[ext_win(e)];
     end endgenerate
 
     ahb2apb_bridge #(.WINDOW_MASK(APB_WINDOW_MASK), .APB_DIV(APB_DIV),
@@ -362,9 +344,6 @@ module garuda_soc_top
         .pwdata_o(pwdata), .prdata_i(prdata_all), .pready_i(pready_all),
             .pslverr_i(pslverr_all));
 
-    assign apb_ext_psel_o    = psel & ~((12'd1 << WIN_DMA) |
-                                        (12'd1 << WIN_CLIC) |
-                                        (12'd1 << WIN_TIMERS));
     assign apb_ext_penable_o = penable;
     assign apb_ext_pwrite_o  = pwrite;
     assign apb_ext_paddr_o   = paddr;
@@ -396,7 +375,7 @@ module garuda_soc_top
     // (BUGS_HISTORY.md INT-3).
     // SWI_ID: default 23 = GARUDA_CLIC_ID_SOFTWARE
     clic_top #(.IE_MASK(CLIC_ID_MASK)) u_clic (
-        .hclk(hclk), .hreset_n(hreset_n), .pclk(pclk), .preset_n(preset_n),
+        .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel[WIN_CLIC]), .penable_i(penable), .pwrite_i(pwrite),
         .paddr_i(paddr), .pwdata_i(pwdata), .prdata_o(prd_clic),
             .pready_o(rdy_clic),

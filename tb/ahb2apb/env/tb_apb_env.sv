@@ -87,7 +87,7 @@ module tb_apb_env;
             dma_top u_dma (.hclk(hclk), .hreset_n(hreset_n), .pclk(pclk), .preset_n(preset_n),
                 .psel_i(psel[g]), .penable_i(penable), .pwrite_i(pwrite), .paddr_i(paddr), .pwdata_i(pwdata),
                 .prdata_o(prdata[32*g +: 32]), .pready_o(pready[g]), .pslverr_o(pslverr[g]),
-                .haddr_o(), .htrans_o(), .hwrite_o(), .hsize_o(), .hburst_o(), .hwdata_o(),
+                .haddr_o(), .htrans_o(), .hwrite_o(), .hsize_o(), .hwdata_o(),
                 .hrdata_i(32'd0), .hready_i(1'b1), .hresp_i(1'b0), .dma_req_i(6'd0),
                 .dma_ack_o(), .dma_complete_o(), .dma_error_o());
         end else

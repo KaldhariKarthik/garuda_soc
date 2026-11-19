@@ -60,28 +60,33 @@ module tb_ahb_env;
     wire [31:0] haddr, hwdata;
     wire [1:0]  htrans;
     wire        hwrite, hready;
-    wire [2:0]  hsize, hburst;
-    wire [3:0]  hprot;
+    wire [2:0]  hsize;
+    // the granted master's HBURST (D-38: the interconnect no longer carries it)
+    wire [2:0]  hburst;
     wire [31:0] rd_isram, rd_rom, rd_dsram, rd_brg;
     wire        ry_isram, ry_rom, ry_dsram, ry_brg, rs_isram, rs_rom, rs_dsram, rs_brg;
+
+    assign hburst = (u_dut.grant == 2'd0) ? i_hburst :
+                    (u_dut.grant == 2'd1) ? d_hburst :
+                    (u_dut.grant == 2'd2) ? s_hburst : m_hburst;
 
     ahb_interconnect u_dut (
         .hclk(hclk), .hreset_n(hreset_n),
         .i_haddr_i(i_haddr), .i_htrans_i(i_htrans), .i_hwrite_i(i_hwrite), .i_hsize_i(i_hsize),
-        .i_hburst_i(i_hburst), .i_hprot_i(i_hprot), .i_hwdata_i(i_hwdata),
+        .i_hwdata_i(i_hwdata),
         .i_hrdata_o(i_hrdata), .i_hready_o(i_hready), .i_hresp_o(i_hresp),
         .d_haddr_i(d_haddr), .d_htrans_i(d_htrans), .d_hwrite_i(d_hwrite), .d_hsize_i(d_hsize),
-        .d_hburst_i(d_hburst), .d_hprot_i(d_hprot), .d_hwdata_i(d_hwdata),
+        .d_hwdata_i(d_hwdata),
         .d_hrdata_o(d_hrdata), .d_hready_o(d_hready), .d_hresp_o(d_hresp),
         .s_haddr_i(s_haddr), .s_htrans_i(s_htrans), .s_hwrite_i(s_hwrite), .s_hsize_i(s_hsize),
-        .s_hburst_i(s_hburst), .s_hwdata_i(s_hwdata),
+        .s_hwdata_i(s_hwdata),
         .s_hrdata_o(s_hrdata), .s_hready_o(s_hready), .s_hresp_o(s_hresp),
         .m_haddr_i(m_haddr), .m_htrans_i(m_htrans), .m_hwrite_i(m_hwrite), .m_hsize_i(m_hsize),
-        .m_hburst_i(m_hburst), .m_hwdata_i(m_hwdata),
+        .m_hwdata_i(m_hwdata),
         .m_hrdata_o(m_hrdata), .m_hready_o(m_hready), .m_hresp_o(m_hresp),
         .hsel_isram_o(sel_isram), .hsel_rom_o(sel_rom), .hsel_dsram_o(sel_dsram), .hsel_bridge_o(sel_brg),
-        .haddr_o(haddr), .htrans_o(htrans), .hwrite_o(hwrite), .hsize_o(hsize), .hburst_o(hburst),
-        .hprot_o(hprot), .hwdata_o(hwdata), .hready_o(hready), .hmaster_is_sba_o(sba_ind),
+        .haddr_o(haddr), .htrans_o(htrans), .hwrite_o(hwrite), .hsize_o(hsize), 
+        .hwdata_o(hwdata), .hready_o(hready), .hmaster_is_sba_o(sba_ind),
         .hrdata_isram_i(rd_isram), .hreadyout_isram_i(ry_isram), .hresp_isram_i(rs_isram),
         .hrdata_rom_i(rd_rom),     .hreadyout_rom_i(ry_rom),     .hresp_rom_i(rs_rom),
         .hrdata_dsram_i(rd_dsram), .hreadyout_dsram_i(ry_dsram), .hresp_dsram_i(rs_dsram),

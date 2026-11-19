@@ -25,12 +25,13 @@ module tb_dma_uvm;
     dma_if        dif (.hclk(hclk), .pclk(pclk));
     garuda_apb_if apb (.pclk(pclk), .preset_n(dif.rst_n));
 
+    assign dif.hburst = 3'b000;  // HBURST left the bus (D-38): the DMA drove SINGLE
     dma_top dut (
         .hclk(hclk), .hreset_n(dif.rst_n), .pclk(pclk), .preset_n(dif.rst_n),
         .psel_i(apb.psel), .penable_i(apb.penable), .pwrite_i(apb.pwrite), .paddr_i(apb.paddr),
         .pwdata_i(apb.pwdata), .prdata_o(apb.prdata), .pready_o(apb.pready), .pslverr_o(apb.pslverr),
         .haddr_o(dif.haddr), .htrans_o(dif.htrans), .hwrite_o(dif.hwrite), .hsize_o(dif.hsize),
-        .hburst_o(dif.hburst), .hwdata_o(dif.hwdata), .hrdata_i(dif.hrdata),
+        .hwdata_o(dif.hwdata), .hrdata_i(dif.hrdata),
         .hready_i(dif.hready), .hresp_i(dif.hresp),
         .dma_req_i(dif.req), .dma_ack_o(dif.ack),
         .dma_complete_o(dif.complete), .dma_error_o(dif.error));

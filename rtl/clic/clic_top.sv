@@ -28,8 +28,6 @@ module clic_top
     // = GARUDA_CLIC_ID_SOFTWARE, checked in clic_sva
     parameter integer SWI_ID  = 32'd23
 )(
-    input wire hclk,
-    input wire hreset_n,
     input wire pclk,
     input wire preset_n,
     // ---- APB slave, window 10 ----------------------------------------------
@@ -74,6 +72,5 @@ module clic_top
         .valid_o(clic_irq_valid_o), .id_o(clic_irq_id_o),
             .level_o(clic_irq_level_o));
 
-    wire _unused = |{hclk, hreset_n};
 
 endmodule

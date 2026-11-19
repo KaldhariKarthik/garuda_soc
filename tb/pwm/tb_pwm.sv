@@ -494,7 +494,7 @@ module tb_pwm;
         check(d == d2 && d[31:20] == 12'd0, "[R-4] STATUS is read-only and [31:20] read 0");
         bfm.wr(12'hFE8, 32'hFFFF_FFFF);
         bfm.read(12'hFE8, d, e);
-        check(d == 32'h3 && !e, "[R-4] DMACTL is present in the tail and holds its two bits, though the block has no DMA channel");
+        check(d == 32'h0 && !e, "[R-4] DMACTL answers OKAY and reads 0: the block has no DMA channel (D-39)");
         bfm.wr(12'hFE8, 32'h0);
         bfm.wr(R_CTRL, 32'h000);
 

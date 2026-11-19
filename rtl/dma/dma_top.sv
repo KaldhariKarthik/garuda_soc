@@ -39,7 +39,6 @@ module dma_top
     output wire [HTRANS_W-1:0] htrans_o,
     output wire hwrite_o,
     output wire [HSIZE_W-1:0] hsize_o,
-    output wire [HBURST_W-1:0] hburst_o,
     output wire [WORD_W-1:0] hwdata_o,
     input wire [WORD_W-1:0] hrdata_i,
     input wire hready_i,
@@ -132,7 +131,7 @@ module dma_top
         .dma_ack_o(dma_ack_o),
         .haddr_o(haddr_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o),
             .hsize_o(hsize_o),
-        .hburst_o(hburst_o), .hwdata_o(hwdata_o), .hrdata_i(hrdata_i),
+        .hwdata_o(hwdata_o), .hrdata_i(hrdata_i),
         .hready_i(hready_i), .hresp_i(hresp_i),
             .inflight_o(inflight));
 

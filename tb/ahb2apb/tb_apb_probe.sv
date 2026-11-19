@@ -25,8 +25,12 @@ module tb_apb_probe;
     // Reset starts X and goes 0 at #0: X->0 is a negedge (TB-22, the reset must
     // arrive as an edge), and clk_div_sva's guard (raw_rst_n === 1) stays quiet
     // while pclk leaves X at time 0 (the SHIM-RSTEDGE artifact, avoided, not waived).
-    reg refclk = 0, ext_rst_n;
-    initial #0 ext_rst_n = 1'b0;
+    // TB-A10 (2026-11-20): it starts at 1 and falls at 0.5 ns, before the first
+    // refclk edge. "X->0 is a negedge" holds only in a 4-state simulator; in the
+    // 2-state one ext_rst_n began at 0 with no edge, nothing was reset, and pclk
+    // and pclk_phase started equal (a_pclk_phase failed on every cycle).
+    reg refclk = 0, ext_rst_n = 1'b1;
+    initial #0.5 ext_rst_n = 1'b0;
     always #1 refclk = ~refclk;
 
     wire aon, hclk, pclk, pclk_phase, div_busy;

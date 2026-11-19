@@ -37,11 +37,12 @@ module tb_core_halt;
     // ---- core ----------------------------------------------------------------
     wire [31:0] i_haddr, i_hwdata, i_hrdata, d_haddr, d_hwdata, d_hrdata;
     wire [1:0]  i_htrans, d_htrans;
-    wire [2:0]  i_hsize, i_hburst, d_hsize, d_hburst;
-    wire [3:0]  i_hprot, d_hprot;
+    wire [2:0]  i_hsize, d_hsize;
+    wire [2:0]  i_hburst = 3'b001;  // HBURST/HPROT left the bus (D-38): the constant this master drove (INCR)
+    wire [2:0]  d_hburst = 3'b000;  // HBURST/HPROT left the bus (D-38): the constant this master drove (SINGLE)
     wire        i_hwrite, i_hready, i_hresp, d_hwrite, d_hready, d_hresp;
     wire [47:0] acc0, acc1, acc2;
-    wire        dsu_ovf, core_sleep;
+    wire        dsu_ovf;
     wire        dm_hartreset;
     wire        halt_req, halt_safe;          // RDC-1 drain handshake (core <-> Debug Module)
     // The core's reset as on the chip (D-36): reset_ctrl's core_rst_sync, cleared by the
@@ -54,14 +55,14 @@ module tb_core_halt;
         .hclk(clk), .core_rst_n(core_rst_n),
         .halt_req_i(halt_req), .halt_safe_o(halt_safe),
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize),
-        .i_hburst_o(i_hburst), .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite),
+        .i_hwrite_o(i_hwrite),
         .i_hwdata_o(i_hwdata), .i_hrdata_i(i_hrdata), .i_hready_i(i_hready), .i_hresp_i(i_hresp),
         .d_haddr_o(d_haddr), .d_htrans_o(d_htrans), .d_hsize_o(d_hsize),
-        .d_hburst_o(d_hburst), .d_hprot_o(d_hprot), .d_hwrite_o(d_hwrite),
+        .d_hwrite_o(d_hwrite),
         .d_hwdata_o(d_hwdata), .d_hrdata_i(d_hrdata), .d_hready_i(d_hready), .d_hresp_i(d_hresp),
         .clic_irq_valid_i(1'b0), .clic_irq_id_i(5'd0), .clic_irq_level_i(8'd0), .mtip_i(1'b0),
         .dbg_acc_0_o(acc0), .dbg_acc_1_o(acc1), .dbg_acc_2_o(acc2),
-        .dsu_ovf_o(dsu_ovf), .core_sleep_o(core_sleep)
+        .dsu_ovf_o(dsu_ovf)
     );
 
     // ---- memory (bus reset only) ---------------------------------------------------

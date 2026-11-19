@@ -2,6 +2,8 @@
 // (zero-waiver F4, 2026-11-16: compiler directives leave the RTL, HAL CDNOTE;
 // only the constants the chip uses are here, HAL USEPAR).
 package dsu_pkg;
+    timeunit 1ns;
+    timeprecision 1ps;
     localparam ACC_FX = 2'b00;
     localparam ACC_FY = 2'b01;
     localparam ACC_MAG = 2'b10;

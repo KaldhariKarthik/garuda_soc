@@ -1,6 +1,4 @@
 // MUTANT A20 (bus plan B1 A9): SBA indication marks the DMA (ISRAM lock bypassed for the wrong master)
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 6: AHB-Lite Interconnect
 // ahb_interconnect.v - block boundary, sub-block wiring, per-master gating
@@ -9,10 +7,13 @@
 //                 Sec. 3.3 (hierarchy), Sec. 5 (ports), Sec. 7.3 (hold rule),
 //                 Sec. 8.2 (read-data return), Sec. 10 (reset)
 //
-// Single shared AHB-Lite layer, 3 masters x 4 slaves + default slave.
+// Single shared AHB-Lite layer, 4 masters x 4 slaves + default slave
+// (AHB-6: this header said 3 masters with the DMA as M2; Rev 4.0 added the
+// SBA).
 //   M0 i_  CPU I-Port   lowest priority, may issue INCR
 //   M1 d_  CPU D-Port   SINGLE only
-//   M2     DMA          highest priority, SINGLE only, no HPROT at its
+//   M2 s_  Debug SBA    SINGLE only, no HPROT at its boundary
+//   M3 m_  DMA          highest priority, SINGLE only, no HPROT at its
 //                       boundary (the DMA spec Sec. 5.7 port list is frozen
 //                       and drops the _i/_o suffix, hence the bare names)
 //
@@ -76,95 +77,92 @@
 // (Was "200/100 MHz" - stale since ADR-0001 set 500 -> 250 -> 125.)
 // =============================================================================
 
-
 module ahb_interconnect
+    import garuda_pkg::*;
     import ahb_pkg::*;
 (
-    input  wire        hclk,
-    input  wire        hreset_n,
-
+    input wire hclk,
+    input wire hreset_n,
     // =====================================================================
     // Master side - the interconnect is an AHB-Lite SLAVE to each of these
     // =====================================================================
     // ---- M0 : CPU I-Port ----
-    input  wire [31:0] i_haddr_i,
-    input  wire [1:0]  i_htrans_i,
-    input  wire        i_hwrite_i,
-    input  wire [2:0]  i_hsize_i,
-    input  wire [2:0]  i_hburst_i,
-    input  wire [3:0]  i_hprot_i,
-    input  wire [31:0] i_hwdata_i,
-    output wire [31:0] i_hrdata_o,
-    output wire        i_hready_o,
-    output wire        i_hresp_o,
-
+    input wire [WORD_W-1:0] i_haddr_i,
+    input wire [HTRANS_W-1:0] i_htrans_i,
+    input wire i_hwrite_i,
+    input wire [HSIZE_W-1:0] i_hsize_i,
+    input wire [WORD_W-1:0] i_hwdata_i,
+    output wire [WORD_W-1:0] i_hrdata_o,
+    output wire i_hready_o,
+    output wire i_hresp_o,
     // ---- M1 : CPU D-Port ----
-    input  wire [31:0] d_haddr_i,
-    input  wire [1:0]  d_htrans_i,
-    input  wire        d_hwrite_i,
-    input  wire [2:0]  d_hsize_i,
-    input  wire [2:0]  d_hburst_i,
-    input  wire [3:0]  d_hprot_i,
-    input  wire [31:0] d_hwdata_i,
-    output wire [31:0] d_hrdata_o,
-    output wire        d_hready_o,
-    output wire        d_hresp_o,
-
+    input wire [WORD_W-1:0] d_haddr_i,
+    input wire [HTRANS_W-1:0] d_htrans_i,
+    input wire d_hwrite_i,
+    input wire [HSIZE_W-1:0] d_hsize_i,
+    input wire [WORD_W-1:0] d_hwdata_i,
+    output wire [WORD_W-1:0] d_hrdata_o,
+    output wire d_hready_o,
+    output wire d_hresp_o,
     // ---- M2 : Debug SBA (Rev 4.0, no HPROT) ----
-    input  wire [31:0] s_haddr_i,
-    input  wire [1:0]  s_htrans_i,
-    input  wire        s_hwrite_i,
-    input  wire [2:0]  s_hsize_i,
-    input  wire [2:0]  s_hburst_i,
-    input  wire [31:0] s_hwdata_i,
-    output wire [31:0] s_hrdata_o,
-    output wire        s_hready_o,
-    output wire        s_hresp_o,
-
+    input wire [WORD_W-1:0] s_haddr_i,
+    input wire [HTRANS_W-1:0] s_htrans_i,
+    input wire s_hwrite_i,
+    input wire [HSIZE_W-1:0] s_hsize_i,
+    input wire [WORD_W-1:0] s_hwdata_i,
+    output wire [WORD_W-1:0] s_hrdata_o,
+    output wire s_hready_o,
+    output wire s_hresp_o,
     // ---- M3 : DMA (no HPROT, Sec. 7.6) ----
-    input  wire [31:0] m_haddr_i,
-    input  wire [1:0]  m_htrans_i,
-    input  wire        m_hwrite_i,
-    input  wire [2:0]  m_hsize_i,
-    input  wire [2:0]  m_hburst_i,
-    input  wire [31:0] m_hwdata_i,
-    output wire [31:0] m_hrdata_o,
-    output wire        m_hready_o,
-    output wire        m_hresp_o,
-
+    input wire [WORD_W-1:0] m_haddr_i,
+    input wire [HTRANS_W-1:0] m_htrans_i,
+    input wire m_hwrite_i,
+    input wire [HSIZE_W-1:0] m_hsize_i,
+    input wire [WORD_W-1:0] m_hwdata_i,
+    output wire [WORD_W-1:0] m_hrdata_o,
+    output wire m_hready_o,
+    output wire m_hresp_o,
     // =====================================================================
     // Slave side - the interconnect is an AHB-Lite MASTER to each of these
     // =====================================================================
-    output wire        hsel_isram_o,
-    output wire        hsel_rom_o,
-    output wire        hsel_dsram_o,
-    output wire        hsel_bridge_o,
-
-    output wire [31:0] haddr_o,
-    output wire [1:0]  htrans_o,
-    output wire        hwrite_o,
-    output wire [2:0]  hsize_o,
-    output wire [2:0]  hburst_o,
-    output wire [3:0]  hprot_o,
-    output wire [31:0] hwdata_o,
-    output wire        hready_o,     // global HREADY to every slave
-    output wire        hmaster_is_sba_o, // to ISRAM only: address phase is M2 (R-7, [N-7.14])
-
-    input  wire [31:0] hrdata_isram_i,   input wire hreadyout_isram_i,  input wire hresp_isram_i,
-    input  wire [31:0] hrdata_rom_i,     input wire hreadyout_rom_i,    input wire hresp_rom_i,
-    input  wire [31:0] hrdata_dsram_i,   input wire hreadyout_dsram_i,  input wire hresp_dsram_i,
-    input  wire [31:0] hrdata_bridge_i,  input wire hreadyout_bridge_i, input wire hresp_bridge_i
+    output wire hsel_isram_o,
+    output wire hsel_rom_o,
+    output wire hsel_dsram_o,
+    output wire hsel_bridge_o,
+    output wire [WORD_W-1:0] haddr_o,
+    output wire [HTRANS_W-1:0] htrans_o,
+    output wire hwrite_o,
+    output wire [HSIZE_W-1:0] hsize_o,
+    output wire [WORD_W-1:0] hwdata_o,
+    output wire hready_o,  // global HREADY to every slave
+    // to ISRAM only: address phase is M2 (R-7, [N-7.14])
+    output wire hmaster_is_sba_o,
+    input wire [WORD_W-1:0] hrdata_isram_i,
+    input wire hreadyout_isram_i,
+    input wire hresp_isram_i,
+    input wire [WORD_W-1:0] hrdata_rom_i,
+    input wire hreadyout_rom_i,
+    input wire hresp_rom_i,
+    input wire [WORD_W-1:0] hrdata_dsram_i,
+    input wire hreadyout_dsram_i,
+    input wire hresp_dsram_i,
+    input wire [WORD_W-1:0] hrdata_bridge_i,
+    input wire hreadyout_bridge_i,
+    input wire hresp_bridge_i
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
     // =====================================================================
     // Arbiter - all interconnect state lives here plus the dph_sel register
     // =====================================================================
-    wire [1:0] grant;
+    wire [AHB_MID_W-1:0] grant;
     wire       seq_break;
     wire       dph_valid;
-    wire [1:0] dph_master;
+    wire [AHB_MID_W-1:0] dph_master;
 
-    wire [AHB_NMASTERS*2-1:0] htrans_bus = {m_htrans_i, s_htrans_i, d_htrans_i, i_htrans_i};
+    wire [AHB_NMASTERS * HTRANS_W - 1:0] htrans_bus
+        = {m_htrans_i, s_htrans_i, d_htrans_i, i_htrans_i};
 
     ahb_arbiter u_arb (
         .hclk       (hclk),
@@ -185,24 +183,24 @@ module ahb_interconnect
         .dph_master_i (dph_master),
         .seq_break_i  (seq_break),
 
-        .i_haddr_i (i_haddr_i), .i_htrans_i(i_htrans_i), .i_hwrite_i(i_hwrite_i),
-        .i_hsize_i (i_hsize_i), .i_hburst_i(i_hburst_i), .i_hprot_i (i_hprot_i),
+        .i_haddr_i(i_haddr_i), .i_htrans_i(i_htrans_i), .i_hwrite_i(i_hwrite_i),
+        .i_hsize_i (i_hsize_i), 
         .i_hwdata_i(i_hwdata_i),
 
-        .d_haddr_i (d_haddr_i), .d_htrans_i(d_htrans_i), .d_hwrite_i(d_hwrite_i),
-        .d_hsize_i (d_hsize_i), .d_hburst_i(d_hburst_i), .d_hprot_i (d_hprot_i),
+        .d_haddr_i(d_haddr_i), .d_htrans_i(d_htrans_i), .d_hwrite_i(d_hwrite_i),
+        .d_hsize_i (d_hsize_i), 
         .d_hwdata_i(d_hwdata_i),
 
-        .s_haddr_i (s_haddr_i), .s_htrans_i(s_htrans_i), .s_hwrite_i(s_hwrite_i),
-        .s_hsize_i (s_hsize_i), .s_hburst_i(s_hburst_i),
+        .s_haddr_i(s_haddr_i), .s_htrans_i(s_htrans_i), .s_hwrite_i(s_hwrite_i),
+        .s_hsize_i (s_hsize_i), 
         .s_hwdata_i(s_hwdata_i),
 
-        .m_haddr_i (m_haddr_i), .m_htrans_i(m_htrans_i), .m_hwrite_i(m_hwrite_i),
-        .m_hsize_i (m_hsize_i), .m_hburst_i(m_hburst_i),
+        .m_haddr_i(m_haddr_i), .m_htrans_i(m_htrans_i), .m_hwrite_i(m_hwrite_i),
+        .m_hsize_i (m_hsize_i), 
         .m_hwdata_i(m_hwdata_i),
 
         .haddr_o (haddr_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o),
-        .hsize_o (hsize_o), .hburst_o(hburst_o), .hprot_o (hprot_o),
+        .hsize_o (hsize_o), 
         .hwdata_o(hwdata_o)
     );
 
@@ -211,8 +209,9 @@ module ahb_interconnect
     // =====================================================================
     wire [AHB_SEL_W-1:0] hsel;
 
+    wire [AHB_RGN_W-1:0] rgn = haddr_o[31:28];  // the region nibble
     ahb_decoder u_dec (
-        .haddr_i (haddr_o),
+        .rgn_i   (rgn),
         .hsel_o  (hsel)
     );
 
@@ -224,17 +223,17 @@ module ahb_interconnect
     // =====================================================================
     // Default slave (Sec. 8.4)
     // =====================================================================
-    wire [31:0] hrdata_df;
     wire        hreadyout_df;
+    wire        bus_req = htrans_o[1];  // a NONSEQ or SEQ on the bus
     wire        hresp_df;
 
+    wire hsel_df = hsel[AHB_S_DEFAULT];
     ahb_dflt_slave u_def (
         .hclk      (hclk),
         .hreset_n  (hreset_n),
-        .hsel_i      (hsel[AHB_S_DEFAULT]),
-        .htrans_i    (htrans_o),
+        .hsel_i      (hsel_df),
+        .req_i       (bus_req),
         .hready_i    (hready_o),
-        .hrdata_o    (hrdata_df),
         .hreadyout_o (hreadyout_df),
         .hresp_o     (hresp_df)
     );
@@ -242,7 +241,7 @@ module ahb_interconnect
     // =====================================================================
     // Return path (Sec. 7.5, Sec. 8.2)
     // =====================================================================
-    wire [31:0] hrdata_shared;
+    wire [WORD_W-1:0] hrdata_shared;
     wire        hresp_shared;
 
     ahb_slave_mux u_smux (
@@ -251,20 +250,22 @@ module ahb_interconnect
         .hsel_i      (hsel),
         .dph_valid_i (dph_valid),
 
-        .hrdata_s0_i(hrdata_isram_i),  .hreadyout_s0_i(hreadyout_isram_i),  .hresp_s0_i(hresp_isram_i),
-        .hrdata_s1_i(hrdata_rom_i),    .hreadyout_s1_i(hreadyout_rom_i),    .hresp_s1_i(hresp_rom_i),
-        .hrdata_s2_i(hrdata_dsram_i),  .hreadyout_s2_i(hreadyout_dsram_i),  .hresp_s2_i(hresp_dsram_i),
-        .hrdata_s3_i(hrdata_bridge_i), .hreadyout_s3_i(hreadyout_bridge_i), .hresp_s3_i(hresp_bridge_i),
-        .hrdata_df_i(hrdata_df),       .hreadyout_df_i(hreadyout_df),       .hresp_df_i(hresp_df),
+        .hrdata_s0_i(hrdata_isram_i), .hreadyout_s0_i(hreadyout_isram_i),
+            .hresp_s0_i(hresp_isram_i),
+        .hrdata_s1_i(hrdata_rom_i), .hreadyout_s1_i(hreadyout_rom_i),
+            .hresp_s1_i(hresp_rom_i),
+        .hrdata_s2_i(hrdata_dsram_i), .hreadyout_s2_i(hreadyout_dsram_i),
+            .hresp_s2_i(hresp_dsram_i),
+        .hrdata_s3_i(hrdata_bridge_i), .hreadyout_s3_i(hreadyout_bridge_i),
+            .hresp_s3_i(hresp_bridge_i),
+        .hreadyout_df_i(hreadyout_df),
+            .hresp_df_i(hresp_df),
 
         .hrdata_o    (hrdata_shared),
         .hresp_o     (hresp_shared),
-        .hready_o    (hready_o),
-        // dph_sel_o is deliberately left unconnected. It exists so that
-        // tb/cov/ can bind to the registered data-phase select and cover
-        // Sec. 12's "data-phase select" and "decode coverage" rows without
-        // any RTL edit - the same pattern dma_channel_fsm.state_o uses.
-        .dph_sel_o   ()
+        .hready_o    (hready_o)
+        // the registered data-phase select is u_smux.dph_sel (coverage and
+        // assertions read it by name; F4: no unconnected port)
     );
 
     // =====================================================================
@@ -282,13 +283,23 @@ module ahb_interconnect
     wire s_dph = dph_valid && (dph_master == AHB_M_SBA  );
     wire m_dph = dph_valid && (dph_master == AHB_M_DMA  );
 
+    // the grant per master, and each master's request (HTRANS[1])
+    wire i_gnt = (grant == AHB_M_IPORT);
+    wire d_gnt = (grant == AHB_M_DPORT);
+    wire s_gnt = (grant == AHB_M_SBA);
+    wire m_gnt = (grant == AHB_M_DMA);
+    wire i_req = i_htrans_i[1];
+    wire d_req = d_htrans_i[1];
+    wire s_req = s_htrans_i[1];
+    wire m_req = m_htrans_i[1];
+
     assign hmaster_is_sba_o = (grant == AHB_M_DMA);
 
     ahb_master_port u_mp_i (
         .hclk          (hclk),
         .hreset_n      (hreset_n),
-        .htrans_i        (i_htrans_i),
-        .granted_i       (grant == AHB_M_IPORT),
+        .req_i           (i_req),
+        .granted_i       (i_gnt),
         .dph_own_i       (i_dph),
         .hready_shared_i (hready_o),
         .hrdata_shared_i (hrdata_shared),
@@ -301,8 +312,8 @@ module ahb_interconnect
     ahb_master_port u_mp_d (
         .hclk          (hclk),
         .hreset_n      (hreset_n),
-        .htrans_i        (d_htrans_i),
-        .granted_i       (grant == AHB_M_DPORT),
+        .req_i           (d_req),
+        .granted_i       (d_gnt),
         .dph_own_i       (d_dph),
         .hready_shared_i (hready_o),
         .hrdata_shared_i (hrdata_shared),
@@ -315,8 +326,8 @@ module ahb_interconnect
     ahb_master_port u_mp_s (
         .hclk          (hclk),
         .hreset_n      (hreset_n),
-        .htrans_i        (s_htrans_i),
-        .granted_i       (grant == AHB_M_SBA),
+        .req_i           (s_req),
+        .granted_i       (s_gnt),
         .dph_own_i       (s_dph),
         .hready_shared_i (hready_o),
         .hrdata_shared_i (hrdata_shared),
@@ -329,8 +340,8 @@ module ahb_interconnect
     ahb_master_port u_mp_m (
         .hclk          (hclk),
         .hreset_n      (hreset_n),
-        .htrans_i        (m_htrans_i),
-        .granted_i       (grant == AHB_M_DMA),
+        .req_i           (m_req),
+        .granted_i       (m_gnt),
         .dph_own_i       (m_dph),
         .hready_shared_i (hready_o),
         .hrdata_shared_i (hrdata_shared),
@@ -341,5 +352,3 @@ module ahb_interconnect
     );
 
 endmodule
-
-`default_nettype wire

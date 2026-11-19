@@ -42,8 +42,7 @@ interface iport_if (input bit clk, input bit rst_n);
     logic        fifo_rd_en;
     logic [31:0] i_haddr, i_hwdata;
     logic [1:0]  i_htrans;
-    logic [2:0]  i_hsize, i_hburst;
-    logic [3:0]  i_hprot;
+    logic [2:0]  i_hsize;
     logic        i_hwrite;
     logic [31:0] i_hrdata;
     logic        i_hready, i_hresp;
@@ -57,22 +56,13 @@ interface iport_if (input bit clk, input bit rst_n);
     // A1: the fixed I-port pins (Sec. 4.1) -- word size, opcode-fetch
     //     protection, never writes.
     property p_fixed_pins;
-        @(posedge clk) (i_hsize == 3'b010) && (i_hprot == 4'b0010) &&
+        @(posedge clk) (i_hsize == 3'b010) &&
                        (i_hwrite == 1'b0)  && (i_hwdata == 32'b0);
     endproperty
     a_fixed_pins: assert property (p_fixed_pins)
-        else $error("[SVA-FAIL] a fixed I-port pin (HSIZE/HPROT/HWRITE/HWDATA) moved");
+        else $error("[SVA-FAIL] a fixed I-port pin (HSIZE/HWRITE/HWDATA) moved");
 
-    // A2: HBURST is INCR for the whole burst, the NONSEQ first beat included.
-    //     AMBA requires HBURST constant across a burst; this property used to
-    //     demand SINGLE on every beat that was not SEQ, which is the behaviour
-    //     rtl ERRATUM BUS-A removed (BUGS_HISTORY.md ELEM-3). HBURST during IDLE is a
-    //     don't-care on the bus and the RTL holds INCR there too.
-    property p_hburst_is_incr;
-        @(posedge clk) (i_hburst == 3'b001);
-    endproperty
-    a_hburst: assert property (p_hburst_is_incr)
-        else $error("[SVA-FAIL] HBURST is not INCR");
+    // (A2, HBURST INCR: HBURST and HPROT left the bus in F4, D-38)
 
     // A3: no new address phase is presented in a redirect cycle -- the
     //     master retracts to IDLE (Sec. 6.5).
@@ -131,8 +121,6 @@ module tb_top;
         .i_haddr_o        (vif.i_haddr),
         .i_htrans_o       (vif.i_htrans),
         .i_hsize_o        (vif.i_hsize),
-        .i_hburst_o       (vif.i_hburst),
-        .i_hprot_o        (vif.i_hprot),
         .i_hwrite_o       (vif.i_hwrite),
         .i_hwdata_o       (vif.i_hwdata),
         .i_hrdata_i       (vif.i_hrdata),

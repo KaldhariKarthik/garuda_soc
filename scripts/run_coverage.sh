@@ -55,7 +55,7 @@ rm -rf "$COVDIR"; mkdir -p "$COVDIR/reports"
 # 1. elaborate once
 # ---------------------------------------------------------------------------
 echo "elaborating (irun, coverage instrumented)..."
-irun -f rtl/common/filelist_pkg.f -f tb/soc/filelist_boot_cov.f -top tb_boot \
+irun -ncerror CUVDSI -f rtl/common/filelist_pkg.f -f tb/soc/filelist_boot_cov.f -top tb_boot \
      -coverage all -cov_cgsample -covoverwrite \
      -covworkdir "$COVDIR/cov_work" -nclibdirname "$COVDIR/INCA_libs" \
      -snapshot gcov -elaborate -l "$COVDIR/elab.log" > /dev/null 2>&1
@@ -127,7 +127,7 @@ if [ $# -eq 0 ]; then
     echo; echo "collecting unit-level coverage..."
     python3 tools/gen/DSU_gen.py --count "${DSU_TESTS:-600}" --seed "${DSU_SEED:-1}" \
             --outdir "$COVDIR/dsu" > /dev/null 2>&1
-    irun -64bit -f rtl/common/filelist_pkg.f -f tb/dsu/filelist_dsu_top.f -top tb_dsu_top \
+    irun -64bit -ncerror CUVDSI -f rtl/common/filelist_pkg.f -f tb/dsu/filelist_dsu_top.f -top tb_dsu_top \
          -coverage all -cov_cgsample -covoverwrite \
          -covworkdir "$COVDIR/cov_work" -covtest dsu_unit \
          -nclibdirname "$COVDIR/unit_libs" -l "$COVDIR/dsu_unit.log" \
@@ -142,7 +142,7 @@ if [ $# -eq 0 ]; then
 
     # the six constrained-random block TBs (top module is tb_top)
     for u in decode_control imm_gen reg_file branch_predict hazard_fwd_unit id_stage; do
-        irun -64bit -f rtl/common/filelist_pkg.f -f "tb/core/filelist_$u.f" -top tb_top \
+        irun -64bit -ncerror CUVDSI -f rtl/common/filelist_pkg.f -f "tb/core/filelist_$u.f" -top tb_top \
              -coverage all -cov_cgsample -covoverwrite \
              -covworkdir "$COVDIR/cov_work" -covtest "unit_$u" \
              -nclibdirname "$COVDIR/unit_libs" -l "$COVDIR/unit_$u.log" > /dev/null 2>&1

@@ -1,6 +1,4 @@
 // MUTANT A07 (bus plan B1 A9): decode: DSRAM decoded at nibble 3
-`timescale 1ns/1ps
-`default_nettype none
 // =============================================================================
 // GARUDA SoC - Block 6: AHB-Lite Interconnect
 // ahb_decoder.v - combinational address decode -> one-hot slave select
@@ -23,31 +21,33 @@
 // HREADY itself, and some slaves use HSEL with HTRANS=IDLE to pre-charge.
 //
 // NOT DECODED HERE: whether the address is inside the slave's physical size.
-// Sec. 6 is explicit that "addresses inside a region but beyond a slave's
-// physical size are the slave's responsibility to flag; the interconnect only
-// routes by region." A 64 KB ISRAM sits in a 256 MB region; the ISRAM raises
-// the error for the other 255.9 MB, not this block.
+// The interconnect only routes by region. Inside a region, an address past the
+// memory's size aliases down: the memories ignore the high bits, by design
+// (GARUDA-MEM-SPEC-001 [N-7.2]; checked by sw/chip/t_chip_integ.c step 7). Only
+// an address outside the four regions gets an ERROR, from the default slave.
 // =============================================================================
 
-
 module ahb_decoder
+    import garuda_pkg::*;
     import ahb_pkg::*;
 (
-    input  wire [31:0]            haddr_i,
-    output reg  [AHB_SEL_W-1:0]  hsel_o     // one-hot, bit 4 = default slave
+    // HADDR[31:28]: the decoder needs nothing else (F4: no unused port bits)
+    input wire [AHB_RGN_W-1:0] rgn_i,
+    // one-hot, bit 4 = default slave
+    output reg [AHB_SEL_W - 1:0] hsel_o
 );
+    timeunit 1ns;
+    timeprecision 1ps;
 
-    always @(*) begin
-        hsel_o = {AHB_SEL_W{1'b0}};
-        case (haddr_i[31:28])
-            AHB_RGN_ISRAM : hsel_o[AHB_S_ISRAM ] = 1'b1;
-            AHB_RGN_ROM   : hsel_o[AHB_S_ROM   ] = 1'b1;
-            4'h3           : hsel_o[AHB_S_DSRAM ] = 1'b1;
+    always_comb begin : c_hsel
+        hsel_o = {AHB_SEL_W {1'b0}};
+        case (rgn_i)
+            AHB_RGN_ISRAM: hsel_o[AHB_S_ISRAM] = 1'b1;
+            AHB_RGN_ROM: hsel_o[AHB_S_ROM] = 1'b1;
+            4'h3: hsel_o[AHB_S_DSRAM] = 1'b1;
             AHB_RGN_BRIDGE: hsel_o[AHB_S_BRIDGE] = 1'b1;
-            default        : hsel_o[AHB_S_DEFAULT] = 1'b1;
+            default: hsel_o[AHB_S_DEFAULT] = 1'b1;
         endcase
     end
 
 endmodule
-
-`default_nettype wire

@@ -51,10 +51,8 @@ module garuda_i2c_top
     input wire dma_ack_i,
     // ---- pins (open drain) --------------------------------------------------
     input wire i2c_scl_i,
-    output wire i2c_scl_o,
     output wire i2c_scl_oe,
     input wire i2c_sda_i,
-    output wire i2c_sda_o,
     output wire i2c_sda_oe
 );
     timeunit 1ns;
@@ -108,7 +106,7 @@ module garuda_i2c_top
     // returned, and the next CTRL.EN = 1 sent the stale START + byte out on the
     // bus unasked. A CMD written while disabled was kept the same way.
     wire       core_held;
-    wire       cmd_write = wr_hit & (paddr_i == A_CMD);
+    wire       cmd_write = wr_hit & at12(paddr_i, A_CMD);
     // I2C-7: a CMD with none of RD, WR and STO has nothing to put on the bus.
     // The vendored byte controller starts only on one of those three, so such a
     // CMD used to set TIP and nothing ever cleared it. It is refused
@@ -154,12 +152,12 @@ module garuda_i2c_top
     // GLTASR, BUGS_HISTORY.md I2C-5). The flop is loaded from the NEXT values
     // of en_q and abort_q, so it changes in the same cycle the old expression
     // did.
-    wire abort_req = (wr_hit && (paddr_i == A_CTRL) && pwdata_i[1])
+    wire abort_req = (wr_hit && at12(paddr_i, A_CTRL) && pwdata_i[1])
                      || to_pulse;
     reg  [ABORTB_W-1:0] abort_q;
     wire [ABORT_W-1:0] abort_d   = abort_req  ? 3'd4            :
                            (|abort_q) ? abort_q - 3'd1  : 3'd0;
-    wire       en_d      = (wr_hit && (paddr_i == A_CTRL)) ? pwdata_i[0]
+    wire       en_d      = (wr_hit && at12(paddr_i, A_CTRL)) ? pwdata_i[0]
                                                            : en_q;
     reg        i2c_rst_q;
     wire       i2c_rst_n = i2c_rst_q;
@@ -178,7 +176,7 @@ module garuda_i2c_top
     // slave stretching SCL freezes the vendored divider, not this counter.
     // =========================================================================
     reg  [HALF_W-1:0] tocnt_q;
-    assign to_pulse = tip_q & (timeout_q != 16'd0) & (tocnt_q == 16'd1);
+    assign to_pulse = tip_q & |timeout_q & (tocnt_q == 16'd1);
 
     always_ff @(posedge pclk or negedge preset_n) begin : p_tocnt
         if (!preset_n) begin
@@ -187,7 +185,7 @@ module garuda_i2c_top
         end else begin
             if (!tip_q) begin
                 tocnt_q <= timeout_q;
-            end else if (tocnt_q != 16'd0) begin
+            end else if (|tocnt_q) begin
                 tocnt_q <= tocnt_q - 16'd1;
             end
             abort_q <= abort_d;
@@ -199,12 +197,12 @@ module garuda_i2c_top
     // =========================================================================
     // F4 (2026-11-17): one process per register (HAL MULNBA); each priority
     // is the order the single process had
-    wire wr_presc = wr_hit && (paddr_i == A_PRESCALE) && !tip_q;
-    wire wr_ctrl  = wr_hit && (paddr_i == A_CTRL);
-    wire wr_tx    = wr_hit && (paddr_i == A_TXDATA);
-    wire wr_to    = wr_hit && (paddr_i == A_TIMEOUT) && !tip_q;
+    wire wr_presc = wr_hit && at12(paddr_i, A_PRESCALE) && !tip_q;
+    wire wr_ctrl  = wr_hit && at12(paddr_i, A_CTRL);
+    wire wr_tx    = wr_hit && at12(paddr_i, A_TXDATA);
+    wire wr_to    = wr_hit && at12(paddr_i, A_TIMEOUT) && !tip_q;
     wire rd_rx    = ip_psel && penable_i && !pwrite_i
-                    && (paddr_i == A_RXDATA);
+                    && at12(paddr_i, A_RXDATA);
     // a command ends: acknowledged (and no new one issued), or lost
     wire cmd_ack  = !cmd_ok && core_ack;
     wire cmd_drop = !cmd_ok && !core_ack && (core_al || core_held);
@@ -308,7 +306,7 @@ module garuda_i2c_top
         end
     end
 
-    assign tail_w1c = psel_i && penable_i && pwrite_i && (paddr_i == 12'hFE0);
+    assign tail_w1c = psel_i && penable_i && pwrite_i && at12(paddr_i, 12'hFE0);
     // the IRQSTAT W1C of the two sticky events this wrapper keeps
     assign clr_al   = tail_w1c && pwdata_i[1];
     assign clr_to   = tail_w1c && pwdata_i[2];
@@ -346,33 +344,48 @@ module garuda_i2c_top
     // Read mux for our own registers
     // =========================================================================
     wire [WORD_W-1:0] reg_rdata =
-        (paddr_i == A_PRESCALE) ? {16'd0, prescale_q}                       :
-        (paddr_i == A_CTRL)     ? {31'd0, en_q}                             :
-        (paddr_i == A_TXDATA)   ? {24'd0, txdata_q}                         :
-        (paddr_i == A_RXDATA)   ? {24'd0, rxdata_q}                         :
-        (paddr_i == A_STATUS)   ? {26'd0, rxvalid_q, to_q, rxnack_q,
+        at12(paddr_i, A_PRESCALE) ? {16'd0, prescale_q}                       :
+        at12(paddr_i, A_CTRL)     ? {31'd0, en_q}                             :
+        at12(paddr_i, A_TXDATA)   ? {24'd0, txdata_q}                         :
+        at12(paddr_i, A_RXDATA)   ? {24'd0, rxdata_q}                         :
+        at12(paddr_i, A_STATUS)   ? {26'd0, rxvalid_q, to_q, rxnack_q,
                                            al_q, core_busy, tip_q}           :
-        (paddr_i == A_TIMEOUT)  ? {16'd0, timeout_q}                        :
+        at12(paddr_i, A_TIMEOUT)  ? {16'd0, timeout_q}                        :
                                    32'd0;
 
     // A CMD write while a transfer is running is a firmware error, not a queued
     // command: fault it rather than silently drop it ([N-6.2b]).
     wire cmd_busy_err = (cmd_write & tip_q) | cmd_noop;
 
+    // the DMA sources: a received byte, room for a byte (EN and not TIP)
+    wire i2c_tx = en_q && !tip_q;
+    wire [WORD_W-1:0] shim_prdata;
+    wire [WORD_W-1:0] dma_rdata;
     garuda_apb_shim #(
-        .N_EVT(4), .SYNC_W(2), .SYNC_RESET(8'h03), .IP_LIMIT(IP_LIMIT),
+        .N_EVT(4), .IP_LIMIT(IP_LIMIT),
             .IP_MAP(IP_MAP), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
-        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
+        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(shim_prdata),
         .pready_o(pready_o), .pslverr_o(shim_slverr),
         .ip_psel_o(ip_psel), .ip_prdata_i(reg_rdata),
-        .evt_i(evt), .irq_o(irq_o),
-        .rx_avail_i(rxvalid_q),
-        .tx_space_i(en_q & ~tip_q),
-        .dma_ack_i(dma_ack_i), .dma_req_o(dma_req_o),
-        .pad_async_i({i2c_sda_i, i2c_scl_i}), .pad_sync_o(pad_sync));
+        .evt_i(evt), .irq_o(irq_o));
+
+    // DMACTL and the request (D-39: only the blocks with a DMA channel)
+    garuda_apb_dma u_dma (
+        .pclk(pclk), .preset_n(preset_n),
+        .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
+        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .rdata_o(dma_rdata),
+        .src_i({i2c_tx, rxvalid_q}), .dma_ack_i(dma_ack_i), .dma_req_o(dma_req_o));
+    assign prdata_o = shim_prdata | dma_rdata;
+
+    // pad input synchronisers (F4: out of the shim)
+    // both lines idle HIGH
+    wire [PAD_SYNC_W-1:0] pads = {i2c_sda_i, i2c_scl_i};
+    garuda_pad_sync #(.WIDTH(PAD_SYNC_W), .IDLE(8'h03)) u_sync (
+        .pclk(pclk), .preset_n(preset_n), .pad_i(pads), .sync_o(pad_sync)
+    );
 
     assign pslverr_o = shim_slverr | cmd_busy_err;
 
@@ -395,8 +408,8 @@ module garuda_i2c_top
     // with *_oen; _o stays 0 here so this block can only pull a line low or
     // release it, never drive it high against another master.
     // =========================================================================
-    assign i2c_scl_o  = 1'b0;
-    assign i2c_sda_o  = 1'b0;
+    // open drain: the pads drive only 0, when enabled (F4: the wrapper has no
+    // data outputs, they were constant 0)
     assign i2c_scl_oe = ~scl_oen;
     assign i2c_sda_oe = ~sda_oen;
 

@@ -116,14 +116,14 @@ module tb_boot;
     // ---------------- DUT wiring ----------------
     wire [31:0] i_haddr, i_hwdata, i_hrdata;
     wire [1:0]  i_htrans;
-    wire [2:0]  i_hsize, i_hburst;
-    wire [3:0]  i_hprot;
+    wire [2:0]  i_hsize;
+    wire [2:0]  i_hburst = 3'b001;  // HBURST/HPROT left the bus (D-38): the constant this master drove (INCR)
     wire        i_hwrite, i_hready, i_hresp;
 
     wire [31:0] d_haddr, d_hwdata, d_hrdata;
     wire [1:0]  d_htrans;
-    wire [2:0]  d_hsize, d_hburst;
-    wire [3:0]  d_hprot;
+    wire [2:0]  d_hsize;
+    wire [2:0]  d_hburst = 3'b000;  // HBURST/HPROT left the bus (D-38): the constant this master drove (SINGLE)
     wire        d_hwrite, d_hready, d_hresp;
 
     wire [47:0] dbg_acc0, dbg_acc1, dbg_acc2;
@@ -197,7 +197,7 @@ module tb_boot;
     // takes the timer trap (cause 0x8000_0007). Tied low otherwise.
     integer mtip_at;
     reg     mtip;
-    wire    core_sleep;
+    wire    core_sleep = dut.quiescent;  // the clock-gate condition (no port since F4)
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) mtip <= 1'b0;
         else if (dut.tr_enter && tr_cause_w == 32'h8000_0007) mtip <= 1'b0;
@@ -269,11 +269,11 @@ module tb_boot;
         .hclk(clk), .core_rst_n(rst_n),
         .halt_req_i(fstop), .halt_safe_o(),            // no debugger; +FSTOP_ON_WFI drives the fetch stop (RDC-1 ports)
         .i_haddr_o(i_haddr), .i_htrans_o(i_htrans), .i_hsize_o(i_hsize),
-        .i_hburst_o(i_hburst), .i_hprot_o(i_hprot), .i_hwrite_o(i_hwrite),
+        .i_hwrite_o(i_hwrite),
         .i_hwdata_o(i_hwdata), .i_hrdata_i(i_hrdata), .i_hready_i(i_hready),
         .i_hresp_i(i_hresp),
         .d_haddr_o(d_haddr), .d_htrans_o(d_htrans), .d_hsize_o(d_hsize),
-        .d_hburst_o(d_hburst), .d_hprot_o(d_hprot), .d_hwrite_o(d_hwrite),
+        .d_hwrite_o(d_hwrite),
         .d_hwdata_o(d_hwdata), .d_hrdata_i(d_hrdata), .d_hready_i(d_hready),
         .d_hresp_i(d_hresp),
         .clic_irq_valid_i(irq_req | dev_irq_req),
@@ -281,7 +281,7 @@ module tb_boot;
         .clic_irq_level_i(dev_irq_req ? dev_irq_lvl : irq_lvl_eff),
         .mtip_i(mtip | dev_mtip),
         .dbg_acc_0_o(dbg_acc0), .dbg_acc_1_o(dbg_acc1), .dbg_acc_2_o(dbg_acc2),
-        .dsu_ovf_o(), .core_sleep_o(core_sleep)
+        .dsu_ovf_o()
     );
 
     ahb_mem_slave #(

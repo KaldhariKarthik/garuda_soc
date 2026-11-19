@@ -121,7 +121,7 @@ package pwm_reg_pkg;
 
         virtual function void build();
             this.req = new("req");
-            this.req.configure(this, 2, 0, "RW", 0, 'h0, 1, 1, 0);
+            this.req.configure(this, 2, 0, "RO", 0, 'h0, 1, 1, 0);
         endfunction : build
     endclass : pwm__DMACTL
 

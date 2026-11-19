@@ -126,7 +126,7 @@ meaningful** and the rest read 0 ([N-6.2]).
 | 0x28 | `PADCFG0` | RW | 0 | pad drive/pull — **no effect** ([N-13.1]) |
 | 0xFE0 | `IRQSTAT` | W1C | 0 | `[0]` a GPIO interrupt occurred |
 | 0xFE4 | `IRQEN` | RW | 0 | mask; `irq_o = IRQSTAT[0] & IRQEN[0]` |
-| 0xFE8 | `DMACTL` | RW | 0 | present for uniformity; **no DMA channel** ([N-13.2]) |
+| 0xFE8 | `DMACTL` | RO | 0 | reads 0, writes ignored: **no DMA channel** ([N-13.2]) |
 | 0xFEC | `ID` | RO | — | `{16'h6A5D, 8'd19, rev}` |
 
 **[N-6.1]** `GPIOEN` gates the input path. A pin used only as an output does
@@ -309,8 +309,9 @@ a_irq_held: assert property (@(posedge pclk_i) disable iff (!preset_n_i)
 **no effect**: GARUDA has no pad cells in RTL, so there is nothing to configure.
 When the pad ring lands, these bits become real and this note must go.
 
-**[N-13.2]** `DMACTL` exists so every peripheral window has the same tail, but
-GPIO owns no DMA channel in the Rev 4.0 map. Writing it does nothing.
+**[N-13.2]** GPIO owns no DMA channel in the Rev 4.0 map, so its window has no
+DMA part (D-39, 2026-11-19): `DMACTL` answers OKAY, reads 0 and ignores writes.
+Until then it was a read/write register with no function.
 
 ---
 

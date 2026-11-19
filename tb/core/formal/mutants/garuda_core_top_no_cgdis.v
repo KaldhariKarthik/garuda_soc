@@ -59,8 +59,6 @@ module garuda_core_top
     output wire [WORD_W-1:0] i_haddr_o,
     output wire [HTRANS_W-1:0] i_htrans_o,
     output wire [HSIZE_W-1:0] i_hsize_o,
-    output wire [HBURST_W-1:0] i_hburst_o,
-    output wire [HPROT_W-1:0] i_hprot_o,
     output wire i_hwrite_o,
     output wire [WORD_W-1:0] i_hwdata_o,
     input wire [WORD_W-1:0] i_hrdata_i,
@@ -70,8 +68,6 @@ module garuda_core_top
     output wire [WORD_W-1:0] d_haddr_o,
     output wire [HTRANS_W-1:0] d_htrans_o,
     output wire [HSIZE_W-1:0] d_hsize_o,
-    output wire [HBURST_W-1:0] d_hburst_o,
-    output wire [HPROT_W-1:0] d_hprot_o,
     output wire d_hwrite_o,
     output wire [WORD_W-1:0] d_hwdata_o,
     input wire [WORD_W-1:0] d_hrdata_i,
@@ -87,10 +83,9 @@ module garuda_core_top
     output wire [ACC_W-1:0] dbg_acc_0_o,
     output wire [ACC_W-1:0] dbg_acc_1_o,
     output wire [ACC_W-1:0] dbg_acc_2_o,
-    output wire dsu_ovf_o,  // sticky DSU overflow (read by the DM)
-    // clock gated (observability)
+    // sticky DSU overflow (read by the DM)
     // RISC-V Formal Interface (plan 5.1): verification builds only
-    output wire core_sleep_o `ifdef GARUDA_RVFI,
+    output wire dsu_ovf_o `ifdef GARUDA_RVFI,
     output wire rvfi_valid,
     output wire [63:0] rvfi_order,
     output wire [31:0] rvfi_insn,
@@ -318,7 +313,6 @@ module garuda_core_top
     core_clk_gate u_cg (
         .hclk(hclk), .en_i(cg_en), .gclk_o(gclk)
     );
-    assign core_sleep_o = quiescent;
 
     // Bus activity for quiescent: a port is busy while it presents a transfer
     // or owns an unfinished data phase.
@@ -370,7 +364,7 @@ module garuda_core_top
     if_stage_top #(.RESET_VECTOR(RESET_VECTOR)) u_if (
         .gclk(gclk), .core_rst_n(core_rst_n),
         .i_haddr_o(i_haddr_o), .i_htrans_o(i_htrans_o), .i_hsize_o(i_hsize_o),
-        .i_hburst_o(i_hburst_o), .i_hprot_o(i_hprot_o), .i_hwrite_o(i_hwrite_o),
+        .i_hwrite_o(i_hwrite_o),
             .i_hwdata_o(i_hwdata_o),
         .i_hrdata_i(i_hrdata_i), .i_hready_i(i_hready_i), .i_hresp_i(i_hresp_i),
         .instr_o(if_instr), .instr_pc_o(if_pc), .instr_valid_o(if_valid),
@@ -520,7 +514,7 @@ module garuda_core_top
             .reg_write_i(em_reg_write),
             .valid_i(em_valid),
         .d_haddr_o(d_haddr_o), .d_htrans_o(d_htrans_o), .d_hsize_o(d_hsize_o),
-        .d_hburst_o(d_hburst_o), .d_hprot_o(d_hprot_o), .d_hwrite_o(d_hwrite_o),
+        .d_hwrite_o(d_hwrite_o),
             .d_hwdata_o(d_hwdata_o),
         .d_hrdata_i(d_hrdata_i), .d_hready_i(d_hready_i), .d_hresp_i(d_hresp_i),
         .wb_data_o(mem_wb_data), .reg_write_o(mem_reg_write), .rd_o(mem_rd),

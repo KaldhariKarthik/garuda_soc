@@ -17,13 +17,13 @@ suites = [
 # garuda_apb_shim (rtl/common) is every peripheral's front end and is covered with the
 # peripherals (Track B); it is reported, not signed off, here (tb_apb_shim in b0).
 design    = ["rtl/ahb2apb/brg_ahb_fsm.sv", "rtl/ahb2apb/ahb2apb_bridge.sv", "rtl/ahb2apb/apb_phase_fsm.sv", "rtl/ahb2apb/ahb2apb_apb_fsm.sv", "rtl/ahb2apb/ahb2apb_fabric.sv"]
-testbench = ["rtl/common/garuda_apb_shim.sv", "tb/ahb2apb/*", "tb/common/*", "tb/ahb/agent/*", "tb/ahb/ahb_lite_master_bfm.sv", "rtl/ahb2apb/ahb2apb_sva.sv"]
+testbench = ["rtl/common/garuda_apb_shim.sv", "rtl/common/garuda_apb_dma.sv", "rtl/common/garuda_sync_bit.sv", "rtl/common/garuda_pad_sync.sv", "tb/ahb2apb/*", "tb/common/*", "tb/ahb/agent/*", "tb/ahb/ahb_lite_master_bfm.sv", "rtl/ahb2apb/ahb2apb_sva.sv"]
 
 functional_files = ["tb/ahb2apb/env/ahb2apb_cov.sv"]
 
 merge_variants = ["ahb2apb_sva", "ahb2apb_cov", "apb_target"]
 # built with different WINDOW_MASK / APB_DIV / shim parameters on purpose: union per module
-union_variants = ["ahb2apb_bridge", "ahb2apb_apb_fsm", "garuda_apb_shim"]
+union_variants = ["ahb2apb_bridge", "ahb2apb_apb_fsm", "garuda_apb_shim", "garuda_sync_bit", "garuda_pad_sync"]
 
 waivers = "tb/ahb2apb/cov/ahb2apb_waivers.toml"
 

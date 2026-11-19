@@ -27,7 +27,7 @@
 //     double-report the trap. That ABSENCE is asserted, not assumed.
 //   * retire_o = valid_i & ~exception (Sec. 13.2): a faulting access must
 //     not count toward minstret.
-//   * Sec. 4.1 static pins: HBURST = SINGLE and HPROT = 0b0011, always.
+//   * (Sec. 4.1 static pins HBURST / HPROT: removed in F4, D-38)
 //
 // No inlined DUT snapshot -- see the note in tb_alu.sv.
 // =============================================================================
@@ -52,8 +52,7 @@ interface mem_stage_if (input bit clk, input bit rst_n);
     logic        mem_read, mem_write, reg_write, valid;
     logic [31:0] d_haddr, d_hwdata;
     logic [1:0]  d_htrans;
-    logic [2:0]  d_hsize, d_hburst;
-    logic [3:0]  d_hprot;
+    logic [2:0]  d_hsize;
     logic        d_hwrite;
     logic [31:0] d_hrdata;
     logic        d_hready, d_hresp;
@@ -67,12 +66,7 @@ interface mem_stage_if (input bit clk, input bit rst_n);
 
     localparam logic [1:0] HTRANS_IDLE = 2'b00;
 
-    // A1: the Sec. 4.1 static pin contract, in EVERY cycle.
-    property p_static_pins;
-        @(posedge clk) (d_hburst == 3'b000) && (d_hprot == 4'b0011);
-    endproperty
-    a_static_pins: assert property (p_static_pins)
-        else $error("[SVA-FAIL] d_hburst_o/d_hprot_o are not the Sec. 4.1 constants");
+    // (A1, the static HBURST / HPROT pins: they left the bus in F4, D-38)
 
     // A2: C11 -- a misaligned access never reaches the bus (Sec. 10.2).
     //     Stated over the misalignment condition directly, so it holds for
@@ -165,8 +159,6 @@ module tb_top;
         .d_haddr_o             (vif.d_haddr),
         .d_htrans_o            (vif.d_htrans),
         .d_hsize_o             (vif.d_hsize),
-        .d_hburst_o            (vif.d_hburst),
-        .d_hprot_o             (vif.d_hprot),
         .d_hwrite_o            (vif.d_hwrite),
         .d_hwdata_o            (vif.d_hwdata),
         .d_hrdata_i            (vif.d_hrdata),

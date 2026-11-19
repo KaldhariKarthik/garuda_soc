@@ -64,7 +64,7 @@ module garuda_gpio_top
     assign evt[0] = gpio_int;
 
     garuda_apb_shim #(
-        .N_EVT(1), .SYNC_W(PAD_NUM), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT),
+        .N_EVT(1), .IP_LIMIT(IP_LIMIT),
             .IP_MAP(IP_MAP), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
@@ -72,10 +72,12 @@ module garuda_gpio_top
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
         .ip_psel_o(ip_psel), .ip_prdata_i(ip_prdata),
-        .evt_i(evt), .irq_o(irq_o),
-        .rx_avail_i(1'b0), .tx_space_i(1'b0),  // no DMA channel
-        .dma_ack_i(1'b0), .dma_req_o(),
-        .pad_async_i(gpio_i), .pad_sync_o(gpio_sync));
+        .evt_i(evt), .irq_o(irq_o));
+
+    // pad input synchronisers (F4: out of the shim)
+    garuda_pad_sync #(.WIDTH(PAD_NUM), .IDLE(8'h00)) u_sync (
+        .pclk(pclk), .preset_n(preset_n), .pad_i(gpio_i), .sync_o(gpio_sync)
+    );
 
     // =========================================================================
     // The vendored GPIO. No idle-cycle poll: ip_psel passes straight through,

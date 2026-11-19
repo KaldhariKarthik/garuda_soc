@@ -1,5 +1,11 @@
 # Planted-defect lists: python3 tools/mutate.py flow/mutation/<block>_mutants.py (copies under sim/lab/<block>/mut)
 
+Each spec names its block's file list in `FL_LINE`; `tools/mutate.py` reads the block's files from
+it (TOOL-A24, 2026-11-19: hand-kept `FILES` lists had missed the state machines split out in F4).
+A recipe whose text is not found exactly once fails the run, and `make check_tree` runs
+`tools/check_mutants.py`, which checks every recipe here, the generated mutants of
+`tools/gen/gen_*_mutants.py` and the UVM planted lists against the RTL.
+
 ## Results, 2026-11-10 (1-TOPS G4)
 
 `python3.12 tools/mutate.py flow/mutation/<block>_mutants.py` with irun 15.2 on the path;

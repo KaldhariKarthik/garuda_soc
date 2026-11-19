@@ -18,7 +18,7 @@ module debug_sva (
     input wire [31:0] haddr_o,
     input wire [1:0]  htrans_o,
     input wire        hwrite_o, hready_i, hresp_i,
-    input wire [2:0]  hsize_o, hburst_o,
+    input wire [2:0]  hsize_o,
     input wire        ndmreset_o, hartreset_o,
     // TAP
     input wire [3:0]  tap_st,
@@ -148,7 +148,7 @@ module debug_sva (
 
     // ======================= SBA master (AHB-Lite), hclk ======================
     a_sba_single_word: assert property (@(posedge hclk) disable iff (!dm_rst_n)
-        (hsize_o == 3'b010 && hburst_o == 3'b000 && htrans_o != 2'b11 && htrans_o != 2'b01) )
+        (hsize_o == 3'b010 && htrans_o != 2'b11 && htrans_o != 2'b01) )
         else $error("[SVA-FAIL] a_sba_single_word: SBA transfer not a single word");
     a_sba_addr_stable: assert property (@(posedge hclk) disable iff (!dm_rst_n)
         (htrans_o[1] && !hready_i) |=> $stable({haddr_o, htrans_o, hwrite_o}) )
@@ -178,7 +178,7 @@ endmodule
 bind debug_top debug_sva u_debug_sva (
     .tck(tck), .tms_i(tms_i), .ext_rst_n(ext_rst_n), .hclk(hclk), .dm_rst_n(dm_rst_n),
     .tdo_oe_o(tdo_oe_o), .haddr_o(haddr_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o),
-    .hready_i(hready_i), .hresp_i(hresp_i), .hsize_o(hsize_o), .hburst_o(hburst_o),
+    .hready_i(hready_i), .hresp_i(hresp_i), .hsize_o(hsize_o), 
     .ndmreset_o(ndmreset_o), .hartreset_o(hartreset_o),
     .tap_st(u_tap.u_fsm.st), .ir_q(u_tap.ir_q), .ir_sh(u_tap.ir_sh),
     .req_tgl(req_tgl), .ack_seen(u_dtm.ack_seen), .update_dr(up_dr), .capture_dr(cap_dr), .tlr(tlr),
