@@ -38,16 +38,15 @@ module dma_chan
     input wire wr_iclr_i,
     input wire [WORD_W-1:0] wdata_i,
     // ---- register views -----------------------------------------------------
-    output wire [WORD_W-1:0] cr_o,
+    output wire [DMA_CR_W-1:0] cr_o,
     output wire [WORD_W-1:0] sar_o,
     output wire [WORD_W-1:0] dar_o,
-    output wire [WORD_W-1:0] cnt_o,
-    output wire [WORD_W-1:0] stat_o,
+    output wire [HALF_W-1:0] cnt_o,
+    output wire [DMA_STAT_W-1:0] stat_o,
     // ---- peripheral handshake ---------------------------------------------
     input wire req_i,
     // ---- to / from the engine ---------------------------------------------
     output wire eligible_o,
-    output wire [DMA_SIZE_W-1:0] size_o,
     input wire beat_done_i,  // this channel's beat completed OK
     input wire beat_err_i,  // this channel's beat failed
     input wire inflight_i,  // a beat of this channel is in flight (DMA-9)
@@ -59,9 +58,9 @@ module dma_chan
     timeunit 1ns;
     timeprecision 1ps;
     localparam int unsigned MODE_W = 32'd2;
-    localparam int unsigned ERRPH_W = 32'd3;
 
-    localparam [1:0] M_P2M = 2'd0, M_M2P = 2'd1, M_M2M = 2'd2;
+    // MODE: 0 P2M, 1 M2P, 2 M2M
+    localparam [1:0] M_P2M = 2'd0, M_M2M = 2'd2;
 
     reg en_q;
     reg sinc_q;
@@ -76,7 +75,7 @@ module dma_chan
     reg [HALF_W-1:0] rem_q;
     reg comp_q;
     reg err_q;
-    reg [ERRPH_W-1:0]  errph_q;
+    reg [ERR_PHASE_W-1:0] errph_q;
     reg        taken_q;
 
     wire active   = en_q && (rem_q != 16'd0);
@@ -99,116 +98,157 @@ module dma_chan
     // hardware-owned EN clear: completion or error ([N-7.3], [N-7.13])
     wire hw_clr_en = (done && last) || err;
 
-    always_ff @(posedge hclk or negedge hreset_n) begin : p_en
+    // F4 (2026-11-17): one process per register. The single block it replaces
+    // gave some registers two non-blocking assignments in one edge, the later
+    // winning (HAL MULNBA); each priority is now written out.
+
+    // a beat already in flight when software cleared EN: its completion is
+    // stale and must not count (DMA-9)
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_stale
         if (!hreset_n) begin
-            en_q <= 1'b0;
+            stale_q <= 1'b0;
+        end else if (beat_done_i || beat_err_i) begin
+            stale_q <= 1'b0;
+        end else if (inflight_i && sw_clr_en) begin
+            stale_q <= 1'b1;
+        end
+    end
+
+    // CR fields other than EN; MODE=3 and SIZE=3 leave the field unchanged
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_cr
+        if (!hreset_n) begin
             mode_q <= M_P2M;
             sinc_q <= 1'b0;
             dinc_q <= 1'b0;
             size_q <= 2'd2;
             iec_q <= 1'b0;
             iee_q <= 1'b0;
-            sar_q <= 32'd0;
-            dar_q <= 32'd0;
-            cnt_q <= 16'd0;
+        end else if (wr_cr_i) begin
+            if (wdata_i[2:1] != 2'b11) begin
+                mode_q <= wdata_i[2:1];
+            end
+            sinc_q <= wdata_i[3];
+            dinc_q <= wdata_i[4];
+            if (wdata_i[6:5] != 2'b11) begin
+                size_q <= wdata_i[6:5];
+            end
+            iec_q <= wdata_i[7];
+            iee_q <= wdata_i[8];
+        end
+    end
+
+    // EN: the hardware clear wins over a software write (D-2)
+    wire hw_off = hw_clr_en || (en_q && rem_q == 16'd0 && !wr_cr_i);
+    // a software write that sets EN from 0 arms the channel
+    wire arm    = !hw_off && wr_cr_i && wdata_i[0] && !en_q;
+
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_en
+        if (!hreset_n) begin
+            en_q <= 1'b0;
+        end else if (hw_off) begin
+            en_q <= 1'b0;
+        end else if (wr_cr_i) begin
+            en_q <= wdata_i[0];
+        end
+    end
+
+    // REMAINING: a completed beat counts down; arming loads CNT
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_rem
+        if (!hreset_n) begin
             rem_q <= 16'd0;
+        end else if (done) begin
+            rem_q <= rem_q - 16'd1;
+        end else if (arm) begin
+            rem_q <= cnt_q;
+        end
+    end
+
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_sar
+        if (!hreset_n) begin
+            sar_q <= 32'd0;
+        end else if (wr_sar_i) begin
+            sar_q <= wdata_i;
+        end else if (done && sinc_q) begin
+            sar_q <= sar_q + step;
+        end
+    end
+
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_dar
+        if (!hreset_n) begin
+            dar_q <= 32'd0;
+        end else if (wr_dar_i) begin
+            dar_q <= wdata_i;
+        end else if (done && dinc_q) begin
+            dar_q <= dar_q + step;
+        end
+    end
+
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_cnt
+        if (!hreset_n) begin
+            cnt_q <= 16'd0;
+        end else if (wr_cnt_i) begin
+            cnt_q <= wdata_i[15:0];
+        end
+    end
+
+    // COMPLETE: the ICLR W1C wins unless the last beat completes on the same
+    // edge; the last beat sets it; arming with CNT = 0 completes at once
+    wire iclr_comp = wr_iclr_i && wdata_i[0] && !(done && last);
+    wire arm_comp  = wr_cr_i && wdata_i[0] && !en_q && !hw_clr_en;
+
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_comp
+        if (!hreset_n) begin
             comp_q <= 1'b0;
+        end else if (iclr_comp) begin
+            comp_q <= 1'b0;
+        end else if (done) begin
+            if (last) begin
+                comp_q <= 1'b1;
+            end
+        end else if (arm_comp) begin
+            comp_q <= (cnt_q == 16'd0);
+        end
+    end
+
+    // ERROR and ERRPHASE: a failed beat sets them; the ICLR W1C clears them
+    // unless a beat fails on the same edge
+    wire iclr_err = wr_iclr_i && wdata_i[1] && !err;
+
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_err
+        if (!hreset_n) begin
             err_q <= 1'b0;
-            errph_q <= 3'd0;
+            errph_q <= '0;
+        end else if (err) begin
+            err_q <= 1'b1;
+            errph_q <= err_phase_i;
+        end else if (iclr_err) begin
+            err_q <= 1'b0;
+            errph_q <= '0;
+        end
+    end
+
+    // one beat per request assertion ([N-7.10])
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_taken
+        if (!hreset_n) begin
             taken_q <= 1'b0;
-            stale_q <= 1'b0;
-        end else begin
-            // DMA-9: mark the beat in flight stale when firmware stops the
-            // channel
-            if (beat_done_i || beat_err_i) begin
-                stale_q <= 1'b0;
-            end else if (inflight_i && sw_clr_en) begin
-                stale_q <= 1'b1;
-            end
-            // ---- CR: software fields ----------------------------------------
-            if (wr_cr_i) begin
-                if (wdata_i[2:1] != 2'b11) begin
-                    mode_q <= wdata_i[2:1];
-                end
-                sinc_q <= wdata_i[3];
-                dinc_q <= wdata_i[4];
-                size_q <= (wdata_i[6:5] == 2'b11) ? size_q : wdata_i[6:5];
-                iec_q <= wdata_i[7];
-                iee_q <= wdata_i[8];
-            end
-            // ---- EN: hardware wins ------------------------------------------
-            // A channel enabled with nothing left (zero-length transfer)
-            // completes at once and drops EN the following cycle.
-            if (hw_clr_en || (en_q && rem_q == 16'd0 && !wr_cr_i)) begin
-                en_q <= 1'b0;
-            end else if (wr_cr_i) begin
-                en_q <= wdata_i[0];
-                if (wdata_i[0] && !en_q) begin
-                    rem_q <= cnt_q;  // arm
-                end
-            end
-            // ---- address / count registers ----------------------------------
-            if (wr_sar_i) begin
-                sar_q <= wdata_i;
-            end else if (done && sinc_q) begin
-                sar_q <= sar_q + step;
-            end
-            if (wr_dar_i) begin
-                dar_q <= wdata_i;
-            end else if (done && dinc_q) begin
-                dar_q <= dar_q + step;
-            end
-            if (wr_cnt_i) begin
-                cnt_q <= wdata_i[15:0];
-            end
-            // ---- progress / status (same edge: R-6) -------------------------
-            if (done) begin
-                rem_q <= rem_q - 16'd1;
-                if (last) begin
-                    comp_q <= 1'b1;
-                end
-            end else if (wr_cr_i && wdata_i[0] && !en_q && !hw_clr_en) begin
-                // arming: a zero-length transfer completes at once; a real one
-                // starts with COMPLETE clear so COMPLETE => REMAINING == 0
-                // always holds (a_remaining_complete_consistent).
-                comp_q <= (cnt_q == 16'd0);
-            end
-            if (err) begin
-                err_q <= 1'b1;
-                errph_q <= err_phase_i;
-            end
-            if (wr_iclr_i) begin
-                if (wdata_i[0] && !(done && last)) begin
-                    comp_q <= 1'b0;
-                end
-                if (wdata_i[1] && !err) begin
-                    err_q <= 1'b0;
-                    errph_q <= 3'd0;
-                end
-            end
-            // ---- one beat per request assertion ([N-7.10]) ------------------
-            // ERRATUM DMA-8 (2026-10-04): only a SUCCESSFUL beat consumes the
-            // request. A failed beat is never acknowledged, so the peripheral
-            // is still requesting ([N-7.7]); marking that request taken left
-            // the channel ACTIVE but never eligible after firmware repaired
-            // the address and set EN again - a hang with no status bit set.
-            // No duplicate beat is possible: the error clears EN on this edge.
-            if (!req_i) begin
-                taken_q <= 1'b0;
-            end else if (beat_done_i) begin
+        end else if (req_i) begin
+            if (beat_done_i) begin
                 taken_q <= 1'b1;
             end
+        end else begin
+            taken_q <= 1'b0;
         end
     end
 
     assign eligible_o = active && ((mode_q == M_M2M) || (req_i && !taken_q));
-    assign size_o     = size_q;
 
-    assign cr_o   = {23'd0, iee_q, iec_q, size_q, dinc_q, sinc_q, mode_q, en_q};
+    // the registers at their real widths; dma_top pads them to the 32-bit
+    // register map (F4: no constant output bits here)
+    assign cr_o   = {iee_q, iec_q, size_q, dinc_q, sinc_q, mode_q, en_q};
     assign sar_o  = sar_q;
     assign dar_o  = dar_q;
-    assign cnt_o  = {16'd0, cnt_q};
-    assign stat_o = {10'd0, errph_q, err_q, comp_q, active, rem_q};
+    assign cnt_o  = cnt_q;
+    assign stat_o = {errph_q, err_q, comp_q, active, rem_q};
 
     assign complete_irq_o = comp_q & iec_q;
     assign error_irq_o    = err_q  & iee_q;

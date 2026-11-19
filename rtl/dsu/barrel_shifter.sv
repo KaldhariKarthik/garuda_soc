@@ -41,12 +41,13 @@ module barrel_shifter
     // Each shift now has its own wire, so the signed operand keeps its signed
     // context and `>>>` means what it says.
     // -----------------------------------------------------------------------
-    wire signed [ACC_W-1:0] acc_signed    = cluster_out;
-    wire        [ACC_W-1:0] left_shifted  = cluster_out << shift_amt;
-    wire        [ACC_W-1:0] right_shifted = acc_signed >>> shift_amt;
+    // F4: only the low word is returned, so each shift keeps 32 bits; the
+    // arithmetic shift has both operands signed (the amount's top bit is 0)
+    wire signed [ACC_W-1:0] acc_signed    = $signed(cluster_out);
+    wire        [WORD_W-1:0] left_shifted = WORD_W'(cluster_out << shift_amt);
+    wire        [WORD_W-1:0] right_shifted
+        = WORD_W'($unsigned(acc_signed >>> $signed({1'b0, shift_amt})));
 
-    wire [ACC_W-1:0] shifted = shift_dir ? left_shifted : right_shifted;
-
-    assign shift_result = shifted[31:0];
+    assign shift_result = shift_dir ? left_shifted : right_shifted;
 
 endmodule

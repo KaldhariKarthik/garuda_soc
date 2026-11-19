@@ -21,7 +21,7 @@ module garuda_spis_top
     import garuda_pkg::*;
 #(
     parameter [7:0]   BLOCK_NUM = 8'd14,
-    parameter integer FIFO_DEPTH = 32'd16
+    parameter int unsigned FIFO_DEPTH = 32'd16
 )(
     input wire pclk,
     input wire preset_n,
@@ -60,21 +60,16 @@ module garuda_spis_top
     localparam [63:0] IP_MAP   = 64'h0000_0000_0000_000F;  // 0x00 to 0x0C
 
     wire ip_psel;
-    wire ip_penable;
-    wire ip_pwrite;
-    wire [PADDR_W-1:0] ip_paddr;
-    wire [WORD_W-1:0] ip_pwdata;
-    wire [DMACTL_W-1:0]  dmactl;
     wire [PAD_SYNC_W-1:0]  pad_sync;
 
     wire sclk_s = pad_sync[0];
     wire mosi_s = pad_sync[1];
     wire cs_n_s = pad_sync[2];
 
-    wire wr_hit = ip_psel & ip_penable & ip_pwrite;
+    wire wr_hit = ip_psel & penable_i & pwrite_i;
     wire        tail_w1c;
     wire [IRQSTAT_CLR_W-1:0]  irqstat_clr;
-    wire rd_hit = ip_psel & ip_penable & ~ip_pwrite;
+    wire rd_hit = ip_psel & penable_i & ~pwrite_i;
 
     // =========================================================================
     // Registers
@@ -84,7 +79,7 @@ module garuda_spis_top
     reg ovr_q;
     reg done_q;
 
-    wire rxflush = wr_hit & (ip_paddr == A_CTRL) & pwdata_i[1];
+    wire rxflush = wr_hit & (paddr_i == A_CTRL) & pwdata_i[1];
 
     // =========================================================================
     // The shift engine
@@ -93,7 +88,6 @@ module garuda_spis_top
     wire rx_push;
     wire cs_active;
     wire cs_rise;
-    wire cs_fall;
 
     garuda_spis_core u_core (
         .pclk(pclk), .preset_n(preset_n), .en_i(en_q),
@@ -101,85 +95,84 @@ module garuda_spis_top
         .miso_o(spis_miso_o), .miso_oe_o(spis_miso_oe_o),
         .txdata_i(txdata_q),
         .rx_byte_o(rx_byte), .rx_push_o(rx_push),
-        .cs_active_o(cs_active), .cs_rise_o(cs_rise), .cs_fall_o(cs_fall));
+        .cs_active_o(cs_active), .cs_rise_o(cs_rise));
 
     // =========================================================================
     // RX FIFO. On overrun the NEW byte is dropped, not the oldest: that
     // truncates a packet rather than interleaving it, and a truncated packet
     // fails its checksum while an interleaved one might not ([N-7.5]).
     // =========================================================================
-    localparam integer ADDR_W = (FIFO_DEPTH <= 32'd16) ? 4 : 5;
+    localparam int unsigned ADDR_W = (FIFO_DEPTH <= 32'd16) ? 32'd4 : 32'd5;
+    localparam int unsigned PTR_W = ADDR_W + 32'd1;
 
     reg [BYTE_W-1:0]    fifo [0:FIFO_DEPTH-1];
-    reg [ADDR_W:0] wptr;
-    reg [ADDR_W:0] rptr;
-    wire [ADDR_W:0]  level = wptr - rptr;
-    wire         full  = (level == FIFO_DEPTH[ADDR_W:0]);
-    wire         empty = (level == 0);
+    reg [PTR_W-1:0] wptr;
+    reg [PTR_W-1:0] rptr;
+    wire [PTR_W-1:0]  level = PTR_W'(wptr - rptr);
+    wire         full  = (level == PTR_W'(FIFO_DEPTH));
+    wire         empty = (level == '0);
 
-    wire pop  = rd_hit & (ip_paddr == A_RXDATA) & ~empty;
-    wire push = rx_push & ~full;
+    wire pop  = rd_hit && (paddr_i == A_RXDATA) && !empty;
+    wire push = rx_push && !full;
 
-    integer k;
-    always_ff @(posedge pclk or negedge preset_n) begin : p_wptr
+    // F4 (2026-11-17): pointers, data and the control registers each in a
+    // process of their own (HAL MULNBA); the FIFO words need no reset (they
+    // are read only when written)
+    always_ff @(posedge pclk or negedge preset_n) begin : p_ptr
         if (!preset_n) begin
-            wptr <= 0;
-            rptr <= 0;
-            for (k = 0; k < FIFO_DEPTH; k = k + 1) begin
-                fifo[k] <= 8'd0;
-            end
+            wptr <= '0;
+            rptr <= '0;
         end else if (rxflush) begin
-            wptr <= 0;
-            rptr <= 0;
+            wptr <= '0;
+            rptr <= '0;
         end else begin
             if (push) begin
-                fifo[wptr[ADDR_W - 1:0]] <= rx_byte;
-                wptr <= wptr + 1'b1;
+                wptr <= PTR_W'(wptr + 1'b1);
             end
             if (pop) begin
-                rptr <= rptr + 1'b1;
+                rptr <= PTR_W'(rptr + 1'b1);
             end
         end
     end
 
-    wire rxvalid = ~empty;
+    always_ff @(posedge pclk) begin : p_fifo
+        if (push && !rxflush) begin
+            fifo[wptr[ADDR_W - 1:0]] <= rx_byte;
+        end
+    end
 
-    // =========================================================================
-    // Status and control
-    // =========================================================================
-    always_ff @(posedge pclk or negedge preset_n) begin : p_en
+    wire rxvalid = !empty;
+
+    always_ff @(posedge pclk or negedge preset_n) begin : p_ctrl
         if (!preset_n) begin
             en_q <= 1'b0;
             txdata_q <= 8'd0;
+        end else if (wr_hit && (paddr_i == A_CTRL)) begin
+            en_q <= pwdata_i[0];
+        end else if (wr_hit && (paddr_i == A_TXDATA)) begin
+            txdata_q <= pwdata_i[7:0];
+        end
+    end
+
+    // OVERRUN and DONE are sticky; the IRQSTAT W1C clears them unless the
+    // event repeats on the same edge
+    always_ff @(posedge pclk or negedge preset_n) begin : p_ovr
+        if (!preset_n) begin
             ovr_q <= 1'b0;
+        end else if (rx_push && full) begin
+            ovr_q <= 1'b1;  // [N-7.5]
+        end else if (irqstat_clr[2]) begin
+            ovr_q <= 1'b0;
+        end
+    end
+
+    always_ff @(posedge pclk or negedge preset_n) begin : p_done
+        if (!preset_n) begin
             done_q <= 1'b0;
-        end else begin
-            if (wr_hit) begin
-                case (ip_paddr)
-                    A_CTRL: en_q <= pwdata_i[0];
-                    A_TXDATA: txdata_q <= pwdata_i[7:0];
-                    default: begin
-                    end
-                endcase
-            end
-            // both clear with their interrupt bits, so there is one place to
-            // acknowledge a fault rather than two
-            if (irqstat_clr[2]) begin
-                ovr_q <= 1'b0;
-            end
-            if (irqstat_clr[1]) begin
-                done_q <= 1'b0;
-            end
-            // SPIS-6: set beats clear, as in the shim's IRQSTAT. These two
-            // lines used to come first, so a W1C in the cycle of a new event
-            // cleared the STATUS bit while IRQSTAT kept it: the interrupt said
-            // "overrun" or "packet done" and STATUS said it had not happened.
-            if (rx_push & full) begin
-                ovr_q <= 1'b1;  // sticky ([N-7.5])
-            end
-            if (cs_rise) begin
-                done_q <= 1'b1;  // sticky
-            end
+        end else if (cs_rise) begin
+            done_q <= 1'b1;
+        end else if (irqstat_clr[1]) begin
+            done_q <= 1'b0;
         end
     end
 
@@ -198,32 +191,32 @@ module garuda_spis_top
     // Read mux
     // =========================================================================
     wire [WORD_W-1:0] reg_rdata =
-        (ip_paddr == A_RXDATA)
+        (paddr_i == A_RXDATA)
             ? {24'd0, empty ? 8'd0 : fifo[rptr[ADDR_W - 1:0]]} :
-        (ip_paddr == A_TXDATA) ? {24'd0, txdata_q}                          :
-        (ip_paddr == A_CTRL)   ? {31'd0, en_q}                              :
-        (ip_paddr == A_STATUS) ? {23'd0, level[4:0], done_q, ovr_q,
+        (paddr_i == A_TXDATA) ? {24'd0, txdata_q}                          :
+        (paddr_i == A_CTRL)   ? {31'd0, en_q}                              :
+        (paddr_i == A_STATUS) ? {23'd0, level[4:0], done_q, ovr_q,
                                          cs_active, rxvalid}                :
                                  32'd0;
 
+    // the pads to synchronise: {cs_n, mosi, sclk}
+    wire [PAD_SYNC_W-1:0] pads = {spis_cs_n_i, spis_mosi_i, spis_sclk_i};
+
     garuda_apb_shim #(
         .N_EVT(3), .SYNC_W(3), .SYNC_RESET(8'h04),  // cs_n idles HIGH
-        .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP), .ADDR_SHIFT(0),
+        .IP_LIMIT(IP_LIMIT), .IP_MAP(IP_MAP),
         .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
-        .ip_psel_o(ip_psel), .ip_penable_o(ip_penable), .ip_pwrite_o(ip_pwrite),
-        .ip_paddr_o(ip_paddr), .ip_pwdata_o(ip_pwdata), .ip_prdata_i(reg_rdata),
-        .ip_pready_i(1'b1),
+        .ip_psel_o(ip_psel), .ip_prdata_i(reg_rdata),
         .evt_i(evt), .irq_o(irq_o),
         .rx_avail_i(rxvalid), .tx_space_i(1'b0),
-        .dma_ack_i(dma_ack_i), .dma_req_o(dma_req_o), .dmactl_o(dmactl),
-        .pad_async_i({spis_cs_n_i, spis_mosi_i, spis_sclk_i}),
+        .dma_ack_i(dma_ack_i), .dma_req_o(dma_req_o),
+        .pad_async_i(pads),
         .pad_sync_o(pad_sync));
 
-    wire _unused = |{dmactl, ip_pwdata, cs_fall};
 
 endmodule

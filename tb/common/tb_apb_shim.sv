@@ -37,18 +37,24 @@ module tb_apb_shim;
     logic        ip_pready = 1;
 
     garuda_apb_shim #(.N_EVT(N_EVT), .SYNC_W(1), .IP_LIMIT(12'h100),
-                      .ADDR_SHIFT(0), .BLOCK_NUM(8'd13)) dut (
+                      .BLOCK_NUM(8'd13)) dut (
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(bfm.psel), .penable_i(bfm.penable), .pwrite_i(bfm.pwrite),
         .paddr_i(bfm.paddr), .pwdata_i(bfm.pwdata), .prdata_o(bfm.prdata),
         .pready_o(bfm.pready), .pslverr_o(bfm.pslverr),
-        .ip_psel_o(ip_psel), .ip_penable_o(ip_penable), .ip_pwrite_o(ip_pwrite),
-        .ip_paddr_o(ip_paddr), .ip_pwdata_o(ip_pwdata), .ip_prdata_i(ip_prdata),
-        .ip_pready_i(ip_pready),
+        .ip_psel_o(ip_psel), .ip_prdata_i(ip_prdata),
         .evt_i(evt), .irq_o(irq),
         .rx_avail_i(rx_avail), .tx_space_i(tx_space), .dma_ack_i(dma_ack),
-        .dma_req_o(dma_req), .dmactl_o(dmactl),
+        .dma_req_o(dma_req),
         .pad_async_i(pad_async), .pad_sync_o(pad_sync));
+
+    // F4 (2026-11-18): the shim passes only PSEL to the IP; the IP takes
+    // PENABLE, PWRITE, PADDR and PWDATA from the bus (as the wrappers do)
+    assign ip_penable = bfm.penable;
+    assign ip_pwrite  = bfm.pwrite;
+    assign ip_paddr   = bfm.paddr;
+    assign ip_pwdata  = bfm.pwdata;
+    assign dmactl     = dut.dmactl_q;
 
     // a trivial word-addressed IP: 8 registers, PREADY high
     logic [31:0] ipregs [0:7];
@@ -89,17 +95,22 @@ module tb_apb_shim;
     logic [31:0] bip_prdata;
 
     garuda_apb_shim #(.N_EVT(1), .SYNC_W(1), .IP_LIMIT(12'h020),
-                      .ADDR_SHIFT(2), .BLOCK_NUM(8'd16)) dut_b (
+                      .BLOCK_NUM(8'd16)) dut_b (
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(b_psel), .penable_i(b_penable), .pwrite_i(b_pwrite),
         .paddr_i(b_paddr), .pwdata_i(b_pwdata), .prdata_o(b_prdata),
         .pready_o(b_pready), .pslverr_o(b_pslverr),
-        .ip_psel_o(bip_psel), .ip_penable_o(bip_penable), .ip_pwrite_o(bip_pwrite),
-        .ip_paddr_o(bip_paddr), .ip_pwdata_o(bip_pwdata), .ip_prdata_i(bip_prdata),
-        .ip_pready_i(1'b1),
+        .ip_psel_o(bip_psel), .ip_prdata_i(bip_prdata),
         .evt_i(1'b0), .irq_o(), .rx_avail_i(1'b0), .tx_space_i(1'b0),
-        .dma_ack_i(1'b0), .dma_req_o(), .dmactl_o(),
+        .dma_ack_i(1'b0), .dma_req_o(),
         .pad_async_i(1'b0), .pad_sync_o());
+
+    // the byte-addressed IP takes word offsets: the wrapper re-maps them
+    // (the shim's ADDR_SHIFT went in F4; the UART wrapper does the same)
+    assign bip_penable = b_penable;
+    assign bip_pwrite  = b_pwrite;
+    assign bip_paddr   = {2'b00, b_paddr[11:2]};
+    assign bip_pwdata  = b_pwdata;
 
     // byte-addressed IP: 8 registers indexed by paddr[2:0]
     logic [7:0] bregs [0:7];

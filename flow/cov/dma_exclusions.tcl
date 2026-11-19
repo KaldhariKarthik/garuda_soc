@@ -23,8 +23,6 @@
 #   reason  : The default arm of the engine's state case: st only takes E_IDLE..E_WD (0..4); the arm exists for the codes 5..7 and resets to E_IDLE.
 #   evidence: PROVEN fv_dma_cov cov_prove and fv_dma dma_prove: a_state_legal (rtl/dma/dma_props_a.sv, eng_st <= E_WD)
 # exclude -inst dma_top.u_eng -block <IMC block id of that line> -comment "The default arm of the engine's state case: st only takes E_IDLE..E_WD (0..4); the arm exists for the codes 5..7 and resets to E_IDLE."
-# CT-ACKCNT-dma_engine (constant): PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_ackcnt_bit1; rtl/dma/dma_top.sv:21 ACK_CYCLES = 2
-exclude -inst dma_top.u_eng -toggle ack_cnt\[1\] -comment "With the shipped ACK_CYCLES = 2 the ack stretch counter loads ACK_CYCLES - 1 = 1 at most: bit 1 stays 0 (DMA-12: values outside 1..4 are a separate bug)."
 # CT-CNTHI-dma_apb_slave (constant): literal rtl/dma/dma_chan.sv:150 assign cnt_o = {16'd0, cnt_q}
 exclude -inst dma_top.u_apb -toggle cnt_i\[112\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
 exclude -inst dma_top.u_apb -toggle cnt_i\[113\] -comment "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0."
@@ -733,23 +731,6 @@ exclude -inst dma_top -toggle cr\[93\] -comment "CR bits 31:9 are reserved and r
 exclude -inst dma_top -toggle cr\[94\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top -toggle cr\[95\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
 exclude -inst dma_top -toggle cr\[9\] -comment "CR bits 31:9 are reserved and read as 0 (\[N-6.1\])."
-# CT-ERRPH2-dma_chan (constant): PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2; rtl/dma/dma_engine.sv err_phase_o <= 3'd1 / 3'd2
-exclude -inst dma_top.g_ch\[0\].u_ch -toggle err_phase_i\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-exclude -inst dma_top.g_ch\[0\].u_ch -toggle errph_q\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-exclude -inst dma_top.g_ch\[1\].u_ch -toggle err_phase_i\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-exclude -inst dma_top.g_ch\[1\].u_ch -toggle errph_q\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-exclude -inst dma_top.g_ch\[2\].u_ch -toggle err_phase_i\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-exclude -inst dma_top.g_ch\[2\].u_ch -toggle errph_q\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-exclude -inst dma_top.g_ch\[3\].u_ch -toggle err_phase_i\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-exclude -inst dma_top.g_ch\[3\].u_ch -toggle errph_q\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-exclude -inst dma_top.g_ch\[4\].u_ch -toggle err_phase_i\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-exclude -inst dma_top.g_ch\[4\].u_ch -toggle errph_q\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-exclude -inst dma_top.g_ch\[5\].u_ch -toggle err_phase_i\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-exclude -inst dma_top.g_ch\[5\].u_ch -toggle errph_q\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-# CT-ERRPH2-dma_engine (constant): PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2; rtl/dma/dma_engine.sv err_phase_o <= 3'd1 / 3'd2
-exclude -inst dma_top.u_eng -toggle err_phase_o\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-# CT-ERRPH2-dma_top (constant): PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2; rtl/dma/dma_engine.sv err_phase_o <= 3'd1 / 3'd2
-exclude -inst dma_top -toggle err_phase\[2\] -comment "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
 # CT-GSTATRSV-dma_apb_slave (constant): literal rtl/dma/dma_apb_slave.sv:90-94 (gstat_v = 0, then bits n, 8+n, 16+n for n < 6)
 exclude -inst dma_top.u_apb -toggle gstat_v\[14\] -comment "GSTAT holds ACTIVE\[5:0\], COMPLETE\[13:8\] and ERROR\[21:16\] of six channels; the other bits are 0."
 exclude -inst dma_top.u_apb -toggle gstat_v\[15\] -comment "GSTAT holds ACTIVE\[5:0\], COMPLETE\[13:8\] and ERROR\[21:16\] of six channels; the other bits are 0."

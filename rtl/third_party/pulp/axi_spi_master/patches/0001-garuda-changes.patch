@@ -1,0 +1,196 @@
+GARUDA changes to axi_spi_master's SPI datapath (D-22, zero-waiver F4, recorded 2026-11-19).
+- F4 renames (d995a4a): clock and reset ports to pclk/preset_n; spi_master_clkgen ->
+  spim_clkgen and spi_master_controller -> spim_ctrl (HAL module-name length), files with them.
+- F4 style (a7c8db1): tools/rtl_style.py; proven equivalent by JasperGold SEC. No logic change.
+
+--- a/rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv
++++ b/rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv
+@@ -17,8 +17,8 @@
+     parameter LOG_BUFFER_DEPTH = `log2(BUFFER_DEPTH)
+ )
+ (
+-    input  logic                    clk_i,
+-    input  logic                    rst_ni,
++    input  logic                    pclk,
++    input  logic                    preset_n,
+ 
+     input  logic                    clr_i,
+ 
+@@ -46,9 +46,9 @@
+     assign full = (elements == BUFFER_DEPTH);
+     assign elements_o = elements;
+ 
+-    always_ff @(posedge clk_i, negedge rst_ni)
++    always_ff @(posedge pclk, negedge preset_n)
+     begin: elements_sequential
+-        if (rst_ni == 1'b0)
++        if (preset_n == 1'b0)
+             elements <= 0;
+         else
+         begin
+@@ -70,9 +70,9 @@
+         end
+     end
+ 
+-    always_ff @(posedge clk_i, negedge rst_ni)
++    always_ff @(posedge pclk, negedge preset_n)
+     begin: buffers_sequential
+-        if (rst_ni == 1'b0)
++        if (preset_n == 1'b0)
+         begin
+             for (loop1 = 0 ; loop1 < BUFFER_DEPTH ; loop1 = loop1 + 1)
+                 buffer[loop1] <= 0;
+@@ -85,9 +85,9 @@
+         end
+     end
+ 
+-    always_ff @(posedge clk_i, negedge rst_ni)
++    always_ff @(posedge pclk, negedge preset_n)
+     begin: sequential
+-        if (rst_ni == 1'b0)
++        if (preset_n == 1'b0)
+         begin
+             pointer_out <= 0;
+             pointer_in  <= 0;
+--- a/rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv
++++ b/rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv
+@@ -10,8 +10,8 @@
+ 
+ module spi_master_rx
+ (
+-    input  logic        clk,
+-    input  logic        rstn,
++    input  logic        pclk,
++    input  logic        preset_n,
+     input  logic        en,
+     input  logic        rx_edge,
+     output logic        rx_done,
+@@ -118,9 +118,9 @@
+   end
+ 
+ 
+-  always_ff @(posedge clk, negedge rstn)
++  always_ff @(posedge pclk, negedge preset_n)
+   begin
+-    if (rstn == 0)
++    if (preset_n == 0)
+     begin
+       counter      <= 0;
+       counter_trgt <= 'h8;
+--- a/rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv
++++ b/rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv
+@@ -10,8 +10,8 @@
+ 
+ module spi_master_tx
+ (
+-    input  logic        clk,
+-    input  logic        rstn,
++    input  logic        pclk,
++    input  logic        preset_n,
+     input  logic        en,
+     input  logic        tx_edge,
+     output logic        tx_done,
+@@ -109,9 +109,9 @@
+     endcase
+   end
+ 
+-  always_ff @(posedge clk, negedge rstn)
++  always_ff @(posedge pclk, negedge preset_n)
+   begin
+-    if (~rstn)
++    if (~preset_n)
+     begin
+       counter      <= 0;
+       counter_trgt <= 'h8;
+--- a/rtl/third_party/pulp/axi_spi_master/src/spim_clkgen.sv
++++ b/rtl/third_party/pulp/axi_spi_master/src/spim_clkgen.sv
+@@ -8,10 +8,10 @@
+ // CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ // specific language governing permissions and limitations under the License.
+ 
+-module spi_master_clkgen
++module spim_clkgen
+ (
+-    input  logic                        clk,
+-    input  logic                        rstn,
++    input  logic                        pclk,
++    input  logic                        preset_n,
+     input  logic                        en,
+     input  logic          [7:0]         clk_div,
+     input  logic                        clk_div_valid,
+@@ -53,9 +53,9 @@
+             end
+     end
+ 
+-    always_ff @(posedge clk, negedge rstn)
++    always_ff @(posedge pclk, negedge preset_n)
+     begin
+-        if (rstn == 1'b0)
++        if (preset_n == 1'b0)
+         begin
+             counter_trgt <= 'h0;
+             counter      <= 'h0;
+--- a/rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv
++++ b/rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv
+@@ -12,10 +12,10 @@
+ `define SPI_QUAD_TX 2'b01
+ `define SPI_QUAD_RX 2'b10
+ 
+-module spi_master_controller
++module spim_ctrl
+ (
+-    input  logic                          clk,
+-    input  logic                          rstn,
++    input  logic                          pclk,
++    input  logic                          preset_n,
+     output logic                          eot,
+     input  logic                    [7:0] spi_clk_div,
+     input  logic                          spi_clk_div_valid,
+@@ -95,10 +95,10 @@
+ 
+   assign en_quad = spi_qrd | spi_qwr | en_quad_int;
+ 
+-  spi_master_clkgen u_clkgen
++  spim_clkgen u_clkgen
+   (
+-    .clk           ( clk               ),
+-    .rstn          ( rstn              ),
++    .pclk           ( pclk               ),
++    .preset_n          ( preset_n              ),
+     .en            ( spi_clock_en      ),
+     .clk_div       ( spi_clk_div       ),
+     .clk_div_valid ( spi_clk_div_valid ),
+@@ -109,8 +109,8 @@
+ 
+   spi_master_tx u_txreg
+   (
+-    .clk            ( clk              ),
+-    .rstn           ( rstn             ),
++    .pclk            ( pclk              ),
++    .preset_n           ( preset_n             ),
+     .en             ( spi_en_tx        ),
+     .tx_edge        ( spi_fall         ),
+     .tx_done        ( tx_done          ),
+@@ -129,8 +129,8 @@
+ 
+   spi_master_rx u_rxreg
+   (
+-    .clk            ( clk                    ),
+-    .rstn           ( rstn                   ),
++    .pclk            ( pclk                    ),
++    .preset_n           ( preset_n                   ),
+     .en             ( spi_en_rx              ),
+     .rx_edge        ( spi_rise               ),
+     .rx_done        ( rx_done                ),
+@@ -515,9 +515,9 @@
+   end
+ 
+ 
+-  always_ff @(posedge clk, negedge rstn)
++  always_ff @(posedge pclk, negedge preset_n)
+   begin
+-    if (rstn == 1'b0)
++    if (preset_n == 1'b0)
+     begin
+       state       <= IDLE;
+       en_quad_int <= 1'b0;

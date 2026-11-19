@@ -93,7 +93,7 @@ module dma_cov (
 endmodule
 
 bind dma_top dma_cov u_dma_cov (
-    .hclk_i(hclk), .hreset_n_i(hreset_n), .st(u_eng.st), .ch(u_eng.ch),
+    .hclk_i(hclk), .hreset_n_i(hreset_n), .st(u_eng.u_fsm.st), .ch(u_eng.ch),
     .eligible(eligible), .beat_done(beat_done), .beat_err(beat_err), .err_phase(err_phase),
     .cr(cr), .sar(sar), .dar(dar), .stat(stat), .wr_cr(wr_cr), .wr_iclr(wr_iclr), .wr_cnt(wr_cnt),
     .dma_req_i(dma_req_i), .wdata(wdata), .hready_i(hready_i));

@@ -130,15 +130,9 @@ module clk_div
     end
 
     // Output clock mux. Select only changes while every input is low.
-    reg hclk_mux;
-    always_comb begin : c_hclk_mux
-        case (sel_act_q)
-            2'b00: hclk_mux = aon_clk;
-            2'b01: hclk_mux = t2_q;
-            2'b10: hclk_mux = t3_q;
-            default: hclk_mux = t4_q;
-        endcase
-    end
+    wire hclk_mux = (sel_act_q == 2'b00) ? aon_clk :
+                    (sel_act_q == 2'b01) ? t2_q    :
+                    (sel_act_q == 2'b10) ? t3_q    : t4_q;
 
     // ---- pclk = hclk / 2 toggle ([N-7.3]) -----------------------------------
     // ERRATUM SIM-1 (2026-10-14). pclk is a CLOCK made by a flop on hclk.

@@ -71,7 +71,7 @@ module debug_cov (
     // what a DMI scan reported, on tck
     covergroup cg_scan @(posedge tck_i iff (por_n_i && capture_dr && ir == 5'h11));
         option.per_instance = 1;
-        cp_status: coverpoint (busy ? 2'd3 : dmistat) { bins ok = {0}; bins busy = {3}; ignore_bins failed = {2}; }
+        cp_status: coverpoint (busy ? 2'd3 : dmistat) { bins ok = {0}; bins busy = {3}; }
         cp_sticky: coverpoint dmistat { bins clear = {0}; bins sticky_busy = {3}; }
     endgroup
     cg_dmi cd = new(); cg_sba cs = new(); cg_scan cn = new();
@@ -83,7 +83,7 @@ bind debug_top debug_cov u_debug_cov (
     .dmactive(u_dm.dmactive), .sbbusy(u_dm.sbbusy), .sbautoinc(u_dm.sbautoinc),
     .sbreadonaddr(u_dm.sbreadonaddr), .sbreadondata(u_dm.sbreadondata), .sbbusyerror(u_dm.sbbusyerror),
     .sberror(u_dm.sberror), .sbaccess(u_dm.sbaccess),
-    .sba_done(sba_done), .sba_err(sba_err), .sba_write(u_dm.pending_write),
+    .sba_done(sba_done), .sba_err(sba_err), .sba_write(u_dm.sba_write_o),
     .capture_dr(cap_dr), .ir(ir), .dmistat(u_dtm.dmistat), .busy(u_dtm.busy));
 `endif
 `endif

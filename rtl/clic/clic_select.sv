@@ -15,7 +15,7 @@
 module clic_select
     import garuda_pkg::*;
 #(
-    parameter integer NUM_SRC = 32'd32  // power of two
+    parameter int unsigned NUM_SRC = 32'd32  // power of two
 )(
     input wire [NUM_SRC - 1:0] cand_i,  // enable & pending
     input wire [NUM_SRC * CLIC_LVL_W - 1:0] level_i,
@@ -29,8 +29,6 @@ module clic_select
     localparam int unsigned NODE_W = 32'd14;
     localparam int unsigned XL_W = 32'd14;
     localparam int unsigned XR_W = 32'd14;
-
-    localparam integer SEL_W = $clog2(NUM_SRC);
 
     // node key = {present, level[7:0], ~id[4:0]}
     wire [NODE_W-1:0] node [0:NUM_NODES-1];
@@ -49,7 +47,9 @@ module clic_select
         end
     endgenerate
 
-    assign valid_o = |cand_i;
+    // the top of the tree is valid when any candidate is (the valid bit leads
+    // the compare key)
+    assign valid_o = node[0][13];
     assign level_o = node[0][12:5];
     assign id_o    = valid_o ? ~node[0][4:0] : 5'd0;
 

@@ -98,9 +98,9 @@ module ahb_master_mux
     // -----------------------------------------------------------------------
     // Address / control phase - selected by the CURRENT grant.
     // -----------------------------------------------------------------------
-    reg [HTRANS_W-1:0] htrans_sel;
-
+    // F4: one process; htrans_sel is its own variable (HAL REVROP)
     always_comb begin : c_haddr
+        logic [HTRANS_W-1:0] htrans_sel;
         case (grant_i)
             AHB_M_DPORT: begin
                 haddr_o = d_haddr_i;
@@ -135,18 +135,17 @@ module ahb_master_mux
                 hprot_o = i_hprot_i;
             end
         endcase
-    end
-
-    // ERRATUM AHB-3: a SEQ whose burst was interrupted on the slave side by
-    // another master's transfer is re-opened as NONSEQ. One-way rewrite -
-    // NONSEQ is legal anywhere, so this can never make the bus less compliant.
-    always_comb begin : c_htrans
+        // ERRATUM AHB-3: a SEQ whose burst was interrupted on the slave side by
+        // another master's transfer is re-opened as NONSEQ. One-way rewrite -
+        // NONSEQ is legal anywhere, so this can never make the bus less
+        // compliant.
         if (seq_break_i && (htrans_sel == AHB_TRANS_SEQ)) begin
             htrans_o = AHB_TRANS_NONSEQ;
         end else begin
             htrans_o = htrans_sel;
         end
     end
+
 
     // -----------------------------------------------------------------------
     // Write data phase - selected by the PREVIOUS grant. ERRATUM AHB-1.

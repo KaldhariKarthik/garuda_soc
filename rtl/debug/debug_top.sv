@@ -52,7 +52,6 @@ module debug_top
     wire dr_tdo;
     wire req_tgl;
     wire ack_tgl_sync;
-    wire ack_tgl;
     wire [DMI_ADDR_W-1:0]  req_addr;
     wire [WORD_W-1:0] req_data;
     wire [DMI_OP_W-1:0]  req_op;
@@ -72,13 +71,13 @@ module debug_top
             .dr_tdo_o(dr_tdo),
         .req_tgl_o(req_tgl), .req_addr_o(req_addr), .req_data_o(req_data),
             .req_op_o(req_op),
-        .ack_tgl_i(ack_tgl_sync), .rsp_data_i(dm_rdata), .rsp_err_i(1'b0));
+        .ack_tgl_i(ack_tgl_sync), .rsp_data_i(dm_rdata));
 
     dmi_cdc u_cdc (
         .tck(tck), .ext_rst_n(ext_rst_n), .req_tgl_i(req_tgl),
             .ack_tgl_sync_o(ack_tgl_sync),
         .hclk(hclk), .dm_rst_n(dm_rst_n), .req_pulse_o(req_pulse),
-        .ack_pulse_i(dm_done), .ack_tgl_o(ack_tgl));
+        .ack_pulse_i(dm_done));
 
     wire sba_start;
     wire sba_write;

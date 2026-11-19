@@ -46,7 +46,7 @@
 module reset_ctrl
     import garuda_pkg::*;
 #(
-    parameter integer STRETCH = 32'd1024  // GARUDA_RESET_STRETCH_CYCLES
+    parameter int unsigned STRETCH = 32'd1024  // GARUDA_RESET_STRETCH_CYCLES
 )(
     // ---- clocks ------------------------------------------------------------
     input wire aon_clk,  // stretch + RSTREASON clock
@@ -91,7 +91,7 @@ module reset_ctrl
     localparam int unsigned PRST_W = 32'd2;
     localparam int unsigned EXTP_W = 32'd2;
 
-    localparam integer CNT_W = $clog2(STRETCH + 1);
+    localparam int unsigned CNT_W = $clog2(STRETCH + 1);
 
     // =========================================================================
     // Strobes from the APB register block (pclk domain, one pclk cycle long)
@@ -119,9 +119,10 @@ module reset_ctrl
     reg [CNT_W-1:0] cnt_q;
     reg          dm_scope_q;
     wire [CNT_W-1:0] cnt_nxt = req_any       ? STRETCH[CNT_W-1:0] :
-                            (cnt_q != 0)  ? cnt_q - 1'b1    : cnt_q;
-    wire dm_scope_nxt = (ext_held | req_dm_scope) ? 1'b1 :
-                        (cnt_nxt == 0)            ? 1'b0 : dm_scope_q;
+                            (cnt_q != '0) ? CNT_W'(cnt_q - 1'b1) : cnt_q;
+    wire stretching   = (cnt_nxt != '0);
+    wire dm_scope_nxt = (ext_held || req_dm_scope) ? 1'b1 :
+                        !stretching                ? 1'b0 : dm_scope_q;
 
     reg sys_req_q;
     reg dm_req_q;
@@ -136,9 +137,9 @@ module reset_ctrl
         end else begin
             cnt_q <= cnt_nxt;
             dm_scope_q <= dm_scope_nxt;
-            sys_req_q <= (cnt_nxt != 0);
-            dm_req_q <= (cnt_nxt != 0) & dm_scope_nxt;
-            core_clr <= (cnt_nxt != 0);
+            sys_req_q <= stretching;
+            dm_req_q <= stretching & dm_scope_nxt;
+            core_clr <= stretching;
         end
     end
 
@@ -241,6 +242,9 @@ module reset_ctrl
     // =========================================================================
     // APB registers (pclk)
     // =========================================================================
+    // RSTREASON as the register holds it: {BOOTFAIL, SW, NDM, WDT, EXT}
+    wire [RST_CAUSE_W-1:0] reason_all = {bootfail_q, reason_q};
+
     reset_ctrl_apb u_apb (
         .pclk        (pclk),
         .preset_n    (preset_n),
@@ -253,7 +257,7 @@ module reset_ctrl
         .prdata_o      (prdata_o),
         .pready_o      (pready_o),
         .pslverr_o     (pslverr_o),
-        .reason_i      ({bootfail_q, reason_q}),
+        .reason_i      (reason_all),
         .reason_w1c_o  (reason_w1c),
         .bootfail_set_o(bootfail_set),
         .swrst_o       (swrst_stb),

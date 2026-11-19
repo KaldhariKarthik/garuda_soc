@@ -1,9 +1,9 @@
-# garuda-fv 1 suite=fv_dsu block=dsu date=2026-11-17T07:18:44+05:30 design=263a7d353a9b79bb242b2901dc97e5d159c96a04 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+# garuda-fv 1 suite=fv_dsu block=dsu date=2026-11-19T15:44:38+05:30 design=202625b450c1664cced99d534ce8a3329ed3dfda rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
 task	mode	result	class	secs	detail	log
-dsu_bmc	bmc	BOUNDED(16)	OK	3	[18 asserts, 6 covers in model] 	logs/dsu/raw/fv_dsu/fv_dsu_bmc.log
-dsu_prove	prove	PROVEN	OK	1	[18 asserts, 6 covers in model] 	logs/dsu/raw/fv_dsu/fv_dsu_prove.log
-dsu_cover	cover	COVERED	OK	34	[18 asserts, 6 covers in model] 	logs/dsu/raw/fv_dsu/fv_dsu_cover.log
-dsu_no_dsu9	bmc	FAIL	XFAIL:PLANTED	0	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_per_acc	logs/dsu/raw/fv_dsu/fv_dsu_no_dsu9.log
-dsu_mut_no_interlock	bmc	FAIL	XFAIL:PLANTED	0	[16 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_fires	logs/dsu/raw/fv_dsu/fv_dsu_mut_no_interlock.log
-dsu_mut_ovf_not_sticky	bmc	FAIL	XFAIL:PLANTED	29	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_sticky	logs/dsu/raw/fv_dsu/fv_dsu_mut_ovf_not_sticky.log
-dsu_mut_ovf_clear_drops_set	bmc	FAIL	XFAIL:PLANTED	28	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_set_beats_clear	logs/dsu/raw/fv_dsu/fv_dsu_mut_ovf_clear_drops_set.log
+dsu_bmc	bmc	BOUNDED(16)	OK	14	[18 asserts, 6 covers in model] 	logs/dsu/raw/fv_dsu/fv_dsu_bmc.log
+dsu_prove	prove	PROVEN	OK	3	[18 asserts, 6 covers in model] 	logs/dsu/raw/fv_dsu/fv_dsu_prove.log
+dsu_cover	cover	COVERED	OK	180	[18 asserts, 6 covers in model] 	logs/dsu/raw/fv_dsu/fv_dsu_cover.log
+dsu_no_dsu9	bmc	FAIL	XFAIL:PLANTED	2	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_per_acc	logs/dsu/raw/fv_dsu/fv_dsu_no_dsu9.log
+dsu_mut_no_interlock	bmc	FAIL	XFAIL:PLANTED	1	[16 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_fires	logs/dsu/raw/fv_dsu/fv_dsu_mut_no_interlock.log
+dsu_mut_ovf_not_sticky	bmc	FAIL	XFAIL:PLANTED	117	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_sticky	logs/dsu/raw/fv_dsu/fv_dsu_mut_ovf_not_sticky.log
+dsu_mut_ovf_clear_drops_set	bmc	FAIL	XFAIL:PLANTED	115	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_set_beats_clear	logs/dsu/raw/fv_dsu/fv_dsu_mut_ovf_clear_drops_set.log

@@ -20,7 +20,7 @@ module operand_router
             if (x == 16'h8000) begin
                 abs16 = 16'h7FFF;
             end else if (x[15]) begin
-                abs16 = (~x) + 16'b0000000000000001;
+                abs16 = HALF_W'((~x) + 16'b0000000000000001);
             end else begin
                 abs16 = x;
             end

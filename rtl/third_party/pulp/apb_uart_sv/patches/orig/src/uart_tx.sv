@@ -9,8 +9,8 @@
 // specific language governing permissions and limitations under the License.
 
 module uart_tx (
-        input  logic            pclk,
-        input  logic            preset_n,
+        input  logic            clk_i,
+        input  logic            rstn_i,
         output logic            tx_o,
         output logic            busy_o,
         input  logic            cfg_en_i,
@@ -151,9 +151,9 @@ module uart_tx (
         endcase
     end
 
-    always_ff @(posedge pclk or negedge preset_n)
+    always_ff @(posedge clk_i or negedge rstn_i)
     begin
-        if (preset_n == 1'b0)
+        if (rstn_i == 1'b0)
         begin
             CS             <= IDLE;
             reg_data       <= 8'hFF;
@@ -180,9 +180,9 @@ module uart_tx (
         end
     end
 
-    always_ff @(posedge pclk or negedge preset_n)
+    always_ff @(posedge clk_i or negedge rstn_i)
     begin
-        if (preset_n == 1'b0)
+        if (rstn_i == 1'b0)
         begin
             baud_cnt <= 'h0;
             bit_done <= 1'b0;

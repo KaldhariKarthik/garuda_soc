@@ -43,10 +43,12 @@ module timers_top
     wire wr_load;
     wire wr_kick;
     wire wr_warn;
-    wire [WORD_W-1:0] wdata;
+    // the APB write data, as it is (F4: timers_apb's copy of it was a
+    // feedthrough); it is stable through the access
+    wire [WORD_W-1:0] wdata = pwdata_i;
     wire [WORD_W-1:0] lo;
     wire [WORD_W-1:0] hi;
-    wire [WORD_W-1:0] ctl;
+    wire [WDT_CTL_W-1:0] ctl;
     wire [WORD_W-1:0] load;
     wire [WORD_W-1:0] val;
     wire [WORD_W-1:0] warn;
@@ -62,7 +64,7 @@ module timers_top
         .wr_mtime_lo_o(wr_lo), .wr_mtime_hi_o(wr_hi), .wr_cmp_lo_o(wr_clo),
             .wr_cmp_hi_o(wr_chi),
         .rd_mtime_lo_o(rd_lo), .wr_wdtctl_o(wr_ctl), .wr_wdtload_o(wr_load),
-        .wr_wdtkick_o(wr_kick), .wr_wdtwarn_o(wr_warn), .wdata_o(wdata),
+        .wr_wdtkick_o(wr_kick), .wr_wdtwarn_o(wr_warn),
         .mtime_lo_i(lo), .mtime_hi_i(hi), .mtimecmp_i(cmp),
         .wdtctl_i(ctl), .wdtload_i(load), .wdtval_i(val), .wdtwarn_i(warn));
 

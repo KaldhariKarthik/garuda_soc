@@ -30,7 +30,7 @@ module tb_ahb_units;
 
     // ---------------- decoder ----------------
     logic [31:0] dec_a;  wire [4:0] dec_sel;
-    ahb_decoder u_dec (.haddr_i(dec_a), .hsel_o(dec_sel));
+    ahb_decoder u_dec (.rgn_i(dec_a[31:28]), .hsel_o(dec_sel));
 
     // ---------------- arbiter ----------------
     logic [7:0] arb_htrans; logic arb_hready;
@@ -41,15 +41,16 @@ module tb_ahb_units;
     // ---------------- master port ----------------
     logic [1:0] mp_htrans; logic mp_gr, mp_own, mp_rdy; logic [31:0] mp_rd; logic mp_resp;
     wire  mp_hready, mp_hresp; wire [31:0] mp_hrdata;
-    ahb_master_port u_mp (.hclk(clk), .hreset_n(rst_n), .htrans_i(mp_htrans), .granted_i(mp_gr),
+    ahb_master_port u_mp (.hclk(clk), .hreset_n(rst_n), .req_i(mp_htrans[1]), .granted_i(mp_gr),
                           .dph_own_i(mp_own), .hready_shared_i(mp_rdy), .hrdata_shared_i(mp_rd),
                           .hresp_shared_i(mp_resp), .hready_o(mp_hready), .hrdata_o(mp_hrdata), .hresp_o(mp_hresp));
 
     // ---------------- default slave ----------------
     logic ds_sel, ds_rdy; logic [1:0] ds_trans;
-    wire [31:0] ds_rdata; wire ds_rdyo, ds_resp;
-    ahb_dflt_slave u_ds (.hclk(clk), .hreset_n(rst_n), .hsel_i(ds_sel), .htrans_i(ds_trans),
-                            .hready_i(ds_rdy), .hrdata_o(ds_rdata), .hreadyout_o(ds_rdyo), .hresp_o(ds_resp));
+    // the default slave has no HRDATA since F4 (the slave mux returns 0 for it)
+    wire [31:0] ds_rdata = 32'd0; wire ds_rdyo, ds_resp;
+    ahb_dflt_slave u_ds (.hclk(clk), .hreset_n(rst_n), .hsel_i(ds_sel), .req_i(ds_trans[1]),
+                            .hready_i(ds_rdy), .hreadyout_o(ds_rdyo), .hresp_o(ds_resp));
 
     // ---------------- slave mux ----------------
     logic [4:0] sm_sel; logic sm_dv; logic [4:0][31:0] sm_rd; logic [4:0] sm_ry, sm_rs;
@@ -59,8 +60,9 @@ module tb_ahb_units;
         .hrdata_s1_i(sm_rd[1]), .hreadyout_s1_i(sm_ry[1]), .hresp_s1_i(sm_rs[1]),
         .hrdata_s2_i(sm_rd[2]), .hreadyout_s2_i(sm_ry[2]), .hresp_s2_i(sm_rs[2]),
         .hrdata_s3_i(sm_rd[3]), .hreadyout_s3_i(sm_ry[3]), .hresp_s3_i(sm_rs[3]),
-        .hrdata_df_i(sm_rd[4]), .hreadyout_df_i(sm_ry[4]), .hresp_df_i(sm_rs[4]),
-        .hrdata_o(sm_hrdata), .hresp_o(sm_hresp), .hready_o(sm_hready), .dph_sel_o(sm_dphsel));
+        .hreadyout_df_i(sm_ry[4]), .hresp_df_i(sm_rs[4]),
+        .hrdata_o(sm_hrdata), .hresp_o(sm_hresp), .hready_o(sm_hready));
+    assign sm_dphsel = u_sm.dph_sel;  // no port since F4
 
     // ---------------- master mux ----------------
     logic [1:0] mm_grant, mm_dph; logic mm_seqb;
@@ -178,7 +180,7 @@ module tb_ahb_units;
                 check(sm_dphsel == dsel, "[N-7.5] data-phase select register");
                 check(sm_hready == (!sm_dv ? 1'b1 : (s < 0) ? 1'b1 : sm_ry[s]), "[N-7.5] HREADY from the data-phase slave");
                 check(!sm_dv ? (sm_hrdata == 0 && !sm_hresp) : (s < 0) ? (sm_hrdata == 0 && !sm_hresp)
-                                                                       : (sm_hrdata == sm_rd[s] && sm_hresp == sm_rs[s]),
+                                                                       : (sm_hrdata == ((s == 4) ? 32'd0 : sm_rd[s]) && sm_hresp == sm_rs[s]),
                       "[N-7.5] return from the data-phase slave only");
                 @(posedge clk);
                 if (sm_hready) dsel = sm_sel;

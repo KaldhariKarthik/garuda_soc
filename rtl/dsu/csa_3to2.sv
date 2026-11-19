@@ -1,5 +1,5 @@
 
-module csa_3to2 #(parameter integer WIDTH = 32'd48) (
+module csa_3to2 #(parameter int unsigned WIDTH = 32'd48) (
     input wire [WIDTH - 1:0] a,
     input wire [WIDTH - 1:0] b,
     input wire [WIDTH - 1:0] c,
@@ -10,6 +10,8 @@ module csa_3to2 #(parameter integer WIDTH = 32'd48) (
     timeprecision 1ps;
 
     assign sum = a^b^c;
-    assign carry = ((a & b) | (b&c) | (a&c)) << 1;
+    // the majority, one place up: bit 0 of a carry vector is 0 and the top
+    // majority bit leaves the word (carry-save)
+    assign carry = ((a & b) | (b & c) | (a & c)) << 1;
 
 endmodule

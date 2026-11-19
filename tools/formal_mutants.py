@@ -58,24 +58,23 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
  {'path': 'tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_nosetup.v',
   'src': 'rtl/ahb2apb/ahb2apb_apb_fsm.sv',
   'header': ['MUTANT nosetup (bus plan B2 negative control): PENABLE raised with PSEL (no SETUP cycle)'],
-  'subs': [("                        psel_o <= 12'd1 << win_i;\n",
-            "                        psel_o   <= 12'd1 << win_i;\n"
-            "                        penable_o <= 1'b1;\n")]},
+  'subs': [('            psel_o <= win_hot;\n',
+            "            psel_o <= win_hot;\n            penable_o <= 1'b1;  // MUTANT: no SETUP cycle\n")]},
  {'path': 'tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to15.v',
   'src': 'rtl/ahb2apb/ahb2apb_apb_fsm.sv',
   'header': ['MUTANT to15 (bus plan B2 negative control): timeout one sample early (15)'],
-  'subs': [('                    end else if (to_cnt == TIMEOUT - 1) begin\n',
-            '                    end else if (to_cnt == TIMEOUT - 2) begin\n')]},
+  'subs': [("    wire to_last = (to_cnt == TO_CNT_W'(TIMEOUT - 32'd1));\n",
+            "    wire to_last = (to_cnt == TO_CNT_W'(TIMEOUT - 32'd2));  // MUTANT: one sample early\n")]},
  {'path': 'tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_to17.v',
   'src': 'rtl/ahb2apb/ahb2apb_apb_fsm.sv',
   'header': ['MUTANT to17 (bus plan B2 negative control): timeout one sample late (17)'],
-  'subs': [('                    end else if (to_cnt == TIMEOUT - 1) begin\n',
-            '                    end else if (to_cnt == TIMEOUT) begin\n')]},
+  'subs': [("    wire to_last = (to_cnt == TO_CNT_W'(TIMEOUT - 32'd1));\n",
+            "    wire to_last = (to_cnt == TO_CNT_W'(TIMEOUT));  // MUTANT: one sample late\n")]},
  {'path': 'tb/ahb2apb/formal/mutants/ahb2apb_apb_fsm_mut_win.v',
   'src': 'rtl/ahb2apb/ahb2apb_apb_fsm.sv',
   'header': ['MUTANT win (bus plan B2 negative control): PSEL on the neighbouring window'],
-  'subs': [("                        psel_o <= 12'd1 << win_i;\n",
-            "                        psel_o   <= 12'd1 << (win_i ^ 4'd1);\n")]},
+  'subs': [("        assign win_hot[k] = (win_i == APB_WIN_W'(k));\n",
+            "        assign win_hot[k] = ((win_i ^ 4'd1) == APB_WIN_W'(k));  // MUTANT: neighbour\n")]},
  {'path': 'tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_apb2.v',
   'src': 'rtl/ahb2apb/ahb2apb_bridge.sv',
   'header': ['MUTANT apb2 (bus plan B2 negative control): rtl/ahb2apb/ahb2apb_bridge.sv with ONE fix '
@@ -85,13 +84,13 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
   'subs': [("    wire       win_ok  = WINDOW_MASK[win] && (haddr_i[27:16] == 12'h000);\n",
             '    wire       win_ok  = WINDOW_MASK[win];   // MUTANT: APB-2 reverted\n')]},
  {'path': 'tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_brg1.v',
-  'src': 'rtl/ahb2apb/ahb2apb_bridge.sv',
+  'src': 'rtl/ahb2apb/brg_ahb_fsm.sv',
   'header': ['MUTANT brg1 (bus plan B2 negative control): rtl/ahb2apb/ahb2apb_bridge.sv with ONE fix '
              'reverted (BRG-1: a new transfer only from H_IDLE).',
              'Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal '
              'negative control: must FAIL. (tb/ahb2apb/formal/apb.toml mut_brg1)'],
-  'subs': [('                H_IDLE, H_OK, H_ERR2: begin\n',
-            '                H_IDLE: begin   // MUTANT: BRG-1 reverted\n')]},
+  'subs': [('                end else if (xfer_i) begin\n',
+            '                end else if (xfer_i && hstate == H_IDLE) begin  // MUTANT: BRG-1 reverted\n')]},
  {'path': 'tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_subword.v',
   'src': 'rtl/ahb2apb/ahb2apb_bridge.sv',
   'header': ['MUTANT subword (bus plan B2 negative control): rtl/ahb2apb/ahb2apb_bridge.sv with ONE change '
@@ -213,48 +212,40 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
   'header': ['MUTANT dma_arbiter_mut_prio_inv: rtl/dma/dma_arbiter.sv with ONE change (DMA plan D7: the '
              'LOWEST priority wins).',
              'Formal negative control: must FAIL.'],
-  'subs': [('            if (eligible_i[n]\n'
-            '                && (!grant_valid_o || PRIO[3 * n+:3] > best)) begin\n',
-            '            if (eligible_i[n] && (!grant_valid_o || PRIO[3*n +: 3] < best)) begin\n')]},
+  'subs': [('            if (el[c] && (!found || PRIO[BEST_W*c +: BEST_W] > best)) begin\n',
+            '            if (el[c] && (!found || PRIO[BEST_W*c +: BEST_W] < best)) begin  // MUTANT\n')]},
  {'path': 'tb/dma/formal/mutants/dma_arbiter_mut_tie_high.v',
   'src': 'rtl/dma/dma_arbiter.sv',
   'header': ['MUTANT dma_arbiter_mut_tie_high: rtl/dma/dma_arbiter.sv with ONE change. Formal negative '
              'control: must FAIL.'],
-  'subs': [('            if (eligible_i[n]\n'
-            '                && (!grant_valid_o || PRIO[3 * n+:3] > best)) begin\n',
-            '            if (eligible_i[n] && (!grant_valid_o || PRIO[3*n +: 3] >= best)) begin\n')]},
+  'subs': [('            if (el[c] && (!found || PRIO[BEST_W*c +: BEST_W] > best)) begin\n',
+            '            if (el[c] && (!found || PRIO[BEST_W*c +: BEST_W] >= best)) begin  // MUTANT\n')]},
  {'path': 'tb/dma/formal/mutants/dma_chan_mut_d2.v',
   'src': 'rtl/dma/dma_chan.sv',
   'header': ['MUTANT mut_d2: rtl/dma/dma_chan.sv with ONE fix reverted (D-2: a software CR write beats the '
              'hardware EN clear).',
              'Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal '
              'negative control: must FAIL. (tb/dma/formal/dma.toml mut_d2, a_hw_wins_en)'],
-  'subs': [("            if (hw_clr_en || (en_q && rem_q == 16'd0 && !wr_cr_i)) begin\n"
-            "                en_q <= 1'b0;\n"
-            '            end else if (wr_cr_i) begin\n'
-            '                en_q <= wdata_i[0];\n'
-            '                if (wdata_i[0] && !en_q) begin\n'
-            '                    rem_q <= cnt_q;  // arm\n'
-            '                end\n'
-            '            end\n',
-            '            if (wr_cr_i) begin  // MUTANT: D-2 reverted (a software write beats the hardware '
-            'clear)\n'
-            '                en_q <= wdata_i[0];\n'
-            '                if (wdata_i[0] && !en_q) begin\n'
-            '                    rem_q <= cnt_q;  // arm\n'
-            '                end\n'
-            "            end else if (hw_clr_en || (en_q && rem_q == 16'd0)) begin\n"
-            "                en_q <= 1'b0;\n"
-            '            end\n')]},
+  'subs': [('    wire arm    = !hw_off && wr_cr_i && wdata_i[0] && !en_q;\n',
+            '    wire arm    = wr_cr_i && wdata_i[0] && !en_q;  // MUTANT: D-2 reverted\n'),
+           ('        end else if (hw_off) begin\n'
+            "            en_q <= 1'b0;\n"
+            '        end else if (wr_cr_i) begin\n'
+            '            en_q <= wdata_i[0];\n'
+            '        end',
+            '        end else if (wr_cr_i) begin  // MUTANT: D-2 reverted (software beats hardware)\n'
+            '            en_q <= wdata_i[0];\n'
+            "        end else if (hw_clr_en || (en_q && rem_q == 16'd0)) begin\n"
+            "            en_q <= 1'b0;\n"
+            '        end')]},
  {'path': 'tb/dma/formal/mutants/dma_chan_mut_dma8.v',
   'src': 'rtl/dma/dma_chan.sv',
   'header': ['MUTANT mut_dma8: rtl/dma/dma_chan.sv with ONE fix reverted (DMA-8: a failed beat marks the '
              'request as taken).',
              'Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal '
              'negative control: must FAIL. (tb/dma/formal/dma.toml mut_dma8, a_failed_beat_keeps_request)'],
-  'subs': [("            end else if (beat_done_i) begin\n                taken_q <= 1'b1;\n",
-            '            end else if (beat_done_i || beat_err_i) begin  // MUTANT: DMA-8 reverted\n'
-            "                taken_q <= 1'b1;\n")]},
+  'subs': [('            if (beat_done_i) begin\n',
+            '            if (beat_done_i || beat_err_i) begin  // MUTANT: DMA-8 reverted\n')]},
  {'path': 'tb/dma/formal/mutants/dma_chan_mut_iclr_wins.v',
   'src': 'rtl/dma/dma_chan.sv',
   'header': ['MUTANT mut_iclr_wins: rtl/dma/dma_chan.sv with ONE change (an ICLR in the cycle COMPLETE sets '
@@ -262,25 +253,24 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
              'Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal '
              'negative control: must FAIL. (tb/dma/formal/dma.toml mut_iclr_wins, '
              'a_set_beats_clear_complete)'],
-  'subs': [('                if (wdata_i[0] && !(done && last)) begin\n',
-            '                if (wdata_i[0]) begin  // MUTANT: clear beats set\n')]},
+  'subs': [('    wire iclr_comp = wr_iclr_i && wdata_i[0] && !(done && last);\n',
+            '    wire iclr_comp = wr_iclr_i && wdata_i[0];  // MUTANT: clear beats set\n')]},
  {'path': 'tb/dma/formal/mutants/dma_engine_mut_eng1.v',
   'src': 'rtl/dma/dma_engine.sv',
   'header': ['MUTANT mut_eng1: rtl/dma/dma_engine.sv with ONE fix reverted (ENG-1: a beat is taken in the '
              'cycle a result is reported).',
              'Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal '
              'negative control: must FAIL. (tb/dma/formal/dma.toml mut_eng1, a_no_grant_while_reporting)'],
-  'subs': [('                    if (take) begin\n',
-            '                    if (grant_valid_i) begin                 // MUTANT: ENG-1 guard '
-            'removed\n')]},
+  'subs': [("    wire take = idle && grant_valid_i && (beat_done_o == 6'd0)\n        && (beat_err_o == 6'd0);\n",
+            '    wire take = idle && grant_valid_i;  // MUTANT: ENG-1 guard removed\n')]},
  {'path': 'tb/dsu/formal/mutants/dsu_top_no_dsu9.v',
   'src': 'rtl/dsu/dsu_top.sv',
   'header': ['MUTANT dsu_no_dsu9: rtl/dsu/dsu_top.sv with ONE fix reverted (DSU-9: busy not gated by '
              'dsu_en).',
              'Regenerated 2026-11-16 from the current RTL; it differs from it by this change only. Formal '
              'negative control: must FAIL. (tb/dsu/formal/dsu.toml dsu_no_dsu9)'],
-  'subs': [('        .is_custom0 (is_custom0_w & dsu_en),\n',
-            '        .is_custom0 (is_custom0_w),                 // MUTANT: DSU-9 fix reverted\n')]}]
+  'subs': [('    wire dsu_custom0 = is_custom0_w & dsu_en;\n',
+            '    wire dsu_custom0 = is_custom0_w;  // MUTANT: DSU-9 fix reverted\n')]}]
 
 
 def build(mu):

@@ -26,4 +26,5 @@ package ahb_pkg;
     localparam AHB_RESP_ERROR = 1'b1;
     localparam AHB_HPROT_DMA = 4'b0011;
     localparam AHB_HPROT_SBA = 4'b0011;
+    localparam int unsigned AHB_RGN_W = 32'd4;  // HADDR[31:28], the region
 endpackage

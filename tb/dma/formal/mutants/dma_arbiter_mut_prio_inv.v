@@ -18,24 +18,31 @@ module dma_arbiter
     parameter [17:0] PRIO = {3'd0, 3'd4, 3'd2, 3'd1, 3'd3, 3'd5}  // ch5..ch0
 )(
     input wire [DMA_NCH-1:0] eligible_i,
-    output reg grant_valid_o,
-    output reg [DMA_CH_W-1:0] grant_ch_o
+    output wire grant_valid_o,
+    output wire [DMA_CH_W-1:0] grant_ch_o
 );
     timeunit 1ns;
     timeprecision 1ps;
     localparam int unsigned BEST_W = 32'd3;
-    integer n;
-    reg [BEST_W-1:0] best;
-    always_comb begin : c_grant_valid
-        grant_valid_o = 1'b0;
-        grant_ch_o = 3'd0;
-        best = 3'd0;
-        for (n = 0; n < 6; n = n + 1) begin
-            if (eligible_i[n] && (!grant_valid_o || PRIO[3*n +: 3] < best)) begin
-                grant_valid_o = 1'b1;
-                grant_ch_o = n[2:0];
-                best = PRIO[3 * n+:3];
+
+    // {valid, channel}: the eligible channel with the highest PRIO; on a tie
+    // the lower channel (F4: the running best is a local of the function)
+    function automatic [DMA_CH_W:0] arbitrate(input [DMA_NCH-1:0] el);
+        logic [BEST_W-1:0] best;
+        logic found;
+        logic [DMA_CH_W-1:0] pick;
+        found = 1'b0;
+        pick = '0;
+        best = '0;
+        for (int c = 0; c < DMA_NCH; c++) begin
+            if (el[c] && (!found || PRIO[BEST_W*c +: BEST_W] < best)) begin  // MUTANT
+                found = 1'b1;
+                pick = DMA_CH_W'(c);
+                best = PRIO[BEST_W*c +: BEST_W];
             end
         end
-    end
+        arbitrate = {found, pick};
+    endfunction
+
+    assign {grant_valid_o, grant_ch_o} = arbitrate(eligible_i);
 endmodule

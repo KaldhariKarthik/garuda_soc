@@ -62,15 +62,9 @@ module garuda_spim_top
     // Shim: decode, tail registers, sticky IRQ, DMA hold-off, miso sync
     // =========================================================================
     wire ip_psel;
-    wire ip_penable;
-    wire ip_pwrite;
-    wire [PADDR_W-1:0] ip_paddr;
-    wire [WORD_W-1:0] ip_pwdata;
     wire [WORD_W-1:0] ip_prdata;
-    wire        ip_pready;
     wire [EVT_W-1:0]  evt;
     wire        miso_sync;
-    wire [DMACTL_W-1:0]  dmactl;
 
     // =========================================================================
     // FIFO occupancy without touching the IP (D-22)
@@ -88,36 +82,36 @@ module garuda_spim_top
     // =========================================================================
     wire poll = ~psel_i;  // window idle: our cycle to use
 
-    reg [WORD_W-1:0] status_q;
+    // the two STATUS fields the wrapper uses (F4: the rest was held and never
+    // read)
+    reg [RX_WORDS_W-1:0] rx_words;
+    reg [TX_WORDS_W-1:0] tx_words;
     always_ff @(posedge pclk or negedge preset_n) begin : p_status
         if (!preset_n) begin
-            status_q <= 32'd0;
+            rx_words <= '0;
+            tx_words <= '0;
         end else if (poll) begin
-            status_q <= ip_prdata;
+            rx_words <= ip_prdata[20:16];
+            tx_words <= ip_prdata[28:24];
         end
     end
-
-    wire [RX_WORDS_W-1:0] rx_words = status_q[20:16];
-    wire [TX_WORDS_W-1:0] tx_words = status_q[28:24];
 
     garuda_apb_shim #(
         // SPIM section 6: 0x00 to 0x18, RXFIFO 0x20, INTCFG 0x24, INTSTA 0x28.
         // 0x1C and 0x2C to 0xFC are not registers and answer PSLVERR.
         .N_EVT(3), .SYNC_W(1), .IP_LIMIT(12'h100),
-            .IP_MAP(64'h0000_0000_0000_077F), .ADDR_SHIFT(0),
+            .IP_MAP(64'h0000_0000_0000_077F),
         .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
-        .ip_psel_o(ip_psel), .ip_penable_o(ip_penable), .ip_pwrite_o(ip_pwrite),
-        .ip_paddr_o(ip_paddr), .ip_pwdata_o(ip_pwdata), .ip_prdata_i(ip_prdata),
-        .ip_pready_i(ip_pready),
+        .ip_psel_o(ip_psel), .ip_prdata_i(ip_prdata),
         .evt_i(evt), .irq_o(irq_o),
         .rx_avail_i(|rx_words),
         .tx_space_i(tx_words < BUFFER_DEPTH[4:0]),
-        .dma_ack_i(dma_ack_i), .dma_req_o(dma_req_o), .dmactl_o(dmactl),
+        .dma_ack_i(dma_ack_i), .dma_req_o(dma_req_o),
         .pad_async_i(spim_miso_i), .pad_sync_o(miso_sync));
 
     // =========================================================================
@@ -136,25 +130,20 @@ module garuda_spim_top
     // =========================================================================
     wire csn0;
     wire csn1;
-    wire csn2;
-    wire csn3;
     wire sdo0;
-    wire sdo1;
-    wire sdo2;
-    wire sdo3;
 
     // IP APB: the shim's access when the SoC is using the window, our STATUS
     // poll otherwise. PWRITE is forced low on a poll so it can never write.
     wire        eff_psel    = poll ? 1'b1    : ip_psel;
-    wire        eff_penable = poll ? 1'b1    : ip_penable;
-    wire        eff_pwrite  = poll ? 1'b0    : ip_pwrite;
-    wire [PADDR_W-1:0] eff_paddr   = poll ? 12'h000 : ip_paddr;
+    wire        eff_penable = poll ? 1'b1    : penable_i;
+    wire        eff_pwrite  = poll ? 1'b0    : pwrite_i;
+    wire [PADDR_W-1:0] eff_paddr   = poll ? 12'h000 : paddr_i;
     // SPIM-4: STATUS[2] and [3] start a quad read or write upstream. GARUDA has
     // no quad pins, so a write to STATUS reaches the engine with those two bits
     // cleared and the engine stays in single-bit mode whatever firmware writes
     // ([N-7.5]).
-    wire [WORD_W-1:0] eff_pwdata = (ip_pwrite && ip_paddr == 12'h000)
-        ? (ip_pwdata & ~32'h0000_000C) : ip_pwdata;
+    wire [WORD_W-1:0] eff_pwdata = (pwrite_i && paddr_i == 12'h000)
+        ? (pwdata_i & ~32'h0000_000C) : pwdata_i;
 
     apb_spi_master #(
         .BUFFER_DEPTH(BUFFER_DEPTH), .APB_ADDR_WIDTH(12)
@@ -162,12 +151,12 @@ module garuda_spim_top
         .pclk(pclk), .preset_n(preset_n),
         .PADDR(eff_paddr), .PWDATA(eff_pwdata), .PWRITE(eff_pwrite),
         .PSEL(eff_psel), .PENABLE(eff_penable),
-        .PRDATA(ip_prdata), .PREADY(ip_pready), .PSLVERR(),
+        .PRDATA(ip_prdata), .PREADY(), .PSLVERR(),
         .events_o(events),
         .spi_clk(spim_sclk_o),
-        .spi_csn0(csn0), .spi_csn1(csn1), .spi_csn2(csn2), .spi_csn3(csn3),
+        .spi_csn0(csn0), .spi_csn1(csn1), .spi_csn2(), .spi_csn3(),
         .spi_mode(),  // single-bit only ([N-7.6])
-        .spi_sdo0(sdo0), .spi_sdo1(sdo1), .spi_sdo2(sdo2), .spi_sdo3(sdo3),
+        .spi_sdo0(sdo0), .spi_sdo1(), .spi_sdo2(), .spi_sdo3(),
         // MISO goes to sdi1, NOT sdi0. Upstream's lanes are the quad-SPI pads:
         // in single-bit mode spi_master_tx drives IO0 (sdo0) and spi_master_rx
         // shifts in IO1 (`data_int_next = {data_int[30:0], sdi1}`), which is
@@ -188,6 +177,5 @@ module garuda_spim_top
     assign spim_cs_imu_n_o   = csn1 | ~csn0;
     assign spim_mosi_o       = sdo0;
 
-    wire _unused = |{csn2, csn3, sdo1, sdo2, sdo3, dmactl, status_q[0]};
 
 endmodule

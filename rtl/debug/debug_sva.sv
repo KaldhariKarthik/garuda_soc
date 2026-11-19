@@ -180,16 +180,16 @@ bind debug_top debug_sva u_debug_sva (
     .tdo_oe_o(tdo_oe_o), .haddr_o(haddr_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o),
     .hready_i(hready_i), .hresp_i(hresp_i), .hsize_o(hsize_o), .hburst_o(hburst_o),
     .ndmreset_o(ndmreset_o), .hartreset_o(hartreset_o),
-    .tap_st(u_tap.st), .ir_q(u_tap.ir_q), .ir_sh(u_tap.ir_sh),
+    .tap_st(u_tap.u_fsm.st), .ir_q(u_tap.ir_q), .ir_sh(u_tap.ir_sh),
     .req_tgl(req_tgl), .ack_seen(u_dtm.ack_seen), .update_dr(up_dr), .capture_dr(cap_dr), .tlr(tlr),
     .dmistat(u_dtm.dmistat), .req_addr(req_addr), .req_data(req_data), .req_op(req_op),
     .dtm_sh(u_dtm.sh), .dtm_ir(ir),
-    .req_pulse(req_pulse), .ack_tgl(ack_tgl), .ack_pulse(dm_done), .armed(u_cdc.armed),
+    .req_pulse(req_pulse), .ack_tgl(u_cdc.ack_tgl), .ack_pulse(dm_done), .armed(u_cdc.armed),
     .req_i(req_pulse), .done_o(dm_done), .dmactive(u_dm.dmactive), .sbbusy(u_dm.sbbusy),
     .sbbusyerror(u_dm.sbbusyerror), .sbautoinc(u_dm.sbautoinc), .sberror(u_dm.sberror),
     .sbaccess(u_dm.sbaccess), .sbaddr(u_dm.sbaddr),
     .sba_start(sba_start), .sba_done(sba_done), .sba_err(sba_err),
     .dm_wr(u_dm.wr), .dm_rd(u_dm.rd), .dm_addr(req_addr),
-    .sba_st(u_sba.st), .sba_busy(sba_busy));
+    .sba_st(u_sba.u_fsm.st), .sba_busy(sba_busy));
 `endif
 `endif

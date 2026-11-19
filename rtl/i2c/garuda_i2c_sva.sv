@@ -181,7 +181,7 @@ bind garuda_i2c_top garuda_i2c_sva u_i2c_sva (
     .i2c_scl_o(i2c_scl_o), .i2c_sda_o(i2c_sda_o), .i2c_scl_oe(i2c_scl_oe), .i2c_sda_oe(i2c_sda_oe),
     .scl_sync(scl_sync), .i2c_scl_i(i2c_scl_i), .i2c_sda_i(i2c_sda_i), .en_q(en_q), .tip_q(tip_q), .al_q(al_q), .to_q(to_q), .rxvalid_q(rxvalid_q),
     .cmd_write(cmd_write), .cmd_ok(cmd_ok), .cmd_bits(pwdata_i[4:0]),
-    .rd_rx(ip_psel & ip_penable & ~ip_pwrite & (ip_paddr == A_RXDATA)),
+    .rd_rx(ip_psel & penable_i & ~pwrite_i & (paddr_i == A_RXDATA)),
     .core_held(core_held), .core_al(core_al), .core_ack(core_ack),
     .abort_req(abort_req), .to_pulse(to_pulse), .timeout_q(timeout_q), .prescale_q(prescale_q),
     .bit_cmd(u_byte.core_cmd),

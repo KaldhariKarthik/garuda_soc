@@ -34,7 +34,7 @@ module watchdog
     input wire wr_kick_i,
     input wire wr_warn_i,
     input wire [WORD_W-1:0] wdata_i,
-    output wire [WORD_W-1:0] ctl_o,
+    output wire [WDT_CTL_W-1:0] ctl_o,
     output wire [WORD_W-1:0] load_o,
     output wire [WORD_W-1:0] val_o,
     output wire [WORD_W-1:0] warn_o,
@@ -98,7 +98,7 @@ module watchdog
 
     assign warn_irq_o = en_q && warnen_q && (ctr_q <= warn_q);
 
-    assign ctl_o  = {30'd0, warnen_q, en_q};
+    assign ctl_o  = {warnen_q, en_q};
     assign load_o = load_q;
     assign val_o  = ctr_q;
     assign warn_o = warn_q;

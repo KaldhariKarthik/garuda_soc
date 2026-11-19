@@ -46,7 +46,6 @@ module dma_apb_slave
     output wire [DMA_NCH-1:0] wr_dar_o,
     output wire [DMA_NCH-1:0] wr_cnt_o,
     output wire [DMA_NCH-1:0] wr_iclr_o,
-    output wire [WORD_W-1:0] wdata_o,
     // register views
     input wire [DMA_NCH * WORD_W - 1:0] cr_i,
     input wire [DMA_NCH * WORD_W - 1:0] sar_i,
@@ -58,7 +57,6 @@ module dma_apb_slave
     timeprecision 1ps;
     localparam int unsigned CH_W = 32'd3;
     localparam int unsigned REG_W = 32'd3;
-    localparam int unsigned CHSEL_W = 32'd6;
 
     wire [CH_W-1:0] ch  = paddr_i[7:5];
     wire [REG_W-1:0] reg_ = paddr_i[4:2];
@@ -82,50 +80,63 @@ module dma_apb_slave
     end
     wire wstb = acc_wr & ~acc_wr_q;
 
-    wire [CHSEL_W-1:0] chsel = 6'd1 << ch;
+    // F4 (2026-11-17): the channel select is a compare per channel and the
+    // channels' registers are arrays, so nothing is shifted by or indexed with
+    // a product of the address (HAL SHFTNC, INDXOP, POOBID). The slots past
+    // DMA_NCH read 0 and are outside chan_rgn.
+    localparam int unsigned CH_SLOTS = 32'd8;  // 2**CH_W
+    wire [DMA_NCH-1:0] chsel;
+    wire [WORD_W-1:0] cr_a [0:CH_SLOTS-1];
+    wire [WORD_W-1:0] sar_a [0:CH_SLOTS-1];
+    wire [WORD_W-1:0] dar_a [0:CH_SLOTS-1];
+    wire [WORD_W-1:0] cnt_a [0:CH_SLOTS-1];
+    wire [WORD_W-1:0] stat_a [0:CH_SLOTS-1];
+    // GSTAT: ACTIVE [5:0], COMPLETE [13:8], ERROR [21:16]
+    wire [WORD_W-1:0] gstat_v;
+    genvar k;
+    generate for (k = 0; k < CH_SLOTS; k = k + 1) begin : g_slot
+        if (k < DMA_NCH) begin : g_ch
+            assign chsel[k]  = (ch == CH_W'(k));
+            assign cr_a[k]   = cr_i[WORD_W*k +: WORD_W];
+            assign sar_a[k]  = sar_i[WORD_W*k +: WORD_W];
+            assign dar_a[k]  = dar_i[WORD_W*k +: WORD_W];
+            assign cnt_a[k]  = cnt_i[WORD_W*k +: WORD_W];
+            assign stat_a[k] = stat_i[WORD_W*k +: WORD_W];
+            assign gstat_v[k]      = stat_a[k][16];
+            assign gstat_v[8 + k]  = stat_a[k][17];
+            assign gstat_v[16 + k] = stat_a[k][18];
+        end else begin : g_none
+            assign cr_a[k]   = '0;
+            assign sar_a[k]  = '0;
+            assign dar_a[k]  = '0;
+            assign cnt_a[k]  = '0;
+            assign stat_a[k] = '0;
+            assign gstat_v[k]      = 1'b0;
+            assign gstat_v[8 + k]  = 1'b0;
+            assign gstat_v[16 + k] = 1'b0;
+        end
+    end endgenerate
+    assign gstat_v[31:24] = 8'd0;
+
     assign wr_cr_o   = {6{wstb && reg_ == 3'd0}} & chsel;
     assign wr_sar_o  = {6{wstb && reg_ == 3'd1}} & chsel;
     assign wr_dar_o  = {6{wstb && reg_ == 3'd2}} & chsel;
     assign wr_cnt_o  = {6{wstb && reg_ == 3'd3}} & chsel;
     assign wr_iclr_o = {6{wstb && reg_ == 3'd5}} & chsel;
-    assign wdata_o   = pwdata_i;
 
-    // GSTAT
-    reg [WORD_W-1:0] gstat_v;
-    integer n;
-    always_comb begin : c_gstat_v
-        gstat_v = 32'd0;
-        for (n = 0; n < 6; n = n + 1) begin
-            gstat_v[n] = stat_i[32 * n + 16];
-            gstat_v[8 + n] = stat_i[32 * n + 17];
-            gstat_v[16 + n] = stat_i[32 * n + 18];
-        end
-    end
+    // the addressed channel register; ICLR (5) reads 0
+    wire [WORD_W-1:0] ch_word = (reg_ == 3'd0) ? cr_a[ch]  :
+                                (reg_ == 3'd1) ? sar_a[ch] :
+                                (reg_ == 3'd2) ? dar_a[ch] :
+                                (reg_ == 3'd3) ? cnt_a[ch] :
+                                (reg_ == 3'd4) ? stat_a[ch] : 32'd0;
+    wire [WORD_W-1:0] rd_mux  = gstat ? gstat_v : chan_rgn ? ch_word : 32'd0;
 
-    reg [WORD_W-1:0] rd_mux;
-    always_comb begin : c_rd_mux
-        rd_mux = 32'd0;
-        if (gstat) begin
-            rd_mux = gstat_v;
-        end else if (chan_rgn) begin
-            case (reg_)
-                3'd0: rd_mux = cr_i[32 * ch+:32];
-                3'd1: rd_mux = sar_i[32 * ch+:32];
-                3'd2: rd_mux = dar_i[32 * ch+:32];
-                3'd3: rd_mux = cnt_i[32 * ch+:32];
-                3'd4: rd_mux = stat_i[32 * ch+:32];
-                default: rd_mux = 32'd0;  // ICLR reads 0
-            endcase
-        end
-    end
-
-    // Registered on pclk at the setup-to-access edge: stable for the whole
-    // access phase, so what leaves for the bridge is a pclk-to-pclk path.
     reg [WORD_W-1:0] prdata_q;
     always_ff @(posedge pclk or negedge preset_n) begin : p_prdata
         if (!preset_n) begin
             prdata_q <= 32'd0;
-        end else if (psel_i & ~penable_i) begin
+        end else if (psel_i && !penable_i) begin
             prdata_q <= rd_mux;
         end
     end

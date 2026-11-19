@@ -83,7 +83,7 @@ module dma_sva #(
     input wire [31:0] wdata,
     input wire [191:0] cr, sar, dar, cnt, stat,
     input wire [5:0]  eligible, beat_done, beat_err,
-    input wire [2:0]  err_phase,
+    input wire [1:0]  err_phase,
     input wire        grant_valid,
     input wire [2:0]  grant_ch,
     // white-box: engine state and channel, request-taken flags (dma_chan)
@@ -703,7 +703,7 @@ bind dma_top dma_sva #(.PRIO(PRIO), .ACK_CYCLES(ACK_CYCLES)) u_dma_props_a (
     .wdata(wdata), .cr(cr), .sar(sar), .dar(dar), .cnt(cnt), .stat(stat),
     .eligible(eligible), .beat_done(beat_done), .beat_err(beat_err), .err_phase(err_phase),
     .grant_valid(grant_valid), .grant_ch(grant_ch),
-    .eng_st(u_eng.st), .eng_ch(u_eng.ch), .eng_m2m(u_eng.m2m_l),
+    .eng_st(u_eng.u_fsm.st), .eng_ch(u_eng.ch), .eng_m2m(u_eng.m2m_l),
     .eng_sar(u_eng.sar_l), .eng_dar(u_eng.dar_l), .eng_size(u_eng.size_l),
     .taken({g_ch[5].u_ch.taken_q, g_ch[4].u_ch.taken_q, g_ch[3].u_ch.taken_q,
             g_ch[2].u_ch.taken_q, g_ch[1].u_ch.taken_q, g_ch[0].u_ch.taken_q}),

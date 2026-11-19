@@ -67,6 +67,25 @@ def render_pkg(items):
         else:
             decl = "localparam %s = %s;" % (pname, v)
         lines.append("    " + decl + (("  // " + cmt) if cmt else ""))
+    # The APB windows served outside garuda_soc_top (every window but the
+    # three the SoC top holds itself), in window order: garuda_soc_top's
+    # expansion port carries exactly these (F4: no select bit or return path
+    # for a window nobody outside serves)
+    internal = {"WIN_TIMERS", "WIN_CLIC", "WIN_DMA"}
+    wins = sorted((int(fmt_val(y, vals[y][0], False)), pn) for y, pn in RTL_NAMES
+                  if pn.startswith("WIN_") and pn not in internal)
+    lines.append("    // the APB windows outside garuda_soc_top, by expansion index")
+    lines.append("    localparam int unsigned APB_NEXT = 32'd%d;" % len(wins))
+    for k, (w, pn) in enumerate(wins):
+        lines.append("    localparam int unsigned EXT_%s = 32'd%d;  // window %d" % (pn[4:], k, w))
+    lines.append("    // the window number of expansion index e")
+    lines.append("    function automatic int unsigned ext_win(input int unsigned e);")
+    lines.append("        case (e)")
+    for k, (w, pn) in enumerate(wins[:-1]):
+        lines.append("            32'd%d: ext_win = %s;" % (k, pn))
+    lines.append("            default: ext_win = %s;" % wins[-1][1])
+    lines.append("        endcase")
+    lines.append("    endfunction")
     lines += ["endpackage", ""]
     return "\n".join(lines)
 

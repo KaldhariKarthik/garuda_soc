@@ -44,13 +44,8 @@ module garuda_pwm_top
     localparam [63:0] IP_MAP   = 64'h0000_0000_0000_00FF;
 
     wire ip_psel;
-    wire ip_penable;
-    wire ip_pwrite;
-    wire [PADDR_W-1:0] ip_paddr;
-    wire [WORD_W-1:0] ip_pwdata;
-    wire [DMACTL_W-1:0]  dmactl;
 
-    wire wr_hit = ip_psel & ip_penable & ip_pwrite;
+    wire wr_hit = ip_psel & penable_i & pwrite_i;
 
     // =========================================================================
     // Registers
@@ -78,7 +73,7 @@ module garuda_pwm_top
                 duty_q[kw] <= 16'd0;
             end
         end else if (wr_hit) begin
-            case (ip_paddr)
+            case (paddr_i)
                 A_PRESCALE: prescale_q <= pwdata_i[15:0];
                 A_PERIOD: period_q <= pwdata_i[15:0];
                 A_CTRL: begin
@@ -87,7 +82,7 @@ module garuda_pwm_top
                 end
                 default: begin
                     for (kw = 0; kw < NUM_CHAN; kw = kw + 1) begin
-                        if (ip_paddr == (A_DUTY0 + 12'd4 * kw[11:0])) begin
+                        if (paddr_i == (A_DUTY0 + 12'd4 * kw[11:0])) begin
                             duty_q[kw] <= pwdata_i[15:0];
                         end
                     end
@@ -128,7 +123,7 @@ module garuda_pwm_top
     always_comb begin : c_duty_rd
         duty_rd = 16'd0;
         for (kr = 0; kr < NUM_CHAN; kr = kr + 1) begin
-            if (ip_paddr == (A_DUTY0 + 12'd4 * kr[11:0])) begin
+            if (paddr_i == (A_DUTY0 + 12'd4 * kr[11:0])) begin
                 duty_rd = duty_q[kr];
             end
         end
@@ -137,7 +132,7 @@ module garuda_pwm_top
     reg [WORD_W-1:0] reg_rdata;
     always_comb begin : c_reg_rdata
         reg_rdata = 32'd0;
-        case (ip_paddr)
+        case (paddr_i)
             A_PRESCALE: reg_rdata = {16'd0, prescale_q};
             A_PERIOD: reg_rdata = {16'd0, period_q};
             A_CTRL: reg_rdata = {{(28 - NUM_CHAN) {1'b0}}, ch_en_q, 3'd0, en_q};
@@ -148,21 +143,17 @@ module garuda_pwm_top
 
     garuda_apb_shim #(
         .N_EVT(2), .SYNC_W(1), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT),
-            .IP_MAP(IP_MAP),
-        .ADDR_SHIFT(0), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
+            .IP_MAP(IP_MAP), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
-        .ip_psel_o(ip_psel), .ip_penable_o(ip_penable), .ip_pwrite_o(ip_pwrite),
-        .ip_paddr_o(ip_paddr), .ip_pwdata_o(ip_pwdata), .ip_prdata_i(reg_rdata),
-        .ip_pready_i(1'b1),
+        .ip_psel_o(ip_psel), .ip_prdata_i(reg_rdata),
         .evt_i(evt), .irq_o(irq_o),
         .rx_avail_i(1'b0), .tx_space_i(1'b0),  // no DMA channel
-        .dma_ack_i(1'b0), .dma_req_o(), .dmactl_o(dmactl),
+        .dma_ack_i(1'b0), .dma_req_o(),
         .pad_async_i(1'b0), .pad_sync_o());
 
-    wire _unused = |{dmactl, ip_pwdata};
 
 endmodule

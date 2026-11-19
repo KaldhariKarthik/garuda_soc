@@ -466,11 +466,16 @@ module tb_top;
 
     dsu_decoder_if vif(clk);
 
+    // the op strobes are internal since F4 (dsu_top never read them); the bench
+    // keeps checking them as the decoder forms them
+    assign vif.shift_op = dut.op_macshift & dut.dsu_en & ~dut.illegal_instr;
+    assign vif.rd_lo_op = dut.op_rd_lo & dut.dsu_en & ~dut.illegal_instr;
+    assign vif.rd_hi_op = dut.op_rd_hi & dut.dsu_en & ~dut.illegal_instr;
     dsu_decoder dut (
         .instr(vif.instr), .dsu_en(vif.dsu_en), .flush(vif.flush),
         .control(vif.control), .acc_sel(vif.acc_sel), .sat_op(vif.sat_op),
-        .shift_op(vif.shift_op), .shift_amt(vif.shift_amt), .shift_dir(vif.shift_dir),
-        .shift_acc_sel(vif.shift_acc_sel), .rd_lo_op(vif.rd_lo_op), .rd_hi_op(vif.rd_hi_op),
+        .shift_amt(vif.shift_amt), .shift_dir(vif.shift_dir),
+        .shift_acc_sel(vif.shift_acc_sel),
         .result_src(vif.result_src), .writes_regfile(vif.writes_regfile), .rd_addr(vif.rd_addr),
         .illegal_instr(vif.illegal_instr), .funct5_fld(vif.funct5), .funct3_fld(vif.funct3),
         .is_custom0(vif.is_custom0)

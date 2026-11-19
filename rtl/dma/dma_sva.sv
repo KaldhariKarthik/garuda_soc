@@ -32,7 +32,7 @@ module dma_top_sva #(
     input wire [2:0]  st, ch,
     input wire        m2m,                     // the engine's beat is memory-to-memory (DMA-15)
     input wire [5:0]  eligible, beat_done, beat_err,
-    input wire [2:0]  err_phase,
+    input wire [1:0]  err_phase,
     input wire        grant_valid,
     input wire [2:0]  grant_ch
 );
@@ -229,7 +229,7 @@ bind dma_top dma_top_sva #(.PRIO(PRIO), .ACK_CYCLES(ACK_CYCLES)) u_dma_sva (
     .haddr_o(haddr_o), .hwdata_o(hwdata_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o),
     .hready_i(hready_i), .hresp_i(hresp_i), .hsize_o(hsize_o), .hburst_o(hburst_o),
     .dma_req_i(dma_req_i), .dma_ack_o(dma_ack_o),
-    .st(u_eng.st), .ch(u_eng.ch), .m2m(u_eng.m2m_l), .eligible(eligible), .beat_done(beat_done), .beat_err(beat_err),
+    .st(u_eng.u_fsm.st), .ch(u_eng.ch), .m2m(u_eng.m2m_l), .eligible(eligible), .beat_done(beat_done), .beat_err(beat_err),
     .err_phase(err_phase), .grant_valid(grant_valid), .grant_ch(grant_ch));
 
 bind dma_chan dma_chan_sva u_chan_sva (

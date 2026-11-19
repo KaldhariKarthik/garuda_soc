@@ -723,3 +723,42 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-17T07:21:48+05:30	263a7d353a9b	True	fv_ahb	mut_nofreeze	-	FAIL	XFAIL:PLANTED	[2 asserts, 47 covers in model] props: u_ahb_props_a.a_grant_stable_in_data_phase
 2026-11-17T07:21:48+05:30	263a7d353a9b	True	fv_ahb	equiv_a10	-	PROVEN	OK	[58 asserts, 47 covers in model] 
 2026-11-17T07:21:48+05:30	263a7d353a9b	True	fv_ahb	equiv_a16	-	PROVEN	OK	[62 asserts, 47 covers in model] 
+2026-11-18T19:29:43+05:30	a7c8db10bf9a	True	fv_ahb	ahb_bmc	-	BOUNDED(24)	OK	[62 asserts, 47 covers in model] 
+2026-11-18T19:29:43+05:30	a7c8db10bf9a	True	fv_ahb	ahb_prove	-	PROVEN	OK	[62 asserts, 47 covers in model] 
+2026-11-18T19:29:43+05:30	a7c8db10bf9a	True	fv_ahb	ahb_cover	-	COVERED	OK	[62 asserts, 47 covers in model] 
+2026-11-18T19:29:43+05:30	a7c8db10bf9a	True	fv_ahb	ahb7_find	-	FAIL	XFAIL:AHB-7	[8 asserts, 47 covers in model] props: u_ahb_props_a.g_resp[0].a_held_resp_okay, u_ahb_props_a.g_resp[0].a_master_err_shape
+2026-11-18T19:29:43+05:30	a7c8db10bf9a	True	fv_ahb	mut_ahb1	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_hwdata_data_phase
+2026-11-18T19:29:43+05:30	a7c8db10bf9a	True	fv_ahb	mut_ahb2	-	FAIL	XFAIL:PLANTED	[12 asserts, 47 covers in model] props: u_ahb_props_a.g_resp[1].a_rdata_value
+2026-11-18T19:29:43+05:30	a7c8db10bf9a	True	fv_ahb	mut_ahb3	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_burst_restart_nonseq
+2026-11-18T19:29:43+05:30	a7c8db10bf9a	True	fv_ahb	mut_ahb4	-	FAIL	XFAIL:PLANTED	[5 asserts, 47 covers in model] props: u_ahb_props_a.a_reset_state, u_ahb_props_a.g_held[1].a_idle_not_gated, u_ahb_props_a.g_held[2].a_idle_not_gated, u_ahb_props_a.g_held[3].a_idle_not_gated
+2026-11-18T19:29:43+05:30	a7c8db10bf9a	True	fv_ahb	mut_prio	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_priority
+2026-11-18T19:29:43+05:30	a7c8db10bf9a	True	fv_ahb	mut_decode	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_decode
+2026-11-18T19:29:43+05:30	a7c8db10bf9a	True	fv_ahb	mut_nofreeze	-	FAIL	XFAIL:PLANTED	[2 asserts, 47 covers in model] props: u_ahb_props_a.a_grant_stable_in_data_phase
+2026-11-18T19:29:43+05:30	a7c8db10bf9a	True	fv_ahb	equiv_a10	-	PROVEN	OK	[58 asserts, 47 covers in model] 
+2026-11-18T19:29:43+05:30	a7c8db10bf9a	True	fv_ahb	equiv_a16	-	PROVEN	OK	[62 asserts, 47 covers in model] 
+2026-11-19T15:20:16+05:30	202625b450c1	True	fv_ahb	ahb_bmc	-	BOUNDED(24)	OK	[62 asserts, 47 covers in model] 
+2026-11-19T15:20:16+05:30	202625b450c1	True	fv_ahb	ahb_prove	-	PROVEN	OK	[62 asserts, 47 covers in model] 
+2026-11-19T15:20:16+05:30	202625b450c1	True	fv_ahb	ahb_cover	-	COVERED	OK	[62 asserts, 47 covers in model] 
+2026-11-19T15:20:16+05:30	202625b450c1	True	fv_ahb	ahb7_find	-	FAIL	XFAIL:AHB-7	[8 asserts, 47 covers in model] props: u_ahb_props_a.g_resp[0].a_held_resp_okay, u_ahb_props_a.g_resp[0].a_master_err_shape
+2026-11-19T15:20:16+05:30	202625b450c1	True	fv_ahb	mut_ahb1	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_hwdata_data_phase
+2026-11-19T15:20:16+05:30	202625b450c1	True	fv_ahb	mut_ahb2	-	ERROR	UNEXPECTED	5:17:43 [/home/kkarthik/garuda_soc/logs/ahb/raw/fv_ahb/mut_ahb2/mut_ahb2] base: ahb_interconnect.sv:308: ERROR: port 'req_i' does not exist in 'ahb_master_port'
+2026-11-19T15:20:16+05:30	202625b450c1	True	fv_ahb	mut_ahb3	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_burst_restart_nonseq
+2026-11-19T15:20:16+05:30	202625b450c1	True	fv_ahb	mut_ahb4	-	ERROR	UNEXPECTED	5:17:44 [/home/kkarthik/garuda_soc/logs/ahb/raw/fv_ahb/mut_ahb4/mut_ahb4] base: ahb_interconnect.sv:308: ERROR: port 'req_i' does not exist in 'ahb_master_port'
+2026-11-19T15:20:16+05:30	202625b450c1	True	fv_ahb	mut_prio	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_priority
+2026-11-19T15:20:16+05:30	202625b450c1	True	fv_ahb	mut_decode	-	ERROR	UNEXPECTED	5:17:45 [/home/kkarthik/garuda_soc/logs/ahb/raw/fv_ahb/mut_decode/mut_decode] base: ahb_interconnect.sv:221: ERROR: port 'rgn_i' does not exist in 'ahb_decoder'
+2026-11-19T15:20:16+05:30	202625b450c1	True	fv_ahb	mut_nofreeze	-	FAIL	XFAIL:PLANTED	[2 asserts, 47 covers in model] props: u_ahb_props_a.a_grant_stable_in_data_phase
+2026-11-19T15:20:16+05:30	202625b450c1	True	fv_ahb	equiv_a10	-	PROVEN	OK	[58 asserts, 47 covers in model] 
+2026-11-19T15:20:16+05:30	202625b450c1	True	fv_ahb	equiv_a16	-	ERROR	UNEXPECTED	17:47 [/home/kkarthik/garuda_soc/logs/ahb/raw/fv_ahb/equiv_a16/equiv_a16] base: ahb_interconnect.sv:308: ERROR: port 'req_i' does not exist in 'ahb_master_port'
+2026-11-19T15:52:34+05:30	202625b450c1	True	fv_ahb	ahb_bmc	-	BOUNDED(24)	OK	[62 asserts, 47 covers in model] 
+2026-11-19T15:52:34+05:30	202625b450c1	True	fv_ahb	ahb_prove	-	PROVEN	OK	[62 asserts, 47 covers in model] 
+2026-11-19T15:52:34+05:30	202625b450c1	True	fv_ahb	ahb_cover	-	COVERED	OK	[62 asserts, 47 covers in model] 
+2026-11-19T15:52:34+05:30	202625b450c1	True	fv_ahb	ahb7_find	-	FAIL	XFAIL:AHB-7	[8 asserts, 47 covers in model] props: u_ahb_props_a.g_resp[0].a_held_resp_okay, u_ahb_props_a.g_resp[0].a_master_err_shape
+2026-11-19T15:52:34+05:30	202625b450c1	True	fv_ahb	mut_ahb1	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_hwdata_data_phase
+2026-11-19T15:52:34+05:30	202625b450c1	True	fv_ahb	mut_ahb2	-	FAIL	XFAIL:PLANTED	[12 asserts, 47 covers in model] props: u_ahb_props_a.g_resp[1].a_rdata_value
+2026-11-19T15:52:34+05:30	202625b450c1	True	fv_ahb	mut_ahb3	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_burst_restart_nonseq
+2026-11-19T15:52:34+05:30	202625b450c1	True	fv_ahb	mut_ahb4	-	FAIL	XFAIL:PLANTED	[5 asserts, 47 covers in model] props: u_ahb_props_a.a_reset_state, u_ahb_props_a.g_held[1].a_idle_not_gated, u_ahb_props_a.g_held[2].a_idle_not_gated, u_ahb_props_a.g_held[3].a_idle_not_gated
+2026-11-19T15:52:34+05:30	202625b450c1	True	fv_ahb	mut_prio	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_priority
+2026-11-19T15:52:34+05:30	202625b450c1	True	fv_ahb	mut_decode	-	FAIL	XFAIL:PLANTED	[1 asserts, 47 covers in model] props: u_ahb_props_a.a_decode
+2026-11-19T15:52:34+05:30	202625b450c1	True	fv_ahb	mut_nofreeze	-	FAIL	XFAIL:PLANTED	[2 asserts, 47 covers in model] props: u_ahb_props_a.a_grant_stable_in_data_phase
+2026-11-19T15:52:34+05:30	202625b450c1	True	fv_ahb	equiv_a10	-	PROVEN	OK	[58 asserts, 47 covers in model] 
+2026-11-19T15:52:34+05:30	202625b450c1	True	fv_ahb	equiv_a16	-	ERROR	UNEXPECTED	48:23 [/home/kkarthik/garuda_soc/logs/ahb/raw/fv_ahb/equiv_a16/equiv_a16] base: ahb_interconnect.sv:308: ERROR: port 'req_i' does not exist in 'ahb_master_port'

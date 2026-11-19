@@ -66,8 +66,11 @@ module clic_top
         .pready_o(pready_o), .pslverr_o(pslverr_o),
         .pending_i(src), .ie_o(ie), .level_o(level), .swi_o(swi));
 
+    // the candidates: pending and enabled
+    wire [NUM_SRC - 1:0] cand = src & ie;
+
     clic_select #(.NUM_SRC(NUM_SRC)) u_sel (
-        .cand_i(src & ie), .level_i(level),
+        .cand_i(cand), .level_i(level),
         .valid_o(clic_irq_valid_o), .id_o(clic_irq_id_o),
             .level_o(clic_irq_level_o));
 

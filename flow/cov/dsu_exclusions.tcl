@@ -38,10 +38,6 @@ exclude -inst dsu_top.u_cluster.u_mac1 -toggle csa2_carry\[0\] -comment "Bit 0 o
 exclude -inst dsu_top.u_cluster.u_mac2 -toggle carry_reg\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
 exclude -inst dsu_top.u_cluster.u_mac2 -toggle csa1_carry\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
 exclude -inst dsu_top.u_cluster.u_mac2 -toggle csa2_carry\[0\] -comment "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b."
-# CT-CIN-kogge_stone_49 (constant): literal rtl/dsu/mac_unit.sv:159 .cin(1'b0)
-exclude -inst dsu_top.u_cluster.u_mac0.u_ks -toggle cin -comment "The final adder's carry-in is tied to 0."
-exclude -inst dsu_top.u_cluster.u_mac1.u_ks -toggle cin -comment "The final adder's carry-in is tied to 0."
-exclude -inst dsu_top.u_cluster.u_mac2.u_ks -toggle cin -comment "The final adder's carry-in is tied to 0."
 # CT-SATABS-operand_router (constant): literal rtl/dsu/operand_router.sv:14-19 (if x == 16'h8000 abs16 = 16'h7FFF); the DSU oracle saturates the same way (MACABS vectors pass)
 exclude -inst dsu_top.u_cluster.u_mac0.u_router -toggle rs1_lo_abs\[15\] -comment "abs16 SATURATES: |-32768| gives 0x7FFF, every other negative x gives ~x+1 <= 0x7FFF and a positive x is < 0x8000, so bit 15 of the absolute value is never set."
 exclude -inst dsu_top.u_cluster.u_mac0.u_router -toggle rs2_lo_abs\[15\] -comment "abs16 SATURATES: |-32768| gives 0x7FFF, every other negative x gives ~x+1 <= 0x7FFF and a positive x is < 0x8000, so bit 15 of the absolute value is never set."

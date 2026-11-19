@@ -12,6 +12,7 @@
 -f rtl/pwm/filelist.f
 -f rtl/spi_slave/filelist.f
 
+rtl/soc/garuda_chip_core.sv
 rtl/soc/garuda_chip_top.sv
 rtl/soc/chip_sva.sv
 rtl/soc/chip_pads_sva.sv

@@ -154,7 +154,7 @@ module mac_unit(
     wire [48:0] c_ext = {csa2_carry[47], csa2_carry};
     wire [48:0] result_ext;
     kogge_stone_49 u_ks (
-        .a (s_ext), .b (c_ext), .cin (1'b0), .sum (result_ext)
+        .a (s_ext), .b (c_ext), .sum (result_ext)
     );
 
     wire [47:0] adder_result = result_ext[47:0];

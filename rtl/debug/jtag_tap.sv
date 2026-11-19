@@ -30,79 +30,53 @@ module jtag_tap
 );
     timeunit 1ns;
     timeprecision 1ps;
-    localparam int unsigned ST_W = 32'd4;
-
-    localparam [3:0] ST_RESET = 4'h0, ST_IDLE = 4'h1, SELDR = 4'h2, CAPDR
-        = 4'h3,
-                     SHDR = 4'h4, EX1DR = 4'h5, PADR = 4'h6, EX2DR = 4'h7,
-                     UPDR = 4'h8, SELIR = 4'h9, CAPIR = 4'hA, SHIR = 4'hB,
-                     EX1IR = 4'hC, PAIR = 4'hD, EX2IR = 4'hE, UPIR = 4'hF;
-
     localparam [4:0] IR_IDCODE = 5'h01;
 
-    reg [ST_W-1:0] st;
-    always_ff @(posedge tck or negedge ext_rst_n) begin : p_st
-        if (!ext_rst_n) begin
-            st <= ST_RESET;
-        end else begin
-            case (st)
-                ST_RESET: st <= tms_i ? ST_RESET : ST_IDLE;
-                ST_IDLE: st <= tms_i ? SELDR : ST_IDLE;
-                SELDR: st <= tms_i ? SELIR : CAPDR;
-                CAPDR: st <= tms_i ? EX1DR : SHDR;
-                SHDR: st <= tms_i ? EX1DR : SHDR;
-                EX1DR: st <= tms_i ? UPDR : PADR;
-                PADR: st <= tms_i ? EX2DR : PADR;
-                EX2DR: st <= tms_i ? UPDR : SHDR;
-                UPDR: st <= tms_i ? SELDR : ST_IDLE;
-                SELIR: st <= tms_i ? ST_RESET : CAPIR;
-                CAPIR: st <= tms_i ? EX1IR : SHIR;
-                SHIR: st <= tms_i ? EX1IR : SHIR;
-                EX1IR: st <= tms_i ? UPIR : PAIR;
-                PAIR: st <= tms_i ? EX2IR : PAIR;
-                EX2IR: st <= tms_i ? UPIR : SHIR;
-                default: st <= tms_i ? SELDR : ST_IDLE;  // UPIR
-            endcase
-        end
-    end
+    // the TAP states this block acts on (tap_fsm)
+    wire cap_ir;
+    wire sh_ir;
+    wire up_ir;
+    tap_fsm u_fsm (
+        .tck(tck), .ext_rst_n(ext_rst_n), .tms_i(tms_i),
+        .tlr_o(tlr_o), .cap_dr_o(capture_dr_o), .sh_dr_o(shift_dr_o),
+        .up_dr_o(update_dr_o), .cap_ir_o(cap_ir), .sh_ir_o(sh_ir),
+        .up_ir_o(up_ir)
+    );
 
-    // instruction register: shift + latched
+    // the IR shift register: 01 on Capture-IR (1149.1), TDI in on Shift-IR
     reg [JTAG_IR_W-1:0] ir_sh;
-    reg [JTAG_IR_W-1:0] ir_q;
     always_ff @(posedge tck or negedge ext_rst_n) begin : p_ir_sh
         if (!ext_rst_n) begin
             ir_sh <= 5'd0;
-            ir_q <= IR_IDCODE;
-        end else begin
-            if (st == ST_RESET) begin
-                ir_q <= IR_IDCODE;
-            end
-            if (st == CAPIR) begin
-                ir_sh <= 5'b00001;  // 1149.1: LSBs 01
-            end
-            if (st == SHIR) begin
-                ir_sh <= {tdi_i, ir_sh[4:1]};
-            end
-            if (st == UPIR) begin
-                ir_q <= ir_sh;
-            end
+        end else if (cap_ir) begin
+            ir_sh <= 5'b00001;
+        end else if (sh_ir) begin
+            ir_sh <= {tdi_i, ir_sh[4:1]};
         end
     end
 
-    assign ir_o         = ir_q;
-    assign tlr_o        = (st == ST_RESET);
-    assign capture_dr_o = (st == CAPDR);
-    assign shift_dr_o   = (st == SHDR);
-    assign update_dr_o  = (st == UPDR);
+    // the IR: IDCODE in Test-Logic-Reset, the shifted value on Update-IR
+    reg [JTAG_IR_W-1:0] ir_q;
+    always_ff @(posedge tck or negedge ext_rst_n) begin : p_ir_q
+        if (!ext_rst_n) begin
+            ir_q <= IR_IDCODE;
+        end else if (tlr_o) begin
+            ir_q <= IR_IDCODE;
+        end else if (up_ir) begin
+            ir_q <= ir_sh;
+        end
+    end
 
-    // TDO on the falling edge
+    assign ir_o = ir_q;
+
+    // TDO changes on the falling edge of TCK (1149.1)
     always_ff @(negedge tck or negedge ext_rst_n) begin : p_tdo
         if (!ext_rst_n) begin
             tdo_o <= 1'b0;
             tdo_oe_o <= 1'b0;
         end else begin
-            tdo_oe_o <= (st == SHIR) || (st == SHDR);
-            tdo_o <= (st == SHIR) ? ir_sh[0] : dr_tdo_i;
+            tdo_oe_o <= sh_ir || shift_dr_o;
+            tdo_o <= sh_ir ? ir_sh[0] : dr_tdo_i;
         end
     end
 

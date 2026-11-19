@@ -16,7 +16,7 @@ module mac_cluster
     input wire [ACC_SEL_W-1:0] acc_sel,
     input wire [ACC_W-1:0] sat_writeback,
     input wire sat_writeback_en,
-    output wire [ACC_W-1:0] cluster_out,
+    output logic [ACC_W-1:0] cluster_out,
     output wire [NUM_ACC-1:0] overflow,
     // per unit: a fold commits this cycle (DSU-14)
     output wire [NUM_ACC-1:0] pending,
@@ -108,18 +108,16 @@ module mac_cluster
         .pending_o        (pending[2])
     );
 
-    reg [ACC_W-1:0] cluster_out_r;
+    // drives the output port only (F4: no process variable read elsewhere)
     always_comb begin : c_cluster_out
         case (acc_sel)
-            ACC_FX: cluster_out_r = mac_out_fx;
-            ACC_FY: cluster_out_r = mac_out_fy;
-            ACC_MAG: cluster_out_r = mac_out_mag;
-            default : cluster_out_r
+            ACC_FX: cluster_out = mac_out_fx;
+            ACC_FY: cluster_out = mac_out_fy;
+            ACC_MAG: cluster_out = mac_out_mag;
+            default : cluster_out
                 = 48'b000000000000000000000000000000000000000000000000;
         endcase
     end
-
-    assign cluster_out = cluster_out_r;
 
     assign dbg_acc_fx = mac_out_fx;
     assign dbg_acc_fy = mac_out_fy;

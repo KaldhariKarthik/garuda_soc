@@ -154,9 +154,9 @@ bind ahb2apb_bridge ahb2apb_bridge_sva #(
     .hsize_i(hsize_i), .haddr_i(haddr_i), .hreadyout_o(hreadyout_o), .hresp_o(hresp_o),
     .psel_o(psel_o), .paddr_o(paddr_o), .penable_o(penable_o), .pwrite_o(pwrite_o),
     .pwdata_o(pwdata_o), .pready_i(pready_i), .pslverr_i(pslverr_i),
-    .hstate(hstate), .prst_ok_q(prst_ok_q), .win_ok(win_ok), .word_ok(word_ok), .xfer(xfer),
+    .hstate(u_ahb.hstate), .prst_ok_q(prst_ok_q), .win_ok(win_ok), .word_ok(word_ok), .xfer(xfer),
     .req_tgl(req_tgl), .ack_tgl(ack_tgl), .ack_new(ack_new), .apb_err(apb_err),
     .win_cap(win_cap), .addr_cap(addr_cap), .write_cap(write_cap),
-    .pstate(u_fsm.state), .div_cnt(u_fsm.div_cnt), .to_cnt(u_fsm.to_cnt));
+    .pstate(u_fsm.u_phase.state), .div_cnt(u_fsm.div_cnt), .to_cnt(u_fsm.to_cnt));
 `endif
 `endif

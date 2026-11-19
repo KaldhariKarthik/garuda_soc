@@ -23,9 +23,14 @@ module tb_dsu_decoder_spec;
     wire [5:0] shift_amt;
     wire [4:0] rd_addr, funct5;
     wire [2:0] funct3;
+    // the op strobes are internal since F4 (dsu_top never read them); the bench
+    // keeps checking them as the decoder forms them
+    assign shift_op = dut.op_macshift & dut.dsu_en & ~dut.illegal_instr;
+    assign rd_lo_op = dut.op_rd_lo & dut.dsu_en & ~dut.illegal_instr;
+    assign rd_hi_op = dut.op_rd_hi & dut.dsu_en & ~dut.illegal_instr;
     dsu_decoder dut (.instr(instr), .dsu_en(dsu_en), .flush(flush), .control(control), .acc_sel(acc_sel),
-                     .sat_op(sat_op), .shift_op(shift_op), .shift_amt(shift_amt), .shift_dir(shift_dir),
-                     .shift_acc_sel(shift_acc_sel), .rd_lo_op(rd_lo_op), .rd_hi_op(rd_hi_op),
+                     .sat_op(sat_op), .shift_amt(shift_amt), .shift_dir(shift_dir),
+                     .shift_acc_sel(shift_acc_sel),
                      .result_src(result_src), .writes_regfile(writes_regfile), .rd_addr(rd_addr),
                      .illegal_instr(illegal), .funct5_fld(funct5), .funct3_fld(funct3), .is_custom0(is_custom0));
     int checks = 0, fails = 0, rsvd_cases = 0;

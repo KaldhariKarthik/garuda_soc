@@ -35,59 +35,73 @@ module sba_master
 );
     timeunit 1ns;
     timeprecision 1ps;
-    localparam int unsigned ST_W = 32'd2;
-
-    localparam [1:0] S_IDLE = 2'd0, S_ADDR = 2'd1, S_DATA = 2'd2;
-    reg [ST_W-1:0] st;
     reg [WORD_W-1:0] wbuf;
 
     assign hsize_o  = 3'b010;
     assign hburst_o = 3'b000;
-    assign busy_o   = (st != S_IDLE);
 
-    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_st
+    // the transfer's state machine (sba_fsm)
+    wire idle;
+    wire issue;   // the address goes out
+    wire acc;     // the address phase is accepted
+    wire xfer_end;  // the data phase completes
+    sba_fsm u_fsm (
+        .hclk(hclk), .dm_rst_n(dm_rst_n), .start_i(start_i),
+        .hready_i(hready_i), .idle_o(idle), .issue_o(issue), .acc_o(acc),
+        .end_o(xfer_end)
+    );
+    assign busy_o = !idle;
+
+    // F4 (2026-11-17): one process per register (HAL MULNBA)
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_addr
         if (!dm_rst_n) begin
-            st <= S_IDLE;
             haddr_o <= 32'd0;
-            htrans_o <= 2'b00;
-            hwrite_o <= 1'b0;
-            hwdata_o <= 32'd0;
             wbuf <= 32'd0;
-            done_o <= 1'b0;
-            err_o <= 1'b0;
+        end else if (issue) begin
+            haddr_o <= addr_i;
+            wbuf <= wdata_i;
+        end
+    end
+
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_hwrite
+        if (!dm_rst_n) begin
+            hwrite_o <= 1'b0;
+        end else if (issue) begin
+            hwrite_o <= write_i;
+        end else if (xfer_end) begin
+            hwrite_o <= 1'b0;
+        end
+    end
+
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_htrans
+        if (!dm_rst_n) begin
+            htrans_o <= 2'b00;
+        end else if (issue) begin
+            htrans_o <= 2'b10;  // NONSEQ
+        end else if (acc) begin
+            htrans_o <= 2'b00;
+        end
+    end
+
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_hwdata
+        if (!dm_rst_n) begin
+            hwdata_o <= 32'd0;
+        end else if (acc) begin
+            hwdata_o <= wbuf;
+        end
+    end
+
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_result
+        if (!dm_rst_n) begin
             rdata_o <= 32'd0;
-        end else begin
             done_o <= 1'b0;
             err_o <= 1'b0;
-            case (st)
-                S_IDLE: begin
-                    if (start_i) begin
-                        haddr_o <= addr_i;
-                        hwrite_o <= write_i;
-                        wbuf <= wdata_i;
-                        htrans_o <= 2'b10;
-                        st <= S_ADDR;
-                    end
-                end
-                S_ADDR: begin
-                    if (hready_i) begin  // address phase accepted
-                        htrans_o <= 2'b00;
-                        hwdata_o <= wbuf;
-                        st <= S_DATA;
-                    end
-                end
-                default: begin
-                    if (hready_i) begin  // data phase complete
-                        if (!hwrite_o) begin
-                            rdata_o <= hrdata_i;
-                        end
-                        done_o <= 1'b1;
-                        err_o <= hresp_i;
-                        hwrite_o <= 1'b0;
-                        st <= S_IDLE;
-                    end
-                end
-            endcase
+        end else begin
+            if (xfer_end && !hwrite_o) begin
+                rdata_o <= hrdata_i;
+            end
+            done_o <= xfer_end;
+            err_o <= xfer_end && hresp_i;
         end
     end
 

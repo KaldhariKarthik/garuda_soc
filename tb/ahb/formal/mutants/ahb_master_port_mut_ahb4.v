@@ -91,7 +91,7 @@ module ahb_master_port
     input wire hclk,
     input wire hreset_n,
     // ---- this master's address phase ----
-    input wire [HTRANS_W-1:0] htrans_i,
+    input wire req_i,  // HTRANS[1]: the master presents a transfer
     // ---- arbitration context ----
     input wire granted_i,  // the arbiter's grant points at me
     input wire dph_own_i,  // the data phase in flight is mine
@@ -108,7 +108,7 @@ module ahb_master_port
     timeprecision 1ps;
 
     // An address phase is on the bus from this master.
-    wire presenting = htrans_i[1];
+    wire presenting = req_i;
 
     // Entitled to see the shared HREADY:
     //   - because I am granted, so accepting my address phase is legitimate;

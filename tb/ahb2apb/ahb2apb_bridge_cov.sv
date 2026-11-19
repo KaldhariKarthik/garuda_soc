@@ -139,9 +139,9 @@ bind ahb2apb_bridge ahb2apb_bridge_cov #(
     .hclk_i(hclk), .hreset_n_i(hreset_n), .pclk_i(pclk), .preset_n_i(preset_n),
     .hwrite_i(hwrite_i), .hsize_i(hsize_i), .haddr_i(haddr_i),
     .hreadyout_o(hreadyout_o), .hresp_o(hresp_o),
-    .hstate(hstate), .prst_ok_q(prst_ok_q), .win_ok(win_ok), .word_ok(word_ok), .xfer(xfer),
+    .hstate(u_ahb.hstate), .prst_ok_q(prst_ok_q), .win_ok(win_ok), .word_ok(word_ok), .xfer(xfer),
     .apb_err(apb_err), .win_cap(win_cap), .write_cap(write_cap),
-    .pstate(u_fsm.state), .div_cnt(u_fsm.div_cnt), .to_cnt(u_fsm.to_cnt),
+    .pstate(u_fsm.u_phase.state), .div_cnt(u_fsm.div_cnt), .to_cnt(u_fsm.to_cnt),
     .pready_i(pready_i), .psel_o(psel_o));
 `endif
 `endif

@@ -92,7 +92,7 @@ bind ahb_interconnect ahb_interconnect_cov u_ahb_cov (
     .i_htrans_i(i_htrans_i), .d_htrans_i(d_htrans_i), .s_htrans_i(s_htrans_i), .m_htrans_i(m_htrans_i),
     .haddr_o(haddr_o), .htrans_o(htrans_o), .hsize_o(hsize_o), .hburst_o(hburst_o),
     .hwrite_o(hwrite_o), .hready_o(hready_o),
-    .grant(grant), .dph_master(dph_master), .htrans_sel(u_mmux.htrans_sel),
+    .grant(grant), .dph_master(dph_master), .htrans_sel(u_mmux.c_haddr.htrans_sel),
     .seq_break(seq_break), .dph_valid(dph_valid), .hresp_shared(hresp_shared), .hsel(hsel),
     .hold_i(u_mp_i.hold_valid), .hold_d(u_mp_d.hold_valid), .hold_s(u_mp_s.hold_valid), .hold_m(u_mp_m.hold_valid));
 `endif

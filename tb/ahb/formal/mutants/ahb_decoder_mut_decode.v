@@ -31,7 +31,8 @@ module ahb_decoder
     import garuda_pkg::*;
     import ahb_pkg::*;
 (
-    input wire [WORD_W-1:0] haddr_i,
+    // HADDR[31:28]: the decoder needs nothing else (F4: no unused port bits)
+    input wire [AHB_RGN_W-1:0] rgn_i,
     // one-hot, bit 4 = default slave
     output reg [AHB_SEL_W - 1:0] hsel_o
 );
@@ -40,7 +41,7 @@ module ahb_decoder
 
     always_comb begin : c_hsel
         hsel_o = {AHB_SEL_W {1'b0}};
-        case (haddr_i[31:28])
+        case (rgn_i)
             AHB_RGN_ISRAM: hsel_o[AHB_S_ISRAM] = 1'b1;
             AHB_RGN_ROM: hsel_o[AHB_S_ROM] = 1'b1;
             4'h3           : hsel_o[AHB_S_DSRAM ] = 1'b1;

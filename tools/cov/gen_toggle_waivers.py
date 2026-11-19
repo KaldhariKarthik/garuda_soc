@@ -67,7 +67,6 @@ DSU_RULES = [
  ("CARRY0", r"^(csa_3to2__W31|csa_3to2|mac_unit|kogge_stone_49)$", r"^(carry|csa1_carry|csa2_carry|carry_reg|b|c)$", {0}, "constant",
   "Bit 0 of a carry-save carry vector is 0: carry = (majority) << 1. It feeds csa2's c (carry_reg) and the final adder's b.",
   "literal rtl/dsu/csa_3to2.sv:12 (<< 1); carry_reg loads csa1_carry or 0 (mac_unit.v:129-141)"),
- ("CIN", r"^kogge_stone_49$", r"^cin$", {0}, "constant", "The final adder's carry-in is tied to 0.", "literal rtl/dsu/mac_unit.sv:159 .cin(1'b0)"),
  ("SUBK", r"^mac_unit$", r"^sub_k$", set(range(49)) - {1}, "constant",
   "sub_k = {47'b0, add_sub, 1'b0}: the two's-complement +2 correction term; only bit 1 (add_sub) varies.", "literal rtl/dsu/mac_unit.sv:87"),
  ("SATABS", r"^operand_router$", r"^(rs1_lo_abs|rs2_lo_abs)$", {15}, "constant",
@@ -87,8 +86,6 @@ DMA_RULES = [
  ("STATHI", r"^(dma_apb_slave|dma_chan|dma_top)$", r"^(stat_i|stat_o|stat)$", _per_ch(21, 31) | set(range(21, 32)), "constant",
   "STAT bits 31:22 are reserved (literal 0); bit 21 is ERRPHASE[2], and ERRPHASE takes only 0, 1 (read) and 2 (write).",
   "literal rtl/dma/dma_chan.sv:151 assign stat_o = {10'd0, errph_q, ...}; bit 21: " + P_DMA + " a_cov_errph_bit2"),
- ("ERRPH2", r"^(dma_chan|dma_engine|dma_top)$", r"^(err_phase_i|errph_q|err_phase_o|err_phase)$", {2}, "constant",
-  "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set.", P_DMA + " a_cov_errph_bit2; rtl/dma/dma_engine.sv err_phase_o <= 3'd1 / 3'd2"),
  ("GSTATRSV", r"^dma_apb_slave$", r"^gstat_v$", {6, 7, 14, 15} | set(range(22, 32)), "constant",
   "GSTAT holds ACTIVE[5:0], COMPLETE[13:8] and ERROR[21:16] of six channels; the other bits are 0.", "literal rtl/dma/dma_apb_slave.sv:90-94 (gstat_v = 0, then bits n, 8+n, 16+n for n < 6)"),
  ("PREADY", r"^(dma_apb_slave|dma_top)$", r"^pready_o$", {0}, "constant",
@@ -101,9 +98,6 @@ DMA_RULES = [
   "HSIZE = {0, SIZE} (at most a word): bit 2 is 0.", "literal rtl/dma/dma_engine.sv:95,124,148 hsize_o <= 3'b010 / {1'b0, size}"),
  ("HTRANS0", r"^(dma_engine|dma_top)$", r"^htrans_o$", {0}, "constant",
   "HTRANS is only IDLE (00) or NONSEQ (10): bit 0 is 0.", "literal rtl/dma/dma_engine.sv:94,122,129,146,154 htrans_o <= 2'b00 / 2'b10"),
- ("ACKCNT", r"^dma_engine$", r"^ack_cnt$", {1}, "constant",
-  "With the shipped ACK_CYCLES = 2 the ack stretch counter loads ACK_CYCLES - 1 = 1 at most: bit 1 stays 0 (DMA-12: values outside 1..4 are a separate bug).",
-  P_DMA + " a_cov_ackcnt_bit1; rtl/dma/dma_top.sv:21 ACK_CYCLES = 2"),
 ]
 AHB_RULES = [
  ("SIZE2", r"^(ahb_interconnect|ahb_master_mux)$", r"^((i|d|s|m)_hsize_i|hsize_o)$", {2}, "constant",

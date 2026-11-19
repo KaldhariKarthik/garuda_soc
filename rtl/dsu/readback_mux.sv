@@ -6,8 +6,6 @@ module readback_mux
     import garuda_pkg::*;
 (
     input wire [ACC_W-1:0] cluster_out,
-    input wire rd_lo_op,
-    input wire rd_hi_op,
     output wire [WORD_W-1:0] rd_lo_data,
     output wire [WORD_W-1:0] rd_hi_data
 );

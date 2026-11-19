@@ -6,8 +6,7 @@ module saturation_unit
 (
     input wire [ACC_W-1:0] cluster_out,
     input wire sat_op,
-    output wire [ACC_W-1:0] sat_writeback,
-    output wire sat_writeback_en,
+    output logic [ACC_W-1:0] sat_writeback,
     output wire sat_overflow
 );
     timeunit 1ns;
@@ -18,22 +17,20 @@ module saturation_unit
     wire        in_range = (upper == 17'h00000) | (upper == 17'h1FFFF);
     wire        is_neg   = cluster_out[47];
 
-    wire [ACC_W-1:0] sat_pos = 48'sh0000_7FFFFFFF;
-    wire [ACC_W-1:0] sat_neg = 48'shFFFF_80000000;
+    wire [ACC_W-1:0] sat_pos = 48'h0000_7FFF_FFFF;
+    wire [ACC_W-1:0] sat_neg = 48'hFFFF_8000_0000;
 
-    reg [ACC_W-1:0] sat_result;
-    always_comb begin : c_sat_result
+    // drives the output port only (F4: no process variable read elsewhere);
+    // the write enable is the caller's sat_op (it was a feedthrough here)
+    always_comb begin : c_sat_wb
         if (in_range) begin
-            sat_result = {{16{cluster_out[31]}}, cluster_out[31:0]};
+            sat_writeback = {{16{cluster_out[31]}}, cluster_out[31:0]};
         end else if (is_neg) begin
-            sat_result = sat_neg;
+            sat_writeback = sat_neg;
         end else begin
-            sat_result = sat_pos;
+            sat_writeback = sat_pos;
         end
     end
-
-    assign sat_writeback    = sat_result;
-    assign sat_writeback_en = sat_op;
     assign sat_overflow     = sat_op & ~in_range;
 
 endmodule

@@ -28,9 +28,8 @@ module dma_cov_sva #(
     input wire [5:0]   eligible,
     input wire         grant_valid,
     input wire [2:0]   grant_ch,
-    input wire [2:0]   err_phase,
-    input wire [191:0] stat,
-    input wire [1:0]   ack_cnt
+    input wire [1:0]   err_phase,
+    input wire [191:0] stat
 );
     function automatic int ones(input logic [5:0] v);
         int k = 0;
@@ -52,18 +51,10 @@ module dma_cov_sva #(
         grant_valid && grant_ch == 3'd5 && ones(eligible) == 1);
     c_cov_c2_two:   cover property (@(posedge hclk_i) disable iff (!hreset_n_i)
         grant_valid && grant_ch == 3'd2 && ones(eligible) == 2);
-    c_cov_errph_wr: cover property (@(posedge hclk_i) disable iff (!hreset_n_i) err_phase == 3'd2);
-    c_cov_ackcnt1:  cover property (@(posedge hclk_i) disable iff (!hreset_n_i) ack_cnt == 2'd1);
-    // toggle: ERRPHASE takes only 0, 1 (read) and 2 (write): bit 2 is never set, in the
-    // engine's output nor in any channel's STAT[21]
-    a_cov_errph_bit2: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        !err_phase[2] && !stat[21] && !stat[53] && !stat[85] && !stat[117] && !stat[149] && !stat[181]);
-    // toggle: with ACK_CYCLES = 2 the ack stretch counter loads 1 at most: bit 1 stays 0
-    a_cov_ackcnt_bit1: assert property (@(posedge hclk_i) disable iff (!hreset_n_i)
-        !ack_cnt[1]);
+    c_cov_errph_wr: cover property (@(posedge hclk_i) disable iff (!hreset_n_i) err_phase == 2'd2);
 endmodule
 
 bind dma_top dma_cov_sva #(.PRIO(PRIO)) u_dma_cov_sva (
     .hclk_i(hclk), .hreset_n_i(hreset_n), .eligible(eligible), .grant_valid(grant_valid),
-    .grant_ch(grant_ch), .err_phase(err_phase), .stat(stat), .ack_cnt(u_eng.ack_cnt));
+    .grant_ch(grant_ch), .err_phase(err_phase), .stat(stat));
 `endif

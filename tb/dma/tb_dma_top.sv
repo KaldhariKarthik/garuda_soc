@@ -99,7 +99,7 @@ module tb_dma_top;
     always @(posedge hclk) if (rst_n && htrans[1] && haddr[31:29] == 3'b000) isram_touch++;
     integer both_seen = 0, wrong_order = 0;
     always @(posedge hclk)
-        if (rst_n && dut.eligible[0] && dut.eligible[5] && dut.u_eng.st == 3'd0) begin
+        if (rst_n && dut.eligible[0] && dut.eligible[5] && dut.u_eng.u_fsm.st == 3'd0) begin
             both_seen++;
             if (dut.grant_ch != 3'd0) wrong_order++;
         end

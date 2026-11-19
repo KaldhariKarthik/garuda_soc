@@ -40,7 +40,7 @@
 module dma_engine
     import garuda_pkg::*;
 #(
-    parameter integer ACK_CYCLES = 32'd2  // dma_ack width in hclk (D-16)
+    parameter int unsigned ACK_CYCLES = 32'd2  // dma_ack width in hclk (D-16)
 )(
     input wire hclk,
     input wire hreset_n,
@@ -67,22 +67,16 @@ module dma_engine
     input wire [WORD_W-1:0] hrdata_i,
     input wire hready_i,
     input wire hresp_i,
-    output wire busy_o,
     // channel n has a beat from its grant to its result (DMA-9)
     output wire [DMA_NCH-1:0] inflight_o
 );
     timeunit 1ns;
     timeprecision 1ps;
-    localparam int unsigned ST_W = 32'd3;
     localparam int unsigned CH_W = 32'd3;
     localparam int unsigned ACK_W = 32'd6;
-    localparam int unsigned ACK_CNT_W = 32'd2;
     localparam int unsigned SZ_W = 32'd2;
 
-    localparam [2:0] E_IDLE = 3'd0, E_RA = 3'd1, E_RD = 3'd2, E_WA = 3'd3, E_WD
-        = 3'd4;
 
-    reg  [ST_W-1:0]  st;
     reg  [CH_W-1:0]  ch;
     reg  [WORD_W-1:0] data_q;
     // DMA-14: the beat's SIZE, taken at the grant
@@ -96,16 +90,18 @@ module dma_engine
     wire [WORD_W-1:0] dar  = dar_l;
     wire [DMA_SIZE_W-1:0]  size = size_l;
 
-    // DMA-10: an address must be aligned to the beat size
-    function automatic misaligned(input [WORD_W-1:0] a, input [SZ_W-1:0] sz);
-        misaligned = (sz == 2'd1 && a[0]) || (sz == 2'd2 && a[1:0] != 2'b00);
+    // DMA-10: an address must be aligned to the beat size (only its two low
+    // bits matter)
+    function automatic misaligned(input [BYTE_OFF_W-1:0] lo,
+                                  input [SZ_W-1:0] sz);
+        misaligned = (sz == 2'd1 && lo[0]) || (sz == 2'd2 && lo != 2'b00);
     endfunction
     wire sar_bad = (sar[31:28] == 4'h0) || (sar[31:28] == 4'h1)
-        || misaligned(sar, size);
+        || misaligned(sar[1:0], size);
     wire dar_bad = (dar[31:28] == 4'h0) || (dar[31:28] == 4'h1)
-        || misaligned(dar, size);
+        || misaligned(dar[1:0], size);
 
-    // DMA-13: ack_cnt is two bits wide
+    // DMA-13: ACK_CYCLES is 1..4
     generate if (ACK_CYCLES < 1 || ACK_CYCLES > 4) begin
         : g_ack_cycles_out_of_range
         // no such module: elaboration stops here
@@ -113,129 +109,212 @@ module dma_engine
     end endgenerate
 
     // lane extraction and replication for sub-word beats
-    wire [BYTE_W-1:0]  rd_byte = hrdata_i >> (8 * sar[1:0]);
+    function automatic [BYTE_W-1:0] pick_byte(input [BYTE_OFF_W-1:0] off,
+                                              input [WORD_W-1:0] d);
+        case (off)
+            2'b00: pick_byte = d[7:0];
+            2'b01: pick_byte = d[15:8];
+            2'b10: pick_byte = d[23:16];
+            default: pick_byte = d[31:24];
+        endcase
+    endfunction
+    wire [BYTE_W-1:0]  rd_byte = pick_byte(sar[1:0], hrdata_i);
     wire [HALF_W-1:0] rd_half = sar[1] ? hrdata_i[31:16] : hrdata_i[15:0];
     wire [WORD_W-1:0] rd_repl = (size == 2'd0) ? {4{rd_byte}} :
                           (size == 2'd1) ? {2{rd_half}} : hrdata_i;
 
+    // F4 (2026-11-17): the channels' registers as arrays and the channel as a
+    // one-hot vector, so nothing is indexed by a product or past the last
+    // channel (HAL INDXOP, POOBID). The slots past DMA_NCH read 0 and are
+    // never granted.
+    localparam int unsigned CH_SLOTS = 32'd8;  // 2**DMA_CH_W
+    wire [DMA_SIZE_W-1:0] size_a [0:CH_SLOTS-1];
+    wire [WORD_W-1:0] sar_a [0:CH_SLOTS-1];
+    wire [WORD_W-1:0] dar_a [0:CH_SLOTS-1];
+    wire [CH_SLOTS-1:0] m2m_a = {{(CH_SLOTS - DMA_NCH){1'b0}}, m2m_i};
+    wire [DMA_NCH-1:0] ch_hot;    // the beat's channel
+    wire [DMA_NCH-1:0] grant_hot; // the granted channel
+    genvar k;
+    generate for (k = 0; k < CH_SLOTS; k = k + 1) begin : g_slot
+        if (k < DMA_NCH) begin : g_ch
+            assign size_a[k] = size_i[DMA_SIZE_W*k +: DMA_SIZE_W];
+            assign sar_a[k]  = sar_i[WORD_W*k +: WORD_W];
+            assign dar_a[k]  = dar_i[WORD_W*k +: WORD_W];
+            assign ch_hot[k]    = (ch == CH_W'(k));
+            assign grant_hot[k] = (grant_ch_i == CH_W'(k));
+        end else begin : g_none
+            assign size_a[k] = '0;
+            assign sar_a[k]  = '0;
+            assign dar_a[k]  = '0;
+        end
+    end endgenerate
+
     // dma_ack stretch
     reg [ACK_W-1:0] ack_q;
-    reg [ACK_CNT_W-1:0] ack_cnt;
 
     assign hburst_o = 3'b000;  // SINGLE only
-    assign busy_o   = (st != E_IDLE);
-    wire take = (st == E_IDLE) && grant_valid_i && (beat_done_o == 6'd0)
+    // ---- the beat's state machine (dma_eng_fsm) -----------------------------
+    wire idle;
+    wire addr_ok;    // RA: the read address goes out
+    wire ra_rd_err;  // RA: bad source
+    wire ra_wr_err;  // RA: bad destination
+    wire wa;         // WA: the write address goes out
+    wire rd_acc;     // an address phase is accepted
+    wire wd_acc;
+    wire rd_end;     // a data phase ends
+    wire wd_end;
+    wire take = idle && grant_valid_i && (beat_done_o == 6'd0)
         && (beat_err_o == 6'd0);
-    assign inflight_o = (st != E_IDLE) ? (6'd1 << ch)
-        : (take ? (6'd1 << grant_ch_i) : 6'd0);
+
+    dma_eng_fsm u_fsm (
+        .hclk(hclk), .hreset_n(hreset_n),
+        .take_i(take), .sar_bad_i(sar_bad), .dar_bad_i(dar_bad),
+        .addr_pend_i(htrans_o[1]), .hready_i(hready_i), .hresp_i(hresp_i),
+        .idle_o(idle), .addr_ok_o(addr_ok), .ra_rd_err_o(ra_rd_err),
+        .ra_wr_err_o(ra_wr_err), .wa_o(wa), .rd_acc_o(rd_acc),
+        .wd_acc_o(wd_acc), .rd_end_o(rd_end), .wd_end_o(wd_end)
+    );
+
+    assign inflight_o = !idle ? ch_hot : (take ? grant_hot : 6'd0);
     assign dma_ack_o = ack_q;
 
-    always_ff @(posedge hclk or negedge hreset_n) begin : p_st
+    wire rd_err    = rd_end && hresp_i;
+    wire wr_err    = wd_end && hresp_i;
+    wire beat_ok   = wd_end && !hresp_i;
+    wire any_err   = ra_rd_err || ra_wr_err || rd_err || wr_err;
+    wire ack_fire  = beat_ok && !m2m_l;                       // DMA-15
+
+    // the beat's channel and registers, taken at the grant (DMA-14, DMA-15)
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_grant
         if (!hreset_n) begin
-            st <= E_IDLE;
             ch <= 3'd0;
-            data_q <= 32'd0;
             size_l <= 2'd2;
             m2m_l <= 1'b0;
             sar_l <= 32'd0;
             dar_l <= 32'd0;
+        end else if (take) begin
+            ch <= grant_ch_i;
+            size_l <= size_a[grant_ch_i];
+            sar_l <= sar_a[grant_ch_i];
+            dar_l <= dar_a[grant_ch_i];
+            m2m_l <= m2m_a[grant_ch_i];
+        end
+    end
+
+    // the word read, replicated to the beat's lanes
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_data
+        if (!hreset_n) begin
+            data_q <= 32'd0;
+        end else if (rd_end && !hresp_i) begin
+            data_q <= rd_repl;
+        end
+    end
+
+    // ---- AHB-Lite address phase ---------------------------------------------
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_addr
+        if (!hreset_n) begin
             haddr_o <= 32'd0;
-            htrans_o <= 2'b00;
-            hwrite_o <= 1'b0;
             hsize_o <= 3'b010;
+        end else if (addr_ok) begin
+            haddr_o <= sar;
+            hsize_o <= {1'b0, size};
+        end else if (wa) begin
+            haddr_o <= dar;
+            hsize_o <= {1'b0, size};
+        end
+    end
+
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_htrans
+        if (!hreset_n) begin
+            htrans_o <= 2'b00;
+        end else if (addr_ok || wa) begin
+            htrans_o <= 2'b10;  // NONSEQ
+        end else if (rd_acc || wd_acc) begin
+            htrans_o <= 2'b00;  // address accepted
+        end
+    end
+
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_hwrite
+        if (!hreset_n) begin
+            hwrite_o <= 1'b0;
+        end else if (addr_ok || wd_end) begin
+            hwrite_o <= 1'b0;
+        end else if (wa) begin
+            hwrite_o <= 1'b1;
+        end
+    end
+
+    // the write data, for the data phase after the accepted address
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_hwdata
+        if (!hreset_n) begin
             hwdata_o <= 32'd0;
+        end else if (wd_acc) begin
+            hwdata_o <= data_q;
+        end
+    end
+
+    // ---- per-channel results: one-cycle strobes -----------------------------
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_result
+        if (!hreset_n) begin
             beat_done_o <= 6'd0;
             beat_err_o <= 6'd0;
-            err_phase_o <= 3'd0;
-            ack_q <= 6'd0;
-            ack_cnt <= 2'd0;
         end else begin
-            beat_done_o <= 6'd0;
-            beat_err_o <= 6'd0;
-            if (ack_cnt != 2'd0) begin
-                ack_cnt <= ack_cnt - 2'd1;
+            beat_done_o <= beat_ok ? ch_hot : 6'd0;
+            beat_err_o <= any_err ? ch_hot : 6'd0;
+        end
+    end
+
+    // ERRPHASE: 1 read, 2 write; held between errors
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_errph
+        if (!hreset_n) begin
+            err_phase_o <= 2'd0;
+        end else if (ra_rd_err || rd_err) begin
+            err_phase_o <= 2'd1;
+        end else if (ra_wr_err || wr_err) begin
+            err_phase_o <= 2'd2;
+        end
+    end
+
+    // ---- dma_ack: ACK_CYCLES cycles per completed peripheral beat -----------
+    // A completing beat sets its channel's bit; the bits stay set for the
+    // next ACK_CYCLES - 1 cycles (F4: the hold is sized to the parameter, no
+    // counter bit that cannot change).
+    wire ack_hold;
+    generate if (ACK_CYCLES == 1) begin : g_ack1
+        assign ack_hold = 1'b0;
+    end else if (ACK_CYCLES == 2) begin : g_ack2
+        reg fire_q;
+        always_ff @(posedge hclk or negedge hreset_n) begin : p_fire
+            if (!hreset_n) begin
+                fire_q <= 1'b0;
             end else begin
-                ack_q <= 6'd0;
+                fire_q <= ack_fire;
             end
-            case (st)
-                E_IDLE: begin
-                    // Not in the cycle a result is being reported: the channel
-                    // has not yet decremented REMAINING / set its taken flag,
-                    // so its eligibility is stale (would duplicate a beat).
-                    if (take) begin
-                        ch <= grant_ch_i;
-                        size_l <= size_i[2 * grant_ch_i+:2];
-                        sar_l <= sar_i[32 * grant_ch_i+:32];
-                        dar_l <= dar_i[32 * grant_ch_i+:32];
-                        m2m_l <= m2m_i[grant_ch_i];
-                        st <= E_RA;
-                    end
-                end
-                E_RA: begin
-                    // present the read, or refuse a forbidden or misaligned
-                    // source or destination before any bus access (DMA-12,
-                    // DMA-10)
-                    if (sar_bad) begin
-                        beat_err_o[ch] <= 1'b1;
-                        err_phase_o <= 3'd1;
-                        st <= E_IDLE;
-                    end else if (dar_bad) begin
-                        beat_err_o[ch] <= 1'b1;
-                        err_phase_o <= 3'd2;
-                        st <= E_IDLE;
-                    end else begin
-                        haddr_o <= sar;
-                        htrans_o <= 2'b10;  // NONSEQ
-                        hwrite_o <= 1'b0;
-                        hsize_o <= {1'b0, size};
-                        st <= E_RD;
-                    end
-                end
-                E_RD: begin
-                    if (htrans_o[1] && hready_i) begin
-                        htrans_o <= 2'b00;  // address accepted
-                    // data phase done
-                    end else if (!htrans_o[1] && hready_i) begin
-                        if (hresp_i) begin
-                            beat_err_o[ch] <= 1'b1;
-                            err_phase_o <= 3'd1;
-                            st <= E_IDLE;
-                        end else begin
-                            data_q <= rd_repl;
-                            st <= E_WA;
-                        end
-                    end
-                end
-                E_WA: begin
-                    // DAR was checked in E_RA and cannot change during the beat
-                    haddr_o <= dar;
-                    htrans_o <= 2'b10;
-                    hwrite_o <= 1'b1;
-                    hsize_o <= {1'b0, size};
-                    st <= E_WD;
-                end
-                E_WD: begin
-                    if (htrans_o[1] && hready_i) begin  // address accepted
-                        htrans_o <= 2'b00;
-                        hwdata_o <= data_q;  // data phase next
-                    // data phase done
-                    end else if (!htrans_o[1] && hready_i) begin
-                        hwrite_o <= 1'b0;
-                        if (hresp_i) begin
-                            beat_err_o[ch] <= 1'b1;
-                            err_phase_o <= 3'd2;
-                        end else begin
-                            beat_done_o[ch] <= 1'b1;
-                            if (!m2m_l) begin  // DMA-15
-                                ack_q[ch] <= 1'b1;
-                                ack_cnt <= ACK_CYCLES - 1;
-                            end
-                        end
-                        st <= E_IDLE;
-                    end
-                end
-                default: st <= E_IDLE;
-            endcase
+        end
+        assign ack_hold = fire_q;
+    end else begin : g_ackn
+        // ACK_CYCLES 3 or 4: count the cycles left after the first
+        localparam int unsigned CNT_W = 32'd2;
+        reg [CNT_W-1:0] ack_cnt;
+        always_ff @(posedge hclk or negedge hreset_n) begin : p_ack_cnt
+            if (!hreset_n) begin
+                ack_cnt <= '0;
+            end else if (ack_fire) begin
+                ack_cnt <= CNT_W'(ACK_CYCLES - 32'd1);
+            end else if (ack_cnt != '0) begin
+                ack_cnt <= CNT_W'(ack_cnt - 1'b1);
+            end
+        end
+        assign ack_hold = (ack_cnt != '0);
+    end endgenerate
+
+    wire [ACK_W-1:0] ack_keep = ack_hold ? ack_q : 6'd0;
+
+    always_ff @(posedge hclk or negedge hreset_n) begin : p_ack
+        if (!hreset_n) begin
+            ack_q <= 6'd0;
+        end else begin
+            ack_q <= ack_keep | (ack_fire ? ch_hot : 6'd0);
         end
     end
 

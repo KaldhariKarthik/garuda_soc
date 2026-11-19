@@ -60,8 +60,14 @@ module mac_unit
     //  previous wrapping of this paragraph made it report
     //  BADVLTPRAGMA "Unknown verilator comment" and ABORT -- which blocked
     //  whole-chip lint entirely, on a prose comment.)
-    mult_16x16 u_mult_a (.a (a_lo),  .b (b_lo), .p (product_a));
-    mult_16x16 u_mult_b (.a (a_hi),  .b (b_hi), .p (product_b));
+    // the router's halves are signed operands (F4: converted explicitly). In
+    // wire declarations, not in the port connections that DSU-10 is about.
+    wire signed [HALF_W-1:0] a_lo_s = $signed(a_lo);
+    wire signed [HALF_W-1:0] b_lo_s = $signed(b_lo);
+    wire signed [HALF_W-1:0] a_hi_s = $signed(a_hi);
+    wire signed [HALF_W-1:0] b_hi_s = $signed(b_hi);
+    mult_16x16 u_mult_a (.a (a_lo_s), .b (b_lo_s), .p (product_a));
+    mult_16x16 u_mult_b (.a (a_hi_s), .b (b_hi_s), .p (product_b));
 
     // -----------------------------------------------------------------------
     // ERRATUM OVF-1 (Docs/guides/ORACLES.md; closes OPEN-9) -- overflow flag
@@ -83,8 +89,9 @@ module mac_unit
     // logic is added to stage 1; the CSA/Kogge-Stone structure is unchanged
     // apart from one bit of width.
     // -----------------------------------------------------------------------
-    wire [ACC_W:0] pa_ext = {{17{product_a[31]}}, product_a};
-    wire [ACC_W:0] pb_ext = {{17{product_b[31]}}, product_b};
+    // sign-extended to 49 bits by a size cast of the signed product
+    wire [ACC_W:0] pa_ext = $unsigned((ACC_W + 1)'(product_a));
+    wire [ACC_W:0] pb_ext = $unsigned((ACC_W + 1)'(product_b));
 
     wire [ACC_W:0] pa_eff = pa_ext ^ {49{add_sub}};
     wire [ACC_W:0] pb_eff = pb_ext ^ {49{add_sub}};
@@ -103,7 +110,6 @@ module mac_unit
 
     reg [ACC_W:0] sum_reg;
     reg [ACC_W:0] carry_reg;
-    wire write_en = (en | sat_writeback_en) & ~flush;
 
     // -----------------------------------------------------------------------
     // ERRATUM DSU-2 (FLAG-A) -- pending-product poisoning
@@ -146,11 +152,13 @@ module mac_unit
         end
     end
 
-    reg signed [ACC_W-1:0] acc;
+    reg [ACC_W-1:0] acc;
+    // the accumulator sign-extended to 49 (OVF-1)
+    wire [ACC_W:0] acc_ext = $unsigned((ACC_W + 1)'($signed(acc)));
     wire [ACC_W:0] csa2_sum;
     wire [ACC_W:0] csa2_carry;
     csa_3to2 #(.WIDTH(49)) u_csa2(
-        .a ({acc[47], acc}),  // sign-extended to 49 (OVF-1)
+        .a (acc_ext),
         .b (sum_reg),
         .c (carry_reg),
         .sum (csa2_sum),
@@ -161,15 +169,14 @@ module mac_unit
     kogge_stone_49 u_ks (
         .a (csa2_sum),
         .b (csa2_carry),
-        .cin (1'b0),
         .sum (result_ext)
     );
 
     wire [ACC_W-1:0] adder_result = result_ext[47:0];
     wire        accum_ovf    = result_ext[48] ^ result_ext[47];
 
-    wire signed [ACC_W-1:0] rs1_sext = {{16{rs1_val[31]}}, rs1_val};
-    reg  signed [ACC_W-1:0] acc_next;
+    wire [ACC_W-1:0] rs1_sext = $unsigned(ACC_W'($signed(rs1_val)));
+    reg  [ACC_W-1:0] acc_next;
 
     // -----------------------------------------------------------------------
     // ERRATUM DSU-11 (proposed; found by sw/tests/t_dsu_b2b.S bits 0/1)

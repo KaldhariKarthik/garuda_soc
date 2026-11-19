@@ -35,8 +35,7 @@ module debug_dtm
     output reg [WORD_W-1:0] req_data_o,
     output reg [DMI_OP_W-1:0] req_op_o,
     input wire ack_tgl_i,  // already synchronised into tck
-    input wire [WORD_W-1:0] rsp_data_i,  // stable once ack is seen
-    input wire rsp_err_i
+    input wire [WORD_W-1:0] rsp_data_i  // stable once ack is seen
 );
     timeunit 1ns;
     timeprecision 1ps;
@@ -49,80 +48,97 @@ module debug_dtm
     reg [SH_W-1:0] sh;
     reg        bypass;
     reg        ack_seen;
-    reg [DMISTAT_W-1:0]  dmistat;
+    // DMISTAT is 0 or 3 (sticky busy): the DM never reports a failed
+    // operation, so the code 2 is never set (F4: rsp_err_i, tied to 0 at the
+    // one instance, is gone and the field is one flag)
+    reg        busy_err;
+    wire [DMISTAT_W-1:0] dmistat = {DMISTAT_W{busy_err}};
     reg [WORD_W-1:0] rsp_q;
 
     wire busy = (req_tgl_o != ack_seen);
 
-    // dtmcs: hardreset, dmireset and bit 15 read 0; idle 5, abits 7, version 1
     wire [WORD_W-1:0] dtmcs = {14'd0, 1'b0, 1'b0, 1'b0,
                                3'd5, dmistat, 6'd7, 4'd1};
+
+    // F4 (2026-11-17): one process per register (HAL MULNBA)
+    wire cap_dmi   = capture_dr_i && (ir_i == IR_DMI);
+    wire upd_dtmcs = update_dr_i && (ir_i == IR_DTMCS);
+    wire dmi_op    = (sh[1:0] == 2'd1) || (sh[1:0] == 2'd2);
+    wire upd_dmi   = update_dr_i && (ir_i == IR_DMI) && dmi_op;
+    wire ack_now   = busy && (ack_tgl_i == req_tgl_o);
+    wire issue     = !tlr_i && upd_dmi && !busy && !busy_err;
 
     always_ff @(posedge tck or negedge ext_rst_n) begin : p_sh
         if (!ext_rst_n) begin
             sh <= 41'd0;
+        end else if (tlr_i) begin
+            sh <= sh;
+        end else if (capture_dr_i) begin
+            case (ir_i)
+                IR_IDCODE: sh <= {9'd0, IDCODE};
+                IR_DTMCS: sh <= {9'd0, dtmcs};
+                IR_DMI: sh <= {req_addr_o, rsp_q, busy ? 2'd3 : dmistat};
+                default: sh <= sh;
+            endcase
+        end else if (shift_dr_i) begin
+            case (ir_i)
+                IR_IDCODE, IR_DTMCS: sh <= {9'd0, tdi_i, sh[31:1]};
+                IR_DMI: sh <= {tdi_i, sh[40:1]};
+                default: sh <= sh;
+            endcase
+        end
+    end
+
+    // BYPASS: 0 on capture, TDI on shift (any other instruction)
+    wire ir_known = (ir_i == IR_IDCODE) || (ir_i == IR_DTMCS)
+                    || (ir_i == IR_DMI);
+    always_ff @(posedge tck or negedge ext_rst_n) begin : p_bypass
+        if (!ext_rst_n) begin
             bypass <= 1'b0;
+        end else if (!tlr_i && !ir_known) begin
+            if (capture_dr_i) begin
+                bypass <= 1'b0;
+            end else if (shift_dr_i) begin
+                bypass <= tdi_i;
+            end
+        end
+    end
+
+    always_ff @(posedge tck or negedge ext_rst_n) begin : p_busy_err
+        if (!ext_rst_n) begin
+            busy_err <= 1'b0;
+        end else if (tlr_i) begin
+            busy_err <= 1'b0;
+        end else if ((cap_dmi || upd_dmi) && busy) begin
+            busy_err <= 1'b1;  // sticky busy
+        end else if (upd_dtmcs && (sh[16] || sh[17])) begin
+            busy_err <= 1'b0;  // dmireset / dmihardreset
+        end
+    end
+
+    // a DMI request: address, data and op, and a toggle to the DM's clock
+    always_ff @(posedge tck or negedge ext_rst_n) begin : p_req
+        if (!ext_rst_n) begin
             req_tgl_o <= 1'b0;
             req_addr_o <= 7'd0;
             req_data_o <= 32'd0;
             req_op_o <= 2'd0;
+        end else if (issue) begin
+            req_addr_o <= sh[40:34];
+            req_data_o <= sh[33:2];
+            req_op_o <= sh[1:0];
+            req_tgl_o <= ~req_tgl_o;
+        end
+    end
+
+    // the DM's answer: seen once its ack toggle matches the request
+    always_ff @(posedge tck or negedge ext_rst_n) begin : p_ack
+        if (!ext_rst_n) begin
             ack_seen <= 1'b0;
-            dmistat <= 2'd0;
             rsp_q <= 32'd0;
-        end else begin
-            // response arrival
-            if (busy && ack_tgl_i == req_tgl_o) begin
-                ack_seen <= ack_tgl_i;
-                rsp_q <= rsp_data_i;
-                if (rsp_err_i && dmistat == 2'd0) begin
-                    dmistat <= 2'd2;
-                end
-            end
-            if (tlr_i) begin
-                dmistat <= 2'd0;
-            end else if (capture_dr_i) begin
-                case (ir_i)
-                    IR_IDCODE: sh <= {9'd0, IDCODE};
-                    IR_DTMCS: sh <= {9'd0, dtmcs};
-                    IR_DMI: begin
-                        sh <= {req_addr_o, rsp_q, busy ? 2'd3 : dmistat};
-                        // ERRATUM DBG-1: a scan that captures busy must itself
-                        // be refused (Debug 0.13 6.1.5: "the data scanned into
-                        // dmi in this access will be ignored", sticky until
-                        // dmireset). The refusal was decided only at Update-DR,
-                        // 41+ tck later, by which time the previous request had
-                        // usually finished - so the debugger was told "busy,
-                        // ignored", retried, and the request ran twice (with
-                        // sbautoincrement: a word written twice / skipped).
-                        if (busy) begin
-                            dmistat <= 2'd3;
-                        end
-                    end
-                    default: bypass <= 1'b0;
-                endcase
-            end else if (shift_dr_i) begin
-                case (ir_i)
-                    IR_IDCODE, IR_DTMCS: sh <= {9'd0, tdi_i, sh[31:1]};
-                    IR_DMI: sh <= {tdi_i, sh[40:1]};
-                    default: bypass <= tdi_i;
-                endcase
-            end else if (update_dr_i) begin
-                if (ir_i == IR_DTMCS) begin
-                    if (sh[16] || sh[17]) begin
-                        dmistat <= 2'd0;  // dmireset / dmihardreset
-                    end
-                end else if (ir_i == IR_DMI
-                    && (sh[1:0] == 2'd1 || sh[1:0] == 2'd2)) begin
-                    if (busy) begin
-                        dmistat <= 2'd3;  // sticky busy
-                    end else if (dmistat == 2'd0) begin
-                        req_addr_o <= sh[40:34];
-                        req_data_o <= sh[33:2];
-                        req_op_o <= sh[1:0];
-                        req_tgl_o <= ~req_tgl_o;
-                    end
-                end
-            end
+        end else if (ack_now) begin
+            ack_seen <= ack_tgl_i;
+            rsp_q <= rsp_data_i;
         end
     end
 

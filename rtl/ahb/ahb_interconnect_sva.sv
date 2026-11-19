@@ -182,7 +182,7 @@ bind ahb_interconnect ahb_interconnect_sva u_ahb_sva (
     .hreadyout_dsram_i(hreadyout_dsram_i), .hresp_dsram_i(hresp_dsram_i),
     .hreadyout_bridge_i(hreadyout_bridge_i), .hresp_bridge_i(hresp_bridge_i),
     .grant(grant), .seq_break(seq_break), .dph_valid(dph_valid), .hresp_shared(hresp_shared),
-    .dph_master(dph_master), .hsel(hsel), .htrans_sel(u_mmux.htrans_sel),
+    .dph_master(dph_master), .hsel(hsel), .htrans_sel(u_mmux.c_haddr.htrans_sel),
     .hold_i(u_mp_i.hold_valid), .hold_d(u_mp_d.hold_valid), .hold_s(u_mp_s.hold_valid), .hold_m(u_mp_m.hold_valid));
 `endif
 `endif

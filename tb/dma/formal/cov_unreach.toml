@@ -14,8 +14,11 @@ xfail = "tb/dma/run/xfail.tsv"
 flist   = "rtl/dma/filelist.f"
 top     = "dma_top"
 extra   = ["tb/dma/formal/dma_fv_env.sv", "tb/dma/formal/dma_cov_sva.sv"]
-min_asserts = 5
-min_covers  = 4
+# F4 (2026-11-17): ERRPHASE is 2 bits and the ack stretch is sized to ACK_CYCLES, so the
+# two constant bits these proofs covered (a_cov_errph_bit2, a_cov_ackcnt_bit1, and the
+# ack-counter cover) no longer exist: 4 asserts, 3 covers
+min_asserts = 4
+min_covers  = 3
 
 # the same model preparation as dma.toml dma_prove (no x bits for abc pdr); only the
 # coverage-evidence properties are kept

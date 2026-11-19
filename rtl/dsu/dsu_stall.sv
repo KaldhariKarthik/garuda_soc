@@ -90,7 +90,7 @@ module dsu_stall
             stalled_once <= 1'b0;
         end else begin
             stalled_once <= stall_now;
-            if (~stall_now) begin
+            if (!stall_now) begin
                 prev_was_2cycle <= cur_is_2cycle;
                 prev_acc_sel <= acc_sel;
             end

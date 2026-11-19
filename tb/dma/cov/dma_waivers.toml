@@ -69,16 +69,6 @@ reviewer = "pending: Sreyesh"
 # every hole below is explained by its rule's evidence)
 # =============================================================================
 [[waiver]]
-id       = "CT-ACKCNT-dma_engine"
-metric   = "toggle"
-file     = "rtl/dma/dma_engine.sv"
-match    = "^(ack_cnt\\[1\\]:0\\->1|ack_cnt\\[1\\]:1\\->0)$"
-category = "constant"
-reason   = "With the shipped ACK_CYCLES = 2 the ack stretch counter loads ACK_CYCLES - 1 = 1 at most: bit 1 stays 0 (DMA-12: values outside 1..4 are a separate bug)."
-evidence = "PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_ackcnt_bit1; rtl/dma/dma_top.sv:21 ACK_CYCLES = 2"
-reviewer = "pending: Sreyesh"
-
-[[waiver]]
 id       = "CT-CNTHI-dma_apb_slave"
 metric   = "toggle"
 file     = "rtl/dma/dma_apb_slave.sv"
@@ -136,36 +126,6 @@ match    = "^(cr\\[105\\]:0\\->1|cr\\[105\\]:1\\->0|cr\\[106\\]:0\\->1|cr\\[106\
 category = "constant"
 reason   = "CR bits 31:9 are reserved and read as 0 ([N-6.1])."
 evidence = "literal rtl/dma/dma_chan.sv:147 assign cr_o = {23'd0, ...}"
-reviewer = "pending: Sreyesh"
-
-[[waiver]]
-id       = "CT-ERRPH2-dma_chan"
-metric   = "toggle"
-file     = "rtl/dma/dma_chan.sv"
-match    = "^(err_phase_i\\[2\\]:0\\->1|err_phase_i\\[2\\]:1\\->0|errph_q\\[2\\]:0\\->1|errph_q\\[2\\]:1\\->0)$"
-category = "constant"
-reason   = "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-evidence = "PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2; rtl/dma/dma_engine.sv err_phase_o <= 3'd1 / 3'd2"
-reviewer = "pending: Sreyesh"
-
-[[waiver]]
-id       = "CT-ERRPH2-dma_engine"
-metric   = "toggle"
-file     = "rtl/dma/dma_engine.sv"
-match    = "^(err_phase_o\\[2\\]:0\\->1|err_phase_o\\[2\\]:1\\->0)$"
-category = "constant"
-reason   = "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-evidence = "PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2; rtl/dma/dma_engine.sv err_phase_o <= 3'd1 / 3'd2"
-reviewer = "pending: Sreyesh"
-
-[[waiver]]
-id       = "CT-ERRPH2-dma_top"
-metric   = "toggle"
-file     = "rtl/dma/dma_top.sv"
-match    = "^(err_phase\\[2\\]:0\\->1|err_phase\\[2\\]:1\\->0)$"
-category = "constant"
-reason   = "ERRPHASE is loaded with 3'd1 (read) or 3'd2 (write) only: bit 2 is never set."
-evidence = "PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv) a_cov_errph_bit2; rtl/dma/dma_engine.sv err_phase_o <= 3'd1 / 3'd2"
 reviewer = "pending: Sreyesh"
 
 [[waiver]]

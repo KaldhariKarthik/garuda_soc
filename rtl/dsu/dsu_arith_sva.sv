@@ -10,10 +10,10 @@
 // =============================================================================
 `ifndef SYNTHESIS
 `ifndef __ICARUS__
-module kogge_stone_49_sva (input wire [48:0] a, b, sum, input wire cin);
-    always @(*) if (!$isunknown({a, b, cin}))
-        a_ks_sum: assert #0 (sum == (a + b + {48'd0, cin}))
-            else $error("[SVA-FAIL] a_ks_sum: %h + %h + %b gave %h", a, b, cin, sum);
+module kogge_stone_49_sva (input wire [48:0] a, b, sum);
+    always @(*) if (!$isunknown({a, b}))
+        a_ks_sum: assert #0 (sum == (a + b))
+            else $error("[SVA-FAIL] a_ks_sum: %h + %h gave %h", a, b, sum);
 endmodule
 module mult_16x16_sva (input wire signed [15:0] a, b, input wire signed [31:0] p);
     always @(*) if (!$isunknown({a, b}))

@@ -55,13 +55,7 @@ module garuda_gpio_top
     localparam [63:0] IP_MAP   = 64'h0000_0000_0000_06FF;
 
     wire ip_psel;
-    wire ip_penable;
-    wire ip_pwrite;
-    wire [PADDR_W-1:0] ip_paddr;
-    wire [WORD_W-1:0] ip_pwdata;
     wire [WORD_W-1:0] ip_prdata;
-    wire        ip_pready;
-    wire [DMACTL_W-1:0]  dmactl;
     wire [PAD_NUM-1:0] gpio_sync;
     wire        gpio_int;
 
@@ -71,19 +65,16 @@ module garuda_gpio_top
 
     garuda_apb_shim #(
         .N_EVT(1), .SYNC_W(PAD_NUM), .SYNC_RESET(8'h00), .IP_LIMIT(IP_LIMIT),
-            .IP_MAP(IP_MAP),
-        .ADDR_SHIFT(0), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
+            .IP_MAP(IP_MAP), .BLOCK_NUM(BLOCK_NUM), .BLOCK_REV(8'd1)
     ) u_shim (
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
         .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
-        .ip_psel_o(ip_psel), .ip_penable_o(ip_penable), .ip_pwrite_o(ip_pwrite),
-        .ip_paddr_o(ip_paddr), .ip_pwdata_o(ip_pwdata), .ip_prdata_i(ip_prdata),
-        .ip_pready_i(ip_pready),
+        .ip_psel_o(ip_psel), .ip_prdata_i(ip_prdata),
         .evt_i(evt), .irq_o(irq_o),
         .rx_avail_i(1'b0), .tx_space_i(1'b0),  // no DMA channel
-        .dma_ack_i(1'b0), .dma_req_o(), .dmactl_o(dmactl),
+        .dma_ack_i(1'b0), .dma_req_o(),
         .pad_async_i(gpio_i), .pad_sync_o(gpio_sync));
 
     // =========================================================================
@@ -91,24 +82,22 @@ module garuda_gpio_top
     // so INTSTATUS is only ever read when firmware reads it.
     // =========================================================================
     wire [PAD_NUM-1:0] gpio_dir;
-    wire [PAD_NUM*4-1:0] padcfg_unused;
 
     apb_gpio #(
         .APB_ADDR_WIDTH(12), .PAD_NUM(PAD_NUM), .NBIT_PADCFG(4)
     ) u_gpio (
         .pclk(pclk), .preset_n(preset_n),
         .dft_cg_enable_i(1'b0),  // OPEN-G1: DFT must drive this
-        .PADDR(ip_paddr), .PWDATA(ip_pwdata), .PWRITE(ip_pwrite),
-        .PSEL(ip_psel), .PENABLE(ip_penable),
-        .PRDATA(ip_prdata), .PREADY(ip_pready), .PSLVERR(),
+        .PADDR(paddr_i), .PWDATA(pwdata_i), .PWRITE(pwrite_i),
+        .PSEL(ip_psel), .PENABLE(penable_i),
+        .PRDATA(ip_prdata), .PREADY(), .PSLVERR(),
         .gpio_in(gpio_sync), .gpio_in_sync(),
         .gpio_out(gpio_o), .gpio_dir(gpio_dir),
-        .gpio_padcfg(padcfg_unused),
+        .gpio_padcfg(),
         .interrupt(gpio_int));
 
     // PADDIR[n] = 1 means "output", which is the pad's output enable.
     assign gpio_oe = gpio_dir;
 
-    wire _unused = |{dmactl, padcfg_unused};
 
 endmodule

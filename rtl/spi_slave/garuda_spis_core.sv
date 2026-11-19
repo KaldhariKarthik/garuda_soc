@@ -41,9 +41,7 @@ module garuda_spis_core
     output reg [BYTE_W-1:0] rx_byte_o,
     output reg rx_push_o,  // one pclk per completed byte
     output wire cs_active_o,
-    output reg cs_rise_o,  // one pclk, end of packet
-    // one pclk, start of packet
-    output reg cs_fall_o
+    output reg cs_rise_o  // one pclk, end of packet
 );
     timeunit 1ns;
     timeprecision 1ps;
@@ -87,12 +85,15 @@ module garuda_spis_core
 
     assign cs_active_o = ~cs_n_s_i & en_i & (open_q | cs_fall_now);
 
-    always_ff @(posedge pclk or negedge preset_n) begin : p_cs_fall
+    // the start of a packet, one cycle after cs_fall_now: it loads the first
+    // byte to send (F4: internal, no port; nothing outside the core read it)
+    reg cs_fall_q;
+    always_ff @(posedge pclk or negedge preset_n) begin : p_cs_rise
         if (!preset_n) begin
-            cs_fall_o <= 1'b0;
+            cs_fall_q <= 1'b0;
             cs_rise_o <= 1'b0;
         end else begin
-            cs_fall_o <= cs_fall_now;
+            cs_fall_q <= cs_fall_now;
             // only a packet that was opened can end
             cs_rise_o <= ~cs_n_q & cs_n_s_i & en_i & open_q;
         end
@@ -101,30 +102,40 @@ module garuda_spis_core
     // ---- receive shifter ----------------------------------------------------
     // The bit counter is cleared on every cs_n falling edge, so a packet always
     // starts byte-aligned whatever preceded it ([N-7.3]).
-    reg [BYTE_W-1:0] rx_sh;
+    // the seven bits received before the last (F4: the eighth, shifted out
+    // as the byte completes, was never read)
+    localparam int unsigned RX_SH_W = 32'd7;
+    reg [RX_SH_W-1:0] rx_sh;
     reg [BITCNT_W-1:0] bitcnt;
+
+    // a byte completes: the eighth rising SCLK edge of a selected packet
+    wire byte_done = cs_active_o && sclk_rise && (bitcnt == 3'd7);
+    always_ff @(posedge pclk or negedge preset_n) begin : p_rx_push
+        if (!preset_n) begin
+            rx_push_o <= 1'b0;
+        end else begin
+            rx_push_o <= byte_done;
+        end
+    end
 
     always_ff @(posedge pclk or negedge preset_n) begin : p_rx_sh
         if (!preset_n) begin
-            rx_sh <= 8'd0;
+            rx_sh <= '0;
             bitcnt <= 3'd0;
             rx_byte_o <= 8'd0;
-            rx_push_o <= 1'b0;
         end else begin
-            rx_push_o <= 1'b0;
             if (!cs_active_o) begin
                 // Deselected: hold the shifter cleared. A partial byte left by
                 // a short packet is DISCARDED, never pushed - a truncated
                 // ESP-NOW frame must not look like a valid short one
                 // ([N-7.3a]).
                 bitcnt <= 3'd0;
-                rx_sh <= 8'd0;
+                rx_sh <= '0;
             end else if (sclk_rise) begin
-                rx_sh <= {rx_sh[6:0], mosi_s_i};
+                rx_sh <= {rx_sh[5:0], mosi_s_i};
                 bitcnt <= bitcnt + 3'd1;
                 if (bitcnt == 3'd7) begin
-                    rx_byte_o <= {rx_sh[6:0], mosi_s_i};
-                    rx_push_o <= 1'b1;
+                    rx_byte_o <= {rx_sh, mosi_s_i};
                 end
             end
         end
@@ -138,7 +149,7 @@ module garuda_spis_core
     always_ff @(posedge pclk or negedge preset_n) begin : p_tx_sh
         if (!preset_n) begin
             tx_sh <= 8'd0;
-        end else if (cs_fall_o) begin
+        end else if (cs_fall_q) begin
             tx_sh <= txdata_i;  // new packet: first byte
         end else if (cs_active_o && sclk_fall) begin
             // SPIS-4: the eighth falling edge is the START of the next byte, so

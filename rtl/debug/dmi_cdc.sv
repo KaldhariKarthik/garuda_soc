@@ -29,12 +29,13 @@ module dmi_cdc (
     input wire hclk,
     input wire dm_rst_n,
     output wire req_pulse_o,  // one hclk pulse per request
-    input wire ack_pulse_i,  // DM finished: toggles ack
-    output reg ack_tgl_o
+    input wire ack_pulse_i  // DM finished: toggles ack
 );
     timeunit 1ns;
     timeprecision 1ps;
     localparam int unsigned ARM_CNT_W = 32'd2;
+    // the ack toggle in hclk (F4: no port; nothing outside read it)
+    reg ack_tgl;
 
     // tck -> hclk
     // After an hclk-side reset (e.g. a watchdog reset during a session - the
@@ -54,7 +55,7 @@ module dmi_cdc (
         end else begin
             req_s <= {req_s[1:0], req_tgl_i};
             if (!armed) begin
-                arm_cnt <= arm_cnt + 2'd1;
+                arm_cnt <= ARM_CNT_W'(arm_cnt + 2'd1);
             end
         end
     end
@@ -62,11 +63,11 @@ module dmi_cdc (
 
     always_ff @(posedge hclk or negedge dm_rst_n) begin : p_ack_tgl
         if (!dm_rst_n) begin
-            ack_tgl_o <= 1'b0;
+            ack_tgl <= 1'b0;
         end else if (!armed) begin
-            ack_tgl_o <= req_s[1];
+            ack_tgl <= req_s[1];
         end else if (ack_pulse_i) begin
-            ack_tgl_o <= ~ack_tgl_o;
+            ack_tgl <= ~ack_tgl;
         end
     end
 
@@ -76,7 +77,7 @@ module dmi_cdc (
         if (!ext_rst_n) begin
             ack_s <= 2'd0;
         end else begin
-            ack_s <= {ack_s[0], ack_tgl_o};
+            ack_s <= {ack_s[0], ack_tgl};
         end
     end
     assign ack_tgl_sync_o = ack_s[1];

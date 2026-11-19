@@ -743,6 +743,26 @@ top until scan insertion (G7).
 
 ---
 
+## D-38 — HBURST and HPROT leave the bus (Karthik, 2026-11-18)
+
+**Context.** F4 HAL with every rule on found HBURST and HPROT read by no slave: the memories,
+the APB bridge and the default slave all ignored them (their `_unused` wires hid it). The
+masters drove constants (I-Port INCR and `0010`, D-Port SINGLE and `0011`, SBA and DMA
+SINGLE), and the interconnect muxed them and substituted HPROT for SBA and DMA, although the
+AHB spec ([N-5.2]) already said HPROT was not routed.
+
+**Decision (Karthik: "Remove from fabric").** HBURST and HPROT are gone from the masters, the
+interconnect and the slaves, with the HPROT substitution and the properties, coverage and
+bench checks of it. `HTRANS` keeps SEQ, which is all the burst information any slave or
+checker uses. Bench AHB checkers that take HBURST get the constant each master drove (INCR
+for the I-Port, SINGLE for the rest); a shared-bus checker gets the granted master's.
+
+**Consequences.** Less logic, no exception for unread protocol fields. AHB spec [N-5.2],
+[N-5.4] and the port tables updated. The master-mux HPROT formal property (`a_hprot_const`)
+and bench checks T10 are removed with the feature.
+
+---
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. None blocks RTL.

@@ -16,7 +16,7 @@ suites = [
 
 # garuda_apb_shim (rtl/common) is every peripheral's front end and is covered with the
 # peripherals (Track B); it is reported, not signed off, here (tb_apb_shim in b0).
-design    = ["rtl/ahb2apb/ahb2apb_bridge.sv", "rtl/ahb2apb/ahb2apb_apb_fsm.sv", "rtl/ahb2apb/ahb2apb_fabric.sv"]
+design    = ["rtl/ahb2apb/brg_ahb_fsm.sv", "rtl/ahb2apb/ahb2apb_bridge.sv", "rtl/ahb2apb/apb_phase_fsm.sv", "rtl/ahb2apb/ahb2apb_apb_fsm.sv", "rtl/ahb2apb/ahb2apb_fabric.sv"]
 testbench = ["rtl/common/garuda_apb_shim.sv", "tb/ahb2apb/*", "tb/common/*", "tb/ahb/agent/*", "tb/ahb/ahb_lite_master_bfm.sv", "rtl/ahb2apb/ahb2apb_sva.sv"]
 
 functional_files = ["tb/ahb2apb/env/ahb2apb_cov.sv"]

@@ -62,7 +62,13 @@ package garuda_pkg;
     // addi x0, x0, 0: the canonical NOP a bubble or an empty slot carries
     localparam logic [31:0] NOP_INSTR = 32'h0000_0013;
     localparam int unsigned MEM_SIZE_W = 32'd2;
-    localparam int unsigned ERR_PHASE_W = 32'd3;
+    // DMA: ERRPHASE is 1 (read) or 2 (write); the 3-bit register field is
+    // padded where it is read (F4)
+    localparam int unsigned ERR_PHASE_W = 32'd2;
+    localparam int unsigned DMA_CR_W = 32'd9;
+    localparam int unsigned WDT_CTL_W = 32'd2;  // WDTCTL: {WARNEN, EN}     // CR [8:0]
+    localparam int unsigned DMA_STAT_W = 32'd21;  // STAT [20:0] as held
+                                                  // (ERRPHASE bit 21 is 0)
     localparam int unsigned SHAMT_W = 32'd6;
     localparam int unsigned RES_SRC_W = 32'd2;
     localparam int unsigned NUM_ACC = 32'd3;

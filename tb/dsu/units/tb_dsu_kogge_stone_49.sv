@@ -78,11 +78,10 @@ endtask
 // -------------------------------------------------------------
 interface kogge_stone_49_if (input bit clk);
     logic [48:0] a, b;
-    logic        cin;
     logic [48:0] sum;
 
     property p_no_x_propagation;
-        @(posedge clk) (!$isunknown({a, b, cin})) |-> (!$isunknown(sum));
+        @(posedge clk) (!$isunknown({a, b})) |-> (!$isunknown(sum));
     endproperty
     a_no_x_propagation: assert property (p_no_x_propagation)
         else $error("[SVA-FAIL] X detected on kogge_stone_49 sum with fully-known inputs");
@@ -94,7 +93,6 @@ endinterface
 // -------------------------------------------------------------
 class ks_txn;
     rand bit [48:0] a, b;
-    rand bit        cin;
     string tag;
     bit [48:0] sum_act, sum_exp;
 
@@ -107,11 +105,10 @@ class ks_txn;
     constraint c_b_corner_dist {
         b dist { 49'h0 := 4, {49{1'b1}} := 4, 49'h1_0000_0000_0000 := 3, 49'h1_FFFF_FFFF_FFFE := 3, [0:49'h1_FFFF_FFFF_FFFE] :/ 86 };
     }
-    constraint c_cin_dist { cin dist { 0 := 50, 1 := 50 }; }
 
     function new(string tag_ = "random"); tag = tag_; endfunction
     function string to_s();
-        return $sformatf("a=%013h b=%013h cin=%0b", a, b, cin);
+        return $sformatf("a=%013h b=%013h", a, b);
     endfunction
 endclass
 
@@ -120,7 +117,7 @@ endclass
 // 4. GOLDEN / REFERENCE MODEL -- 49-bit wraparound adder
 // -------------------------------------------------------------
 function automatic void ks_golden(ks_txn t);
-    t.sum_exp = t.a + t.b + t.cin;   // 49-bit variables -> natural wraparound
+    t.sum_exp = t.a + t.b;     // 49-bit variables -> natural wraparound
 endfunction
 
 
@@ -135,17 +132,15 @@ class ks_generator;
 
     function void build();
         ks_txn t;
-        t = new("dir_zero_zero");      t.a=0;  t.b=0; t.cin=0; items.push_back(t);
-        t = new("dir_max_plus_one");   t.a='1; t.b=1; t.cin=0; items.push_back(t);  // full wraparound to 0
-        t = new("dir_max_plus_cin");   t.a='1; t.b=0; t.cin=1; items.push_back(t);  // wraparound via cin
-        t = new("dir_half_plus_half"); t.a=49'h1_0000_0000_0000; t.b=49'h1_0000_0000_0000; t.cin=0; items.push_back(t);
+        t = new("dir_zero_zero");      t.a=0;  t.b=0; items.push_back(t);
+        t = new("dir_max_plus_one");   t.a='1; t.b=1; items.push_back(t);  // full wraparound to 0
+        t = new("dir_half_plus_half"); t.a=49'h1_0000_0000_0000; t.b=49'h1_0000_0000_0000; items.push_back(t);
 
         // --- additional corner cases -------------------------------------
-        t = new("dir_max_plus_max");     t.a='1; t.b='1; t.cin=1; items.push_back(t);
-        t = new("dir_zero_plus_cin");    t.a=0;  t.b=0;  t.cin=1; items.push_back(t);
-        t = new("dir_one_below_max_plus_one"); t.a=49'h1_FFFF_FFFF_FFFE; t.b=1; t.cin=0; items.push_back(t);
+        t = new("dir_max_plus_max");     t.a='1; t.b='1; items.push_back(t);
+        t = new("dir_one_below_max_plus_one"); t.a=49'h1_FFFF_FFFF_FFFE; t.b=1; items.push_back(t);
         for (int i = 0; i < 49; i++) begin
-            t = new($sformatf("dir_walk1_a_bit%0d", i)); t.a = 49'h1 << i; t.b = 0; t.cin = 0; items.push_back(t);
+            t = new($sformatf("dir_walk1_a_bit%0d", i)); t.a = 49'h1 << i; t.b = 0; items.push_back(t);
         end
 
         repeat (num_random) begin
@@ -166,7 +161,7 @@ class ks_driver;
 
     task apply(ks_txn t);
         @(negedge vif.clk);
-        vif.a <= t.a; vif.b <= t.b; vif.cin <= t.cin;
+        vif.a <= t.a; vif.b <= t.b;
     endtask
 endclass
 
@@ -179,10 +174,9 @@ class ks_monitor;
 
     `ifndef VERILATOR
 covergroup cg_ks;
-        cp_cin: coverpoint vif.cin;
         cp_a_zero: coverpoint (vif.a == 0);
         cp_b_zero: coverpoint (vif.b == 0);
-        cp_wrap: coverpoint ((vif.a + vif.b + vif.cin) > 49'h1_FFFF_FFFF_FFFF);
+        cp_wrap: coverpoint ((vif.a + vif.b) > 49'h1_FFFF_FFFF_FFFF);
     endgroup
 `endif
 
@@ -278,7 +272,7 @@ module tb_top;
     kogge_stone_49_if vif(clk);
 
     kogge_stone_49 dut (
-        .a(vif.a), .b(vif.b), .cin(vif.cin), .sum(vif.sum)
+        .a(vif.a), .b(vif.b), .sum(vif.sum)
     );
 
     ks_test test;
@@ -286,7 +280,7 @@ module tb_top;
     initial begin
         int tb_nrand = 1500;
         tb_control_init(tb_nrand, "tb_dsu_kogge_stone_49");
-        vif.a = 0; vif.b = 0; vif.cin = 0;
+        vif.a = 0; vif.b = 0;
         repeat (3) @(posedge clk);
 
         test = new(vif, tb_nrand);

@@ -114,6 +114,8 @@ module ahb_arbiter
             assign req[g] = htrans_i[2*g + 1];
         end
     endgenerate
+    // (the I-Port's request picks nothing: it wins by default; it is read
+    // below, where the granted master's request starts a data phase)
 
     // -----------------------------------------------------------------------
     // Fixed priority: DMA > SBA > D-Port > I-Port (Rev 4.0 Sec. 7.1, ADR-0004).
@@ -159,14 +161,15 @@ module ahb_arbiter
     // The HWDATA mux in particular MUST use dph_master_o, not grant_o. See
     // ERRATUM AHB-1 in ahb_master_mux.v.
     // -----------------------------------------------------------------------
-    wire [HTRANS_W-1:0] granted_htrans = htrans_i[2*grant_o +: 2];
+    // the granted master presents a transfer (HTRANS[1], F4: no product index)
+    wire granted_act = req[grant_o];
 
     always_ff @(posedge hclk or negedge hreset_n) begin : p_dph_valid
         if (!hreset_n) begin
             dph_valid_o <= 1'b0;
             dph_master_o <= AHB_M_IPORT;
         end else if (hready_i) begin
-            dph_valid_o <= granted_htrans[1];
+            dph_valid_o <= granted_act;
             dph_master_o <= grant_o;
         end
     end
@@ -190,7 +193,7 @@ module ahb_arbiter
         if (!hreset_n) begin
             last_owner_r <= AHB_M_IPORT;
             last_owner_v <= 1'b0;
-        end else if (hready_i && granted_htrans[1]) begin
+        end else if (hready_i && granted_act) begin
             last_owner_r <= grant_o;
             last_owner_v <= 1'b1;
         end

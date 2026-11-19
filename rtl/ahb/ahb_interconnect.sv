@@ -216,8 +216,9 @@ module ahb_interconnect
     // =====================================================================
     wire [AHB_SEL_W-1:0] hsel;
 
+    wire [AHB_RGN_W-1:0] rgn = haddr_o[31:28];  // the region nibble
     ahb_decoder u_dec (
-        .haddr_i (haddr_o),
+        .rgn_i   (rgn),
         .hsel_o  (hsel)
     );
 
@@ -229,17 +230,17 @@ module ahb_interconnect
     // =====================================================================
     // Default slave (Sec. 8.4)
     // =====================================================================
-    wire [WORD_W-1:0] hrdata_df;
     wire        hreadyout_df;
+    wire        bus_req = htrans_o[1];  // a NONSEQ or SEQ on the bus
     wire        hresp_df;
 
+    wire hsel_df = hsel[AHB_S_DEFAULT];
     ahb_dflt_slave u_def (
         .hclk      (hclk),
         .hreset_n  (hreset_n),
-        .hsel_i      (hsel[AHB_S_DEFAULT]),
-        .htrans_i    (htrans_o),
+        .hsel_i      (hsel_df),
+        .req_i       (bus_req),
         .hready_i    (hready_o),
-        .hrdata_o    (hrdata_df),
         .hreadyout_o (hreadyout_df),
         .hresp_o     (hresp_df)
     );
@@ -264,17 +265,14 @@ module ahb_interconnect
             .hresp_s2_i(hresp_dsram_i),
         .hrdata_s3_i(hrdata_bridge_i), .hreadyout_s3_i(hreadyout_bridge_i),
             .hresp_s3_i(hresp_bridge_i),
-        .hrdata_df_i(hrdata_df), .hreadyout_df_i(hreadyout_df),
+        .hreadyout_df_i(hreadyout_df),
             .hresp_df_i(hresp_df),
 
         .hrdata_o    (hrdata_shared),
         .hresp_o     (hresp_shared),
-        .hready_o    (hready_o),
-        // dph_sel_o is deliberately left unconnected. It exists so that
-        // tb/cov/ can bind to the registered data-phase select and cover
-        // Sec. 12's "data-phase select" and "decode coverage" rows without
-        // any RTL edit - the same pattern dma_channel_fsm.state_o uses.
-        .dph_sel_o   ()
+        .hready_o    (hready_o)
+        // the registered data-phase select is u_smux.dph_sel (coverage and
+        // assertions read it by name; F4: no unconnected port)
     );
 
     // =====================================================================
@@ -292,13 +290,23 @@ module ahb_interconnect
     wire s_dph = dph_valid && (dph_master == AHB_M_SBA  );
     wire m_dph = dph_valid && (dph_master == AHB_M_DMA  );
 
-    assign hmaster_is_sba_o = (grant == AHB_M_SBA);
+    // the grant per master, and each master's request (HTRANS[1])
+    wire i_gnt = (grant == AHB_M_IPORT);
+    wire d_gnt = (grant == AHB_M_DPORT);
+    wire s_gnt = (grant == AHB_M_SBA);
+    wire m_gnt = (grant == AHB_M_DMA);
+    wire i_req = i_htrans_i[1];
+    wire d_req = d_htrans_i[1];
+    wire s_req = s_htrans_i[1];
+    wire m_req = m_htrans_i[1];
+
+    assign hmaster_is_sba_o = s_gnt;
 
     ahb_master_port u_mp_i (
         .hclk          (hclk),
         .hreset_n      (hreset_n),
-        .htrans_i        (i_htrans_i),
-        .granted_i       (grant == AHB_M_IPORT),
+        .req_i           (i_req),
+        .granted_i       (i_gnt),
         .dph_own_i       (i_dph),
         .hready_shared_i (hready_o),
         .hrdata_shared_i (hrdata_shared),
@@ -311,8 +319,8 @@ module ahb_interconnect
     ahb_master_port u_mp_d (
         .hclk          (hclk),
         .hreset_n      (hreset_n),
-        .htrans_i        (d_htrans_i),
-        .granted_i       (grant == AHB_M_DPORT),
+        .req_i           (d_req),
+        .granted_i       (d_gnt),
         .dph_own_i       (d_dph),
         .hready_shared_i (hready_o),
         .hrdata_shared_i (hrdata_shared),
@@ -325,8 +333,8 @@ module ahb_interconnect
     ahb_master_port u_mp_s (
         .hclk          (hclk),
         .hreset_n      (hreset_n),
-        .htrans_i        (s_htrans_i),
-        .granted_i       (grant == AHB_M_SBA),
+        .req_i           (s_req),
+        .granted_i       (s_gnt),
         .dph_own_i       (s_dph),
         .hready_shared_i (hready_o),
         .hrdata_shared_i (hrdata_shared),
@@ -339,8 +347,8 @@ module ahb_interconnect
     ahb_master_port u_mp_m (
         .hclk          (hclk),
         .hreset_n      (hreset_n),
-        .htrans_i        (m_htrans_i),
-        .granted_i       (grant == AHB_M_DMA),
+        .req_i           (m_req),
+        .granted_i       (m_gnt),
         .dph_own_i       (m_dph),
         .hready_shared_i (hready_o),
         .hrdata_shared_i (hrdata_shared),

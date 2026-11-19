@@ -15,12 +15,9 @@ module dsu_decoder
     output wire [MAC_CTRL_W - 1:0] control,
     output wire [ACC_SEL_W-1:0] acc_sel,
     output wire sat_op,
-    output wire shift_op,
     output wire [SHAMT_W-1:0] shift_amt,
     output wire shift_dir,
     output wire [ACC_SEL_W-1:0] shift_acc_sel,
-    output wire rd_lo_op,
-    output wire rd_hi_op,
     output wire [RES_SRC_W-1:0] result_src,
     output wire writes_regfile,
     output wire [REG_IDX_W-1:0] rd_addr,
@@ -36,8 +33,6 @@ module dsu_decoder
     wire [OPCODE_W-1:0]  opcode    = instr[6:0];
     wire [REG_IDX_W-1:0]  rd_f      = instr[11:7];
     assign      funct3_fld    = instr[14:12];
-    wire [REG_IDX_W-1:0]  rs1_f     = instr[19:15];
-    wire [REG_IDX_W-1:0]  rs2_f     = instr[24:20];
     wire [ACC_SEL_W-1:0]  acc_sel_r = instr[26:25];
     wire [FUNCT5_W-1:0]  funct5_r  = instr[31:27];
     wire [IMM_W-1:0] imm_i     = instr[31:20];
@@ -120,9 +115,6 @@ module dsu_decoder
     };
 
     assign sat_op   = op_macsat & dsu_en & ~illegal_instr;
-    assign shift_op = op_macshift & dsu_en & ~illegal_instr;
-    assign rd_lo_op = op_rd_lo & dsu_en & ~illegal_instr;
-    assign rd_hi_op = op_rd_hi & dsu_en & ~illegal_instr;
 
     assign shift_amt  = imm_i [5:0];
     assign shift_dir  = imm_i [8];

@@ -44,7 +44,7 @@ module debug_module
     import garuda_pkg::*;
 #(
     // hclk cycles from halt request to a forced grant
-    parameter integer HALT_TIMEOUT = 32'd1024
+    parameter int unsigned HALT_TIMEOUT = 32'd1024
 ) (
     input wire hclk,
     input wire dm_rst_n,
@@ -81,8 +81,7 @@ module debug_module
     localparam int unsigned SBACCESS_W = 32'd3;
     localparam int unsigned SBERROR_W = 32'd3;
 
-    localparam [6:0] A_DMCONTROL = 7'h10, A_DMSTATUS = 7'h11, A_ABSTRACTCS
-        = 7'h16,
+    localparam [6:0] A_DMCONTROL = 7'h10, A_DMSTATUS = 7'h11,
                      A_SBCS = 7'h38, A_SBADDR0 = 7'h39, A_SBDATA0 = 7'h3C,
                      A_ACC0L = 7'h60, A_ACC0H = 7'h61, A_ACC1L = 7'h62,
                      A_ACC1H = 7'h63, A_ACC2L = 7'h64, A_ACC2H = 7'h65, A_OVF
@@ -100,24 +99,18 @@ module debug_module
     reg [SBERROR_W-1:0] sberror;
     reg [WORD_W-1:0] sbaddr;
     reg [WORD_W-1:0] sbdata;
-    reg [ACC_W-1:0] hold_fx;
-    reg [ACC_W-1:0] hold_fy;
-    reg [ACC_W-1:0] hold_mag;
-    reg        pending_write;  // the running SBA transfer is a write
+    // ACCnH reads the high part of the value ACCnL read (F4: only those 16
+    // bits are held; the low 32 of the old 48-bit copies were never read)
+    reg [HALF_W-1:0] hold_fx;
+    reg [HALF_W-1:0] hold_fy;
+    reg [HALF_W-1:0] hold_mag;
 
-    // ERRATUM DBG-2: sba_done_i is high one cycle AFTER sba_busy_i falls, and
-    // sbdata/sbaddr/sberror only take the result at the end of that cycle. With
-    // the done cycle counted as idle, an sbdata0 read landing in it returned
-    // the previous word with sbbusyerror clear, and an sbdata0 write started a
-    // new transfer past an sberror being set in the same cycle. The transfer is
-    // busy until its result is in the registers.
     wire sbbusy = sba_busy_i | sba_start_o | sba_done_i;
 
-    // ---- RDC-1 halt drain: request -> drain -> grant ------------------------
     reg        grant_q;  // the core is (being) held in hartreset
     reg        haltforced;  // sticky: a grant came from the timeout
     reg [HALF_W-1:0] halt_cnt;
-    localparam integer HALT_LAST_I = HALT_TIMEOUT - 1;
+    localparam int unsigned HALT_LAST_I = HALT_TIMEOUT - 32'd1;
     // the counter is 16 bits
     localparam [15:0]  HALT_LAST   = HALT_LAST_I[15:0];
     wire       halt_requested = dmactive & hartreset;
@@ -158,7 +151,7 @@ module debug_module
                     grant_q <= 1'b1;  // bounded: never wait forever
                     haltforced <= 1'b1;
                 end else begin
-                    halt_cnt <= halt_cnt + 16'd1;
+                    halt_cnt <= HALF_W'(halt_cnt + 16'd1);
                 end
             end
         end
@@ -168,189 +161,203 @@ module debug_module
     // clock.
     assign halt_req_o = halt_requested;
 
-    // An SBA access starts only if nothing is wrong ([N-7.6]): sbaccess must be
-    // 2 (32-bit), else sberror = 3; the address must be word-aligned, else
-    // sberror = 2. The check is written out at each of its three places
-    // (SBADDR0 write, SBDATA0 write, SBDATA0 read) rather than as a task:
-    // Xcelium switches X-propagation off for a block that calls a task writing
-    // registers outside it (flow/2_static/xprop/README.md, ruling 2026-11-10).
+    // ---- the DMI request this cycle -----------------------------------------
+    // F4 (2026-11-17): one process per register; the single process before
+    // gave several registers two assignments in one edge, the later winning
+    // (HAL MULNBA). Each priority below is that order written out.
+    wire dmc_wr    = wr && (addr_i == A_DMCONTROL);  // allowed while inactive
+    wire wr_act    = wr && dmactive;
+    wire dm_off    = dmc_wr && !wdata_i[0];          // DM reset
+    wire dm_on     = dmc_wr && wdata_i[0];
+    wire sbcs_wr   = wr_act && (addr_i == A_SBCS);
+    wire sbaddr_wr = wr_act && (addr_i == A_SBADDR0);
+    wire sbdata_wr = wr_act && (addr_i == A_SBDATA0);
+    wire sbdata_rd = rd && (addr_i == A_SBDATA0) && dmactive;
+    wire bus_done  = sba_done_i && dmactive;
+    wire bus_err   = bus_done && sba_err_i;
+    wire bus_ok    = bus_done && !sba_err_i;
 
-    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_dmactive
+    // a system-bus access may start: no error pending, the access size is the
+    // one supported (word), the address word-aligned
+    wire sb_clean  = (sberror == '0) && !sbbusyerror;
+    wire word_size = (sbaccess == 3'd2);
+    wire try_a = sbaddr_wr && !sbbusy && sbreadonaddr && sb_clean;
+    wire try_w = sbdata_wr && !sbbusy && sb_clean;
+    wire try_r = sbdata_rd && !sbbusy && sbreadondata && sb_clean;
+    wire wadr_ok   = (wdata_i[1:0] == 2'b00);
+    wire sadr_ok   = (sbaddr[1:0] == 2'b00);
+    wire start_a = try_a && word_size && wadr_ok;
+    wire start_w = try_w && word_size && sadr_ok;
+    wire start_r = try_r && word_size && sadr_ok;
+    // the error a refused start records: 3 bad size, 2 bad alignment
+    wire refuse_a = try_a && !(word_size && wadr_ok);
+    wire refuse_d = (try_w || try_r) && !(word_size && sadr_ok);
+    wire [SBERROR_W-1:0] refuse_code = word_size ? 3'd2 : 3'd3;
+    wire sbcs_clr = sbcs_wr && (wdata_i[14:12] != '0) && !bus_err;
+
+    // ---- dmcontrol ----------------------------------------------------------
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_dmcontrol
         if (!dm_rst_n) begin
             dmactive <= 1'b0;
             ndmreset <= 1'b0;
             hartreset <= 1'b0;
-            sbbusyerror <= 1'b0;
+        end else if (dm_off) begin
+            dmactive <= 1'b0;
+            ndmreset <= 1'b0;
+            hartreset <= 1'b0;
+        end else if (dm_on) begin
+            dmactive <= 1'b1;
+            ndmreset <= wdata_i[1];
+            if (wdata_i[31]) begin
+                hartreset <= 1'b1;  // haltreq
+            end else if (wdata_i[30]) begin
+                hartreset <= 1'b0;  // resumereq
+            end else begin
+                hartreset <= wdata_i[29];
+            end
+        end
+    end
+
+    // ---- sbcs fields --------------------------------------------------------
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_sbcs
+        if (!dm_rst_n) begin
             sbreadonaddr <= 1'b0;
             sbautoinc <= 1'b0;
             sbreadondata <= 1'b0;
             sbaccess <= 3'd2;
+        end else if (dm_off) begin
+            sbreadonaddr <= 1'b0;
+            sbautoinc <= 1'b0;
+            sbreadondata <= 1'b0;
+            sbaccess <= 3'd2;
+        end else if (sbcs_wr) begin
+            sbreadonaddr <= wdata_i[20];
+            sbaccess <= wdata_i[19:17];
+            sbautoinc <= wdata_i[16];
+            sbreadondata <= wdata_i[15];
+        end
+    end
+
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_sbbusyerror
+        if (!dm_rst_n) begin
+            sbbusyerror <= 1'b0;
+        end else if (dm_off || (sbcs_wr && wdata_i[22])) begin
+            sbbusyerror <= 1'b0;
+        end else if ((sbaddr_wr || sbdata_wr || sbdata_rd) && sbbusy) begin
+            sbbusyerror <= 1'b1;
+        end
+    end
+
+    // sberror: a refused start or a W1C clear on this access wins over a bus
+    // error reported in the same cycle; a DM reset wins over everything
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_sberror
+        if (!dm_rst_n) begin
             sberror <= 3'd0;
+        end else if (dm_off) begin
+            sberror <= 3'd0;
+        end else if (sbcs_clr) begin
+            sberror <= sberror & ~wdata_i[14:12];
+        end else if (refuse_a || refuse_d) begin
+            sberror <= refuse_code;
+        end else if (bus_err) begin
+            sberror <= 3'd4;
+        end
+    end
+
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_sbaddr
+        if (!dm_rst_n) begin
             sbaddr <= 32'd0;
+        end else if (dm_off) begin
+            sbaddr <= 32'd0;
+        end else if (sbaddr_wr && !sbbusy) begin
+            sbaddr <= wdata_i;
+        end else if (bus_ok && sbautoinc) begin
+            sbaddr <= sbaddr + 32'd4;
+        end
+    end
+
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_sbdata
+        if (!dm_rst_n) begin
             sbdata <= 32'd0;
-            hold_fx <= 48'd0;
-            hold_fy <= 48'd0;
-            hold_mag <= 48'd0;
+        end else if (dm_off) begin
+            sbdata <= 32'd0;
+        end else if (sbdata_wr && !sbbusy) begin
+            sbdata <= wdata_i;
+        end else if (bus_ok && !sba_write_o) begin
+            sbdata <= sba_rdata_i;
+        end
+    end
+
+    // ---- the system-bus access ----------------------------------------------
+    // sba_write_o is the running access's direction (it was kept twice, as
+    // pending_write too)
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_sba
+        if (!dm_rst_n) begin
             sba_start_o <= 1'b0;
             sba_write_o <= 1'b0;
-            pending_write <= 1'b0;
+        end else begin
+            sba_start_o <= start_a || start_w || start_r;
+            if (start_w) begin
+                sba_write_o <= 1'b1;
+            end else if (start_a || start_r) begin
+                sba_write_o <= 1'b0;
+            end
+        end
+    end
+
+    // ---- DMI read data ------------------------------------------------------
+    function automatic [WORD_W-1:0] hi_word(input [HALF_W-1:0] h);
+        hi_word = {{(WORD_W - HALF_W){1'b0}}, h};
+    endfunction
+
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_rdata
+        if (!dm_rst_n) begin
             rdata_o <= 32'd0;
+        end else if (rd) begin
+            case (addr_i)
+                A_DMCONTROL: rdata_o <= dmcontrol;
+                A_DMSTATUS: rdata_o <= dmstatus;
+                A_SBCS: rdata_o <= sbcs;
+                A_SBADDR0: rdata_o <= sbaddr;
+                A_SBDATA0: rdata_o <= sbdata;
+                A_ACC0L: rdata_o <= dsu_acc0_i[31:0];
+                A_ACC0H: rdata_o <= hi_word(hold_fx);
+                A_ACC1L: rdata_o <= dsu_acc1_i[31:0];
+                A_ACC1H: rdata_o <= hi_word(hold_fy);
+                A_ACC2L: rdata_o <= dsu_acc2_i[31:0];
+                A_ACC2H: rdata_o <= hi_word(hold_mag);
+                A_OVF: rdata_o <= {31'd0, dsu_ovf_i};
+                A_HALTINFO: rdata_o <= {31'd0, haltforced};  // RDC-1
+                // abstractcs, data0, progbuf ...
+                default: rdata_o <= 32'd0;
+            endcase
+        end
+    end
+
+    // reading ACCnL takes a snapshot of ACCn's high part for ACCnH
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_hold
+        if (!dm_rst_n) begin
+            hold_fx <= 16'd0;
+            hold_fy <= 16'd0;
+            hold_mag <= 16'd0;
+        end else if (rd) begin
+            if (addr_i == A_ACC0L) begin
+                hold_fx <= dsu_acc0_i[47:32];
+            end
+            if (addr_i == A_ACC1L) begin
+                hold_fy <= dsu_acc1_i[47:32];
+            end
+            if (addr_i == A_ACC2L) begin
+                hold_mag <= dsu_acc2_i[47:32];
+            end
+        end
+    end
+
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_done
+        if (!dm_rst_n) begin
             done_o <= 1'b0;
         end else begin
             done_o <= req_i;
-            sba_start_o <= 1'b0;
-            // ---- SBA completion ---------------------------------------------
-            if (sba_done_i && dmactive) begin
-                if (sba_err_i) begin
-                    sberror <= 3'd4;
-                end else begin
-                    if (!pending_write) begin
-                        sbdata <= sba_rdata_i;
-                    end
-                    if (sbautoinc) begin
-                        sbaddr <= sbaddr + 32'd4;
-                    end
-                end
-            end
-            // ---- DMI writes -------------------------------------------------
-            // ERRATUM DBG-3: dmactive = 0 "holds the DM in reset" (spec 6.5).
-            // It only cleared ndmreset/hartreset: sbcs, sberror, sbbusyerror
-            // and sbaddress0 survived the debugger's dmactive 0 -> 1 reset, and
-            // SBA ran with the DM inactive. Writing dmactive = 0 now returns
-            // the SBA registers to their reset values, and while dmactive is 0
-            // only dmcontrol is writable and no transfer can start.
-            if (wr && (dmactive || addr_i == A_DMCONTROL)) begin
-                case (addr_i)
-                    A_DMCONTROL: begin
-                        dmactive <= wdata_i[0];
-                        if (!wdata_i[0]) begin  // DM reset
-                            ndmreset <= 1'b0;
-                            hartreset <= 1'b0;
-                            sbbusyerror <= 1'b0;
-                            sbreadonaddr <= 1'b0;
-                            sbautoinc <= 1'b0;
-                            sbreadondata <= 1'b0;
-                            sbaccess <= 3'd2;
-                            sberror <= 3'd0;
-                            sbaddr <= 32'd0;
-                            sbdata <= 32'd0;
-                        end else begin
-                            ndmreset <= wdata_i[1];
-                            if (wdata_i[31]) begin
-                                hartreset <= 1'b1;  // haltreq
-                            end else if (wdata_i[30]) begin
-                                hartreset <= 1'b0;  // resumereq
-                            end else begin
-                                hartreset <= wdata_i[29];
-                            end
-                        end
-                    end
-                    A_SBCS: begin
-                        if (wdata_i[22]) begin
-                            sbbusyerror <= 1'b0;
-                        end
-                        // ERRATUM DBG-4 (ruling D-32, 2026-11-03): an SBA error
-                        // completing in this cycle wins over the debugger's
-                        // write-1-to-clear, as the DMA's set-beats-clear rule
-                        // ([N-7.19]); before, the later assignment cleared the
-                        // 4 just set and the error was lost.
-                        if (wdata_i[14:12] != 0
-                            && !(sba_done_i && dmactive && sba_err_i)) begin
-                            sberror <= sberror & ~wdata_i[14:12];
-                        end
-                        sbreadonaddr <= wdata_i[20];
-                        sbaccess <= wdata_i[19:17];
-                        sbautoinc <= wdata_i[16];
-                        sbreadondata <= wdata_i[15];
-                    end
-                    A_SBADDR0: begin
-                        if (sbbusy) begin
-                            sbbusyerror <= 1'b1;
-                        end else begin
-                            sbaddr <= wdata_i;
-                            if (sbreadonaddr && sberror == 0
-                                && !sbbusyerror) begin
-                                // the check uses the NEW address
-                                if (sbaccess != 3'd2) begin
-                                    sberror <= 3'd3;
-                                end else if (wdata_i[1:0] != 0) begin
-                                    sberror <= 3'd2;
-                                end else begin
-                                    sba_start_o <= 1'b1;
-                                    sba_write_o <= 1'b0;
-                                    pending_write <= 1'b0;
-                                end
-                            end
-                        end
-                    end
-                    A_SBDATA0: begin
-                        if (sbbusy) begin
-                            sbbusyerror <= 1'b1;
-                        end else begin
-                            sbdata <= wdata_i;
-                            if (sberror == 0 && !sbbusyerror) begin
-                                if (sbaccess != 3'd2) begin
-                                    sberror <= 3'd3;
-                                end else if (sbaddr[1:0] != 2'b00) begin
-                                    sberror <= 3'd2;
-                                end else begin
-                                    sba_start_o <= 1'b1;
-                                    sba_write_o <= 1'b1;
-                                    pending_write <= 1'b1;
-                                end
-                            end
-                        end
-                    end
-                    default: begin
-                    end
-                endcase
-            end
-            // ---- DMI reads --------------------------------------------------
-            if (rd) begin
-                case (addr_i)
-                    A_DMCONTROL: rdata_o <= dmcontrol;
-                    A_DMSTATUS: rdata_o <= dmstatus;
-                    A_SBCS: rdata_o <= sbcs;
-                    A_SBADDR0: rdata_o <= sbaddr;
-                    A_SBDATA0: begin
-                        rdata_o <= sbdata;
-                        if (!dmactive) begin
-                        end else if (sbbusy) begin
-                            sbbusyerror <= 1'b1;
-                        end else if (sbreadondata && sberror == 0
-                            && !sbbusyerror) begin
-                            if (sbaccess != 3'd2) begin
-                                sberror <= 3'd3;
-                            end else if (sbaddr[1:0] != 2'b00) begin
-                                sberror <= 3'd2;
-                            end else begin
-                                sba_start_o <= 1'b1;
-                                sba_write_o <= 1'b0;
-                                pending_write <= 1'b0;
-                            end
-                        end
-                    end
-                    A_ACC0L: begin
-                        rdata_o <= dsu_acc0_i[31:0];
-                        hold_fx <= dsu_acc0_i;
-                    end
-                    A_ACC0H: rdata_o <= {16'd0, hold_fx[47:32]};
-                    A_ACC1L: begin
-                        rdata_o <= dsu_acc1_i[31:0];
-                        hold_fy <= dsu_acc1_i;
-                    end
-                    A_ACC1H: rdata_o <= {16'd0, hold_fy[47:32]};
-                    A_ACC2L: begin
-                        rdata_o <= dsu_acc2_i[31:0];
-                        hold_mag <= dsu_acc2_i;
-                    end
-                    A_ACC2H: rdata_o <= {16'd0, hold_mag[47:32]};
-                    A_OVF: rdata_o <= {31'd0, dsu_ovf_i};
-                    A_HALTINFO: rdata_o <= {31'd0, haltforced};  // RDC-1
-                    // abstractcs, data0, progbuf ...
-                    default: rdata_o <= 32'd0;
-                endcase
-            end
         end
     end
 

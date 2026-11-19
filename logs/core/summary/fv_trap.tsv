@@ -1,15 +1,15 @@
-# garuda-fv 1 suite=fv_trap block=core date=2026-11-17T07:17:19+05:30 design=263a7d353a9b79bb242b2901dc97e5d159c96a04 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+# garuda-fv 1 suite=fv_trap block=core date=2026-11-19T15:15:33+05:30 design=202625b450c1664cced99d534ce8a3329ed3dfda rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
 task	mode	result	class	secs	detail	log
 trap_bmc	bmc	BOUNDED(20)	OK	4	[40 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_trap_bmc.log
-trap_prove	prove	PROVEN	OK	5	[31 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_trap_prove.log
-pipe_bmc	bmc	BOUNDED(30)	OK	6	[9 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_pipe_bmc.log
-trap_cover	cover	COVERED	OK	23	[40 asserts, 34 covers in model] 	logs/core/raw/fv_trap/fv_trap_cover.log
-trap_prove_no_t13	prove	FAIL	XFAIL:PLANTED	7	[40 asserts, 35 covers in model] assertion failed (see trace)	logs/core/raw/fv_trap/fv_trap_prove_no_t13.log
-trap_prove_no_t14	prove	FAIL	XFAIL:PLANTED	5	[40 asserts, 35 covers in model] assertion failed (see trace)	logs/core/raw/fv_trap/fv_trap_prove_no_t14.log
+trap_prove	prove	PROVEN	OK	11	[31 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_trap_prove.log
+pipe_bmc	bmc	BOUNDED(30)	OK	7	[9 asserts, 35 covers in model] 	logs/core/raw/fv_trap/fv_pipe_bmc.log
+trap_cover	cover	COVERED	OK	26	[40 asserts, 34 covers in model] 	logs/core/raw/fv_trap/fv_trap_cover.log
+trap_prove_no_t13	prove	FAIL	XFAIL:PLANTED	8	[40 asserts, 35 covers in model] props: u_trap.u_trap_sva.a_mem_fault_entered, u_trap.u_trap_sva.a_mem_fault_no_mret	logs/core/raw/fv_trap/fv_trap_prove_no_t13.log
+trap_prove_no_t14	prove	FAIL	XFAIL:PLANTED	7	[40 asserts, 35 covers in model] props: u_trap.u_trap_sva.a_no_fault_trap_while_asleep, u_trap.u_trap_sva.a_no_wfi_arm_in_h2	logs/core/raw/fv_trap/fv_trap_prove_no_t14.log
 t17_no_fix	bmc	FAIL	XFAIL:PLANTED	1	[40 asserts, 35 covers in model] props: u_trap.u_trap_sva.a_ex_exc_needs_instr	logs/core/raw/fv_trap/fv_t17_no_fix.log
 t18_no_fix	bmc	FAIL	XFAIL:PLANTED	1	[40 asserts, 35 covers in model] props: u_trap.u_trap_sva.a_misfetch_tval_misaligned	logs/core/raw/fv_trap/fv_t18_no_fix.log
 buse_no_fix	bmc	FAIL	XFAIL:PLANTED	1	[40 asserts, 35 covers in model] props: u_if.u_iport_master.u_ctl_sva.a_ihaddr_aligned	logs/core/raw/fv_trap/fv_buse_no_fix.log
 ctl_no_bpdis	bmc	FAIL	XFAIL:PLANTED	1	[40 asserts, 35 covers in model] props: u_ctl_sva.a_ctl_bp	logs/core/raw/fv_trap/fv_ctl_no_bpdis.log
 ctl_no_pfdis	bmc	FAIL	XFAIL:PLANTED	1	[40 asserts, 35 covers in model] props: u_if.u_iport_master.u_ctl_sva.a_ctl_pf	logs/core/raw/fv_trap/fv_ctl_no_pfdis.log
 ctl_no_preempt	bmc	FAIL	XFAIL:PLANTED	2	[40 asserts, 35 covers in model] props: u_ctl_sva.a_ctl_preempt	logs/core/raw/fv_trap/fv_ctl_no_preempt.log
-ctl_no_cgdis	bmc	FAIL	XFAIL:PLANTED	1	[40 asserts, 35 covers in model] props: u_ctl_sva.a_ctl_cg	logs/core/raw/fv_trap/fv_ctl_no_cgdis.log
+ctl_no_cgdis	bmc	FAIL	XFAIL:PLANTED	2	[40 asserts, 35 covers in model] props: u_ctl_sva.a_ctl_cg	logs/core/raw/fv_trap/fv_ctl_no_cgdis.log

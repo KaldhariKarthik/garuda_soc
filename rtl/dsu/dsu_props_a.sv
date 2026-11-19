@@ -166,7 +166,11 @@ bind dsu_top dsu_top_sva u_dsu_props_a (
     .clk(gclk), .rst_n(core_rst_n), .flush(flush), .dsu_en(dsu_en), .instr(instr),
     .csr_clear_overflow(csr_clear_overflow), .dsu_busy(dsu_busy), .dsu_rd_valid(dsu_rd_valid),
     .dsu_overflow(dsu_overflow), .illegal_instr(illegal_instr), .control(control),
-    .sat_op(sat_op), .shift_op(shift_op), .rd_lo_op(rd_lo_op), .rd_hi_op(rd_hi_op), .acc_sel(acc_sel),
+    .sat_op(sat_op), .acc_sel(acc_sel),
+    // the decoder's op strobes (no ports since F4)
+    .shift_op(u_decoder.op_macshift & dsu_en & ~illegal_instr),
+    .rd_lo_op(u_decoder.op_rd_lo & dsu_en & ~illegal_instr),
+    .rd_hi_op(u_decoder.op_rd_hi & dsu_en & ~illegal_instr),
     .mac_overflow(mac_overflow), .sat_overflow(sat_overflow),
     .dbg_acc_0(dbg_acc_fx), .dbg_acc_1(dbg_acc_fy), .dbg_acc_2(dbg_acc_mag),
     .acc0(u_cluster.u_mac0.acc), .acc1(u_cluster.u_mac1.acc), .acc2(u_cluster.u_mac2.acc)

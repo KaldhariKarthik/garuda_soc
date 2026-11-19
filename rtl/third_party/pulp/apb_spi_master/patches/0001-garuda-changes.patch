@@ -1,0 +1,131 @@
+GARUDA changes to apb_spi_master (D-22, zero-waiver F4, recorded 2026-11-19).
+- F4 renames (d995a4a): clock and reset ports to pclk/preset_n; spi_master_apb_if ->
+  spim_apb_if (HAL module names of 4 to 16 characters), file renamed with it.
+- F4 style (a7c8db1): procedural blocks rewritten by tools/rtl_style.py; proven equivalent
+  by JasperGold SEC with the chip's own RTL. No logic change.
+
+--- a/rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv
++++ b/rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv
+@@ -16,8 +16,8 @@
+     parameter APB_ADDR_WIDTH = 12  //APB slaves are 4KB by default
+ )
+ (
+-    input  logic                      HCLK,
+-    input  logic                      HRESETn,
++    input  logic                      pclk,
++    input  logic                      preset_n,
+     input  logic [APB_ADDR_WIDTH-1:0] PADDR,
+     input  logic               [31:0] PWDATA,
+     input  logic                      PWRITE,
+@@ -116,9 +116,9 @@
+     assign events_o[0] = s_int_tx | s_int_rx;
+     assign events_o[1] = s_eot;
+ 
+-    always_ff @(posedge HCLK, negedge HRESETn)
++    always_ff @(posedge pclk, negedge preset_n)
+     begin
+-        if(~HRESETn)
++        if(~preset_n)
+         begin
+             r_state_tx <= INT_TX_ACTIVE;
+             r_state_rx <= INT_RX_ACTIVE;
+@@ -130,9 +130,9 @@
+         end
+     end
+ 
+-    always_ff @(posedge HCLK, negedge HRESETn)
++    always_ff @(posedge pclk, negedge preset_n)
+     begin
+-        if(~HRESETn)
++        if(~preset_n)
+         begin
+             r_counter_tx <= 'h0;
+             r_counter_rx <= 'h0;
+@@ -239,15 +239,15 @@
+         endcase
+     end
+ 
+-    spi_master_apb_if
++    spim_apb_if
+     #(
+         .BUFFER_DEPTH   ( BUFFER_DEPTH   ),
+         .APB_ADDR_WIDTH ( APB_ADDR_WIDTH )
+     )
+     u_axiregs
+     (
+-        .HCLK              ( HCLK              ),
+-        .HRESETn           ( HRESETn           ),
++        .pclk              ( pclk              ),
++        .preset_n           ( preset_n           ),
+         .PADDR             ( PADDR             ),
+         .PWDATA            ( PWDATA            ),
+         .PWRITE            ( PWRITE            ),
+@@ -295,8 +295,8 @@
+     )
+     u_txfifo
+     (
+-        .clk_i      ( HCLK                   ),
+-        .rst_ni     ( HRESETn                ),
++        .pclk      ( pclk                   ),
++        .preset_n     ( preset_n                ),
+         .clr_i      ( spi_swrst              ),
+ 
+         .elements_o ( elements_tx            ),
+@@ -317,8 +317,8 @@
+     )
+     u_rxfifo
+     (
+-        .clk_i      ( HCLK                   ),
+-        .rst_ni     ( HRESETn                ),
++        .pclk      ( pclk                   ),
++        .preset_n     ( preset_n                ),
+         .clr_i      ( spi_swrst              ),
+ 
+         .elements_o ( elements_rx            ),
+@@ -332,10 +332,10 @@
+         .ready_o    ( spi_ctrl_data_rx_ready )
+     );
+ 
+-    spi_master_controller u_spictrl
++    spim_ctrl u_spictrl
+     (
+-        .clk                    ( HCLK                   ),
+-        .rstn                   ( HRESETn                ),
++        .pclk                    ( pclk                   ),
++        .preset_n                   ( preset_n                ),
+         .eot                    ( s_eot                  ),
+         .spi_clk_div            ( spi_clk_div            ),
+         .spi_clk_div_valid      ( spi_clk_div_valid      ),
+--- a/rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv
++++ b/rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv
+@@ -21,15 +21,15 @@
+ `define REG_INTCFG 4'b1001 // BASEREG + 0x24
+ `define REG_INTSTA 4'b1010 // BASEREG + 0x28
+ 
+-module spi_master_apb_if
++module spim_apb_if
+ #(
+     parameter BUFFER_DEPTH   = 10,
+     parameter APB_ADDR_WIDTH = 12,  //APB slaves are 4KB by default
+     parameter LOG_BUFFER_DEPTH = `log2(BUFFER_DEPTH)
+ )
+ (
+-    input  logic                      HCLK,
+-    input  logic                      HRESETn,
++    input  logic                      pclk,
++    input  logic                      preset_n,
+     input  logic [APB_ADDR_WIDTH-1:0] PADDR,
+     input  logic               [31:0] PWDATA,
+     input  logic                      PWRITE,
+@@ -81,9 +81,9 @@
+ 
+     assign spi_int_rd_sta = PSEL & PENABLE & ~PWRITE & (read_address  == `REG_INTSTA);
+ 
+-    always @( posedge HCLK or negedge HRESETn )
++    always @( posedge pclk or negedge preset_n )
+     begin
+-        if ( HRESETn == 1'b0 )
++        if ( preset_n == 1'b0 )
+         begin
+             spi_swrst         <= 1'b0;
+             spi_rd            <= 1'b0;

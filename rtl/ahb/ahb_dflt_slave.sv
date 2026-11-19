@@ -48,42 +48,48 @@ module ahb_dflt_slave
     input wire hclk,
     input wire hreset_n,
     input wire hsel_i,
-    input wire [HTRANS_W-1:0] htrans_i,
+    input wire req_i,  // HTRANS[1]: a NONSEQ or SEQ transfer
     input wire hready_i,  // global HREADY (address phase accepted)
-    output wire [WORD_W-1:0] hrdata_o,
-    output reg hreadyout_o,
-    output reg hresp_o
+    output logic hreadyout_o,
+    output logic hresp_o
 );
     timeunit 1ns;
     timeprecision 1ps;
     localparam int unsigned STATE_W = 32'd2;
 
+    // F4 (2026-11-17): the state register and one block for the next state
+    // and the outputs (HAL BADFSM); no HRDATA (it was a constant 0, which the
+    // slave mux now returns for this slave itself)
     localparam [1:0] S_IDLE = 2'd0,
                      S_ERR1 = 2'd1,
                      S_ERR2 = 2'd2;
 
     reg [STATE_W-1:0] state;
+    logic [STATE_W-1:0] state_next;
 
-    // A transfer is taken when this slave is selected, the global HREADY is
-    // high (so the address phase completes this cycle) and HTRANS is
-    // NONSEQ/SEQ. HTRANS=BUSY is not a transfer and must not be answered.
-    wire accept = hsel_i && hready_i && htrans_i[1];
+    wire accept = hsel_i && hready_i && req_i;
 
-    // Moore outputs: a pure function of state, so the response waveform is
-    // identical whatever the address phase is doing around it.
-    always_comb begin : c_hreadyout
+    always_comb begin : c_next
+        state_next = state;
+        hreadyout_o = 1'b1;
+        hresp_o = AHB_RESP_OKAY;
         case (state)
+            S_IDLE: begin
+                if (accept) begin
+                    state_next = S_ERR1;
+                end
+            end
             S_ERR1: begin
                 hreadyout_o = 1'b0;
                 hresp_o = AHB_RESP_ERROR;
+                state_next = S_ERR2;
             end
             S_ERR2: begin
-                hreadyout_o = 1'b1;
                 hresp_o = AHB_RESP_ERROR;
+                state_next = accept ? S_ERR1 : S_IDLE;
             end
             default: begin
-                hreadyout_o = 1'b1;
-                hresp_o = AHB_RESP_OKAY;
+                state_next = S_IDLE;
             end
         endcase
     end
@@ -92,24 +98,8 @@ module ahb_dflt_slave
         if (!hreset_n) begin
             state <= S_IDLE;
         end else begin
-            case (state)
-                S_IDLE: begin
-                    if (accept) begin
-                        state <= S_ERR1;
-                    end
-                end
-                // In S_ERR1 the global HREADY is low (this slave is driving
-                // it low), so no address phase can be accepted - `accept` is
-                // structurally impossible here and is not tested.
-                S_ERR1: state <= S_ERR2;
-                S_ERR2: state <= accept ? S_ERR1 : S_IDLE;
-                default: state <= S_IDLE;
-            endcase
+            state <= state_next;
         end
     end
-
-    // Nothing is readable here. Driven to a constant rather than left
-    // undriven so no X reaches a master's write-back path on a faulting load.
-    assign hrdata_o = 32'h0000_0000;
 
 endmodule

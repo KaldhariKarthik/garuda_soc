@@ -29,9 +29,14 @@ module tb_apb_units;
     logic [31:0] prd = 0; logic prdy = 0, perr = 0;
     wire ack, err; wire [31:0] rdata; wire [11:0] psel; wire pen, pwr; wire [11:0] paddr; wire [31:0] pwd;
     ahb2apb_apb_fsm #(.APB_DIV(DIV), .TIMEOUT(16)) u_fsm (.pclk(clk), .preset_n(rst_n), .req_tgl_i(req),
-        .win_i(win), .addr_i(addr), .write_i(wr), .wdata_i(wd), .ack_tgl_o(ack), .err_o(err), .rdata_o(rdata),
-        .psel_o(psel), .penable_o(pen), .pwrite_o(pwr), .paddr_o(paddr), .pwdata_o(pwd),
+        .win_i(win), .ack_tgl_o(ack), .err_o(err), .rdata_o(rdata),
+        .psel_o(psel), .penable_o(pen),
         .prdata_sel_i(prd), .pready_sel_i(prdy), .pslverr_sel_i(perr));
+
+    // the address, direction and write data come from the bridge's capture
+    // since F4 (the sequencer passed them through); the bench drives them the
+    // same way, and the bridge's own SVA checks the rule in the bridge
+    assign pwr = wr; assign paddr = addr; assign pwd = wr ? wd : 32'd0;
 
     // ---------------- fabric ----------------
     logic [11:0] f_sel; logic [12*32-1:0] f_rd; logic [11:0] f_rdy, f_err;
@@ -75,7 +80,7 @@ module tb_apb_units;
                     check(pen && psel == 12'd1 << win, $sformatf("[R-5] ACCESS held: cycle %0d of extension %0d, sample %0d", c, ext, samp));
                 end
                 check(!pen && psel == 0, $sformatf("[N-7.15] ACCESS ended (%s after %0d sample(s); window %0d ext %0d ready_at %0d; fsm state %0d div %0d to %0d)",
-                      to ? "timeout" : "PREADY", samp, win, ext, ready_at, u_fsm.state, u_fsm.div_cnt, u_fsm.to_cnt));
+                      to ? "timeout" : "PREADY", samp, win, ext, ready_at, u_fsm.u_phase.state, u_fsm.div_cnt, u_fsm.to_cnt));
                 check(ack != n_ack0, "[BRG-1] exactly one acknowledge toggle");
                 check(err == exp_err && (exp_err && to ? rdata == 0 : wr || rdata == exp_rd),
                       $sformatf("[N-7.20] result: err %0d (want %0d), rdata %08h (want %08h)", err, exp_err, rdata, exp_rd));

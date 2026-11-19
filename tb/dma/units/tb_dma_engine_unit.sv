@@ -30,7 +30,8 @@ module tb_dma_engine_unit;
     dma_engine #(.ACK_CYCLES(2)) dut (.hclk(clk), .hreset_n(rst_n), .grant_valid_i(gv), .grant_ch_i(gch),
         .sar_i(sar), .dar_i(dar), .size_i(size), .m2m_i(6'd0), .beat_done_o(bdone), .beat_err_o(berr), .err_phase_o(eph),
         .dma_ack_o(ack), .haddr_o(haddr), .htrans_o(htrans), .hwrite_o(hwrite), .hsize_o(hsize), .hburst_o(hburst),
-        .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready), .hresp_i(hresp), .busy_o(busy), .inflight_o());
+        .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready), .hresp_i(hresp), .inflight_o());
+    assign busy = !dut.idle;  // no busy_o port since F4
     int checks = 0, fails = 0, n_ok = 0, n_rerr = 0, n_werr = 0, n_r9s = 0, n_r9d_read = 0, n_r9d_noread = 0;
     task automatic check(input bit c, input string s);
         checks++;

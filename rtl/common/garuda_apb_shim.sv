@@ -60,14 +60,13 @@
 module garuda_apb_shim
     import garuda_pkg::*;
 #(
-    parameter integer N_EVT     = 32'd4,  // interrupt sources from the IP
-    parameter integer SYNC_W    = 32'd1,  // asynchronous pad inputs to sync
+    parameter int unsigned N_EVT = 32'd4,  // interrupt sources from the IP
+    parameter int unsigned SYNC_W = 32'd1,  // asynchronous pad inputs to sync
     parameter [7:0]   SYNC_RESET = 8'h00,  // idle level of each synced pad
     // offsets < IP_LIMIT belong to the IP (at most 0x100)
     parameter [11:0]  IP_LIMIT  = 12'h100,
     // bit n: offset 4n is a register of the IP
     parameter [63:0]  IP_MAP    = {64{1'b1}},
-    parameter integer ADDR_SHIFT = 32'd0,  // 2 = re-map word offsets onto a
                                             //     byte-addressed IP (16550)
     parameter [7:0]   BLOCK_NUM = 8'd0,
     parameter [7:0]   BLOCK_REV = 8'd1
@@ -85,12 +84,7 @@ module garuda_apb_shim
     output wire pslverr_o,
     // ---- APB to the vendored IP ---------------------------------------------
     output wire ip_psel_o,
-    output wire ip_penable_o,
-    output wire ip_pwrite_o,
-    output wire [PADDR_W-1:0] ip_paddr_o,
-    output wire [WORD_W-1:0] ip_pwdata_o,
     input wire [WORD_W-1:0] ip_prdata_i,
-    input wire ip_pready_i,  // watched, not used (see assertion)
     // ---- interrupts ---------------------------------------------------------
     input wire [N_EVT - 1:0] evt_i,
     output wire irq_o,
@@ -99,7 +93,6 @@ module garuda_apb_shim
     input wire tx_space_i,  // IP can accept a byte/word
     input wire dma_ack_i,  // 2 hclk = 1 pclk (D-16)
     output wire dma_req_o,
-    output wire [DMACTL_W-1:0] dmactl_o,  // exposed so the wrapper can gate
     // ---- pad input synchronisers --------------------------------------------
     input wire [SYNC_W - 1:0] pad_async_i,
     output wire [SYNC_W - 1:0] pad_sync_o
@@ -125,10 +118,8 @@ module garuda_apb_shim
     // 16550's byte register indices 0,1,2,... (apb_uart_sv uses PADDR[2:0]).
     // =========================================================================
     assign ip_psel_o    = psel_i & in_ip;
-    assign ip_penable_o = penable_i;
-    assign ip_pwrite_o  = pwrite_i;
-    assign ip_paddr_o   = (ADDR_SHIFT == 0) ? paddr_i : (paddr_i >> ADDR_SHIFT);
-    assign ip_pwdata_o  = pwdata_i;
+    // the IP takes PENABLE, PWRITE, PADDR and PWDATA from the bus itself (F4:
+    // the shim's copies were feedthroughs); only its PSEL is decoded here
 
     // =========================================================================
     // Interrupt status: sticky capture, W1C
@@ -168,7 +159,6 @@ module garuda_apb_shim
             holdoff_q <= dma_ack_i;  // one pclk of guaranteed deassertion
         end
     end
-    assign dmactl_o  = dmactl_q;
     assign dma_req_o = ((dmactl_q[0] & rx_avail_i) | (dmactl_q[1] & tx_space_i))
         &
                        ~holdoff_q & ~dma_ack_i;
@@ -213,22 +203,11 @@ module garuda_apb_shim
     assign pready_o  = 1'b1;  // never stall the bridge
     assign pslverr_o = apb_access & ~hit;
 
-`ifndef SYNTHESIS
-    // the map has 64 bits, one per word of the first 0x100 offsets
-    initial if (IP_LIMIT > 12'h100) begin
-        $display("[SHIM-ASSERT] block %0d: IP_LIMIT 0x%03h > 0x100 (IP_MAP)",
-            BLOCK_NUM, IP_LIMIT);
-        $finish;
-    end
-    // The one upstream behaviour that would break the SoC rather than a test:
-    // an IP that deasserts PREADY while it finishes a wire transaction. All
-    // four vendored IPs tie it high; this fires if a re-vendor changes that.
-    always_ff @(posedge pclk) begin : p_blk
-        if (preset_n && ip_psel_o && !ip_pready_i) begin
-            $display("[SHIM-ASSERT] block %0d: PREADY low at %0t (timeout)",
-                BLOCK_NUM, $time);
-        end
-    end
-`endif
+    // IP_MAP covers 0x000..0x0FC: a larger IP_LIMIT stops elaboration (F4: a
+    // generate check, not a simulation-only $finish)
+    generate if (IP_LIMIT > 12'h100) begin : g_ip_limit_above_0x100
+        // no such module: elaboration stops here
+        garuda_apb_shim_IP_LIMIT_must_be_at_most_0x100 u_stop ();
+    end endgenerate
 
 endmodule

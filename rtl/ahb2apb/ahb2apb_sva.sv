@@ -256,7 +256,7 @@ bind ahb2apb_bridge ahb2apb_sva #(.WINDOW_MASK(WINDOW_MASK), .APB_DIV(APB_DIV), 
     .hready_i(hready_i), .hrdata_o(hrdata_o), .hreadyout_o(hreadyout_o), .hresp_o(hresp_o),
     .psel_o(psel_o), .penable_o(penable_o), .pwrite_o(pwrite_o), .paddr_o(paddr_o), .pwdata_o(pwdata_o),
     .prdata_i(prdata_i), .pready_i(pready_i), .pslverr_i(pslverr_i),
-    .hstate(hstate), .win_cap(win_cap), .addr_cap(addr_cap), .write_cap(write_cap), .wdata_cap(wdata_cap),
+    .hstate(u_ahb.hstate), .win_cap(win_cap), .addr_cap(addr_cap), .write_cap(write_cap), .wdata_cap(wdata_cap),
     .prdata_sel(prdata_sel), .pready_sel(pready_sel), .pslverr_sel(pslverr_sel),
-    .to_cnt(u_fsm.to_cnt), .pstate(u_fsm.state));
+    .to_cnt(u_fsm.to_cnt), .pstate(u_fsm.u_phase.state));
 `endif

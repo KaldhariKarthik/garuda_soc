@@ -54,7 +54,7 @@ name    = "mut_brg1"
 mode    = "bmc"
 depth   = 40
 engine  = "smtbmc yices"
-replace = { "rtl/ahb2apb/ahb2apb_bridge.sv" = "tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_brg1.v" }
+replace = { "rtl/ahb2apb/brg_ahb_fsm.sv" = "tb/ahb2apb/formal/mutants/ahb2apb_bridge_mut_brg1.v" }
 script  = ["chformal -assert -remove t:$check n:u_apb_sva.a_one_to_one n:u_apb_sva.a_resp n:u_apb_sva.a_subword_no_apb %u %u %d"]
 min_asserts = 3
 timeout = 3600

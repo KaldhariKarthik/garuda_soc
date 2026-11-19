@@ -77,11 +77,10 @@ module timers_apb
     output wire wr_wdtload_o,
     output wire wr_wdtkick_o,
     output wire wr_wdtwarn_o,
-    output wire [WORD_W-1:0] wdata_o,
     input wire [WORD_W-1:0] mtime_lo_i,
     input wire [WORD_W-1:0] mtime_hi_i,
     input wire [DWORD_W-1:0] mtimecmp_i,
-    input wire [WORD_W-1:0] wdtctl_i,
+    input wire [WDT_CTL_W-1:0] wdtctl_i,
     input wire [WORD_W-1:0] wdtload_i,
     input wire [WORD_W-1:0] wdtval_i,
     input wire [WORD_W-1:0] wdtwarn_i
@@ -132,7 +131,6 @@ module timers_apb
     assign wr_wdtkick_o  = ws && w == 6'd7;
     assign wr_wdtwarn_o  = ws && w == 6'd8;
     assign rd_mtime_lo_o = rs && w == 6'd0;
-    assign wdata_o       = pwdata_i;
 
     // MTIME_LO is captured on the same hclk edge that latches the shadow, so
     // the pair the bridge returns came from one cycle of the counter.
@@ -155,7 +153,7 @@ module timers_apb
             6'd1: rd_mux = mtime_hi_i;
             6'd2: rd_mux = mtimecmp_i[31:0];
             6'd3: rd_mux = mtimecmp_i[63:32];
-            6'd4: rd_mux = wdtctl_i;
+            6'd4: rd_mux = {{(WORD_W - WDT_CTL_W){1'b0}}, wdtctl_i};
             6'd5: rd_mux = wdtload_i;
             6'd6: rd_mux = wdtval_i;
             6'd8: rd_mux = wdtwarn_i;
@@ -167,7 +165,7 @@ module timers_apb
     always_ff @(posedge pclk or negedge preset_n) begin : p_prdata
         if (!preset_n) begin
             prdata_q <= 32'd0;
-        end else if (psel_i & ~penable_i) begin
+        end else if (psel_i && !penable_i) begin
             prdata_q <= hit ? rd_mux : 32'd0;
         end
     end

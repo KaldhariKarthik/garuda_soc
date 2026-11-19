@@ -11,11 +11,13 @@ finding is closed only by changing the RTL, or by one row of flow/2_static/hal_e
 
     RULE <TAB> file:line <TAB> text <TAB> CLASS
 
-where `text` is a piece of the finding's message (usually the signal or instance name) that
-picks out exactly that finding, and CLASS is one of the classes defined at the top of the
-same file ("# class NAME: reason"). Each class names a structure the chip must have. Every
-row must match exactly one finding of the run; a row that matches none (the line moved, or
-the RTL changed) fails the check, so the list cannot go stale.
+where `text` is a piece of the finding's message (the signal or port name) and CLASS is one
+of the classes defined at the top of the same file ("# class NAME: reason"). Each class names
+a structure the chip must have. The exception is per RTL line: a row covers every finding of
+that rule on that line whose message holds `text`, i.e. the line in every instance of its
+module (the APB shim is instantiated eight times; its IRQEN register is one line and one
+row). A row that matches no finding (the line moved, or the RTL changed) fails the check,
+so the list cannot go stale; an empty `text` is refused.
 """
 import collections, os, re, sys
 
@@ -52,6 +54,8 @@ def exceptions():
             if len(p) != 4:
                 raise SystemExit("hal_zero: %s:%d: need 4 tab-separated fields" % (EXC, n))
             rule, where, text, cls = p
+            if not text.strip():
+                raise SystemExit("hal_zero: %s:%d: empty text field" % (EXC, n))
             f, _, line = where.rpartition(":")
             rows.append((n, rule, f, int(line), text, cls))
     return classes, rows
@@ -84,7 +88,8 @@ def main():
             print("hal_zero: STALE exception %s:%d: %s %s:%d '%s' matches no finding" % (EXC, n, rule, f, line, text))
             bad += 1
             continue
-        used[hits[0]] = True
+        for i in hits:
+            used[i] = True
     open_ = [x for i, x in enumerate(fnd) if not used[i]]
     sev = collections.Counter(x[1] for x in open_)
     print("hal_zero: %d findings, %d excepted (%d rows), %d open (E %d, W %d, N %d), %d bad exception rows"

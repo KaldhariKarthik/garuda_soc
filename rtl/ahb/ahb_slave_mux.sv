@@ -35,7 +35,7 @@
 // makes the idle bus independent of slave behaviour entirely.
 //
 // No combinational loop is created by hready_o feeding back into the arbiter:
-// dph_valid_i and dph_sel_o are both registers, so the path is
+// dph_valid_i and dph_sel are both registers, so the path is
 // register -> combinational -> register enable.
 //
 // -----------------------------------------------------------------------------
@@ -73,15 +73,12 @@ module ahb_slave_mux
     input wire [WORD_W-1:0] hrdata_s3_i,
     input wire hreadyout_s3_i,
     input wire hresp_s3_i,
-    input wire [WORD_W-1:0] hrdata_df_i,
     input wire hreadyout_df_i,
     input wire hresp_df_i,
     // Shared return to the master side.
     output reg [WORD_W-1:0] hrdata_o,
     output reg hresp_o,
-    output wire hready_o,  // also the global HREADY driven to slaves
-    // Registered data-phase select, exported for coverage / assertions.
-    output reg [AHB_SEL_W - 1:0] dph_sel_o
+    output wire hready_o  // also the global HREADY driven to slaves
 );
     timeunit 1ns;
     timeprecision 1ps;
@@ -90,28 +87,43 @@ module ahb_slave_mux
     // Data-phase select register (Sec. 7.5). Updated on every accepted address
     // phase, i.e. every cycle HREADY is high.
     // -----------------------------------------------------------------------
+    // (no port since F4: nothing outside read it; coverage and assertions
+    // read dph_sel by name)
+    reg [AHB_SEL_W - 1:0] dph_sel;
     always_ff @(posedge hclk or negedge hreset_n) begin : p_dph_sel
         if (!hreset_n) begin
-            dph_sel_o <= {AHB_SEL_W {1'b0}};
+            dph_sel <= {AHB_SEL_W {1'b0}};
         end else if (hready_o) begin
-            dph_sel_o <= hsel_i;
+            dph_sel <= hsel_i;
         end
     end
 
     // -----------------------------------------------------------------------
     // HREADY: from the data-phase slave, or high on an idle bus (see header).
     // -----------------------------------------------------------------------
-    reg hreadyout_sel;
-    always_comb begin : c_hreadyout_sel
-        case (1'b1)
-            dph_sel_o[AHB_S_ISRAM]: hreadyout_sel = hreadyout_s0_i;
-            dph_sel_o[AHB_S_ROM]: hreadyout_sel = hreadyout_s1_i;
-            dph_sel_o[AHB_S_DSRAM]: hreadyout_sel = hreadyout_s2_i;
-            dph_sel_o[AHB_S_BRIDGE]: hreadyout_sel = hreadyout_s3_i;
-            dph_sel_o[AHB_S_DEFAULT]: hreadyout_sel = hreadyout_df_i;
-            default: hreadyout_sel = 1'b1;
-        endcase
-    end
+    // F4 (2026-11-17): if chains in place of `case (1'b1)` (HAL CONSTC,
+    // CSTEXP); the select is one-hot, so the order does not matter
+    function automatic logic ready_of(input [AHB_SEL_W-1:0] sel,
+                                      input r0, input r1, input r2,
+                                      input r3, input rdf);
+        if (sel[AHB_S_ISRAM]) begin
+            ready_of = r0;
+        end else if (sel[AHB_S_ROM]) begin
+            ready_of = r1;
+        end else if (sel[AHB_S_DSRAM]) begin
+            ready_of = r2;
+        end else if (sel[AHB_S_BRIDGE]) begin
+            ready_of = r3;
+        end else if (sel[AHB_S_DEFAULT]) begin
+            ready_of = rdf;
+        end else begin
+            ready_of = 1'b1;
+        end
+    endfunction
+
+    wire hreadyout_sel = ready_of(dph_sel, hreadyout_s0_i, hreadyout_s1_i,
+                                  hreadyout_s2_i, hreadyout_s3_i,
+                                  hreadyout_df_i);
 
     assign hready_o = dph_valid_i ? hreadyout_sel : 1'b1;
 
@@ -120,39 +132,28 @@ module ahb_slave_mux
     // phase in flight the returns are forced to a defined idle value rather
     // than left to whatever a deselected slave happens to drive - an X here
     // propagates straight into a master's data path and shows up three blocks
-    // away looking like a decode failure.
+    // away looking like a decode failure. The default slave returns no data:
+    // its HRDATA reads 0 here (F4: it had a port that was a constant).
     // -----------------------------------------------------------------------
     always_comb begin : c_hrdata
-        if (!dph_valid_i) begin
-            hrdata_o = 32'h0000_0000;
-            hresp_o = AHB_RESP_OKAY;
-        end else begin
-            case (1'b1)
-                dph_sel_o[AHB_S_ISRAM]: begin
-                    hrdata_o = hrdata_s0_i;
-                    hresp_o = hresp_s0_i;
-                end
-                dph_sel_o[AHB_S_ROM]: begin
-                    hrdata_o = hrdata_s1_i;
-                    hresp_o = hresp_s1_i;
-                end
-                dph_sel_o[AHB_S_DSRAM]: begin
-                    hrdata_o = hrdata_s2_i;
-                    hresp_o = hresp_s2_i;
-                end
-                dph_sel_o[AHB_S_BRIDGE]: begin
-                    hrdata_o = hrdata_s3_i;
-                    hresp_o = hresp_s3_i;
-                end
-                dph_sel_o[AHB_S_DEFAULT]: begin
-                    hrdata_o = hrdata_df_i;
-                    hresp_o = hresp_df_i;
-                end
-                default: begin
-                    hrdata_o = 32'h0000_0000;
-                    hresp_o = AHB_RESP_OKAY;
-                end
-            endcase
+        hrdata_o = 32'h0000_0000;
+        hresp_o = AHB_RESP_OKAY;
+        if (dph_valid_i) begin
+            if (dph_sel[AHB_S_ISRAM]) begin
+                hrdata_o = hrdata_s0_i;
+                hresp_o = hresp_s0_i;
+            end else if (dph_sel[AHB_S_ROM]) begin
+                hrdata_o = hrdata_s1_i;
+                hresp_o = hresp_s1_i;
+            end else if (dph_sel[AHB_S_DSRAM]) begin
+                hrdata_o = hrdata_s2_i;
+                hresp_o = hresp_s2_i;
+            end else if (dph_sel[AHB_S_BRIDGE]) begin
+                hrdata_o = hrdata_s3_i;
+                hresp_o = hresp_s3_i;
+            end else if (dph_sel[AHB_S_DEFAULT]) begin
+                hresp_o = hresp_df_i;
+            end
         end
     end
 

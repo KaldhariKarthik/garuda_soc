@@ -281,5 +281,5 @@ bind dma_top dma_env_cov u_dma_env_cov (
     .wr_cr(wr_cr), .wr_sar(wr_sar), .wr_dar(wr_dar), .wr_cnt(wr_cnt), .wr_iclr(wr_iclr), .wdata(wdata),
     .cr(cr), .cnt(cnt), .stat(stat), .eligible(eligible), .beat_done(beat_done), .beat_err(beat_err),
     .err_phase(err_phase), .grant_valid(grant_valid), .grant_ch(grant_ch),
-    .eng_st(u_eng.st), .eng_ch(u_eng.ch));
+    .eng_st(u_eng.u_fsm.st), .eng_ch(u_eng.ch));
 `endif

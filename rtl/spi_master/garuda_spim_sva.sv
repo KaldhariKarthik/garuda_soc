@@ -109,8 +109,8 @@ bind garuda_spim_top garuda_spim_sva #(.BUFFER_DEPTH(BUFFER_DEPTH)) u_spim_sva (
     .spim_cs_flash_n_o(spim_cs_flash_n_o), .spim_cs_imu_n_o(spim_cs_imu_n_o),
     .dma_req_o(dma_req_o), .dma_ack_i(dma_ack_i),
     .poll(poll), .eff_psel(eff_psel), .eff_penable(eff_penable), .eff_pwrite(eff_pwrite),
-    .eff_paddr(eff_paddr), .ip_paddr(ip_paddr), .ip_psel(ip_psel), .ip_penable(ip_penable),
-    .ip_pwrite(ip_pwrite), .rx_words(rx_words), .tx_words(tx_words),
+    .eff_paddr(eff_paddr), .ip_paddr(paddr_i), .ip_psel(ip_psel), .ip_penable(penable_i),
+    .ip_pwrite(pwrite_i), .rx_words(rx_words), .tx_words(tx_words),
     .pwdata_i(pwdata_i), .en_quad(u_spi.u_spictrl.en_quad), .engine_idle(u_spi.spi_ctrl_status[0]), .clk_div(u_spi.spi_clk_div));
 `endif
 `endif

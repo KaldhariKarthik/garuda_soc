@@ -32,14 +32,19 @@ module garuda_spis_sva (
     input wire       cs_n_s,          // the chip select after the synchroniser
     input wire       cs_active,
     input wire       cs_fall_now,     // the cycle a falling edge of chip select is seen
-    input wire       cs_fall,         // one cycle later: the shifter is loaded
     input wire       cs_rise,
     input wire       sclk_rise,
     input wire       sclk_fall,
     input wire       rx_push,
     input wire [2:0] bitcnt,
-    input wire [7:0] rx_sh
+    input wire [6:0] rx_sh
 );
+    // the cycle after a chip-select fall: the shifter is loaded (the core
+    // has no such strobe since F4)
+    reg cs_fall;
+    always @(posedge pclk or negedge preset_n)
+        if (!preset_n) cs_fall <= 1'b0;
+        else cs_fall <= cs_fall_now;
     // ---- F06: an access never waits
     a_pready: assert property (@(posedge pclk) pready_o)
         else $error("[SVA-FAIL] a_pready: pready_o low");
@@ -57,7 +62,7 @@ module garuda_spis_sva (
 
     // ---- F12: a packet starts byte aligned, whatever came before
     a_packet_start_aligned: assert property (@(posedge pclk) disable iff (!preset_n)
-        cs_fall_now |-> (bitcnt == 3'd0) && (rx_sh == 8'd0))
+        cs_fall_now |-> (bitcnt == 3'd0) && (rx_sh == 7'd0))
         else $error("[SVA-FAIL] a_packet_start_aligned: bit counter %0d, shifter %02h at a packet start", bitcnt, rx_sh);
 
     // ---- F14: a byte is pushed only after eight rising edges of SCLK since the
@@ -112,7 +117,7 @@ bind garuda_spis_top garuda_spis_sva u_spis_sva (
     .dma_req_o(dma_req_o), .dma_ack_i(dma_ack_i), .miso_o(spis_miso_o), .miso_oe_o(spis_miso_oe_o),
     .en_q(en_q), .ovr_q(ovr_q), .done_q(done_q), .full(full),
     .irqstat(u_shim.irqstat_q), .irqen(u_shim.irqen_q), .evt(evt),
-    .cs_n_s(cs_n_s), .cs_active(cs_active), .cs_fall_now(u_core.cs_fall_now), .cs_fall(cs_fall),
+    .cs_n_s(cs_n_s), .cs_active(cs_active), .cs_fall_now(u_core.cs_fall_now),
     .cs_rise(cs_rise), .sclk_rise(u_core.sclk_rise), .sclk_fall(u_core.sclk_fall),
     .rx_push(rx_push), .bitcnt(u_core.bitcnt), .rx_sh(u_core.rx_sh));
 `endif

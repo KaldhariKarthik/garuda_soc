@@ -30,12 +30,9 @@ module dsu_top
     wire [MAC_CTRL_W-1:0] control;
     wire [ACC_SEL_W-1:0]             acc_sel;
     wire                   sat_op;
-    wire                   shift_op;
     wire [SHAMT_W-1:0]             shift_amt;
     wire                   shift_dir;
     wire [ACC_SEL_W-1:0]             shift_acc_sel;
-    wire                   rd_lo_op;
-    wire                   rd_hi_op;
     wire [RES_SRC_W-1:0]             result_src;
     wire                   writes_regfile;
     wire [REG_IDX_W-1:0]             rd_addr_w;
@@ -50,12 +47,9 @@ module dsu_top
         .control (control),
         .acc_sel (acc_sel),
         .sat_op (sat_op),
-        .shift_op (shift_op),
         .shift_amt (shift_amt),
         .shift_dir (shift_dir),
         .shift_acc_sel (shift_acc_sel),
-        .rd_lo_op (rd_lo_op),
-        .rd_hi_op (rd_hi_op),
         .result_src (result_src),
         .writes_regfile (writes_regfile),
         .rd_addr (rd_addr_w),
@@ -67,7 +61,6 @@ module dsu_top
 
     wire [ACC_W-1:0] cluster_out;
     wire [ACC_W-1:0] sat_writeback;
-    wire sat_writeback_en;
     wire sat_overflow;
 
     // ERRATUM DSU-12 (proposed; found by sw/tests/t_dsu_b2b.S bit 2)
@@ -81,11 +74,13 @@ module dsu_top
     // for a value that never architecturally existed. Every other DSU output
     // already waits for ~dsu_busy (dsu_rd_valid); the saturate now does too.
     wire dsu_busy_w;
+    // the gated MACSAT is also the write enable (F4 took the saturation
+    // unit's copy of it, a feedthrough)
+    wire sat_writeback_en = sat_op & ~dsu_busy_w;
     saturation_unit u_sat (
         .cluster_out (cluster_out),
-        .sat_op (sat_op & ~dsu_busy_w),
+        .sat_op (sat_writeback_en),
         .sat_writeback (sat_writeback),
-        .sat_writeback_en (sat_writeback_en),
         .sat_overflow (sat_overflow)
     );
 
@@ -134,8 +129,6 @@ module dsu_top
 
     readback_mux u_rbmux (
         .cluster_out (cluster_out),
-        .rd_lo_op (rd_lo_op),
-        .rd_hi_op (rd_hi_op),
         .rd_lo_data (rd_lo_data),
         .rd_hi_data (rd_hi_data)
     );
@@ -157,6 +150,9 @@ module dsu_top
         .dsu_overflow (dsu_overflow)
     );
 
+    // a custom-0 instruction the DSU is enabled for
+    wire dsu_custom0 = is_custom0_w & dsu_en;
+
     dsu_stall u_stall (
         .gclk (gclk),
         .core_rst_n (core_rst_n),
@@ -171,7 +167,7 @@ module dsu_top
         // unit that is doing nothing. Gated here rather than inside dsu_stall:
         // the interlock is that module's job, whether the DSU is enabled at
         // all is the top level's.
-        .is_custom0 (is_custom0_w & dsu_en),
+        .is_custom0 (dsu_custom0),
         .acc_sel (acc_sel),
         .dsu_busy (dsu_busy_w)
     );

@@ -60,13 +60,15 @@ module dma_top
     wire [DMA_NCH-1:0] wr_dar;
     wire [DMA_NCH-1:0] wr_cnt;
     wire [DMA_NCH-1:0] wr_iclr;
-    wire [WORD_W-1:0] wdata;
+    // the channels take the APB write data as it is (F4: the slave's copy
+    // of it was a feedthrough); it is stable through the access
+    wire [WORD_W-1:0] wdata = pwdata_i;
     wire [DMA_NCH*WORD_W-1:0] cr;
     wire [DMA_NCH*WORD_W-1:0] sar;
     wire [DMA_NCH*WORD_W-1:0] dar;
     wire [DMA_NCH*WORD_W-1:0] cnt;
     wire [DMA_NCH*WORD_W-1:0] stat;
-    wire [DMA_NCH*DMA_SIZE_W-1:0]  size;
+    wire [DMA_NCH*DMA_SIZE_W-1:0]  size;  // CR.SIZE per channel
     wire [DMA_NCH-1:0]      m2m;  // CR.MODE == M2M, per channel (DMA-15)
     // a beat of channel n is in flight (DMA-9)
     wire [DMA_NCH-1:0]      inflight;
@@ -89,20 +91,29 @@ module dma_top
         .pready_o(pready_o), .pslverr_o(pslverr_o),
         .wr_cr_o(wr_cr), .wr_sar_o(wr_sar), .wr_dar_o(wr_dar),
             .wr_cnt_o(wr_cnt),
-        .wr_iclr_o(wr_iclr), .wdata_o(wdata),
+        .wr_iclr_o(wr_iclr),
         .cr_i(cr), .sar_i(sar), .dar_i(dar), .cnt_i(cnt), .stat_i(stat));
 
     genvar n;
     generate for (n = 0; n < 6; n = n + 1) begin : g_ch
+        // the channel's registers at their real widths, padded to the 32-bit
+        // register map here (F4); SIZE is CR[6:5]
+        wire [DMA_CR_W-1:0] cr_n;
+        wire [HALF_W-1:0] cnt_n;
+        wire [DMA_STAT_W-1:0] stat_n;
+        assign cr[32*n +: 32]   = {{(WORD_W - DMA_CR_W){1'b0}}, cr_n};
+        assign cnt[32*n +: 32]  = {{(WORD_W - HALF_W){1'b0}}, cnt_n};
+        assign stat[32*n +: 32] = {{(WORD_W - DMA_STAT_W){1'b0}}, stat_n};
+        assign size[2*n +: 2]   = cr_n[6:5];
         dma_chan u_ch (
             .hclk(hclk), .hreset_n(hreset_n),
             .wr_cr_i(wr_cr[n]), .wr_sar_i(wr_sar[n]), .wr_dar_i(wr_dar[n]),
             .wr_cnt_i(wr_cnt[n]), .wr_iclr_i(wr_iclr[n]), .wdata_i(wdata),
-            .cr_o(cr[32 * n+:32]), .sar_o(sar[32 * n+:32]),
+            .cr_o(cr_n), .sar_o(sar[32 * n+:32]),
                 .dar_o(dar[32 * n+:32]),
-            .cnt_o(cnt[32*n +: 32]), .stat_o(stat[32*n +: 32]),
+            .cnt_o(cnt_n), .stat_o(stat_n),
             .req_i(dma_req_i[n]),
-            .eligible_o(eligible[n]), .size_o(size[2*n +: 2]),
+            .eligible_o(eligible[n]),
             .beat_done_i(beat_done[n]), .beat_err_i(beat_err[n]),
                 .err_phase_i(err_phase),
             .inflight_i(inflight[n]),
@@ -122,7 +133,7 @@ module dma_top
         .haddr_o(haddr_o), .htrans_o(htrans_o), .hwrite_o(hwrite_o),
             .hsize_o(hsize_o),
         .hburst_o(hburst_o), .hwdata_o(hwdata_o), .hrdata_i(hrdata_i),
-        .hready_i(hready_i), .hresp_i(hresp_i), .busy_o(),
+        .hready_i(hready_i), .hresp_i(hresp_i),
             .inflight_o(inflight));
 
 endmodule

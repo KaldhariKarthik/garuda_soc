@@ -193,8 +193,6 @@ class rbm_monitor;
     `ifndef VERILATOR
 covergroup cg_rbm;
         cp_sign: coverpoint vif.cluster_out[47];
-        cp_lo_op: coverpoint vif.rd_lo_op;
-        cp_hi_op: coverpoint vif.rd_hi_op;
     endgroup
 `endif
 
@@ -294,8 +292,6 @@ module tb_top;
 
     readback_mux dut (
         .cluster_out(vif.cluster_out),
-        .rd_lo_op(vif.rd_lo_op),
-        .rd_hi_op(vif.rd_hi_op),
         .rd_lo_data(vif.rd_lo_data),
         .rd_hi_data(vif.rd_hi_data)
     );

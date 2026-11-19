@@ -35,16 +35,6 @@ evidence = "literal rtl/dsu/csa_3to2.sv:12 (<< 1); carry_reg loads csa1_carry or
 reviewer = "pending: Sreyesh"
 
 [[waiver]]
-id       = "CT-CIN-kogge_stone_49"
-metric   = "toggle"
-file     = "rtl/dsu/kogge_stone_49.sv"
-match    = "^(cin:0\\->1|cin:1\\->0)$"
-category = "constant"
-reason   = "The final adder's carry-in is tied to 0."
-evidence = "literal rtl/dsu/mac_unit.sv:159 .cin(1'b0)"
-reviewer = "pending: Sreyesh"
-
-[[waiver]]
 id       = "CT-SATABS-operand_router"
 metric   = "toggle"
 file     = "rtl/dsu/operand_router.sv"
