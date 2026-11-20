@@ -1,6 +1,6 @@
 Status,Clock,Signal Name,Source Type
 Correct,refclk,refclk,TCL
 Correct,tck,tck,TCL
-Correct,u_core.u_clk_div.aon_clk_o,u_core.u_clk_div.aon_clk_o,TCL
-Correct,u_core.u_clk_div.hclk_o,u_core.u_clk_div.hclk_o,TCL
-Correct,u_core.u_clk_div.pclk_o,u_core.u_clk_div.pclk_o,TCL
+Correct,u_core.u_clk_div.aon_clk,u_core.u_clk_div.aon_clk,TCL
+Correct,u_core.u_clk_div.hclk,u_core.u_clk_div.hclk,TCL
+Correct,u_core.u_clk_div.pclk,u_core.u_clk_div.pclk,TCL

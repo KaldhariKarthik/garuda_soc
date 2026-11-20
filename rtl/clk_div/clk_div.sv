@@ -147,7 +147,7 @@ module clk_div
     // edge, before any non-blocking update, as two balanced clocks are.
     // Synthesis builds the same toggle flop. (HAL reports the blocking
     // assignment in a clocked block; it is waived in
-    // flow/2_static/hal_waivers.txt with this reason.)
+    // flow/2_static/hal_exceptions.tsv (CLOCK_GEN) with this reason.)
     reg pclk_q;
     always_ff @(posedge hclk_mux or negedge ext_rst_n) begin : p_pclk
         if (!ext_rst_n) begin

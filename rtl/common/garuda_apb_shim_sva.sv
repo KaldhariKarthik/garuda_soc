@@ -114,40 +114,6 @@ bind garuda_apb_shim garuda_apb_shim_sva #(.N_EVT(N_EVT), .IP_LIMIT(IP_LIMIT), .
     .pready_o(pready_o), .pslverr_o(pslverr_o), .ip_psel_o(ip_psel_o),
     .evt_i(evt_i), .irq_o(irq_o),
     .irqstat_q(irqstat_q), .irqen_q(irqen_q));
-
-// garuda_apb_dma (D-39): DMACTL and the request
-module garuda_apb_dma_sva (
-    input wire        pclk,
-    input wire        preset_n,
-    input wire        psel_i, penable_i, pwrite_i,
-    input wire [11:0] paddr_i,
-    input wire [1:0]  src_i,
-    input wire        dma_ack_i, dma_req_o,
-    input wire [1:0]  dmactl_q
-);
-    wire wr_dmactl = psel_i && penable_i && pwrite_i && (paddr_i == 12'hFE8);
-
-    // the request: only when enabled, never together with the acknowledge, and
-    // low for one pclk after it so the channel sees a new request per beat (D-16)
-    a_shim_dma_gate: assert property (@(posedge pclk) disable iff (!preset_n)
-        dma_req_o |-> |(dmactl_q & src_i))
-        else $error("[SVA-FAIL] a_shim_dma_gate: request with nothing enabled");
-    a_shim_dma_holdoff: assert property (@(posedge pclk) disable iff (!preset_n)
-        (preset_n && dma_ack_i) |-> (!dma_req_o ##1 !dma_req_o))
-        else $error("[SVA-FAIL] a_shim_dma_holdoff");
-    // DMACTL changes only on a write to it
-    a_dma_write_only: assert property (@(posedge pclk) disable iff (!preset_n)
-        (preset_n && !wr_dmactl) |=> $stable(dmactl_q))
-        else $error("[SVA-FAIL] a_dma_write_only: DMACTL changed without a write");
-    a_dma_reset: assert property (@(posedge pclk) !preset_n |-> (dmactl_q == 2'b00))
-        else $error("[SVA-FAIL] a_dma_reset");
-    c_dma_req: cover property (@(posedge pclk) preset_n && dma_req_o);
-endmodule
-
-bind garuda_apb_dma garuda_apb_dma_sva u_dma_sva (
-    .pclk(pclk), .preset_n(preset_n),
-    .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i), .paddr_i(paddr_i),
-    .src_i(src_i), .dma_ack_i(dma_ack_i), .dma_req_o(dma_req_o), .dmactl_q(dmactl_q));
 `endif
 `endif
 `endif

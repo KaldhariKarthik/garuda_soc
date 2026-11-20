@@ -15,26 +15,20 @@ lint_off -rule WIDTHEXPAND    -file "*rtl/third_party/pulp/axi_spi_master/src/sp
 lint_off -rule WIDTHTRUNC     -file "*rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv" -lines 248
 // Case statements without a default inside clocked blocks: an unlisted value
 // leaves the registers as they are, which is the intended behaviour, and no latch
-// is inferred (the same five places HAL reports as CDEFNC, flow/2_static/hal_waivers.txt).
+// is inferred (the places HAL reports as CDEFNC in the vendor review, flow/ZERO_WAIVER.md).
 lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv"
 lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv"
 lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv"
 lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv"
 
-// ---- the one latch of the chip: the enable latch of the core's clock gate
-// (CORE [N-7.27]); a library clock-gate cell replaces it at synthesis (rtl/tech).
-lint_off -rule LATCH          -file "*rtl/core/core_clk_gate.sv" -lines 45
+// (2026-11-20, D-40: four entries removed as stale. Linted with no waivers, none matched
+// a warning: the clock gate's enable latch is an always_latch, which raises none, and the
+// three open width mismatches of ahb2apb_apb_fsm and dma_engine were fixed in the F4 rewrites.
+// An unused lint_off is never reported by the tool; tools/waiver_audit.py lists every entry.)
 
-// ---- track A, OPEN: to be fixed in the RTL by its owner, then removed from here
-// (asked in the status sheet on 2026-10-14). Each is a width mismatch that gives
-// the right value today.
-lint_off -rule WIDTHEXPAND    -file "*rtl/ahb2apb/ahb2apb_apb_fsm.sv"  -lines 97
-lint_off -rule WIDTHTRUNC     -file "*rtl/dma/dma_engine.sv"           -lines 78
-lint_off -rule WIDTHTRUNC     -file "*rtl/dma/dma_engine.sv"           -lines 163
-
-// Checker code (bound property and coverage modules, *_sva.sv). Not hardware: it is not
-// synthesised (`ifndef SYNTHESIS) and compares counters and indices against integer
-// constants and an associative model indexed by int. Width extension is the intent there.
-lint_off -rule WIDTHEXPAND    -file "*rtl/*_sva.sv"
-lint_off -rule WIDTHEXPAND    -file "*rtl/*_props_a.sv"
-lint_off -rule UNSIGNED       -file "*rtl/dma/dma_sva.sv"
+// Checker code (2026-11-20, D-40): the three whole-file waivers over *_sva.sv and *_props_a.sv
+// are gone; their 58 width warnings were fixed in the checkers (casts where a narrow state
+// or counter meets an integer constant, 2-bit constants for the 2-bit DMA error phase).
+// One line stays: a_arb_prio is written for any priority map, and with the shipped map
+// channel 5 has priority 0 (PRIO[17:15] = 0), so "PRIO[..] >= PRIO[17:15]" is always true.
+lint_off -rule UNSIGNED       -file "*rtl/dma/dma_sva.sv"              -lines 83

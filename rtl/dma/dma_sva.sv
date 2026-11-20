@@ -90,7 +90,7 @@ module dma_top_sva #(
         else $error("[SVA-FAIL] a_one_result: two results in one cycle");
     // [N-6.3] an error says which phase failed
     a_err_phase: assert property (@(posedge hclk) disable iff (!hreset_n)
-        (|beat_err) |-> (err_phase == 3'd1 || err_phase == 3'd2) )
+        (|beat_err) |-> (err_phase == 2'd1 || err_phase == 2'd2) )
         else $error("[SVA-FAIL] a_err_phase: ERRPHASE is neither read nor write");
     // [N-7.8] an acknowledge only for a completed beat, of ACK_CYCLES hclk, on that channel only;
     // none for a memory-to-memory beat (DMA-15, ruling D-32)
@@ -139,10 +139,10 @@ module dma_top_sva #(
         c_beat_done: cover property (@(posedge hclk) beat_done[n]);
         c_beat_err:  cover property (@(posedge hclk) beat_err[n]);
     end
-    c_err_read_bus:   cover property (@(posedge hclk) (|beat_err) && err_phase == 3'd1 && $past(st) == E_RD);
-    c_err_write_bus:  cover property (@(posedge hclk) (|beat_err) && err_phase == 3'd2 && $past(st) == E_WD);
+    c_err_read_bus:   cover property (@(posedge hclk) (|beat_err) && err_phase == 2'd1 && $past(st) == E_RD);
+    c_err_write_bus:  cover property (@(posedge hclk) (|beat_err) && err_phase == 2'd2 && $past(st) == E_WD);
     c_forbidden_src:  cover property (@(posedge hclk) (|beat_err) && $past(st) == E_RA);
-    c_forbidden_dst:  cover property (@(posedge hclk) (|beat_err) && $past(st) == E_RA && err_phase == 3'd2);   // DMA-12
+    c_forbidden_dst:  cover property (@(posedge hclk) (|beat_err) && $past(st) == E_RA && err_phase == 2'd2);   // DMA-12
     c_contended:      cover property (@(posedge hclk) st == E_IDLE && $countones(eligible) >= 2);
     c_byte_beat:      cover property (@(posedge hclk) htrans_o[1] && hsize_o == 3'd0);
     c_half_beat:      cover property (@(posedge hclk) htrans_o[1] && hsize_o == 3'd1);

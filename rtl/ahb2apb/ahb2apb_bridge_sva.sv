@@ -128,7 +128,7 @@ module ahb2apb_bridge_sva #(
         else $error("[SVA-FAIL] a_access_bounded: ACCESS lasts longer than divider plus timeout");
     // the timeout counter never counts past the limit
     a_timeout_counter: assert property (@(posedge pclk) disable iff (!preset_n)
-        to_cnt <= TIMEOUT - 1 )
+        32'(to_cnt) <= TIMEOUT - 1 )
         else $error("[SVA-FAIL] a_timeout_counter: the timeout counter passed its limit");
 
     // ======================= reachability: one cover per feature ==============
@@ -138,7 +138,7 @@ module ahb2apb_bridge_sva #(
     c_absent_window: cover property (@(posedge hclk) hstate == H_IDLE && xfer && !win_ok && word_ok);
     c_subword:       cover property (@(posedge hclk) hstate == H_IDLE && xfer && win_ok && !word_ok);
     c_timeout:       cover property (@(posedge pclk) pstate == P_ACCESS && div_cnt == 3'd0 && !(|(pready_i & psel_o))
-                                     && to_cnt == TIMEOUT - 1);
+                                     && 32'(to_cnt) == TIMEOUT - 1);
     c_div_extra:     cover property (@(posedge pclk) pstate == P_ACCESS && div_cnt != 3'd0);
     c_back_to_back:  cover property (@(posedge hclk) hstate == H_OK && xfer && win_ok && word_ok);
     c_after_error:   cover property (@(posedge hclk) hstate == H_ERR2 && xfer && win_ok && word_ok);

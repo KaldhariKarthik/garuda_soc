@@ -1,0 +1,81 @@
+SUMMARY
+==============================================================
+           Properties Considered              : 12
+                 assertions                   : 9
+                  - proven                    : 9 (100%)
+                  - bounded_proven (user)     : 0 (0%)
+                  - bounded_proven (auto)     : 0 (0%)
+                  - marked_proven             : 0 (0%)
+                  - cex                       : 0 (0%)
+                  - ar_cex                    : 0 (0%)
+                  - undetermined              : 0 (0%)
+                  - unknown                   : 0 (0%)
+                  - error                     : 0 (0%)
+                 covers                       : 3
+                  - unreachable               : 0 (0%)
+                  - bounded_unreachable (user): 0 (0%)
+                  - covered                   : 3 (100%)
+                  - ar_covered                : 0 (0%)
+                  - undetermined              : 0 (0%)
+                  - unknown                   : 0 (0%)
+                  - error                     : 0 (0%)
+determined
+[<embedded>] % report -summary
+
+==============================================================
+    Jasper Verification Results
+==============================================================
+    2022.09p002 64 bits for Linux64 3.10.0-1160.21.1.el7.x86_64
+    Host Name: cadence-ws
+    User Name: kkarthik
+    Printed on: Friday, Nov20, 2026 02:15:02 AM IST
+    Working Directory: /home/kkarthik/garuda_soc
+
+
+==============================================================
+SUMMARY
+==============================================================
+    Total Tasks           : 1
+    Total Properties      : 12
+          assumptions     : 0                   
+           - approved     : 0                   
+           - temporary    : 0                   
+          assertions      : 9                   
+           - proven       : 9                   ( 100.0% )
+           - marked_proven: 0                   ( 0.0% )
+           - cex          : 0                   ( 0.0% )
+           - ar_cex       : 0                   ( 0.0% )
+           - undetermined : 0                   ( 0.0% )
+           - unprocessed  : 0                   ( 0.0% )
+           - error        : 0                   ( 0.0% )
+          covers          : 3                   
+           - unreachable  : 0                   ( 0.0% )
+           - covered      : 3                   ( 100.0% )
+           - ar_covered   : 0                   ( 0.0% )
+           - undetermined : 0                   ( 0.0% )
+           - unprocessed  : 0                   ( 0.0% )
+           - error        : 0                   ( 0.0% )
+[<embedded>] % exit
+[<embedded>] % INFO (IPL005): Received request to exit from the console.
+INFO (IPL014): Waiting for the Tcl-thread to exit.
+INFO: Waiting for proof threads to stop...
+INFO: Proof threads stopped.
+INFO (IPL018): The peak resident set memory use for this session was 1.143 GB.
+INFO (IPL015): The Tcl-thread exited with status 0.
+INFO (IPL016): Exiting the analysis session with status 0.
+130:INFO (IPF057): 0.0.PRE: The property ":noDeadEnd" was proven in 0.00 s.
+133:INFO (IPF057): 0.0.PRE: The property ":noConflict" was proven in 0.00 s.
+135:INFO (IPF047): 0.0.PRE: The cover property ":live" was covered in 1 cycles in 0.00 s.
+52:% # Result 2026-11-20: 9 proven, 3 covered, 0 cex (bridge_miter.result.txt).
+bridge_miter.c_differ covered
+bridge_miter.eq_hrdata proven
+bridge_miter.eq_hreadyout proven
+bridge_miter.eq_hresp proven
+bridge_miter.eq_paddr proven
+bridge_miter.eq_penable proven
+bridge_miter.eq_psel proven
+bridge_miter.eq_pwdata_wr:precondition1 covered
+bridge_miter.eq_pwdata_wr proven
+bridge_miter.eq_pwrite proven
+bridge_miter.new_zero_rd:precondition1 covered
+bridge_miter.new_zero_rd proven

@@ -182,7 +182,7 @@ module tb_top;
             bins none  = {2'b00};
             bins load  = {2'b10};
             bins store = {2'b01};
-            illegal_bins both = {2'b11};
+            illegal_bins both = {2'b11};   // an instruction is a load or a store, never both (decode)
         }
         cp_size: coverpoint vif.funct3[1:0] {
             bins byte_ = {2'b00}; bins half = {2'b01}; bins word = {2'b10};

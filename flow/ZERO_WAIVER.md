@@ -1,4 +1,27 @@
-# Zero waivers: the work list before G6
+# Zero unjustified waivers: the work list before G6
+
+**Rule (D-40, Karthik, 2026-11-20).** A waiver stands only if it is specific (one entry, one
+point), reasoned, backed by evidence, and checked for staleness by a tool. It replaces the
+2026-11-16 ruling "zero waivers", whose history is kept below.
+
+| Kind | Rule under D-40 |
+|---|---|
+| Simulation failures, assertion failures, formal counterexamples, X issues, unkilled mutants | **Zero. Never waived.** |
+| Lint rule set (HAL, Verilator, Yosys, Superlint) | A rule may be off for the whole chip only if it judges style or structure, not correctness; listed with its reason and the check that covers it instead; Karthik approves the list. Correctness rules (latches, multiple drivers, dead flops, unconnected or undriven ports, width and sign, case and FSM) stay on, each finding fixed or waived on its own line with a reason. **No count baseline.** |
+| Vendored IP (`rtl/third_party`) | Style findings waived per IP with one reason (vendored, verified by its own tests, every edit a recorded patch, D-22/TOOL-A25). Correctness findings reviewed one by one and fixed as recorded patches. |
+| CDC / RDC | Every crossing through a named synchroniser; each waiver names it; no auto-waived row without a reviewed reason. |
+| Coverage | An exclusion needs evidence: a PROVEN unreachability property, a tie-off or a spec line. A reachable hole gets a test. Every `ignore_bins` / `illegal_bins` carries its reason in the source. |
+| Every waiver file | Read by a tool that fails on an entry matching nothing and on an entry without a reason. |
+
+**Unchanged from 2026-11-16.** Mutants and negative controls stay (they must fail; they are
+not waivers). The two stated open items: the DFT test enable (`test_en_i`, tied to 0 until scan
+in G7) and the SRAM macros (G3 3.10, waits for the PDK). G0 to G5 and F0 to F8 run again on the
+final tree. The RTL work done under the old rule stands, each change proven by JasperGold SEC
+or a miter (Log below).
+
+---
+
+## The ruling of 2026-11-16 (superseded by D-40)
 
 Ruled by Karthik on 2026-11-16, after G5: the chip has to do exactly what is written, with
 nothing excused. Every waiver, coverage exclusion, `ignore_bins`, lint baseline or waived
@@ -9,17 +32,8 @@ static finding is removed. Each one is closed in one of three ways:
 3. **The coverage model is rewritten** so it never creates a point the design cannot have
    (explicit bins in place of tool-made crosses; no `ignore_bins`).
 
-Then the 1-TOPS checklist G0 to G5 and flow stages F0 to F8 run again on the final tree,
-in order. No row is closed while anything in it is left.
-
-**Rulings (2026-11-16).**
-- Third-party RTL (`rtl/third_party`: opencores, pulp) is fixed in place. Every change is
-  recorded in `rtl/third_party/MANIFEST.yaml` and `HASHES.txt`.
-- Mutants and negative controls (`xfail.tsv` rows marked PLANTED, `mut_*`, `negctl_*`)
-  stay. They are deliberately broken copies that must fail, to show each bench catches
-  the defect; they are not waivers.
-- The only two stated open items: the DFT test enable (`test_en_i`, tied to 0 until scan
-  is wired in G7) and the SRAM macros (G3 3.10, waits for the PDK).
+**Rulings (2026-11-16).** Third-party RTL fixed in place, every change recorded; mutants stay;
+two stated open items (`test_en_i`, SRAM macros).
 
 **Design rule that comes out of this.** Lint asks for a `default` in every `case`, and
 coverage counts a `default` that can never run as a hole. So a `case` that lists every
@@ -29,19 +43,19 @@ value makes its last value the `default`: the arm is reachable and no arm is dea
 
 | # | Kind | Count | Where | State |
 |---|---|---|---|---|
-| Z1 | HAL findings carried in a baseline | 747 (5 errors, 742 warnings) with the old deck; **6,807 (712 errors) with every rule on** | `flow/2_static/hal_baseline.txt`, `hal_waivers.txt`, the 65 `-nocheck` rules of `hal.f` | open |
-| Z2 | Verilator lint waivers | 40 lines | `flow/2_static/verilator_waivers.vlt` | open |
-| Z3 | Yosys lint waivers | 7 lines | `flow/2_static/yosys_waivers.txt` | open |
-| Z4 | CDC waivers | 25 rows | `flow/2_static/cdc/reports/waivers.csv` | open |
-| Z5 | Superlint findings explained, not fixed | 77 | `flow/2_static/superlint/chip/RESULTS.md` | open |
-| Z6 | Code-coverage waivers | core 67, DMA 27, AHB 14, DSU 7, bridge 6 entries | `tb/*/cov/*_waivers.toml` | open |
-| Z7 | IMC exclusion files | about 3,800 lines over 13 blocks | `flow/cov/*_exclusions*.tcl` | open |
-| Z8 | `ignore_bins` / `illegal_bins` | 88 | 14 bench files under `tb/` | open |
-| Z9 | Open bugs | track A 21, track B 6 | `Docs/bugs/` | open |
-| Z10 | Expected failures that are not mutants | to be listed from every `xfail.tsv` | `tb/*/run/xfail.tsv` | open |
-| Z11 | Spec deviation and open CSR items | ARCH-DEV-1 (arch-test signature check), csr_map C-16 | `tools/archtest/sigcheck.py`, `make csr_map` | open |
+| Z1 | HAL findings carried in a baseline | 747 (5 errors, 742 warnings) with the old deck; **6,807 (712 errors) with every rule on** | `flow/2_static/hal_baseline.txt`, `hal_waivers.txt`, the 65 `-nocheck` rules of `hal.f` | **closed for own RTL (D-40)**: 59 rules off with reasons, 178 per-line rows, 0 open, baseline deleted; vendor IP 273 open (review) |
+| Z2 | Verilator lint waivers | 40 lines | `flow/2_static/verilator_waivers.vlt` | **closed**: 8 entries, each specific and reasoned (vendor IP 7, one checker line) |
+| Z3 | Yosys lint waivers | 7 lines | `flow/2_static/yosys_waivers.txt` | **closed**: 4 entries, each reasoned |
+| Z4 | CDC waivers | 25 rows | `flow/2_static/cdc/reports/waivers.csv` | **closed**: rerun 2026-11-20 (TOOL-A27), 0 violations, 25 reasoned waivers |
+| Z5 | Superlint findings explained, not fixed | 77 | `flow/2_static/superlint/chip/RESULTS.md` | rerun 2026-11-20; one entry per finding in `superlint/chip/findings.tsv` |
+| Z6 | Code-coverage waivers | core 67, DMA 27, AHB 14, DSU 7, bridge 6 entries | `tb/*/cov/*_waivers.toml` | **justified**: 113 entries with reason and PROVEN or spec evidence; reviewer sign-off by Karthik |
+| Z7 | IMC exclusion files | about 3,800 lines over 13 blocks | `flow/cov/*_exclusions*.tcl` | generated from Z6 (`tools/cov/gen_imc_exclusions.py`) |
+| Z8 | `ignore_bins` / `illegal_bins` | 88 | 14 bench files under `tb/` | **closed**: 81, each with its reason in the source; I2C TIMEOUT max now tested in a stretch |
+| Z9 | Open bugs | track A 21, track B 6 | `Docs/bugs/` | track A: TB-A1 and TOOL-A24 closed 2026-11-20; tool limitations TOOL-A1/A3/A4/A5/A17 stay (Verilator, Xcelium, vManager) |
+| Z10 | Expected failures that are not mutants | to be listed from every `xfail.tsv` | `tb/*/run/xfail.tsv` | **closed**: 8 rows and 5 `known` entries of fixed DMA bugs removed (TB-A12); AHB-7 rows kept (ruled D-32, AHB spec [N-7.18a]) |
+| Z11 | Spec deviation and open CSR items | ARCH-DEV-1 (arch-test signature check), csr_map C-16 | `tools/archtest/sigcheck.py`, `make csr_map` | unchanged |
 
-**Lint ruling (2026-11-16): every HAL rule on.** The 65 rules `hal.f` switched off go back on,
+**Lint ruling (2026-11-16, superseded by D-40): every HAL rule on.** The 65 rules `hal.f` switched off go back on,
 style included. The only exceptions are file:line entries for structures the chip must have,
 each with its reason; no baseline file. Style-only rewrites are proven with Conformal LEC (RTL
 against RTL) before simulation.
@@ -83,7 +97,7 @@ The 5 HAL errors:
 4. **The checklist and the flow again**, G0 to G5 and F0 to F8, every row with new
    evidence on the final tree.
 
-## F4 HAL to zero: method (2026-11-16)
+## F4 HAL to zero: method (2026-11-16; under D-40 the rule list of `flow/2_static/hal.f` and vendor rows replace "no rule switched off")
 
 HAL runs with its whole default rule set: 141 rules fired on the chip, 8,539 findings (713 errors),
 128 own files and 15 third-party files (`sim/hal_zero/`, `tools/hal_zero.py --summary`).
@@ -135,6 +149,7 @@ what is left, once line numbers stop moving; (5) the gate replaces `static_lint`
 | 2026-11-16 | DSU JasperGold block proof | With multipliers kept: 47/47 proven (was 20/20; the 16x16 product and 49-bit adder checks now prove instead of facing free values), 31/31 covers reached. `run_blocks.sh` gives the DSU `DEFS=FORMAL`, as SymbiYosys does, so the six simulation-only overflow covers (~65000 cycles from reset) are not posed to formal; simulation reaches them on every accumulator | `flow/formal/dsu/dsu_fpv.result.txt`; `logs/dsu/evidence/dsu18_covers_2026-11-16.txt` |
 | 2026-11-16 | Whole-core harness over-constrained (FV-A1) | `flow/formal/core/ahb_slave_env.sv` assumed HREADY high whenever no data phase was outstanding. GARUDA's interconnect holds an ungranted master's address phase with HREADY low (`ahb_master_port.v`), so every whole-core proof assumed arbitration waits away, and `a_dport_addr_stable` was vacuous there (recorded as "proved at unit level"). The assumption now allows that wait: HREADY high only when the master presents nothing and owes nothing | whole core with the real DSU, multipliers kept, 60 min limit: 156/156 proven (a_pfb_order included, no longer undetermined), 134 covers, `a_dport_addr_stable` precondition covered; `cov_g5_unr` 3/3, 5/5; `flow/formal/core/pipe_ctrl_core.result.txt` |
 | 2026-11-16 | F4 renames (Karthik: rename to HAL's defaults) | One name per clock and reset through every port (refclk, ext_rst_n, hclk, hreset_n, gclk, core_rst_n, pclk, preset_n, tck, dm_rst_n, aon_clk, ext_hrst_n); modules of 4 to 16 characters (14 renamed, files with them: alu_unit, iport_master, prefetch_buf, if_stage_top, dport_master, hazard_fwd_unit, ahb_dflt_slave, debug_dtm, watchdog, i2c_bit_ctrl, i2c_byte_ctrl, spim_apb_if, spim_clkgen, spim_ctrl); no numeric suffix (DSU accumulators by their spec names fx/fy/mag, funct3_fld, rs1_val); no reserved words; lower-case instances. Table: `flow/2_static/renames.tsv`, applied by `tools/rename_rtl.py` to RTL, benches, SVA, formal harnesses, specs | HAL with every rule on: DIFRST 33 -> 0, DIFCLK 33 -> 0, ALOWID 129 -> 9 (left: written-negative conditions, the style pass), IDLENG/NUMSUF/KEYWOD/AMSKWD/LCVARN own RTL -> 0 (third-party in its pass); regress_all PASS; uvm_b 8 x 22 PASS; fv_core_trap/csr/rdc1, fv_cov_unreach, fv_dsu, fv_apb, fv_ahb, fv_dma all as expected |
+| 2026-11-20 | D-40 closure (own RTL) | Rule D-40: zero unjustified waivers. HAL: every rule runs; `flow/2_static/hal_rules.tsv` lists the 59 style, structure and information rules that are off, each with its reason and the check that covers it; `hal_exceptions.tsv` holds 178 per-line rows in 17 classes (structures the chip must have); `tools/hal_zero.py` fails on any other finding and on a stale row; `make static_lint` uses it (`--own` while the vendor review is open) with a self-check; `hal.f`, `hal_baseline.txt`, `hal_waivers.txt`, `tools/hal_baseline.py`, `tools/hal_deck.py` deleted. Own RTL fixed: dead `pwdata_i` ports (DMA, timers), `haltforced` priority (debug), PWM read mux, SPIS FIFO pointers, head read and W1C width, reset_ctrl counter width, UART strobe, shim IRQ, DMA arbiter and expansion-window indices. Verilator: 4 stale waivers removed, 3 glob waivers replaced by fixing 58 checker widths (one specific line left). Coverage: every `ignore_bins`/`illegal_bins` carries its reason; I2C F23 gains the largest TIMEOUT in a stretch. CDC rerun (TOOL-A27). `tools/waiver_audit.py` judges every waiver file. Expected failures of fixed DMA bugs removed (8 xfail rows, 5 `known` entries; two probes rewritten to the DMA-9 fix and D-32). TB-A1 and TOOL-A24 closed. Found: TB-A11, TB-A12, TOOL-A26, TOOL-A27 | SEC: 24 modules of 8db2380 against b21ef9a and 13 edited today against 8db2380, all PROVEN; bridge PWDATA miter 9/9 proven, 3/3 covered. regress_all PASS; uvm_b 176/176; mutants all killed (AHB 8, bridge 8, debug 10, mem 7 + M8 equivalent, SPIM 6, DSU stream 5 + 1 equivalent; Verilator AHB 19, APB 16, DMA 25 + 1 equivalent, DSU 7); planted UART 14/14, I2C 18/18, SPIS 12/12; CDC 0 violations, 25 waivers justified; waiver_audit 0 unjustified (but Superlint, being rerun). HAL 4583 findings: 3959 under rules off, 351 excepted (178 rows), own RTL 0 open, 0 stale rows, self-check ok; vendor IP 273 open (review). gate_a PASS; DMA probes 9/9, DMA chip 4/4 with no expected failure; SBY: fv_dma 8, arb 4, 2clk 2, dma_cov 3, rdc1 4, trap 13, csr 4, apb 10+2, ahb 13, dsu 7 |
 | 2026-11-20 | Port: D-38, D-39, expansion windows, decode, mutants | HBURST/HPROT removed from the fabric (D-38); the shim split into garuda_apb_shim + garuda_apb_dma (DMA blocks only) + garuda_sync_bit/garuda_pad_sync, PWM/GPIO DMACTL reads 0 (D-39); expansion-window generate in the SoC top, core_sleep and the I2C data outputs removed, CLIC SVA without hclk; 12-bit address and CSR compares as two fields (`at12`) and zero tests as reductions (HAL LRGOPR); the bridge's PWDATA straight from a flop (HAL CBPAHI). TOOL-A24: every mutant source re-anchored and `tools/check_mutants.py` in check_tree. Found on the way: TB-A9 (a bound branch property vacuous since the renames, CUVDSI now an error), TB-A10 (bridge bench failing under Verilator and called PASSED), TB-B7 (JTAG chip load under 2-state simulation); Verilator lint TIMESCALEMOD/WIDTHTRUNC/SIDEEFFECT/COMBDLY fixed | licence down (wg0, reboot): `make local_synth` 59968 cells, 1 latch (ICG), 0 warnings; `make local_lint` 0; Verilator: 19 block benches 2074 checks 0 failures, 9 chip programs, 66 ISA programs; every SBY suite as expected (fv_ahb 13/13 with equiv_a10/a16); check_tree clean. Owed when the licence is back: regress_all, uvm_b, SEC of the refactors, HAL count, simulation mutation runs |
 | 2026-11-19 | F4 lint pass, fabric and peripherals | HAL with every rule on, own RTL outside the core: state machines in their own modules (`dma_eng_fsm`, `tap_fsm`, `sba_fsm`, `apb_phase_fsm`, `brg_ahb_fsm`: BADFSM/EXTFSM), one process per register with explicit priority (MULNBA) in DMA, debug and I2C, registers that only drove outputs read through wires or functions (REVROP), outputs and ports nothing reads removed (DMA `busy_o`/`wdata_o`, DTM `rsp_err_i`, shim feedthroughs, DSU op outputs), widths narrowed to what is used (DMA CR/STAT, WDT CTL, UART LSR, SPIS FIFO), the DSU accumulator unsigned with size casts, `garuda_chip_core` split from the pad ring. Every changed module proven equivalent to 202625b by JasperGold SEC. Third-party: the I2C `#1` delays removed, and the provenance of all 15 edited vendored files recorded (TOOL-A25). Formal mutant recipes re-anchored to the new code (11 rewritten) | regress_all PASS, uvm_b 176/176; SBY formal: core trap/csr/rdc1/cov_unreach, dsu 7, apb 10 + div 2, dma_arb 4, dma_2clk 2, dma 8, dma_cov 3 (manifest minimums lowered for the two constant bits F4 removed), rdc1 4; ahb 12 of 13, `equiv_a16` open under TOOL-A24 (stale simulation mutant); `make local_synth` 1 latch (ICG), 0 warnings; SEC every changed module (`sim/zw_b2`, `sim/sec`) |
 | 2026-11-18 | F4 core lint pass (D-37) | Logic nothing reads removed from the core: the fetch unit's architectural PC, `mem_to_reg` (= `mem_read`, two duplicate flops), duplicate outputs of pipe_ctrl and trap_ctrl, bench-only ports, the trap cause's 26 constant bits (5-bit code; three coverage waivers and the `a_cause_field` property that backed them gone), `csr_rw` down to the write-data mux, the register file's and `id_stage`'s unused resets (the register file's SVA needs no reset: local variables), the CSR write chain as one `case`, the clock gate's `ifdef` replaced by file selection (`flow/pd/asap7/core_clk_gate_icg.sv`), every own line within 80 columns. Tooling: TOOL-A22 (`run_blocks.sh` clock and reset names), TOOL-A23 (`make local_synth` reads with yosys-slang), TOOL-A24 open (simulation mutant generators); `tools/sec_rtl.py` takes several resets | SEC against a7c8db1: core top 20/20 from reset, each changed unit proven (the register file's new array by its own formal 5/5 and the regression); regress_all PASS, uvm_b 8x22 PASS, every SBY suite as expected with the 34 regenerated mutants; block formal regfile 5/5, csr_rw 1/1, d_port 7/7. HAL own RTL 2808 -> 2592 |

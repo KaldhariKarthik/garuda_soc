@@ -199,7 +199,7 @@ module tb_top;
             bins none  = {2'b00};
             bins okay  = {2'b10};
             bins error = {2'b01};
-            illegal_bins both = {2'b11};
+            illegal_bins both = {2'b11};   // OKAY and ERROR never complete together (a_dport_result_once)
         }
     endgroup
     cg_dport cg;

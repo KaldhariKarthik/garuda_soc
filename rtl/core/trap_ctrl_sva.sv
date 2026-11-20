@@ -56,7 +56,7 @@ module trap_ctrl_sva #(parameter ID_W = 5) (
         else $error("[SVA-FAIL] a_int_on_instr: an interrupt taken on a bubble or over an exception");
     // causes: a CLIC interrupt reports 0x8000_0000 | ID, the timer 0x8000_0007; the timer needs MIE
     a_int_cause: assert property (@(posedge gclk) disable iff (!core_rst_n)
-        (trap_enter_o && is_interrupt_o) |-> (clic_take_cond_i ? cause_word == (32'h8000_0000 | clic_irq_id_i)
+        (trap_enter_o && is_interrupt_o) |-> (clic_take_cond_i ? cause_word == (32'h8000_0000 | 32'(clic_irq_id_i))
                                                                : (cause_word == 32'h8000_0007 && mti_pending_i && mstatus_mie_i)) )
         else $error("[SVA-FAIL] a_int_cause: interrupt cause %h wrong", cause_word);
     // ID 7 is never presented: the CLIC keeps it unwritable (CLIC [N-6.3], proved by clic_sva's

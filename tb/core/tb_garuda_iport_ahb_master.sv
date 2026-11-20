@@ -246,7 +246,7 @@ module tb_top;
             bins idle   = {HTRANS_IDLE};
             bins nonseq = {HTRANS_NONSEQ};      // first fetch after a redirect
             bins seq    = {HTRANS_SEQ};         // sequential prefetch, INCR
-            illegal_bins busy = {2'b01};
+            illegal_bins busy = {2'b01};   // the instruction port never issues BUSY (a_iport protocol properties)
         }
         cp_hready: coverpoint vif.i_hready;
         cp_hresp:  coverpoint vif.i_hresp;

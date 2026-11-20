@@ -317,7 +317,7 @@ baseline_record:
 # code, waivers with reasons). Only passing runs count.
 COV_CORE_SUITES = units elements smokes isa isa_rand sanity extra directed csr halt csr_map covtests
 .PHONY: cov_core cov_dsu cov_core_report cov_dsu_report cov_a
-cov_core:
+cov_core: core_csr_map
 	-@$(ENV) for s in $(COV_CORE_SUITES); do \
 	    $$PYTHON tools/run/garuda_run.py suite tb/core/run/$$s.toml --coverage --jobs $(JOBS) | tail -1; done
 cov_dsu:
@@ -381,7 +381,7 @@ soak_a:
 	-@$(MAKE) -s -k -f flow/mk/track_a_run.mk core_endurance JOBS=$(JOBS)
 	@$(MAKE) -s -f flow/mk/track_a_run.mk tier_report TIER_SUITES="logs/core/summary/endurance.tsv"
 	@$(MAKE) -s -f flow/mk/track_a_run.mk instret_report
-dsu_mut:  ; @$(RUN) tb/dsu/run/dsu_mut.toml --jobs $(JOBS)
+dsu_mut: dsu_vectors ; @$(RUN) tb/dsu/run/dsu_mut.toml --jobs $(JOBS)
 dsu_units: ; @$(RUN) tb/dsu/run/units.toml --jobs $(JOBS)
 dsu_units_spec: ; @$(RUN) tb/dsu/run/units_spec.toml --jobs $(JOBS)
 FAST_SUITES = $(addprefix logs/core/summary/,units.tsv elements.tsv isa.tsv sanity.tsv directed.tsv covtests.tsv fv_trap.tsv) \

@@ -137,7 +137,7 @@ module garuda_apb_shim
             end
         end
     end
-    assign irq_o = |(irqstat_q & irqen_q);
+    assign irq_o = (irqstat_q & irqen_q) != '0;
 
     // =========================================================================
     // Response

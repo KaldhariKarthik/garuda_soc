@@ -31,7 +31,9 @@ case $BLK in
 esac
 LIST=tb/$DIR/uvm/planted.txt
 [ -f "$LIST" ] || { echo "no $LIST"; exit 2; }
-# the same simulator as the make flow (flow/mk/common.mk IRUN152), not whichever irun is first on PATH:
+# the same simulator and package list as the make flow (flow/mk/common.mk IRUN152, PKG_SRCS;
+# TOOL-A26: without filelist_pkg.f the unchanged RTL failed to compile from a7c8db1 on, and the
+# run reported every defect as caught):
 # Xcelium's irun is a wrapper for xrun and refuses modules without a timescale
 IRUN=${IRUN152:-/home/install/INCISIVE152/tools/bin/irun}
 # irun 15.2 finds its own elaborator and simulator on PATH, so its directory goes first (as in run_uvm)
@@ -46,7 +48,7 @@ run_all() {
     ( cd "$W" && rm -rf INCA_libs cov_work
       for t in reg directed random:1 random:2; do
           seed=${t#*:}; [ "$seed" = "$t" ] && seed=1; t=${t%%:*}
-          $IRUN -64bit -uvm -uvmhome CDNS-1.2 -f tb/$DIR/uvm/filelist_${BLK}_uvm.f -top $TOP +UVM_TESTNAME=${BLK}_${t}_test \
+          $IRUN -64bit -ncerror CUVDSI -uvm -uvmhome CDNS-1.2 -f rtl/common/filelist_pkg.f -f tb/$DIR/uvm/filelist_${BLK}_uvm.f -top $TOP +UVM_TESTNAME=${BLK}_${t}_test \
               -svseed $seed -nclibdirname INCA_libs -l ${tag}_${t}_$seed.log > /dev/null 2>&1
           if ! grep -q 'RESULT: PASSED' ${tag}_${t}_$seed.log || grep -q 'SVA-FAIL' ${tag}_${t}_$seed.log \
              || [ "$(grep -E '\*[EF],' ${tag}_${t}_$seed.log | grep -vc IMPDLL)" != 0 ]; then
@@ -65,7 +67,8 @@ OUT=tb/$DIR/uvm/planted.result.txt
   echo "random seeds are run on it (scripts/planted_defects.sh $BLK)."; echo; } > "$OUT"
 bad=0
 if first=$(run_all clean); then echo "unchanged RTL: all four runs pass" >> "$OUT"
-else echo "unchanged RTL: FAILS ($first): nothing below means anything" >> "$OUT"; bad=1; fi
+else echo "unchanged RTL: FAILS ($first): no defect is planted on a failing baseline" >> "$OUT"
+     echo "NOT CLEAN." >> "$OUT"; cat "$OUT"; exit 1; fi
 echo >> "$OUT"
 n=0
 while IFS= read -r line; do

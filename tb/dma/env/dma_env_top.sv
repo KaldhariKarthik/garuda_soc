@@ -311,7 +311,7 @@ module tb_dma_env;
             case (kind)
                 "cr_en1": begin t.iec = !t.iec; wr(R(n, CR), t.cr(1'b1)); end      // fields land, EN stays (F34)
                 "cr_en1_last": wr(R(n, CR), t.cr(1'b1));                           // hardware clear wins (D-2)
-                "cr_en0": wr(R(n, CR), t.cr(1'b0));                                // stop, SIZE kept (F20)
+                "cr_en0": begin wr(R(n, CR), t.cr(1'b0)); m.stopped[n] = 1; end    // stop, SIZE kept (F20)
                 "cnt":    wr(R(n, CNT), 32'd7);                                    // no effect on the running transfer
                 "iclr_c": wr(R(n, ICLR), 32'h1);
                 "iclr_e": wr(R(n, ICLR), 32'h2);
@@ -736,6 +736,7 @@ module tb_dma_env;
                 do n = $urandom_range(5, 0); while (!used[n]);
                 repeat ($urandom_range(200, 1)) @(posedge hclk);
                 wr(R(n, CR), m.x[n].cr(1'b0));
+                m.stopped[n] = 1;
             end
             finish_and_check(used, $sformatf("rand iteration %0d", it));
             check(m.errors == e0, $sformatf("[rand] iteration %0d: %0d channel(s), scoreboard clean", it, nch));

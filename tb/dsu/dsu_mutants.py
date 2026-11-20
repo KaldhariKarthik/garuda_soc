@@ -49,3 +49,6 @@ MUTANTS = [
      "wire prod_en  =  en & ~clear & ~load & ~sat_writeback_en & ~flush;",
      "wire prod_en  =  en & ~load & ~sat_writeback_en & ~flush;"),
 ]
+# clear_latches_product is equivalent (comment above the entry): pend_clr has priority over
+# prod_en in the sum register, so the latched product is zero and the fold adds nothing.
+EQUIVALENT = {"clear_latches_product": "pend_clr has priority over prod_en; the latched product is zero (rtl/dsu/mac_unit.sv)"}

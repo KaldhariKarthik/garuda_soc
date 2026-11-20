@@ -369,6 +369,11 @@ class i2c_directed_test extends i2c_base_test;
         wr(12'h008, {c.addr, 1'b0}); wr(12'h010, STA | WR); wait_tip(st, 2000);
         if (!st[4]) `uvm_error("TEST", "no timeout with SCL held low in mid-byte")
         clks(4200); wr(12'hFE0, 32'hF); setup(16'd3, 16'd0); recover();
+        c.plain(); c.stretch_addr = 700000;                                    // the largest: in a stretch (D-40, 2026-11-20:
+        setup(16'd3, 16'hFFFF);                                                // a 65535-pclk stall is only a slave holding SCL)
+        wr(12'h008, {c.addr, 1'b0}); wr(12'h010, STA | WR); wait_tip(st, 3000);
+        if (!st[4]) `uvm_error("TEST", "no timeout with TIMEOUT = FFFF and SCL held low longer")
+        clks(72000); wr(12'hFE0, 32'hF); setup(16'd3, 16'd0); recover();
         c.plain();
         setup(16'd3, 14 * bit_time()); wdat = '{8'h01}; xfer_write(c.addr, wdat, 1, nacked);   // over a byte, not reached
         setup(16'd3, 16'hFFFF);        wdat = '{8'h02}; xfer_write(c.addr, wdat, 1, nacked);   // the largest, not reached

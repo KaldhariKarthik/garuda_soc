@@ -120,20 +120,26 @@ module garuda_pwm_top
     // the case. With the loop inside `default:` the index was assigned on one
     // branch only and synthesis inferred a latch for it; it also shared `k`
     // with the write block above, so two processes drove one variable.
-    reg [DUTY_W-1:0] duty_rd;
-    integer    kr;
-    always_comb begin : c_duty_rd
-        duty_rd = 16'd0;
-        for (kr = 0; kr < NUM_CHAN; kr = kr + 1) begin
-            if (at12(paddr_i, A_DUTY0 | {8'd0, kr[1:0], 2'b00})) begin
-                duty_rd = duty_q[kr];
+    // (F4 2026-11-20: a function, so no process reads a variable another
+    // process assigns with blocking assignments, HAL REVROP. The duties are an
+    // argument: a continuous assignment is re-evaluated only when its operands
+    // change, and a function reading duty_q from the module returned a stale
+    // value in simulation, gate_b tb_pwm R-4.)
+    function automatic logic [DUTY_W-1:0] duty_of(input logic [11:0] a,
+                                                   input logic [DUTY_W-1:0] d [NUM_CHAN]);
+        logic [DUTY_W-1:0] r;
+        r = 16'd0;
+        for (int unsigned kr = 0; kr < NUM_CHAN; kr++) begin
+            if (at12(a, A_DUTY0 | {8'd0, 2'(kr), 2'b00})) begin
+                r = d[kr];
             end
         end
-    end
+        return r;
+    endfunction
+    wire [DUTY_W-1:0] duty_rd = duty_of(paddr_i, duty_q);
 
     reg [WORD_W-1:0] reg_rdata;
     always_comb begin : c_reg_rdata
-        reg_rdata = 32'd0;
         case (paddr_i)
             A_PRESCALE: reg_rdata = {16'd0, prescale_q};
             A_PERIOD: reg_rdata = {16'd0, period_q};

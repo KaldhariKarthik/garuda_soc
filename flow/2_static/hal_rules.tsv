@@ -1,0 +1,84 @@
+# hal_rules.tsv - the HAL rule list under D-40 (zero unjustified waivers), 2026-11-20.
+#
+# HAL runs with every rule on (flow/2_static/hal_all.f); this list decides which findings the
+# gate (tools/hal_zero.py) counts. A rule is OFF only if it judges style or structure, or only
+# reports information, never if it can mean a wrong circuit. Every OFF row names the check that
+# covers the concern instead. Columns (tab-separated):
+#
+#   RULE  OWN  VENDOR  KIND  REASON  COVERED_BY
+#
+#   OWN     on|off   for GARUDA's own RTL
+#   VENDOR  on|off   for rtl/third_party (D-40: style waived per IP; correctness reviewed per line)
+#   KIND    info | style | structure | correctness
+#
+# A rule not listed is ON in both scopes. An OFF row whose rule fires nowhere fails the gate
+# (stale). Findings of ON rules are fixed, or excepted per line in hal_exceptions.tsv.
+# Approved by: Karthik (pending, review 2026-11-20).
+#
+# ---- information only: HAL reports a fact, not a defect -----------------------------------------
+FFASRT	off	off	info	Notes every flop with an asynchronous reset. Asynchronous assert, synchronous release is the chip's reset style (D-14, D-36).	JasperGold RDC (flow/2_static/cdc), reset_ctrl formal, RST* rules stay on
+PRTCNT	off	off	info	Reports a module's port count.	none needed
+NUMDFF	off	off	info	Reports the number of flops.	trial synthesis report
+FSMIDN	off	off	info	Reports that an FSM was recognised.	FSM rules (TERMST, UNRCHS) stay on
+CLKINF	off	off	info	Reports a signal inferred as a clock.	SDC clock definitions; CDC run
+VLGMEM	off	off	info	Reports a memory array (processing time).	none needed
+BBXSIG	off	off	info	Reports that a large array is black-boxed for analysis.	memory benches and formal
+CDNOTE	off	off	info	Reports an `include directive.	none needed
+DUPMCR	off	off	info	Reports a macro defined twice with the same text.	compile (a differing redefinition is an error)
+# ---- structure: timing and hierarchy, judged after synthesis ------------------------------------
+CBPAHI	off	off	structure	A combinational path crosses module boundaries. Every bus decoder, mux and the pipeline's forwarding and hazard logic do this by design; registering them adds a cycle each.	STA after synthesis (trial Genus now, signoff STA at G7); simulation and formal for function
+SYNPRT	off	off	structure	An output is combinational. Same paths as CBPAHI, seen from the driving module.	STA (as CBPAHI)
+FDTHRU	off	off	structure	An input reaches an output through logic only (bus read-data muxes, pass-through of the instruction port).	STA (as CBPAHI)
+TPOUNR	off	off	structure	A chip output is not straight from a flop (pad enables and the JTAG TDO).	I/O constraints in the SDC; chip pad SVA (chip_pads_sva)
+MXFNOT	off	off	structure	A port has a large fanout (the gated clock).	clock-tree synthesis and STA
+LRGOPR	off	off	structure	A compare or add is wider than 8 bits (area and timing advice).	trial synthesis area and timing
+REDOPR	off	off	structure	A reduction over a wide vector (zero tests and the CSR write-data test written as |x / ~|x for LRGOPR). Area and timing advice.	trial synthesis area and timing
+SYNASN	off	off	structure	A module holds both synchronous and asynchronous-reset logic.	RDC run; reset formal
+DALIAS	off	off	structure	Two wires have the same driver (RISC-V immediate fields share instruction bits by the ISA).	synthesis merges them; ISA tests
+TRNMBT	off	off	structure	An FSM transition flips more than one state bit. Matters only for a state read asynchronously; all GARUDA FSMs are read in their own clock domain.	CDC run (no FSM state crosses a domain)
+MICAWS	off	off	structure	Several if/case statements in one always block.	none needed
+SHFTNC	off	off	structure	A shift by a variable amount (barrel shifter, by design).	ALU benches, ISA tests
+ATLGLC	off	off	structure	Glue logic in the chip top (pad-ring enables).	chip pad SVA; chip regression
+TSMHOL	off	off	structure	The tri-state top also holds other logic (pad ring).	chip pad SVA; chip regression
+IPRTEX	off	off	structure	A constant in a port connection (parameterised tie-offs).	UNCONI/UNCONN stay on
+EXPIPC	off	off	structure	An expression in a port connection.	UNCONI/UNCONN stay on
+ONPNSG	off	off	structure	A one-bit bus.	none needed
+# ---- style: naming, layout, literal and language form -------------------------------------------
+STYVAL	off	off	style	A bare number where HAL prefers a named constant.	review
+MAXLEN	off	off	style	Line longer than 80 characters.	review
+NBGEND	off	off	style	if/else body without begin/end.	review
+NOBLKN	off	off	style	Unnamed process block.	review
+SEPLIN	off	off	style	Several statements on one line.	review
+CTLCHR	off	off	style	A control character (tab, carriage return) in a source line.	review
+BITUNS	off	off	style	A constant without every bit written.	width rules (TRUNCZ, PADMSB, UELOPR) stay on
+PRMVAL	off	off	style	Parameter without a width.	width rules stay on
+PRMBSE	off	off	style	Parameter without a base.	width rules stay on
+CONSBS	off	off	style	Constant without a base.	width rules stay on
+CNSTLT	off	off	style	A literal where HAL prefers a constant.	review
+LCVARN	off	off	style	Upper-case net name.	review
+UCCONN	off	off	style	Lower-case constant name.	review
+IDLENG	off	off	style	Identifier shorter than 4 or longer than 16 characters.	review
+NUMSUF	off	off	style	Identifier ending in a number.	review
+KEYWOD	off	off	style	A VHDL reserved word used as a name.	the chip has no VHDL
+ALOWID	off	off	style	Active-low name without _n.	review
+OLDALW	off	off	style	always in place of always_ff/always_comb.	review
+UNMGEN	off	off	style	Unnamed generate block.	review
+DIFFMN	off	off	style	Module name differs from its file name.	review
+CDWARN	off	off	style	A compiler directive (`ifdef) in RTL: SYNTHESIS guards and the SRAM black-box switch.	both sides compiled in every flow (simulation, local synth, HAL)
+EMPSTM	off	off	style	An empty statement.	review
+VARUAW	off	off	style	A port declared logic is used as a wire.	review
+BOUINC	off	off	style	A vector whose lower bound is not 0 (a field named by its register bits, e.g. irqstat_clr[2:1]).	review
+LOOPTM	off	off	style	A loop repeats an operation more than 10 times.	review
+EXTFSM	off	off	style	Logic beside the FSM in its module (HAL's FSM coding guide).	FSM rules TERMST, UNRCHS stay on
+EXTSEQ	off	off	style	Logic in the FSM's sequential process (HAL's FSM coding guide).	FSM rules stay on
+BADFSM	off	off	style	FSM not in HAL's coding style.	FSM rules stay on
+MULTMS	off	off	style	More than one timescale (vendored files keep theirs).	every package and module sets timeunit; simulation at 1ps
+# ---- vendored IP only: unused parts of an IP GARUDA does not use --------------------------------
+# TO DECIDE (Karthik): these are correctness rules, and D-40 reviews vendor correctness findings
+# one by one. Proposed per IP because every finding of the four is the same case: a part of the
+# IP that GARUDA's configuration never uses (e.g. INFNOT: 469 FIFO entries past the used depth).
+# The alternative is one hal_exceptions.tsv row per line (about 100 lines).
+USEPRT	on	off	correctness	Vendored: ports of the IP that GARUDA's configuration does not use.	the GARUDA wrapper ties or leaves them by intent; the wrapper's own USEPRT stays on
+URDREG	on	off	correctness	Vendored: registers the IP assigns and GARUDA's configuration never reads.	block regression of the IP
+TIELOG	on	off	correctness	Vendored: outputs the IP ties to a constant.	block regression of the IP
+INFNOT	on	off	correctness	Vendored: flops with no fanout in GARUDA's configuration (FIFO entries past the used depth, unused modes); synthesis removes them.	trial synthesis; block regression of the IP

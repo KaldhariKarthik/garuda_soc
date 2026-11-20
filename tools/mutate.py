@@ -23,7 +23,7 @@ SIM=icarus runs the same mutants under Icarus Verilog instead of irun (no licenc
 is flattened by scripts/expand_filelist.py, ARGS are passed to vvp as plusargs). Icarus compiles no
 SVA, so only the bench's own verdict is reported. The spec may also set ICARUS_ARGS.
 """
-import os, re, sys, subprocess, runpy
+import os, re, shutil, sys, subprocess, runpy
 cfg = runpy.run_path(sys.argv[1])
 name = cfg["NAME"]; args = cfg.get("ARGS", "")
 fl_line = cfg["FL_LINE"]
@@ -35,7 +35,11 @@ base = {f: open(f).read() for f in files}
 res = []
 skipped = 0
 for mname, f, old, new in cfg["MUTANTS"]:
-    d = "sim/lab/%s/mut/%s" % (name, mname.split()[0]); os.makedirs(d, exist_ok=True)
+    d = "sim/lab/%s/mut/%s" % (name, mname.split()[0])
+    # a fresh directory every run (2026-11-20): a compiled library left by an earlier run kept
+    # units of renamed files (ahb_interconnect from .v and from .sv: MUNIT, every AHB mutant a
+    # BUILD ERROR), and its old run.log could be read as this run's
+    shutil.rmtree(d, ignore_errors=True); os.makedirs(d)
     for p, t in base.items(): open(os.path.join(d, os.path.basename(p)), "w").write(t)
     tgt = os.path.join(d, os.path.basename(f)); s = open(tgt).read()
     if s.count(old) != 1:
@@ -64,3 +68,15 @@ print("%s: %d mutants; assertions caught %d, bench caught %d" % (name, len(res),
 if skipped:
     print("%s: %d mutant(s) no longer apply to the RTL; fix their text in %s" % (name, skipped, sys.argv[1]))
     sys.exit(1)
+# 2026-11-20 (TOOL-A26): the run fails on a build error or a survivor. A mutant proven equivalent
+# is named in the spec's EQUIVALENT = {"<first word of its name>": "<evidence>"}.
+equiv = cfg.get("EQUIVALENT", {})
+build = [r[0] for r in res if r[2] == "BUILD ERROR"]
+surv = [r[0] for r in res if not r[1] and r[2] == "pass" and r[0].split()[0] not in equiv]
+for m in build:
+    print("%s: BUILD ERROR %s" % (name, m))
+for m in surv:
+    print("%s: SURVIVED %s" % (name, m))
+for m in [r[0] for r in res if not r[1] and r[2] == "pass" and r[0].split()[0] in equiv]:
+    print("%s: equivalent %s (%s)" % (name, m, equiv[m.split()[0]]))
+sys.exit(1 if build or surv else 0)

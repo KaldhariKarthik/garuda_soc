@@ -52,10 +52,12 @@ module clic_sva
     // needed, so clic_top has no hclk port; before, they were sampled on hclk)
 
     // ---- F03, F17, F18: IDs with no source can never be enabled or win ------
+    // Out of reset only: at time 0 the enables are X until preset_n clears
+    // them (the clocked form of 2026-11-17 never sampled that instant).
     always_comb begin : c_ids
-        a_reserved_ids: assert #0 ((ie & ~IE_MASK[N-1:0]) == {N{1'b0}})
-            else $error("[SVA-FAIL] a_reserved_ids: an unassigned enable bit is set (ie=%h)", ie);
         if (preset_n) begin
+            a_reserved_ids: assert #0 ((ie & ~IE_MASK[N-1:0]) == {N{1'b0}})
+                else $error("[SVA-FAIL] a_reserved_ids: an unassigned enable bit is set (ie=%h)", ie);
             a_id0_never_wins: assert #0 (!clic_irq_valid_o || (clic_irq_id_o != 5'd0))
                 else $error("[SVA-FAIL] a_id0_never_wins");
             a_reserved_never_win: assert #0 (!clic_irq_valid_o || IE_MASK[clic_irq_id_o])
@@ -152,7 +154,7 @@ module clic_sva
     // the one the yaml gives the software source
     initial if (SWI_ID != ID_SOFTWARE)
         $error("[SVA-FAIL] clic SWI_ID %0d is not GARUDA_CLIC_ID_SOFTWARE %0d", SWI_ID, ID_SOFTWARE);
-    c_swi_taken:    cover property (@(posedge pclk) preset_n && clic_irq_valid_o && clic_irq_id_o == SWI_ID);
+    c_swi_taken:    cover property (@(posedge pclk) preset_n && clic_irq_valid_o && 32'(clic_irq_id_o) == SWI_ID);
     c_swi_clear:    cover property (@(posedge pclk) preset_n && swi ##1 !swi);
 endmodule
 

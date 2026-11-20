@@ -48,7 +48,7 @@ lines = 1
 
 [[test]]
 name = "t_chip_dma_rearm"
-fail_reason = 'Assertion failed in \S*a_beat_belongs_to_arm'
+# 2026-11-20: a plain test now (the stale beat is fixed, DMA-9); it was an expected failure
 # The error limit is raised for this probe only: once a stale beat lands, the R-6
 # detector fires on every cycle the bad state lasts, and the default limit (1000)
 # would stop the sweep before the firmware reports its counts.
@@ -63,9 +63,7 @@ name = "t_chip_dma_traffic"
 plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_dma_traffic.hex", "+MAXUS=4000"]
 # TB-38 (timers a_mtimecmp_reset at 51 ns) is fixed on main by Karthik's TB-B1 (timers_sva);
 # its known entry was removed on 2026-10-15 (a/track-a on 167aa93).
-known = [
-  ['a_no_read_before_refusal', 1, "DMA-10"],
-]
+# DMA-10 is fixed (refusal before the source read): its known entry removed 2026-11-20
 
 # F51 / D-21 rule 4: byte and halfword beats to and from an APB register end in a
 # bus fault (bridge R-6), ERRPHASE write / read, no partial write; a word beat lands

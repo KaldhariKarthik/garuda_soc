@@ -166,7 +166,7 @@ package crg_env_pkg;
             cp_ratio: coverpoint a iff (kind == 0) { bins div2 = {0}; bins div4 = {1}; bins div8 = {2}; bins div16 = {3}; }
             cp_from: coverpoint a iff (kind == 1) { bins r[] = {[0:3]}; }
             cp_to:   coverpoint b iff (kind == 1) { bins r[] = {[0:3]}; }
-            cp_transition: cross cp_from, cp_to { ignore_bins same = (binsof(cp_from) intersect {0} && binsof(cp_to) intersect {0}) ||
+            cp_transition: cross cp_from, cp_to { ignore_bins same = (binsof(cp_from) intersect {0} && binsof(cp_to) intersect {0}) ||   // writing the ratio already selected is no transition
                                                                       (binsof(cp_from) intersect {1} && binsof(cp_to) intersect {1}) ||
                                                                       (binsof(cp_from) intersect {2} && binsof(cp_to) intersect {2}) ||
                                                                       (binsof(cp_from) intersect {3} && binsof(cp_to) intersect {3}); }

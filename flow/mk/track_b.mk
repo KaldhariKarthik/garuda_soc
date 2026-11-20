@@ -92,41 +92,36 @@ docs:                                         ## regenerate the .docx exports (n
 
 # =============================================================================
 # Static checks (stage 1): rerun on every change to rtl/.
-#   static_lint   HAL lint on the whole chip; fails on any error that is not in
-#                 flow/2_static/hal_waivers.txt (matched by rule and file:line)
+#   static_lint   HAL lint on the whole chip, every rule on; tools/hal_zero.py fails on any
+#                 finding not under a rule of hal_rules.tsv or a row of hal_exceptions.tsv,
+#                 and on a stale row (D-40, 2026-11-20)
 #   static_cdc    HAL clock-domain check on debug_top, the one async boundary
 #   static_xprop  all nine chip programs with X-propagation (xrun -xprop F)
 # HAL is the Incisive 15.2 one: the Xcelium 22.09 HAL does not run here.
 # =============================================================================
 static: static_lint static_cdc static_xprop      ## lint + clock-domain check + X-propagation
 
-static_lint:
+static_lint:                                     ## HAL, every rule, judged by hal_rules.tsv and hal_exceptions.tsv (D-40)
 	@mkdir -p $(SIM_DIR)/static
 	@$(IRUN152) -hal -64bit $(PKG_SRCS) -f rtl/soc/filelist_chip.f -top garuda_chip_top -define SYNTHESIS \
-	    -nclibdirname $(SIM_DIR)/static/INCA_libs -l $(SIM_DIR)/static/hal.log -f flow/2_static/hal.f > /dev/null 2>&1; \
+	    -nclibdirname $(SIM_DIR)/static/INCA_libs -l $(SIM_DIR)/static/hal.log -f flow/2_static/hal_all.f > /dev/null 2>&1; \
 	 rm -f hal.design_facts; \
-	 n=0; new=0; \
-	 for e in $$(grep -E 'hal[a-z]*: \*E,' $(SIM_DIR)/static/hal.log | sed -E 's/^hal[a-z]*: \*E,([A-Z0-9]+) \(\.\/([^,]*),([0-9]+).*/\1@\2:\3/'); do \
-	   n=$$((n+1)); r=$${e%%@*}; fl=$${e#*@}; \
-	   if grep -A1 -E "^  $$r " flow/2_static/hal_waivers.txt | grep -qF "$$fl" || \
-	      { [ "$$r" = UNRCHS ] && grep -qE '^  UNRCHS +same line' flow/2_static/hal_waivers.txt; }; then :; \
-	   else new=$$((new+1)); echo "  NOT WAIVED: $$r $$fl"; fi; \
-	 done; \
-	 echo "static_lint   HAL errors=$$n  not waived=$$new  (log: $(SIM_DIR)/static/hal.log)"; \
-	 python3 tools/hal_baseline.py --check $(SIM_DIR)/static/hal.log; b=$$?; \
-	 [ $$new -eq 0 ] && grep -q 'Analysis complete' $(SIM_DIR)/static/hal.log && [ $$b -eq 0 ]
+	 python3 tools/hal_zero.py $(SIM_DIR)/static/hal.log $(HAL_SCOPE)
 
-# make static_lint_selfcheck: does the baseline gate fail when a count rises? It lowers one
-# number of a COPY of the baseline by one and expects tools/hal_baseline.py to refuse.
+# HAL_SCOPE=--own while the vendor IP review is open; empty judges everything
+HAL_SCOPE ?= --own
+
+# make static_lint_selfcheck: does the gate fail on a stale exception? It adds one row that
+# matches no finding to a COPY of hal_exceptions.tsv and expects tools/hal_zero.py to refuse it.
 .PHONY: static_lint_selfcheck
 static_lint_selfcheck:
 	@if [ ! -s $(SIM_DIR)/static/hal.log ]; then \
 	   echo "static_lint_selfcheck: no $(SIM_DIR)/static/hal.log; run make static_lint first"; exit 1; fi; \
-	 cp flow/2_static/hal_baseline.txt $(SIM_DIR)/hal_baseline.planted; \
-	 awk 'BEGIN{d=0} /^W TIELOG /{ $$3=$$3-1; d=1 } {print}' $(SIM_DIR)/hal_baseline.planted > $(SIM_DIR)/hal_baseline.planted2; \
-	 HAL_BASELINE=$(SIM_DIR)/hal_baseline.planted2 python3 tools/hal_baseline.py --check $(SIM_DIR)/static/hal.log > $(SIM_DIR)/hal_selfcheck.out 2>&1; \
-	 if [ $$? -ne 0 ] && grep -q "RISEN" $(SIM_DIR)/hal_selfcheck.out; then echo "static_lint_selfcheck: ok, a rise of one finding fails the check"; \
-	 else echo "static_lint_selfcheck: WRONG, the check did not fail on a rise"; exit 1; fi
+	 cp flow/2_static/hal_exceptions.tsv $(SIM_DIR)/hal_exc.planted; \
+	 printf 'TIELOG\trtl/core/csr_file.sv:1\tnothing_here\tDATAPATH\n' >> $(SIM_DIR)/hal_exc.planted; \
+	 HAL_EXCEPTIONS=$(SIM_DIR)/hal_exc.planted python3 tools/hal_zero.py $(SIM_DIR)/static/hal.log $(HAL_SCOPE) > $(SIM_DIR)/hal_selfcheck.out 2>&1; \
+	 if [ $$? -ne 0 ] && grep -q "STALE exception" $(SIM_DIR)/hal_selfcheck.out; then echo "static_lint_selfcheck: ok, a stale exception fails the check"; \
+	 else echo "static_lint_selfcheck: WRONG, the check did not fail on a stale exception"; exit 1; fi
 
 static_cdc:
 	@mkdir -p $(SIM_DIR)/static_cdc_debug

@@ -15,9 +15,10 @@ findings in tcsh, from the repository root:
     grep -cE '^hal\w+: \*[EW],[A-Z0-9]+ \(\./rtl/core/' sim/replay/hal.log
 
 Result: **108 findings, 1 error and 107 warnings, in 30 rules. None is a defect.** Every one
-is in the chip baseline (`flow/2_static/hal_baseline.txt`, may not rise) and every rule has
-a written reason in `flow/2_static/hal_waivers.txt`. The table repeats each reason against
-the core lines it covers; each line was read on 2026-11-10.
+was in the chip baseline of the time (`hal_baseline.txt`, removed 2026-11-20 under D-40) and
+every rule had a written reason in `hal_waivers.txt` (removed with it). The table repeats each
+reason against the core lines it covers; each line was read on 2026-11-10. Since D-40 the gate is
+`flow/2_static/hal_rules.tsv` plus `hal_exceptions.tsv` (`make static_lint`).
 
 ## The error
 

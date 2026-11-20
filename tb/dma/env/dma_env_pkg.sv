@@ -123,6 +123,7 @@ package dma_env_pkg;
         bit          comp_cleared [6];  // an ICLR landed after COMPLETE set ([N-7.19]: then it clears)
         bit          err_cleared [6];   // likewise for ERROR and ERRPHASE
         bit          ack_free [6];      // F45: MODE changed while running, acks not predicted (DMA-15 ruling)
+        bit          stopped [6];       // software cleared EN while the transfer ran (F20)
         string       last_error = "";
 
         function void fail(string s);
@@ -133,7 +134,7 @@ package dma_env_pkg;
         function void arm(dma_xfer t);
             x[t.ch] = t; done[t.ch] = 0; err[t.ch] = 0; errph[t.ch] = 0; fifo_rd[t.ch] = 0;
             rd_ok[t.ch] = 0; comp_cleared[t.ch] = 0; err_cleared[t.ch] = 0;
-            ack_free[t.ch] = 0;
+            ack_free[t.ch] = 0; stopped[t.ch] = 0;
         endfunction
         function logic [31:0] exp_sar(int n, int k);
             return x[n].sar() + (x[n].sinc ? k * step_of(x[n].size) : 0);
@@ -177,9 +178,15 @@ package dma_env_pkg;
         function void check_regs(int n, logic [31:0] cr, logic [31:0] st, logic [31:0] sar,
                                  logic [31:0] dar, bit irq_c, bit irq_e, int acks);
             bit comp;
+            bit stale;
             int k;
             if (x[n] == null) return;
             k = done[n];
+            // DMA-9 (fixed 2026-11-04): a beat in flight when software clears EN completes on the
+            // bus and counts for nothing. After a stop the registers may therefore show one beat
+            // fewer than the bus; REMAINING, SAR and DAR must then all agree on that count.
+            stale = stopped[n] && k > 0 && st[15:0] == 16'(x[n].cnt - (k - 1));
+            if (stale) k = k - 1;
             comp = !err[n] && k == x[n].cnt && !comp_cleared[n];
             if (rd_ok[n]) fail($sformatf("ch%0d: beat %0d read but never written", n, k));
             if (cr[0])                              fail($sformatf("ch%0d: EN still set when idle", n));
@@ -192,7 +199,8 @@ package dma_env_pkg;
             if (dar != exp_dar(n, k))               fail($sformatf("ch%0d: DAR %08h, expected %08h after %0d beats", n, dar, exp_dar(n, k), k));
             if (irq_c != (comp && x[n].iec))        fail($sformatf("ch%0d: dma_complete %0d", n, irq_c));
             if (irq_e != (err[n] && !err_cleared[n] && x[n].iee)) fail($sformatf("ch%0d: dma_error %0d", n, irq_e));
-            if (x[n].mode != M_M2M && !ack_free[n] && acks != k) fail($sformatf("ch%0d: %0d acks for %0d beats", n, acks, k));
+            // the stale beat moved its data, so its peripheral was acknowledged (one ack more)
+            if (x[n].mode != M_M2M && !ack_free[n] && acks != k + int'(stale)) fail($sformatf("ch%0d: %0d acks for %0d beats", n, acks, k));
             if (x[n].mode == M_M2M) m2m_acks += acks;     // DMA-15: the RTL acks every beat; ruling pending
         endfunction
     endclass

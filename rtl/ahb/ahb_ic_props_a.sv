@@ -180,7 +180,7 @@ module ahb_ic_props_a (
             if (slv_acc) begin la_v <= 1'b1; la_m <= acc_m; end
             for (int m = 0; m < 4; m++) begin
                 out[m] <= acc[m] ? 1'b1 : (m_rdy[m] ? 1'b0 : out[m]);
-                if (slave_done && do_q == m && !mdone[m]) begin
+                if (slave_done && 32'(do_q) == m && !mdone[m]) begin
                     pend_v[m] <= 1'b1; pend_wr[m] <= dwr_q; pend_resp[m] <= sl_resp; pend_data[m] <= sl_data;
                 end else if (mdone[m]) begin
                     pend_v[m] <= 1'b0;
@@ -304,9 +304,9 @@ module ahb_ic_props_a (
 
     // default slave: the two-cycle ERROR in the specified order ([N-7.6], R-6)
     a_error_first_cycle: assert property (@(posedge hclk) disable iff (!hreset_n)
-        !(dv_q && dslv_q == S_DEF && dfirst_q) || (!hready_o && sl_resp));
+        !(dv_q && 32'(dslv_q) == S_DEF && dfirst_q) || (!hready_o && sl_resp));
     a_error_two_cycle: assert property (@(posedge hclk) disable iff (!hreset_n)
-        !(past_ok && $past(dv_q && dslv_q == S_DEF && dfirst_q)) || (hready_o && sl_resp));
+        !(past_ok && $past(dv_q && 32'(dslv_q) == S_DEF && dfirst_q)) || (hready_o && sl_resp));
     // every slave (not only the default one): the ERROR first cycle on the shared bus
     // lasts exactly one cycle and is followed by the completing ERROR cycle; a slave
     // in wait states answers OKAY (AHB-Lite slave rule; found TB-47)
@@ -315,9 +315,9 @@ module ahb_ic_props_a (
     // the default slave's state register only takes IDLE / ERR1 / ERR2 (2'd3 unused):
     // evidence for the coverage waiver of its `default:` arm (tb/ahb/cov/ahb_waivers.toml)
     a_def_state_legal: assert property (@(posedge hclk) disable iff (!hreset_n) def_state != 2'd3);
-    c_undecoded: cover property (@(posedge hclk) disable iff (!hreset_n) dv_q && dslv_q == S_DEF && dfirst_q);
+    c_undecoded: cover property (@(posedge hclk) disable iff (!hreset_n) dv_q && 32'(dslv_q) == S_DEF && dfirst_q);
     c_error_then_accept: cover property (@(posedge hclk) disable iff (!hreset_n)
-        past_ok && $past(dv_q && dslv_q == S_DEF && dfirst_q) && slv_acc);
+        past_ok && $past(dv_q && 32'(dslv_q) == S_DEF && dfirst_q) && slv_acc);
 
     // =========================================================================
     // R-3 / [N-7.11]: decode (white-box hsel)

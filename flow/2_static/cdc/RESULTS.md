@@ -1,6 +1,6 @@
 # Clock and reset domain crossings on the whole chip (1-TOPS item 3.15)
 
-JasperGold 2022.09p002, CDC app, `flow/2_static/cdc/cdc_chip.tcl` on `garuda_chip_top`. Final run on 2026-11-03.
+JasperGold 2022.09p002, CDC app, `flow/2_static/cdc/cdc_chip.tcl` on `garuda_chip_top`. Final run on 2026-11-20 (TOOL-A27: the script had not run since the F4 renames; the reports below are from this run).
 
 Run from the repository root in tcsh:
 
@@ -14,13 +14,15 @@ Reports are in `reports/`:
 
 ## Result
 
-**0 unwaived violations.** The run without waivers reported 364 violations. Every one was read and falls into one of the classes below. Each waiver in the script matches only its own tag and a narrow name pattern, so a new violation still appears.
+**2026-11-20: 0 unwaived violations, 25 waivers, each with its reason** (`tools/waiver_audit.py`: 25 justified). After the renames the run reported 163 violations nobody had seen: 19 on the DMI payload (the handshake schemes named `ack_tgl_o`, now `ack_tgl`) and 144 into the SPI slave RX FIFO (storage with no reset, now waived as such). The five rows JasperGold waives on its own ("reset order") are covered by a reviewed waiver of the same pattern.
+
+2026-11-03: 0 unwaived violations. The run without waivers reported 364 violations. Every one was read and falls into one of the classes below. Each waiver in the script matches only its own tag and a narrow name pattern, so a new violation still appears.
 
 ## What the script tells the tool
 
 | Intent | How |
 |---|---|
-| Clocks | `refclk`, `tck`, and the three clocks `clk_div` makes from `refclk` with flops (`aon_clk_o`, `hclk_o`, `pclk_o`). Each of the three is an environmental stopat plus `clock`: the tool does not follow a clock through a flop, and without this it found no crossing at all. |
+| Clocks | `refclk`, `tck`, and the three clocks `clk_div` makes from `refclk` with flops (`aon_clk`, `hclk`, `pclk`; `_o` before the F4 renames). Each of the three is an environmental stopat plus `clock`: the tool does not follow a clock through a flop, and without this it found no crossing at all. |
 | Clock groups | `{refclk aon_clk hclk pclk}` is synchronous (one family, CLKRST §9.1); `tck` is asynchronous to it |
 | Reset | only the pin `ext_rst_n`. The tool traces the five resets `reset_ctrl` makes from it. Declaring those nets as resets cuts them and hides `reset_ctrl`'s synchronisers. |
 | Pins | JTAG pins on `tck`. Outputs on `pclk`. The asynchronous inputs (`boot_sel`, UART rx, SPI-slave pins, SPI-master MISO, I2C, GPIO) are `async_to_all`. The black-boxed memory arrays are on `hclk`. |

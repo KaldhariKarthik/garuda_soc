@@ -47,15 +47,15 @@ module d_port_sva (
     assume_aligned: assume property (@(posedge gclk) disable iff (!core_rst_n)
         start_i |-> ((hsize_i == 3'd2) ? addr_i[1:0] == 2'b00 : (hsize_i == 3'd1) ? !addr_i[0] : 1'b1) && hsize_i <= 3'd2);
     assume_held: assume property (@(posedge gclk) disable iff (!core_rst_n)
-        (state == 2'd0 && start_i && !d_hready_i) |=> (start_i && $stable({addr_i, hwrite_i, hsize_i, hwdata_i})));
+        (state == 1'b0 && start_i && !d_hready_i) |=> (start_i && $stable({addr_i, hwrite_i, hsize_i, hwdata_i})));
     assume_slave_err2: assume property (@(posedge gclk) disable iff (!core_rst_n)
         (d_hresp_i && !d_hready_i) |=> (d_hresp_i && d_hready_i));
     assume_slave_idle_okay: assume property (@(posedge gclk) disable iff (!core_rst_n)
-        state == 2'd0 |-> !d_hresp_i);
+        state == 1'b0 |-> !d_hresp_i);
 
     a_dport_single: assert property (@(posedge gclk) disable iff (!core_rst_n) d_htrans_o == 2'b00 || d_htrans_o == 2'b10 )
         else $error("[SVA-FAIL] a_dport_single: the D-port issued SEQ or BUSY");
-    a_dport_one_at_a_time: assert property (@(posedge gclk) disable iff (!core_rst_n) state == 2'd1 |-> d_htrans_o == 2'b00 )
+    a_dport_one_at_a_time: assert property (@(posedge gclk) disable iff (!core_rst_n) state == 1'b1 |-> d_htrans_o == 2'b00 )
         else $error("[SVA-FAIL] a_dport_one_at_a_time: a new address phase during a data phase");
     a_dport_addr_stable: assert property (@(posedge gclk) disable iff (!core_rst_n)
         (d_htrans_o[1] && !d_hready_i) |=> ($stable({d_haddr_o, d_htrans_o, d_hwrite_o})) )
@@ -66,13 +66,13 @@ module d_port_sva (
     a_dport_result_once: assert property (@(posedge gclk) disable iff (!core_rst_n) !(ok_done_o && err_pulse_o) )
         else $error("[SVA-FAIL] a_dport_result_once: OKAY and ERROR together");
     a_dport_result_only_data: assert property (@(posedge gclk) disable iff (!core_rst_n)
-        (ok_done_o || err_pulse_o) |-> (state == 2'd1 && d_hready_i) )
+        (ok_done_o || err_pulse_o) |-> (state == 1'b1 && d_hready_i) )
         else $error("[SVA-FAIL] a_dport_result_only_data: a result outside a data phase");
     // section 11.4: the pipeline is held from the address phase until the data phase ends
     a_dport_stall: assert property (@(posedge gclk) disable iff (!core_rst_n)
-        mem_stall_o == ((state == 2'd0 && start_i) || (state == 2'd1 && !d_hready_i)) )
+        mem_stall_o == ((state == 1'b0 && start_i) || (state == 1'b1 && !d_hready_i)) )
         else $error("[SVA-FAIL] a_dport_stall: the D-port stall does not cover its transfer");
-    c_dport_write_wait: cover property (@(posedge gclk) state == 2'd1 && !d_hready_i && d_hwrite_o == 1'b0);
+    c_dport_write_wait: cover property (@(posedge gclk) state == 1'b1 && !d_hready_i && d_hwrite_o == 1'b0);
     c_dport_error:      cover property (@(posedge gclk) err_pulse_o);
 endmodule
 
@@ -150,9 +150,12 @@ module regfile_sva (
     // of every register's last write (2026-11-19: in place of sequence-local
     // variables, which Verilator reports it may mishandle, SIDEEFFECT); the
     // regfile has no reset, so a register never written is not checked.
+    // written_q starts empty by its declaration (no reset to clear it), so the
+    // process is a plain clocked always: always_ff would make the initialiser
+    // a second driver (Xcelium MULAXX).
     logic [31:0] last_q [1:31];
     logic [31:1] written_q = '0;
-    always_ff @(posedge gclk) begin : p_shadow
+    always @(posedge gclk) begin : p_shadow
         if (wb_reg_write_i && wb_rd_i != 5'd0) begin
             last_q[wb_rd_i] <= wb_data_i;
             written_q[wb_rd_i] <= 1'b1;

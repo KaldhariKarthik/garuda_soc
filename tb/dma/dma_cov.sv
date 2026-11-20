@@ -63,7 +63,7 @@ module dma_cov (
         x_channel_contended: cross cp_channel, cp_contenders {
             ignore_bins ch5_never_contended = binsof(cp_channel) intersect {5} &&
                                               (binsof(cp_contenders.two) || binsof(cp_contenders.more));
-            ignore_bins ch2_at_most_two     = binsof(cp_channel) intersect {2} && binsof(cp_contenders.more);
+            ignore_bins ch2_at_most_two     = binsof(cp_channel) intersect {2} && binsof(cp_contenders.more);   // TB-A6 above: priority 1 wins only beside channel 5 (PROVEN CF-ARB-C2)
         }
     endgroup
 

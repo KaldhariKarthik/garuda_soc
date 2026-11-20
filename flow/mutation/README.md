@@ -6,6 +6,23 @@ A recipe whose text is not found exactly once fails the run, and `make check_tre
 `tools/check_mutants.py`, which checks every recipe here, the generated mutants of
 `tools/gen/gen_*_mutants.py` and the UVM planted lists against the RTL.
 
+## Results, 2026-11-20 (D-40 closure, tree 8db2380 + closing changes)
+
+`python3.12 tools/mutate.py <spec>` with irun 15.2; output in `results/<set>_2026-11-20.txt`. Since
+TOOL-A26 every mutant builds in a fresh directory and the run exits 1 on a survivor or a build error;
+a mutant proven equivalent is named in its spec's `EQUIVALENT` with the evidence.
+
+| Set | Mutants | Killed | Notes |
+|---|---|---|---|
+| ahb | 8 | 8 | all by assertions (the 2026-11-19 run was 8 BUILD ERRORs: a stale library, TOOL-A26) |
+| bridge | 8 | 8 | |
+| debug | 10 | 10 | |
+| mem | 8 | 7, M8 equivalent | `EQUIVALENT` in the spec |
+| spim | 6 | 6 | |
+| dsu (stream) | 6 | 5, `clear_latches_product` equivalent | `DSU_STREAM=1`; the per-test protocol leaves the three TB-42 survivors by design |
+| Verilator suites | AHB 19, APB 16, DMA 25 (SIZE_RESET in the register suite) + 1 equivalent, DSU 7 | all | `make -f flow/mk/track_a_run.mk {ahb,apb,dma,dsu}_mut` |
+| UVM planted defects | UART 14, I2C 18, SPIS 12 | all | `scripts/planted_defects.sh`, each on a baseline that passes (TOOL-A26) |
+
 ## Results, 2026-11-10 (1-TOPS G4)
 
 `python3.12 tools/mutate.py flow/mutation/<block>_mutants.py` with irun 15.2 on the path;

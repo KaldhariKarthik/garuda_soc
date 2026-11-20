@@ -504,3 +504,30 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-19T23:59:43+05:30	b21ef9a530ff	True	fv_dsu	dsu_mut_no_interlock	-	FAIL	XFAIL:PLANTED	[16 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_fires
 2026-11-19T23:59:43+05:30	b21ef9a530ff	True	fv_dsu	dsu_mut_ovf_not_sticky	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_sticky
 2026-11-19T23:59:43+05:30	b21ef9a530ff	True	fv_dsu	dsu_mut_ovf_clear_drops_set	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_set_beats_clear
+2026-11-20T02:38:26+05:30	8db238050bb7	True	dsu_mut	mut_shift_logical	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); fail_reason /mismatches *: *[1-9]/ not in the log | first: [FAIL] no usable stimulus - run tools/gen/DSU_gen.py first: logs/dsu/raw/vec/dsu_stim.mem (-1 words), 
+2026-11-20T02:38:26+05:30	8db238050bb7	True	dsu_mut	mut_rdhi_zext	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); fail_reason /mismatches *: *[1-9]/ not in the log | first: [FAIL] no usable stimulus - run tools/gen/DSU_gen.py first: logs/dsu/raw/vec/dsu_stim.mem (-1 words), 
+2026-11-20T02:38:26+05:30	8db238050bb7	True	dsu_mut	mut_dot_hi_is_lo	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); fail_reason /mismatches *: *[1-9]/ not in the log | first: [FAIL] no usable stimulus - run tools/gen/DSU_gen.py first: logs/dsu/raw/vec/dsu_stim.mem (-1 words), 
+2026-11-20T02:38:26+05:30	8db238050bb7	True	dsu_mut	mut_no_interlock	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=00000007 -> FAILED (test 3, 44 retired) ***
+2026-11-20T02:38:26+05:30	8db238050bb7	True	dsu_mut	mut_no_fold	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); fail_reason /mismatches *: *[1-9]/ not in the log | first: [FAIL] no usable stimulus - run tools/gen/DSU_gen.py first: logs/dsu/raw/vec/dsu_stim.mem (-1 words), 
+2026-11-20T02:38:26+05:30	8db238050bb7	True	dsu_mut	mut_sat_no_ovf	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); fail_reason /mismatches *: *[1-9]/ not in the log | first: [FAIL] no usable stimulus - run tools/gen/DSU_gen.py first: logs/dsu/raw/vec/dsu_stim.mem (-1 words), 
+2026-11-20T02:38:26+05:30	8db238050bb7	True	dsu_mut	mut_ovf_not_sticky	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [723000] %Error: dsu_sva.sv:105: Assertion failed in tb_boot.dut.u_ex.u_dsu.u_dsu_sva.a_ovf_sticky: [SV
+2026-11-20T07:07:45+05:30	8db238050bb7	True	dsu_mut	mut_shift_logical	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] test 25  rd_data: got 000000000001 expected 0000ffffffff  (instr=06f0178b rs1=00000000 rs2=00000000)
+2026-11-20T07:07:45+05:30	8db238050bb7	True	dsu_mut	mut_rdhi_zext	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 87  rd_data: got 00000000ffff expected 0000ffffffff  (instr=4400078b rs1=ffff8001 rs2=00ff0000)
+2026-11-20T07:07:45+05:30	8db238050bb7	True	dsu_mut	mut_dot_hi_is_lo	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 3  acc_MAG: got 00000000001b expected 000000000017  (instr=1c00000b rs1=00020003 rs2=00040005)
+2026-11-20T07:07:45+05:30	8db238050bb7	True	dsu_mut	mut_no_interlock	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 assertion failure(s); 1 %Error line(s) | first: *** TOHOST=00000007 -> FAILED (test 3, 44 retired) ***
+2026-11-20T07:07:45+05:30	8db238050bb7	True	dsu_mut	mut_no_fold	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 0  acc_FX: got 000000000000 expected 00000000000c  (instr=0000000b rs1=00000003 rs2=00000004)
+2026-11-20T07:07:45+05:30	8db238050bb7	True	dsu_mut	mut_sat_no_ovf	1	FAIL	XFAIL:PLANTED	pass marker missing; 10 [FAIL] line(s) | first: [FAIL] test 20  overflow: got 000000000000 expected 000000000001  (instr=3800008b rs1=00000000 rs2=00000000)
+2026-11-20T07:07:45+05:30	8db238050bb7	True	dsu_mut	mut_ovf_not_sticky	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1 [FAIL] line(s); 2 assertion failure(s); 1 %Error line(s) | first: [723000] %Error: dsu_sva.sv:105: Assertion failed in tb_boot.dut.u_ex.u_dsu.u_dsu_sva.a_ovf_sticky: [SV
+2026-11-20T07:53:54+05:30	8db238050bb7	True	fv_dsu	dsu_bmc	-	BOUNDED(16)	OK	[18 asserts, 6 covers in model] 
+2026-11-20T07:53:54+05:30	8db238050bb7	True	fv_dsu	dsu_prove	-	PROVEN	OK	[18 asserts, 6 covers in model] 
+2026-11-20T07:53:54+05:30	8db238050bb7	True	fv_dsu	dsu_cover	-	COVERED	OK	[18 asserts, 6 covers in model] 
+2026-11-20T07:53:54+05:30	8db238050bb7	True	fv_dsu	dsu_no_dsu9	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_per_acc
+2026-11-20T07:53:54+05:30	8db238050bb7	True	fv_dsu	dsu_mut_no_interlock	-	FAIL	XFAIL:PLANTED	[16 asserts, 6 covers in model] props: u_dsu_props_a.a_interlock_fires
+2026-11-20T07:53:54+05:30	8db238050bb7	True	fv_dsu	dsu_mut_ovf_not_sticky	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_sticky
+2026-11-20T07:53:54+05:30	8db238050bb7	True	fv_dsu	dsu_mut_ovf_clear_drops_set	-	FAIL	XFAIL:PLANTED	[18 asserts, 6 covers in model] props: u_dsu_props_a.a_ovf_set_beats_clear
+2026-11-20T07:58:35+05:30	8db238050bb7	True	model.cov	tb_dsu_top	1	PASS	OK	
+2026-11-20T07:58:35+05:30	8db238050bb7	True	model.cov	tb_dsu_top_clamp	1	PASS	OK	
+2026-11-20T07:58:35+05:30	8db238050bb7	True	model.cov	tb_dsu_top_10k	1	PASS	OK	
+2026-11-20T07:58:35+05:30	8db238050bb7	True	model.cov	tb_dsu_top_ovf_fx	1	PASS	OK	
+2026-11-20T07:58:35+05:30	8db238050bb7	True	model.cov	tb_dsu_top_ovf_fy	1	PASS	OK	
+2026-11-20T07:58:35+05:30	8db238050bb7	True	model.cov	tb_dsu_top_ovf_mag	1	PASS	OK	

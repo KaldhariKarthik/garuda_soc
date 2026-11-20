@@ -31,19 +31,19 @@ module mem_cov #(parameter integer AW = 14, parameter integer WRITABLE = 1) (
         cp_size: coverpoint hsize_i { bins byte_ = {0}; bins half = {1}; bins word = {2}; bins wider = {[3:7]}; }
         cp_lane: coverpoint haddr_i[1:0];
         cp_outcome: coverpoint outcome {
-            ignore_bins rom_only = {ROM_WRITE} with (WRITABLE == 1);
-            ignore_bins ram_only = {LOCKED, DEBUG_BYPASS} with (WRITABLE == 0);
+            ignore_bins rom_only = {ROM_WRITE} with (WRITABLE == 1);   // per instance: the RAM has no ROM-write outcome
+            ignore_bins ram_only = {LOCKED, DEBUG_BYPASS} with (WRITABLE == 0);   // per instance: the ROM has no lock or debug bypass
         }
         // the write buffer: a read arriving while a write is parked, to the same word and to another
         cp_wbuf: coverpoint {wb_v, wb_v && (wb_word == ap_word)} { bins empty = {2'b00}; bins other_word = {2'b10}; bins same_word = {2'b11}; }
         cp_after: coverpoint (dp_valid && dp_write && !dp_err) { bins after_other = {0}; bins after_write = {1}; }
         x_dir_size_lane: cross cp_dir, cp_size, cp_lane {
-            ignore_bins wider = binsof(cp_size.wider);
-            ignore_bins rom_writes = binsof(cp_dir.write) with (WRITABLE == 0);
+            ignore_bins wider = binsof(cp_size.wider);   // a wider-than-word access is refused with ERROR, counted in cp_outcome
+            ignore_bins rom_writes = binsof(cp_dir.write) with (WRITABLE == 0);   // per instance: the ROM takes no writes
         }
         x_read_wbuf: cross cp_dir, cp_wbuf, cp_after {
-            ignore_bins writes = binsof(cp_dir.write);
-            ignore_bins rom = binsof(cp_wbuf) with (WRITABLE == 0);
+            ignore_bins writes = binsof(cp_dir.write);   // the write-buffer cross is about reads after a write
+            ignore_bins rom = binsof(cp_wbuf) with (WRITABLE == 0);   // per instance: the ROM has no write buffer
         }
         x_dir_outcome: cross cp_dir, cp_outcome;
     endgroup

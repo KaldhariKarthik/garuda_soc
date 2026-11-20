@@ -317,7 +317,7 @@ package i2c_env_pkg;
             option.per_instance = 1;
             cp_dir: coverpoint rd { bins write = {0}; bins read = {1}; }
             cp_len: coverpoint len { bins address_only = {0}; bins one = {1}; bins two = {2}; bins eight = {8}; bins more = {[9:$]}; bins other = default; }
-            x_dir_len: cross cp_dir, cp_len { ignore_bins none = binsof(cp_len.address_only); }
+            x_dir_len: cross cp_dir, cp_len { ignore_bins none = binsof(cp_len.address_only); }   // an address-only transfer carries no data in either direction
             cp_repeated_start: coverpoint rep { bins ended_by_a_repeated_start = {1}; bins ended_by_stop = {0}; }
         endgroup
 
@@ -357,10 +357,12 @@ package i2c_env_pkg;
             cp_value: coverpoint value { bins one = {0}; bins under_a_byte = {1}; bins over_a_byte = {2}; bins max = {3}; }
             cp_phase: coverpoint phase { bins not_reached = {0}; bins in_start = {1}; bins in_address = {2}; bins in_data = {3}; bins in_stretch = {4}; }
             x_value_phase: cross cp_value, cp_phase {
-                ignore_bins one_fires_at_once = binsof(cp_value.one) && !binsof(cp_phase.in_start);
-                ignore_bins under_a_byte = binsof(cp_value.under_a_byte) && (binsof(cp_phase.not_reached) || binsof(cp_phase.in_start));
-                ignore_bins over_a_byte = binsof(cp_value.over_a_byte) && (binsof(cp_phase.in_start) || binsof(cp_phase.in_address) || binsof(cp_phase.in_data));
-                ignore_bins max = binsof(cp_value.max) && !binsof(cp_phase.not_reached); }
+                ignore_bins one_fires_at_once = binsof(cp_value.one) && !binsof(cp_phase.in_start);   // a TIMEOUT of 1 expires in the first pclk of the command, the START
+                ignore_bins under_a_byte = binsof(cp_value.under_a_byte) && (binsof(cp_phase.not_reached) || binsof(cp_phase.in_start));   // shorter than the address byte: it always expires, after the START
+                ignore_bins over_a_byte = binsof(cp_value.over_a_byte) && (binsof(cp_phase.in_start) || binsof(cp_phase.in_address) || binsof(cp_phase.in_data));   // longer than a byte: no phase without a stretch lasts that long, so it expires in a stretch or not at all
+                // the largest TIMEOUT (65535 pclk) can expire only while a slave holds SCL: every phase
+                // without a stretch ends within nine bit times (F23 runs it in a stretch, 2026-11-20)
+                ignore_bins max = binsof(cp_value.max) && !binsof(cp_phase.not_reached) && !binsof(cp_phase.in_stretch); }
         endgroup
 
         covergroup cg_i2c_abort with function sample(int pos);

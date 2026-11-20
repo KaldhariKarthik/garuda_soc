@@ -33,7 +33,7 @@ module dma_arbiter
         found = 1'b0;
         pick = '0;
         best = '0;
-        for (int c = 0; c < DMA_NCH; c++) begin
+        for (int unsigned c = 0; c < DMA_NCH; c++) begin
             if (el[c] && (!found || PRIO[BEST_W*c +: BEST_W] < best)) begin
                 found = 1'b1;
                 pick = DMA_CH_W'(c);

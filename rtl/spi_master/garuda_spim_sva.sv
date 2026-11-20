@@ -92,13 +92,13 @@ module garuda_spim_sva #(parameter integer BUFFER_DEPTH = 10) (
 
     // FIFO occupancy, as polled, never above the depth
     a_fifo_bound: assert property (@(posedge pclk) disable iff (!preset_n)
-        (rx_words <= BUFFER_DEPTH && tx_words <= BUFFER_DEPTH) )
+        (32'(rx_words) <= BUFFER_DEPTH && 32'(tx_words) <= BUFFER_DEPTH) )
         else $error("[SVA-FAIL] a_fifo_bound: a FIFO occupancy above the depth");
 
     c_flash_transfer: cover property (@(posedge pclk) $fell(spim_cs_flash_n_o));
     c_imu_transfer:   cover property (@(posedge pclk) $fell(spim_cs_imu_n_o));
     c_sclk_toggles:   cover property (@(posedge pclk) cs_any && $rose(spim_sclk_o));
-    c_rx_full:        cover property (@(posedge pclk) rx_words == BUFFER_DEPTH);
+    c_rx_full:        cover property (@(posedge pclk) 32'(rx_words) == BUFFER_DEPTH);
     c_dma_req:        cover property (@(posedge pclk) dma_req_o && dma_ack_i);
 endmodule
 

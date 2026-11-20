@@ -59,7 +59,7 @@ module timers_top
         .pclk(pclk), .preset_n(preset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
             .paddr_i(paddr_i),
-        .pwdata_i(pwdata_i), .prdata_o(prdata_o), .pready_o(pready_o),
+        .prdata_o(prdata_o), .pready_o(pready_o),
             .pslverr_o(pslverr_o),
         .wr_mtime_lo_o(wr_lo), .wr_mtime_hi_o(wr_hi), .wr_cmp_lo_o(wr_clo),
             .wr_cmp_hi_o(wr_chi),

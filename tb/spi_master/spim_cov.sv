@@ -33,7 +33,7 @@ module spim_cov (
         cp_addr: coverpoint addr_len { bins none = {0}; bins a24 = {24}; bins a32 = {32}; bins other = default; }
         cp_data: coverpoint data_len { bins none = {0}; bins word = {32}; bins multi = {[33:65535]}; bins short = {[1:31]}; }
         cp_dma: coverpoint dmactl { bins off = {0}; bins rx = {1}; bins tx = {2}; bins both = {3}; }
-        x_device_dir: cross cp_device, cp_dir { ignore_bins none = binsof(cp_device.none); }
+        x_device_dir: cross cp_device, cp_dir { ignore_bins none = binsof(cp_device.none); }   // no device selected is no transfer
         x_flash_read: cross cp_cmd, cp_addr, cp_data;
     endgroup
     covergroup cg_fw @(posedge pclk_i iff (preset_n_i && st_wr));

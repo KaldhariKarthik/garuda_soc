@@ -1,0 +1,11 @@
+python3.12 tools/mutate.py flow/mutation/mem_mutants.py, irun 15.2, tree 8db2380 + closing changes, 2026-11-20
+M1 read bypass ignores the write buffer        assertions: a_data_integrity                                   bench: FAIL
+M2 bypass takes all lanes                      assertions: a_data_integrity                                   bench: FAIL
+M3 parked write uses the wrong word            assertions: a_data_integrity                                   bench: FAIL
+M4 halfword lanes swapped                      assertions: a_byte_lanes,a_data_integrity                      bench: FAIL
+M5 misaligned word accepted                    assertions: a_misaligned_refused                               bench: FAIL
+M6 lock ignored                                assertions: a_lock_refused                                     bench: FAIL
+M7 one-cycle ERROR                             assertions: a_misaligned_refused                               bench: FAIL
+M8 DSRAM read bank not registered              assertions: none                                               bench: pass
+mem: 8 mutants; assertions caught 7, bench caught 7
+mem: equivalent M8 DSRAM read bank not registered (proven equivalent, flow/formal/mem/dsram_bank_fpv.result.txt)

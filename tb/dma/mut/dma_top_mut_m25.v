@@ -87,7 +87,7 @@ module dma_top
         .pclk(pclk), .preset_n(preset_n),
         .hclk(hclk), .hreset_n(hreset_n),
         .psel_i(psel_i), .penable_i(penable_i), .pwrite_i(pwrite_i),
-        .paddr_i(paddr_i), .pwdata_i(pwdata_i), .prdata_o(prdata_o),
+        .paddr_i(paddr_i), .prdata_o(prdata_o),
         .pready_o(pready_o), .pslverr_o(pslverr_o),
         .wr_cr_o(wr_cr), .wr_sar_o(wr_sar), .wr_dar_o(wr_dar),
             .wr_cnt_o(wr_cnt),

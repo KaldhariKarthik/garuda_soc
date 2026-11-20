@@ -29,11 +29,11 @@ elaborate -top garuda_chip_top
 clock refclk
 clock tck
 # a clock must be an input or a stopat: cut the divider outputs and clock them
-stopat -env {u_core.u_clk_div.aon_clk_o u_core.u_clk_div.hclk_o u_core.u_clk_div.pclk_o}
-clock u_core.u_clk_div.aon_clk_o
-clock u_core.u_clk_div.hclk_o
-clock u_core.u_clk_div.pclk_o
-config_rtlds -clock -group -async {{refclk u_core.u_clk_div.aon_clk_o u_core.u_clk_div.hclk_o u_core.u_clk_div.pclk_o} {tck}}
+stopat -env {u_core.u_clk_div.aon_clk u_core.u_clk_div.hclk u_core.u_clk_div.pclk}
+clock u_core.u_clk_div.aon_clk
+clock u_core.u_clk_div.hclk
+clock u_core.u_clk_div.pclk
+config_rtlds -clock -group -async {{refclk u_core.u_clk_div.aon_clk u_core.u_clk_div.hclk u_core.u_clk_div.pclk} {tck}}
 # ---- resets: only the pin is declared. reset_ctrl makes hreset_n, preset_n,
 # core_rst_n, dm_rst_n and ext_hrst_n from it with asynchronous assertion and a
 # two-flop release in each domain (flow/2_static/rdc_review.md); declaring those
@@ -45,10 +45,10 @@ config_rtlds -reset -async ext_rst_n -polarity low
 set ASYNC_IN {boot_sel uart0_rx uart1_rx uart2_rx spim_miso spis_cs_n spis_sclk spis_mosi i2c_scl i2c_sda gpio0 gpio1}
 config_rtlds -port $ASYNC_IN -clock async_to_all          ;# synchronised where they enter
 config_rtlds -port {tms tdi tdo} -clock tck                ;# JTAG
-config_rtlds -port {pwm0 pwm1 pwm2 pwm3 spim_sclk spim_mosi spim_cs_flash_n spim_cs_imu_n uart0_tx uart1_tx uart2_tx spis_miso} -clock u_core.u_clk_div.pclk_o
+config_rtlds -port {pwm0 pwm1 pwm2 pwm3 spim_sclk spim_mosi spim_cs_flash_n spim_cs_imu_n uart0_tx uart1_tx uart2_tx spis_miso} -clock u_core.u_clk_div.pclk
 # the memory arrays the tool black-boxes run on hclk
 foreach m {u_brom.u_array u_isram.u_array u_dsram.g_bank[0].u_array u_dsram.g_bank[1].u_array u_dsram.g_bank[2].u_array u_dsram.g_bank[3].u_array} {
-    config_rtlds -port [list u_core.u_soc.$m.mem.read_address_0 u_core.u_soc.$m.mem.read_data_0] -clock u_core.u_clk_div.hclk_o
+    config_rtlds -port [list u_core.u_soc.$m.mem.read_address_0 u_core.u_soc.$m.mem.read_data_0] -clock u_core.u_clk_div.hclk
 }
 
 # ---- the DMI handshake (DEBUG [N-7.16]): the payload is held stable from the
@@ -57,10 +57,10 @@ set D u_core.u_soc.u_debug
 # request, tck -> hclk: address, data and op of the DTM
 foreach d {req_addr_o req_data_o req_op_o} {
     check_cdc -scheme -add handshake -map [list [list data $D.u_dtm.$d] [list sreq $D.u_dtm.req_tgl_o] \
-        [list dreq $D.u_cdc.req_s\[2\]] [list dack $D.u_cdc.ack_tgl_o] [list sack $D.u_cdc.ack_s\[1\]]]
+        [list dreq $D.u_cdc.req_s\[2\]] [list dack $D.u_cdc.ack_tgl] [list sack $D.u_cdc.ack_s\[1\]]]
 }
 # response, hclk -> tck: the Debug Module's read data
-check_cdc -scheme -add handshake -map [list [list data $D.u_dm.rdata_o] [list sreq $D.u_cdc.ack_tgl_o] \
+check_cdc -scheme -add handshake -map [list [list data $D.u_dm.rdata_o] [list sreq $D.u_cdc.ack_tgl] \
     [list dreq $D.u_cdc.ack_s\[1\]] [list dack $D.u_dtm.req_tgl_o] [list sack $D.u_cdc.req_s\[2\]]]
 
 check_cdc -clock_domain -find
@@ -78,6 +78,8 @@ proc waive {tag what pattern why} {
 foreach u {u_core.u_soc.u_dsram.g_bank*.u_array.rdata u_core.u_soc.u_isram.u_array.rdata u_core.u_soc.u_brom.u_array.rdata} {
     waive RDC_RS_DFRS -destination_unit $u "memory array: no reset by design; contents undefined after a reset (MEM spec); a write needs a valid AHB data phase, which a reset ends"
 }
+waive RDC_RS_DFRS -destination_unit {u_core.g_spis.u_spis.fifo*} "SPI slave RX FIFO entries: no reset by design (MEMORY_ARRAY); the level counter resets to 0, so an entry is read only after a write since the reset"
+waive RST_RS_RIDP -occurrence {u_core.u_reset_ctrl.ext_sync_q*} "reset_ctrl's stretch and request flops sample the synchronised pin; source and destinations share ext_rst_n and aon_clk, so no reset domain is crossed (the tool's own 'reset order' waiver, reviewed 2026-11-20)"
 waive RDC_RS_DFRS -destination_unit {u_core.u_soc.u_core.u_id.u_regfile.mem*} "register file: no reset by design (CORE 4); its write enable comes from mem_wb.reg_write, which resets to 0"
 waive RDC_RS_DFRS -destination_unit {u_core.u_i2c.u_byte.bit_controller.d*} "vendored OpenCores I2C: dout and dscl_oen are one-cycle delayed copies without reset; they follow their reset source within one pclk"
 # resets taken from the pin without a release synchroniser, by design

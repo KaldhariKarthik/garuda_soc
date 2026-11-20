@@ -36,7 +36,7 @@ All 60 are `<= #1` in `rtl/third_party/opencores/i2c/src/i2c_byte_ctrl.sv`, the
 OpenCores I2C byte controller, as its author wrote it. Synthesis ignores them. Vendored
 files are never edited (DECISIONS, decision of 2026-09-22: upstream files under
 `rtl/third_party/` are taken as they are); HAL counts them as DLNBLK 60, explained in
-`flow/2_static/hal_waivers.txt`. No own RTL file has a delay.
+`flow/2_static/hal_exceptions.tsv`. No own RTL file has a delay.
 
 ## Latches
 
@@ -49,7 +49,7 @@ cells, 7 999 flops) and lists every instance that is a latch in
 That is the enable latch of `rtl/core/core_clk_gate.sv`, the behavioural integrated clock
 gate (WFI clock gating). A latch there is required: it holds the enable stable while the
 clock is high. The 28 nm library ICG cell replaces it in the physical flow. HAL reports the
-same single latch (LATINF 1, `flow/2_static/hal_waivers.txt`).
+same single latch (LATINF 1, `flow/2_static/hal_exceptions.tsv`).
 
 Yosys, a second tool with its own front end, gives the same answer (`make local_synth`
 after `source scripts/setup_open_tools.sh`, in bash: `Latches: 1 total, 0 unexpected`;

@@ -325,10 +325,10 @@ module garuda_soc_top
     assign pslverr_all[WIN_TIMERS]         = err_tmr;
     genvar e;
     generate for (e = 0; e < APB_NEXT; e = e + 1) begin : g_ext
-        assign prdata_all[32*ext_win(e) +: 32] = apb_ext_prdata_i[32*e +: 32];
-        assign pready_all[ext_win(e)]          = apb_ext_pready_i[e];
-        assign pslverr_all[ext_win(e)]         = apb_ext_pslverr_i[e];
-        assign apb_ext_psel_o[e]               = psel[ext_win(e)];
+        assign prdata_all[32*ext_win(unsigned'(e)) +: 32] = apb_ext_prdata_i[32*e +: 32];
+        assign pready_all[ext_win(unsigned'(e))]          = apb_ext_pready_i[e];
+        assign pslverr_all[ext_win(unsigned'(e))]         = apb_ext_pslverr_i[e];
+        assign apb_ext_psel_o[e]               = psel[ext_win(unsigned'(e))];
     end endgenerate
 
     ahb2apb_bridge #(.WINDOW_MASK(APB_WINDOW_MASK), .APB_DIV(APB_DIV),

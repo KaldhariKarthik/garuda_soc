@@ -60,10 +60,7 @@ name = "t_chip_basic"
 plusargs = ["+MODE=basic", "+TEST=sw/build/t_chip_basic.hex"]
 # TB-38 (timers a_mtimecmp_reset at 51 ns) is fixed on main by Karthik's TB-B1 (timers_sva);
 # its known entry was removed on 2026-10-15 (a/track-a on 167aa93).
-known = [
-  # dma_sva (bound 2026-10-12): step 12 refuses DAR 0x8000 (ISRAM) after reading the source
-  ['a_no_read_before_refusal', 1, "DMA-10"],
-]
+# DMA-10 is fixed (refusal before the source read): its known entry removed 2026-11-20
 [[test]]
 name = "t_chip_wdt"
 plusargs = ["+MODE=watchdog", "+TEST=sw/build/t_chip_wdt.hex"]

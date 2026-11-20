@@ -1,5 +1,5 @@
-# garuda-fv 1 suite=fv_dma_cov block=dma date=2026-11-20T00:14:42+05:30 design=b21ef9a530ffca39574ca38d76e10d411f9f3d30 rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
+# garuda-fv 1 suite=fv_dma_cov block=dma date=2026-11-20T07:45:13+05:30 design=8db238050bb7108ad0b5825b8d751e1510dfe77d rtl_dirty=True tool=SBY v0.69, yosys-slang, oss-cad-suite oss-cad-suite
 task	mode	result	class	secs	detail	log
-cov_prove	prove	PROVEN	OK	2	[4 asserts, 306 covers in model] 	logs/dma/raw/fv_dma_cov/fv_cov_prove.log
-cov_reach	cover	COVERED	OK	1	[0 asserts, 3 covers in model] 	logs/dma/raw/fv_dma_cov/fv_cov_reach.log
-mut_cov_prio_inv	bmc	FAIL	XFAIL:PLANTED	1	[1 asserts, 306 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone	logs/dma/raw/fv_dma_cov/fv_mut_cov_prio_inv.log
+cov_prove	prove	PROVEN	OK	5	[4 asserts, 306 covers in model] 	logs/dma/raw/fv_dma_cov/fv_cov_prove.log
+cov_reach	cover	COVERED	OK	4	[0 asserts, 3 covers in model] 	logs/dma/raw/fv_dma_cov/fv_cov_reach.log
+mut_cov_prio_inv	bmc	FAIL	XFAIL:PLANTED	2	[1 asserts, 306 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone	logs/dma/raw/fv_dma_cov/fv_mut_cov_prio_inv.log

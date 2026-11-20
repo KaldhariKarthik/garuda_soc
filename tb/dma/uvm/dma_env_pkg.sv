@@ -486,8 +486,8 @@ package dma_env_pkg;
             cp_soff: coverpoint soff { bins o[] = {[0:3]}; }
             cp_doff: coverpoint doff { bins o[] = {[0:3]}; }
             x_size_offset: cross cp_size, cp_soff, cp_doff {
-                ignore_bins half_odd = binsof(cp_size) intersect {1} && (binsof(cp_soff) intersect {1, 3} || binsof(cp_doff) intersect {1, 3});
-                ignore_bins word_off = binsof(cp_size) intersect {2} && (binsof(cp_soff) intersect {[1:3]} || binsof(cp_doff) intersect {[1:3]});
+                ignore_bins half_odd = binsof(cp_size) intersect {1} && (binsof(cp_soff) intersect {1, 3} || binsof(cp_doff) intersect {1, 3});   // a halfword transfer at an odd offset is refused when programmed (DMA alignment rule)
+                ignore_bins word_off = binsof(cp_size) intersect {2} && (binsof(cp_soff) intersect {[1:3]} || binsof(cp_doff) intersect {[1:3]});   // a word transfer at a non-word offset is refused when programmed (DMA alignment rule)
             }
         endgroup
 

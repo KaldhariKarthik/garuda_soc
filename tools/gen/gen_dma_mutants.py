@@ -136,9 +136,19 @@ def summary():
     out = [f"DMA planted-defect run (DMA plan D8, recipe R10), {datetime.date.today()}",
            f"source: {os.path.relpath(tsv, R)}; generator tools/gen/gen_dma_mutants.py; kill = a named check ({KILL})", ""]
     tally = {}
+    # unit-only mutants run as negctl_<id> in the register suite (tb/dma/run/regs.toml); read
+    # them from there (2026-11-20: SIZE_RESET was listed as TOOL-FAIL, never looked up)
+    rtsv = f"{R}/logs/dma/summary/regs.tsv"
+    if os.path.exists(rtsv):
+        rl = [l.rstrip("\n").split("\t") for l in open(rtsv)]
+        for l in rl[2:]:
+            d = dict(zip(rl[1], l))
+            rows["unit_" + d.get("test", "")] = d
     for mid, f, _, _, bench, what in MUTANTS:
-        r = rows.get("mut_" + mid.lower(), {})
-        log = f"{R}/logs/dma/raw/dma_mut/sim_mut_{mid.lower()}_s1.log"
+        unit = mid in UNIT_ONLY
+        r = rows.get(("unit_negctl_" if unit else "mut_") + mid.lower(), {})
+        log = (f"{R}/logs/dma/raw/regs/sim_negctl_{mid.lower()}_s1.log" if unit else
+               f"{R}/logs/dma/raw/dma_mut/sim_mut_{mid.lower()}_s1.log")
         first = ""
         if os.path.exists(log):
             for ln in open(log, errors="replace"):

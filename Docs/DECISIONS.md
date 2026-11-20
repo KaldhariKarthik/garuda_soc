@@ -786,6 +786,45 @@ properties (F06, F09) become "DMACTL reads 0" (`a_dmactl_zero`). The shim's DMA
 assertions and coverage move to `garuda_apb_dma_sva` / `garuda_apb_dma_cov`. The
 synchroniser flops are renamed in the trial-synthesis constraints.
 
+## D-40 — Zero unjustified waivers (Karthik, 2026-11-20)
+
+**Context.** The ruling of 2026-11-16 (`flow/ZERO_WAIVER.md`) asked for zero waivers of any
+kind. Four days of F4 work showed what it was for: every exception looked at found real
+defects behind "waived" or "passed" (TB-A9, TB-A10, TB-A11, TOOL-A24). It also showed
+what it cannot mean. HAL with every rule on flags correct design on every line of a kind:
+FFASRT on every flop with an asynchronous reset (the chip's reset style), CBPAHI and
+SYNPRT on every combinational path across a module boundary (timed by STA after
+synthesis), PRTCNT and STYVAL on port counts and literals. Half the findings are in
+vendored IP, which no team rewrites to its own lint. A per-line exception list for those
+is a waiver file by another name.
+
+**Decision (Karthik: "the new rule is zero unjustified waivers").** A waiver is allowed
+only when it is specific, reasoned, backed by evidence and checked for staleness:
+
+- **Functional results: zero, no waivers.** Simulation failures, assertion failures,
+  formal counterexamples, X issues, unkilled mutants.
+- **Lint rule set (HAL, Verilator, Yosys, Superlint).** A rule may be off for the whole
+  chip only when it judges style or structure rather than correctness. It is listed with
+  its reason and the check that covers it instead (e.g. CBPAHI: STA at G7), and
+  Karthik approves the list. Correctness rules stay on: latches, multiple drivers,
+  dead flops, unconnected or undriven ports, width and sign. Each of their findings is
+  fixed or waived on its own line with a reason. **No count baseline.**
+- **Vendored IP (`rtl/third_party`).** Style findings are waived per IP with one reason:
+  vendored, verified by its own tests, every edit recorded as a patch (D-22, TOOL-A25).
+  Findings of correctness rules are reviewed one by one, and fixed as recorded patches.
+- **CDC/RDC.** Every crossing goes through a named synchroniser; each waiver names it.
+  No auto-waived row stands without a reviewed reason.
+- **Coverage.** An exclusion needs evidence: a PROVEN unreachability property (formal
+  UNR), or a tie-off or spec line. A reachable hole gets a test. Each `ignore_bins` and
+  `illegal_bins` carries its reason in the source.
+- Every waiver file is checked by a tool that fails on a stale entry (one that matches
+  nothing) and on an entry without a reason.
+
+**Unchanged.** Mutants and negative controls stay; the two open items (DFT `test_en`,
+SRAM macros) stay; G0–G5 and F0–F8 are rerun on the final tree. The RTL work done under
+the old rule stands (dead logic removed, decode as two fields, state machines in their own
+modules, the shim split), each change proven by JasperGold SEC or a miter.
+
 ---
 
 ## Open — carried forward, not decided

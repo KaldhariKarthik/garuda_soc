@@ -133,12 +133,8 @@ module debug_module
     always_ff @(posedge hclk or negedge dm_rst_n) begin : p_grant
         if (!dm_rst_n) begin
             grant_q <= 1'b0;
-            haltforced <= 1'b0;
             halt_cnt <= 16'd0;
         end else begin
-            if (wr && addr_i == A_HALTINFO && wdata_i[0]) begin
-                haltforced <= 1'b0;  // W1C (a new forced grant below wins)
-            end
             if (!halt_requested) begin
                 grant_q <= 1'b0;  // resume: request and grant drop together
                 halt_cnt <= 16'd0;
@@ -147,13 +143,27 @@ module debug_module
                     grant_q <= 1'b1;  // the core reached a safe point
                 end else if (halt_cnt == HALT_LAST) begin
                     grant_q <= 1'b1;  // bounded: never wait forever
-                    haltforced <= 1'b1;
                 end else begin
                     halt_cnt <= HALF_W'(halt_cnt + 16'd1);
                 end
             end
         end
     end
+    // HALTINFO.haltforced: set by a forced (timeout) grant, W1C by the debugger;
+    // a forced grant in the same cycle as the W1C wins (F4 2026-11-20: its own
+    // process, HAL MULNBA; the order of the two assignments before, written out)
+    wire forced_grant = halt_requested && !grant_q && !halt_safe_i
+        && (halt_cnt == HALT_LAST);
+    always_ff @(posedge hclk or negedge dm_rst_n) begin : p_haltforced
+        if (!dm_rst_n) begin
+            haltforced <= 1'b0;
+        end else if (forced_grant) begin
+            haltforced <= 1'b1;
+        end else if (wr && addr_i == A_HALTINFO && wdata_i[0]) begin
+            haltforced <= 1'b0;
+        end
+    end
+
     // Held through the grant (2026-11-16): the core samples the grant into its
     // reset flop one clock after it rises, and must not start fetching in that
     // clock.

@@ -144,6 +144,6 @@ bind load_store_unit load_store_unit_sva u_lsu_sva (.*, .load_misaligned_o(misal
 bind garuda_pc_gen garuda_pc_gen_sva u_pc_gen_sva (.*);
 // full: named here since F4 (no wire in the unit)
 bind prefetch_buf garuda_prefetch_buffer_sva u_pfb_sva (.*,
-    .full_o(occupancy == FIFO_DEPTH));
+    .full_o(32'(occupancy) == FIFO_DEPTH));
 `endif
 `endif

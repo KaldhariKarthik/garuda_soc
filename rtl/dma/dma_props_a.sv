@@ -437,7 +437,7 @@ module dma_sva #(
             $past(cdone[g] && rem[g] == 16'd1) || $past(arm[g] && cnt[32*g +: 16] == 16'd0))
             else $error("[SVA-FAIL] a_complete_only_by_hw[%0d] (F19)", g);
         a_error_on_beat_err: assert property (@(posedge hclk) disable iff (!hreset_n)
-            !past_ok || !$past(cerr[g]) || (err[g] && !en[g] && eph[g] == $past(err_phase)))
+            !past_ok || !$past(cerr[g]) || (err[g] && !en[g] && eph[g] == 3'($past(err_phase))))
             else $error("[SVA-FAIL] a_error_on_beat_err[%0d] ([N-7.13], F29)", g);
         a_error_sticky: assert property (@(posedge hclk) disable iff (!hreset_n)
             !past_ok || !$past(err[g] && !(wr_iclr[g] && wdata[1]) && !cerr[g]) || (err[g] && $stable(eph[g])))
@@ -553,8 +553,8 @@ module dma_sva #(
                     else $error("[SVA-FAIL] a_error_isolated[%0d->%0d]: an error on one channel changed another (F30)", g, m);
             end
         end
-        c_err_read:         cover property (@(posedge hclk) disable iff (!hreset_n) beat_err[g] && err_phase == 3'd1);
-        c_err_write:        cover property (@(posedge hclk) disable iff (!hreset_n) beat_err[g] && err_phase == 3'd2);
+        c_err_read:         cover property (@(posedge hclk) disable iff (!hreset_n) beat_err[g] && err_phase == 2'd1);
+        c_err_write:        cover property (@(posedge hclk) disable iff (!hreset_n) beat_err[g] && err_phase == 2'd2);
         c_err_other_active: cover property (@(posedge hclk) disable iff (!hreset_n) beat_err[g] && |(active & ~(6'd1 << g)));
         // F45, F46
         c_cr_write_active:    cover property (@(posedge hclk) disable iff (!hreset_n) wr_cr[g] && active[g] && wdata[0]);
@@ -638,19 +638,19 @@ module dma_sva #(
         !(rd_err_pend && htrans_o[1]) || !hwrite_o)
         else $error("[SVA-FAIL] a_no_write_after_read_error ([N-7.13], F29)");
     a_errphase_read: assert property (@(posedge hclk) disable iff (!hreset_n)
-        !past_ok || !$past(dp_rd && hready_i && hresp_i) || (beat_err == (6'd1 << $past(eng_ch)) && err_phase == 3'd1))
+        !past_ok || !$past(dp_rd && hready_i && hresp_i) || (beat_err == (6'd1 << $past(eng_ch)) && err_phase == 2'd1))
         else $error("[SVA-FAIL] a_errphase_read (F29)");
     a_errphase_write: assert property (@(posedge hclk) disable iff (!hreset_n)
-        !past_ok || !$past(dp_wr && hready_i && hresp_i) || (beat_err == (6'd1 << $past(eng_ch)) && err_phase == 3'd2))
+        !past_ok || !$past(dp_wr && hready_i && hresp_i) || (beat_err == (6'd1 << $past(eng_ch)) && err_phase == 2'd2))
         else $error("[SVA-FAIL] a_errphase_write (F29)");
     a_refuse_sar: assert property (@(posedge hclk) disable iff (!hreset_n)                    // white-box state
         !past_ok || !$past(eng_st == E_RA && sar_bad_cur) ||
-        (beat_err == (6'd1 << $past(eng_ch)) && err_phase == 3'd1 && htrans_o == T_IDLE))
+        (beat_err == (6'd1 << $past(eng_ch)) && err_phase == 2'd1 && htrans_o == T_IDLE))
         else $error("[SVA-FAIL] a_refuse_sar (R-9, F32)");
     // DMA-12 (ruling D-32): a bad DAR is refused in E_RA too, before the source read
     a_refuse_dar: assert property (@(posedge hclk) disable iff (!hreset_n)
         !past_ok || !$past(eng_st == E_RA && !sar_bad_cur && dar_bad_cur) ||
-        (beat_err == (6'd1 << $past(eng_ch)) && err_phase == 3'd2 && htrans_o == T_IDLE))
+        (beat_err == (6'd1 << $past(eng_ch)) && err_phase == 2'd2 && htrans_o == T_IDLE))
         else $error("[SVA-FAIL] a_refuse_dar (R-9, F32)");
     // DMA-12 (was the DMA-10 detector of track A's notes, F43): no source read for a beat
     // whose DAR is refused. Fixed by ruling D-32; the property now holds

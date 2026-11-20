@@ -64,7 +64,6 @@ module timers_apb
     input wire penable_i,
     input wire pwrite_i,
     input wire [PADDR_W-1:0] paddr_i,
-    input wire [WORD_W-1:0] pwdata_i,
     output wire [WORD_W-1:0] prdata_o,
     output wire pready_o,
     output wire pslverr_o,

@@ -10,3 +10,6 @@ MUTANTS = [
  ("M7 one-cycle ERROR", "rtl/mem/ahb_mem_slave_if.sv", "assign hreadyout_o = ~err_first;", "assign hreadyout_o = 1'b1;"),
  ("M8 DSRAM read bank not registered", "rtl/dsram/dsram_top.sv", "        end else if (ce && !we) begin\n            rd_bank_q <= bank;", "        end else if (ce) begin\n            rd_bank_q <= bank;"),
 ]
+# M8 is equivalent: a write cycle never returns read data, so registering the bank on a write
+# changes nothing observable. Proven: flow/formal/mem/dsram_bank_fpv.result.txt (README 2026-11-10).
+EQUIVALENT = {"M8": "proven equivalent, flow/formal/mem/dsram_bank_fpv.result.txt"}

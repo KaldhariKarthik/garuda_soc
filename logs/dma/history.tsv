@@ -1859,3 +1859,172 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-20T00:14:42+05:30	b21ef9a530ff	True	fv_dma_cov	cov_prove	-	PROVEN	OK	[4 asserts, 306 covers in model] 
 2026-11-20T00:14:42+05:30	b21ef9a530ff	True	fv_dma_cov	cov_reach	-	COVERED	OK	[0 asserts, 3 covers in model] 
 2026-11-20T00:14:42+05:30	b21ef9a530ff	True	fv_dma_cov	mut_cov_prio_inv	-	FAIL	XFAIL:PLANTED	[1 asserts, 306 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m01	1	FAIL	XFAIL:PLANTED	pass marker missing; 69 [FAIL] line(s); 8 assertion failure(s) | first: [FAIL] [SB] ch1: REMAINING 3, 1 of 3 beats done
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m02	1	FAIL	XFAIL:PLANTED	pass marker missing; 63 [FAIL] line(s); 2 assertion failure(s) | first: [45566000] %Error: dma_props_a.sv:520: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[2].a_failed_beat_keeps_request: [SV
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m03	1	FAIL	XFAIL:PLANTED	pass marker missing; 489 [FAIL] line(s); 428 assertion failure(s) | first: [2034000] %Error: dma_sva.sv:201: Assertion failed in tb_dma_env.dut.g_ch[2].u_ch.u_chan_sva.a_one_beat_per_req: [SVA-FAIL] a
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m04	1	FAIL	XFAIL:PLANTED	pass marker missing; 65 [FAIL] line(s); 3 assertion failure(s) | first: [FAIL] [SB] ch1: REMAINING 3, 1 of 3 beats done
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m05	1	FAIL	XFAIL:PLANTED	pass marker missing; 134 [FAIL] line(s); 41 assertion failure(s) | first: [1410000] %Error: dma_props_a.sv:384: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[1].a_sar_step: [SVA-FAIL] a_sar_st
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m06	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1010 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [8922000] %Error: dma_sva.sv:190: Assertion failed in tb_dma_regs.dut.g_ch[0].u_ch.u_chan_sva.a_m
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m07	1	FAIL	XFAIL:PLANTED	pass marker missing; 370 [FAIL] line(s); 308 assertion failure(s) | first: [47326000] %Error: dma_sva.sv:209: Assertion failed in tb_dma_env.dut.g_ch[5].u_ch.u_chan_sva.a_irq_error: [SVA-FAIL] a_irq_e
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m08	1	FAIL	XFAIL:PLANTED	pass marker missing; 482 [FAIL] line(s); 262 assertion failure(s) | first: [3506000] %Error: dma_props_a.sv:454: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[4].a_iclr_error: [SVA-FAIL] a_icl
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m09	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [238000] %Error: dma_sva.sv:173: Assertion failed in tb_dma_env.dut.g_ch[0].u_ch.u_chan_sva.a_com
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m10	1	FAIL	XFAIL:PLANTED	pass marker missing; 216 [FAIL] line(s); 104 assertion failure(s) | first: [3234000] %Error: dma_sva.sv:184: Assertion failed in tb_dma_env.dut.g_ch[4].u_ch.u_chan_sva.a_freeze_on_error: [SVA-FAIL] a_
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m11	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1057 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [FAIL] [SB] ch1: REMAINING 3, 1 of 3 beats done
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m13	1	FAIL	XFAIL:PLANTED	pass marker missing; 60 [FAIL] line(s); 56 assertion failure(s) | first: [3130000] %Error: dma_props_a.sv:654: Assertion failed in tb_dma_top.dut.u_dma_props_a.a_refuse_dar: [SVA-FAIL] a_refuse_dar (R
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m14	1	FAIL	XFAIL:PLANTED	pass marker missing; 729 [FAIL] line(s); 566 assertion failure(s) | first: [1982000] %Error: dma_props_a.sv:530: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[2].a_ack_width: [SVA-FAIL] a_ack_
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m15	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1047 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [158000] %Error: dma_props_a.sv:590: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_no_grant_
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m16	1	FAIL	XFAIL:PLANTED	pass marker missing; 151 [FAIL] line(s); 52 assertion failure(s) | first: [45562000] %Error: dma_props_a.sv:645: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_errphase_write: [SVA-FAIL] a_errphas
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m17	1	FAIL	XFAIL:PLANTED	pass marker missing; 379 [FAIL] line(s); 287 assertion failure(s) | first: [766000] %Error: dma_props_a.sv:620: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: 
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m18	1	FAIL	XFAIL:PLANTED	pass marker missing; 67 [FAIL] line(s); 4 assertion failure(s) | first: [3230000] %Error: dma_props_a.sv:642: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_errphase_read: [SVA-FAIL] a_errphase_re
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m19	1	FAIL	XFAIL:PLANTED	pass marker missing; 968 [FAIL] line(s); 879 assertion failure(s) | first: [4326000] %Error: dma_sva.sv:61: Assertion failed in tb_dma_env.dut.u_dma_sva.a_addr_stable: [SVA-FAIL] a_addr_stable: the ad
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m20	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1000 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [930000] %Error: dma_props_a.sv:298: Assertion failed in tb_dma_regs.dut.u_dma_props_a.a_strobe_o
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m21	1	FAIL	XFAIL:PLANTED	14 [FAIL] line(s); 14 assertion failure(s) | first: [54618000] %Error: dma_sva.sv:127: Assertion failed in tb_dma_regs.dut.u_dma_sva.a_apb_stat_ro: [SVA-FAIL] a_apb_stat_ro: a write to STAT or
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m22	1	FAIL	XFAIL:PLANTED	pass marker missing; 12 [FAIL] line(s); 6 assertion failure(s) | first: [52882000] %Error: dma_props_a.sv:288: Assertion failed in tb_dma_regs.dut.u_dma_props_a.a_read_data: [SVA-FAIL] a_read_data: pa
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m23	1	FAIL	XFAIL:PLANTED	pass marker missing; 628 [FAIL] line(s); 613 assertion failure(s) | first: [762000] %Error: dma_props_a.sv:283: Assertion failed in tb_dma_regs.dut.u_dma_props_a.a_pslverr_rule: [SVA-FAIL] a_pslverr_r
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m24	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1006 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [4022000] %Error: dma_props_a.sv:323: Assertion failed in tb_dma_regs.dut.u_dma_props_a.g_ch[0].a
+2026-11-20T02:38:16+05:30	8db238050bb7	True	dma_mut	mut_m25	1	FAIL	XFAIL:PLANTED	exit 1; pass marker missing; 1014 [FAIL] line(s); 1000 assertion failure(s); 1 %Error line(s) | first: [274000] %Error: dma_props_a.sv:494: Assertion failed in tb_dma_env.dut.u_dma_props_a.g_ch[0].a_i
+2026-11-20T07:27:38+05:30	8db238050bb7	True	fv_dma_arb	arb_prove	-	PROVEN	OK	[10 asserts, 3 covers in model] 
+2026-11-20T07:27:38+05:30	8db238050bb7	True	fv_dma_arb	arb_cover	-	COVERED	OK	[10 asserts, 3 covers in model] 
+2026-11-20T07:27:38+05:30	8db238050bb7	True	fv_dma_arb	arb_mut_tie_high	-	FAIL	XFAIL:PLANTED	[10 asserts, 3 covers in model] props: u_equal.a_grant, u_pairs.a_grant
+2026-11-20T07:27:38+05:30	8db238050bb7	True	fv_dma_arb	arb_mut_tie_high_shipped	-	BOUNDED(2)	OK	[2 asserts, 3 covers in model] 
+2026-11-20T07:28:21+05:30	8db238050bb7	True	fv_dma_2clk	pclk_prove	-	PROVEN	OK	[10 asserts, 303 covers in model] 
+2026-11-20T07:28:21+05:30	8db238050bb7	True	fv_dma_2clk	pclk_cover	-	COVERED	OK	[387 asserts, 3 covers in model] 
+2026-11-20T07:38:07+05:30	8db238050bb7	True	regs	tb_dma_regs	1	PASS	OK	
+2026-11-20T07:38:07+05:30	8db238050bb7	True	regs	negctl_size_reset	1	FAIL	XFAIL:PLANTED	pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [F01] [F11] reset: ch0 CR = 00000000 (want 00000040) (t=42000)
+2026-11-20T07:40:35+05:30	8db238050bb7	True	probe	probe_dma9	1	FAIL	XFAIL:DMA-9	pass marker missing; 2 [FAIL] line(s) | first: [FAIL] [F20] EN cleared mid-transfer: stopped at a beat boundary after 4 beats, REMAINING 5, no COMPLETE, no ERROR (t=1226000)
+2026-11-20T07:40:35+05:30	8db238050bb7	True	probe	probe_dma10	1	PASS	XPASS:DMA-10	
+2026-11-20T07:40:35+05:30	8db238050bb7	True	probe	probe_r9_sar	1	PASS	OK	
+2026-11-20T07:40:35+05:30	8db238050bb7	True	probe	probe_dma11a	1	PASS	XPASS:DMA-11	
+2026-11-20T07:40:35+05:30	8db238050bb7	True	probe	probe_dma11b	1	PASS	XPASS:DMA-11	
+2026-11-20T07:40:35+05:30	8db238050bb7	True	probe	probe_unaligned	1	PASS	XPASS:DMA-13	
+2026-11-20T07:40:35+05:30	8db238050bb7	True	probe	probe_stop_size	1	PASS	XPASS:DMA-14	
+2026-11-20T07:40:35+05:30	8db238050bb7	True	probe	probe_m2m_ack	1	PASS	XPASS:DMA-15	
+2026-11-20T07:40:35+05:30	8db238050bb7	True	probe	probe_ack	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [F22] [D-16] 12 ack pulses (want 24): 0 not 2 hclk wide, 0 not seen by exactly one pclk edge (t=1266000)
+2026-11-20T07:42:42+05:30	8db238050bb7	True	probe	probe_dma9	1	PASS	OK	
+2026-11-20T07:42:42+05:30	8db238050bb7	True	probe	probe_dma10	1	PASS	OK	
+2026-11-20T07:42:42+05:30	8db238050bb7	True	probe	probe_r9_sar	1	PASS	OK	
+2026-11-20T07:42:42+05:30	8db238050bb7	True	probe	probe_dma11a	1	PASS	OK	
+2026-11-20T07:42:42+05:30	8db238050bb7	True	probe	probe_dma11b	1	PASS	OK	
+2026-11-20T07:42:42+05:30	8db238050bb7	True	probe	probe_unaligned	1	PASS	OK	
+2026-11-20T07:42:42+05:30	8db238050bb7	True	probe	probe_stop_size	1	PASS	OK	
+2026-11-20T07:42:42+05:30	8db238050bb7	True	probe	probe_m2m_ack	1	PASS	OK	
+2026-11-20T07:42:42+05:30	8db238050bb7	True	probe	probe_ack	1	PASS	OK	
+2026-11-20T07:43:18+05:30	8db238050bb7	True	chip	t_chip_dma_rearm	1	PASS	OK	
+2026-11-20T07:43:18+05:30	8db238050bb7	True	chip	t_chip_dma_traffic	1	FAIL	UNEXPECTED	known /a_no_read_before_refusal/ (DMA-10) occurred 0 time(s), want 1
+2026-11-20T07:43:18+05:30	8db238050bb7	True	chip	t_chip_dma_subword	1	PASS	OK	
+2026-11-20T07:43:18+05:30	8db238050bb7	True	chip	t_chip_dma_uart	1	PASS	OK	
+2026-11-20T07:43:54+05:30	8db238050bb7	True	chip	t_chip_dma_rearm	1	PASS	OK	
+2026-11-20T07:43:54+05:30	8db238050bb7	True	chip	t_chip_dma_traffic	1	PASS	OK	
+2026-11-20T07:43:54+05:30	8db238050bb7	True	chip	t_chip_dma_subword	1	PASS	OK	
+2026-11-20T07:43:54+05:30	8db238050bb7	True	chip	t_chip_dma_uart	1	PASS	OK	
+2026-11-20T07:44:05+05:30	8db238050bb7	True	block	tb_dma_top	1	PASS	OK	
+2026-11-20T07:45:02+05:30	8db238050bb7	True	fv_dma	dma_cover	-	COVERED	OK	[381 asserts, 300 covers in model] 
+2026-11-20T07:45:02+05:30	8db238050bb7	True	fv_dma	dma_bmc	-	BOUNDED(32)	OK	[381 asserts, 303 covers in model] 
+2026-11-20T07:45:02+05:30	8db238050bb7	True	fv_dma	dma_prove	-	PROVEN	OK	[369 asserts, 303 covers in model] 
+2026-11-20T07:45:02+05:30	8db238050bb7	True	fv_dma	mut_eng1	-	FAIL	XFAIL:PLANTED	[1 asserts, 303 covers in model] props: u_dma_props_a.a_no_grant_while_reporting
+2026-11-20T07:45:02+05:30	8db238050bb7	True	fv_dma	mut_d2	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[5].a_hw_wins_en
+2026-11-20T07:45:02+05:30	8db238050bb7	True	fv_dma	mut_dma8	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[0].a_failed_beat_keeps_request
+2026-11-20T07:45:02+05:30	8db238050bb7	True	fv_dma	mut_iclr_wins	-	FAIL	XFAIL:PLANTED	[6 asserts, 303 covers in model] props: u_dma_props_a.g_ch[0].a_set_beats_clear_complete
+2026-11-20T07:45:02+05:30	8db238050bb7	True	fv_dma	mut_aud13	-	FAIL	XFAIL:PLANTED	[1 asserts, 303 covers in model] props: u_dma_props_a.a_pslverr_rule
+2026-11-20T07:45:07+05:30	8db238050bb7	True	fv_dma_cov	cov_prove	-	PROVEN	OK	[4 asserts, 306 covers in model] 
+2026-11-20T07:45:07+05:30	8db238050bb7	True	fv_dma_cov	cov_reach	-	COVERED	OK	[0 asserts, 3 covers in model] 
+2026-11-20T07:45:07+05:30	8db238050bb7	True	fv_dma_cov	mut_cov_prio_inv	-	FAIL	XFAIL:PLANTED	[1 asserts, 306 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone
+2026-11-20T07:45:13+05:30	8db238050bb7	True	fv_dma_cov	cov_prove	-	PROVEN	OK	[4 asserts, 306 covers in model] 
+2026-11-20T07:45:13+05:30	8db238050bb7	True	fv_dma_cov	cov_reach	-	COVERED	OK	[0 asserts, 3 covers in model] 
+2026-11-20T07:45:13+05:30	8db238050bb7	True	fv_dma_cov	mut_cov_prio_inv	-	FAIL	XFAIL:PLANTED	[1 asserts, 306 covers in model] props: u_dma_cov_sva.a_cov_arb_c5_alone
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_smoke	1	PASS	OK	
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_qual	1	PASS	OK	
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_coll	1	FAIL	UNEXPECTED	pass marker missing; 58 [FAIL] line(s) | first: [FAIL] [SB] ch1: REMAINING 3, 1 of 3 beats done
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_reset	1	PASS	OK	
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_arb	1	PASS	OK	
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_req	1	PASS	OK	
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_matrix	1	PASS	OK	
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_edge	1	PASS	OK	
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_bits	1	PASS	OK	
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_r9	1	PASS	OK	
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_rand	1	FAIL	UNEXPECTED	pass marker missing; 14 [FAIL] line(s) | first: [FAIL] [SB] ch3: REMAINING 28, 1 of 28 beats done
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	negctl_beatchk_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 75 [FAIL] line(s); 29 assertion failure(s) | first: [2738000] %Error: dma_props_a.sv:620: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: w
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_maxcnt	1	PASS	OK	
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_dma16	1	PASS	OK	
+2026-11-20T07:56:50+05:30	8db238050bb7	True	env	env_held_err	1	PASS	OK	
+2026-11-20T07:58:52+05:30	8db238050bb7	True	block.cov	tb_dma_top	1	PASS	OK	
+2026-11-20T07:59:36+05:30	8db238050bb7	True	probe.cov	probe_dma9	1	PASS	OK	
+2026-11-20T07:59:36+05:30	8db238050bb7	True	probe.cov	probe_dma10	1	PASS	OK	
+2026-11-20T07:59:36+05:30	8db238050bb7	True	probe.cov	probe_r9_sar	1	PASS	OK	
+2026-11-20T07:59:36+05:30	8db238050bb7	True	probe.cov	probe_dma11a	1	PASS	OK	
+2026-11-20T07:59:36+05:30	8db238050bb7	True	probe.cov	probe_dma11b	1	PASS	OK	
+2026-11-20T07:59:36+05:30	8db238050bb7	True	probe.cov	probe_unaligned	1	PASS	OK	
+2026-11-20T07:59:36+05:30	8db238050bb7	True	probe.cov	probe_stop_size	1	PASS	OK	
+2026-11-20T07:59:36+05:30	8db238050bb7	True	probe.cov	probe_m2m_ack	1	PASS	OK	
+2026-11-20T07:59:36+05:30	8db238050bb7	True	probe.cov	probe_ack	1	PASS	OK	
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_smoke	1	PASS	OK	
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_qual	1	PASS	OK	
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_coll	1	PASS	OK	
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_reset	1	PASS	OK	
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_arb	1	PASS	OK	
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_req	1	PASS	OK	
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_matrix	1	PASS	OK	
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_edge	1	PASS	OK	
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_bits	1	PASS	OK	
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_r9	1	PASS	OK	
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_rand	1	FAIL	UNEXPECTED	pass marker missing; 5 [FAIL] line(s) | first: [FAIL] [SB] ch3: 1 acks for 0 beats
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	negctl_beatchk_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 75 [FAIL] line(s); 29 assertion failure(s) | first: [2738000] %Error: dma_props_a.sv:620: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: w
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_maxcnt	1	PASS	OK	
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_dma16	1	PASS	OK	
+2026-11-20T08:14:58+05:30	8db238050bb7	True	env	env_held_err	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_smoke	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_qual	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_coll	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_reset	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_arb	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_req	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_matrix	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_edge	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_bits	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_r9	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_rand	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	negctl_beatchk_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 70 [FAIL] line(s); 24 assertion failure(s) | first: [2738000] %Error: dma_props_a.sv:620: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: w
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_maxcnt	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_dma16	1	PASS	OK	
+2026-11-20T08:24:40+05:30	8db238050bb7	True	env.cov	env_held_err	1	PASS	OK	
+2026-11-20T08:24:57+05:30	8db238050bb7	True	regs.cov	tb_dma_regs	1	PASS	OK	
+2026-11-20T08:24:57+05:30	8db238050bb7	True	regs.cov	negctl_size_reset	1	FAIL	XFAIL:PLANTED	pass marker missing; 6 [FAIL] line(s) | first: [FAIL] [F01] [F11] reset: ch0 CR = 00000000 (want 00000040) (t=42000)
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_smoke	1	PASS	OK	
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_qual	1	PASS	OK	
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_coll	1	PASS	OK	
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_reset	1	PASS	OK	
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_arb	1	PASS	OK	
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_req	1	PASS	OK	
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_matrix	1	PASS	OK	
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_edge	1	PASS	OK	
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_bits	1	PASS	OK	
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_r9	1	PASS	OK	
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_rand	1	PASS	OK	
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	negctl_beatchk_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 75 [FAIL] line(s); 29 assertion failure(s) | first: [2738000] %Error: dma_props_a.sv:620: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: w
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_maxcnt	1	PASS	OK	
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_dma16	1	PASS	OK	
+2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_held_err	1	PASS	OK	

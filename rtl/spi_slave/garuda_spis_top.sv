@@ -68,7 +68,7 @@ module garuda_spis_top
 
     wire wr_hit = ip_psel & penable_i & pwrite_i;
     wire        tail_w1c;
-    wire [IRQSTAT_CLR_W-1:0]  irqstat_clr;
+    wire [IRQSTAT_CLR_W-1:1]  irqstat_clr;   // event 0 (RXVALID) is a level: nothing to clear
     wire rd_hit = ip_psel & penable_i & ~pwrite_i;
 
     // =========================================================================
@@ -127,10 +127,10 @@ module garuda_spis_top
             rptr <= '0;
         end else begin
             if (push) begin
-                wptr <= PTR_W'(wptr + 1'b1);
+                wptr <= wptr + PTR_W'(1);
             end
             if (pop) begin
-                rptr <= PTR_W'(rptr + 1'b1);
+                rptr <= rptr + PTR_W'(1);
             end
         end
     end
@@ -142,6 +142,9 @@ module garuda_spis_top
     end
 
     wire rxvalid = !empty;
+    // the oldest byte, read on its own (F4 2026-11-20: inside the read mux HAL
+    // traced only fifo[15] and reported the other entries unread, INFNOT)
+    wire [BYTE_W-1:0] rx_head = fifo[rptr[ADDR_W - 1:0]];
 
     always_ff @(posedge pclk or negedge preset_n) begin : p_ctrl
         if (!preset_n) begin
@@ -177,7 +180,7 @@ module garuda_spis_top
     end
 
     assign tail_w1c    = psel_i & penable_i & pwrite_i & at12(paddr_i, 12'hFE0);
-    assign irqstat_clr = tail_w1c ? pwdata_i[2:0] : 3'd0;
+    assign irqstat_clr = tail_w1c ? pwdata_i[2:1] : 2'd0;
 
     // =========================================================================
     // Events (D-21)
@@ -192,7 +195,7 @@ module garuda_spis_top
     // =========================================================================
     wire [WORD_W-1:0] reg_rdata =
         at12(paddr_i, A_RXDATA)
-            ? {24'd0, empty ? 8'd0 : fifo[rptr[ADDR_W - 1:0]]} :
+            ? {24'd0, empty ? 8'd0 : rx_head} :
         at12(paddr_i, A_TXDATA) ? {24'd0, txdata_q}                          :
         at12(paddr_i, A_CTRL)   ? {31'd0, en_q}                              :
         at12(paddr_i, A_STATUS) ? {23'd0, level[4:0], done_q, ovr_q,

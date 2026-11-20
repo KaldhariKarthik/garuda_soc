@@ -92,7 +92,7 @@ crossings, X-propagation, floating nets, coding rules.
 **Exit.** HAL at its baseline with every rule explained; Superlint findings read and
 explained; CDC and RDC at 0 unwaived; an X-propagation run on the chip sanity tests
 with no X reaching a register that matters; a coding-rule scan of `rtl/`.
-**Outputs.** `flow/2_static/hal_baseline.txt`, `hal_waivers.txt`; `flow/2_static/superlint/`;
+**Outputs.** `flow/2_static/hal_rules.tsv`, `hal_exceptions.tsv` (D-40); `flow/2_static/superlint/`;
 `flow/2_static/cdc/`; `flow/2_static/rdc_review.md`; `flow/signoff/g3/` (floating nets);
 `flow/2_static/core_lint.md` (core lint, 2.12); `flow/2_static/coding_rules.md` (2.11);
 `flow/2_static/xprop/` (X-propagation).

@@ -139,7 +139,7 @@ module garuda_uart_top
     always_ff @(posedge pclk or negedge preset_n) begin : p_dlab
         if (!preset_n) begin
             dlab_q <= 1'b0;
-        end else if (psel_i & penable_i & pwrite_i & at12(paddr_i, A_LCR)) begin
+        end else if (psel_i && penable_i && pwrite_i && at12(paddr_i, A_LCR)) begin
             dlab_q <= pwdata_i[7];
         end
     end

@@ -48,7 +48,7 @@ python3 tools/gen/gen_vplan_csv.py --unchecked | less
 ```bash
 # lint, whole chip
 irun -hal -64bit -f rtl/soc/filelist_chip.f -top garuda_chip_top -define SYNTHESIS \
-     -nclibdirname sim/static/INCA_libs -l sim/static/hal.log -f flow/2_static/hal.f
+     -nclibdirname sim/static/INCA_libs -l sim/static/hal.log -f flow/2_static/hal_all.f
 
 # browse the messages
 ncbrowse -64bit -cdslib sim/static/INCA_libs/irun.lnx8664.15.20.nc/cds.lib \
@@ -64,8 +64,8 @@ irun -hal -64bit -f rtl/third_party/timescale.f rtl/debug/jtag_tap.sv rtl/debug/
 grep -E 'CLKDMN|INSYNC' sim/static_cdc_debug/hal_cdc.log
 ```
 
-- Rules switched off and why: `flow/2_static/hal.f`.
-- What is left and why it is accepted: `flow/2_static/hal_waivers.txt`.
+- Rules switched off and why: `flow/2_static/hal_rules.tsv`.
+- What is left and why it is accepted: `flow/2_static/hal_exceptions.tsv`.
 - Formal (IFV) is set up in `flow/2_static/fv_pipe_ctrl/` but there is no
   `Incisive_Formal_Verifier` licence on the server, so it does not run.
 
@@ -73,7 +73,7 @@ grep -E 'CLKDMN|INSYNC' sim/static_cdc_debug/hal_cdc.log
 
 | Tool | Command | What is accepted | Where |
 |---|---|---|---|
-| HAL | `make static_lint` | each waived message with its reason | `flow/2_static/hal_waivers.txt` |
+| HAL | `make static_lint` | each waived message with its reason | `flow/2_static/hal_exceptions.tsv` |
 | Verilator | `source scripts/setup_open_tools.sh; make local_lint` | each `lint_off` line with its reason | `flow/2_static/verilator_waivers.vlt` |
 | Yosys | `source scripts/setup_open_tools.sh; make local_synth` | each warning pattern with its reason | `flow/2_static/yosys_waivers.txt` |
 
@@ -111,9 +111,9 @@ vplanner -standalone &        # File > Open > tb/spi_master/GARUDA_SPIM_vplan.cs
 
 # 2 lint the block
 irun -hal -64bit -f rtl/third_party/timescale.f -f rtl/spi_master/filelist.f \
-     -top garuda_spim_top -define SYNTHESIS -f flow/2_static/hal.f \
+     -top garuda_spim_top -define SYNTHESIS -f flow/2_static/hal_all.f \
      -nclibdirname sim/manual/INCA_hal_spim -l sim/manual/hal_spim.log
-grep -E 'hal[a-z]*: \*E,' sim/manual/hal_spim.log        # the errors; compare with hal_waivers.txt
+grep -E 'hal[a-z]*: \*E,' sim/manual/hal_spim.log        # the errors; compare with hal_exceptions.tsv
 
 # 3 simulate with coverage
 irun -64bit -f tb/spi_master/filelist_spim.f -top tb_spim \
@@ -148,7 +148,7 @@ imc -load sim/manual/cov_work/scope/spim -execcmd \
 | DSU | `rtl/dsu/filelist.f`, `dsu_top` | `make test_dsu` (stimulus is generated first) | |
 
 Lint errors to expect on a block linted alone, all listed in
-`flow/2_static/hal_waivers.txt`: SPI master 3 and I2C 1 (vendored IP), debug 5
+`flow/2_static/hal_exceptions.tsv`: SPI master 3 and I2C 1 (vendored IP), debug 5
 (the JTAG crossing), DMA, timers and bridge 1 each (hclk/pclk seen as unrelated
 ports). Every other block: 0 errors.
 
@@ -671,7 +671,7 @@ It prints and writes `flow/formal/gpio_unr.result.txt`: each waiver CONFIRMED, R
 
 - `Docs/bugs/archive/BUGS_HISTORY.md` section 1h: every defect found on 2026-10-04, the tool or test
   that found it, and its status.
-- `flow/2_static/hal_waivers.txt`: the lint and clock-domain items accepted.
+- `flow/2_static/hal_exceptions.tsv`: the lint and clock-domain items accepted.
 
 ---
 
@@ -712,7 +712,7 @@ Start every replay with:
 
 | # | Type | Look for |
 |---|---|---|
-| R3.1 | `irun -hal -64bit -f rtl/soc/filelist_chip.f -top garuda_chip_top -define SYNTHESIS -nclibdirname sim/replay/INCA_hal -l sim/replay/hal.log -f flow/2_static/hal.f` then `python3 tools/hal_baseline.py --check sim/replay/hal.log` | `78 rules, 745 findings; baseline 745; 0 rule(s) risen, 0 lower` |
+| R3.1 | `irun -hal -64bit -f rtl/soc/filelist_chip.f -top garuda_chip_top -define SYNTHESIS -nclibdirname sim/replay/INCA_hal -l sim/replay/hal.log -f flow/2_static/hal_all.f` then `python3 tools/hal_zero.py sim/replay/hal.log --own` (D-40; until 2026-11-19 `tools/hal_baseline.py`) | `hal_zero: ... 0 open` for own RTL |
 | R3.2 | `setenv TOP garuda_chip_top`, `setenv FL rtl/soc/filelist_chip.f`, `setenv CLK refclk`, `setenv RST ext_rst_n`, `setenv OUT sim/replay/superlint`, then `/home/install/JASPER/bin/jg -allow_unsupported_OS -superlint -batch -no_jges -proj sim/replay/superlint_proj flow/2_static/superlint/superlint.tcl` (about two hours: one hour for each of the two slow check groups) | `[4]     Total                   77` in `sim/replay/superlint/superlint_report.txt` (5 floating bus, 38 dead code, 34 overflow); compare with `flow/2_static/superlint/chip/RESULTS.md` |
 | R3.3 | `/home/install/JASPER/bin/jg -allow_unsupported_OS -cdc -batch -no_jges -proj sim/replay/cdc flow/2_static/cdc/cdc_chip.tcl` then `wc -l flow/2_static/cdc/reports/violations.csv` | `1` (the header only: 0 unwaived crossings) |
 | R3.4 | `/home/install/GENUS211/bin/genus -batch -no_gui -files flow/signoff/g3/floating_nets.tcl -log sim/replay/genus_float` | `Normal exit.`; the reports in `flow/signoff/g3/out/` |

@@ -1,0 +1,201 @@
+# hal_exceptions.tsv - per-line HAL exceptions under D-40 (zero unjustified waivers), 2026-11-20.
+# Read by tools/hal_zero.py after flow/2_static/hal_rules.tsv. One row per RTL line and rule:
+#   RULE <TAB> file:line <TAB> text <TAB> CLASS
+# `text` is the signal or port name from HAL's message, so a row covers that line in every
+# instance of its module and nothing else. A row that matches no finding fails the gate.
+# Each class is a structure the chip must have:
+# class CLOCK_GEN: clk_div makes aon/hclk/pclk from refclk: toggle flops, a glitch-free select moved on the falling edge, pclk as a blocking toggle (SIM-1); GARUDA-CLKRST-SPEC-001 5.1, 7.1, 7.6; timed by the SDC generated clocks
+# class ICG: the core clock gate (CORE [N-7.27]): an enable latch open while hclk is low and an AND; a library ICG cell replaces it at synthesis (flow/pd/asap7/core_clk_gate_icg.sv); the one latch of the chip
+# class JTAG_STD: IEEE 1149.1 TAP: TDO and its enable change on the falling edge of TCK, TCK is a second master clock crossing to hclk through dmi_cdc (CDC run)
+# class PAD_RING: the chip top's bidirectional pins (I2C open drain, GPIO, SPI slave MISO, JTAG TDO): tri-state drivers at the pins, replaced by pad cells (rtl/tech, plan 3.8); checked by chip_pads_sva
+# class RESET_GEN: reset_ctrl and core_rst_sync generate every reset: synchroniser first stages take a constant 1, request flops drive asynchronous resets (active high where the request is), the cause register samples the request (CLKRST spec 7.2 to 7.6, D-14, D-36); RDC by JasperGold
+# class RESET_VALUE: a register whose reset value has both 1 and 0 bits (NOP 0x13, SIZE word, IDCODE, boot PC, stretch count): its bits are async-set and async-cleared, which HAL calls drivers of different types
+# class RESET_HANDSHAKE: a reset deassertion sampled as data to release logic in order ([N-9.2], [N-9.3]: the bridge holds HREADYOUT low until PRESETn is released; the watchdog's reset-cause flag)
+# class SOFT_RESET: I2C CTRL.RST: a register-driven reset of the vendored byte controller that also clears the wrapper's command bits (GARUDA-I2C-SPEC soft reset)
+# class MEMORY_ARRAY: storage with no reset by design: register file (CORE 4), SRAM behavioural model and its read register, the SPI slave RX FIFO entries; contents are undefined until written; the SRAM model's IS_ROM and INIT_FILE are fixed per instance until the SRAM macros (stated open item, G3 3.10)
+# class APB_REG_MAP: register map: write-data bits beyond a register's fields are not stored and reserved bits read 0 (each block's register table); PREADY is constant 1 because no peripheral inserts wait states (AHB2APB spec 7.5)
+# class PROTOCOL_CONST: AHB outputs that are constant for a master that never does that kind of transfer (instruction port: read, word, no write data; SBA and LSU fixed size bits)
+# class DECODE_FIELD: input bits a block does not decode by design: address bits decoded upstream by the AHB decoder, HTRANS[0] (SEQ/NONSEQ) where only HTRANS[1] matters, opcode bits an immediate or DSU decoder does not use, MTVEC mode bits
+# class DATAPATH: arithmetic sized on purpose: mul32's 33x33 product (MULH variants), the DSU carry-save shift that drops the top carry by design
+# class VENDOR_PORT: an output of vendored IP that GARUDA's wrapper does not use (the IP's own PREADY, constant 1: the shim answers PREADY; the I2C byte controller's direct SCL output, replaced by the wrapper's open-drain enables)
+# class COUNTER_WRAP: a counter that wraps by design (FIFO pointers one bit wider than the index, the SPI bit counter 7 to 0) or is cleared at its limit before it can (PWM prescaler at PRESCALE, period counter below PERIOD)
+# class CHECKER_USE: a constant read only by the bound properties, which HAL does not compile (soc_map_pkg ID_SOFTWARE, clic_sva)
+# class SPEC_PORT: a port kept on the list by the spec's interface contract and read only by the bound properties (bridge pclk_phase_i, AHB2APB spec)
+IOPNTA	rtl/soc/garuda_chip_top.sv:73	i2c_scl	PAD_RING
+IOPNTA	rtl/soc/garuda_chip_top.sv:74	i2c_sda	PAD_RING
+IOPNTA	rtl/soc/garuda_chip_top.sv:85	gpio0	PAD_RING
+IOPNTA	rtl/soc/garuda_chip_top.sv:86	gpio1	PAD_RING
+SYNTXZ	rtl/soc/garuda_chip_top.sv:128	x	PAD_RING
+SYNTXZ	rtl/soc/garuda_chip_top.sv:129	x	PAD_RING
+UNCONN	rtl/uart/garuda_uart_top.sv:200	PREADY	VENDOR_PORT
+UNCONN	rtl/uart/garuda_uart_top.sv:200	PSLVERR	VENDOR_PORT
+UNCONN	rtl/uart/garuda_uart_top.sv:200	event_o	VENDOR_PORT
+USEPRT	rtl/common/garuda_apb_shim.sv:82	pwdata_i	APB_REG_MAP
+USEPRT	rtl/common/garuda_apb_dma.sv:29	pwdata_i	APB_REG_MAP
+POIASG	rtl/spi_slave/garuda_spis_top.sv:130	The result of addition operation may lea	COUNTER_WRAP
+POIASG	rtl/spi_slave/garuda_spis_top.sv:133	The result of addition operation may lea	COUNTER_WRAP
+POIASG	rtl/spi_slave/garuda_spis_core.sv:136	The result of addition operation may lea	COUNTER_WRAP
+BLKSQB	rtl/clk_div/clk_div.sv:154	Blocking assignment encountered in a seq	CLOCK_GEN
+BLKSQB	rtl/clk_div/clk_div.sv:156	Blocking assignment encountered in a seq	CLOCK_GEN
+RDBFAS	rtl/clk_div/clk_div.sv:156	pclk_q	CLOCK_GEN
+REVROP	rtl/clk_div/clk_div.sv:174	pclk_q	CLOCK_GEN
+USEPRT	rtl/reset_ctrl/reset_ctrl_apb.sv:34	pwdata_i	APB_REG_MAP
+UNCONN	rtl/spi_master/garuda_spim_top.sv:162	PREADY	VENDOR_PORT
+UNCONN	rtl/spi_master/garuda_spim_top.sv:162	PSLVERR	VENDOR_PORT
+UNCONN	rtl/spi_master/garuda_spim_top.sv:162	spi_csn2	VENDOR_PORT
+UNCONN	rtl/spi_master/garuda_spim_top.sv:162	spi_csn3	VENDOR_PORT
+UNCONN	rtl/spi_master/garuda_spim_top.sv:162	spi_mode	VENDOR_PORT
+UNCONN	rtl/spi_master/garuda_spim_top.sv:162	spi_sdo1	VENDOR_PORT
+UNCONN	rtl/spi_master/garuda_spim_top.sv:162	spi_sdo2	VENDOR_PORT
+UNCONN	rtl/spi_master/garuda_spim_top.sv:162	spi_sdo3	VENDOR_PORT
+UNCONN	rtl/i2c/garuda_i2c_top.sv:396	scl_o	VENDOR_PORT
+UNCONN	rtl/i2c/garuda_i2c_top.sv:396	sda_o	VENDOR_PORT
+UNCONN	rtl/gpio/garuda_gpio_top.sv:90	PREADY	VENDOR_PORT
+UNCONN	rtl/gpio/garuda_gpio_top.sv:90	PSLVERR	VENDOR_PORT
+UNCONN	rtl/gpio/garuda_gpio_top.sv:90	gpio_in_sync	VENDOR_PORT
+UNCONN	rtl/gpio/garuda_gpio_top.sv:90	gpio_padcfg	VENDOR_PORT
+POIASG	rtl/pwm/garuda_pwm_core.sv:86	The result of addition operation may lea	COUNTER_WRAP
+POIASG	rtl/pwm/garuda_pwm_core.sv:102	The result of addition operation may lea	COUNTER_WRAP
+BLKSQB	rtl/core/core_clk_gate.sv:34	Blocking assignment encountered in a seq	ICG
+REVROP	rtl/core/core_clk_gate.sv:37	en_l	ICG
+USEPRT	rtl/core/imm_gen.sv:19	instr_i	DECODE_FIELD
+LMULOP	rtl/core/mul32.sv:57	64	DATAPATH
+USEPRT	rtl/dsu/dsu_decoder.sv:12	instr[15]	DECODE_FIELD
+USEPRT	rtl/dsu/dsu_decoder.sv:12	instr[16]	DECODE_FIELD
+USEPRT	rtl/dsu/dsu_decoder.sv:12	instr[17]	DECODE_FIELD
+USEPRT	rtl/dsu/dsu_decoder.sv:12	instr[18]	DECODE_FIELD
+USEPRT	rtl/dsu/dsu_decoder.sv:12	instr[19]	DECODE_FIELD
+SHFTOF	rtl/dsu/csa_3to2.sv:15	Shift overflow in module/design-unit u_c	DATAPATH
+USEPRT	rtl/core/trap_ctrl.sv:64	mtvec_i	DECODE_FIELD
+USEPRT	rtl/ahb/ahb_arbiter.sv:88	htrans_i	DECODE_FIELD
+USEPRT	rtl/mem/ahb_mem_slave_if.sv:54	haddr_i	DECODE_FIELD
+USEPRT	rtl/mem/ahb_mem_slave_if.sv:55	htrans_i[0]	DECODE_FIELD
+CONSTC	rtl/mem/sram_wrapper.sv:88	Constant conditional expression encounte	MEMORY_ARRAY
+USEPRT	rtl/ahb2apb/ahb2apb_bridge.sv:63	pclk_phase_i	SPEC_PORT
+USEPRT	rtl/ahb2apb/ahb2apb_bridge.sv:66	haddr_i	DECODE_FIELD
+USEPRT	rtl/ahb2apb/ahb2apb_bridge.sv:67	htrans_i[0]	DECODE_FIELD
+USEPAR	rtl/include/soc_map_pkg.sv:22	ID_SOFTWARE	CHECKER_USE
+USEPAR	rtl/mem/sram_wrapper.sv:32	INIT_FILE	MEMORY_ARRAY
+CLKOUT	rtl/clk_div/clk_div.sv:94	clk_div	CLOCK_GEN
+CLKOUT	rtl/clk_div/clk_div.sv:111	clk_div	CLOCK_GEN
+CLKOUT	rtl/clk_div/clk_div.sv:124	clk_div	CLOCK_GEN
+EDGMIX	rtl/clk_div/clk_div.sv:94	aon_clk	CLOCK_GEN
+LATBAS	rtl/core/core_clk_gate.sv:32	In module/design-unit core_clk_gate, lat	ICG
+EDGMIX	rtl/debug/jtag_tap.sv:48	tck	JTAG_STD
+CNSTCN	rtl/mem/sram_wrapper.sv:88	Conditional expression is statically eva	MEMORY_ARRAY
+MULWIR	rtl/soc/garuda_chip_top.sv:73	garuda_chip_top	PAD_RING
+MULWIR	rtl/soc/garuda_chip_top.sv:74	garuda_chip_top	PAD_RING
+MULWIR	rtl/soc/garuda_chip_top.sv:85	garuda_chip_top	PAD_RING
+MULWIR	rtl/soc/garuda_chip_top.sv:86	garuda_chip_top	PAD_RING
+TSBINF	rtl/soc/garuda_chip_top.sv:126	tdo	PAD_RING
+SLNOTP	rtl/soc/garuda_chip_top.sv:126	garuda_chip_top.tdo	PAD_RING
+TSBINF	rtl/soc/garuda_chip_top.sv:128	i2c_scl	PAD_RING
+SLNOTP	rtl/soc/garuda_chip_top.sv:128	garuda_chip_top.i2c_scl	PAD_RING
+TSBINF	rtl/soc/garuda_chip_top.sv:129	i2c_sda	PAD_RING
+SLNOTP	rtl/soc/garuda_chip_top.sv:129	garuda_chip_top.i2c_sda	PAD_RING
+TSBINF	rtl/soc/garuda_chip_top.sv:130	gpio0	PAD_RING
+SLNOTP	rtl/soc/garuda_chip_top.sv:130	garuda_chip_top.gpio0	PAD_RING
+TSBINF	rtl/soc/garuda_chip_top.sv:131	gpio1	PAD_RING
+SLNOTP	rtl/soc/garuda_chip_top.sv:131	garuda_chip_top.gpio1	PAD_RING
+TSBINF	rtl/soc/garuda_chip_top.sv:132	spis_miso	PAD_RING
+SLNOTP	rtl/soc/garuda_chip_top.sv:132	garuda_chip_top.spis_miso	PAD_RING
+MCKDMN	rtl/soc/garuda_chip_core.sv:101	u_clk_div	CLOCK_GEN
+MCKDMN	rtl/soc/garuda_chip_core.sv:128	u_reset_ctrl	CLOCK_GEN
+NEFLOP	rtl/clk_div/clk_div.sv:128	sel_act_q	CLOCK_GEN
+CLKINP	rtl/clk_div/clk_div.sv:156	u_clk_div	CLOCK_GEN
+GTDCLK	rtl/clk_div/clk_div.sv:156	hclk_mux	CLOCK_GEN
+DFDRVS	rtl/reset_ctrl/reset_ctrl.sv:119	cnt_q	RESET_VALUE
+DFDRVS	rtl/reset_ctrl/reset_ctrl.sv:162	reason_q	RESET_VALUE
+FFCSTD	rtl/reset_ctrl/reset_ctrl.sv:111	ext_sync_q[0]	RESET_GEN
+RSTDAT	rtl/reset_ctrl/reset_ctrl.sv:174	garuda_chip_top.u_core.u_reset_ctrl.sys_req_q	RESET_GEN
+ASNRST	rtl/reset_ctrl/reset_ctrl.sv:194	garuda_chip_top.u_core.u_reset_ctrl.hrst_q	RESET_GEN
+RSTINP	rtl/reset_ctrl/reset_ctrl.sv:194	u_reset_ctrl	RESET_GEN
+FFCSTD	rtl/reset_ctrl/reset_ctrl.sv:194	hrst_q[0]	RESET_GEN
+ASNRST	rtl/reset_ctrl/reset_ctrl.sv:208	garuda_chip_top.u_core.u_reset_ctrl.dm_q	RESET_GEN
+RSTINP	rtl/reset_ctrl/reset_ctrl.sv:208	u_reset_ctrl	RESET_GEN
+FFCSTD	rtl/reset_ctrl/reset_ctrl.sv:208	dm_q[0]	RESET_GEN
+FFCSTD	rtl/reset_ctrl/reset_ctrl.sv:215	exth_q[0]	RESET_GEN
+ASNRST	rtl/reset_ctrl/reset_ctrl.sv:225	garuda_chip_top.u_core.u_reset_ctrl.prst_q	RESET_GEN
+RSTDAT	rtl/reset_ctrl/reset_ctrl.sv:225	garuda_chip_top.u_core.u_reset_ctrl.hrst_q[1]	RESET_GEN
+FFCSTD	rtl/reset_ctrl/reset_ctrl.sv:232	extp_q[0]	RESET_GEN
+ASNRST	rtl/reset_ctrl/core_rst_sync.sv:33	garuda_chip_top.u_core.u_reset_ctrl.u_core_rst_sync.sync_q	RESET_GEN
+TIELOG	rtl/reset_ctrl/reset_ctrl_apb.sv:104	prdata_o	APB_REG_MAP
+TIELOG	rtl/reset_ctrl/reset_ctrl_apb.sv:114	pready_o	APB_REG_MAP
+UNCONO	rtl/spi_master/garuda_spim_top.sv:162	PREADY	VENDOR_PORT
+UNCONO	rtl/spi_master/garuda_spim_top.sv:162	PSLVERR	VENDOR_PORT
+UNCONO	rtl/spi_master/garuda_spim_top.sv:162	spi_csn2	VENDOR_PORT
+UNCONO	rtl/spi_master/garuda_spim_top.sv:162	spi_csn3	VENDOR_PORT
+UNCONO	rtl/spi_master/garuda_spim_top.sv:162	spi_mode	VENDOR_PORT
+UNCONO	rtl/spi_master/garuda_spim_top.sv:162	spi_sdo1	VENDOR_PORT
+UNCONO	rtl/spi_master/garuda_spim_top.sv:162	spi_sdo2	VENDOR_PORT
+UNCONO	rtl/spi_master/garuda_spim_top.sv:162	spi_sdo3	VENDOR_PORT
+TIELOG	rtl/common/garuda_apb_shim.sv:161	pready_o	APB_REG_MAP
+TIELOG	rtl/common/garuda_apb_dma.sv:63	rdata_o[31:2]	APB_REG_MAP
+RSTDAT	rtl/i2c/garuda_i2c_top.sv:254	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
+RSTDAT	rtl/i2c/garuda_i2c_top.sv:255	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
+RSTDAT	rtl/i2c/garuda_i2c_top.sv:256	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
+RSTDAT	rtl/i2c/garuda_i2c_top.sv:257	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
+RSTDAT	rtl/i2c/garuda_i2c_top.sv:251	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
+RSTDAT	rtl/i2c/garuda_i2c_top.sv:258	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
+RSTDAT	rtl/i2c/garuda_i2c_top.sv:268	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
+RSTDAT	rtl/i2c/garuda_i2c_top.sv:271	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
+RSTDAT	rtl/i2c/garuda_i2c_top.sv:284	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
+UNCONO	rtl/i2c/garuda_i2c_top.sv:396	scl_o	VENDOR_PORT
+UNCONO	rtl/i2c/garuda_i2c_top.sv:396	sda_o	VENDOR_PORT
+UNCONO	rtl/gpio/garuda_gpio_top.sv:90	PREADY	VENDOR_PORT
+UNCONO	rtl/gpio/garuda_gpio_top.sv:90	PSLVERR	VENDOR_PORT
+UNCONO	rtl/gpio/garuda_gpio_top.sv:90	gpio_in_sync	VENDOR_PORT
+UNCONO	rtl/gpio/garuda_gpio_top.sv:90	gpio_padcfg	VENDOR_PORT
+CLKINP	rtl/core/garuda_core_top.sv:329	u_core	ICG
+GTDCLK	rtl/core/garuda_core_top.sv:329	gclk	ICG
+LENCPI	rtl/core/core_clk_gate.sv:34	garuda_chip_top.u_core.u_soc.u_core.u_cg.en_l	ICG
+DFDRVS	rtl/core/garuda_pc_gen.sv:32	fetch_pc_o	RESET_VALUE
+TIELOG	rtl/core/iport_master.sv:90	i_hsize_o	PROTOCOL_CONST
+TIELOG	rtl/core/iport_master.sv:91	i_hwrite_o	PROTOCOL_CONST
+TIELOG	rtl/core/iport_master.sv:92	i_hwdata_o	PROTOCOL_CONST
+DFDRVS	rtl/core/prefetch_buf.sv:47	fifo_instr	RESET_VALUE
+DFDRVS	rtl/core/if_id.sv:25	instr_o	RESET_VALUE
+FFWNSR	rtl/core/regfile.sv:41	mem	MEMORY_ARRAY
+DFDRVS	rtl/core/id_ex.sv:65	instr_o	RESET_VALUE
+TIELOG	rtl/core/load_store_unit.sv:34	hsize_o[2]	PROTOCOL_CONST
+TIELOG	rtl/core/csr_file.sv:345	mtvec_o[1:0]	DECODE_FIELD
+MCKDMN	rtl/debug/debug_top.sv:75	u_cdc	JTAG_STD
+DFDRVS	rtl/debug/jtag_tap.sv:59	ir_q	RESET_VALUE
+MULMCK	rtl/debug/jtag_tap.sv:54	tck	JTAG_STD
+NEFLOP	rtl/debug/jtag_tap.sv:79	tdo_o	JTAG_STD
+NEFLOP	rtl/debug/jtag_tap.sv:78	tdo_oe_o	JTAG_STD
+DFDRVS	rtl/debug/debug_module.sv:96	sbaccess	RESET_VALUE
+TIELOG	rtl/debug/sba_master.sv:39	hsize_o	PROTOCOL_CONST
+TIELOG	rtl/dma/dma_apb_slave.sv:144	pready_o	APB_REG_MAP
+DFDRVS	rtl/dma/dma_engine.sv:64	hsize_o	RESET_VALUE
+DFDRVS	rtl/dma/dma_engine.sv:82	size_l	RESET_VALUE
+DFDRVS	rtl/dma/dma_chan.sv:71	size_q	RESET_VALUE
+FFWNSR	rtl/mem/sram_wrapper.sv:102	rdata	MEMORY_ARRAY
+RSTDAT	rtl/ahb2apb/ahb2apb_bridge.sv:92	garuda_chip_top.u_core.u_soc.u_bridge.preset_n	RESET_HANDSHAKE
+TIELOG	rtl/clic/clic_apb.sv:100	pready_o	APB_REG_MAP
+TIELOG	rtl/timers/timers_apb.sv:173	pready_o	APB_REG_MAP
+RSTDAT	rtl/timers/watchdog.sv:95	garuda_chip_top.u_core.u_soc.u_timers.u_wdt.hreset_n	RESET_HANDSHAKE
+UNCONO	rtl/uart/garuda_uart_top.sv:200	PREADY	VENDOR_PORT
+UNCONO	rtl/uart/garuda_uart_top.sv:200	PSLVERR	VENDOR_PORT
+UNCONO	rtl/uart/garuda_uart_top.sv:200	event_o	VENDOR_PORT
+FFWNSR	rtl/spi_slave/garuda_spis_top.sv:140	fifo	MEMORY_ARRAY
+FRSTDF	rtl/reset_ctrl/reset_ctrl.sv:142	garuda_chip_top.u_core.u_reset_ctrl.u_core_rst_sync.core_clr	RESET_GEN
+FRSTDF	rtl/reset_ctrl/reset_ctrl.sv:232	garuda_chip_top.u_core.u_reset_ctrl.u_apb.ext_prst_n	RESET_GEN
+FRSTDF	rtl/reset_ctrl/reset_ctrl.sv:225	garuda_chip_top.u_core.g_spis.u_spis.preset_n	RESET_GEN
+FRSTDF	rtl/reset_ctrl/reset_ctrl.sv:140	garuda_chip_top.u_core.u_reset_ctrl.sys_req_q	RESET_GEN
+FRSTDF	rtl/reset_ctrl/reset_ctrl.sv:141	garuda_chip_top.u_core.u_reset_ctrl.dm_req_q	RESET_GEN
+FRSTDF	rtl/i2c/garuda_i2c_top.sv:170	garuda_chip_top.u_core.u_i2c.u_byte.i2c_rst_n	SOFT_RESET
+RSTUCL	rtl/i2c/garuda_i2c_top.sv:170	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
+FRSTDF	rtl/reset_ctrl/core_rst_sync.sv:33	garuda_chip_top.u_core.u_soc.u_core.core_rst_n	RESET_GEN
+FRSTDF	rtl/reset_ctrl/reset_ctrl.sv:208	garuda_chip_top.u_core.u_soc.u_debug.u_sba.dm_rst_n	RESET_GEN
+FRSTDF	rtl/reset_ctrl/reset_ctrl.sv:194	garuda_chip_top.u_core.u_soc.u_timers.u_wdt.hreset_n	RESET_GEN
+FRSTDF	rtl/reset_ctrl/reset_ctrl.sv:215	garuda_chip_top.u_core.u_soc.u_timers.u_wdt.ext_hrst_n	RESET_GEN
+CDFDAT	rtl/clk_div/clk_div.sv:128	refclk	CLOCK_GEN
+CDFDAT	rtl/clk_div/clk_div.sv:102	refclk	CLOCK_GEN
+CDFDAT	rtl/clk_div/clk_div.sv:101	refclk	CLOCK_GEN
+CLKUCL	rtl/clk_div/clk_div.sv:135	garuda_chip_top.u_core.u_clk_div.hclk_mux	CLOCK_GEN
+CLKGNP	rtl/core/core_clk_gate.sv:21	core_clk_gate	ICG
+CLKGNP	rtl/clk_div/clk_div.sv:60	clk_div	CLOCK_GEN
+RSTGNP	rtl/reset_ctrl/core_rst_sync.sv:19	core_rst_sync	RESET_GEN
+RSTGNP	rtl/i2c/garuda_i2c_top.sv:32	garuda_i2c_top	SOFT_RESET
+RSTGNP	rtl/reset_ctrl/reset_ctrl.sv:46	reset_ctrl	RESET_GEN

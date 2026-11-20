@@ -5,8 +5,14 @@
                                                         exception, or any exception that matches nothing
     python3 tools/hal_zero.py <hal.log> --summary       the same, plus the open findings per rule and directory
     python3 tools/hal_zero.py <hal.log> --list RULE     every open finding of one rule
+    python3 tools/hal_zero.py <hal.log> --off           the findings under rules off, per rule and scope
+    python3 tools/hal_zero.py <hal.log> --own           judge own RTL only (vendor IP review open)
 
-HAL runs with its whole default rule set (flow/2_static/hal.f switches nothing off). A
+HAL runs with its whole default rule set (flow/2_static/hal_all.f switches nothing off).
+D-40 (2026-11-20, zero unjustified waivers): flow/2_static/hal_rules.tsv lists the rules that
+judge style or structure, or only report information; each is off for own RTL and/or vendored IP
+(rtl/third_party) with its reason and the check that covers it instead. Their findings are
+counted per rule and not judged; an OFF row whose rule fires nowhere fails (stale). Every other
 finding is closed only by changing the RTL, or by one row of flow/2_static/hal_exceptions.tsv:
 
     RULE <TAB> file:line <TAB> text <TAB> CLASS
@@ -23,6 +29,30 @@ import collections, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXC = os.environ.get("HAL_EXCEPTIONS") or os.path.join(ROOT, "flow/2_static/hal_exceptions.tsv")
+RULES = os.environ.get("HAL_RULES") or os.path.join(ROOT, "flow/2_static/hal_rules.tsv")
+KINDS = ("info", "style", "structure", "correctness")
+
+
+def rule_list():
+    """{rule: (own_off, vendor_off)} from hal_rules.tsv; every row needs a reason and a cover."""
+    off = {}
+    with open(RULES) as fh:
+        for n, ln in enumerate(fh, 1):
+            ln = ln.rstrip("\n")
+            if not ln.strip() or ln.startswith("#"):
+                continue
+            p = ln.split("\t")
+            if len(p) != 6 or p[1] not in ("on", "off") or p[2] not in ("on", "off") or p[3] not in KINDS \
+                    or not p[4].strip() or not p[5].strip():
+                raise SystemExit("hal_zero: %s:%d: need RULE, on|off, on|off, kind, reason, covered_by" % (RULES, n))
+            if p[0] in off:
+                raise SystemExit("hal_zero: %s:%d: %s listed twice" % (RULES, n, p[0]))
+            off[p[0]] = (p[1] == "off", p[2] == "off")
+    return off
+
+
+def vendor(f):
+    return f.startswith("rtl/third_party/")
 PAT = re.compile(r"^hal[a-z]*: \*([EWNF]),([A-Z0-9]+) \(\./([^,]*),(\d+)\|\d+\): (.*)$")
 
 
@@ -76,7 +106,13 @@ def main():
             return 1
     classes, rows = exceptions()
     bad = 0
-    used = [False] * len(fnd)
+    off = rule_list()
+    ruled = [off.get(x[0], (False, False))[1 if vendor(x[2]) else 0] for x in fnd]
+    for r, (o, v) in sorted(off.items()):
+        if (o or v) and not any(ruled[i] and x[0] == r for i, x in enumerate(fnd)):
+            print("hal_zero: STALE rule row %s: %s fires nowhere it is off" % (RULES, r))
+            bad += 1
+    used = list(ruled)
     for n, rule, f, line, text, cls in rows:
         if cls not in classes:
             print("hal_zero: %s:%d: class %s is not defined" % (EXC, n, cls))
@@ -91,9 +127,20 @@ def main():
         for i in hits:
             used[i] = True
     open_ = [x for i, x in enumerate(fnd) if not used[i]]
+    if "--own" in sys.argv:
+        # the gate while the vendor IP review is open (D-40): own RTL judged, vendor counted
+        ven = [x for x in open_ if vendor(x[2])]
+        open_ = [x for x in open_ if not vendor(x[2])]
+        print("hal_zero: --own: %d open findings in rtl/third_party not judged (vendor review, D-40)" % len(ven))
     sev = collections.Counter(x[1] for x in open_)
-    print("hal_zero: %d findings, %d excepted (%d rows), %d open (E %d, W %d, N %d), %d bad exception rows"
-          % (len(fnd), sum(used), len(rows), len(open_), sev["E"], sev["W"], sev["N"], bad))
+    n_off = sum(ruled)
+    print("hal_zero: %d findings: %d under rules off by hal_rules.tsv, %d excepted per line (%d rows), "
+          "%d open (E %d, W %d, N %d), %d bad rows"
+          % (len(fnd), n_off, sum(used) - n_off, len(rows), len(open_), sev["E"], sev["W"], sev["N"], bad))
+    if "--off" in sys.argv:
+        c = collections.Counter((x[0], "vendor" if vendor(x[2]) else "own") for i, x in enumerate(fnd) if ruled[i])
+        for (r, sc), k in sorted(c.items(), key=lambda kv: -kv[1]):
+            print("  off %-7s %-6s %5d" % (r, sc, k))
     if "--summary" in sys.argv:
         by_rule = collections.Counter((x[0], x[1]) for x in open_)
         for (r, s), c in sorted(by_rule.items(), key=lambda kv: -kv[1]):

@@ -1,4 +1,4 @@
-Planted defects, block uart: 2026-10-15, tree 4ac2f22.
+Planted defects, block uart: 2026-11-20, tree 8db2380.
 Each defect is planted in a copy of the RTL; the register test, the directed test and two
 random seeds are run on it (scripts/planted_defects.sh uart).
 
@@ -7,7 +7,7 @@ unchanged RTL: all four runs pass
 1. caught by the directed test, property a_err_needs_byte: the line-error event is raised with no byte waiting (UART-5)
 2. caught by the directed test, property a_dma_dlab: the DMA request is not held off while DLAB is set
 3. caught by the reg test, check sb_reg: word offsets are not turned into the 16550's byte offsets
-4. caught by the random test, check sb_irqstat: the transmit-empty event follows TEMT instead of THRE
+4. caught by the reg test, no pass line: the transmit-empty event follows TEMT instead of THRE
 5. caught by the directed test, check sb_dma: no DMA request for a received byte
 6. caught by the reg test, property a_poll_is_lsr_read: the wrapper's poll is not forced to be a read
 7. caught by the reg test, check sb_pslverr: MCR at 0x10 answers with PSLVERR

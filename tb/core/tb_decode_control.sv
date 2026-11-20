@@ -629,7 +629,7 @@ class decode_monitor;
             bins mul={3'b000}; bins mulh={3'b001}; bins mulhsu={3'b010}; bins mulhu={3'b011};
         }
         cross_op_illegal: cross cp_opcode, cp_illegal_cause {
-            ignore_bins non_reg_causes = !binsof(cp_opcode) intersect {OPC_REG} &&
+            ignore_bins non_reg_causes = !binsof(cp_opcode) intersect {OPC_REG} &&   // causes 2 and 3 are funct7 checks of OP only (see below)
                 (binsof(cp_illegal_cause) intersect {2, 3});
             // classify_illegal_cause() returns cause=1 ("reserved_opcode")
             // only when the major opcode itself is not one of the 11

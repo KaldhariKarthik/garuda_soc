@@ -12,7 +12,7 @@ that meets all of them except formal is "closed for simulation" and says so.
 | 4 | Assertions bound to the RTL | every property in the vPlan, 0 failures, each one seen to trigger at least once | simulator assertion summary |
 | 5 | Open bugs against the block | zero P1, zero P2 | `Docs/bugs/archive/BUGS_HISTORY.md` |
 | 6 | Regression | every test passing over at least 20 seeds, no new failure in the last full run | vManager session |
-| 7 | Lint and clock-domain checks | 0 errors, or each one waived in writing | HAL; `flow/2_static/hal_waivers.txt` |
+| 7 | Lint and clock-domain checks | 0 errors, or each one waived in writing | HAL; `flow/2_static/hal_exceptions.tsv` |
 | 8 | Register model | reset value, access policy and aliasing tests pass on every register | UVM register tests |
 | 9 | Formal, on the features the vPlan assigns to it | proved, or undetermined with the reason written next to the result | JasperGold FPV (licensed since 2026-10-05): `flow/formal/<block>/*_fpv.result.txt`; SymbiYosys for track A's earlier proofs |
 

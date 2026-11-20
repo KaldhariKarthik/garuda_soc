@@ -262,7 +262,7 @@ package uart_env_pkg;
             option.per_instance = 1;
             cp_which: coverpoint rx { bins transmit = {0}; bins receive = {1}; }
             cp_state: coverpoint state { bins empty = {0}; bins part_full = {1}; bins full = {2}; bins frame_in_the_shifter = {3}; }
-            x_clear_state: cross cp_which, cp_state { ignore_bins rx_shifter = binsof(cp_which.receive) && binsof(cp_state.frame_in_the_shifter); }
+            x_clear_state: cross cp_which, cp_state { ignore_bins rx_shifter = binsof(cp_which.receive) && binsof(cp_state.frame_in_the_shifter); }   // the frame-in-the-shifter state exists only on the transmit side
         endgroup
 
         covergroup cg_uart_fmt with function sample(bit rx, int bits, bit parity, bit stop2);
@@ -294,7 +294,7 @@ package uart_env_pkg;
             option.per_instance = 1;
             cp_kind: coverpoint kind { bins parity = {0}; bins framing = {1}; bins both = {2}; }
             cp_position: coverpoint pos { bins first = {0}; bins middle = {[1:14]}; bins last = {15}; }
-            x_kind_position: cross cp_kind, cp_position { ignore_bins both = binsof(cp_kind.both); }
+            x_kind_position: cross cp_kind, cp_position { ignore_bins both = binsof(cp_kind.both); }   // parity and framing in one byte is counted in cp_kind; position is per kind
             cp_two_in_a_row: coverpoint pos iff (kind == 3) { bins two_errors_in_a_row = {0}; }
         endgroup
 

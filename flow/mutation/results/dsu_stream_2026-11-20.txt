@@ -1,0 +1,9 @@
+DSU_STREAM=1 python3.12 tools/mutate.py tb/dsu/dsu_mutants.py, irun 15.2, 2026-11-20
+no_interlock (dsu_busy tied low)               assertions: none                                               bench: FAIL
+ovf_not_sticky (flag follows this cycle)       assertions: a_ovf_sticky                                       bench: FAIL
+ovf_clear_drops_set (clear beats a same-cycle overflow) assertions: a_ovf_set                                          bench: FAIL
+sat_in_held_cycle (DSU-12 undone)              assertions: none                                               bench: FAIL
+load_any_unit (DSU-11 undone)                  assertions: a_only_acc0,a_only_acc1,a_only_acc2                bench: FAIL
+clear_latches_product (DSU-2 undone)           assertions: none                                               bench: pass
+dsu_stream: 6 mutants; assertions caught 3, bench caught 5
+dsu_stream: equivalent clear_latches_product (DSU-2 undone) (pend_clr has priority over prod_en; the latched product is zero (rtl/dsu/mac_unit.sv))

@@ -38,7 +38,7 @@ module debug_cov (
         cp_active: coverpoint dmactive { bins inactive = {0}; bins active = {1}; }
         cp_busy: coverpoint sbbusy { bins idle = {0}; bins busy = {1}; }
         x_reg_op: cross cp_reg, cp_op {
-            ignore_bins ro = (binsof(cp_reg.dmstatus) || binsof(cp_reg.dsu_acc) || binsof(cp_reg.dsu_ovf)) && binsof(cp_op.write);
+            ignore_bins ro = (binsof(cp_reg.dmstatus) || binsof(cp_reg.dsu_acc) || binsof(cp_reg.dsu_ovf)) && binsof(cp_op.write);   // DMSTATUS and the DSU readback registers are read-only (Debug spec 3.12)
         }
         // every SBA register touched while the DM is inactive and while a transfer runs
         x_sba_reg_state: cross cp_reg, cp_op, cp_active, cp_busy {
@@ -64,8 +64,8 @@ module debug_cov (
         cp_dir: coverpoint sba_write;
         cp_autoinc: coverpoint sbautoinc;
         cp_trigger: coverpoint {sbreadonaddr, sbreadondata} { bins none = {0}; bins on_data = {1}; bins on_addr = {2}; bins both = {3}; }
-        x_out_dir: cross cp_out, cp_dir { ignore_bins na = !binsof(cp_out) intersect {SBA_OK, SBA_BUS_ERR}; }
-        x_ok_autoinc: cross cp_out, cp_autoinc, cp_dir { ignore_bins na = !binsof(cp_out) intersect {SBA_OK}; }
+        x_out_dir: cross cp_out, cp_dir { ignore_bins na = !binsof(cp_out) intersect {SBA_OK, SBA_BUS_ERR}; }   // a direction exists only for an access that completed (OK or bus error)
+        x_ok_autoinc: cross cp_out, cp_autoinc, cp_dir { ignore_bins na = !binsof(cp_out) intersect {SBA_OK}; }   // autoincrement applies only to an access that completed OK
     endgroup
 
     // what a DMI scan reported, on tck

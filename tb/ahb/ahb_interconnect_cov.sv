@@ -52,7 +52,7 @@ module ahb_interconnect_cov (
             ignore_bins dma_never_split = binsof(cp_master.dma) && binsof(cp_split.split_to_nonseq);
         }
         x_master_size: cross cp_master, cp_size {
-            ignore_bins iport_words_only = binsof(cp_master.iport) && !binsof(cp_size.word);
+            ignore_bins iport_words_only = binsof(cp_master.iport) && !binsof(cp_size.word);   // the instruction port fetches whole words only (CORE fetch, [N-5.1])
         }
     endgroup
 
@@ -79,7 +79,7 @@ module ahb_interconnect_cov (
         x_master_resp: cross cp_master, cp_resp;
         x_master_waits: cross cp_master, cp_waits;
         x_slave_resp: cross cp_slave, cp_resp {
-            ignore_bins undecoded_ok = binsof(cp_slave.undecoded) && binsof(cp_resp.okay);
+            ignore_bins undecoded_ok = binsof(cp_slave.undecoded) && binsof(cp_resp.okay);   // an access to no slave is always answered ERROR by the default slave ([N-7.16])
         }
     endgroup
 

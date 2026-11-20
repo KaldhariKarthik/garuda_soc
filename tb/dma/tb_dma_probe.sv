@@ -201,8 +201,15 @@ module tb_dma_probe;
         mem[32'h4000_2000] = 32'h5555_0001;                       // a peripheral data register
 
         case (tcase)
-        // ===== DMA-9 (F20 as written, F42) =============================================
+        // ===== DMA-9 and D-32 (F20, F42) ===============================================
+        // 2026-11-20: rewritten to the RTL fix DMA-9 and the ruling D-32 (DMA-11). A beat in
+        // flight when software clears EN still completes on the bus but counts for nothing,
+        // so REMAINING, SAR and DAR agree with one another and with the beats written or one
+        // fewer. EN = 1 always starts a new transfer from the current SAR, DAR and CNT: after
+        // a stop firmware writes all three (TRM F-13), and the rest lands inside the buffer.
         "dma9": begin
+            logic [31:0] sar, dar;
+            int done;
             do_reset();
             rd_stall = 12;                                       // slow beats so the stop lands mid-transfer
             apb_wr(R(0, SAR), 32'h2000_0000); apb_wr(R(0, DAR), 32'h2000_1000); apb_wr(R(0, CNT), 8);
@@ -213,16 +220,21 @@ module tb_dma_probe;
             repeat (200) @(posedge hclk);
             k1 = n_wr - nw0;
             get(0, st, cr);
-            check(!cr[0] && !st[16] && !st[17] && !st[18] && st[15:0] == 16'(8 - k1),
-                  $sformatf("[F20] EN cleared mid-transfer: stopped at a beat boundary after %0d beats, REMAINING %0d, no COMPLETE, no ERROR", k1, st[15:0]));
+            apb_rd(R(0, SAR), sar); apb_rd(R(0, DAR), dar);
+            done = 8 - int'(st[15:0]);
+            check(!cr[0] && !st[16] && !st[17] && !st[18] && (done == k1 || done == k1 - 1)
+                  && sar == 32'h2000_0000 + 4 * done && dar == 32'h2000_1000 + 4 * done,
+                  $sformatf("[F20] [DMA-9] EN cleared mid-transfer: %0d beats written, REMAINING %0d, SAR %08h, DAR %08h; no COMPLETE, no ERROR",
+                            k1, st[15:0], sar, dar));
             nw1 = n_wr;
-            apb_wr(R(0, CR), CRV(1, M2M, 1, 1, W));              // EN again, CNT untouched
+            apb_wr(R(0, SAR), sar); apb_wr(R(0, DAR), dar); apb_wr(R(0, CNT), 8 - done);   // D-32: firmware writes all three
+            apb_wr(R(0, CR), CRV(1, M2M, 1, 1, W));
             wait_bit("COMPLETE", 0, 20000, ok);
             repeat (20) @(posedge hclk);
             k2 = n_wr - nw1;
-            check(k1 + k2 == 8 && wr_log[$] == 32'h2000_101C,
-                  $sformatf("[DMA-9] [F20] EN set again continues: %0d + %0d beats = %0d (CNT 8), last write %08h (buffer ends at 2000101C)",
-                            k1, k2, k1 + k2, wr_log[$]));
+            check(ok && k2 == 8 - done && wr_log[$] == 32'h2000_101C,
+                  $sformatf("[D-32] [F20] restarted with SAR, DAR, CNT written again: %0d beats for CNT %0d, last write %08h (buffer ends at 2000101C)",
+                            k2, 8 - done, wr_log[$]));
         end
         // ===== DMA-10 (F43) ==============================================================
         "dma10": begin
@@ -370,8 +382,10 @@ module tb_dma_probe;
             apb_wr(R(3, CR), CRV(1, M2M, 1, 1, W));
             wait_bit("COMPLETE", 3, 5000, ok);
             repeat (10) @(posedge hclk);
-            check(n_pulses == 24 && bad_width == 0 && bad_edges == 0,
-                  $sformatf("[F22] [D-16] %0d ack pulses (want 24): %0d not 2 hclk wide, %0d not seen by exactly one pclk edge",
+            // 12 peripheral beats ack; the 12 M2M beats ack nothing (DMA-15, fixed 2026-11-04;
+            // this case wanted 24 until 2026-11-20 and no gate ran it)
+            check(n_pulses == 12 && bad_width == 0 && bad_edges == 0,
+                  $sformatf("[F22] [D-16] %0d ack pulses (want 12): %0d not 2 hclk wide, %0d not seen by exactly one pclk edge",
                             n_pulses, bad_width, bad_edges));
         end
         default: begin

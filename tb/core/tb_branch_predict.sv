@@ -133,13 +133,15 @@ class branch_cycle;
     rand bit         jal_val;
     // 1-TOPS G4 row 4.16: the predictor-disable bit and FENCE.I. Decode never
     // raises FENCE.I together with a branch or a JAL.
-    rand bit         bp_dis_val;
-    rand bit         fencei_val;
-    constraint c_ctl {
-        bp_dis_val dist { 0 :/ 8, 1 :/ 2 };
-        fencei_val dist { 0 :/ 9, 1 :/ 1 };
-        fencei_val -> (!branch_val && !jal_val);
-    }
+    // drawn in post_randomize, not by the solver (2026-11-20: Verilator 5.052's solver
+    // failed every randomize() once these two had dist constraints; same weights and rule)
+    bit              bp_dis_val;
+    bit              fencei_val;
+    // bp_dis 1 in 5; FENCE.I 1 in 10, and never with a branch or a JAL (decode)
+    function void post_randomize();
+        bp_dis_val = ($urandom_range(4, 0) == 0);
+        fencei_val = !branch_val && !jal_val && ($urandom_range(9, 0) == 0);
+    endfunction
 
     constraint c_alignment { pc_val[1:0] == 2'b00; imm_b_val[0] == 1'b0; imm_j_val[0] == 1'b0; }
 

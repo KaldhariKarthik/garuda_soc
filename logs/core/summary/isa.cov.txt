@@ -1,5 +1,5 @@
-garuda-run 1  suite isa.cov  block core  2026-10-13T07:49:50+05:30
-design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+garuda-run 1  suite isa.cov  block core  2026-11-20T07:56:37+05:30
+design 8db238050bb7108ad0b5825b8d751e1510dfe77d  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
 
 PASS    OK                      add              
 PASS    OK                      addi             
@@ -40,6 +40,7 @@ PASS    OK                      p-ma_addr
 PASS    OK                      p-ma_data        
 PASS    OK                      p-ma_fetch       
 PASS    OK                      p-mcsr           
+PASS    OK                      p-minstret       
 PASS    OK                      p-rem            
 PASS    OK                      p-remu           
 PASS    OK                      p-sbreak         
@@ -67,7 +68,7 @@ PASS    OK                      sw
 PASS    OK                      xor              
 PASS    OK                      xori             
 
-PASS    65
+PASS    66
 FAIL    0
 BLOCKED 0
-total   65
+total   66

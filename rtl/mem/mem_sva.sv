@@ -117,15 +117,15 @@ module mem_sva #(
     // the memory's backdoor (bd_write) calls this for the word it overwrote behind the bus
     function void forget(int w); if (known.exists(w)) begin known.delete(w); model.delete(w); end endfunction
     always @(posedge hclk) if (hreset_n) begin
-        if (rd_done && known.exists(exp_word)) begin
-            a_data_integrity: assert ((hrdata_o & lanes(known[exp_word])) === (model[exp_word] & lanes(known[exp_word])))
+        if (rd_done && known.exists(int'(exp_word))) begin
+            a_data_integrity: assert ((hrdata_o & lanes(known[int'(exp_word)])) === (model[int'(exp_word)] & lanes(known[int'(exp_word)])))
                 else $error("[SVA-FAIL] a_data_integrity: word %0h read %h, expected %h on lanes %b",
-                            exp_word, hrdata_o, model[exp_word], known[exp_word]);
+                            exp_word, hrdata_o, model[int'(exp_word)], known[int'(exp_word)]);
         end
         if (wr_done) begin
-            if (!known.exists(exp_word)) begin known[exp_word] = 4'd0; model[exp_word] = 32'd0; end
-            model[exp_word] = (model[exp_word] & ~lanes(exp_be)) | (hwdata_i & lanes(exp_be));
-            known[exp_word] = known[exp_word] | exp_be;
+            if (!known.exists(int'(exp_word))) begin known[int'(exp_word)] = 4'd0; model[int'(exp_word)] = 32'd0; end
+            model[int'(exp_word)] = (model[int'(exp_word)] & ~lanes(exp_be)) | (hwdata_i & lanes(exp_be));
+            known[int'(exp_word)] = known[int'(exp_word)] | exp_be;
         end
     end
 `endif
