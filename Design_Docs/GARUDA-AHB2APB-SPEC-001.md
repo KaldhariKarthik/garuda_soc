@@ -449,6 +449,12 @@ bogus OKAY from a bridge whose peripheral side cannot yet respond.
 `preset_n_i` are deasserted. This is the requirement `GARUDA-CLKRST-SPEC-001` §5.2 refers
 to.
 
+**[N-9.3a]** (BRG-3, Karthik 2026-11-20) An access refused by the bridge (absent window,
+sub-word size) that is accepted during the same window answers OKAY wait states (`hresp_o`
+0, `hreadyout_o` 0) until `preset_n_i` is released, then the two-cycle ERROR of [N-7.21].
+HRESP never shows ERROR with HREADYOUT low for more than the one first ERROR cycle, as
+AHB-Lite requires (wait states are OKAY; an ERROR is exactly two cycles).
+
 **[N-9.4]** Power: the `pclk` domain at half `hclk` halves the dynamic power of the
 peripheral clock tree and of every peripheral flop, which together are the largest flop
 population outside the core. This is the whole reason `pclk` exists as a real divided clock

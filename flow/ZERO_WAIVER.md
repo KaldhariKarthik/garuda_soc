@@ -43,11 +43,11 @@ value makes its last value the `default`: the arm is reachable and no arm is dea
 
 | # | Kind | Count | Where | State |
 |---|---|---|---|---|
-| Z1 | HAL findings carried in a baseline | 747 (5 errors, 742 warnings) with the old deck; **6,807 (712 errors) with every rule on** | `flow/2_static/hal_baseline.txt`, `hal_waivers.txt`, the 65 `-nocheck` rules of `hal.f` | **closed for own RTL (D-40)**: 59 rules off with reasons, 178 per-line rows, 0 open, baseline deleted; vendor IP 273 open (review) |
+| Z1 | HAL findings carried in a baseline | 747 (5 errors, 742 warnings) with the old deck; **6,807 (712 errors) with every rule on** | `flow/2_static/hal_baseline.txt`, `hal_waivers.txt`, the 65 `-nocheck` rules of `hal.f` | **closed (D-40)**: 59 rules off with reasons (approval by Karthik pending), 412 per-line rows in 26 classes (vendor IP reviewed, one reason per IP for its unused parts), 0 open on the whole chip, baseline deleted |
 | Z2 | Verilator lint waivers | 40 lines | `flow/2_static/verilator_waivers.vlt` | **closed**: 8 entries, each specific and reasoned (vendor IP 7, one checker line) |
 | Z3 | Yosys lint waivers | 7 lines | `flow/2_static/yosys_waivers.txt` | **closed**: 4 entries, each reasoned |
 | Z4 | CDC waivers | 25 rows | `flow/2_static/cdc/reports/waivers.csv` | **closed**: rerun 2026-11-20 (TOOL-A27), 0 violations, 25 reasoned waivers |
-| Z5 | Superlint findings explained, not fixed | 77 | `flow/2_static/superlint/chip/RESULTS.md` | rerun 2026-11-20; one entry per finding in `superlint/chip/findings.tsv` |
+| Z5 | Superlint findings explained, not fixed | 77 | `flow/2_static/superlint/chip/RESULTS.md` | **closed**: rerun 2026-11-20, 62 findings (was 77), each classified in `superlint/chip/findings.tsv` |
 | Z6 | Code-coverage waivers | core 67, DMA 27, AHB 14, DSU 7, bridge 6 entries | `tb/*/cov/*_waivers.toml` | **justified**: 113 entries with reason and PROVEN or spec evidence; reviewer sign-off by Karthik |
 | Z7 | IMC exclusion files | about 3,800 lines over 13 blocks | `flow/cov/*_exclusions*.tcl` | generated from Z6 (`tools/cov/gen_imc_exclusions.py`) |
 | Z8 | `ignore_bins` / `illegal_bins` | 88 | 14 bench files under `tb/` | **closed**: 81, each with its reason in the source; I2C TIMEOUT max now tested in a stretch |

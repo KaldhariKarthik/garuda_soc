@@ -21,7 +21,8 @@ import csv, fnmatch, glob, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PENDING = [0]   # coverage waivers that are justified but whose reviewer field is still "pending"
-OPEN_WORDS = re.compile(r"\bOPEN\b|to be fixed|TODO|FIXME", re.I)
+# OPEN in capitals is a bug-register state; "open item" or "ties the gate open" is not a fix owed
+OPEN_WORDS = re.compile(r"\bOPEN\b|[Tt]o be fixed|TODO|FIXME")
 
 
 def rel(p):

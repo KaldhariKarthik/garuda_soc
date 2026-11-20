@@ -1,0 +1,3 @@
+# garuda-run 1 suite=dbg block=ahbdbg date=2026-11-20T21:26:02+05:30 design=e5b2f5c1abacff26375b4f5ef1a606ac6d034595 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a seed=1
+test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
+errnext	FAIL	UNEXPECTED	0	yes	2	4	0	-	48	0	-	1	0.02	18			2 [FAIL] line(s); 4 assertion failure(s) | first: [62000] %Error: ahb_interconnect_sva.sv:55: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.assume_i_holds: 'assert' failed.	logs/ahbdbg/raw/dbg/sim_errnext_s1.log

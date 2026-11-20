@@ -31,6 +31,10 @@ name     = "probe_r9_sar"
 plusargs = ["+CASE=r9_sar"]
 
 [[test]]
+name     = "probe_sar_hi"
+plusargs = ["+CASE=sar_hi"]
+
+[[test]]
 name     = "probe_dma11a"
 fail_reason = 'Assertion failed in \S*a_remaining_complete_consistent'
 plusargs = ["+CASE=dma11a"]

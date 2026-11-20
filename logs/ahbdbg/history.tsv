@@ -1,0 +1,2 @@
+date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
+2026-11-20T21:26:02+05:30	e5b2f5c1abac	True	dbg	errnext	1	FAIL	UNEXPECTED	2 [FAIL] line(s); 4 assertion failure(s) | first: [62000] %Error: ahb_interconnect_sva.sv:55: Assertion failed in tb_ahb_env.u_dut.u_ahb_sva.assume_i_holds: 'assert' failed.

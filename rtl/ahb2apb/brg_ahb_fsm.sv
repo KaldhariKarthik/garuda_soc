@@ -78,9 +78,16 @@ module brg_ahb_fsm (
                     hstate_next = apb_err_i ? H_ERR1 : H_OK;
                 end
             end
+            // BRG-3 (2026-11-20): an illegal access accepted while PRESET is
+            // still asserted ([N-9.2] gap) waits with OKAY wait states until
+            // the APB side is out of reset, then gives the two-cycle ERROR.
+            // Before, ERROR with HREADY low repeated through the gap (AHB-Lite:
+            // wait states answer OKAY; an ERROR is exactly two cycles).
             H_ERR1: begin
-                hresp_o = 1'b1;
-                hstate_next = H_ERR2;
+                hresp_o = prst_ok_i;
+                if (prst_ok_i) begin
+                    hstate_next = H_ERR2;
+                end
             end
             default: begin
                 hstate_next = H_IDLE;

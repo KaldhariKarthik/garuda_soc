@@ -16,7 +16,7 @@ import re, sys
 
 # (tag regex, file regex, class, reason)
 RULES = [
-    (r"BUS_IS_FLOT", r"rtl/soc/garuda_chip_top\.sv", "PAD_TRISTATE",
+    (r"BUS_IS_FLOT", r"rtl/soc/garuda_chip_(top|core)\.sv", "PAD_TRISTATE",
      "a tristate or open-drain pin floats while its enable is 0 (JTAG TDO per IEEE 1149.1, I2C open drain with board pull-ups, GPIO, SPI slave MISO); pad cells replace the model"),
     # dead code, own RTL
     (r"BLK_NO_RCHB", r"rtl/mem/ahb_mem_slave_if\.sv", "PARAM_INSTANCE",

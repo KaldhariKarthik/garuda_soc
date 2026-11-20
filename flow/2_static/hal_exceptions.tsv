@@ -20,6 +20,15 @@
 # class VENDOR_PORT: an output of vendored IP that GARUDA's wrapper does not use (the IP's own PREADY, constant 1: the shim answers PREADY; the I2C byte controller's direct SCL output, replaced by the wrapper's open-drain enables)
 # class COUNTER_WRAP: a counter that wraps by design (FIFO pointers one bit wider than the index, the SPI bit counter 7 to 0) or is cleared at its limit before it can (PWM prescaler at PRESCALE, period counter below PERIOD)
 # class CHECKER_USE: a constant read only by the bound properties, which HAL does not compile (soc_map_pkg ID_SOFTWARE, clic_sva)
+# class VENDOR_WIDTH: vendored IP (D-40, reviewed 2026-11-20): unequal operand widths, truncated constants and implicit integer conversions; Verilog extends the narrower operand and every case gives the value the IP intends (counters wrap, a count-1 compare with a count of 0 never matches: right for 0); covered by the IP's block tests and the Superlint overflow review (VENDOR_COUNTER)
+# class VENDOR_ASSIGN: vendored IP: a process assigns a default then overrides it, or another process reads a variable assigned with blocking assignments; the same in simulation and synthesis (local synthesis: no latch but the ICG); covered by the IP's block tests
+# class VENDOR_ONEBIT: vendored IP: bitwise ~ & | in a condition on 1-bit operands (resets, enables, single bits), identical to the logical operator; each line read
+# class VENDOR_CASE: vendored IP: a case without default in a clocked block (registers hold, no latch), full_case pragmas on cases that list every value the register can take or carry a default, and a redundant default; each read
+# class VENDOR_SPIM_MODE: vendored SPI master state MODE has no exit and is never entered in GARUDA's single-bit configuration (SPIM-2, dispositioned 2026-10-14)
+# class VENDOR_PORT: vendored IP outputs the GARUDA configuration does not use (busy and ready flags of the UART's sub-blocks, the IP's own PREADY: the shim answers PREADY, the I2C byte controller's direct SCL output)
+# class VENDOR_NORESET: the OpenCores I2C bit controller's dout and dscl_oen: one-cycle delayed copies without reset that follow their source within one pclk (also in the CDC waivers)
+# class VENDOR_INDEX: vendored SPI FIFO indexed by pointers that wrap at BUFFER_DEPTH-1 (spi_master_fifo.sv:110-125), so the index never leaves the buffer; HAL cannot see the wrap
+# class VENDOR_ELSE: OpenCores I2C byte controller: an else after nested ifs binds to the inner if, which is the intended branch (ST_WRITE: cnt_done)
 # class SPEC_PORT: a port kept on the list by the spec's interface contract and read only by the bound properties (bridge pclk_phase_i, AHB2APB spec)
 IOPNTA	rtl/soc/garuda_chip_top.sv:73	i2c_scl	PAD_RING
 IOPNTA	rtl/soc/garuda_chip_top.sv:74	i2c_sda	PAD_RING
@@ -32,6 +41,80 @@ UNCONN	rtl/uart/garuda_uart_top.sv:200	PSLVERR	VENDOR_PORT
 UNCONN	rtl/uart/garuda_uart_top.sv:200	event_o	VENDOR_PORT
 USEPRT	rtl/common/garuda_apb_shim.sv:82	pwdata_i	APB_REG_MAP
 USEPRT	rtl/common/garuda_apb_dma.sv:29	pwdata_i	APB_REG_MAP
+UNCONN	rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv:79	busy_o	VENDOR_PORT
+UNCONN	rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv:104	busy_o	VENDOR_PORT
+UNCONN	rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv:151	ready_o	VENDOR_PORT
+LOGNEG	rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv:330	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
+REVROP	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:125	s_target_bits	VENDOR_ASSIGN
+IMPTYP	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:136	reg_bit_count + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:136	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:136	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+REVROP	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:199	sampleData	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:233	baudgen_en	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:237	start_bit	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:242	start_bit	VENDOR_ASSIGN
+IMPTYP	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:249	baud_cnt + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:249	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:249	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+REVROP	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:277	set_error	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:279	set_frame_err	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:288	set_error	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_uart_sv/src/uart_rx.sv:289	set_frame_err	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv:101	s_target_bits	VENDOR_ASSIGN
+IMPTYP	rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv:115	reg_bit_count + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv:115	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv:115	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+REVROP	rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv:170	sampleData	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv:192	baudgen_en	VENDOR_ASSIGN
+IMPTYP	rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv:205	baud_cnt + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv:205	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_uart_sv/src/uart_tx.sv:205	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:52	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:52	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:56	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:56	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPTYP	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:64	elements - 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:64	The result of subtraction operation may 	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:64	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+IMPTYP	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:67	elements + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:67	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:67	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:78	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:78	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:92	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:92	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:93	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:93	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:99	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:99	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:100	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:100	Truncation in constant conversion withou	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:110	Unequal length operands in equality oper	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:111	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:111	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPTYP	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:113	pointer_in + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:113	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:113	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:123	Unequal length operands in equality oper	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:124	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:124	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPTYP	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:126	pointer_out + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:126	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:126	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:46	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/apb_uart_sv/src/io_generic_fifo.sv:135	Unequal length operands in equality oper	VENDOR_WIDTH
+CDEFCV	rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv:43	The case items of the case statement in 	VENDOR_CASE
+ULCMPE	rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv:45	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv:48	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv:51	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv:54	Unequal length operands in equality oper	VENDOR_WIDTH
+LOGAND	rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv:69	Bit-wise AND in a conditional expression	VENDOR_ONEBIT
+LOGAND	rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv:72	Bit-wise AND in a conditional expression	VENDOR_ONEBIT
+REVROP	rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv:72	trigger_level_reached	VENDOR_ASSIGN
+LOGAND	rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv:75	Bit-wise AND in a conditional expression	VENDOR_ONEBIT
+LOGAND	rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv:78	Bit-wise AND in a conditional expression	VENDOR_ONEBIT
+ULCMPE	rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv:78	Unequal length operands in equality oper	VENDOR_WIDTH
+LOGNEG	rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv:85	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
 POIASG	rtl/spi_slave/garuda_spis_top.sv:130	The result of addition operation may lea	COUNTER_WRAP
 POIASG	rtl/spi_slave/garuda_spis_top.sv:133	The result of addition operation may lea	COUNTER_WRAP
 POIASG	rtl/spi_slave/garuda_spis_core.sv:136	The result of addition operation may lea	COUNTER_WRAP
@@ -48,12 +131,145 @@ UNCONN	rtl/spi_master/garuda_spim_top.sv:162	spi_mode	VENDOR_PORT
 UNCONN	rtl/spi_master/garuda_spim_top.sv:162	spi_sdo1	VENDOR_PORT
 UNCONN	rtl/spi_master/garuda_spim_top.sv:162	spi_sdo2	VENDOR_PORT
 UNCONN	rtl/spi_master/garuda_spim_top.sv:162	spi_sdo3	VENDOR_PORT
+LOGNEG	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:121	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
+LOGNEG	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:135	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
+ULCMPE	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:146	Unequal length operands in equality oper	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:146	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+IMPTYP	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:149	r_counter_tx + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:149	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:149	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:153	Unequal length operands in equality oper	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:153	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+IMPTYP	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:156	r_counter_rx + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:156	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:156	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:189	Unequal length operands in equality oper	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:189	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:230	Unequal length operands in equality oper	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:230	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+REVROP	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:116	s_int_rx	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_spi_master/src/apb_spi_master.sv:116	s_int_tx	VENDOR_ASSIGN
+CDEFNC	rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv:119	Case statement without a default clause.	VENDOR_CASE
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:52	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:52	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:56	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:56	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPTYP	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:64	elements - 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:64	The result of subtraction operation may 	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:64	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+IMPTYP	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:67	elements + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:67	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:67	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:78	0	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:92	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:92	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:93	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:93	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:99	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:99	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:100	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:100	Truncation in constant conversion withou	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:110	Unequal length operands in equality oper	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:111	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:111	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPTYP	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:113	pointer_in + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:113	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:113	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:123	Unequal length operands in equality oper	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:124	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:124	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPTYP	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:126	pointer_out + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:126	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:126	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:46	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:135	Unequal length operands in equality oper	VENDOR_WIDTH
+REVROP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:173	ctrl_data_valid	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:180	ctrl_data_valid	VENDOR_ASSIGN
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:219	Unequal length operands in equality oper	VENDOR_WIDTH
+LOGORP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:221	Bit-wise OR in a conditional expression.	VENDOR_ONEBIT
+UEASPD	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:222	Unequal length operands in assignment in	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:229	Unequal length operands in equality oper	VENDOR_WIDTH
+LOGORP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:231	Bit-wise OR in a conditional expression.	VENDOR_ONEBIT
+UEASPD	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:232	Unequal length operands in assignment in	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:239	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:244	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:263	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:298	Unequal length operands in equality oper	VENDOR_WIDTH
+UEASPD	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:301	Unequal length operands in assignment in	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:308	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:313	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:332	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:373	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:378	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:399	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:437	Unequal length operands in equality oper	VENDOR_WIDTH
+REVROP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:555	spi_cs	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:556	spi_cs	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:557	spi_cs	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:558	spi_cs	VENDOR_ASSIGN
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spim_clkgen.sv:42	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spim_clkgen.sv:42	Truncation in constant conversion withou	VENDOR_WIDTH
+IMPTYP	rtl/third_party/pulp/axi_spi_master/src/spim_clkgen.sv:51	counter + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/axi_spi_master/src/spim_clkgen.sv:51	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/axi_spi_master/src/spim_clkgen.sv:51	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+IMPTYP	rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv:84	counter + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv:84	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv:84	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv:88	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv:88	Truncation in constant conversion withou	VENDOR_WIDTH
+LOGNEG	rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv:114	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv:116	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv:116	Truncation in constant conversion withou	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv:59	Unequal length operands in equality oper	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv:59	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+IMPTYP	rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv:79	counter + 1	VENDOR_WIDTH
+POIASG	rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv:79	The result of addition operation may lea	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv:79	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv:87	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv:87	Truncation in constant conversion withou	VENDOR_WIDTH
+LOGNEG	rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv:97	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv:123	Unequal length operands in equality oper	VENDOR_WIDTH
+IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv:125	0	VENDOR_WIDTH
+TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv:125	Truncation in constant conversion withou	VENDOR_WIDTH
+REVROP	rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv:44	data_int_next	VENDOR_ASSIGN
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv:55	Unequal length operands in equality oper	VENDOR_WIDTH
+UELOPR	rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv:55	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
 UNCONN	rtl/i2c/garuda_i2c_top.sv:396	scl_o	VENDOR_PORT
 UNCONN	rtl/i2c/garuda_i2c_top.sv:396	sda_o	VENDOR_PORT
+TPRUSD	rtl/third_party/opencores/i2c/src/i2c_byte_ctrl.sv:220	full_case	VENDOR_CASE
+CDEFNC	rtl/third_party/opencores/i2c/src/i2c_byte_ctrl.sv:220	Case statement without a default clause.	VENDOR_CASE
+DNGLEL	rtl/third_party/opencores/i2c/src/i2c_byte_ctrl.sv:266	Ambiguous else statement in the nested i	VENDOR_ELSE
+TPRUSD	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:374	full_case	VENDOR_CASE
+TPRUSD	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:378	full_case	VENDOR_CASE
+LOGNEG	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:205	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
+IMPTYP	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:249	filter_cnt - 1	VENDOR_WIDTH
+POIASG	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:249	The result of subtraction operation may 	VENDOR_WIDTH
+UELOPR	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:249	Unequal length operand in bit/arithmetic	VENDOR_WIDTH
+LOGNEG	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:267	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
+LOGNEG	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:289	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
+LOGNEG	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:313	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
+LOGNEG	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:319	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
+LOGAND	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:327	Bit-wise AND in a conditional expression	VENDOR_ONEBIT
+WIDSEL	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:374	Case statement with no default. Case is 	VENDOR_CASE
 UNCONN	rtl/gpio/garuda_gpio_top.sv:90	PREADY	VENDOR_PORT
 UNCONN	rtl/gpio/garuda_gpio_top.sv:90	PSLVERR	VENDOR_PORT
 UNCONN	rtl/gpio/garuda_gpio_top.sv:90	gpio_in_sync	VENDOR_PORT
 UNCONN	rtl/gpio/garuda_gpio_top.sv:90	gpio_padcfg	VENDOR_PORT
+LOGNEG	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:147	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
+REVROP	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:181	s_cg_en	VENDOR_ASSIGN
+LOGNEG	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:186	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
+REVROP	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:199	s_clk_en	VENDOR_ASSIGN
+LOGNEG	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:210	Bit-wise negation in a conditional expre	VENDOR_ONEBIT
+REVROP	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:223	s_write	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:225	s_write_cfg	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:227	s_write_inttype	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:229	s_write_dir	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:231	s_write_out	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:233	s_write_inten	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:235	s_write_gpen	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:138	s_is_int_fall	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:138	s_is_int_rifa	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/apb_gpio/src/apb_gpio.sv:138	s_is_int_rise	VENDOR_ASSIGN
 POIASG	rtl/pwm/garuda_pwm_core.sv:86	The result of addition operation may lea	COUNTER_WRAP
 POIASG	rtl/pwm/garuda_pwm_core.sv:102	The result of addition operation may lea	COUNTER_WRAP
 BLKSQB	rtl/core/core_clk_gate.sv:34	Blocking assignment encountered in a seq	ICG
@@ -80,6 +296,22 @@ CLKOUT	rtl/clk_div/clk_div.sv:94	clk_div	CLOCK_GEN
 CLKOUT	rtl/clk_div/clk_div.sv:111	clk_div	CLOCK_GEN
 CLKOUT	rtl/clk_div/clk_div.sv:124	clk_div	CLOCK_GEN
 EDGMIX	rtl/clk_div/clk_div.sv:94	aon_clk	CLOCK_GEN
+MULNBA	rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv:113	spim_apb_if	VENDOR_ASSIGN
+MULNBA	rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv:114	spim_apb_if	VENDOR_ASSIGN
+MULNBA	rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv:115	spim_apb_if	VENDOR_ASSIGN
+MULNBA	rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv:116	spim_apb_if	VENDOR_ASSIGN
+MULNBA	rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv:112	spim_apb_if	VENDOR_ASSIGN
+MULNBA	rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv:117	spim_apb_if	VENDOR_ASSIGN
+MULBAS	rtl/third_party/pulp/apb_spi_master/src/spim_apb_if.sv:38	spim_apb_if	VENDOR_ASSIGN
+POOBID	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:84	buffer	VENDOR_INDEX
+TERMST	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:209	spim_ctrl	VENDOR_SPIM_MODE
+UNRCHS	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:209	spim_ctrl	VENDOR_SPIM_MODE
+MULNBA	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:371	i2c_bit_ctrl	VENDOR_ASSIGN
+MULNBA	rtl/third_party/opencores/i2c/src/i2c_byte_ctrl.sv:217	i2c_byte_ctrl	VENDOR_ASSIGN
+MULNBA	rtl/third_party/opencores/i2c/src/i2c_byte_ctrl.sv:216	i2c_byte_ctrl	VENDOR_ASSIGN
+MULNBA	rtl/third_party/opencores/i2c/src/i2c_byte_ctrl.sv:215	i2c_byte_ctrl	VENDOR_ASSIGN
+MULNBA	rtl/third_party/opencores/i2c/src/i2c_byte_ctrl.sv:218	i2c_byte_ctrl	VENDOR_ASSIGN
+MULBAS	rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv:42	apb_uart_sv	VENDOR_ASSIGN
 LATBAS	rtl/core/core_clk_gate.sv:32	In module/design-unit core_clk_gate, lat	ICG
 EDGMIX	rtl/debug/jtag_tap.sv:48	tck	JTAG_STD
 CNSTCN	rtl/mem/sram_wrapper.sv:88	Conditional expression is statically eva	MEMORY_ARRAY
@@ -87,6 +319,7 @@ MULWIR	rtl/soc/garuda_chip_top.sv:73	garuda_chip_top	PAD_RING
 MULWIR	rtl/soc/garuda_chip_top.sv:74	garuda_chip_top	PAD_RING
 MULWIR	rtl/soc/garuda_chip_top.sv:85	garuda_chip_top	PAD_RING
 MULWIR	rtl/soc/garuda_chip_top.sv:86	garuda_chip_top	PAD_RING
+POOBID	rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv:134	garuda_chip_top.u_core.u_spim.u_spi.u_txfifo.buffer	VENDOR_INDEX
 TSBINF	rtl/soc/garuda_chip_top.sv:126	tdo	PAD_RING
 SLNOTP	rtl/soc/garuda_chip_top.sv:126	garuda_chip_top.tdo	PAD_RING
 TSBINF	rtl/soc/garuda_chip_top.sv:128	i2c_scl	PAD_RING
@@ -131,6 +364,9 @@ UNCONO	rtl/spi_master/garuda_spim_top.sv:162	spi_sdo2	VENDOR_PORT
 UNCONO	rtl/spi_master/garuda_spim_top.sv:162	spi_sdo3	VENDOR_PORT
 TIELOG	rtl/common/garuda_apb_shim.sv:161	pready_o	APB_REG_MAP
 TIELOG	rtl/common/garuda_apb_dma.sv:63	rdata_o[31:2]	APB_REG_MAP
+DFDRVS	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:47	spi_mode	RESET_VALUE
+DFDRVS	rtl/third_party/pulp/axi_spi_master/src/spi_master_tx.sv:34	counter_trgt	RESET_VALUE
+DFDRVS	rtl/third_party/pulp/axi_spi_master/src/spi_master_rx.sv:34	counter_trgt	RESET_VALUE
 RSTDAT	rtl/i2c/garuda_i2c_top.sv:254	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
 RSTDAT	rtl/i2c/garuda_i2c_top.sv:255	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
 RSTDAT	rtl/i2c/garuda_i2c_top.sv:256	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
@@ -142,6 +378,8 @@ RSTDAT	rtl/i2c/garuda_i2c_top.sv:271	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT
 RSTDAT	rtl/i2c/garuda_i2c_top.sv:284	garuda_chip_top.u_core.u_i2c.i2c_rst_q	SOFT_RESET
 UNCONO	rtl/i2c/garuda_i2c_top.sv:396	scl_o	VENDOR_PORT
 UNCONO	rtl/i2c/garuda_i2c_top.sv:396	sda_o	VENDOR_PORT
+FFWNSR	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:190	dscl_oen	VENDOR_NORESET
+FFWNSR	rtl/third_party/opencores/i2c/src/i2c_bit_ctrl.sv:327	dout	VENDOR_NORESET
 UNCONO	rtl/gpio/garuda_gpio_top.sv:90	PREADY	VENDOR_PORT
 UNCONO	rtl/gpio/garuda_gpio_top.sv:90	PSLVERR	VENDOR_PORT
 UNCONO	rtl/gpio/garuda_gpio_top.sv:90	gpio_in_sync	VENDOR_PORT
@@ -178,6 +416,11 @@ RSTDAT	rtl/timers/watchdog.sv:95	garuda_chip_top.u_core.u_soc.u_timers.u_wdt.hre
 UNCONO	rtl/uart/garuda_uart_top.sv:200	PREADY	VENDOR_PORT
 UNCONO	rtl/uart/garuda_uart_top.sv:200	PSLVERR	VENDOR_PORT
 UNCONO	rtl/uart/garuda_uart_top.sv:200	event_o	VENDOR_PORT
+DFDRVS	rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv:42	regs_q	RESET_VALUE
+UNCONO	rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv:79	busy_o	VENDOR_PORT
+UNCONO	rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv:104	busy_o	VENDOR_PORT
+UNCONO	rtl/third_party/pulp/apb_uart_sv/src/apb_uart.sv:151	ready_o	VENDOR_PORT
+DFDRVS	rtl/third_party/pulp/apb_uart_sv/src/uart_interrupt.sv:37	iir_q	RESET_VALUE
 FFWNSR	rtl/spi_slave/garuda_spis_top.sv:140	fifo	MEMORY_ARRAY
 FRSTDF	rtl/reset_ctrl/reset_ctrl.sv:142	garuda_chip_top.u_core.u_reset_ctrl.u_core_rst_sync.core_clr	RESET_GEN
 FRSTDF	rtl/reset_ctrl/reset_ctrl.sv:232	garuda_chip_top.u_core.u_reset_ctrl.u_apb.ext_prst_n	RESET_GEN

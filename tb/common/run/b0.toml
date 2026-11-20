@@ -16,7 +16,8 @@ timeout = 300
 
 [[test]]
 name  = "map_pkg"
-count = [['^CHECKS: 95  FAILS: 0', 1]]
+# 94 since a5c06a1 (2026-11-03): CLIC ID 23 became CLICSWI, one reserved ID fewer to check
+count = [['^CHECKS: 94  FAILS: 0', 1]]
 flist = "tb/common/filelist_map_pkg.f"
 top   = "tb_map_pkg"
 
@@ -35,6 +36,7 @@ top   = "tb_apb_checker_selftest"
 
 [[test]]
 name  = "apb_shim"
-count = [['checks=25  FAIL=0', 1]]
+# 27 since 8db2380 (D-39): DMACTL reads 0 in a block with no DMA channel, two checks more
+count = [['checks=27  FAIL=0', 1]]
 flist = "tb/common/filelist_shim.f"
 top   = "tb_apb_shim"

@@ -45,11 +45,16 @@ module dma_top_sva #(
         (!$past(htrans_o[1]) && st == E_IDLE) |-> !hresp_i );
     assume_apb_legal: assume property (@(posedge pclk) disable iff (!preset_n)
         (psel_i && !penable_i) |=> (psel_i && penable_i && $stable(paddr_i) && $stable(pwrite_i)) );
-    // an access phase only follows a setup phase, and lasts one pclk (PREADY is always 1)
+    // an access phase only follows a setup phase, and lasts one pclk (PREADY is always 1).
+    // The chip divides no APB window (APB_DIV = 0). DMA_SVA_APB_DIVIDED is defined by one
+    // bench only, tb/ahb2apb/run/env.toml env_real_dma_div8, which puts the DMA on a /8
+    // window on purpose to show it still makes one register write per APB write.
+`ifndef DMA_SVA_APB_DIVIDED
     assume_apb_access_after_setup: assume property (@(posedge pclk) disable iff (!preset_n)
         (psel_i && penable_i) |-> $past(psel_i && !penable_i) );
     assume_apb_access_one_pclk: assume property (@(posedge pclk) disable iff (!preset_n)
         (psel_i && penable_i) |=> !penable_i );
+`endif
 
     // ---- AHB master ----------------------------------------------------------
     // [N-7.2] SINGLE transfers only

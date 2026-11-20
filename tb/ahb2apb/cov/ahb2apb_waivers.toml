@@ -7,37 +7,47 @@
 [[waiver]]
 id       = "CL-HSTATE"
 metric   = "line"
-file     = "rtl/ahb2apb/ahb2apb_bridge.sv"
-match    = "^line:172 case"
+file     = "rtl/ahb2apb/brg_ahb_fsm.sv"
+match    = "^line:92 case"
 category = "unreachable"
 reason   = "The hclk FSM's 3-bit state uses six codes (H_IDLE..H_ERR2); the `default:` arm recovers the two unused codes, which no transition produces."
 evidence = "PROVEN fv_apb apb_prove + fv_apb_div div_prove a_hstate_legal (hstate <= 5), abc pdr, 2026-10-14"
-reviewer = "pending: Sreyesh"
+reviewer = "pending: Karthik"
 
 [[waiver]]
-id       = "CB-WIN12"
-metric   = "branch"
-file     = "rtl/ahb2apb/ahb2apb_apb_fsm.sv"
-match    = "^line:53 cond_else"
+id       = "CL-ERR2HOLD"
+metric   = "line"
+file     = "rtl/ahb2apb/brg_ahb_fsm.sv"
+match    = "^line:58 elsif"
 category = "unreachable"
-reason   = "win_i is the bridge's captured window, which only takes a present window 0..11; the guard (win_i < 12) protects the APB_DIV part-select and is never false."
-evidence = "PROVEN fv_apb apb_prove + fv_apb_div div_prove a_win_cap_legal (win_cap < 12 always), 2026-10-14"
-reviewer = "pending: Sreyesh"
+reason   = "Since BRG-3 the bridge enters H_ERR2 only with the APB side out of reset (H_ERR1 waits for prst_ok). prst_ok can then fall only if PRESET asserts while HRESET does not, and reset_ctrl asserts both from the same request flop (and releases PRESET after HRESET); an HRESET resets the bridge itself. The hold of the second ERROR cycle is kept as a safeguard."
+evidence = "literal rtl/ahb2apb/brg_ahb_fsm.sv H_ERR1 (hstate_next = H_ERR2 only if prst_ok_i); rtl/reset_ctrl/reset_ctrl.sv p_hrst and p_prst both set by sys_req_q, prst_q follows hrst_q[1]"
+reviewer = "pending: Karthik"
 
 [[waiver]]
-id       = "CE-WIN12"
+id       = "CE-ERR2HOLD"
 metric   = "expr"
-file     = "rtl/ahb2apb/ahb2apb_apb_fsm.sv"
-match    = "^line:53 \\(\\(win_i < 4'hc\\)==0\\)"
+file     = "rtl/ahb2apb/brg_ahb_fsm.sv"
+match    = "^line:58 \\(prst_ok_i==0 && \\(hstate == H_ERR2\\)==1\\) => 1"
 category = "unreachable"
-reason   = "Same guard as CB-WIN12: (win_i < 12) is never false."
-evidence = "PROVEN a_win_cap_legal, as CB-WIN12"
-reviewer = "pending: Sreyesh"
+reason   = "Same condition as CL-ERR2HOLD: H_ERR2 with the APB side in reset cannot occur."
+evidence = "as CL-ERR2HOLD"
+reviewer = "pending: Karthik"
 
 # =============================================================================
 # CODE: toggle (generated from a rule table by tools/cov/gen_toggle_waivers.py;
 # every hole below is explained by its rule's evidence)
 # =============================================================================
+[[waiver]]
+id       = "CT-DIVSLOT-ahb2apb_apb_fsm"
+metric   = "toggle"
+file     = "rtl/ahb2apb/ahb2apb_apb_fsm.sv"
+match    = "^(div_a\\[0\\]\\[0\\]:0\\->1|div_a\\[0\\]\\[0\\]:1\\->0|div_a\\[0\\]\\[1\\]:0\\->1|div_a\\[0\\]\\[1\\]:1\\->0|div_a\\[10\\]\\[0\\]:0\\->1|div_a\\[10\\]\\[0\\]:1\\->0|div_a\\[10\\]\\[1\\]:1\\->0|div_a\\[11\\]\\[0\\]:1\\->0|div_a\\[11\\]\\[1\\]:1\\->0|div_a\\[12\\]\\[0\\]:0\\->1|div_a\\[12\\]\\[0\\]:1\\->0|div_a\\[12\\]\\[1\\]:0\\->1|div_a\\[12\\]\\[1\\]:1\\->0|div_a\\[13\\]\\[0\\]:0\\->1|div_a\\[13\\]\\[0\\]:1\\->0|div_a\\[13\\]\\[1\\]:0\\->1|div_a\\[13\\]\\[1\\]:1\\->0|div_a\\[14\\]\\[0\\]:0\\->1|div_a\\[14\\]\\[0\\]:1\\->0|div_a\\[14\\]\\[1\\]:0\\->1|div_a\\[14\\]\\[1\\]:1\\->0|div_a\\[15\\]\\[0\\]:0\\->1|div_a\\[15\\]\\[0\\]:1\\->0|div_a\\[15\\]\\[1\\]:0\\->1|div_a\\[15\\]\\[1\\]:1\\->0|div_a\\[1\\]\\[0\\]:1\\->0|div_a\\[1\\]\\[1\\]:0\\->1|div_a\\[1\\]\\[1\\]:1\\->0|div_a\\[2\\]\\[0\\]:0\\->1|div_a\\[2\\]\\[0\\]:1\\->0|div_a\\[2\\]\\[1\\]:1\\->0|div_a\\[3\\]\\[0\\]:1\\->0|div_a\\[3\\]\\[1\\]:1\\->0|div_a\\[4\\]\\[0\\]:0\\->1|div_a\\[4\\]\\[0\\]:1\\->0|div_a\\[4\\]\\[1\\]:0\\->1|div_a\\[4\\]\\[1\\]:1\\->0|div_a\\[5\\]\\[0\\]:1\\->0|div_a\\[5\\]\\[1\\]:1\\->0|div_a\\[6\\]\\[0\\]:0\\->1|div_a\\[6\\]\\[0\\]:1\\->0|div_a\\[6\\]\\[1\\]:1\\->0|div_a\\[7\\]\\[0\\]:1\\->0|div_a\\[7\\]\\[1\\]:1\\->0|div_a\\[8\\]\\[0\\]:0\\->1|div_a\\[8\\]\\[0\\]:1\\->0|div_a\\[8\\]\\[1\\]:0\\->1|div_a\\[8\\]\\[1\\]:1\\->0|div_a\\[9\\]\\[0\\]:1\\->0|div_a\\[9\\]\\[1\\]:0\\->1|div_a\\[9\\]\\[1\\]:1\\->0)$"
+category = "constant"
+reason   = "div_a[k] is the window's divider from the parameter APB_DIV (2 bits per window): constant in every build, and slots 12 to 15 are tied 0; it never changes during a run."
+evidence = "literal rtl/ahb2apb/ahb2apb_apb_fsm.sv:54-57 assign div_a[k] = APB_DIV[2*k +: 2] / 2'b00"
+reviewer = "pending: Karthik"
+
 [[waiver]]
 id       = "CT-SIZE2-ahb2apb_bridge"
 metric   = "toggle"
@@ -46,7 +56,7 @@ match    = "^(hsize_i\\[2\\]:0\\->1|hsize_i\\[2\\]:1\\->0)$"
 category = "constant"
 reason   = "The AHB is 32 bits wide: HSIZE <= word, so HSIZE[2] is 0 on the shared bus."
 evidence = "literal rtl/core/iport_master.sv:89, rtl/core/load_store_unit.sv:32, rtl/debug/sba_master.sv:42, rtl/dma/dma_engine.sv {1'b0, size}"
-reviewer = "pending: Sreyesh"
+reviewer = "pending: Karthik"
 
 [[waiver]]
 id       = "CT-TOCNT-ahb2apb_apb_fsm"
@@ -56,7 +66,7 @@ match    = "^(to_cnt\\[4\\]:0\\->1|to_cnt\\[4\\]:1\\->0)$"
 category = "constant"
 reason   = "The 5-bit timeout counter stops at TIMEOUT-1 = 15, so bit 4 is never set."
 evidence = "PROVEN fv_apb / fv_apb_div a_to_cnt_max (rtl/ahb2apb/ahb2apb_sva.sv)"
-reviewer = "pending: Sreyesh"
+reviewer = "pending: Karthik"
 
 [[waiver]]
 id       = "CT-WORDALIGN-ahb2apb_bridge"
@@ -66,5 +76,5 @@ match    = "^(addr_cap\\[0\\]:0\\->1|addr_cap\\[0\\]:1\\->0|addr_cap\\[1\\]:0\\-
 category = "constant"
 reason   = "Only word transfers reach APB (sub-word is rejected, a_subword_no_apb PROVEN) and an AHB-Lite word transfer is word-aligned, so the captured address and PADDR bits [1:0] are 0."
 evidence = "PROVEN fv_apb a_subword_no_apb; AHB-Lite alignment rule checked by ahb_lite_checker on every master port; GARUDA masters: BUS-E (a_iport_pc_aligned PROVEN), the LSU traps misaligned accesses"
-reviewer = "pending: Sreyesh"
+reviewer = "pending: Karthik"
 

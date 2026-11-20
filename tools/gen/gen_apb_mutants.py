@@ -37,7 +37,7 @@ MUTANTS = [
  ("P07", F, "            psel_o <= win_hot;\n", "            psel_o <= win_hot;\n            penable_o <= 1'b1;\n",
   "PENABLE with PSEL (no SETUP cycle)"),
  ("P08", H, "                hreadyout_o = prst_ok_i;", "                hreadyout_o = 1'b1;", "[N-9.2] gate removed: HREADYOUT while PRESET is asserted"),
- ("P09", H, "                hresp_o = 1'b1;\n                hstate_next = H_ERR2;", "                hresp_o = 1'b1;\n                hstate_next = H_IDLE;",
+ ("P09", H, "                if (prst_ok_i) begin\n                    hstate_next = H_ERR2;", "                if (prst_ok_i) begin\n                    hstate_next = H_IDLE;",
   "one-cycle ERROR (no second cycle)"),
  ("P10", B, "            hrdata_o <= apb_rdata;", "            hrdata_o <= 32'd0;", "read data not returned"),
  ("P11", B, "            wdata_cap <= hwdata_i;", "            wdata_cap <= wdata_cap;",

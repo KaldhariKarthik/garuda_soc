@@ -108,8 +108,8 @@ static_lint:                                     ## HAL, every rule, judged by h
 	 rm -f hal.design_facts; \
 	 python3 tools/hal_zero.py $(SIM_DIR)/static/hal.log $(HAL_SCOPE)
 
-# HAL_SCOPE=--own while the vendor IP review is open; empty judges everything
-HAL_SCOPE ?= --own
+# HAL_SCOPE: empty judges the whole chip (vendor review done 2026-11-20); --own judges own RTL only
+HAL_SCOPE ?=
 
 # make static_lint_selfcheck: does the gate fail on a stale exception? It adds one row that
 # matches no finding to a COPY of hal_exceptions.tsv and expects tools/hal_zero.py to refuse it.

@@ -2028,3 +2028,54 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_maxcnt	1	PASS	OK	
 2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_dma16	1	PASS	OK	
 2026-11-20T08:33:12+05:30	8db238050bb7	True	env	env_held_err	1	PASS	OK	
+2026-11-20T21:46:11+05:30	e5b2f5c1abac	True	probe	probe_dma9	1	PASS	OK	
+2026-11-20T21:46:11+05:30	e5b2f5c1abac	True	probe	probe_dma10	1	PASS	OK	
+2026-11-20T21:46:11+05:30	e5b2f5c1abac	True	probe	probe_r9_sar	1	PASS	OK	
+2026-11-20T21:46:11+05:30	e5b2f5c1abac	True	probe	probe_sar_hi	1	PASS	OK	
+2026-11-20T21:46:11+05:30	e5b2f5c1abac	True	probe	probe_dma11a	1	PASS	OK	
+2026-11-20T21:46:11+05:30	e5b2f5c1abac	True	probe	probe_dma11b	1	PASS	OK	
+2026-11-20T21:46:11+05:30	e5b2f5c1abac	True	probe	probe_unaligned	1	PASS	OK	
+2026-11-20T21:46:11+05:30	e5b2f5c1abac	True	probe	probe_stop_size	1	PASS	OK	
+2026-11-20T21:46:11+05:30	e5b2f5c1abac	True	probe	probe_m2m_ack	1	PASS	OK	
+2026-11-20T21:46:11+05:30	e5b2f5c1abac	True	probe	probe_ack	1	PASS	OK	
+2026-11-20T21:47:08+05:30	e5b2f5c1abac	True	probe.cov	probe_dma9	1	PASS	OK	
+2026-11-20T21:47:08+05:30	e5b2f5c1abac	True	probe.cov	probe_dma10	1	PASS	OK	
+2026-11-20T21:47:08+05:30	e5b2f5c1abac	True	probe.cov	probe_r9_sar	1	PASS	OK	
+2026-11-20T21:47:08+05:30	e5b2f5c1abac	True	probe.cov	probe_sar_hi	1	PASS	OK	
+2026-11-20T21:47:08+05:30	e5b2f5c1abac	True	probe.cov	probe_dma11a	1	PASS	OK	
+2026-11-20T21:47:08+05:30	e5b2f5c1abac	True	probe.cov	probe_dma11b	1	PASS	OK	
+2026-11-20T21:47:08+05:30	e5b2f5c1abac	True	probe.cov	probe_unaligned	1	PASS	OK	
+2026-11-20T21:47:08+05:30	e5b2f5c1abac	True	probe.cov	probe_stop_size	1	PASS	OK	
+2026-11-20T21:47:08+05:30	e5b2f5c1abac	True	probe.cov	probe_m2m_ack	1	PASS	OK	
+2026-11-20T21:47:08+05:30	e5b2f5c1abac	True	probe.cov	probe_ack	1	PASS	OK	
+2026-11-20T21:48:50+05:30	e5b2f5c1abac	True	probe.cov	probe_dma9	1	PASS	OK	
+2026-11-20T21:48:50+05:30	e5b2f5c1abac	True	probe.cov	probe_dma10	1	PASS	OK	
+2026-11-20T21:48:50+05:30	e5b2f5c1abac	True	probe.cov	probe_r9_sar	1	PASS	OK	
+2026-11-20T21:48:50+05:30	e5b2f5c1abac	True	probe.cov	probe_sar_hi	1	PASS	OK	
+2026-11-20T21:48:50+05:30	e5b2f5c1abac	True	probe.cov	probe_dma11a	1	PASS	OK	
+2026-11-20T21:48:50+05:30	e5b2f5c1abac	True	probe.cov	probe_dma11b	1	PASS	OK	
+2026-11-20T21:48:50+05:30	e5b2f5c1abac	True	probe.cov	probe_unaligned	1	PASS	OK	
+2026-11-20T21:48:50+05:30	e5b2f5c1abac	True	probe.cov	probe_stop_size	1	PASS	OK	
+2026-11-20T21:48:50+05:30	e5b2f5c1abac	True	probe.cov	probe_m2m_ack	1	PASS	OK	
+2026-11-20T21:48:50+05:30	e5b2f5c1abac	True	probe.cov	probe_ack	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_smoke	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_qual	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_coll	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_reset	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_arb	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_req	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_matrix	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_edge	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_bits	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_r9	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	negctl_held_request	1	FAIL	XFAIL:PLANTED	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] dma_req_checker: 1 D-21 violation(s) by the request agent (t=1746000)
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_rand	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	negctl_sb_wdata	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0 beat 0: wrote 000000f2, the read carried 000000f3 (size 0)
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	negctl_sb_drop	1	FAIL	XFAIL:PLANTED	pass marker missing; 13 [FAIL] line(s) | first: [FAIL] [SB] ch0: a second read before the write of beat 0
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	negctl_sb_stat	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: REMAINING 1, 6 of 6 beats done
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	negctl_sb_irq	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: dma_complete 0
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	negctl_sb_ack	1	FAIL	XFAIL:PLANTED	pass marker missing; 3 [FAIL] line(s) | first: [FAIL] [SB] ch0: 7 acks for 6 beats
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	negctl_beatchk_lane0	1	FAIL	XFAIL:PLANTED	pass marker missing; 70 [FAIL] line(s); 24 assertion failure(s) | first: [2738000] %Error: dma_props_a.sv:620: Assertion failed in tb_dma_env.dut.u_dma_props_a.a_write_data: [SVA-FAIL] a_write_data: w
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_maxcnt	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_dma16	1	PASS	OK	
+2026-11-20T22:05:07+05:30	e5b2f5c1abac	True	env.cov	env_held_err	1	PASS	OK	

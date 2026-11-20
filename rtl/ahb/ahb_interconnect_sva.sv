@@ -49,13 +49,18 @@ module ahb_interconnect_sva (
     localparam [1:0] SEQ = 2'b11;
 
     // ======================= the surroundings (assumed in formal) =============
-    `define AHB_ASSUME_MASTER(P, T, A, W, S, B, RDY) \
+    // A master holds its address phase until it is accepted; in the first cycle of an
+    // ERROR to its own data phase (HRESP high, HREADY low) it may instead go IDLE (AHB-Lite
+    // cancel; FA-4 of tb/ahb/formal, which the formal harness states the same way). The
+    // cancel exception added 2026-11-20: tb_ahb_env's M0 cancels on purpose (FA-4) and
+    // these properties fired on every ERROR it met.
+    `define AHB_ASSUME_MASTER(P, T, A, W, S, RDY, RESP) \
     assume_``P``_holds: assume property (@(posedge hclk) disable iff (!hreset_n) \
-        (T[1] && !RDY) |=> $stable({T, A, W, S, B}) );
-    `AHB_ASSUME_MASTER(i, i_htrans_i, i_haddr_i, i_hwrite_i, i_hsize_i, 3'b001, i_hready_o)
-    `AHB_ASSUME_MASTER(d, d_htrans_i, d_haddr_i, d_hwrite_i, d_hsize_i, 3'b000, d_hready_o)
-    `AHB_ASSUME_MASTER(s, s_htrans_i, s_haddr_i, s_hwrite_i, s_hsize_i, 3'b000, s_hready_o)
-    `AHB_ASSUME_MASTER(m, m_htrans_i, m_haddr_i, m_hwrite_i, m_hsize_i, 3'b000, m_hready_o)
+        (T[1] && !RDY) |=> (($past(RESP) && T == 2'b00) || $stable({T, A, W, S})) );
+    `AHB_ASSUME_MASTER(i, i_htrans_i, i_haddr_i, i_hwrite_i, i_hsize_i, i_hready_o, i_hresp_o)
+    `AHB_ASSUME_MASTER(d, d_htrans_i, d_haddr_i, d_hwrite_i, d_hsize_i, d_hready_o, d_hresp_o)
+    `AHB_ASSUME_MASTER(s, s_htrans_i, s_haddr_i, s_hwrite_i, s_hsize_i, s_hready_o, s_hresp_o)
+    `AHB_ASSUME_MASTER(m, m_htrans_i, m_haddr_i, m_hwrite_i, m_hsize_i, m_hready_o, m_hresp_o)
     `define AHB_ASSUME_SLAVE(N, RDY, RESP) \
     assume_``N``_error2: assume property (@(posedge hclk) disable iff (!hreset_n) \
         (RESP && !RDY) |=> (RESP && RDY) );
@@ -84,7 +89,8 @@ module ahb_interconnect_sva (
         else $error("[SVA-FAIL] a_grant_held: the grant moved while HREADY was low");
     // AHB: the address phase on the shared layer is stable until accepted
     a_addr_phase_stable: assert property (@(posedge hclk) disable iff (!hreset_n)
-        (htrans_o[1] && !hready_o) |=> $stable({haddr_o, htrans_o, hwrite_o, hsize_o}) )
+        (htrans_o[1] && !hready_o) |=> (($past(hresp_shared) && htrans_o == 2'b00)
+                                        || $stable({haddr_o, htrans_o, hwrite_o, hsize_o})) )
         else $error("[SVA-FAIL] a_addr_phase_stable: the address phase changed before it was accepted");
     // [N-7.6] AHB-3: a SEQ beat is never presented to a slave whose master did not own the previous beat
     // Independent of the RTL's own seq_break: a shadow record of who owned the last accepted beat.

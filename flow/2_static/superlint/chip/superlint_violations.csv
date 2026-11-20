@@ -1,0 +1,24 @@
+****************************************************************
+  Jasper - Superlint Violation/Property Report  
+****************************************************************
+
+Report Information
+"module","created date"
+"garuda_chip_top","Nov 20 10:27:15 IST 2026"
+
+
+
+VIOLATIONS SUMMARY
+Domain: AUTO_FORMAL
+"Category","Error","Warning","Info","Waived","Total"
+"AUTO_FORMAL_BUS","5","0","0","0","5"
+"AUTO_FORMAL_DEAD_CODE","34","0","0","0","34"
+"AUTO_FORMAL_OVERFLOW","23","0","0","0","23"
+"Total","62","0","0","0","62"
+
+
+
+
+
+
+[Jasper 2022.09] [Platform Linux] [Version 2022.09p002 64 bits] [Build date 2022.11.24 12:29:17 UTC]

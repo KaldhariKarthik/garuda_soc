@@ -23,7 +23,9 @@ suites = [
 
 # Design = the core RTL that ships. Bound SVA (*_sva.sv) is checker code and counts
 # as testbench (H5), as do the benches and the bus/memory models.
-design    = ["rtl/core/*.v"]
+# the design files by name (2026-11-20: the glob rtl/core/*.v matched nothing after the
+# .v -> .sv rename of 0e5e464, so no design point was counted; *.sv would take in the checkers)
+design    = ["rtl/core/alu_unit.sv", "rtl/core/branch_predict.sv", "rtl/core/branch_unit.sv", "rtl/core/clic_ctrl.sv", "rtl/core/core_clk_gate.sv", "rtl/core/core_ex_pkg.sv", "rtl/core/csr_file.sv", "rtl/core/csr_rw.sv", "rtl/core/decode_control.sv", "rtl/core/dport_master.sv", "rtl/core/ex_mem.sv", "rtl/core/ex_stage.sv", "rtl/core/forward_unit.sv", "rtl/core/garuda_core_top.sv", "rtl/core/garuda_pc_gen.sv", "rtl/core/garuda_rvfi.sv", "rtl/core/hazard_fwd_unit.sv", "rtl/core/id_ex.sv", "rtl/core/id_stage.sv", "rtl/core/if_id.sv", "rtl/core/if_stage_top.sv", "rtl/core/imm_gen.sv", "rtl/core/iport_master.sv", "rtl/core/load_formatter.sv", "rtl/core/load_store_unit.sv", "rtl/core/mem_stage.sv", "rtl/core/mem_wb_reg.sv", "rtl/core/mul32.sv", "rtl/core/pipe_ctrl.sv", "rtl/core/prefetch_buf.sv", "rtl/core/regfile.sv", "rtl/core/trap_ctrl.sv", "rtl/core/wb_stage.sv"]
 testbench = ["tb/core/*", "tb/soc/*", "tb/cov/*", "rtl/core/*_sva.sv", "tb/uvm/*"]
 
 # Covergroups that sample the DUT (design-behaviour functional coverage):

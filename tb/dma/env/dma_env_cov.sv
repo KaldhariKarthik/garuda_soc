@@ -263,7 +263,9 @@ module dma_env_cov (
                 c_starve.sample(n, elig_w[n]); elig_w[n] = 0;
             end else if (eligible[n]) elig_w[n]++;
             else elig_w[n] = 0;
-            if (beat_err[n] && (st_q == 3'd1 || st_q == 3'd3)) c_r9.sample(st_q == 3'd3, f_mode(n));
+            // side from ERRPHASE, not the state: since DMA-10 a bad DAR is refused in E_RA, before the
+            // source read, with ERRPHASE = write (2026-11-20; the state test counted it as SAR)
+            if (beat_err[n] && (st_q == 3'd1 || st_q == 3'd3)) c_r9.sample(err_phase == 3'd2, f_mode(n));
         end
         st_q <= eng_st;
     end

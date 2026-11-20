@@ -1,11 +1,10 @@
-check_tree: 1828 tracked files, 319 bug IDs, 0 problem(s)
+check_tree: 1845 tracked files, 323 bug IDs, 0 problem(s)
 check_applicability: 156 own modules, 0 problem(s)
 formal_mutants: 34 mutants, all current
 check_mutants: every planted defect applies
 vendor_sync: 16 files across 5 IPs match HASHES.txt
 vendor_sync: 15 file(s) carry a recorded GARUDA patch, and match it
-hal_zero: --own: 273 open findings in rtl/third_party not judged (vendor review, D-40)
-hal_zero: 4583 findings: 3959 under rules off by hal_rules.tsv, 351 excepted per line (178 rows), 0 open (E 0, W 0, N 0), 0 bad rows
+hal_zero: 4582 findings: 3958 under rules off by hal_rules.tsv, 624 excepted per line (412 rows), 0 open (E 0, W 0, N 0), 0 bad rows
 tb_crg         tb_crg: checks=43  FAIL=0 RESULT: PASSED 
 tb_clic        tb_clic: checks=24  FAIL=0 RESULT: PASSED 
 tb_timers      tb_timers: checks=27  FAIL=0 RESULT: PASSED 
@@ -57,17 +56,14 @@ uvm_spis  directed_s1 PASS
 uvm_spis  random_s1 PASS
 uvm_spis  random_s2 PASS
 uvm_spis  random_s3 PASS
-uvm_i2c  reg_s1 FAIL
-uvm_i2c  directed_s1 FAIL
-uvm_i2c  random_s1 FAIL
-uvm_i2c  random_s2 FAIL
-uvm_i2c  random_s3 FAIL
-make[1]: *** [flow/mk/track_b.mk:172: uvm_i2c] Error 1
+uvm_i2c  reg_s1 PASS
+uvm_i2c  directed_s1 PASS
+uvm_i2c  random_s1 PASS
+uvm_i2c  random_s2 PASS
+uvm_i2c  random_s3 PASS
 uvm_uart  reg_s1 PASS
 uvm_uart  directed_s1 PASS
 uvm_uart  random_s1 PASS
 uvm_uart  random_s2 PASS
 uvm_uart  random_s3 PASS
-make[1]: Target 'uvm_b' not remade because of errors.
-gate_b: FAIL
-make: *** [flow/mk/track_b.mk:297: gate_b] Error 1
+gate_b: PASS

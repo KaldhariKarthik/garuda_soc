@@ -29,8 +29,8 @@ module tb_ahb_env;
     import garuda_map_pkg::*;
 
     logic hclk = 1'b0;
-    logic hreset_n;
-    initial #0 hreset_n = 1'b0;                 // reset as an edge (TB-22 pattern)
+    logic hreset_n = 1'b1;
+    initial #0.5 hreset_n = 1'b0;  // TB-A10: starts at 1 and falls before the first clock edge (a real edge in 2-state simulation)
     always #2 hclk = ~hclk;                     // 250 MHz
 
     // ---- masters -------------------------------------------------------------------

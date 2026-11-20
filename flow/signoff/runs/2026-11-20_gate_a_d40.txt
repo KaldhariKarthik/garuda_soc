@@ -1,36 +1,22 @@
-check_tree: 1828 tracked files, 318 bug IDs, 0 problem(s)
+check_tree: 1845 tracked files, 322 bug IDs, 0 problem(s)
 check_applicability: 156 own modules, 0 problem(s)
 formal_mutants: 34 mutants, all current
 check_mutants: every planted defect applies
 vendor_sync: 16 files across 5 IPs match HASHES.txt
 vendor_sync: 15 file(s) carry a recorded GARUDA patch, and match it
 	-xmerror CUVDSI
-	Total errors/warnings found outside modules and primitives:
-		errors: 0, warnings: 2
 EX SMOKE: ALL CHECKS PASSED
 	-xmerror CUVDSI
-	Total errors/warnings found outside modules and primitives:
-		errors: 0, warnings: 3
 EX SMOKE: ALL CHECKS PASSED
 	-xmerror CUVDSI
-	Total errors/warnings found outside modules and primitives:
-		errors: 0, warnings: 2
 ID_EX + FWD SMOKE: ALL CHECKS PASSED
 	-xmerror CUVDSI
-	Total errors/warnings found outside modules and primitives:
-		errors: 0, warnings: 2
 EXMEM + IFID SMOKE: ALL CHECKS PASSED
 	-xmerror CUVDSI
-	Total errors/warnings found outside modules and primitives:
-		errors: 0, warnings: 2
 PIPE_CTRL SMOKE: ALL CHECKS PASSED
 	-xmerror CUVDSI
-	Total errors/warnings found outside modules and primitives:
-		errors: 0, warnings: 2
 CSR_FILE SMOKE: ALL CHECKS PASSED
 	-xmerror CUVDSI
-	Total errors/warnings found outside modules and primitives:
-		errors: 0, warnings: 2
 TRAP_CTRL SMOKE: checks=64 ALL CHECKS PASSED
 decode_control         PASS=3211  FAIL=0    SVA_FAIL=0
 imm_gen                PASS=2047  FAIL=0    SVA_FAIL=0

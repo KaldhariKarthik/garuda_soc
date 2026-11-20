@@ -74,10 +74,10 @@ EXTSEQ	off	off	style	Logic in the FSM's sequential process (HAL's FSM coding gui
 BADFSM	off	off	style	FSM not in HAL's coding style.	FSM rules stay on
 MULTMS	off	off	style	More than one timescale (vendored files keep theirs).	every package and module sets timeunit; simulation at 1ps
 # ---- vendored IP only: unused parts of an IP GARUDA does not use --------------------------------
-# TO DECIDE (Karthik): these are correctness rules, and D-40 reviews vendor correctness findings
-# one by one. Proposed per IP because every finding of the four is the same case: a part of the
-# IP that GARUDA's configuration never uses (e.g. INFNOT: 469 FIFO entries past the used depth).
-# The alternative is one hal_exceptions.tsv row per line (about 100 lines).
+# DECIDED (Karthik, 2026-11-20): one reason per IP. These are correctness rules, but every
+# finding of the four in vendored IP is the same case: a part of the IP that GARUDA's
+# configuration never uses (e.g. INFNOT: 469 FIFO entries past the used depth). The other
+# correctness findings in vendored IP are reviewed one by one.
 USEPRT	on	off	correctness	Vendored: ports of the IP that GARUDA's configuration does not use.	the GARUDA wrapper ties or leaves them by intent; the wrapper's own USEPRT stays on
 URDREG	on	off	correctness	Vendored: registers the IP assigns and GARUDA's configuration never reads.	block regression of the IP
 TIELOG	on	off	correctness	Vendored: outputs the IP ties to a constant.	block regression of the IP

@@ -6,7 +6,7 @@
 ---------------------------------------------------
  Num  | module          | created date             
 ---------------------------------------------------
-[1]     garuda_chip_top   Nov 10 12:04:36 IST 2026 
+[1]     garuda_chip_top   Nov 20 10:27:15 IST 2026 
 
 
 ********************************************************************************************
@@ -17,9 +17,9 @@ VIOLATIONS SUMMARY
  Num  | Category              | Error | Warning | Info | Waived | Total 
 ------------------------------------------------------------------------
 [1]     AUTO_FORMAL_BUS         5       0         0      0        5     
-[2]     AUTO_FORMAL_DEAD_CODE   38      0         0      0        38    
-[3]     AUTO_FORMAL_OVERFLOW    34      0         0      0        34    
-[4]     Total                   77      0         0      0        77    
+[2]     AUTO_FORMAL_DEAD_CODE   34      0         0      0        34    
+[3]     AUTO_FORMAL_OVERFLOW    23      0         0      0        23    
+[4]     Total                   62      0         0      0        62    
 
 
 

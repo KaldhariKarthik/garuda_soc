@@ -270,6 +270,28 @@ module tb_dma_probe;
                             n_rd - nr0, n_wr - nw0));
             req[1] = 0;
         end
+        // ===== high source address (coverage, 2026-11-20): SAR bit 23 set ======================
+        // Every other case reads below 0x0080_0000 in its window; this one copies four words
+        // from 0x2080_0000 so the address bits a source can carry all toggle.
+        "sar_hi": begin
+            do_reset();
+            for (int i = 0; i < 4; i++) begin
+                mem[32'h2080_0000 + 4 * i] = 32'hC0DE_0000 + i;
+                mem[32'h2000_3000 + 4 * i] = 32'h0;
+            end
+            apb_wr(R(2, SAR), 32'h2080_0000); apb_wr(R(2, DAR), 32'h2000_3000); apb_wr(R(2, CNT), 4);
+            apb_wr(R(2, CR), CRV(1, M2M, 1, 1, W));
+            wait_bit("COMPLETE", 2, 2000, ok);
+            repeat (10) @(posedge hclk);
+            check(ok && mem[32'h2000_3000] == 32'hC0DE_0000 && mem[32'h2000_300C] == 32'hC0DE_0003,
+                  "[F17] M2M from 0x2080_0000: four words copied, SAR bit 23 used");
+            // and back below it, so the bit also falls
+            apb_wr(R(2, SAR), 32'h2000_0000); apb_wr(R(2, DAR), 32'h2000_3010); apb_wr(R(2, CNT), 1);
+            apb_wr(R(2, CR), CRV(1, M2M, 1, 1, W));
+            wait_bit("COMPLETE", 2, 2000, ok);
+            repeat (10) @(posedge hclk);
+            check(ok && mem[32'h2000_3010] == 32'hA000_0000, "[F17] then M2M from 0x2000_0000: SAR bit 23 clear again");
+        end
         // ===== DMA-11 a: re-arm with CNT = 0 while a beat is in flight (F44) ==================
         "dma11a": begin
             do_reset();
@@ -389,7 +411,7 @@ module tb_dma_probe;
                             n_pulses, bad_width, bad_edges));
         end
         default: begin
-            $display("[FAIL] unknown +CASE=%s (dma9 dma10 r9_sar dma11a dma11b unaligned stop_size m2m_ack ack)", tcase);
+            $display("[FAIL] unknown +CASE=%s (dma9 dma10 r9_sar sar_hi dma11a dma11b unaligned stop_size m2m_ack ack)", tcase);
             fails++;
         end
         endcase

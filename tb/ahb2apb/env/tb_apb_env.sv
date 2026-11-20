@@ -38,14 +38,16 @@ module tb_apb_env;
     localparam [15:0] MASK = `APB_ENV_MASK;
 
     // ---- clocks and resets (reset starts X: TB-22 / TB-46) ---------------------------
-    reg refclk = 1'b0, ext_rst_n;
-    initial #0 ext_rst_n = 1'b0;
+    // TB-A10 (2026-11-20, missed on 11-19): the reset starts at 1 and falls before the
+    // first refclk edge, a real falling edge in a 2-state simulator too
+    reg refclk = 1'b0, ext_rst_n = 1'b1;
+    initial #0.5 ext_rst_n = 1'b0;
     always #1 refclk = ~refclk;
     wire aon, hclk, pclk, pclk_phase, div_busy; wire [1:0] div_act;
     clk_div u_clk (.refclk(refclk), .ext_rst_n(ext_rst_n), .div_sel_i(2'b00), .aon_clk(aon),
                    .hclk(hclk), .pclk(pclk), .pclk_phase_o(pclk_phase), .div_act_o(div_act), .div_busy_o(div_busy));
-    reg hreset_n, preset_n;
-    initial #0 begin hreset_n <= 1'b0; preset_n <= 1'b0; end
+    reg hreset_n = 1'b1, preset_n = 1'b1;
+    initial #0.5 begin hreset_n <= 1'b0; preset_n <= 1'b0; end  // TB-A10: starts at 1 and falls before the first clock edge (a real edge in 2-state simulation)
 
     // ---- AHB master (the B1 agent) ----------------------------------------------------
     wire [31:0] haddr, hwdata, hrdata; wire [1:0] htrans; wire hwrite, hready, hresp;

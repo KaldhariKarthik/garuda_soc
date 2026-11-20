@@ -17,8 +17,8 @@
 //                        SEQ -> NONSEQ on seq_break (AHB-3), HPROT substitution [N-5.2]
 // =============================================================================
 module tb_ahb_units;
-    logic clk = 1'b0, rst_n;
-    initial #0 rst_n = 1'b0;
+    logic clk = 1'b0, rst_n = 1'b1;  // TB-A10: starts at 1 and falls before the first clock edge (a real edge in 2-state simulation)
+    initial #0.5 rst_n = 1'b0;
     always #2 clk = ~clk;
 
     int checks = 0, fails = 0, cycles = 2000;

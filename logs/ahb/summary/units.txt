@@ -1,5 +1,5 @@
-garuda-run 1  suite units  block ahb  2026-10-15T21:54:26+05:30
-design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+garuda-run 1  suite units  block ahb  2026-11-20T21:30:37+05:30
+design e5b2f5c1abacff26375b4f5ef1a606ac6d034595  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
 
 PASS    OK                      unit_decoder              
 PASS    OK                      unit_arbiter              
@@ -15,7 +15,7 @@ FAIL    XFAIL:PLANTED           negctl_master_port_a04    pass marker missing; 2
 FAIL    XFAIL:PLANTED           negctl_default_slave_a12  pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.6] state 1: HREADYOUT 1 HRESP 1 (t=37000)
 FAIL    XFAIL:PLANTED           negctl_slave_mux_a14      pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [N-7.5] data-phase select register (t=17000)
 FAIL    XFAIL:PLANTED           negctl_master_mux_a01     pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-1] HWDATA from the data-phase owner (t=9000)
-FAIL    XFAIL:PLANTED           negctl_master_mux_a19     pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-3] SEQ -> NONSEQ only on seq_break (t=61000)
+FAIL    XFAIL:PLANTED           negctl_master_mux_a19     pass marker missing; 20 [FAIL] line(s) | first: [FAIL] [AHB-3] SEQ -> NONSEQ only on seq_break (t=53000)
 
 PASS    6
 FAIL    9

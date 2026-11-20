@@ -1,34 +1,36 @@
 Coverage report: block ahb2apb  (Verilator 5.052, merged per module definition)
-runs merged : 28 passing runs from 5 suite summaries
+runs merged : 29 passing runs from 5 suite summaries
       1  logs/ahb2apb/summary/bridge.cov.tsv
       2  logs/ahb2apb/summary/probe.cov.tsv
-     20  logs/ahb2apb/summary/env.cov.tsv
+     21  logs/ahb2apb/summary/env.cov.tsv
       2  logs/ahb2apb/summary/units.cov.tsv
       3  logs/common/summary/b0.cov.tsv
 targets     : design code >= 95.0% per metric per module; design functional = 100.0% of bins (after reviewed waivers)
 
 == DESIGN CODE COVERAGE (sign-off) ==
 module                                  line            branch              expr            toggle               fsm   waived
-ahb2apb_apb_fsm                 9/9     100.0       7/7     100.0       9/9     100.0     386/386   100.0                  -   4
-ahb2apb_bridge                  9/9     100.0      12/12    100.0      29/29    100.0     638/638   100.0                  -   11
-ahb2apb_fabric                  2/2     100.0                  -     26/26    100.0     140/140   100.0                  -   0
-TOTAL                          20/20    100.0      19/19    100.0      64/64    100.0    1164/1164  100.0                  -   15
-RAW (before waivers)           20/21     95.2      19/20     95.0      64/65     98.5    1164/1176   99.0                  -
+ahb2apb_apb_fsm                12/12    100.0      18/18    100.0      19/19    100.0     259/259   100.0                  -   53
+ahb2apb_bridge                 10/10    100.0      10/10    100.0      39/39    100.0     640/640   100.0                  -   10
+ahb2apb_fabric                             -                 -     26/26    100.0     140/140   100.0                  -   0
+apb_phase_fsm                  10/10    100.0       4/4     100.0       4/4     100.0      32/32    100.0                  -   0
+brg_ahb_fsm                     8/8     100.0      10/10    100.0       8/8     100.0      36/36    100.0                  -   3
+TOTAL                          40/40    100.0      42/42    100.0      96/96    100.0    1107/1107  100.0                  -   66
+RAW (before waivers)           40/42     95.2      42/42    100.0      96/97     99.0    1107/1170   94.6                  -
 
 == TESTBENCH CODE COVERAGE (reported, not sign-off) ==
 module                                  line            branch              expr            toggle               fsm   waived
-ahb2apb_cov                    26/28     92.9      31/40     77.5      46/58     79.3     144/242    59.5                  -   0
+ahb2apb_cov                    28/28    100.0      33/40     82.5      47/58     81.0     146/242    60.3                  -   0
 ahb2apb_cov__Wz1               28/28    100.0      37/40     92.5      54/58     93.1     210/242    86.8                  -   0
-ahb2apb_cov__Wz1_Az2           26/28     92.9      32/40     80.0      51/58     87.9     164/242    67.8                  -   0
-ahb2apb_sva                     5/5     100.0      24/28     85.7      75/85     88.2     480/726    66.1                  -   0
+ahb2apb_cov__Wz1_Az2           28/28    100.0      37/40     92.5      55/58     94.8     222/242    91.7                  -   0
+ahb2apb_sva                     5/5     100.0      24/28     85.7      75/85     88.2     485/726    66.8                  -   0
 ahb2apb_sva__Wz1                5/5     100.0      25/28     89.3      83/85     97.6     696/726    95.9                  -   0
-ahb2apb_sva__Wz1_Az2            5/5     100.0      24/28     85.7      80/85     94.1     553/726    76.2                  -   0
+ahb2apb_sva__Wz1_Az2            5/5     100.0      25/28     89.3      84/85     98.8     702/726    96.7                  -   0
 ahb_lite_master_bfm            10/16     62.5       7/8      87.5      18/24     75.0     331/1986   16.7                  -   0
 ahb_master_agent__I1            9/9     100.0      21/24     87.5      42/44     95.5     224/238    94.1                  -   0
-apb_checker                     6/6     100.0      41/68     60.3      60/66     90.9     224/376    59.6                  -   0
+apb_checker                     6/6     100.0      41/68     60.3      60/66     90.9     232/376    61.7                  -   0
 apb_checker__E1                 6/6     100.0      42/68     61.8      60/66     90.9     222/376    59.0                  -   0
-apb_checker__E3                 2/6      33.3      28/68     41.2      51/66     77.3     166/376    44.1                  -   0
-apb_checker__E7                 2/6      33.3      29/68     42.6      51/66     77.3     178/376    47.3                  -   0
+apb_checker__E3                 4/6      66.7      31/68     45.6      52/66     78.8     220/376    58.5                  -   0
+apb_checker__E7                 2/6      33.3      29/68     42.6      51/66     77.3     216/376    57.4                  -   0
 apb_checker__MB4                5/6      83.3      37/68     54.4      61/66     92.4     204/376    54.3                  -   0
 apb_slave_model                 7/9      77.8      13/18     72.2      24/25     96.0     187/396    47.2                  -   0
 apb_target                     18/19     94.7      16/24     66.7      25/28     89.3     208/284    73.2                  -   0
@@ -44,17 +46,19 @@ apb_target__W9                 19/19    100.0      17/24     70.8      26/28    
 apb_target__Wa                 19/19    100.0      17/24     70.8      26/28     92.9     212/284    74.6                  -   0
 apb_target__Wb                 19/19    100.0      17/24     70.8      26/28     92.9     226/284    79.6                  -   0
 dma_req_checker__Nz4            9/11     81.8       7/8      87.5       7/9      77.8       9/10     90.0                  -   0
-garuda_apb_bfm                  7/9      77.8                  -                 -     99/166    59.6                  -   0
-garuda_apb_shim                11/11    100.0      15/16     93.8      53/61     86.9     273/396    68.9                  -   0
-tb_ahb2apb                     31/32     96.9      17/24     70.8      56/113    49.6     257/420    61.2                  -   0
+garuda_apb_bfm                  9/11     81.8       1/4      25.0       5/7      71.4     106/166    63.9                  -   0
+garuda_apb_dma                  3/3     100.0       6/6     100.0      15/16     93.8      83/180    46.1                  -   0
+garuda_apb_shim                 7/7     100.0       6/6     100.0      41/46     89.1     203/278    73.0                  -   0
+garuda_sync_bit                 1/1     100.0       2/2     100.0       2/2     100.0       7/12     58.3                  -   0
+tb_ahb2apb                     32/33     97.0      17/24     70.8      56/113    49.6     258/420    61.4                  -   0
 tb_apb_checker_selftest        18/19     94.7       2/4      50.0       2/2     100.0      94/150    62.7                  -   0
-tb_apb_env                    137/140    97.9      64/102    62.7      49/70     70.0     458/482    95.0                  -   0
-tb_apb_probe                   23/25     92.0       6/10     60.0      26/43     60.5      92/408    22.5                  -   0
-tb_apb_shim                    35/36     97.2       6/8      75.0      30/53     56.6     244/1344   18.2                  -   0
-tb_apb_units                   24/25     96.0      17/24     70.8      20/43     46.5     495/496    99.8                  -   0
+tb_apb_env                    140/143    97.9      64/102    62.7      49/70     70.0     459/482    95.2                  -   0
+tb_apb_probe                   24/26     92.3       6/10     60.0      26/43     60.5      93/408    22.8                  -   0
+tb_apb_shim                    36/37     97.3       6/8      75.0      31/56     55.4     317/1472   21.5                  -   0
+tb_apb_units                   25/26     96.2      19/26     73.1      22/45     48.9     496/496   100.0                  -   0
 tb_map_pkg                      9/9     100.0       5/10     50.0      12/36     33.3                  -                 -   0
-TOTAL                         671/708    94.8     733/1088   67.4    1322/1618   81.7    8660/14684  59.0                  -   0
-RAW (before waivers)          671/708    94.8     733/1088   67.4    1322/1618   81.7    8660/14684  59.0                  -
+TOTAL                         686/717    95.7     746/1092   68.3    1345/1633   82.4    9078/14886  61.0                  -   0
+RAW (before waivers)          686/717    95.7     746/1092   68.3    1345/1633   82.4    9078/14886  61.0                  -
 
 == DESIGN FUNCTIONAL COVERAGE (covergroup bins) ==
 cg_b2b (ahb2apb_cov.sv)                           14/14     100.0%   waived 0
@@ -70,25 +74,28 @@ RAW (before waivers)                              99/99     100.0%   (0 waived b
 
 == ILLEGAL / IGNORE BINS (declared in the source; not targets; illegal must stay 0) ==
 
-== WAIVERS (6) ==
-CL-HSTATE  [line/unreachable]  rtl/ahb2apb/ahb2apb_bridge.v  /^line:172 case/  -> 1 point(s)
+== WAIVERS (7) ==
+CL-HSTATE  [line/unreachable]  rtl/ahb2apb/brg_ahb_fsm.sv  /^line:92 case/  -> 1 point(s)
     reason  : The hclk FSM's 3-bit state uses six codes (H_IDLE..H_ERR2); the `default:` arm recovers the two unused codes, which no transition produces.
-    evidence: PROVEN fv_apb apb_prove + fv_apb_div div_prove a_hstate_legal (hstate <= 5), abc pdr, 2026-10-14   reviewer: pending: Sreyesh
-CB-WIN12  [branch/unreachable]  rtl/ahb2apb/ahb2apb_apb_fsm.v  /^line:53 cond_else/  -> 1 point(s)
-    reason  : win_i is the bridge's captured window, which only takes a present window 0..11; the guard (win_i < 12) protects the APB_DIV part-select and is never false.
-    evidence: PROVEN fv_apb apb_prove + fv_apb_div div_prove a_win_cap_legal (win_cap < 12 always), 2026-10-14   reviewer: pending: Sreyesh
-CE-WIN12  [expr/unreachable]  rtl/ahb2apb/ahb2apb_apb_fsm.v  /^line:53 \(\(win_i < 4'hc\)==0\)/  -> 1 point(s)
-    reason  : Same guard as CB-WIN12: (win_i < 12) is never false.
-    evidence: PROVEN a_win_cap_legal, as CB-WIN12   reviewer: pending: Sreyesh
-CT-SIZE2-ahb2apb_bridge  [toggle/constant]  rtl/ahb2apb/ahb2apb_bridge.v  /^(hsize_i\[2\]:0\->1|hsize_i\[2\]:1\->0)$/  -> 2 point(s)
+    evidence: PROVEN fv_apb apb_prove + fv_apb_div div_prove a_hstate_legal (hstate <= 5), abc pdr, 2026-10-14   reviewer: pending: Karthik
+CL-ERR2HOLD  [line/unreachable]  rtl/ahb2apb/brg_ahb_fsm.sv  /^line:58 elsif/  -> 1 point(s)
+    reason  : Since BRG-3 the bridge enters H_ERR2 only with the APB side out of reset (H_ERR1 waits for prst_ok). prst_ok can then fall only if PRESET asserts while HRESET does not, and reset_ctrl asserts both from the same request flop (and releases PRESET after HRESET); an HRESET resets the bridge itself. The hold of the second ERROR cycle is kept as a safeguard.
+    evidence: literal rtl/ahb2apb/brg_ahb_fsm.sv H_ERR1 (hstate_next = H_ERR2 only if prst_ok_i); rtl/reset_ctrl/reset_ctrl.sv p_hrst and p_prst both set by sys_req_q, prst_q follows hrst_q[1]   reviewer: pending: Karthik
+CE-ERR2HOLD  [expr/unreachable]  rtl/ahb2apb/brg_ahb_fsm.sv  /^line:58 \(prst_ok_i==0 && \(hstate == H_ERR2\)==1\) => 1/  -> 1 point(s)
+    reason  : Same condition as CL-ERR2HOLD: H_ERR2 with the APB side in reset cannot occur.
+    evidence: as CL-ERR2HOLD   reviewer: pending: Karthik
+CT-DIVSLOT-ahb2apb_apb_fsm  [toggle/constant]  rtl/ahb2apb/ahb2apb_apb_fsm.sv  /^(div_a\[0\]\[0\]:0\->1|div_a\[0\]\[0\]:1\->0|div_a\[0\]\[1\]:0\->1|div_a\[0\]\[1\]:1\->0|div_a\[10\]\[0\]:0\->1|div_a\[10\]\[0\]:1\->0|div_a\[10\]\[1\]:1\->0|div_a\[11\]\[0\]:1\->0|div_a\[11\]\[1\]:1\->0|div_a\[12\]\[0\]:0\->1|div_a\[12\]\[0\]:1\->0|div_a\[12\]\[1\]:0\->1|div_a\[12\]\[1\]:1\->0|div_a\[13\]\[0\]:0\->1|div_a\[13\]\[0\]:1\->0|div_a\[13\]\[1\]:0\->1|div_a\[13\]\[1\]:1\->0|div_a\[14\]\[0\]:0\->1|div_a\[14\]\[0\]:1\->0|div_a\[14\]\[1\]:0\->1|div_a\[14\]\[1\]:1\->0|div_a\[15\]\[0\]:0\->1|div_a\[15\]\[0\]:1\->0|div_a\[15\]\[1\]:0\->1|div_a\[15\]\[1\]:1\->0|div_a\[1\]\[0\]:1\->0|div_a\[1\]\[1\]:0\->1|div_a\[1\]\[1\]:1\->0|div_a\[2\]\[0\]:0\->1|div_a\[2\]\[0\]:1\->0|div_a\[2\]\[1\]:1\->0|div_a\[3\]\[0\]:1\->0|div_a\[3\]\[1\]:1\->0|div_a\[4\]\[0\]:0\->1|div_a\[4\]\[0\]:1\->0|div_a\[4\]\[1\]:0\->1|div_a\[4\]\[1\]:1\->0|div_a\[5\]\[0\]:1\->0|div_a\[5\]\[1\]:1\->0|div_a\[6\]\[0\]:0\->1|div_a\[6\]\[0\]:1\->0|div_a\[6\]\[1\]:1\->0|div_a\[7\]\[0\]:1\->0|div_a\[7\]\[1\]:1\->0|div_a\[8\]\[0\]:0\->1|div_a\[8\]\[0\]:1\->0|div_a\[8\]\[1\]:0\->1|div_a\[8\]\[1\]:1\->0|div_a\[9\]\[0\]:1\->0|div_a\[9\]\[1\]:0\->1|div_a\[9\]\[1\]:1\->0)$/  -> 51 point(s)
+    reason  : div_a[k] is the window's divider from the parameter APB_DIV (2 bits per window): constant in every build, and slots 12 to 15 are tied 0; it never changes during a run.
+    evidence: literal rtl/ahb2apb/ahb2apb_apb_fsm.sv:54-57 assign div_a[k] = APB_DIV[2*k +: 2] / 2'b00   reviewer: pending: Karthik
+CT-SIZE2-ahb2apb_bridge  [toggle/constant]  rtl/ahb2apb/ahb2apb_bridge.sv  /^(hsize_i\[2\]:0\->1|hsize_i\[2\]:1\->0)$/  -> 2 point(s)
     reason  : The AHB is 32 bits wide: HSIZE <= word, so HSIZE[2] is 0 on the shared bus.
-    evidence: literal rtl/core/garuda_iport_ahb_master.v:89, rtl/core/load_store_unit.v:32, rtl/debug/sba_master.v:42, rtl/dma/dma_engine.v {1'b0, size}   reviewer: pending: Sreyesh
-CT-TOCNT-ahb2apb_apb_fsm  [toggle/constant]  rtl/ahb2apb/ahb2apb_apb_fsm.v  /^(to_cnt\[4\]:0\->1|to_cnt\[4\]:1\->0)$/  -> 2 point(s)
+    evidence: literal rtl/core/iport_master.sv:89, rtl/core/load_store_unit.sv:32, rtl/debug/sba_master.sv:42, rtl/dma/dma_engine.sv {1'b0, size}   reviewer: pending: Karthik
+CT-TOCNT-ahb2apb_apb_fsm  [toggle/constant]  rtl/ahb2apb/ahb2apb_apb_fsm.sv  /^(to_cnt\[4\]:0\->1|to_cnt\[4\]:1\->0)$/  -> 2 point(s)
     reason  : The 5-bit timeout counter stops at TIMEOUT-1 = 15, so bit 4 is never set.
-    evidence: PROVEN fv_apb / fv_apb_div a_to_cnt_max (rtl/ahb2apb/ahb2apb_sva.sv)   reviewer: pending: Sreyesh
-CT-WORDALIGN-ahb2apb_bridge  [toggle/constant]  rtl/ahb2apb/ahb2apb_bridge.v  /^(addr_cap\[0\]:0\->1|addr_cap\[0\]:1\->0|addr_cap\[1\]:0\->1|addr_cap\[1\]:1\->0|paddr_o\[0\]:0\->1|paddr_o\[0\]:1\->0|paddr_o\[1\]:0\->1|paddr_o\[1\]:1\->0)$/  -> 8 point(s)
+    evidence: PROVEN fv_apb / fv_apb_div a_to_cnt_max (rtl/ahb2apb/ahb2apb_sva.sv)   reviewer: pending: Karthik
+CT-WORDALIGN-ahb2apb_bridge  [toggle/constant]  rtl/ahb2apb/ahb2apb_bridge.sv  /^(addr_cap\[0\]:0\->1|addr_cap\[0\]:1\->0|addr_cap\[1\]:0\->1|addr_cap\[1\]:1\->0|paddr_o\[0\]:0\->1|paddr_o\[0\]:1\->0|paddr_o\[1\]:0\->1|paddr_o\[1\]:1\->0)$/  -> 8 point(s)
     reason  : Only word transfers reach APB (sub-word is rejected, a_subword_no_apb PROVEN) and an AHB-Lite word transfer is word-aligned, so the captured address and PADDR bits [1:0] are 0.
-    evidence: PROVEN fv_apb a_subword_no_apb; AHB-Lite alignment rule checked by ahb_lite_checker on every master port; GARUDA masters: BUS-E (a_iport_pc_aligned PROVEN), the LSU traps misaligned accesses   reviewer: pending: Sreyesh
+    evidence: PROVEN fv_apb a_subword_no_apb; AHB-Lite alignment rule checked by ahb_lite_checker on every master port; GARUDA masters: BUS-E (a_iport_pc_aligned PROVEN), the LSU traps misaligned accesses   reviewer: pending: Karthik
 
 == DESIGN HOLES (uncovered, not waived) ==
 

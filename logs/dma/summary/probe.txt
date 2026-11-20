@@ -1,9 +1,10 @@
-garuda-run 1  suite probe  block dma  2026-11-20T07:42:42+05:30
-design 8db238050bb7108ad0b5825b8d751e1510dfe77d  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
+garuda-run 1  suite probe  block dma  2026-11-20T21:46:11+05:30
+design e5b2f5c1abacff26375b4f5ef1a606ac6d034595  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
 
 PASS    OK                      probe_dma9       
 PASS    OK                      probe_dma10      
 PASS    OK                      probe_r9_sar     
+PASS    OK                      probe_sar_hi     
 PASS    OK                      probe_dma11a     
 PASS    OK                      probe_dma11b     
 PASS    OK                      probe_unaligned  
@@ -11,7 +12,7 @@ PASS    OK                      probe_stop_size
 PASS    OK                      probe_m2m_ack    
 PASS    OK                      probe_ack        
 
-PASS    9
+PASS    10
 FAIL    0
 BLOCKED 0
-total   9
+total   10

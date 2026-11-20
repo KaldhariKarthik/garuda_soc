@@ -40,7 +40,7 @@ for (mod, f, o), c in pts.items():
 P_AL = "PROVEN fv_cov cov_prove: a_pc_aligned / a_iport_pc_aligned / a_mepc_aligned (tb/core/formal/cov_const_sva.sv), after the BUS-E fix"
 CORE_RULES = [
  # (rule id, modules regex, signal regex, allowed bits, category, reason, evidence)
- ("PCALIGN", r".*", r"^(i_haddr_o|if_pc|fd_pc|id_pc|xe_pc|em_pc|mem_exc_pc|tr_pc|csr_mepc|data_pc|instr_pc_o|addr_pc|data_pc_o|outstanding_pc|fifo_pc\[\d\]|wr_pc_i|commit_pc_i|pc_i|pc_o|if_id_pc_i|pc|link|fallthrough|mem_exception_pc_o|idex_pc_i|mem_exc_pc_i|mepc_i|trap_pc_o|trap_pc_i|mepc_o|mepc_r)$", {0,1}, "constant",
+ ("PCALIGN", r".*", r"^(i_haddr_o|if_pc|fd_pc|id_pc|xe_pc|em_pc|mem_exc_pc|tr_pc|csr_mepc|data_pc|instr_pc_o|addr_pc|data_pc_o|outstanding_pc|fifo_pc\[\d\]|fifo_pcf\[\d\]|wr_pc_i|commit_pc_i|pc_i|pc_o|if_id_pc_i|pc|link|fallthrough|mem_exception_pc_o|idex_pc_i|mem_exc_pc_i|mepc_i|trap_pc_o|trap_pc_i|mepc_o|mepc_r)$", {0,1}, "constant",
   "Word-aligned PC: no C extension (IALIGN 32), every redirect source clears bit 0, misaligned targets trap in EX (T-1) and, since BUS-E, are never fetched; mepc is WARL-aligned. Bits [1:0] of this PC copy are constant 0.", P_AL),
  ("PCBIT0", r".*", r"^(fetch_pc|fetch_pc_i|fetch_pc_o|redirect_pc_i|id_redir_t|pc_if_redir_pc|id_redirect_target_o|id_redirect_target_i|if_redirect_pc_o|branch_target|jal_target|jalr_target|imm_b_i|imm_j_i|imm_b_w|imm_j_w|imm_b_f|imm_b_o|imm_j_f|imm_j_o)$", {0}, "constant",
   "Bit 0 of every fetch / redirect address is 0: JAL / branch immediates have bit 0 = 0 by encoding (imm_gen.v:33-37 ... 1'b0}), JALR clears it, mtvec / mepc are aligned. (Bit 1 of these DOES toggle: misaligned targets reach pc_gen and are trapped.)",
@@ -79,6 +79,18 @@ def _per_ch(lo, hi):            # bits lo..hi of each of the six 32-bit channel 
     return {32 * n + b for n in range(6) for b in range(lo, hi + 1)}
 P_DMA = "PROVEN fv_dma_cov cov_prove (tb/dma/formal/cov_unreach.toml, tb/dma/formal/dma_cov_sva.sv)"
 DMA_RULES = [
+ # F4 (2026-11-19) register views as arrays of CH_SLOTS = 8 for a 3-bit channel index
+ ("SLOTPAD", r"^(dma_apb_slave|dma_engine)$", r"^(cr_a|sar_a|dar_a|cnt_a|stat_a|size_a)\[(6|7)\]$", set(range(32)), "constant",
+  "Array slots 6 and 7 pad the six channels to CH_SLOTS = 8 (a 3-bit channel index); they are tied to 0 and never selected.",
+  "literal rtl/dma/dma_engine.sv:146-147 and rtl/dma/dma_apb_slave.sv g_slot else-branch (assign ... = '0)"),
+ ("SLOTPADM2M", r"^dma_engine$", r"^m2m_a$", {6, 7}, "constant",
+  "m2m_a bits 6 and 7 pad the six channels to CH_SLOTS = 8.", "literal rtl/dma/dma_engine.sv:133 {{(CH_SLOTS - DMA_NCH){1'b0}}, m2m_i}"),
+ ("CRVIEW", r"^dma_apb_slave$", r"^cr_a\[[0-5]\]$", set(range(9, 32)), "constant",
+  "CR is 9 bits: bits 31:9 of each channel's CR view read 0.", "literal rtl/dma/dma_chan.sv cr_o (9 bits of fields); DMA register map"),
+ ("CNTVIEW", r"^dma_apb_slave$", r"^cnt_a\[[0-5]\]$", set(range(16, 32)), "constant",
+  "CNT is 16 bits: bits 31:16 of each channel's CNT view read 0.", "literal rtl/dma/dma_chan.sv assign cnt_o = {16'd0, cnt_q}"),
+ ("STATVIEW", r"^dma_apb_slave$", r"^stat_a\[[0-5]\]$", set(range(21, 32)), "constant",
+  "STAT is 21 bits: bits 31:21 of each channel's STAT view read 0.", "literal rtl/dma/dma_chan.sv assign stat_o = {errph_q, err_q, comp_q, active, rem_q} (21 bits)"),
  ("CNTHI", r"^(dma_apb_slave|dma_chan|dma_top)$", r"^(cnt_i|cnt_o|cnt)$", _per_ch(16, 31) | set(range(16, 32)), "constant",
   "CNT is a 16-bit register read as a 32-bit word: bits 31:16 of every channel's CNT bus are literal 0.", "literal rtl/dma/dma_chan.sv:150 assign cnt_o = {16'd0, cnt_q}"),
  ("CRRSV", r"^(dma_apb_slave|dma_chan|dma_top)$", r"^(cr_i|cr_o|cr)$", _per_ch(9, 31) | set(range(9, 32)), "constant",
@@ -127,6 +139,9 @@ AHB_RULES = [
   "The default slave returns no data: its HRDATA is the literal 0.", "literal rtl/ahb/ahb_dflt_slave.sv assign hrdata_o = 32'h0000_0000"),
 ]
 APB_RULES = [
+ ("DIVSLOT", r"^ahb2apb_apb_fsm$", r"^div_a\[\d+\]$", {0, 1}, "constant",
+  "div_a[k] is the window's divider from the parameter APB_DIV (2 bits per window): constant in every build, and slots 12 to 15 are tied 0; it never changes during a run.",
+  "literal rtl/ahb2apb/ahb2apb_apb_fsm.sv:54-57 assign div_a[k] = APB_DIV[2*k +: 2] / 2'b00"),
  ("SIZE2", r"^ahb2apb_bridge$", r"^hsize_i$", {2}, "constant",
   "The AHB is 32 bits wide: HSIZE <= word, so HSIZE[2] is 0 on the shared bus.",
   "literal rtl/core/iport_master.sv:89, rtl/core/load_store_unit.sv:32, rtl/debug/sba_master.sv:42, rtl/dma/dma_engine.sv {1'b0, size}"),
@@ -169,7 +184,7 @@ for (rid, f), lst in sorted(waivers.items()):
     out.append("[[waiver]]")
     for k, v in (("id", f"CT-{rid}-{mod}"), ("metric", "toggle"), ("file", f),
                  ("match", "^(" + "|".join(alts) + ")$"), ("category", cat), ("reason", reason),
-                 ("evidence", ev), ("reviewer", "pending: Sreyesh")):
+                 ("evidence", ev), ("reviewer", "pending: Karthik")):
         out.append(f"{k:<8} = {json.dumps(v)}")
     out.append("")
 p = os.path.join(cr.ROOT, f"tb/{BLOCK}/cov/{BLOCK}_waivers.toml")
