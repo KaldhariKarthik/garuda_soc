@@ -4,10 +4,14 @@ script: flow/formal/spim/spim_fpv.tcl
 proved: 36/36
 tool: JasperGold Apps 2022.09p002, 2026-11-21
 
+Rerun 2026-11-21 on d18598c, after SPIM-6 (vendor patch 0001: spim_ctrl raises eot on a transfer with no data
+phase). Same script, same assumptions. Result: 36/36 assertions proven, 0 cex; 46/48 covers covered; the same
+2 unreachable (reset preconditions of a_shim_reset and a_dma_reset). The property list below is this run's.
+
 Rerun 2026-11-21 on c688056 (TOOL-A34: the script had not run since the port renames; clock and
 reset names fixed, nothing else). JasperGold Apps 2022.09p002, script flow/formal/spim/spim_fpv.tcl.
 Result: 36/36 assertions proven, 0 cex; 46/48 covers covered; 2 unreachable: the reset preconditions of a_shim_reset and a_dma_reset (D-39 split); reset only at the start. c_dma_req, unreachable before, is reached since its correction (TB-A19).
-The tool's property list of this run is at the end of this file.
+(This run's property list was replaced by the d18598c run's.)
 
 ==== the record before 2026-11-21 ====
   was top: garuda_spim_top
@@ -22,6 +26,7 @@ SPIM-3 and SPIM-4 (both fixed) and the three SPIM-5 cases. c_dma_req is unreacha
 (not looked into). Planted defects (tools/mutate.py sim/lab/spim/mut_spec.py): 6 of 6; the bench 4.
 
 ==== property list, 2026-11-21 ====
+==== property list, 2026-11-21 on d18598c ====
 proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_pready
 proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_irq_level
 proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[0].a_shim_capture
