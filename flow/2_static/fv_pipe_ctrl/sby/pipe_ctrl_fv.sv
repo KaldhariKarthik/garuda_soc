@@ -110,6 +110,6 @@ module pipe_ctrl_fv (
         c_h1_vs_redirect: cover (load_use  && if_redirect);
         c_h2_vs_redirect: cover (mem_stall && (trap_redir_v || ex_redir));
         c_h4_vs_redirect: cover (dsu_busy  && if_redirect);
-        c_h5_vs_trap:     cover (wfi_hold  && trap_redir_v);
+        c_h5_vs_trap:     cover (wfi_hold  && trap_redir_v);   // reachable here (inputs free); the whole core rules it out (T-19)
     end
 endmodule

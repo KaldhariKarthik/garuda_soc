@@ -174,8 +174,12 @@ module pipe_ctrl_sva (
         mem_stall && (trap_redir_v || ex_redir));
     c_h4_vs_redirect: cover property (@(posedge clk) disable iff (!rst_n)
         dsu_busy && if_redirect);
-    c_h5_vs_trap: cover property (@(posedge clk) disable iff (!rst_n)
-        wfi_hold && trap_redir_v);
+    // H5 against a trap redirect: a reachable cell until 2026-11-21 (an MRET behind a
+    // sleeping WFI). Since T-19 nothing redirects during the WFI sleep (TC-1 interrupts,
+    // T-16/TC-2 EX exceptions, T-14 bus faults, T-19 MRET), so the cell is now a property.
+    a_h5_no_trap_redirect: assert property (@(posedge clk) disable iff (!rst_n)
+        !(wfi_hold && trap_redir_v))
+        else $error("[SVA-FAIL] T-19: a trap or MRET redirect during the WFI sleep");
 
     // -------------------------------------------------------------------------
     // The same matrix as counters, so a simulation can PRINT which cells it

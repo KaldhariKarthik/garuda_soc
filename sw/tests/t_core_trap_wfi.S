@@ -2,8 +2,8 @@
 # ECALL, EBREAK and an illegal instruction, each followed by a WFI. The WFI is younger than
 # the trapping instruction and must be squashed; no interrupt is ever enabled, so a core that
 # lets the WFI sleep TIMES OUT. The handler checks mcause and mepc and resumes past the WFI.
-# The companion of t_core_wfi_buserr (a load fault in front of a WFI). It does not reach the
-# cover c_h5_vs_trap (the trap redirects before the WFI holds); t_core_wfi_mret does.
+# The companion of t_core_wfi_buserr (a load fault in front of a WFI). The trap redirects before
+# the WFI holds; nothing may redirect during the hold (a_h5_no_trap_redirect, T-19).
     .section .text.init, "ax"
     .global _start
 _start:

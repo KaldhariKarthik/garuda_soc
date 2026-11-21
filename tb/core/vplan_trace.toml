@@ -39,7 +39,8 @@ suite_summaries = ["logs/core/summary/isa.tsv", "logs/core/summary/csr.tsv", "lo
 "CORE.F27.COV1" = "cg_pipe.cp_redir_waited"
 "CORE.F28.COV1" = "cg_branch_k.x_kind_dir_outcome"
 "CORE.F29.CHK1" = ["a_flush_beats_hold_if_id", "a_flush_beats_hold_id_ex", "a_flush_beats_hold_ex_mem"]
-"CORE.F29.COV5" = ["c_h1_vs_redirect", "c_h2_vs_redirect", "c_h4_vs_redirect", "c_h5_vs_trap"]
+"CORE.F29.COV5" = ["c_h1_vs_redirect", "c_h2_vs_redirect", "c_h4_vs_redirect"]
+"CORE.F29.CHK7" = ["a_h5_no_trap_redirect", "a_t19_no_mret_while_held"]
 "CORE.F30.COV1" = "cg_pipe_pair.x_class_pair"
 "CORE.F37.TC1"  = ["t_core_hartreset_s1", "t_core_hartreset_s2", "t_core_hartreset_s3"]
 

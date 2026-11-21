@@ -36,9 +36,9 @@ analyze -sv09 {*}$incs {*}$srcs
 if {$env_mode eq "ahb"} { analyze -sv09 flow/formal/core/ahb_slave_env.sv }
 elaborate -top garuda_core_top -bbox_mul 128
 
-clock clk_i
+clock hclk
 # the core's one reset (D-36): low for the reset sequence, then released for good
-reset -expression {!core_rst_n_i}
+reset -expression {!core_rst_n}
 
 set_prove_time_limit $limit
 prove -all

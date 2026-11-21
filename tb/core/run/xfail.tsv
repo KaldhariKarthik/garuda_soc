@@ -10,5 +10,6 @@ fv_trap	ctl_no_pfdis	FAIL	PLANTED	mgarudactl knob ignored must fail its a_ctl_* 
 fv_trap	ctl_no_preempt	FAIL	PLANTED	mgarudactl knob ignored must fail its a_ctl_* property
 fv_trap	ctl_no_cgdis	FAIL	PLANTED	mgarudactl knob ignored must fail its a_ctl_* property
 fv_trap	t17_no_fix	FAIL	PLANTED	trap_ctrl without the T-17 fix must fail a_ex_exc_needs_instr
+fv_trap	t19_no_fix	FAIL	PLANTED	trap_ctrl without the T-19 fix must fail a_t19_no_mret_while_held
 fv_trap	buse_no_fix	FAIL	PLANTED	the I-port without the BUS-E fix must fail a_ihaddr_aligned
 fv_trap	t18_no_fix	FAIL	PLANTED	branch_unit without the T-18 fix must fail a_misfetch_tval_misaligned

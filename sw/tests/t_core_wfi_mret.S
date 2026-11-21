@@ -1,6 +1,7 @@
-# t_core_wfi_mret.S -- an MRET directly behind a WFI (pipe_ctrl H5 vs trap redirect, cover
-# c_h5_vs_trap; 2026-11-21, D-40 coverage closure). JasperGold's witness of the cover (fv_trap)
-# is exactly this: WFI, then MRET, with the instruction port stalled.
+# t_core_wfi_mret.S -- an MRET directly behind a WFI (2026-11-21, D-40 coverage closure).
+# Written from JasperGold's witness of the old cover c_h5_vs_trap (WFI, then MRET, fetch stalled).
+# It found T-19: the MRET was taken during the sleep. Since the fix (D-41) the MRET waits for the
+# wake: a_t19_no_mret_while_held and a_h5_no_trap_redirect watch it, c_mret_after_wfi_wake counts it.
 # MIE = 0 and MTIE = 1, so the machine timer (+MTIP_AT) wakes the WFI without trapping there.
 # mepc = `after`, MPIE = 1: the MRET jumps to `after` and sets MIE, and the pending timer
 # interrupt is taken before `after` executes. Whatever the pipeline does with the MRET during

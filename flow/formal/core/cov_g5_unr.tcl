@@ -33,8 +33,8 @@ analyze -sv09 {*}$incs {*}$srcs
 analyze -sv09 flow/formal/core/ahb_slave_env.sv
 elaborate -top garuda_core_top -bbox_mul 128
 
-clock clk_i
-reset -expression {!core_rst_n_i}
+clock hclk
+reset -expression {!core_rst_n}
 
 assert -name a_wake_needs_cond_cg {$fell(quiescent) |-> (clic_wake_cond | csr_mti_pending | csr_ctl[3])}
 assert -name a_no_exmem_fwd_stall {mem_stall |-> (fwd_a_sel != 2'b01)}

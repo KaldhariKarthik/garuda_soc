@@ -35,7 +35,7 @@ c_h5_idex,3,COV,S2.FV.c_h5_idex,cover property in rtl/core/pipe_ctrl_sva.sv,"ifv
 c_h1_vs_redirect,3,COV,S2.FV.c_h1_vs_redirect,cover property in rtl/core/pipe_ctrl_sva.sv,"ifv, flow/2_static/fv_pipe_ctrl",,
 c_h2_vs_redirect,3,COV,S2.FV.c_h2_vs_redirect,cover property in rtl/core/pipe_ctrl_sva.sv,"ifv, flow/2_static/fv_pipe_ctrl",,
 c_h4_vs_redirect,3,COV,S2.FV.c_h4_vs_redirect,cover property in rtl/core/pipe_ctrl_sva.sv,"ifv, flow/2_static/fv_pipe_ctrl",,
-c_h5_vs_trap,3,COV,S2.FV.c_h5_vs_trap,cover property in rtl/core/pipe_ctrl_sva.sv,"ifv, flow/2_static/fv_pipe_ctrl",,
+a_h5_no_trap_redirect,3,CHK,S2.FV.a_h5_no_trap_redirect,assert property in rtl/core/pipe_ctrl_sva.sv (a cover until T-19),"ifv, flow/2_static/fv_pipe_ctrl",,
 Stage 3 - Block and IP,1,SECTION,S3,,,,
 clk_div + reset_ctrl (21-22),2,SECTION,CLKRST,"GARUDA-CLKRST-SPEC-001. 40 notes and requirements, 1 cited by a check.",tb_crg,,high
 2 Requirements,3,SECTION,CLKRST.SEC.2_Requirements,,,,

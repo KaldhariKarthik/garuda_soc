@@ -1,5 +1,5 @@
-garuda-run 1  suite isa_rand.cov  block core  2026-11-20T07:56:55+05:30
-design 8db238050bb7108ad0b5825b8d751e1510dfe77d  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
+garuda-run 1  suite isa_rand.cov  block core  2026-11-21T10:11:39+05:30
+design aaad3d32b468936f11e036544847317a330809b7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
 
 PASS    OK                      add              
 PASS    OK                      addi             

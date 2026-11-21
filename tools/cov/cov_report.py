@@ -132,6 +132,35 @@ def load_runs(cfg):
     return runs, missing
 
 
+def stale_inputs(cfg, design, tb):
+    """TOOL-A36 (2026-11-21): a suite summary measured before the newest change to the
+    design or to its bound properties is stale. Without this check the report signed
+    off old data when the collection step had failed (cov_core with no cross compiler)."""
+    import datetime
+    import glob
+    files = set()
+    for g in list(design) + [t for t in tb if t.startswith("rtl/")]:
+        files.update(glob.glob(os.path.join(ROOT, g)))
+    if not files:
+        return []
+    newest = max(files, key=os.path.getmtime)
+    t_new = os.path.getmtime(newest)
+    out = []
+    for s in cfg["suites"]:
+        p = os.path.join(ROOT, s)
+        if not os.path.exists(p):
+            continue
+        m = re.search(r"\bdate=(\S+)", open(p).readline())
+        if not m:
+            out.append(f"{s}: no date in its header")
+            continue
+        t_run = datetime.datetime.fromisoformat(m.group(1)).timestamp()
+        if t_run < t_new:
+            out.append(f"{s} measured {m.group(1)}, before {os.path.relpath(newest, ROOT)} changed "
+                       f"({datetime.datetime.fromtimestamp(t_new).isoformat(timespec='seconds')}): rerun the collection")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("config")
@@ -277,6 +306,9 @@ def main():
     if missing:
         out.append(f"MISSING     : {missing}")
         errors.append(f"missing coverage inputs: {missing}")
+    for st in stale_inputs(cfg, design, tb):
+        out.append(f"STALE       : {st}")
+        errors.append(f"stale coverage input: {st}")
     out.append(f"targets     : design code >= {tgt_code}% per metric per module; "
                f"design functional = {tgt_func}% of bins (after reviewed waivers)")
     out.append("")

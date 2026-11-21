@@ -827,6 +827,36 @@ modules, the shim split), each change proven by JasperGold SEC or a miter.
 
 ---
 
+## D-41 — An MRET behind a sleeping WFI waits for the wake (Karthik, 2026-11-21)
+
+**Context.** Closing the core coverage under D-40 needed a run that reaches the pipeline
+cell "WFI hold against a trap redirect" (`c_h5_vs_trap`). JasperGold's witness, and the
+directed test `t_core_wfi_mret` written from it, is a WFI with an MRET directly behind
+it. The MRET entered EX on the edge the sleep started and was taken at once: mstatus
+popped and the fetch redirected to mepc while the core slept. An EX exception in the
+same place already waits (T-16, D-32), and so does a JALR (P-3). The program result was
+right; a debugger halting during the sleep would see the MRET done before the wake.
+
+**Decision (Karthik: "Hold it off like P-3").** `mret_take` waits while the WFI hold is up
+and is taken in the wake cycle (erratum T-19, `rtl/core/trap_ctrl.sv`). Nothing redirects
+the pipeline during the sleep any more.
+
+**Consequences.** `a_t19_no_mret_while_held` (trap_ctrl_props_a) and
+`a_h5_no_trap_redirect` (pipe_ctrl_sva, replacing the cover `c_h5_vs_trap`, which is now
+unreachable on the whole core) are added; core vPlan CORE.F29.CHK7. Negative control
+`t19_no_fix` (fv_trap). The T-13 negative control is rewritten from the new line.
+
+## D-42 — G6 6.1 "UVM SoC testbench" is the whole chip with the core (Karthik, 2026-11-21)
+
+**Context.** Workbook row 6.1 asks for a UVM SoC testbench. Two readings were possible:
+the SoC without the core (AHB master agents in place of the core's ports), or the whole
+chip with the core running C programs.
+
+**Decision (Karthik: "Whole chip with the core").** 6.1 is a UVM environment around
+`tb_chip`: the core runs the C programs in `sw/chip`, and UVM agents on the pins (UART,
+SPI, I2C, GPIO) drive and check them. Rows 6.8 and 6.14 (traffic and random stress) are
+judged within what the firmware drives.
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. None blocks RTL.

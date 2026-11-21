@@ -17,11 +17,11 @@ foreach d [split [string trim [exec env -u LD_LIBRARY_PATH python3 scripts/expan
 }
 analyze -sv09 +incdir+rtl/include +incdir+rtl/common {*}$INCS {*}$FILES
 elaborate -top garuda_uart_top
-clock pclk_i
-reset -expression {!preset_n_i}
-assume -name assume_apb_legal {@(posedge pclk_i) disable iff (!preset_n_i) (psel_i && !penable_i) |=> (psel_i && penable_i && $stable(paddr_i) && $stable(pwrite_i) && $stable(pwdata_i))}
-assume -name assume_apb_ends {@(posedge pclk_i) disable iff (!preset_n_i) (psel_i && penable_i) |=> !penable_i}
-assume -name assume_apb_starts {@(posedge pclk_i) disable iff (!preset_n_i) ($rose(psel_i)) |-> !penable_i}
+clock pclk
+reset -expression {!preset_n}
+assume -name assume_apb_legal {@(posedge pclk) disable iff (!preset_n) (psel_i && !penable_i) |=> (psel_i && penable_i && $stable(paddr_i) && $stable(pwrite_i) && $stable(pwdata_i))}
+assume -name assume_apb_ends {@(posedge pclk) disable iff (!preset_n) (psel_i && penable_i) |=> !penable_i}
+assume -name assume_apb_starts {@(posedge pclk) disable iff (!preset_n) ($rose(psel_i)) |-> !penable_i}
 prove -all -time_limit 900s
 report -summary
 source flow/formal/common.tcl

@@ -1,5 +1,5 @@
-# garuda-run 1 suite=extra.cov block=core date=2026-11-20T07:57:15+05:30 design=8db238050bb7108ad0b5825b8d751e1510dfe77d rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a seed=1
+# garuda-run 1 suite=extra.cov block=core date=2026-11-21T10:11:57+05:30 design=aaad3d32b468936f11e036544847317a330809b7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a seed=1
 test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
-boot6	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.46	37		logs/core/raw/extra.cov/cov/boot6_s1.dat		logs/core/raw/extra.cov/sim_boot6_s1.log
-ctest1	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.40	37		logs/core/raw/extra.cov/cov/ctest1_s1.dat		logs/core/raw/extra.cov/sim_ctest1_s1.log
-dsu_flag2	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.42	37		logs/core/raw/extra.cov/cov/dsu_flag2_s1.dat		logs/core/raw/extra.cov/sim_dsu_flag2_s1.log
+boot6	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.32	37		logs/core/raw/extra.cov/cov/boot6_s1.dat		logs/core/raw/extra.cov/sim_boot6_s1.log
+ctest1	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.34	37		logs/core/raw/extra.cov/cov/ctest1_s1.dat		logs/core/raw/extra.cov/sim_ctest1_s1.log
+dsu_flag2	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.34	37		logs/core/raw/extra.cov/cov/dsu_flag2_s1.dat		logs/core/raw/extra.cov/sim_dsu_flag2_s1.log

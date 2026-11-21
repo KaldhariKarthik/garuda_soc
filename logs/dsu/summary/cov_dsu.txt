@@ -1,5 +1,5 @@
 Coverage report: block dsu  (Verilator 5.052, merged per module definition)
-runs merged : 217 passing runs from 11 suite summaries
+runs merged : 222 passing runs from 11 suite summaries
       6  logs/dsu/summary/model.cov.tsv
       6  logs/core/summary/units.cov.tsv
      15  logs/core/summary/elements.cov.tsv
@@ -8,7 +8,7 @@ runs merged : 217 passing runs from 11 suite summaries
      66  logs/core/summary/isa_rand.cov.tsv
      16  logs/core/summary/sanity.cov.tsv
       3  logs/core/summary/extra.cov.tsv
-     12  logs/core/summary/directed.cov.tsv
+     17  logs/core/summary/directed.cov.tsv
       1  logs/core/summary/csr_map.cov.tsv
      19  logs/core/summary/covtests.cov.tsv
 targets     : design code >= 95.0% per metric per module; design functional = 100.0% of bins (after reviewed waivers)

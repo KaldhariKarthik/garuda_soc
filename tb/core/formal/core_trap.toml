@@ -14,8 +14,8 @@ flist   = "rtl/core/filelist_core.f"
 top     = "garuda_core_top"
 replace = { "rtl/core/core_clk_gate.sv" = "tb/core/formal/core_clk_gate_passthru.sv" }
 extra   = ["tb/core/formal/core_fv_env.sv"]
-# the model must contain at least these (11 asserts + 9 covers in trap_ctrl_props_a.sv, + a_ihaddr_aligned)
-min_asserts = 12
+# the model must contain at least these (12 asserts + 10 covers in trap_ctrl_props_a.sv, + a_ihaddr_aligned)
+min_asserts = 13
 min_covers  = 9
 
 [[task]]
@@ -84,6 +84,15 @@ mode    = "bmc"
 depth   = 20
 engine  = "smtbmc yices"
 replace = { "rtl/core/trap_ctrl.sv" = "tb/core/formal/mutants/trap_ctrl_no_t17.v" }
+
+# T-19 negative control: trap_ctrl without the T-19 fix (an MRET behind a sleeping WFI
+# is taken during the sleep). a_t19_no_mret_while_held must FAIL (PLANTED in xfail.tsv).
+[[task]]
+name    = "t19_no_fix"
+mode    = "bmc"
+depth   = 20
+engine  = "smtbmc yices"
+replace = { "rtl/core/trap_ctrl.sv" = "tb/core/formal/mutants/trap_ctrl_no_t19.v" }
 
 # T-18 negative control: branch_unit.v before the fix (a JAL's mtval follows the
 # fake branch compare of its bit fields). a_misfetch_tval_misaligned must FAIL.

@@ -18,8 +18,11 @@ WHERE THE NUMBERS COME FROM
     the 119 directed runs of flow/regress/garuda.vsif (block benches, unit and
     element benches, ISA and sanity programs, chip programs), merged with
     -initial_model union_all into sim/cov_all/merged and reported per module
-    type, so a module counts what any test at any level did to it. No waiver
-    is applied: these blocks have none written yet.
+    type, so a module counts what any test at any level did to it.
+    The five track-A blocks (core, DSU, AHB, bridge, DMA) are signed off on
+    their own Verilator coverage flow (tools/cov/cov_report.py, waivers in
+    tb/<blk>/cov/<blk>_waivers.toml); this tool runs that report and quotes
+    its verdict line next to the Xcelium figures (2026-11-21, TOOL-A35).
 
 Coverage is collected with irun 15.2 because IMC here is 15.2 (Docs/COVERAGE.md).
 """
@@ -41,6 +44,30 @@ IMC_PATH = "/home/install/INCISIVE152/tools/bin:/home/install/INCISIVE152/bin"
 # uvm: (directory under sim/, DUT instances, waiver file) when the block has a
 # UVM environment.
 # ----------------------------------------------------------------------------
+# track-A blocks signed off on Verilator (tools/cov/cov_report.py): key -> (config, make target, waivers)
+VSIGN = {
+    "CORE":    ("tb/core/cov/cov.toml",    "cov_core_report", "tb/core/cov/core_waivers.toml"),
+    "DSU":     ("tb/dsu/cov/cov.toml",     "cov_dsu_report",  "tb/dsu/cov/dsu_waivers.toml"),
+    "AHB":     ("tb/ahb/cov/cov.toml",     "cov_ahb_report",  "tb/ahb/cov/ahb_waivers.toml"),
+    "AHB2APB": ("tb/ahb2apb/cov/cov.toml", "cov_apb_report",  "tb/ahb2apb/cov/ahb2apb_waivers.toml"),
+    "DMA":     ("tb/dma/cov/cov.toml",     "cov_dma_report",  "tb/dma/cov/dma_waivers.toml"),
+}
+_vsign_cache = {}
+
+
+def verilator_signoff(key):
+    """Run the block's Verilator coverage report; return (verdict line, waiver count)."""
+    if key not in _vsign_cache:
+        cfg, _, wf = VSIGN[key]
+        r = subprocess.run(["bash", "-c", "source tools/run/env.sh >/dev/null 2>&1 && $PYTHON tools/cov/cov_report.py " + cfg],
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        lines = [l for l in r.stdout.splitlines() if l.startswith("verdict:")]
+        verdict = lines[-1].strip() if lines else "verdict: NOT PRODUCED (cov_report.py rc=%d)" % r.returncode
+        nw = sum(1 for l in open(wf) if l.strip() == "[[waiver]]")
+        _vsign_cache[key] = (verdict, nw)
+    return _vsign_cache[key]
+
+
 BLOCKS = [
     dict(key="CORE", name="RV32IM core", plan="tb/core/GARUDA_CORE_vplan.csv", track="A",
          modules="alu_unit branch_predict branch_unit clic_ctrl core_clk_gate csr_file csr_rw decode_control "
@@ -586,11 +613,13 @@ def report():
     L.append("")
     L.append("## How to read it")
     L.append("")
-    L.append("- **Two sources.** The five blocks that have a UVM environment (CLIC, timers, clock and reset, "
-             "PWM, GPIO) are measured on that environment's own runs and shown twice: as measured, and after "
-             "the written waivers. The other eleven are measured on the %d directed runs of "
-             "`flow/regress/garuda.vsif` merged together, counted per module, with no waiver: none has been "
-             "written for them yet. A hole in those rows is a hole, not a waived item." % nruns)
+    L.append("- **Three sources.** The blocks that have a UVM environment of their own are measured on that "
+             "environment's runs. The others are measured on the %d directed runs of "
+             "`flow/regress/garuda.vsif` merged together, counted per module. Both are shown as measured and, "
+             "where exclusions are written in `flow/cov/`, after them. The five track-A blocks (core, DSU, "
+             "AHB, bridge, DMA) are signed off on their own Verilator coverage flow with its own waivers; "
+             "their rows show the Xcelium merge with no waiver and quote the Verilator verdict, which is the "
+             "sign-off figure." % nruns)
     L.append("- **Statement, expression, toggle, FSM** are IMC's block, expression, toggle and FSM "
              "(states, transitions, arcs) metrics. **Functional** is covergroup bins. **Assertions "
              "triggered** counts bound properties and cover properties that finished at least once: a "
@@ -615,9 +644,14 @@ def report():
             else:
                 cells.append(fmt(final))
         nw = len(d["waivers"])
+        src, wcell = d["source"], (("%d, in `%s`" % (nw, d["waiver_file"])) if nw else "none written")
+        if d["key"] in VSIGN and not nw:
+            verdict, vn = verilator_signoff(d["key"])
+            src = "all directed tests, merged (no waivers applied here); **signed off on Verilator: `%s` %s**" % (
+                VSIGN[d["key"]][1], verdict.split()[1])
+            wcell = "%d, in `%s` (Verilator sign-off)" % (vn, VSIGN[d["key"]][2])
         L.append("| %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |" % (
-            d["name"], d["track"], d["source"], cells[0], cells[1], cells[2], cells[3], fmt(d["func"]), cells[4],
-            ("%d, in `%s`" % (nw, d["waiver_file"])) if nw else "none written"))
+            d["name"], d["track"], src, cells[0], cells[1], cells[2], cells[3], fmt(d["func"]), cells[4], wcell))
     L.append("")
     code = (0, 0, 0)
     for m in ("Block", "Expression", "Toggle", "Fsm"):
@@ -706,6 +740,16 @@ def report():
                 names = sorted(set(re.sub(r"\[\d+\]$", "", i) for i in items if i))
                 show = ", ".join("`%s`" % n for n in names[:6]) + (" and %d more" % (len(names) - 6) if len(names) > 6 else "")
                 L.append("| %s | `%s` | %d: %s | %s |" % (k[0], k[1], len(items), show or "the instance", k[2]))
+            L.append("")
+        elif d["key"] in VSIGN:
+            verdict, vn = verilator_signoff(d["key"])
+            cfg, tgt, wf = VSIGN[d["key"]]
+            L.append("**Sign-off:** this block is signed off on its own Verilator coverage flow, not on the "
+                     "figures above. `make -f flow/mk/track_a_run.mk %s` (`tools/cov/cov_report.py %s`: at "
+                     "least 95%% per code metric per module and 100%% functional, after the %d waivers in "
+                     "`%s`) printed, on this tree: `%s`. The figures above are the Xcelium merge with no "
+                     "waiver applied; a hole there is either waived in the Verilator flow or hit by a "
+                     "Verilator-only run." % (tgt, cfg, vn, wf, verdict))
             L.append("")
         elif d["key"] not in ("SHIM", "TOP"):
             L.append("**Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is \"unreachable\", a JasperGold run that confirms it.")

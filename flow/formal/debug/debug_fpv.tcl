@@ -13,9 +13,9 @@ if {[info exists ::env(FL)]} { set FL $::env(FL) }
 set FILES [split [string trim [exec env -u LD_LIBRARY_PATH python3 scripts/expand_filelist.py $FL]] "\n"]
 analyze -sv09 +incdir+rtl/include {*}$FILES
 elaborate -top debug_top
-clock tck_i -both_edges
-clock hclk_i
-reset -expression {!por_n_i} {!dm_rst_n_i}
+clock tck -both_edges
+clock hclk
+reset -expression {!ext_rst_n} {!dm_rst_n}
 prove -all -time_limit 900s
 report -summary
 source flow/formal/common.tcl

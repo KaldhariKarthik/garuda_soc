@@ -247,7 +247,14 @@ module trap_ctrl
     // EX-point traps and interrupts still yield to an MRET, as before.
     // -----------------------------------------------------------------------
     wire trap_now     = mem_exc_valid_i | ((ex_exc | any_int) & ~is_mret);
-    wire mret_take    = is_mret & ~h2 & ~mem_exc_valid_i;
+    // ERRATUM T-19 (2026-11-21, ruling by Karthik; found by the D-40 coverage closure,
+    // t_core_wfi_mret): an MRET directly behind a WFI enters EX on the edge the sleep
+    // starts (as in T-16) and was taken at once: mstatus popped and the fetch redirected
+    // to mepc while the core slept. The program result was right, but a debugger halting
+    // during the sleep saw the MRET done ahead of the WFI's wake. The MRET now waits while
+    // the WFI hold is up, like an EX exception (T-16) and a JALR (P-3), and is taken in
+    // the wake cycle. Nothing redirects the pipeline during the sleep any more.
+    wire mret_take    = is_mret & ~h2 & ~mem_exc_valid_i & ~wfi_hold_o;
 
     // MTI is not a CLIC source: no CLIC level to push, so it enters at mil 0.
     assign is_interrupt_o  = any_int;

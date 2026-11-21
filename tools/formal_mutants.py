@@ -178,10 +178,10 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
              'as at b90b481). Formal negative control: must FAIL. Regenerated 2026-11-16 from the current '
              'RTL; it differs from it by this change only. (tb/core/formal/core_trap.toml '
              'trap_prove_no_t13)'],
-  'subs': [('    wire trap_now     = mem_exc_valid_i | ((ex_exc | any_int) & ~is_mret);\n'
-            '    wire mret_take    = is_mret & ~h2 & ~mem_exc_valid_i;\n',
-            '    wire trap_now     = (exception | any_int) & ~is_mret;   // MUTANT: T-13 reverted\n'
-            '    wire mret_take    = is_mret & ~h2;                     // MUTANT: T-13 reverted\n')]},
+  'subs': [('    wire trap_now     = mem_exc_valid_i | ((ex_exc | any_int) & ~is_mret);\n',
+            '    wire trap_now     = (exception | any_int) & ~is_mret;   // MUTANT: T-13 reverted\n'),
+           ('    wire mret_take    = is_mret & ~h2 & ~mem_exc_valid_i & ~wfi_hold_o;\n',
+            '    wire mret_take    = is_mret & ~h2 & ~wfi_hold_o;       // MUTANT: T-13 reverted\n')]},
  {'path': 'tb/core/formal/mutants/trap_ctrl_no_t14.v',
   'src': 'rtl/core/trap_ctrl.sv',
   'header': ['MUTANT trap_ctrl_no_t14: rtl/core/trap_ctrl.sv with ONE fix reverted (T-14: a WFI arms while '
@@ -200,6 +200,14 @@ MUTANTS = [{'path': 'tb/ahb/formal/mutants/ahb_arbiter_mut_ahb3.v',
              'from it by this change only. (tb/core/formal/core_trap.toml t17_no_fix)'],
   'subs': [('    wire e1  = idex_fault_i & idex_valid_i;\n',
             '    wire e1  = idex_fault_i;   // MUTANT: T-17 reverted\n')]},
+ {'path': 'tb/core/formal/mutants/trap_ctrl_no_t19.v',
+  'src': 'rtl/core/trap_ctrl.sv',
+  'header': ['MUTANT trap_ctrl_no_t19: rtl/core/trap_ctrl.sv with ONE fix reverted (T-19: an MRET behind a '
+             'sleeping WFI is taken during the sleep).',
+             'Formal negative control: must FAIL. Written 2026-11-21 from the current RTL; it differs from it '
+             'by this change only. (tb/core/formal/core_trap.toml t19_no_fix)'],
+  'subs': [('    wire mret_take    = is_mret & ~h2 & ~mem_exc_valid_i & ~wfi_hold_o;\n',
+            '    wire mret_take    = is_mret & ~h2 & ~mem_exc_valid_i;   // MUTANT: T-19 reverted\n')]},
  {'path': 'tb/dma/formal/mutants/dma_apb_slave_mut_aud13.v',
   'src': 'rtl/dma/dma_apb_slave.sv',
   'header': ['MUTANT dma_apb_slave_mut_aud13: rtl/dma/dma_apb_slave.sv with ONE change. Formal negative '

@@ -76,6 +76,11 @@ export VERILATOR_COV=${VERILATOR_COV:-$GARUDA_TOOLS/verilator/bin/verilator_cove
 if [ -n "${RISCV_BIN_OPEN:-}" ] || [ -x "$GARUDA_TOOLS/riscv/bin/riscv-none-elf-gcc" ]; then
     export RISCV_BIN=${RISCV_BIN_OPEN:-$GARUDA_TOOLS/riscv/bin}
     export RISCV_PREFIX=${RISCV_PREFIX_OPEN:-riscv-none-elf-}
+elif [ -z "${RISCV_BIN:-}" ] && [ -x /home/vivado/2025.2/Vitis/gnu/riscv/linux_toolchain/lin64/bin/riscv64-amd-linux-gnu-gcc ]; then
+    # TOOL-A36 (2026-11-21): the Vitis GCC, the first choice of sw/toolchain.mk. Recipes that
+    # call $RISCV_BIN directly (core_csr_map, the cov_core prerequisite) ran "/gcc" without it.
+    export RISCV_BIN=/home/vivado/2025.2/Vitis/gnu/riscv/linux_toolchain/lin64/bin
+    export RISCV_PREFIX=riscv64-amd-linux-gnu-
 fi
 export SPIKE=${SPIKE_OPEN:-$GARUDA_SPIKE/bin/spike}
 export RISCV_TESTS=${RISCV_TESTS_OPEN:-$GARUDA_TOOLS/src/riscv-tests}

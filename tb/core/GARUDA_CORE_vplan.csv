@@ -87,8 +87,9 @@ a_flush_beats_hold,3,CHK,CORE.F29.CHK1,"Three properties, one per pipeline regis
 a_h2_defers_flush,3,CHK,CORE.F29.CHK2,And the load-use variant.,"rtl/core/pipe_ctrl_sva.sv, bound in every core simulation. Exists.",Karthik,
 a_trap_beats_branch,3,CHK,CORE.F29.CHK3,,"rtl/core/pipe_ctrl_sva.sv, bound in every core simulation. Exists.",Karthik,
 a_mem_completes,3,CHK,CORE.F29.CHK4,A load or store in MEM always writes back.,"SVA in rtl/core, bound at garuda_core_top. Planned. Also a formal property - waiting for JasperGold.",Karthik,
-c_h_vs_f cover points,3,COV,CORE.F29.COV5,One cover per reachable cell.,"rtl/core/pipe_ctrl_sva.sv, bound in every core simulation. Exists.",Karthik,
+c_h_vs_f cover points,3,COV,CORE.F29.COV5,"One cover per reachable cell. H5 against a trap is unreachable since T-19 (2026-11-21), see CHK7.","rtl/core/pipe_ctrl_sva.sv, bound in every core simulation. Exists.",Karthik,
 t_hold_flush_matrix,3,TC,CORE.F29.TC6,19 cells on architectural state.,Passing.,Karthik,
+a_h5_no_trap_redirect,3,CHK,CORE.F29.CHK7,"Nothing redirects the pipeline during the WFI sleep; an MRET behind a WFI waits for the wake (T-19, ruling 2026-11-21).","rtl/core/pipe_ctrl_sva.sv and trap_ctrl_props_a.sv (a_t19_no_mret_while_held), bound in every core simulation; JasperGold pipe_ctrl_core and fv_trap. Exists.",Karthik,
 F30 Adjacent instruction pairs,2,SECTION,CORE.F30,Every instruction class directly behind every other.,Method: sim (random instruction generation). Today: no check.,Karthik,P1
 cg_pipe.x_class_pair,3,COV,CORE.F30.COV1,Cross of the class in EX and the class in ID.,Planned.,Karthik,
 F WFI and the clock gate,1,SECTION,CORE.F,Spec 7.7. Requirement R-8.,,,

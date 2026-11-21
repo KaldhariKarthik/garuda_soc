@@ -26,9 +26,9 @@ analyze -sv09 +incdir+rtl/include {*}$FILES
 # the parameters of the chip: windows 1 to 11 present
 elaborate -top ahb2apb_bridge -parameter WINDOW_MASK 16'h$MASK -parameter APB_DIV 24'h$DIV -parameter TIMEOUT 16
 
-clock hclk_i
-clock pclk_i -factor 2 -phase 1
-reset -expression {!hreset_n_i} {!preset_n_i}
+clock hclk
+clock pclk -factor 2 -phase 1
+reset -expression {!hreset_n} {!preset_n}
 
 # the pclk phase input is not used by the bridge (the spec keeps it on the port list)
 assume {pclk_phase_i == 1'b0}

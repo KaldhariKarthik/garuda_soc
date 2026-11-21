@@ -77,6 +77,13 @@ module trap_ctrl_sva #(parameter ID_W = 5) (
     a_redirect_exc: assert property (@(posedge gclk) disable iff (!core_rst_n)
         (trap_enter_o && !is_interrupt_o) |-> (trap_redirect_valid_o && trap_redirect_target_o == {mtvec_i[31:2], 2'b00}) )
         else $error("[SVA-FAIL] a_redirect_exc: an exception does not go to mtvec");
+    // T-19 (D-41, 2026-11-21): an MRET waits while the WFI hold is up, and is taken as soon
+    // as nothing holds it (no D-port wait, no bus error, no WFI hold)
+    a_mret_not_while_held: assert property (@(posedge gclk) disable iff (!core_rst_n) mret_o |-> !wfi_hold_o )
+        else $error("[SVA-FAIL] a_mret_not_while_held: MRET taken during the WFI sleep (T-19)");
+    a_mret_taken_when_free: assert property (@(posedge gclk) disable iff (!core_rst_n)
+        (mret && !mem_stall_i && !mem_exc_valid_i && !wfi_hold_o) |-> mret_o )
+        else $error("[SVA-FAIL] a_mret_taken_when_free: an MRET with nothing holding it was not taken");
     a_redirect_mret: assert property (@(posedge gclk) disable iff (!core_rst_n)
         mret_o |-> (trap_redirect_valid_o && trap_redirect_target_o == mepc_i) )
         else $error("[SVA-FAIL] a_redirect_mret: MRET does not go to mepc");

@@ -1,12 +1,12 @@
 # GARUDA SoC: coverage by block
 
-Written by `tools/gen/cov_chart.py` on 2026-11-21 from IMC 15.2 reports, tree `238c8e6` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
+Written by `tools/gen/cov_chart.py` on 2026-11-21 from IMC 15.2 reports, tree `aaad3d3` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
 
 ![coverage by block](coverage_by_block.svg)
 
 ## How to read it
 
-- **Two sources.** The five blocks that have a UVM environment (CLIC, timers, clock and reset, PWM, GPIO) are measured on that environment's own runs and shown twice: as measured, and after the written waivers. The other eleven are measured on the 415 directed runs of `flow/regress/garuda.vsif` merged together, counted per module, with no waiver: none has been written for them yet. A hole in those rows is a hole, not a waived item.
+- **Three sources.** The blocks that have a UVM environment of their own are measured on that environment's runs. The others are measured on the 415 directed runs of `flow/regress/garuda.vsif` merged together, counted per module. Both are shown as measured and, where exclusions are written in `flow/cov/`, after them. The five track-A blocks (core, DSU, AHB, bridge, DMA) are signed off on their own Verilator coverage flow with its own waivers; their rows show the Xcelium merge with no waiver and quote the Verilator verdict, which is the sign-off figure.
 - **Statement, expression, toggle, FSM** are IMC's block, expression, toggle and FSM (states, transitions, arcs) metrics. **Functional** is covergroup bins. **Assertions triggered** counts bound properties and cover properties that finished at least once: a property that never triggered has checked nothing, however many tests passed.
 - The sign-off bar (`flow/0_signoff_criteria.md`) is 100% functional and at least 95% code coverage with every hole waived in writing. A block is closed only when it meets it.
 
@@ -14,12 +14,12 @@ Written by `tools/gen/cov_chart.py` on 2026-11-21 from IMC 15.2 reports, tree `2
 
 | Block | Track | Measured on | Statement | Expression | Toggle | FSM | Functional | Assertions triggered | Waivers |
 |---|---|---|---|---|---|---|---|---|---|
-| RV32IM core | A | all directed tests, merged | 100.0% (290/290) | 100.0% (85/85) | 95.7% (8551/8931) | none | 94.2% (1786/1895) | 100.0% (138/138) | none written |
-| DSU | A | all directed tests, merged | 100.0% (63/63) | none | 95.9% (3537/3689) | none | 59.7% (191/320) | none | none written |
-| AHB interconnect | A | all directed tests, merged | 100.0% (78/78) | 100.0% (9/9) | 92.5% (1300/1405) | 100.0% (7/7) | 71.8% (102/142) | 97.3% (36/37) | none written |
-| AHB to APB bridge | A | all directed tests, merged | 100.0% (53/53) | 100.0% (6/6) | 83.4% (1074/1287) | none | 38.4% (53/138) | 96.7% (29/30) | none written |
+| RV32IM core | A | all directed tests, merged (no waivers applied here); **signed off on Verilator: `cov_core_report` PASS** | 100.0% (290/290) | 100.0% (85/85) | 95.7% (8551/8931) | none | 94.2% (1786/1895) | 100.0% (138/138) | 62, in `tb/core/cov/core_waivers.toml` (Verilator sign-off) |
+| DSU | A | all directed tests, merged (no waivers applied here); **signed off on Verilator: `cov_dsu_report` PASS** | 100.0% (63/63) | none | 95.9% (3537/3689) | none | 59.7% (191/320) | none | 6, in `tb/dsu/cov/dsu_waivers.toml` (Verilator sign-off) |
+| AHB interconnect | A | all directed tests, merged (no waivers applied here); **signed off on Verilator: `cov_ahb_report` PASS** | 100.0% (78/78) | 100.0% (9/9) | 92.5% (1300/1405) | 100.0% (7/7) | 71.8% (102/142) | 97.3% (36/37) | 6, in `tb/ahb/cov/ahb_waivers.toml` (Verilator sign-off) |
+| AHB to APB bridge | A | all directed tests, merged (no waivers applied here); **signed off on Verilator: `cov_apb_report` PASS** | 100.0% (53/53) | 100.0% (6/6) | 83.4% (1074/1287) | none | 38.4% (53/138) | 96.7% (29/30) | 7, in `tb/ahb2apb/cov/ahb2apb_waivers.toml` (Verilator sign-off) |
 | Memories | A | all directed tests, merged | 85.7% (60/70), after waivers 100.0% (60/60) | 95.7% (22/23), after waivers 100.0% (22/22) | 99.5% (968/973), after waivers 100.0% (968/968) | none | 100.0% (53/53) | 100.0% (21/21) | 16, in `flow/cov/mem_exclusions.tcl` |
-| DMA | A | all directed tests, merged | 100.0% (148/148) | 100.0% (37/37) | 79.1% (2851/3606) | none | 95.6% (151/158) | 100.0% (54/54) | none written |
+| DMA | A | all directed tests, merged (no waivers applied here); **signed off on Verilator: `cov_dma_report` PASS** | 100.0% (148/148) | 100.0% (37/37) | 79.1% (2851/3606) | none | 95.6% (151/158) | 100.0% (54/54) | 24, in `tb/dma/cov/dma_waivers.toml` (Verilator sign-off) |
 | Debug | A | all directed tests, merged | 100.0% (221/221) | 100.0% (49/49) | 91.7% (1414/1542), after waivers 100.0% (1414/1414) | none | 100.0% (80/80) | 100.0% (40/40) | 124, in `flow/cov/debug_exclusions.tcl` |
 | CLIC | B | the block's UVM environment | 100.0% (25/25) | none | 95.8% (1177/1229), after waivers 100.0% (1177/1177) | none | 100.0% (429/429) | 100.0% (87/87) | 52, in `flow/cov/clic_exclusions.tcl` |
 | Timers and watchdog | B | the block's UVM environment | 100.0% (68/68) | 100.0% (6/6) | 99.8% (1319/1321), after waivers 100.0% (1319/1319) | none | 100.0% (145/145) | 100.0% (36/36) | 3, in `flow/cov/timers_exclusions.tcl` |
@@ -39,7 +39,7 @@ Over the sixteen blocks, counting items (waived items removed for the five block
 
 ### RV32IM core
 
-Plan: `tb/core/GARUDA_CORE_vplan.csv` (41 features, 69 checks and coverage items). Track A.
+Plan: `tb/core/GARUDA_CORE_vplan.csv` (41 features, 70 checks and coverage items). Track A.
 
 Measured on all directed tests merged, per module. No waiver applied.
 
@@ -114,7 +114,7 @@ Functional coverage: 94.2% (1786/1895).
 
 Assertions: 100.0% (138/138) triggered.
 
-**Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is "unreachable", a JasperGold run that confirms it.
+**Sign-off:** this block is signed off on its own Verilator coverage flow, not on the figures above. `make -f flow/mk/track_a_run.mk cov_core_report` (`tools/cov/cov_report.py tb/core/cov/cov.toml`: at least 95% per code metric per module and 100% functional, after the 62 waivers in `tb/core/cov/core_waivers.toml`) printed, on this tree: `verdict: PASS  (0 below target, 0 waiver/input error(s))`. The figures above are the Xcelium merge with no waiver applied; a hole there is either waived in the Verilator flow or hit by a Verilator-only run.
 
 
 ### DSU
@@ -149,7 +149,7 @@ Functional coverage: 59.7% (191/320).
 
 Assertions: no property is bound to this block yet.
 
-**Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is "unreachable", a JasperGold run that confirms it.
+**Sign-off:** this block is signed off on its own Verilator coverage flow, not on the figures above. `make -f flow/mk/track_a_run.mk cov_dsu_report` (`tools/cov/cov_report.py tb/dsu/cov/cov.toml`: at least 95% per code metric per module and 100% functional, after the 6 waivers in `tb/dsu/cov/dsu_waivers.toml`) printed, on this tree: `verdict: PASS  (0 below target, 0 waiver/input error(s))`. The figures above are the Xcelium merge with no waiver applied; a hole there is either waived in the Verilator flow or hit by a Verilator-only run.
 
 
 ### AHB interconnect
@@ -177,7 +177,7 @@ Functional coverage: 71.8% (102/142).
 
 Assertions: 97.3% (36/37) triggered. Never triggered: `c_all_request`.
 
-**Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is "unreachable", a JasperGold run that confirms it.
+**Sign-off:** this block is signed off on its own Verilator coverage flow, not on the figures above. `make -f flow/mk/track_a_run.mk cov_ahb_report` (`tools/cov/cov_report.py tb/ahb/cov/cov.toml`: at least 95% per code metric per module and 100% functional, after the 6 waivers in `tb/ahb/cov/ahb_waivers.toml`) printed, on this tree: `verdict: PASS  (0 below target, 0 waiver/input error(s))`. The figures above are the Xcelium merge with no waiver applied; a hole there is either waived in the Verilator flow or hit by a Verilator-only run.
 
 
 ### AHB to APB bridge
@@ -201,7 +201,7 @@ Functional coverage: 38.4% (53/138).
 
 Assertions: 96.7% (29/30) triggered. Never triggered: `c_in_reset`.
 
-**Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is "unreachable", a JasperGold run that confirms it.
+**Sign-off:** this block is signed off on its own Verilator coverage flow, not on the figures above. `make -f flow/mk/track_a_run.mk cov_apb_report` (`tools/cov/cov_report.py tb/ahb2apb/cov/cov.toml`: at least 95% per code metric per module and 100% functional, after the 7 waivers in `tb/ahb2apb/cov/ahb2apb_waivers.toml`) printed, on this tree: `verdict: PASS  (0 below target, 0 waiver/input error(s))`. The figures above are the Xcelium merge with no waiver applied; a hole there is either waived in the Verilator flow or hit by a Verilator-only run.
 
 
 ### Memories
@@ -264,7 +264,7 @@ Functional coverage: 95.6% (151/158).
 
 Assertions: 100.0% (54/54) triggered.
 
-**Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is "unreachable", a JasperGold run that confirms it.
+**Sign-off:** this block is signed off on its own Verilator coverage flow, not on the figures above. `make -f flow/mk/track_a_run.mk cov_dma_report` (`tools/cov/cov_report.py tb/dma/cov/cov.toml`: at least 95% per code metric per module and 100% functional, after the 24 waivers in `tb/dma/cov/dma_waivers.toml`) printed, on this tree: `verdict: PASS  (0 below target, 0 waiver/input error(s))`. The figures above are the Xcelium merge with no waiver applied; a hole there is either waived in the Verilator flow or hit by a Verilator-only run.
 
 
 ### Debug

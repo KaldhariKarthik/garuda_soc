@@ -14,8 +14,8 @@ if {[info exists ::env(FL)]} { set FL $::env(FL) }
 set FILES [split [string trim [exec env -u LD_LIBRARY_PATH python3 scripts/expand_filelist.py $FL]] "\n"]
 analyze -sv09 +incdir+rtl/ahb {*}$FILES
 elaborate -top ahb_interconnect
-clock hclk_i
-reset -expression {!hreset_n_i}
+clock hclk
+reset -expression {!hreset_n}
 prove -all -time_limit 600s
 report -summary
 source flow/formal/common.tcl

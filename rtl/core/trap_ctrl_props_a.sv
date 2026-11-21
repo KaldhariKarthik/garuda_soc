@@ -101,6 +101,11 @@ module trap_ctrl_props_a (
     a_tc2_no_ex_exc_while_held: assert property (@(posedge clk) disable iff (!rst_n)
         !(trap_enter && !is_interrupt && !mem_exc_valid && wfi_hold))
         else $error("[SVA-FAIL] TC-2 / T-16: an EX exception was taken during the WFI sleep");
+    // T-19 (2026-11-21): no MRET is taken (no mstatus pop, no redirect to mepc) while the
+    // WFI hold is active; with TC-1 and TC-2 nothing redirects the pipeline during the sleep
+    a_t19_no_mret_while_held: assert property (@(posedge clk) disable iff (!rst_n)
+        !(mret && wfi_hold))
+        else $error("[SVA-FAIL] T-19: an MRET was taken during the WFI sleep");
     a_tc3_no_squash_in_h2: assert property (@(posedge clk) disable iff (!rst_n)
         !(squash_id_ex && h2))
         else $error("[SVA-FAIL] TC-3: ID/EX squashed while a D-port transfer is outstanding");
@@ -136,6 +141,8 @@ module trap_ctrl_props_a (
     c_mem_fault:          cover property (@(posedge clk) disable iff (!rst_n) mem_exc_valid);
     c_mem_fault_with_mret: cover property (@(posedge clk) disable iff (!rst_n) mem_exc_valid && is_mret);
     c_h2_with_wfi_in_ex:  cover property (@(posedge clk) disable iff (!rst_n) h2 && is_wfi && !wfi_active);
+    c_mret_after_wfi_wake: cover property (@(posedge clk) disable iff (!rst_n)
+                              $past(wfi_hold) && mret);
     c_wfi_armed:          cover property (@(posedge clk) disable iff (!rst_n) wfi_active);
     c_int_taken:          cover property (@(posedge clk) disable iff (!rst_n) is_interrupt);
     c_squash_id_ex:       cover property (@(posedge clk) disable iff (!rst_n) squash_id_ex);
