@@ -267,23 +267,32 @@ module tb_spim;
             int cl[3] = '{0, 8, 16};
             int al[4] = '{0, 24, 32, 16};
             int dl[4] = '{0, 32, 64, 16};
-            int nbad, n;
-            nbad = 0; n = 0;
+            int nbad, n, n_eot;
+            nbad = 0; n = 0; n_eot = 0;
             bfm.wr(R_CLKDIV, 32'd3);
             bfm.wr(R_CMD, 32'hA500_0000); bfm.wr(R_ADDR, 32'h1234_5678);
             foreach (cl[a]) foreach (al[b]) foreach (dl[c]) for (int dir = 1; dir <= 2; dir++) begin
                 bfm.wr(R_LEN, (dl[c] << 16) | (al[b] << 8) | cl[a]);
                 bfm.wr(R_DUM, ((a + b + c) % 3 == 0) ? 32'h0004_0004 : 32'h0);
                 if (dir == 2) for (int k = 0; k < (dl[c] + 31) / 32; k++) bfm.wr(R_TXFIFO, 32'hC0DE_0000 + k);
+                bfm.wr(R_IRQSTAT, 32'h7);
                 bfm.wr(R_STATUS, (((a + b + c + dir) % 2) ? CS_IMU : CS_FLASH) | dir);
                 xfer_idle(t);
                 n++;
                 if (t >= 4000) begin nbad++; $display("[FAIL] len cmd %0d addr %0d data %0d dir %0d did not finish", cl[a], al[b], dl[c], dir); end
+                // SPIM-6: every transfer ends with IRQSTAT[0], with or without a data phase ([N-6.1a]);
+                // all three lengths 0 is no transfer at all and is not counted
+                bfm.read(R_IRQSTAT, d, e);
+                if ((cl[a] + al[b] + dl[c]) != 0) begin
+                    n_eot++;
+                    if (!d[0]) begin nbad++; $display("[FAIL] SPIM-6: len cmd %0d addr %0d data %0d dir %0d ended without IRQSTAT[0]", cl[a], al[b], dl[c], dir); end
+                end
                 drain_rx();
                 bfm.read(R_STATUS, d, e);
                 if (d[28:24] != 0) begin nbad++; $display("[FAIL] len cmd %0d addr %0d data %0d dir %0d left %0d TX words", cl[a], al[b], dl[c], dir, d[28:24]); end
             end
             check(nbad == 0, $sformatf("[N-6.1] %0d transfers over every command/address/data length class, read and write, with and without dummy cycles: each returns to idle with its FIFO words used", n));
+            check(nbad == 0 && n_eot > 0, $sformatf("[N-6.1a] SPIM-6: IRQSTAT[0] set at the end of all %0d transfers, those with no data phase included", n_eot));
             bfm.wr(R_DUM, 32'h0);
         end
 
