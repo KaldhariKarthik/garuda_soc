@@ -21,8 +21,11 @@ HOLD_UNC_PS = 30          # ASSUMPTION (2026-11-12, PD-12): hold uncertainty on 
 OCV_EARLY, OCV_LATE = 0.95, 1.05   # ASSUMPTION (PD-12): flat on-chip-variation derate, cells and nets
 
 # DIVSEL (= sel_act_q) -> hclk source leg; t1 = refclk/2, t2 = /4, t3 = /8, t4 = /16
+# Flop names are those of ORFS's slang front end (SYNTH_HDL_FRONTEND = slang, needed since the RTL
+# moved to SystemVerilog packages, 2026-11-16): a flop that drives an output port takes the port's
+# name, so t1_q is u_clk_div.aon_clk, sel_act_q is div_act_o and pclk_q is pclk (2026-11-21).
 MODES = {
-    2:  ("00", "u_clk_div.t1_q$_DFF_PN0_"),
+    2:  ("00", "u_clk_div.aon_clk$_DFF_PN0_"),
     4:  ("01", "u_clk_div.t2_q$_DFF_PN0_"),
     8:  ("10", "u_clk_div.t3_q$_DFF_PN0_"),
     16: ("11", "u_clk_div.t4_q$_DFF_PN0_"),
@@ -62,7 +65,7 @@ set_clock_uncertainty -setup 150 [get_clocks refclk] ;# PHYS 5.2: 0.15 ns
 #      aon_clk = t1 (D-14): reset_ctrl stretch/requests/RSTREASON, sel_req_q, and
 #      the negedge sel_act_q (clocked by the QN net directly).
 create_generated_clock -name aon_clk -source [get_ports refclk] -edges {{3 5 7}} \
-    [get_pins {{u_clk_div.t1_q$_DFF_PN0_/QN}}]
+    [get_pins {{u_clk_div.aon_clk$_DFF_PN0_/QN}}]
 create_generated_clock -name clk_t2 -source [get_ports refclk] -edges {{5 9 13}} \
     [get_pins {{u_clk_div.t2_q$_DFF_PN0_/QN}}]
 create_generated_clock -name clk_t3 -source [get_ports refclk] -edges {{9 17 25}} \
@@ -73,15 +76,15 @@ create_generated_clock -name clk_t4 -source [get_ports refclk] -edges {{17 33 49
 # ---- 3. hclk: the DIVSEL mux output (net hclk, RTL polarity), fixed to this
 #      mode by case analysis on the active select (QN = ~sel). Edges: rise on
 #      refclk edge 1, period DIV refclk periods.
-set_case_analysis {qn0} [get_pins {{u_clk_div.sel_act_q?0?$_DFFE_NN0P_/QN}}]
-set_case_analysis {qn1} [get_pins {{u_clk_div.sel_act_q?1?$_DFFE_NN0P_/QN}}]
+set_case_analysis {qn0} [get_pins {{u_clk_div.div_act_o?0?$_DFFE_NN0P_/QN}}]
+set_case_analysis {qn1} [get_pins {{u_clk_div.div_act_o?1?$_DFFE_NN0P_/QN}}]
 create_generated_clock -name hclk -source [get_ports refclk] -edges {{{h_edges}}} \
     [get_pins -of_objects [get_nets hclk] -filter "direction == output"]
 
 # ---- 4. pclk = hclk / 2: toggle u_clk_div.pclk_q on each hclk rise (resets to 1,
 #      so Q falls on the first hclk rise). Defined on QN, which rises on that edge.
 create_generated_clock -name pclk -source [get_ports refclk] -edges {{{p_edges}}} \
-    [get_pins {{u_clk_div.pclk_q$_DFF_PN1_/QN}}]
+    [get_pins {{u_clk_div.pclk$_DFF_PN1_/QN}}]
 
 # ---- 4b. derived-clock uncertainty: ASSUMPTION, provisional. No project
 #      document gives one; the only stated value is refclk's 0.15 ns setup
@@ -153,7 +156,7 @@ set_output_delay {tck_io} -clock tck [get_ports {{tdo_o tdo_oe_o}}]
 set_output_delay -min 0 -clock tck [get_ports {{tdo_o tdo_oe_o}}]
 set OUTS_PCLK [get_ports {{spim_sclk spim_mosi spim_cs_flash_n spim_cs_imu_n
     uart0_tx uart1_tx uart2_tx pwm0 pwm1 pwm2 pwm3
-    gpio_o* gpio_oe_o* i2c_scl_o i2c_scl_oe_o i2c_sda_o i2c_sda_oe_o
+    gpio_o* gpio_oe_o* i2c_scl_oe_o i2c_sda_oe_o
     spis_miso_o spis_miso_oe_o}}]
 #      SPI master outputs as generic pclk outputs; outputs to asynchronous
 #      receivers (UART, PWM/ESC, GPIO, I2C, SPI-slave MISO) bounded so
