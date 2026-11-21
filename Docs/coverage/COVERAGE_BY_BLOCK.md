@@ -1,12 +1,12 @@
 # GARUDA SoC: coverage by block
 
-Written by `tools/gen/cov_chart.py` on 2026-11-21 from IMC 15.2 reports, tree `848e5e3` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
+Written by `tools/gen/cov_chart.py` on 2026-11-21 from IMC 15.2 reports, tree `238c8e6` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
 
 ![coverage by block](coverage_by_block.svg)
 
 ## How to read it
 
-- **Two sources.** The five blocks that have a UVM environment (CLIC, timers, clock and reset, PWM, GPIO) are measured on that environment's own runs and shown twice: as measured, and after the written waivers. The other eleven are measured on the 409 directed runs of `flow/regress/garuda.vsif` merged together, counted per module, with no waiver: none has been written for them yet. A hole in those rows is a hole, not a waived item.
+- **Two sources.** The five blocks that have a UVM environment (CLIC, timers, clock and reset, PWM, GPIO) are measured on that environment's own runs and shown twice: as measured, and after the written waivers. The other eleven are measured on the 415 directed runs of `flow/regress/garuda.vsif` merged together, counted per module, with no waiver: none has been written for them yet. A hole in those rows is a hole, not a waived item.
 - **Statement, expression, toggle, FSM** are IMC's block, expression, toggle and FSM (states, transitions, arcs) metrics. **Functional** is covergroup bins. **Assertions triggered** counts bound properties and cover properties that finished at least once: a property that never triggered has checked nothing, however many tests passed.
 - The sign-off bar (`flow/0_signoff_criteria.md`) is 100% functional and at least 95% code coverage with every hole waived in writing. A block is closed only when it meets it.
 
@@ -14,26 +14,26 @@ Written by `tools/gen/cov_chart.py` on 2026-11-21 from IMC 15.2 reports, tree `8
 
 | Block | Track | Measured on | Statement | Expression | Toggle | FSM | Functional | Assertions triggered | Waivers |
 |---|---|---|---|---|---|---|---|---|---|
-| RV32IM core | A | all directed tests, merged | 100.0% (290/290) | 100.0% (85/85) | 95.7% (8551/8931) | none | 94.2% (1786/1895) | 99.3% (137/138) | none written |
+| RV32IM core | A | all directed tests, merged | 100.0% (290/290) | 100.0% (85/85) | 95.7% (8551/8931) | none | 94.2% (1786/1895) | 100.0% (138/138) | none written |
 | DSU | A | all directed tests, merged | 100.0% (63/63) | none | 95.9% (3537/3689) | none | 59.7% (191/320) | none | none written |
-| AHB interconnect | A | all directed tests, merged | 98.7% (77/78) | 100.0% (9/9) | 87.8% (1233/1405) | 100.0% (7/7) | 71.8% (102/142) | 97.3% (36/37) | none written |
-| AHB to APB bridge | A | all directed tests, merged | 100.0% (53/53) | 100.0% (6/6) | 79.1% (1018/1287) | none | 38.4% (53/138) | 96.7% (29/30) | none written |
-| Memories | A | all directed tests, merged | 85.7% (60/70), after waivers 100.0% (60/60) | 95.7% (22/23) | 99.5% (968/973), after waivers 100.0% (968/968) | none | 100.0% (53/53) | 100.0% (21/21) | 15, in `flow/cov/mem_exclusions.tcl` |
-| DMA | A | all directed tests, merged | 100.0% (148/148) | 100.0% (37/37) | 78.9% (2845/3606) | none | 95.6% (151/158) | 100.0% (54/54) | none written |
-| Debug | A | all directed tests, merged | 100.0% (221/221) | 98.0% (48/49) | 91.7% (1414/1542), after waivers 100.0% (1414/1414) | none | 100.0% (80/80) | 100.0% (40/40) | 124, in `flow/cov/debug_exclusions.tcl` |
-| CLIC | B | the block's UVM environment | 100.0% (25/25) | none | 95.8% (1177/1229), after waivers 100.0% (1173/1173) | none | 100.0% (429/429) | 100.0% (87/87) | 56, in `flow/cov/clic_exclusions.tcl` |
+| AHB interconnect | A | all directed tests, merged | 100.0% (78/78) | 100.0% (9/9) | 92.5% (1300/1405) | 100.0% (7/7) | 71.8% (102/142) | 97.3% (36/37) | none written |
+| AHB to APB bridge | A | all directed tests, merged | 100.0% (53/53) | 100.0% (6/6) | 83.4% (1074/1287) | none | 38.4% (53/138) | 96.7% (29/30) | none written |
+| Memories | A | all directed tests, merged | 85.7% (60/70), after waivers 100.0% (60/60) | 95.7% (22/23), after waivers 100.0% (22/22) | 99.5% (968/973), after waivers 100.0% (968/968) | none | 100.0% (53/53) | 100.0% (21/21) | 16, in `flow/cov/mem_exclusions.tcl` |
+| DMA | A | all directed tests, merged | 100.0% (148/148) | 100.0% (37/37) | 79.1% (2851/3606) | none | 95.6% (151/158) | 100.0% (54/54) | none written |
+| Debug | A | all directed tests, merged | 100.0% (221/221) | 100.0% (49/49) | 91.7% (1414/1542), after waivers 100.0% (1414/1414) | none | 100.0% (80/80) | 100.0% (40/40) | 124, in `flow/cov/debug_exclusions.tcl` |
+| CLIC | B | the block's UVM environment | 100.0% (25/25) | none | 95.8% (1177/1229), after waivers 100.0% (1177/1177) | none | 100.0% (429/429) | 100.0% (87/87) | 52, in `flow/cov/clic_exclusions.tcl` |
 | Timers and watchdog | B | the block's UVM environment | 100.0% (68/68) | 100.0% (6/6) | 99.8% (1319/1321), after waivers 100.0% (1319/1319) | none | 100.0% (145/145) | 100.0% (36/36) | 3, in `flow/cov/timers_exclusions.tcl` |
 | Clock divider and reset | B | the block's UVM environment | 100.0% (73/73) | 100.0% (16/16) | 82.7% (249/301), after waivers 100.0% (249/249) | none | 100.0% (106/106) | 100.0% (43/43) | 55, in `flow/cov/crg_exclusions.tcl` |
 | PWM | B | the block's UVM environment | 100.0% (86/86) | 100.0% (18/18) | 93.3% (526/564), after waivers 100.0% (526/526) | none | 100.0% (275/275) | 98.7% (76/77), after waivers 100.0% (76/76) | 40, in `flow/cov/pwm_exclusions.tcl` |
-| GPIO | B | the block's UVM environment | 57.4% (147/256), after waivers 100.0% (147/147) | 95.8% (23/24), after waivers 100.0% (19/19) | 52.0% (584/1122), after waivers 100.0% (200/200) | none | 100.0% (214/214) | 100.0% (36/36) | 649, in `flow/cov/gpio_exclusions.tcl` |
+| GPIO | B | the block's UVM environment | 57.4% (147/256), after waivers 100.0% (147/147) | 95.8% (23/24), after waivers 100.0% (19/19) | 52.0% (584/1122), after waivers 100.0% (584/584) | none | 100.0% (214/214) | 100.0% (36/36) | 649, in `flow/cov/gpio_exclusions.tcl` |
 | UART | B | the block's UVM environment | 97.6% (245/251), after waivers 100.0% (245/245) | 100.0% (44/44) | 78.0% (679/871), after waivers 100.0% (679/679) | 100.0% (28/28) | 100.0% (211/211) | none | 198, in `flow/cov/uart_exclusions.tcl` |
 | I2C | B | the block's UVM environment | 98.7% (230/233), after waivers 100.0% (230/230) | 94.7% (18/19), after waivers 100.0% (15/15) | 83.6% (624/746), after waivers 100.0% (624/624) | 100.0% (56/56) | 100.0% (222/222) | 100.0% (68/68) | 128, in `flow/cov/i2c_exclusions.tcl` |
-| SPI master | B | all directed tests, merged | 98.8% (242/245), after waivers 100.0% (242/242) | 90.3% (65/72), after waivers 100.0% (65/65) | 94.7% (1820/1921), after waivers 100.0% (1820/1820) | 98.1% (53/54), after waivers 100.0% (53/53) | 100.0% (68/68) | 92.9% (13/14) | 106, in `flow/cov/spim_exclusions.tcl` |
+| SPI master | B | all directed tests, merged | 98.8% (242/245), after waivers 100.0% (242/242) | 90.3% (65/72), after waivers 100.0% (65/65) | 94.7% (1820/1921), after waivers 100.0% (1820/1820) | 98.1% (53/54), after waivers 100.0% (53/53) | 100.0% (68/68) | 100.0% (14/14) | 106, in `flow/cov/spim_exclusions.tcl` |
 | SPI slave | B | the block's UVM environment | 100.0% (99/99) | 100.0% (24/24) | 74.6% (419/562), after waivers 100.0% (419/419) | none | 100.0% (146/146) | 98.1% (53/54), after waivers 100.0% (53/53) | 147, in `flow/cov/spis_exclusions.tcl` |
 | APB shim (shared by six peripherals) | B | all directed tests, merged | 100.0% (14/14) | 100.0% (6/6) | 99.3% (138/139), after waivers 100.0% (138/138) | none | 100.0% (35/35) | 100.0% (19/19) | 1, in `flow/cov/shim_exclusions.tcl` |
-| Chip and SoC top (wiring) | B | all directed tests, merged | none | none | 67.8% (1713/2527) | none | 86.2% (50/58) | none | none written |
+| Chip and SoC top (wiring) | B | all directed tests, merged | none | none | 80.7% (2039/2527), after waivers 100.0% (2039/2039) | none | 100.0% (57/57) | none | 488, in `flow/cov/top_exclusions.tcl` |
 
-Over the sixteen blocks, counting items (waived items removed for the five blocks that have waivers): statement 100.0% (2127/2128), expression 99.5% (414/416), toggle 93.9% (26575/28309), FSM 100.0% (144/144); all four together 94.4% (29260/30997).
+Over the sixteen blocks, counting items (waived items removed for the five blocks that have waivers): statement 100.0% (2128/2128), expression 100.0% (415/415), toggle 94.4% (27092/28697), FSM 100.0% (144/144); all four together 94.9% (29779/31384).
 
 ## Block by block
 
@@ -112,7 +112,7 @@ Functional coverage: 94.2% (1786/1895).
 | unit_prefetch_buf | 100.0% (30/30) |
 | unit_reg_file | 100.0% (102/102) |
 
-Assertions: 99.3% (137/138) triggered. Never triggered: `c_h5_vs_trap`.
+Assertions: 100.0% (138/138) triggered.
 
 **Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is "unreachable", a JasperGold run that confirms it.
 
@@ -160,14 +160,14 @@ Measured on all directed tests merged, per module. No waiver applied.
 
 | Module | Statement | Expression | Toggle | FSM |
 |---|---|---|---|---|
-| `ahb_interconnect` | none | none | 87.7% (616/702) | none |
+| `ahb_interconnect` | none | none | 92.6% (650/702) | none |
 | `ahb_arbiter` | 100.0% (13/13) | 100.0% (3/3) | 90.0% (27/30) | none |
-| `ahb_master_mux` | 100.0% (13/13) | 100.0% (3/3) | 76.9% (273/355) | none |
+| `ahb_master_mux` | 100.0% (13/13) | 100.0% (3/3) | 86.2% (306/355) | none |
 | `ahb_decoder` | 100.0% (6/6) | none | 100.0% (9/9) | none |
 | `ahb_dflt_slave` | 100.0% (10/10) | none | 100.0% (12/12) | 100.0% (7/7) |
-| `ahb_slave_mux` | 96.6% (28/29) | none | 100.0% (186/186) | none |
+| `ahb_slave_mux` | 100.0% (29/29) | none | 100.0% (186/186) | none |
 | `ahb_master_port` | 100.0% (7/7) | 100.0% (3/3) | 99.1% (110/111) | none |
-| **whole block** | 98.7% (77/78) | 100.0% (9/9) | 87.8% (1233/1405) | 100.0% (7/7) |
+| **whole block** | 100.0% (78/78) | 100.0% (9/9) | 92.5% (1300/1405) | 100.0% (7/7) |
 
 Functional coverage: 71.8% (102/142).
 
@@ -188,10 +188,10 @@ Measured on all directed tests merged, per module. No waiver applied.
 
 | Module | Statement | Expression | Toggle | FSM |
 |---|---|---|---|---|
-| `ahb2apb_bridge` | 100.0% (25/25) | 100.0% (6/6) | 81.1% (575/709) | none |
+| `ahb2apb_bridge` | 100.0% (25/25) | 100.0% (6/6) | 85.0% (603/709) | none |
 | `ahb2apb_apb_fsm` | 100.0% (28/28) | none | 95.2% (118/124) | none |
-| `ahb2apb_fabric` | none | none | 71.6% (325/454) | none |
-| **whole block** | 100.0% (53/53) | 100.0% (6/6) | 79.1% (1018/1287) | none |
+| `ahb2apb_fabric` | none | none | 77.8% (353/454) | none |
+| **whole block** | 100.0% (53/53) | 100.0% (6/6) | 83.4% (1074/1287) | none |
 
 Functional coverage: 38.4% (53/138).
 
@@ -213,14 +213,12 @@ Measured on the UVM environment (0 runs: register test, directed test, random se
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
 | Block | 85.7% (60/70) | 100.0% (60/60) | 10 |
-| Expression | 95.7% (22/23) | 95.7% (22/23) | 0 |
+| Expression | 95.7% (22/23) | 100.0% (22/22) | 1 |
 | Toggle | 99.5% (968/973) | 100.0% (968/968) | 5 |
 | Assertion | 100.0% (21/21) | 100.0% (21/21) | 0 |
 | Functional (covergroup bins) | 100.0% (53/53) | 100.0% (53/53) | 0 |
 
-**Still open after the waivers:** Expression 1 of 23. Listed in `sim/cov_all/holes_mem.txt` after `make cov_chart`.
-
-**Exclusions and their justifications** (`flow/cov/mem_exclusions.tcl`, 15 lines):
+**Exclusions and their justifications** (`flow/cov/mem_exclusions.tcl`, 16 lines):
 
 | Metric | Where | Items | Justification |
 |---|---|---|---|
@@ -233,6 +231,7 @@ Measured on the UVM environment (0 runs: register test, directed test, random se
 | block | `dsram_top` | 1: `15` | backdoor bd_read of bank 2 (dsram_top.sv:105) inside ifndef SYNTHESIS: bench code, not hardware |
 | block | `sram_wrapper` | 1: `21` | readmemh preload (sram_wrapper.sv:118-120) inside ifndef SYNTHESIS: bench code, not hardware |
 | block | `ahb_mem_slave_if` | 1: `23` | simulation-only self-check (ahb_mem_slave_if.sv:198-203, ifndef SYNTHESIS) that prints on a write-buffer overflow: never firing is the passing result |
+| expression | `ahb_mem_slave_if` | 1: `2.1.1` | the condition of the same simulation-only overflow self-check (ahb_mem_slave_if.sv:200): the row park_wr AND wb_v is a write data phase with the buffer full, which a_wbuf_empty_in_write_dp proves never happens (JasperGold PROVEN, flow/formal/mem/mem_fpv.result.txt) |
 | block | `sram_wrapper` | 1: `17` | the ROM-write path (sram_wrapper.sv:101, we with IS_ROM = 1): the boot ROM's interface refuses every write (WRITABLE = 0, AHB ERROR), so its array never sees we |
 | toggle | `bootrom_top` | 1: `we` | the boot ROM's array write enable is constant 0: its interface refuses every write (WRITABLE = 0) |
 | toggle | `ahb_mem_slave_if` | 1: `hsize_i` | the AHB is 32 bits wide: HSIZE is at most word, so bit 2 is 0 |
@@ -249,13 +248,13 @@ Measured on all directed tests merged, per module. No waiver applied.
 
 | Module | Statement | Expression | Toggle | FSM |
 |---|---|---|---|---|
-| `dma_top` | none | none | 72.3% (927/1283) | none |
+| `dma_top` | none | none | 72.4% (929/1283) | none |
 | `dma_apb_slave` | 100.0% (8/8) | 100.0% (3/3) | 69.2% (823/1189) | none |
 | `dma_chan` | 100.0% (76/76) | 100.0% (12/12) | 90.7% (283/312) | none |
 | `dma_arbiter` | 100.0% (6/6) | 100.0% (4/4) | 100.0% (10/10) | none |
-| `dma_engine` | 100.0% (55/55) | 100.0% (18/18) | 98.8% (802/812) | none |
+| `dma_engine` | 100.0% (55/55) | 100.0% (18/18) | 99.3% (806/812) | none |
 | `dma_engine, generate ack2_T_F` | 100.0% (3/3) | none | none | none |
-| **whole block** | 100.0% (148/148) | 100.0% (37/37) | 78.9% (2845/3606) | none |
+| **whole block** | 100.0% (148/148) | 100.0% (37/37) | 79.1% (2851/3606) | none |
 
 Functional coverage: 95.6% (151/158).
 
@@ -277,12 +276,10 @@ Measured on the UVM environment (0 runs: register test, directed test, random se
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
 | Block | 100.0% (221/221) | 100.0% (221/221) | 0 |
-| Expression | 98.0% (48/49) | 98.0% (48/49) | 0 |
+| Expression | 100.0% (49/49) | 100.0% (49/49) | 0 |
 | Toggle | 91.7% (1414/1542) | 100.0% (1414/1414) | 128 |
 | Assertion | 100.0% (40/40) | 100.0% (40/40) | 0 |
 | Functional (covergroup bins) | 100.0% (80/80) | 100.0% (80/80) | 0 |
-
-**Still open after the waivers:** Expression 1 of 49. Listed in `sim/cov_all/holes_debug.txt` after `make cov_chart`.
 
 **Exclusions and their justifications** (`flow/cov/debug_exclusions.tcl`, 124 lines):
 
@@ -315,17 +312,17 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
 | Block | 100.0% (25/25) | 100.0% (25/25) | 0 |
-| Toggle | 95.8% (1177/1229) | 100.0% (1173/1173) | 56 |
+| Toggle | 95.8% (1177/1229) | 100.0% (1177/1177) | 52 |
 | Assertion | 100.0% (87/87) | 100.0% (87/87) | 0 |
 | Functional (covergroup bins) | 100.0% (429/429) | 100.0% (429/429) | 0 |
 
-**Exclusions and their justifications** (`flow/cov/clic_exclusions.tcl`, 56 lines):
+**Exclusions and their justifications** (`flow/cov/clic_exclusions.tcl`, 52 lines):
 
 | Metric | Where | Items | Justification |
 |---|---|---|---|
-| toggle | `clic_top` | 11: `ie` | enable bit of an ID with no source: hardwired 0 by GARUDA_CLIC_ID_MASK, checked by a_reserved_ids |
-| toggle | `clic_top.u_apb` | 22: `ie_o`, `ie_q` | enable bit of an ID with no source: hardwired 0 by GARUDA_CLIC_ID_MASK, checked by a_reserved_ids |
-| toggle | `clic_top.u_sel` | 11: `cand_i` | candidate bit of an ID with no source: its enable is hardwired 0, so enable AND pending is always 0 |
+| toggle | `clic_top` | 10: `ie` | enable bit of an ID with no source: hardwired 0 by GARUDA_CLIC_ID_MASK, checked by a_reserved_ids |
+| toggle | `clic_top.u_apb` | 20: `ie_o`, `ie_q` | enable bit of an ID with no source: hardwired 0 by GARUDA_CLIC_ID_MASK, checked by a_reserved_ids |
+| toggle | `clic_top.u_sel` | 10: `cand_i` | candidate bit of an ID with no source: its enable is hardwired 0, so enable AND pending is always 0 |
 | toggle | `clic_top` | 1: `pready_o` | constant 1: the block is zero-wait by specification (CLIC section 5), checked by a_pready |
 | toggle | `clic_top.u_apb` | 1: `pready_o` | constant 1: the block is zero-wait by specification (CLIC section 5), checked by a_pready |
 | toggle | `clic_top` | 10: `cand` | candidate bit of an ID with no source: its enable is hardwired 0 by IE_MASK (00FF_FF7E: IDs 0, 7 and 24-31), so cand = pending & enable is 0 |
@@ -417,7 +414,7 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 |---|---|---|---|
 | Block | 57.4% (147/256) | 100.0% (147/147) | 109 |
 | Expression | 95.8% (23/24) | 100.0% (19/19) | 5 |
-| Toggle | 52.0% (584/1122) | 100.0% (200/200) | 74 |
+| Toggle | 52.0% (584/1122) | 100.0% (584/584) | 538 |
 | Assertion | 100.0% (36/36) | 100.0% (36/36) | 0 |
 | Functional (covergroup bins) | 100.0% (214/214) | 100.0% (214/214) | 0 |
 
@@ -436,9 +433,9 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 | toggle | `garuda_gpio_top.u_gpio` | 77: `s_cg_en`, `s_clk_en` | logic of a pin that does not exist: the vendored block is written for 64 pins and built with PAD_NUM = 2 |
 | block | `garuda_gpio_top.u_gpio` | 19: `123`, `133`, `143`, `153`, `163`, `168` and 13 more | logic of a pin that does not exist: the vendored block is written for 64 pins and built with PAD_NUM = 2 |
 | toggle | `garuda_gpio_top.u_gpio` | 1: `dft_cg_enable_i` | tied low until scan insertion: GPIO spec N-9.3, open item OPEN-G1 |
-| block | `garuda_gpio_top.u_gpio` | 90: `100`, `102`, `104`, `105`, `106`, `107` and 84 more | reached only through an offset that is not a GARUDA register (0x20, 0x2C to 0x7C: the vendored file's bank for pads 32 to 63 and PADCFG1 to 7; GARUDA has two pads). Since the shim's register map of 2026-10-13 the IP is not selected there (GPIO-2 item 3, AUD-13), so the bus cannot reach it; until then it was covered only by writes to those non-registers. Unreachability to be confirmed in JasperGold (plan task 4.4) |
-| expression | `garuda_gpio_top.u_gpio` | 1: `2.1` | reached only through an offset that is not a GARUDA register (0x20, 0x2C to 0x7C: the vendored file's bank for pads 32 to 63 and PADCFG1 to 7; GARUDA has two pads). Since the shim's register map of 2026-10-13 the IP is not selected there (GPIO-2 item 3, AUD-13), so the bus cannot reach it; until then it was covered only by writes to those non-registers. Unreachability to be confirmed in JasperGold (plan task 4.4) |
-| toggle | `garuda_gpio_top.u_gpio` | 360: `s_gpio_dir`, `s_gpio_en`, `s_gpio_inten`, `s_gpio_out`, `s_write_cfg`, `s_write_dir` and 4 more | reached only through an offset that is not a GARUDA register (0x20, 0x2C to 0x7C: the vendored file's bank for pads 32 to 63 and PADCFG1 to 7; GARUDA has two pads). Since the shim's register map of 2026-10-13 the IP is not selected there (GPIO-2 item 3, AUD-13), so the bus cannot reach it; until then it was covered only by writes to those non-registers. Unreachability to be confirmed in JasperGold (plan task 4.4) |
+| block | `garuda_gpio_top.u_gpio` | 90: `100`, `102`, `104`, `105`, `106`, `107` and 84 more | reached only through an offset that is not a GARUDA register (0x20, 0x2C to 0x7C: the vendored file's bank for pads 32 to 63 and PADCFG1 to 7; GARUDA has two pads). Since the shim's register map of 2026-10-13 the IP is not selected there (GPIO-2 item 3, AUD-13), so the bus cannot reach it; until then it was covered only by writes to those non-registers. Confirmed unreachable by JasperGold, flow/formal/gpio_unr.result.txt (2026-11-21, tree 238c8e6) |
+| expression | `garuda_gpio_top.u_gpio` | 1: `2.1` | reached only through an offset that is not a GARUDA register (0x20, 0x2C to 0x7C: the vendored file's bank for pads 32 to 63 and PADCFG1 to 7; GARUDA has two pads). Since the shim's register map of 2026-10-13 the IP is not selected there (GPIO-2 item 3, AUD-13), so the bus cannot reach it; until then it was covered only by writes to those non-registers. Confirmed unreachable by JasperGold, flow/formal/gpio_unr.result.txt (2026-11-21, tree 238c8e6) |
+| toggle | `garuda_gpio_top.u_gpio` | 360: `s_gpio_dir`, `s_gpio_en`, `s_gpio_inten`, `s_gpio_out`, `s_write_cfg`, `s_write_dir` and 4 more | reached only through an offset that is not a GARUDA register (0x20, 0x2C to 0x7C: the vendored file's bank for pads 32 to 63 and PADCFG1 to 7; GARUDA has two pads). Since the shim's register map of 2026-10-13 the IP is not selected there (GPIO-2 item 3, AUD-13), so the bus cannot reach it; until then it was covered only by writes to those non-registers. Confirmed unreachable by JasperGold, flow/formal/gpio_unr.result.txt (2026-11-21, tree 238c8e6) |
 
 
 ### UART
@@ -543,10 +540,8 @@ Measured on the UVM environment (0 runs: register test, directed test, random se
 | Expression | 90.3% (65/72) | 100.0% (65/65) | 7 |
 | Toggle | 94.7% (1820/1921) | 100.0% (1820/1820) | 101 |
 | Fsm | 98.1% (53/54) | 100.0% (53/53) | 1 |
-| Assertion | 92.9% (13/14) | 92.9% (13/14) | 0 |
+| Assertion | 100.0% (14/14) | 100.0% (14/14) | 0 |
 | Functional (covergroup bins) | 100.0% (68/68) | 100.0% (68/68) | 0 |
-
-**Still open after the waivers:** Assertion 1 of 14. Listed in `sim/cov_all/holes_spim.txt` after `make cov_chart`.
 
 **Exclusions and their justifications** (`flow/cov/spim_exclusions.tcl`, 106 lines):
 
@@ -675,10 +670,248 @@ Measured on the UVM environment (0 runs: register test, directed test, random se
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
-| Toggle | 67.8% (1713/2527) | 67.8% (1713/2527) | 0 |
-| Functional (covergroup bins) | 86.2% (50/58) | 86.2% (50/58) | 0 |
+| Toggle | 80.7% (2039/2527) | 100.0% (2039/2039) | 488 |
+| Functional (covergroup bins) | 100.0% (57/57) | 100.0% (57/57) | 0 |
 
-**Still open after the waivers:** Toggle 814 of 2527. Listed in `sim/cov_all/holes_top.txt` after `make cov_chart`.
+**Exclusions and their justifications** (`flow/cov/top_exclusions.tcl`, 488 lines):
+
+| Metric | Where | Items | Justification |
+|---|---|---|---|
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 0 (spis.rdl) can read 1 in bit 12 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 0 (spis.rdl) can read 1 in bit 13 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 0 (spis.rdl) can read 1 in bit 14 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 0 (spis.rdl) can read 1 in bit 15 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 0 (spis.rdl) can read 1 in bit 17 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 0 (spis.rdl) can read 1 in bit 21 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 0 (spis.rdl) can read 1 in bit 23 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 0 (spis.rdl) can read 1 in bit 24 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 0 (spis.rdl) can read 1 in bit 26 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 0 (spis.rdl) can read 1 in bit 28 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 0 (spis.rdl) can read 1 in bit 31 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 2 (i2c.rdl) can read 1 in bit 17 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 2 (i2c.rdl) can read 1 in bit 21 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 2 (i2c.rdl) can read 1 in bit 23 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 2 (i2c.rdl) can read 1 in bit 24 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 2 (i2c.rdl) can read 1 in bit 26 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 2 (i2c.rdl) can read 1 in bit 28 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 2 (i2c.rdl) can read 1 in bit 31 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 8 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 9 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 10 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 11 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 13 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 14 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 15 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 17 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 21 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 23 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 24 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 26 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 28 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 3 (uart.rdl) can read 1 in bit 31 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 4 (uart.rdl) can read 1 in bit 9 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 4 (uart.rdl) can read 1 in bit 10 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 4 (uart.rdl) can read 1 in bit 11 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 4 (uart.rdl) can read 1 in bit 13 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 4 (uart.rdl) can read 1 in bit 14 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 4 (uart.rdl) can read 1 in bit 15 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 4 (uart.rdl) can read 1 in bit 17 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 4 (uart.rdl) can read 1 in bit 21 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 4 (uart.rdl) can read 1 in bit 23 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 4 (uart.rdl) can read 1 in bit 24 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 4 (uart.rdl) can read 1 in bit 26 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 4 (uart.rdl) can read 1 in bit 28 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 4 (uart.rdl) can read 1 in bit 31 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 6 (uart.rdl) can read 1 in bit 8 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 6 (uart.rdl) can read 1 in bit 10 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 6 (uart.rdl) can read 1 in bit 11 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 6 (uart.rdl) can read 1 in bit 13 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 6 (uart.rdl) can read 1 in bit 14 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 6 (uart.rdl) can read 1 in bit 15 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 6 (uart.rdl) can read 1 in bit 17 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 6 (uart.rdl) can read 1 in bit 21 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 6 (uart.rdl) can read 1 in bit 23 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 6 (uart.rdl) can read 1 in bit 24 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 6 (uart.rdl) can read 1 in bit 26 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 6 (uart.rdl) can read 1 in bit 28 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 6 (uart.rdl) can read 1 in bit 31 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 7 (gpio.rdl) can read 1 in bit 10 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 7 (gpio.rdl) can read 1 in bit 11 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 7 (gpio.rdl) can read 1 in bit 13 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 7 (gpio.rdl) can read 1 in bit 14 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 7 (gpio.rdl) can read 1 in bit 15 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 7 (gpio.rdl) can read 1 in bit 17 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 7 (gpio.rdl) can read 1 in bit 21 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 7 (gpio.rdl) can read 1 in bit 23 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 7 (gpio.rdl) can read 1 in bit 24 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 7 (gpio.rdl) can read 1 in bit 26 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 7 (gpio.rdl) can read 1 in bit 28 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 7 (gpio.rdl) can read 1 in bit 31 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 8 (pwm.rdl) can read 1 in bit 21 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 8 (pwm.rdl) can read 1 in bit 23 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 8 (pwm.rdl) can read 1 in bit 24 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 8 (pwm.rdl) can read 1 in bit 26 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 8 (pwm.rdl) can read 1 in bit 28 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 8 (pwm.rdl) can read 1 in bit 31 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 5 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 6 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 7 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 10 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 11 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 12 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 13 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 14 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 15 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 16 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 17 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 18 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 19 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 20 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 21 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 22 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 23 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 24 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 25 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 26 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 27 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 28 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 29 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 30 |
+| toggle | `garuda_soc_top` | 2: `apb_ext_prdata_i`, `prdata_all` | no register of APB window 9 (crg.rdl) can read 1 in bit 31 |
+| toggle | `garuda_soc_top` | 2: `prd_clic`, `prdata_all` | no register of APB window 10 (clic.rdl) can read 1 in bit 25 |
+| toggle | `garuda_soc_top` | 2: `prd_clic`, `prdata_all` | no register of APB window 10 (clic.rdl) can read 1 in bit 26 |
+| toggle | `garuda_soc_top` | 2: `prd_clic`, `prdata_all` | no register of APB window 10 (clic.rdl) can read 1 in bit 27 |
+| toggle | `garuda_soc_top` | 2: `prd_clic`, `prdata_all` | no register of APB window 10 (clic.rdl) can read 1 in bit 28 |
+| toggle | `garuda_soc_top` | 2: `prd_clic`, `prdata_all` | no register of APB window 10 (clic.rdl) can read 1 in bit 29 |
+| toggle | `garuda_soc_top` | 2: `prd_clic`, `prdata_all` | no register of APB window 10 (clic.rdl) can read 1 in bit 30 |
+| toggle | `garuda_soc_top` | 2: `prd_clic`, `prdata_all` | no register of APB window 10 (clic.rdl) can read 1 in bit 31 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `spis_prdata` | no register of APB window 0 (spis.rdl) can read 1 in bit 12 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `spis_prdata` | no register of APB window 0 (spis.rdl) can read 1 in bit 13 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `spis_prdata` | no register of APB window 0 (spis.rdl) can read 1 in bit 14 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `spis_prdata` | no register of APB window 0 (spis.rdl) can read 1 in bit 15 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `spis_prdata` | no register of APB window 0 (spis.rdl) can read 1 in bit 17 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `spis_prdata` | no register of APB window 0 (spis.rdl) can read 1 in bit 21 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `spis_prdata` | no register of APB window 0 (spis.rdl) can read 1 in bit 23 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `spis_prdata` | no register of APB window 0 (spis.rdl) can read 1 in bit 24 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `spis_prdata` | no register of APB window 0 (spis.rdl) can read 1 in bit 26 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `spis_prdata` | no register of APB window 0 (spis.rdl) can read 1 in bit 28 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `spis_prdata` | no register of APB window 0 (spis.rdl) can read 1 in bit 31 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `i2c_prdata` | no register of APB window 2 (i2c.rdl) can read 1 in bit 17 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `i2c_prdata` | no register of APB window 2 (i2c.rdl) can read 1 in bit 21 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `i2c_prdata` | no register of APB window 2 (i2c.rdl) can read 1 in bit 23 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `i2c_prdata` | no register of APB window 2 (i2c.rdl) can read 1 in bit 24 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `i2c_prdata` | no register of APB window 2 (i2c.rdl) can read 1 in bit 26 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `i2c_prdata` | no register of APB window 2 (i2c.rdl) can read 1 in bit 28 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `i2c_prdata` | no register of APB window 2 (i2c.rdl) can read 1 in bit 31 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 8 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 9 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 10 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 11 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 13 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 14 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 15 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 17 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 21 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 23 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 24 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 26 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 28 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 3 (uart.rdl) can read 1 in bit 31 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 4 (uart.rdl) can read 1 in bit 9 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 4 (uart.rdl) can read 1 in bit 10 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 4 (uart.rdl) can read 1 in bit 11 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 4 (uart.rdl) can read 1 in bit 13 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 4 (uart.rdl) can read 1 in bit 14 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 4 (uart.rdl) can read 1 in bit 15 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 4 (uart.rdl) can read 1 in bit 17 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 4 (uart.rdl) can read 1 in bit 21 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 4 (uart.rdl) can read 1 in bit 23 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 4 (uart.rdl) can read 1 in bit 24 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 4 (uart.rdl) can read 1 in bit 26 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 4 (uart.rdl) can read 1 in bit 28 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 4 (uart.rdl) can read 1 in bit 31 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 6 (uart.rdl) can read 1 in bit 8 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 6 (uart.rdl) can read 1 in bit 10 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 6 (uart.rdl) can read 1 in bit 11 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 6 (uart.rdl) can read 1 in bit 13 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 6 (uart.rdl) can read 1 in bit 14 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 6 (uart.rdl) can read 1 in bit 15 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 6 (uart.rdl) can read 1 in bit 17 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 6 (uart.rdl) can read 1 in bit 21 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 6 (uart.rdl) can read 1 in bit 23 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 6 (uart.rdl) can read 1 in bit 24 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 6 (uart.rdl) can read 1 in bit 26 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 6 (uart.rdl) can read 1 in bit 28 |
+| toggle | `garuda_chip_core` | 1: `ext_prdata` | no register of APB window 6 (uart.rdl) can read 1 in bit 31 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `gpio_prdata` | no register of APB window 7 (gpio.rdl) can read 1 in bit 10 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `gpio_prdata` | no register of APB window 7 (gpio.rdl) can read 1 in bit 11 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `gpio_prdata` | no register of APB window 7 (gpio.rdl) can read 1 in bit 13 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `gpio_prdata` | no register of APB window 7 (gpio.rdl) can read 1 in bit 14 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `gpio_prdata` | no register of APB window 7 (gpio.rdl) can read 1 in bit 15 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `gpio_prdata` | no register of APB window 7 (gpio.rdl) can read 1 in bit 17 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `gpio_prdata` | no register of APB window 7 (gpio.rdl) can read 1 in bit 21 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `gpio_prdata` | no register of APB window 7 (gpio.rdl) can read 1 in bit 23 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `gpio_prdata` | no register of APB window 7 (gpio.rdl) can read 1 in bit 24 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `gpio_prdata` | no register of APB window 7 (gpio.rdl) can read 1 in bit 26 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `gpio_prdata` | no register of APB window 7 (gpio.rdl) can read 1 in bit 28 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `gpio_prdata` | no register of APB window 7 (gpio.rdl) can read 1 in bit 31 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `pwm_prdata` | no register of APB window 8 (pwm.rdl) can read 1 in bit 21 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `pwm_prdata` | no register of APB window 8 (pwm.rdl) can read 1 in bit 23 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `pwm_prdata` | no register of APB window 8 (pwm.rdl) can read 1 in bit 24 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `pwm_prdata` | no register of APB window 8 (pwm.rdl) can read 1 in bit 26 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `pwm_prdata` | no register of APB window 8 (pwm.rdl) can read 1 in bit 28 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `pwm_prdata` | no register of APB window 8 (pwm.rdl) can read 1 in bit 31 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 5 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 6 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 7 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 10 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 11 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 12 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 13 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 14 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 15 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 16 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 17 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 18 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 19 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 20 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 21 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 22 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 23 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 24 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 25 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 26 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 27 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 28 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 29 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 30 |
+| toggle | `garuda_chip_core` | 2: `ext_prdata`, `rst_prdata` | no register of APB window 9 (crg.rdl) can read 1 in bit 31 |
+| toggle | `garuda_soc_top` | 12: `pready_all` | every APB slave answers without wait states: PREADY is tied 1 (garuda_apb_shim.sv, dma_apb_slave.sv, clic_apb.sv, timers_apb.sv, reset_ctrl_apb.sv) |
+| toggle | `garuda_soc_top` | 9: `apb_ext_pready_i` | every APB slave answers without wait states: PREADY is tied 1 (garuda_apb_shim.sv, reset_ctrl_apb.sv) |
+| toggle | `garuda_soc_top` | 1: `rdy_dma` | every APB slave answers without wait states: PREADY is tied 1 (dma_apb_slave.sv) |
+| toggle | `garuda_soc_top` | 1: `rdy_clic` | every APB slave answers without wait states: PREADY is tied 1 (clic_apb.sv) |
+| toggle | `garuda_soc_top` | 1: `rdy_tmr` | every APB slave answers without wait states: PREADY is tied 1 (timers_apb.sv) |
+| toggle | `garuda_chip_core` | 9: `ext_pready` | every APB slave answers without wait states: PREADY is tied 1 (garuda_apb_shim.sv, reset_ctrl_apb.sv) |
+| toggle | `garuda_chip_core` | 1: `rst_pready` | every APB slave answers without wait states: PREADY is tied 1 (reset_ctrl_apb.sv) |
+| toggle | `garuda_chip_core` | 8: `gpio_pready`, `i2c_pready`, `pwm_pready`, `spim_pready`, `spis_pready`, `uart_pready` | every APB slave answers without wait states: PREADY is tied 1 (garuda_apb_shim.sv) |
+| toggle | `garuda_soc_top` | 4: `apb_ext_paddr_o`, `paddr` | word accesses only reach the APB (the bridge answers a sub-word access ERROR before any APB transfer, N-7.21) and every master aligns them (core misaligned trap, DMA-10, DM sberror 2): PADDR bits 1:0 are 0 |
+| toggle | `garuda_chip_core` | 2: `ext_paddr` | word accesses only reach the APB (the bridge answers a sub-word access ERROR before any APB transfer, N-7.21) and every master aligns them (core misaligned trap, DMA-10, DM sberror 2): PADDR bits 1:0 are 0 |
+| toggle | `garuda_soc_top` | 32: `i_hwdata` | the instruction port never writes: its HWDATA is tied 0 in the core's fetch master |
+| toggle | `garuda_soc_top` | 1: `i_hwrite` | the instruction port never writes: HWRITE is tied 0 in the core's fetch master |
+| toggle | `garuda_soc_top` | 3: `i_hsize` | the instruction port fetches whole words: HSIZE is the constant 3'b010 |
+| toggle | `garuda_soc_top` | 2: `i_haddr` | fetches are word aligned (RV32IM, no C extension; a misaligned target traps before any fetch, isa p_ma_fetch): HADDR bits 1:0 are 0 |
+| toggle | `garuda_soc_top` | 3: `d_hsize`, `hsize`, `m_hsize` | the AHB is 32 bits wide and no master issues a transfer wider than a word: HSIZE bit 2 is 0 |
+| toggle | `garuda_soc_top` | 1: `d_htrans` | the core's data port issues single transfers only, IDLE or NONSEQ, never SEQ or BUSY: HTRANS bit 0 is 0 |
+| toggle | `garuda_soc_top` | 1: `m_htrans` | the DMA issues single transfers only, IDLE or NONSEQ, never SEQ or BUSY: HTRANS bit 0 is 0 |
+| toggle | `garuda_soc_top` | 1: `s_htrans` | the Debug Module's system bus access issues single transfers only, IDLE or NONSEQ, never SEQ or BUSY: HTRANS bit 0 is 0 |
+| toggle | `garuda_soc_top` | 3: `s_hsize` | System Bus Access supports 32-bit accesses only and refuses any other sbaccess with sberror 3 (debug_module.sv): HSIZE is the constant 3'b010 |
+| toggle | `garuda_soc_top` | 2: `s_haddr` | System Bus Access refuses an unaligned address with sberror 2 before any transfer (debug_module.sv): HADDR bits 1:0 are 0 |
+| toggle | `garuda_soc_top` | 1: `hresp_dsram` | the DSRAM answers ERROR only to a misaligned or wider-than-word transfer, which no master issues at the chip (core misaligned trap, DMA-10, DM sberror 2, HSIZE at most word); covered in tb_mem_subsystem misaligned_all |
+| toggle | `garuda_soc_top` | 1: `hro_dsram` | the DSRAM inserts a wait state only in the first cycle of its two-cycle ERROR, which no master can provoke at the chip (see hresp_dsram); covered in tb_mem_subsystem misaligned_all |
+| toggle | `garuda_soc_top` | 1: `irq_src` | CLIC ID 0 is the sentinel: tied 0 (garuda_soc_top.sv, N-7.12) |
+| toggle | `garuda_soc_top` | 1: `irq_src` | CLIC ID 7 is reserved, its cause belongs to the machine timer: tied 0 (garuda_soc_top.sv) |
+| toggle | `garuda_soc_top` | 1: `irq_src` | CLIC ID 23 is CLICSWI, raised inside the CLIC: the line from outside is tied 0 (garuda_soc_top.sv, N-6.9) |
+| toggle | `garuda_soc_top` | 8: `irq_src` | CLIC IDs 24 to 31 have no source: tied 0 (garuda_soc_top.sv) |
 
 ## Notes on the measurement
 

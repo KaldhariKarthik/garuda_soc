@@ -30,8 +30,8 @@
 <text x="1008" y="101" font-size="11" fill="#0b0b0b">94</text>
 <rect x="1072" y="91" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="1170" y1="88" x2="1170" y2="106" stroke="#52514e" stroke-width="1"/>
-<rect x="1072" y="91" width="97.3" height="12" rx="2" fill="#2a78d6"/>
-<text x="1176" y="101" font-size="11" fill="#0b0b0b">99</text>
+<rect x="1072" y="91" width="98.0" height="12" rx="2" fill="#2a78d6"/>
+<text x="1176" y="101" font-size="11" fill="#0b0b0b">100</text>
 <text x="16" y="131" font-size="12.5" fill="#0b0b0b">DSU</text>
 <rect x="232" y="121" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="330" y1="118" x2="330" y2="136" stroke="#52514e" stroke-width="1"/>
@@ -57,16 +57,16 @@
 <text x="16" y="161" font-size="12.5" fill="#0b0b0b">AHB interconnect</text>
 <rect x="232" y="151" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="330" y1="148" x2="330" y2="166" stroke="#52514e" stroke-width="1"/>
-<rect x="232" y="151" width="96.7" height="12" rx="2" fill="#2a78d6"/>
-<text x="336" y="161" font-size="11" fill="#0b0b0b">99</text>
+<rect x="232" y="151" width="98.0" height="12" rx="2" fill="#2a78d6"/>
+<text x="336" y="161" font-size="11" fill="#0b0b0b">100</text>
 <rect x="400" y="151" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="498" y1="148" x2="498" y2="166" stroke="#52514e" stroke-width="1"/>
 <rect x="400" y="151" width="98.0" height="12" rx="2" fill="#2a78d6"/>
 <text x="504" y="161" font-size="11" fill="#0b0b0b">100</text>
 <rect x="568" y="151" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="666" y1="148" x2="666" y2="166" stroke="#52514e" stroke-width="1"/>
-<rect x="568" y="151" width="86.0" height="12" rx="2" fill="#2a78d6"/>
-<text x="672" y="161" font-size="11" fill="#0b0b0b">88</text>
+<rect x="568" y="151" width="90.7" height="12" rx="2" fill="#2a78d6"/>
+<text x="672" y="161" font-size="11" fill="#0b0b0b">93</text>
 <rect x="736" y="151" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="834" y1="148" x2="834" y2="166" stroke="#52514e" stroke-width="1"/>
 <rect x="736" y="151" width="98.0" height="12" rx="2" fill="#2a78d6"/>
@@ -90,8 +90,8 @@
 <text x="504" y="191" font-size="11" fill="#0b0b0b">100</text>
 <rect x="568" y="181" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="666" y1="178" x2="666" y2="196" stroke="#52514e" stroke-width="1"/>
-<rect x="568" y="181" width="77.5" height="12" rx="2" fill="#2a78d6"/>
-<text x="672" y="191" font-size="11" fill="#0b0b0b">79</text>
+<rect x="568" y="181" width="81.8" height="12" rx="2" fill="#2a78d6"/>
+<text x="672" y="191" font-size="11" fill="#0b0b0b">83</text>
 <rect x="736" y="181" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="834" y1="178" x2="834" y2="196" stroke="#52514e" stroke-width="1"/>
 <text x="840" y="191" font-size="11" fill="#52514e">none</text>
@@ -111,8 +111,9 @@
 <text x="336" y="221" font-size="11" fill="#0b0b0b">86→100</text>
 <rect x="400" y="211" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="498" y1="208" x2="498" y2="226" stroke="#52514e" stroke-width="1"/>
+<rect x="400" y="211" width="98.0" height="12" rx="2" fill="#9cc0ee"/>
 <rect x="400" y="211" width="93.7" height="12" rx="2" fill="#2a78d6"/>
-<text x="504" y="221" font-size="11" fill="#0b0b0b">96</text>
+<text x="504" y="221" font-size="11" fill="#0b0b0b">96→100</text>
 <rect x="568" y="211" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="666" y1="208" x2="666" y2="226" stroke="#52514e" stroke-width="1"/>
 <rect x="568" y="211" width="98.0" height="12" rx="2" fill="#9cc0ee"/>
@@ -140,7 +141,7 @@
 <text x="504" y="251" font-size="11" fill="#0b0b0b">100</text>
 <rect x="568" y="241" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="666" y1="238" x2="666" y2="256" stroke="#52514e" stroke-width="1"/>
-<rect x="568" y="241" width="77.3" height="12" rx="2" fill="#2a78d6"/>
+<rect x="568" y="241" width="77.5" height="12" rx="2" fill="#2a78d6"/>
 <text x="672" y="251" font-size="11" fill="#0b0b0b">79</text>
 <rect x="736" y="241" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="834" y1="238" x2="834" y2="256" stroke="#52514e" stroke-width="1"/>
@@ -160,8 +161,8 @@
 <text x="336" y="281" font-size="11" fill="#0b0b0b">100</text>
 <rect x="400" y="271" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="498" y1="268" x2="498" y2="286" stroke="#52514e" stroke-width="1"/>
-<rect x="400" y="271" width="96.0" height="12" rx="2" fill="#2a78d6"/>
-<text x="504" y="281" font-size="11" fill="#0b0b0b">98</text>
+<rect x="400" y="271" width="98.0" height="12" rx="2" fill="#2a78d6"/>
+<text x="504" y="281" font-size="11" fill="#0b0b0b">100</text>
 <rect x="568" y="271" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="666" y1="268" x2="666" y2="286" stroke="#52514e" stroke-width="1"/>
 <rect x="568" y="271" width="98.0" height="12" rx="2" fill="#9cc0ee"/>
@@ -386,8 +387,8 @@
 <text x="1008" y="521" font-size="11" fill="#0b0b0b">100</text>
 <rect x="1072" y="511" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="1170" y1="508" x2="1170" y2="526" stroke="#52514e" stroke-width="1"/>
-<rect x="1072" y="511" width="91.0" height="12" rx="2" fill="#2a78d6"/>
-<text x="1176" y="521" font-size="11" fill="#0b0b0b">93</text>
+<rect x="1072" y="511" width="98.0" height="12" rx="2" fill="#2a78d6"/>
+<text x="1176" y="521" font-size="11" fill="#0b0b0b">100</text>
 <text x="16" y="551" font-size="12.5" fill="#0b0b0b">SPI slave</text>
 <rect x="232" y="541" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="330" y1="538" x2="330" y2="556" stroke="#52514e" stroke-width="1"/>
@@ -449,15 +450,16 @@
 <text x="504" y="611" font-size="11" fill="#52514e">none</text>
 <rect x="568" y="601" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="666" y1="598" x2="666" y2="616" stroke="#52514e" stroke-width="1"/>
-<rect x="568" y="601" width="66.4" height="12" rx="2" fill="#2a78d6"/>
-<text x="672" y="611" font-size="11" fill="#0b0b0b">68</text>
+<rect x="568" y="601" width="98.0" height="12" rx="2" fill="#9cc0ee"/>
+<rect x="568" y="601" width="79.1" height="12" rx="2" fill="#2a78d6"/>
+<text x="672" y="611" font-size="11" fill="#0b0b0b">81→100</text>
 <rect x="736" y="601" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="834" y1="598" x2="834" y2="616" stroke="#52514e" stroke-width="1"/>
 <text x="840" y="611" font-size="11" fill="#52514e">none</text>
 <rect x="904" y="601" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="1002" y1="598" x2="1002" y2="616" stroke="#52514e" stroke-width="1"/>
-<rect x="904" y="601" width="84.5" height="12" rx="2" fill="#2a78d6"/>
-<text x="1008" y="611" font-size="11" fill="#0b0b0b">86</text>
+<rect x="904" y="601" width="98.0" height="12" rx="2" fill="#2a78d6"/>
+<text x="1008" y="611" font-size="11" fill="#0b0b0b">100</text>
 <rect x="1072" y="601" width="98" height="12" rx="2" fill="#efeee9"/>
 <line x1="1170" y1="598" x2="1170" y2="616" stroke="#52514e" stroke-width="1"/>
 <text x="1176" y="611" font-size="11" fill="#52514e">none</text>

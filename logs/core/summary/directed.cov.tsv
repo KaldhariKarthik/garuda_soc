@@ -1,14 +1,19 @@
-# garuda-run 1 suite=directed.cov block=core date=2026-11-20T07:57:24+05:30 design=8db238050bb7108ad0b5825b8d751e1510dfe77d rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a seed=1
+# garuda-run 1 suite=directed.cov block=core date=2026-11-21T08:50:18+05:30 design=238c8e6e3e00f9b1e2504453767f9cf0dac47e50 rtl_dirty=False tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a seed=1
 test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
-t_core_mret_buserr	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.34	37		logs/core/raw/directed.cov/cov/t_core_mret_buserr_s1.dat		logs/core/raw/directed.cov/sim_t_core_mret_buserr_s1.log
-t_core_mret_buserr_w2	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.36	37		logs/core/raw/directed.cov/cov/t_core_mret_buserr_w2_s1.dat		logs/core/raw/directed.cov/sim_t_core_mret_buserr_w2_s1.log
-t_core_wfi_buserr	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.34	37		logs/core/raw/directed.cov/cov/t_core_wfi_buserr_s1.dat		logs/core/raw/directed.cov/sim_t_core_wfi_buserr_s1.log
-t_core_wfi_buserr_w2	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.34	37		logs/core/raw/directed.cov/cov/t_core_wfi_buserr_w2_s1.dat		logs/core/raw/directed.cov/sim_t_core_wfi_buserr_w2_s1.log
-t_core_ctl	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.48	37		logs/core/raw/directed.cov/cov/t_core_ctl_s1.dat		logs/core/raw/directed.cov/sim_t_core_ctl_s1.log
-t_core_ctl_w3	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.62	37		logs/core/raw/directed.cov/cov/t_core_ctl_w3_s1.dat		logs/core/raw/directed.cov/sim_t_core_ctl_w3_s1.log
-t_core_irq_nest	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.36	37		logs/core/raw/directed.cov/cov/t_core_irq_nest_s1.dat		logs/core/raw/directed.cov/sim_t_core_irq_nest_s1.log
-t_core_irq_nest_w2	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.36	37		logs/core/raw/directed.cov/cov/t_core_irq_nest_w2_s1.dat		logs/core/raw/directed.cov/sim_t_core_irq_nest_w2_s1.log
-t_core_preempt	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.34	37		logs/core/raw/directed.cov/cov/t_core_preempt_s1.dat		logs/core/raw/directed.cov/sim_t_core_preempt_s1.log
-t_core_preempt_w2	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.36	37		logs/core/raw/directed.cov/cov/t_core_preempt_w2_s1.dat		logs/core/raw/directed.cov/sim_t_core_preempt_w2_s1.log
-t_exc_priority	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.36	37		logs/core/raw/directed.cov/cov/t_exc_priority_s1.dat		logs/core/raw/directed.cov/sim_t_exc_priority_s1.log
-t_exc_priority_w3	PASS	OK	0	yes	0	0	0	n/a	130	56	-	1	0.36	37		logs/core/raw/directed.cov/cov/t_exc_priority_w3_s1.dat		logs/core/raw/directed.cov/sim_t_exc_priority_w3_s1.log
+t_core_mret_buserr	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.30	37		logs/core/raw/directed.cov/cov/t_core_mret_buserr_s1.dat		logs/core/raw/directed.cov/sim_t_core_mret_buserr_s1.log
+t_core_mret_buserr_w2	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.30	37		logs/core/raw/directed.cov/cov/t_core_mret_buserr_w2_s1.dat		logs/core/raw/directed.cov/sim_t_core_mret_buserr_w2_s1.log
+t_core_wfi_buserr	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.30	37		logs/core/raw/directed.cov/cov/t_core_wfi_buserr_s1.dat		logs/core/raw/directed.cov/sim_t_core_wfi_buserr_s1.log
+t_core_wfi_buserr_w2	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.30	37		logs/core/raw/directed.cov/cov/t_core_wfi_buserr_w2_s1.dat		logs/core/raw/directed.cov/sim_t_core_wfi_buserr_w2_s1.log
+t_core_trap_wfi	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.30	37		logs/core/raw/directed.cov/cov/t_core_trap_wfi_s1.dat		logs/core/raw/directed.cov/sim_t_core_trap_wfi_s1.log
+t_core_trap_wfi_w2	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.30	37		logs/core/raw/directed.cov/cov/t_core_trap_wfi_w2_s1.dat		logs/core/raw/directed.cov/sim_t_core_trap_wfi_w2_s1.log
+t_core_wfi_mret	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.28	37		logs/core/raw/directed.cov/cov/t_core_wfi_mret_s1.dat		logs/core/raw/directed.cov/sim_t_core_wfi_mret_s1.log
+t_core_wfi_mret_w2	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.30	37		logs/core/raw/directed.cov/cov/t_core_wfi_mret_w2_s1.dat		logs/core/raw/directed.cov/sim_t_core_wfi_mret_w2_s1.log
+t_core_wfi_mret_w3	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.30	37		logs/core/raw/directed.cov/cov/t_core_wfi_mret_w3_s1.dat		logs/core/raw/directed.cov/sim_t_core_wfi_mret_w3_s1.log
+t_core_ctl	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.40	37		logs/core/raw/directed.cov/cov/t_core_ctl_s1.dat		logs/core/raw/directed.cov/sim_t_core_ctl_s1.log
+t_core_ctl_w3	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.48	37		logs/core/raw/directed.cov/cov/t_core_ctl_w3_s1.dat		logs/core/raw/directed.cov/sim_t_core_ctl_w3_s1.log
+t_core_irq_nest	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.30	37		logs/core/raw/directed.cov/cov/t_core_irq_nest_s1.dat		logs/core/raw/directed.cov/sim_t_core_irq_nest_s1.log
+t_core_irq_nest_w2	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.30	37		logs/core/raw/directed.cov/cov/t_core_irq_nest_w2_s1.dat		logs/core/raw/directed.cov/sim_t_core_irq_nest_w2_s1.log
+t_core_preempt	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.30	37		logs/core/raw/directed.cov/cov/t_core_preempt_s1.dat		logs/core/raw/directed.cov/sim_t_core_preempt_s1.log
+t_core_preempt_w2	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.30	37		logs/core/raw/directed.cov/cov/t_core_preempt_w2_s1.dat		logs/core/raw/directed.cov/sim_t_core_preempt_w2_s1.log
+t_exc_priority	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.30	37		logs/core/raw/directed.cov/cov/t_exc_priority_s1.dat		logs/core/raw/directed.cov/sim_t_exc_priority_s1.log
+t_exc_priority_w3	PASS	OK	0	yes	0	0	0	n/a	132	56	-	1	0.32	37		logs/core/raw/directed.cov/cov/t_exc_priority_w3_s1.dat		logs/core/raw/directed.cov/sim_t_exc_priority_w3_s1.log

@@ -1,5 +1,5 @@
-garuda-run 1  suite block  block debug  2026-11-21T06:54:37+05:30
-design 848e5e3d682318be467e7b87d27f7aaaf724a0c9  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
+garuda-run 1  suite block  block debug  2026-11-21T08:52:10+05:30
+design 238c8e6e3e00f9b1e2504453767f9cf0dac47e50  rtl/ clean  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
 
 PASS    OK                      tb_debug  
 

@@ -124,6 +124,7 @@ case "$T" in
                  flash)  ARGS="+MODE=flash +TEST=sw/build/flash.hex +MAXUS=3000" ;;
                  integ)  ARGS="+MODE=basic +TEST=sw/build/t_chip_integ.hex +MAXUS=4000" ;;
                  swirq)  ARGS="+MODE=basic +TEST=sw/build/t_chip_swirq.hex" ;;
+                 cov)    ARGS="+MODE=cov +TEST=sw/build/t_chip_cov.hex +MAXUS=6000" ;;
                  dma_*)  ARGS="+MODE=basic +TEST=sw/build/t_chip_$m.hex +MAXUS=4000" ;;
                  *)      ARGS="+MODE=$m +TEST=sw/build/t_chip_$m.hex" ;;
                esac ;;

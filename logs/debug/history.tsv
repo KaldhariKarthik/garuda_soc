@@ -334,3 +334,5 @@ date	sha	rtl_dirty	suite	test	seed	verdict	class	detail
 2026-11-21T07:21:53+05:30	848e5e3d6823	True	chip_diag	t_chip_basic	1	PASS	OK	
 2026-11-21T07:21:53+05:30	848e5e3d6823	True	chip_diag	t_chip_wdt	1	PASS	OK	
 2026-11-21T07:21:53+05:30	848e5e3d6823	True	chip_diag	t_chip_flash	1	PASS	OK	
+2026-11-21T08:51:33+05:30	238c8e6e3e00	False	block	tb_debug	1	FAIL	UNEXPECTED	pass marker missing; 1 [FAIL] line(s); missing: /tb_debug: checks=115 +FAIL=0/ | first: [FAIL] an Update-DR arrives while the previous DMI request is in flight (t=1957282000)
+2026-11-21T08:52:10+05:30	238c8e6e3e00	False	block	tb_debug	1	PASS	OK	

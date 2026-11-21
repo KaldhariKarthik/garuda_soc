@@ -287,7 +287,15 @@ def read_summary(path):
         vals = {}
         for k, (pos, cname) in enumerate(cols[1:], start=1):
             end = cols[k + 1][0] if k + 1 < len(cols) else len(l)
-            m = PAIR.search(l[pos:end])
+            cell = l[pos:end]
+            # TOOL-A32 (2026-11-21): IMC writes a wide cell, e.g. "100.00% (1497/1497/306)", past
+            # its column; cut at the column edge it did not match and the row's figure was lost.
+            # A cell that opens a bracket runs to its closing one.
+            if "(" in cell and ")" not in cell:
+                close = l.find(")", pos)
+                if close >= 0:
+                    cell = l[pos:close + 1]
+            m = PAIR.search(cell)
             if m:
                 vals[cname] = (int(m.group(1)), int(m.group(2)), int(m.group(3) or 0))
         key = name

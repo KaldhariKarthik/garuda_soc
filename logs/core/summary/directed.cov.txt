@@ -1,10 +1,15 @@
-garuda-run 1  suite directed.cov  block core  2026-11-20T07:57:24+05:30
-design 8db238050bb7108ad0b5825b8d751e1510dfe77d  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
+garuda-run 1  suite directed.cov  block core  2026-11-21T08:50:18+05:30
+design 238c8e6e3e00f9b1e2504453767f9cf0dac47e50  rtl/ clean  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
 
 PASS    OK                      t_core_mret_buserr     
 PASS    OK                      t_core_mret_buserr_w2  
 PASS    OK                      t_core_wfi_buserr      
 PASS    OK                      t_core_wfi_buserr_w2   
+PASS    OK                      t_core_trap_wfi        
+PASS    OK                      t_core_trap_wfi_w2     
+PASS    OK                      t_core_wfi_mret        
+PASS    OK                      t_core_wfi_mret_w2     
+PASS    OK                      t_core_wfi_mret_w3     
 PASS    OK                      t_core_ctl             
 PASS    OK                      t_core_ctl_w3          
 PASS    OK                      t_core_irq_nest        
@@ -14,7 +19,7 @@ PASS    OK                      t_core_preempt_w2
 PASS    OK                      t_exc_priority         
 PASS    OK                      t_exc_priority_w3      
 
-PASS    12
+PASS    17
 FAIL    0
 BLOCKED 0
-total   12
+total   17

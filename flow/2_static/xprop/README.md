@@ -31,6 +31,7 @@ On 2026-11-10, commit d395563 plus this change, Xcelium 22.09-s003:
 | chip_periph | all seven peripherals from the core, through the fabric | PASS |
 | chip_integ | every wire between two blocks, from the core | PASS |
 | chip_swirq | the software interrupt end to end (added to the target on 2026-11-10; it was missing) | PASS |
+| chip_cov | the chip top's own wires over four runs and three kinds of reset (added 2026-11-21) | PASS |
 
 PASS means `RESULT: PASSED` in the log and no `*E` or `*F` message. The logs are
 `sim/xprop/chip_<program>.log`. The whole run takes about 25 seconds.

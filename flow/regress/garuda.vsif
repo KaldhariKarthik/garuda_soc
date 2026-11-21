@@ -98,6 +98,8 @@ group garuda {
             test prog_sanity__t_dsu_gate {}; test prog_sanity__t_cov_wfi_mti {};
             test prog_directed__t_core_mret_buserr {}; test prog_directed__t_core_mret_buserr_w2 {};
             test prog_directed__t_core_wfi_buserr {}; test prog_directed__t_core_wfi_buserr_w2 {};
+            test prog_directed__t_core_trap_wfi {}; test prog_directed__t_core_trap_wfi_w2 {};
+            test prog_directed__t_core_wfi_mret {}; test prog_directed__t_core_wfi_mret_w2 {}; test prog_directed__t_core_wfi_mret_w3 {};
             test prog_directed__t_core_ctl {}; test prog_directed__t_core_ctl_w3 {};
             test prog_directed__t_core_irq_nest {}; test prog_directed__t_core_irq_nest_w2 {};
             test prog_directed__t_core_preempt {}; test prog_directed__t_core_preempt_w2 {};
@@ -130,5 +132,7 @@ group garuda {
         // make test_chip_swirq) and so never reached the coverage merge
         test chip_swirq {}; test chip_dma_rearm {}; test chip_dma_traffic {};
         test chip_dma_subword {}; test chip_dma_uart {};
+        // 2026-11-21: the chip top's own wires (D-40 coverage closure of TOP)
+        test chip_cov {};
     };
 };

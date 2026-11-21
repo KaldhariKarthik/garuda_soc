@@ -99,7 +99,9 @@ module garuda_spim_sva #(parameter integer BUFFER_DEPTH = 10) (
     c_imu_transfer:   cover property (@(posedge pclk) $fell(spim_cs_imu_n_o));
     c_sclk_toggles:   cover property (@(posedge pclk) cs_any && $rose(spim_sclk_o));
     c_rx_full:        cover property (@(posedge pclk) 32'(rx_words) == BUFFER_DEPTH);
-    c_dma_req:        cover property (@(posedge pclk) dma_req_o && dma_ack_i);
+    // a request answered by its acknowledge. Written as dma_req_o && dma_ack_i until 2026-11-21: never
+    // true, the request falls in the cycle the acknowledge arrives (garuda_apb_dma.sv:62, D-21)
+    c_dma_req:        cover property (@(posedge pclk) dma_ack_i && $past(dma_req_o));
 endmodule
 
 bind garuda_spim_top garuda_spim_sva #(.BUFFER_DEPTH(BUFFER_DEPTH)) u_spim_sva (

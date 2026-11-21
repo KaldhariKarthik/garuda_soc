@@ -10,7 +10,11 @@
 // Bus Access, which is the development loop of DEBUG-SPEC §7.6.
 //
 //   +TEST=<hex>   ISRAM image (sw/build/t_chip_*.hex)
-//   +MODE=basic | irq | watchdog | jtag | flash
+//   +MODE=basic | irq | watchdog | jtag | flash | cov
+//                 cov: t_chip_cov's four runs. The program asks through fromhost
+//                 (0x2000_F004): 1 pulse boot_sel low, 3 ndmreset over JTAG,
+//                 4 pulse ext_rst_n; the bench writes 0 when done and re-posts
+//                 the mailbox after every reset.
 //   +MAXUS=<n>    timeout in microseconds (default 400)
 //
 // Pass = the program writes 1 to tohost (0x2000_F000); (n<<1)|1 = step n
@@ -127,6 +131,7 @@ module tb_chip;
     integer rc;
 
     localparam [31:0] TOHOST = 32'h2000_F000, MBOX = 32'h2000_FFF0, MBOX_MAGIC = 32'h4A54_4147;
+    localparam [31:0] FROMHOST = 32'h2000_F004, NOINIT = 32'h2000_E000;
 
     // The ESP32 companion on block 14's pins, present in every mode.
     spi_master_model u_esp (.sclk(spis_sclk), .mosi(spis_mosi),
@@ -185,7 +190,7 @@ module tb_chip;
     always @(negedge dut.u_core.hreset_n) if (ext_rst_n) begin
         n_hreset_fall++;
         $display("[tb_chip] system reset observed at %0t (RSTREASON source will say why)", $time);
-        if (mode == "watchdog") post_mailbox();                      // run 2
+        if (mode == "watchdog" || mode == "cov") post_mailbox();     // the next run
     end
 
     initial begin
@@ -197,6 +202,8 @@ module tb_chip;
         // SRAM is not reset: start from a known tohost and an empty mailbox
         dut.u_core.u_soc.u_dsram.bd_write(TOHOST, 32'h0);
         dut.u_core.u_soc.u_dsram.bd_write(MBOX, 32'h0);
+        dut.u_core.u_soc.u_dsram.bd_write(FROMHOST, 32'h0);
+        if (mode == "cov") dut.u_core.u_soc.u_dsram.bd_write(NOINIT, 32'h0);   // t_chip_cov's run marker
 
         if (mode == "flash") begin
             // Nothing is placed anywhere and no mailbox is posted: the ROM
@@ -257,8 +264,44 @@ module tb_chip;
             if (r[14:12] !== 3'd0) begin $display("[FAIL] sberror not cleared by W1C"); $display("RESULT: FAILED"); $finish; end
             dmw(7'h38, (1 << 20) | (2 << 17)); dmw(7'h39, 32'h0000_0000); dmr(7'h3C, r);
             if (r !== img[0]) begin $display("[FAIL] SBA read of ISRAM word 0 after the error: %h", r); $display("RESULT: FAILED"); $finish; end
+            // every SBA data bit both ways (2026-11-21): all ones, then all zeros, through a no-init DSRAM word
+            for (int k = 0; k < 2; k++) begin
+                dmw(7'h38, 2 << 17); dmw(7'h39, NOINIT + 32'h100); dmw(7'h3C, k ? 32'h0 : 32'hFFFF_FFFF);
+                dmw(7'h38, (1 << 20) | (2 << 17)); dmw(7'h39, NOINIT + 32'h100); dmr(7'h3C, r);
+                if (r !== (k ? 32'h0 : 32'hFFFF_FFFF)) begin $display("[FAIL] SBA write/read of DSRAM: %h", r); $display("RESULT: FAILED"); $finish; end
+            end
             dmw(7'h10, 32'h4000_0001);                           // resumereq: run
             $display("[tb_chip] %0d words loaded over JTAG SBA, hart resumed at %0t", nwords, $time);
+        end
+    end
+
+    // ---- cov mode: the program's requests -------------------------------------------------------
+    reg [31:0] req;
+    initial begin
+        #100;
+        if (mode == "cov") forever begin
+            #1000;
+            req = dut.u_core.u_soc.u_dsram.bd_read(FROMHOST);
+            if (req == 32'd1) begin                       // boot_sel low for 5 us, CLKSTAT[8] must follow
+                boot_sel = 1'b0; #5000; boot_sel = 1'b1; #1000;
+                dut.u_core.u_soc.u_dsram.bd_write(FROMHOST, 32'h0);
+            end else if (req == 32'd3) begin              // the debugger's ndmreset, over the pins
+                dut.u_core.u_soc.u_dsram.bd_write(FROMHOST, 32'h0);
+                tap_reset();
+                shift_ir(5'h11);
+                dmw(7'h10, 32'h0000_0001);                // dmactive
+                dmw(7'h10, 32'h0000_0003);                // ndmreset
+                dmw(7'h10, 32'h0000_0001);                // released
+                dmw(7'h10, 32'h0000_0000);
+                $display("[tb_chip] ndmreset over JTAG at %0t", $time);
+            end else if (req == 32'd4) begin              // the external reset pin
+                dut.u_core.u_soc.u_dsram.bd_write(FROMHOST, 32'h0);
+                ext_rst_n = 1'b0; #200; ext_rst_n = 1'b1;
+                post_mailbox();
+                $display("[tb_chip] ext_rst_n pulsed at %0t", $time);
+            end else if (req != 32'd0) begin
+                $display("[FAIL] unknown request %0d in fromhost", req); $display("RESULT: FAILED"); $finish;
+            end
         end
     end
 

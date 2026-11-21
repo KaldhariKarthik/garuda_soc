@@ -15,6 +15,7 @@ exclude -type dsram_top -block 14 -comment "backdoor bd_read of bank 1 (dsram_to
 exclude -type dsram_top -block 15 -comment "backdoor bd_read of bank 2 (dsram_top.sv:105) inside ifndef SYNTHESIS: bench code, not hardware"
 exclude -type sram_wrapper -block 21 -comment "readmemh preload (sram_wrapper.sv:118-120) inside ifndef SYNTHESIS: bench code, not hardware"
 exclude -type ahb_mem_slave_if -block 23 -comment "simulation-only self-check (ahb_mem_slave_if.sv:198-203, ifndef SYNTHESIS) that prints on a write-buffer overflow: never firing is the passing result"
+exclude -type ahb_mem_slave_if -expression 2.1.1 -comment "the condition of the same simulation-only overflow self-check (ahb_mem_slave_if.sv:200): the row park_wr AND wb_v is a write data phase with the buffer full, which a_wbuf_empty_in_write_dp proves never happens (JasperGold PROVEN, flow/formal/mem/mem_fpv.result.txt)"
 # the boot ROM takes no write: its interface answers ERROR (WRITABLE = 0), so the array never sees one
 exclude -type sram_wrapper -block 17 -comment "the ROM-write path (sram_wrapper.sv:101, we with IS_ROM = 1): the boot ROM's interface refuses every write (WRITABLE = 0, AHB ERROR), so its array never sees we"
 exclude -type bootrom_top -toggle we -comment "the boot ROM's array write enable is constant 0: its interface refuses every write (WRITABLE = 0)"

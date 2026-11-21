@@ -40,6 +40,30 @@ name = "t_core_wfi_buserr_w2"
 hex  = "sw/build/t_core_wfi_buserr.hex"
 plusargs = ["+MAXCYC=20000", "+QUIET", "+ERR_EN=1", "+ERR_BASE=10020000", "+ERR_SIZE=1000", "+DWAIT=2"]
 
+# H5 vs trap (c_h5_vs_trap, 2026-11-21): ECALL, EBREAK and an illegal instruction, each directly
+# before a WFI; the WFI must be squashed (no interrupt can wake it)
+[[test]]
+name = "t_core_trap_wfi"
+hex  = "sw/build/t_core_trap_wfi.hex"
+plusargs = ["+MAXCYC=20000", "+QUIET"]
+[[test]]
+name = "t_core_trap_wfi_w2"
+hex  = "sw/build/t_core_trap_wfi.hex"
+plusargs = ["+MAXCYC=40000", "+QUIET", "+IWAIT=2", "+DWAIT=2"]
+# an MRET directly behind a WFI, woken by the machine timer (JasperGold's witness of c_h5_vs_trap)
+[[test]]
+name = "t_core_wfi_mret"
+hex  = "sw/build/t_core_wfi_mret.hex"
+plusargs = ["+MAXCYC=40000", "+QUIET", "+MTIP_AT=600"]
+[[test]]
+name = "t_core_wfi_mret_w2"
+hex  = "sw/build/t_core_wfi_mret.hex"
+plusargs = ["+MAXCYC=40000", "+QUIET", "+MTIP_AT=600", "+IWAIT=2"]
+[[test]]
+name = "t_core_wfi_mret_w3"
+hex  = "sw/build/t_core_wfi_mret.hex"
+plusargs = ["+MAXCYC=40000", "+QUIET", "+MTIP_AT=600", "+IWAIT=3", "+DWAIT=1"]
+
 # W5: mgarudactl -- register, 16-setting architectural equivalence, knobs effective
 [[test]]
 name = "t_core_ctl"

@@ -18,4 +18,4 @@ flist   = "tb/debug/filelist_debug.f"
 top     = "tb_debug"
 marker  = '^RESULT: PASSED'
 timeout = 900
-require = ['tb_debug: checks=111 +FAIL=0']
+require = ['tb_debug: checks=115 +FAIL=0']

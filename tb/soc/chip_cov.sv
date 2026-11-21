@@ -41,7 +41,10 @@ module chip_cov (
     covergroup cg_dma @(posedge hclk iff (hreset_n && (|dma_ack)));
         option.per_instance = 1;
         cp_ack: coverpoint dma_ack { bins ch[] = {6'b000001, 6'b000010, 6'b000100, 6'b001000, 6'b010000, 6'b100000}; }
-        cp_req_still_high: coverpoint |(dma_req & dma_ack);
+        // A peripheral's request is never high while its acknowledge is: the shim drops it in the
+        // same cycle (dma_req_o = ... && !dma_ack_i, garuda_apb_dma.sv, D-21), so only 0 can occur;
+        // a request held through its acknowledge is an illegal bin and fails the run
+        cp_req_still_high: coverpoint |(dma_req & dma_ack) { illegal_bins high = {1}; }
     endgroup
     // resets: every cause, as the reset controller records it
     reg [3:0] reason_d = 4'd0;

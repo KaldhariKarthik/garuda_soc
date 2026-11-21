@@ -718,7 +718,7 @@ Start every replay with:
 | R3.4 | `/home/install/GENUS211/bin/genus -batch -no_gui -files flow/signoff/g3/floating_nets.tcl -log sim/replay/genus_float` | `Normal exit.`; the reports in `flow/signoff/g3/out/` |
 | R3.5 | `setenv TOP trap_ctrl`, `setenv FL rtl/core/filelist_trap_ctrl_fv.f`, `setenv CLKS clk_i`, `setenv RSTS rst_n_i`, `setenv PROPS sim/replay/trap_ctrl_props.txt`, then `/home/install/JASPER/bin/jg -allow_unsupported_OS -fpv -batch -no_jges -proj sim/replay/trap_ctrl flow/formal/block_fpv.tcl` then `grep -c "^proven *assert" sim/replay/trap_ctrl_props.txt` | `10` (all ten trap-control assertions proven) |
 | R3.6 | `irun -64bit -uvm -uvmhome CDNS-1.2 -nclibdirname sim/replay/INCA_clic -f tb/clic/uvm/filelist_clic_uvm.f -top tb_clic_uvm +UVM_TESTNAME=clic_random_test -svseed 7 -l sim/replay/clic_random_s7.log` then `grep RESULT sim/replay/clic_random_s7.log` and `grep "UVM_ERROR :" sim/replay/clic_random_s7.log` | `RESULT: PASSED`, `UVM_ERROR :    0` |
-| R3.7 | `make static_xprop` | nine lines `static_xprop  chip_<program> PASS`, from `chip_basic` to `chip_swirq` (about 25 seconds); `flow/2_static/xprop/README.md` |
+| R3.7 | `make static_xprop` | ten lines `static_xprop  chip_<program> PASS`, from `chip_basic` to `chip_cov` (about 25 seconds); `flow/2_static/xprop/README.md` |
 | R3.8 | `grep -cE '^hal\w+: \*[EW],[A-Z0-9]+ \(\./rtl/core/' sim/replay/hal.log` (after R3.1) | `108`, the core findings of `flow/2_static/core_lint.md` (row 2.12) |
 | R3.9 | `make synth` then `cat sim/genus_garuda_chip_top/latches.rpt` | `GENUS_LATCHES 1` and `u_core/u_soc_u_core_u_cg_en_l_reg`, the clock-gate latch (row 2.11, `flow/2_static/coding_rules.md`) |
 

@@ -22,15 +22,15 @@ BLK=${1:?usage: unr_block.sh <gpio|pwm|timers|clic|crg|spis|i2c>}
 cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 1
 # block | file list | top | clocks (name:factor) | active-low resets
 case $BLK in
-    gpio)   FL=rtl/gpio/filelist.f;       TOP=garuda_gpio_top; CLK="pclk_i:1";            RST="preset_n_i" ;;
-    pwm)    FL=rtl/pwm/filelist.f;        TOP=garuda_pwm_top;  CLK="pclk_i:1";            RST="preset_n_i" ;;
-    timers) FL=rtl/timers/filelist.f;     TOP=timers_top;      CLK="hclk_i:1 pclk_i:2";   RST="hreset_n_i preset_n_i ext_rst_n_i" ;;
-    clic)   FL=rtl/clic/filelist.f;       TOP=clic_top;        CLK="hclk_i:1 pclk_i:2";   RST="hreset_n_i preset_n_i" ;;
+    gpio)   FL=rtl/gpio/filelist.f;       TOP=garuda_gpio_top; CLK="pclk:1";            RST="preset_n" ;;
+    pwm)    FL=rtl/pwm/filelist.f;        TOP=garuda_pwm_top;  CLK="pclk:1";            RST="preset_n" ;;
+    timers) FL=rtl/timers/filelist.f;     TOP=timers_top;      CLK="hclk:1 pclk:2";   RST="hreset_n preset_n ext_hrst_n" ;;
+    clic)   FL=rtl/clic/filelist.f;       TOP=clic_top;        CLK="pclk:1";            RST="preset_n" ;;
     # the divider has no waiver in its design code; the reset controller with hclk at
     # half the always-on clock (DIV4) and pclk at half of hclk
-    spis)   FL=rtl/spi_slave/filelist.f;  TOP=garuda_spis_top; CLK="pclk_i:1";            RST="preset_n_i" ;;
-    i2c)    FL=rtl/i2c/filelist.f;        TOP=garuda_i2c_top;  CLK="pclk_i:1";            RST="preset_n_i" ;;
-    crg)    FL=rtl/reset_ctrl/filelist.f; TOP=reset_ctrl;      CLK="aon_clk_i:1 hclk_i:2 pclk_i:4"; RST="ext_rst_n_i" ;;
+    spis)   FL=rtl/spi_slave/filelist.f;  TOP=garuda_spis_top; CLK="pclk:1";            RST="preset_n" ;;
+    i2c)    FL=rtl/i2c/filelist.f;        TOP=garuda_i2c_top;  CLK="pclk:1";            RST="preset_n" ;;
+    crg)    FL=rtl/reset_ctrl/filelist.f; TOP=reset_ctrl;      CLK="aon_clk:1 hclk:2 pclk:4"; RST="ext_rst_n" ;;
     *) echo "unknown block $BLK"; exit 2 ;;
 esac
 D=sim/jg_unr/$BLK

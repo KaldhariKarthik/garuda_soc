@@ -172,7 +172,9 @@ def imc():
     out = []
     for p in sorted(glob.glob(os.path.join(ROOT, "flow/cov/*_exclusions*.tcl"))):
         head = open(p).read(600)
-        if "GENERATED" in head:
+        # generated from a tb/*/cov/*_waivers.toml: counted there. top_exclusions.tcl is generated
+        # from the register descriptions (tools/cov/gen_top_exclusions.py) and is counted here.
+        if "GENERATED" in head and "gen_top_exclusions" not in head:
             continue
         for n, ln in enumerate(open(p), 1):
             s = ln.strip()

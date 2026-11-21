@@ -211,6 +211,8 @@ module tb_debug;
     // THIS scan's request was ignored; the status is sticky until dmireset. The
     // debugger clears it, waits longer between scans and issues the scan again.
     integer nidle = 0, busy_seen = 0, ign_viol = 0;
+    integer n_upd_busy = 0;   // Update-DR of DMI while a request is in flight (debug_dtm.sv:112)
+    always @(posedge tck) if (dut.u_dtm.upd_dmi && dut.u_dtm.busy) n_upd_busy = n_upd_busy + 1;
     task automatic dbg_issue(input [6:0] a, input [31:0] d, input [1:0] op);
         reg [31:0] r; reg [1:0] st; integer l0;
         forever begin
@@ -538,6 +540,23 @@ module tb_debug;
         dmireset();
         dtmcs_rd(s); check(s[11:10] == 2'd0, "DTMCS.dmireset clears the sticky status");
         dmr(7'h39, r); check(r == 32'hB1B1_0004, "only the accepted request took effect");
+        // an Update-DR while the previous request is still in flight (2026-11-21, D-40: the one
+        // expression of debug_dtm left, line 112 upd_dmi && busy). The update must carry a read
+        // or write op (dmi_op), so it ends a full 41-bit scan: hclk at 500 kHz keeps the first
+        // request in flight across the whole second scan.
+        begin
+            integer u0;
+            hh = 1000.0; idle(4);
+            l0 = n_launch; u0 = n_upd_busy;
+            dmi_scan(7'h39, 32'hF5F5_0014, 2'd2, r, st);                   // accepted, in flight
+            dmi_scan(7'h39, 32'h0BAD_0018, 2'd2, r, st);                   // updated while busy
+            check(n_upd_busy > u0, "an Update-DR arrives while the previous DMI request is in flight");
+            check(n_launch == l0 + 1, "an update made while busy launches no request");
+            idle(1000);
+            dtmcs_rd(s); check(s[11:10] == 2'd3, "an update while busy leaves dmistat busy (sticky)");
+            dmireset(); hh = 2.0; idle(4);
+            dmr(7'h39, r); check(r == 32'hF5F5_0014, "only the request accepted before the busy update took effect");
+        end
         // five TMS-high clocks in the middle of a request: it completes exactly once
         l0 = n_launch; p0 = n_pulse;
         dmi_scan(7'h39, 32'hE4E4_0010, 2'd2, r, st);
