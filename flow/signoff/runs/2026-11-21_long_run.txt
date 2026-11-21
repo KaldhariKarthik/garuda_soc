@@ -1,0 +1,31 @@
+G6 6.18 (no deadlocks in long runs): t_chip_stress, 20 000 random operations, seed 7, 2026-11-21
+RTL: a635f2a (the freeze design: T-19, SPIM-6, BRG-3 in; nothing in rtl/, tb/ or sw/ changed after it)
+irun 15.20-s086 with coverage, plain tb_chip, through flow/regress/run_test.sh (the regression path)
+
+Command (tcsh, repository root; about one hour):
+  env STRESS_ITER=20000 STRESS_MAXUS=400000 SVSEED=7 GARUDA_RUN_DIR=sim/long_run bash flow/regress/run_test.sh chip_stress
+
+What runs at once for the whole run: the core's random peripheral traffic, DMA jobs on every channel,
+interrupts arriving in the middle of it, and the debugger reading memory over JTAG (+SBA_STRESS), so all
+four AHB masters contend for the one slave bus. Every SBA read is compared with the DSRAM backdoor.
+The four AHB protocol checkers and the flash model's protocol checks watch every cycle.
+
+== result
+[tb_chip] tohost = 0x00000001 at 181224100000: 18892026 retired, 0 hclk cycles clock-gated, 0 system resets
+[tb_chip] AHB checker violations: I=0 D=0 SBA=0 DMA=0 (slave bus 0, expected >0 only for deliberate faults)
+[tb_chip] SBA stress: 14380 reads over JTAG compared
+[tb_chip] SPI flash model: 0 protocol violations, 0 bytes programmed
+RESULT: PASSED
+GARUDA_RESULT: PASS chip_stress
+Simulation complete via $finish(1) at time 181224100 NS; wall 01:01:32; 0 assertion failures (*E,ASRTST) in the log
+
+18.9 million instructions over 181 ms of chip time, every operation completed (the program's bounded
+waits return a step code on any stall, and MAXUS bounds the run, so a hang would have failed it):
+no deadlock, no hang, no protocol violation. 20x the length of the 6.8 runs (1 000 operations).
+
+== history of this run
+Started 15:00 and 19:31 from inside a Claude Code session; both were killed when the session process
+ended (no result, the log stops at "run"). The third start (20:29) ran as a user systemd unit
+(systemd-run --user), outside the session, and completed. Earlier, the open flow compared 1.08e9
+instructions with Spike (Docs/reports/Core_DSU_DMA_Complete_Report_2026-10-14.md): that is the core
+alone; this run is the whole chip on the Cadence simulator.
