@@ -199,14 +199,14 @@ UEASPD	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:301	Unequal length o
 ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:308	Unequal length operands in equality oper	VENDOR_WIDTH
 ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:313	Unequal length operands in equality oper	VENDOR_WIDTH
 ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:332	Unequal length operands in equality oper	VENDOR_WIDTH
-ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:373	Unequal length operands in equality oper	VENDOR_WIDTH
-ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:378	Unequal length operands in equality oper	VENDOR_WIDTH
-ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:399	Unequal length operands in equality oper	VENDOR_WIDTH
-ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:437	Unequal length operands in equality oper	VENDOR_WIDTH
-REVROP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:555	spi_cs	VENDOR_ASSIGN
-REVROP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:556	spi_cs	VENDOR_ASSIGN
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:374	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:379	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:400	Unequal length operands in equality oper	VENDOR_WIDTH
+ULCMPE	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:439	Unequal length operands in equality oper	VENDOR_WIDTH
 REVROP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:557	spi_cs	VENDOR_ASSIGN
 REVROP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:558	spi_cs	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:559	spi_cs	VENDOR_ASSIGN
+REVROP	rtl/third_party/pulp/axi_spi_master/src/spim_ctrl.sv:560	spi_cs	VENDOR_ASSIGN
 IMPDTC	rtl/third_party/pulp/axi_spi_master/src/spim_clkgen.sv:42	0	VENDOR_WIDTH
 TRUNCZ	rtl/third_party/pulp/axi_spi_master/src/spim_clkgen.sv:42	Truncation in constant conversion withou	VENDOR_WIDTH
 IMPTYP	rtl/third_party/pulp/axi_spi_master/src/spim_clkgen.sv:51	counter + 1	VENDOR_WIDTH
