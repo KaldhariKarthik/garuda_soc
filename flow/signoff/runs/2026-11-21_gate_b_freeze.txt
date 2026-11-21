@@ -1,0 +1,84 @@
+Sat Nov 21 20:34:23 IST 2026
+52198d6
+check_tree: 1884 tracked files, 340 bug IDs, 0 problem(s)
+check_applicability: 156 own modules, 0 problem(s)
+formal_mutants: 35 mutants, all current
+check_mutants: every planted defect applies
+vendor_sync: 16 files across 5 IPs match HASHES.txt
+vendor_sync: 15 file(s) carry a recorded GARUDA patch, and match it
+gen_top_exclusions: up to date
+gen_chip_regs: up to date
+hal_zero: 4591 findings: 3967 under rules off by hal_rules.tsv, 624 excepted per line (412 rows), 0 open (E 0, W 0, N 0), 0 bad rows
+tb_crg         tb_crg: checks=43  FAIL=0 RESULT: PASSED 
+tb_clic        tb_clic: checks=24  FAIL=0 RESULT: PASSED 
+tb_timers      tb_timers: checks=27  FAIL=0 RESULT: PASSED 
+tb_apb_shim    tb_apb_shim: checks=29  FAIL=0 RESULT: PASSED 
+tb_spim        tb_spim: checks=55  FAIL=0 RESULT: PASSED 
+tb_uart        tb_uart: checks=117  FAIL=0 RESULT: PASSED 
+tb_i2c         tb_i2c: checks=93  FAIL=0 RESULT: PASSED 
+tb_gpio        tb_gpio: checks=26  FAIL=0 RESULT: PASSED 
+tb_pwm         tb_pwm: checks=60  FAIL=0 RESULT: PASSED 
+tb_spis        tb_spis: checks=74  FAIL=0 RESULT: PASSED 
+make -C sw all
+make[2]: Nothing to be done for 'all'.
+chip_basic     RESULT: PASSED 
+chip_irq       RESULT: PASSED 
+chip_wdt       RESULT: PASSED 
+chip_flash     RESULT: PASSED 
+chip_uart      RESULT: PASSED 
+chip_periph    RESULT: PASSED 
+chip_integ     RESULT: PASSED 
+chip_jtag      RESULT: PASSED 
+chip_swirq     RESULT: PASSED 
+chip_cov       RESULT: PASSED 
+chip_irqprio   RESULT: PASSED 
+chip_regs      RESULT: PASSED 
+chip_mem       RESULT: PASSED 
+uvm_clic  reg_s1 PASS
+uvm_clic  directed_s1 PASS
+uvm_clic  random_s1 PASS
+uvm_clic  random_s2 PASS
+uvm_clic  random_s3 PASS
+uvm_timers  reg_s1 PASS
+uvm_timers  directed_s1 PASS
+uvm_timers  random_s1 PASS
+uvm_timers  random_s2 PASS
+uvm_timers  random_s3 PASS
+uvm_pwm  reg_s1 PASS
+uvm_pwm  directed_s1 PASS
+uvm_pwm  random_s1 PASS
+uvm_pwm  random_s2 PASS
+uvm_pwm  random_s3 PASS
+uvm_gpio  reg_s1 PASS
+uvm_gpio  directed_s1 PASS
+uvm_gpio  random_s1 PASS
+uvm_gpio  random_s2 PASS
+uvm_gpio  random_s3 PASS
+uvm_crg  reg_s1 PASS
+uvm_crg  directed_s1 PASS
+uvm_crg  random_s1 PASS
+uvm_crg  random_s2 PASS
+uvm_crg  random_s3 PASS
+uvm_spis  reg_s1 PASS
+uvm_spis  directed_s1 PASS
+uvm_spis  random_s1 PASS
+uvm_spis  random_s2 PASS
+uvm_spis  random_s3 PASS
+uvm_i2c  reg_s1 PASS
+uvm_i2c  directed_s1 PASS
+uvm_i2c  random_s1 PASS
+uvm_i2c  random_s2 PASS
+uvm_i2c  random_s3 PASS
+uvm_uart  reg_s1 PASS
+uvm_uart  directed_s1 PASS
+uvm_uart  random_s1 PASS
+uvm_uart  random_s2 PASS
+uvm_uart  random_s3 PASS
+chip_uvm: 19 PASS, 0 FAIL
+chip_uvm plant pwm KILLED by sb_pin (the program passed)
+chip_uvm plant spis_miso KILLED by sb_miso (the program passed)
+chip_uvm plant uart_dma KILLED by sb_dma (the program passed)
+chip_uvm: 3 of 3 planted defects killed
+gate_b: PASS
+gate_b rc=0
+Sat Nov 21 21:13:27 IST 2026
