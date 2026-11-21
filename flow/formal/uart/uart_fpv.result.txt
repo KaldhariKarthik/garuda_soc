@@ -1,9 +1,110 @@
 top: garuda_uart_top
-children:
+children: 
 script: flow/formal/uart/uart_fpv.tcl
-proved: 38/38
+proved: 40/40
+tool: JasperGold Apps 2022.09p002, 2026-11-21
+
+Rerun 2026-11-21 on c688056 (TOOL-A34: the script had not run since the port renames; clock and
+reset names fixed, nothing else). JasperGold Apps 2022.09p002, script flow/formal/uart/uart_fpv.tcl.
+Result: 40/40 assertions proven, 0 cex; 44/47 covers covered; 3 unreachable: c_shim_hole (no register hole, IP_MAP 0xFF) and two reset preconditions (a_shim_reset, and a_dma_reset of garuda_apb_dma, split out of the shim by D-39); reset only at the start.
+The tool's property list of this run is at the end of this file.
+
+==== the record before 2026-11-21 ====
+  was top: garuda_uart_top
+children:
+  was script: flow/formal/uart/uart_fpv.tcl
+  was proved: 38/38
 tool: JasperGold Apps 2022.09p002, 2026-10-15
 
 38 assertions (the wrapper's and the shim's) proved with the vendored 16550 inside; 42 covers covered,
 2 unreachable: c_shim_hole (no register hole since IP_MAP 0xFF) and a reset precondition.
 UVM: make uvm_uart 22 of 22 pass. Planted defects (scripts/planted_defects.sh uart): 14 of 14 caught.
+
+==== property list, 2026-11-21 ====
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.a_shim_pready
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.a_shim_irq_level
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[0].a_shim_capture
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[0].a_shim_capture:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[1].a_shim_capture
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[1].a_shim_capture:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[2].a_shim_capture
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[2].a_shim_capture:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[0].a_shim_set_beats_clear
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[0].a_shim_set_beats_clear:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[1].a_shim_set_beats_clear
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[1].a_shim_set_beats_clear:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[2].a_shim_set_beats_clear
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[2].a_shim_set_beats_clear:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[0].a_shim_sticky
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[0].a_shim_sticky:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[1].a_shim_sticky
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[1].a_shim_sticky:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[2].a_shim_sticky
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[2].a_shim_sticky:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[0].a_shim_clear
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[0].a_shim_clear:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[1].a_shim_clear
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[1].a_shim_clear:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[2].a_shim_clear
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[2].a_shim_clear:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[0].a_shim_no_spurious
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[0].a_shim_no_spurious:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[1].a_shim_no_spurious
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[1].a_shim_no_spurious:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[2].a_shim_no_spurious
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[2].a_shim_no_spurious:precondition1
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[0].c_shim_evt
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[1].c_shim_evt
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[2].c_shim_evt
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[0].c_shim_clear
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[1].c_shim_clear
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.g_evt[2].c_shim_clear
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.a_shim_irq_held
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.a_shim_irq_held:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.a_shim_pslverr_map
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.a_shim_select_only_registers
+unreachable  cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.c_shim_hole
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.c_shim_unaligned
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.a_shim_err_no_select
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.a_shim_err_no_select:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.a_shim_err_no_change
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.a_shim_err_no_change:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_shim.u_shim_sva.a_shim_reset
+unreachable  cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.a_shim_reset:precondition1
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.c_shim_err
+covered      cover   <embedded>::garuda_uart_top.u_shim.u_shim_sva.c_shim_irq
+proven       assert  <embedded>::garuda_uart_top.u_dma.u_dma_sva.a_shim_dma_gate
+covered      cover   <embedded>::garuda_uart_top.u_dma.u_dma_sva.a_shim_dma_gate:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_dma.u_dma_sva.a_shim_dma_holdoff
+covered      cover   <embedded>::garuda_uart_top.u_dma.u_dma_sva.a_shim_dma_holdoff:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_dma.u_dma_sva.a_dma_write_only
+covered      cover   <embedded>::garuda_uart_top.u_dma.u_dma_sva.a_dma_write_only:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_dma.u_dma_sva.a_dma_reset
+unreachable  cover   <embedded>::garuda_uart_top.u_dma.u_dma_sva.a_dma_reset:precondition1
+covered      cover   <embedded>::garuda_uart_top.u_dma.u_dma_sva.c_dma_req
+proven       assert  <embedded>::garuda_uart_top.u_uart_sva.a_pready
+proven       assert  <embedded>::garuda_uart_top.u_uart_sva.a_poll_never_blocks
+covered      cover   <embedded>::garuda_uart_top.u_uart_sva.a_poll_never_blocks:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_uart_sva.a_poll_is_lsr_read
+covered      cover   <embedded>::garuda_uart_top.u_uart_sva.a_poll_is_lsr_read:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_uart_sva.a_lsr_read_no_pop
+covered      cover   <embedded>::garuda_uart_top.u_uart_sva.a_lsr_read_no_pop:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_uart_sva.a_irq_held
+proven       assert  <embedded>::garuda_uart_top.u_uart_sva.g_evt[0].a_set_beats_clear
+covered      cover   <embedded>::garuda_uart_top.u_uart_sva.g_evt[0].a_set_beats_clear:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_uart_sva.g_evt[1].a_set_beats_clear
+covered      cover   <embedded>::garuda_uart_top.u_uart_sva.g_evt[1].a_set_beats_clear:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_uart_sva.g_evt[2].a_set_beats_clear
+covered      cover   <embedded>::garuda_uart_top.u_uart_sva.g_evt[2].a_set_beats_clear:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_uart_sva.a_err_needs_byte
+covered      cover   <embedded>::garuda_uart_top.u_uart_sva.a_err_needs_byte:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_uart_sva.a_tx_idle_high
+covered      cover   <embedded>::garuda_uart_top.u_uart_sva.a_tx_idle_high:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_uart_sva.a_no_byte_after_reset
+covered      cover   <embedded>::garuda_uart_top.u_uart_sva.a_no_byte_after_reset:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_uart_sva.a_dma_drop
+covered      cover   <embedded>::garuda_uart_top.u_uart_sva.a_dma_drop:precondition1
+proven       assert  <embedded>::garuda_uart_top.u_uart_sva.a_dma_dlab
+covered      cover   <embedded>::garuda_uart_top.u_uart_sva.a_dma_dlab:precondition1
+covered      cover   <embedded>::garuda_uart_top.u_uart_sva.c_poll_then_access
+covered      cover   <embedded>::garuda_uart_top.u_uart_sva.c_rx_full

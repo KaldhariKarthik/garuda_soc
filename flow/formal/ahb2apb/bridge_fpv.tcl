@@ -7,10 +7,12 @@
 #       -proj sim/formal_bridge/jgproject flow/formal/ahb2apb/bridge_fpv.tcl
 #
 # The model: hclk is the base clock; pclk is hclk divided by two (D-5), every pclk
-# edge is an hclk edge. The inputs the tool may not invent are in the sva file as
-# assume_*: an AHB master that holds its address phase until accepted. Everything
-# else is free: the APB slaves answer PREADY, PRDATA and PSLVERR as they like, so
-# every wait, every error and the timeout are all reachable.
+# edge is an hclk edge. The AHB master is held to AHB-Lite by bridge_env_jg.sv, the
+# same assumptions (FB-1..FB-3) as the SymbiYosys suite tb/ahb2apb/formal/apb.toml
+# (2026-11-21, TOOL-A34: until then this script had none and its last result,
+# 2026-10-15, predates the properties that need them). Everything else is free: the
+# APB slaves answer PREADY, PRDATA and PSLVERR as they like, so every wait, every
+# error and the timeout are all reachable.
 # =============================================================================
 # settings, from the environment so this file is never edited:
 #   MASK  window mask      default 0FFE   (windows 1 to 11)
@@ -21,7 +23,8 @@ if {[info exists ::env(MASK)]} { set MASK $::env(MASK) }
 if {[info exists ::env(DIV)]}  { set DIV  $::env(DIV) }
 if {[info exists ::env(FL)]}   { set FL   $::env(FL) }
 set FILES [split [string trim [exec env -u LD_LIBRARY_PATH python3 scripts/expand_filelist.py $FL]] "\n"]
-analyze -sv09 +incdir+rtl/include {*}$FILES
+analyze -sv09 {*}$FILES
+analyze -sv09 flow/formal/ahb2apb/bridge_env_jg.sv
 
 # the parameters of the chip: windows 1 to 11 present
 elaborate -top ahb2apb_bridge -parameter WINDOW_MASK 16'h$MASK -parameter APB_DIV 24'h$DIV -parameter TIMEOUT 16

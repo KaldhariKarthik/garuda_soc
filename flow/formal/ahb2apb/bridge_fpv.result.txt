@@ -1,7 +1,198 @@
 top: ahb2apb_bridge
 children: ahb2apb_apb_fsm ahb2apb_fabric
 script: flow/formal/ahb2apb/bridge_fpv.tcl
-proved: 17/17
+proved: 42/42
+tool: JasperGold Apps 2022.09p002, 2026-11-21
+
+Rerun 2026-11-21 on c688056 (TOOL-A34). JasperGold Apps 2022.09p002, script flow/formal/ahb2apb/bridge_fpv.tcl
+with flow/formal/ahb2apb/bridge_env_jg.sv: the assumptions FB-1..FB-3 of the SymbiYosys suite
+(tb/ahb2apb/formal/apb.toml) as concurrent assumptions. Until today the script had none (the property
+file's own assume_* were gone) and had not run since the port renames; run bare it gave three
+counterexamples (a_one_to_one, a_resp, a_subword_no_apb), all on AHB traffic FB-2/FB-3 forbid.
+pclk = hclk / 2 here, as on the chip (the SBY suite runs pclk = hclk).
+
+MASK 0FFE DIV 000000 (chip):  42/42 proven, 39/42 covers; unreachable c_div_extra and c_div_ready_early
+                              (no divider in this configuration) and c_reset_gap (FB-1)
+MASK 0FFE DIV FFFFFF (/8):    42/42 proven, 41/42 covers; unreachable c_reset_gap (FB-1: both resets
+                              release together; the gap is the simulation test t_apb_reset_skew)
+
+==== property list, DIV 000000 ====
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.assume_htrans_stable:precondition1
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.assume_hsel_window:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_err_two_cycles
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_err_two_cycles:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_err_ends
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_err_ends:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_no_ready_in_reset
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_no_ready_in_reset:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_good_one_request
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_good_one_request:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_bad_no_request
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_bad_no_request:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_slverr_to_error
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_slverr_to_error:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_ok_to_okay
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_ok_to_okay:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_capture_stable
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_capture_stable:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_no_hang
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_no_hang:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_psel_onehot
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_psel_present
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_setup_then_access
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_setup_then_access:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_penable_needs_psel
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_penable_needs_psel:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_apb_stable
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_apb_stable:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_read_wdata_zero
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_read_wdata_zero:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_access_bounded
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_access_bounded:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_timeout_counter
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_read_ok
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_write_ok
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_slave_error
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_absent_window
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_subword
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_timeout
+unreachable  cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_div_extra
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_back_to_back
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_after_error
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_in_reset
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_apb_wait
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_psel_onehot
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_penable_needs_psel
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_apb_setup_first
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_apb_setup
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_apb_addr_stable
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_apb_wdata_stable
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_unmapped
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_apb_div
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_access_ends
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_timeout_at_16
+unreachable  cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_div_ready_early
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_timeout
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_ready_last
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_slverr
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_resp_from_active_window
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_subword_no_apb
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_one_to_one
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_one_apb_at_a_time
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_resp
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_rdata
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_error_two_cycle
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_error_first_cycle
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_okay_outside_error
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_no_hang
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_dual_reset_hold
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_capture_stable_at_phase
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_hstate_legal
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_win_cap_legal
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_to_cnt_max
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_legal_read
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_legal_write
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_subword
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_absent
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_aperture
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_back_to_back
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_err_resp
+unreachable  cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_reset_gap
+covered      cover   <embedded>::ahb2apb_bridge.u_jg_env.assume_fb2_hold:precondition1
+covered      cover   <embedded>::ahb2apb_bridge.u_jg_env.assume_fb2_wdata:precondition1
+covered      cover   <embedded>::ahb2apb_bridge.u_jg_env.assume_fb3_ready:precondition1
+
+==== property list, DIV FFFFFF ====
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.assume_htrans_stable:precondition1
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.assume_hsel_window:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_err_two_cycles
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_err_two_cycles:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_err_ends
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_err_ends:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_no_ready_in_reset
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_no_ready_in_reset:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_good_one_request
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_good_one_request:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_bad_no_request
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_bad_no_request:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_slverr_to_error
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_slverr_to_error:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_ok_to_okay
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_ok_to_okay:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_capture_stable
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_capture_stable:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_no_hang
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_no_hang:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_psel_onehot
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_psel_present
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_setup_then_access
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_setup_then_access:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_penable_needs_psel
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_penable_needs_psel:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_apb_stable
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_apb_stable:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_read_wdata_zero
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_read_wdata_zero:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_access_bounded
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.a_access_bounded:precondition1
+proven       assert  <embedded>::ahb2apb_bridge.u_bridge_sva.a_timeout_counter
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_read_ok
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_write_ok
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_slave_error
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_absent_window
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_subword
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_timeout
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_div_extra
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_back_to_back
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_after_error
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_in_reset
+covered      cover   <embedded>::ahb2apb_bridge.u_bridge_sva.c_apb_wait
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_psel_onehot
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_penable_needs_psel
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_apb_setup_first
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_apb_setup
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_apb_addr_stable
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_apb_wdata_stable
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_unmapped
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_apb_div
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_access_ends
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_timeout_at_16
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_div_ready_early
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_timeout
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_ready_last
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_slverr
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_resp_from_active_window
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_subword_no_apb
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_one_to_one
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_one_apb_at_a_time
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_resp
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_rdata
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_error_two_cycle
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_error_first_cycle
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_okay_outside_error
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_no_hang
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_dual_reset_hold
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_capture_stable_at_phase
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_hstate_legal
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_win_cap_legal
+proven       assert  <embedded>::ahb2apb_bridge.u_apb_sva.a_to_cnt_max
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_legal_read
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_legal_write
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_subword
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_absent
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_aperture
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_back_to_back
+covered      cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_err_resp
+unreachable  cover   <embedded>::ahb2apb_bridge.u_apb_sva.c_reset_gap
+covered      cover   <embedded>::ahb2apb_bridge.u_jg_env.assume_fb2_hold:precondition1
+covered      cover   <embedded>::ahb2apb_bridge.u_jg_env.assume_fb2_wdata:precondition1
+covered      cover   <embedded>::ahb2apb_bridge.u_jg_env.assume_fb3_ready:precondition1
+
+==== the record before 2026-11-21 ====
+  was top: ahb2apb_bridge
+  was children: ahb2apb_apb_fsm ahb2apb_fabric
+  was script: flow/formal/ahb2apb/bridge_fpv.tcl
+  was proved: 17/17
 tool: JasperGold Apps 2022.09p002, 2026-10-15
 
 configuration                      assertions   covers      note

@@ -1,10 +1,108 @@
 top: garuda_spim_top
-children:
+children: 
 script: flow/formal/spim/spim_fpv.tcl
-proved: 34/34
+proved: 36/36
+tool: JasperGold Apps 2022.09p002, 2026-11-21
+
+Rerun 2026-11-21 on c688056 (TOOL-A34: the script had not run since the port renames; clock and
+reset names fixed, nothing else). JasperGold Apps 2022.09p002, script flow/formal/spim/spim_fpv.tcl.
+Result: 36/36 assertions proven, 0 cex; 46/48 covers covered; 2 unreachable: the reset preconditions of a_shim_reset and a_dma_reset (D-39 split); reset only at the start. c_dma_req, unreachable before, is reached since its correction (TB-A19).
+The tool's property list of this run is at the end of this file.
+
+==== the record before 2026-11-21 ====
+  was top: garuda_spim_top
+children:
+  was script: flow/formal/spim/spim_fpv.tcl
+  was proved: 34/34
 tool: JasperGold Apps 2022.09p002, 2026-10-15
 
 34 assertions proved with the vendored engine inside, under the firmware rules of SPIM-5 (no STATUS
 write in flight, CLKDIV >= 3 before a start, soft reset alone). Without them the free APB master found
 SPIM-3 and SPIM-4 (both fixed) and the three SPIM-5 cases. c_dma_req is unreachable in this model
 (not looked into). Planted defects (tools/mutate.py sim/lab/spim/mut_spec.py): 6 of 6; the bench 4.
+
+==== property list, 2026-11-21 ====
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_pready
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_irq_level
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[0].a_shim_capture
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[0].a_shim_capture:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[1].a_shim_capture
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[1].a_shim_capture:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[2].a_shim_capture
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[2].a_shim_capture:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[0].a_shim_set_beats_clear
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[0].a_shim_set_beats_clear:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[1].a_shim_set_beats_clear
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[1].a_shim_set_beats_clear:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[2].a_shim_set_beats_clear
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[2].a_shim_set_beats_clear:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[0].a_shim_sticky
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[0].a_shim_sticky:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[1].a_shim_sticky
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[1].a_shim_sticky:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[2].a_shim_sticky
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[2].a_shim_sticky:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[0].a_shim_clear
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[0].a_shim_clear:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[1].a_shim_clear
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[1].a_shim_clear:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[2].a_shim_clear
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[2].a_shim_clear:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[0].a_shim_no_spurious
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[0].a_shim_no_spurious:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[1].a_shim_no_spurious
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[1].a_shim_no_spurious:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[2].a_shim_no_spurious
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[2].a_shim_no_spurious:precondition1
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[0].c_shim_evt
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[1].c_shim_evt
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[2].c_shim_evt
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[0].c_shim_clear
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[1].c_shim_clear
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.g_evt[2].c_shim_clear
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_irq_held
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_irq_held:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_pslverr_map
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_select_only_registers
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.c_shim_hole
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.c_shim_unaligned
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_err_no_select
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_err_no_select:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_err_no_change
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_err_no_change:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_reset
+unreachable  cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.a_shim_reset:precondition1
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.c_shim_err
+covered      cover   <embedded>::garuda_spim_top.u_shim.u_shim_sva.c_shim_irq
+proven       assert  <embedded>::garuda_spim_top.u_dma.u_dma_sva.a_shim_dma_gate
+covered      cover   <embedded>::garuda_spim_top.u_dma.u_dma_sva.a_shim_dma_gate:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_dma.u_dma_sva.a_shim_dma_holdoff
+covered      cover   <embedded>::garuda_spim_top.u_dma.u_dma_sva.a_shim_dma_holdoff:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_dma.u_dma_sva.a_dma_write_only
+covered      cover   <embedded>::garuda_spim_top.u_dma.u_dma_sva.a_dma_write_only:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_dma.u_dma_sva.a_dma_reset
+unreachable  cover   <embedded>::garuda_spim_top.u_dma.u_dma_sva.a_dma_reset:precondition1
+covered      cover   <embedded>::garuda_spim_top.u_dma.u_dma_sva.c_dma_req
+proven       assert  <embedded>::garuda_spim_top.u_spim_sva.a_pready
+proven       assert  <embedded>::garuda_spim_top.u_spim_sva.a_poll_never_blocks
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.a_poll_never_blocks:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_spim_sva.a_poll_is_status_read
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.a_poll_is_status_read:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_spim_sva.a_cs_exclusive
+proven       assert  <embedded>::garuda_spim_top.u_spim_sva.a_sclk_idle_low
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.a_sclk_idle_low:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_spim_sva.a_mosi_stable_on_rise
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.a_mosi_stable_on_rise:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_spim_sva.a_cs_not_released_high
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.a_cs_not_released_high:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_spim_sva.a_single_bit_mode
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.assume_fw_no_status_write_in_flight:precondition1
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.assume_fw_clkdiv:precondition1
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.assume_fw_start_after_clkdiv:precondition1
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.assume_fw_reset_alone:precondition1
+proven       assert  <embedded>::garuda_spim_top.u_spim_sva.a_fifo_bound
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.c_flash_transfer
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.c_imu_transfer
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.c_sclk_toggles
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.c_rx_full
+covered      cover   <embedded>::garuda_spim_top.u_spim_sva.c_dma_req

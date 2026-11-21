@@ -1,14 +1,26 @@
 top: debug_top
+children: jtag_tap debug_dtm dmi_cdc debug_module sba_master
 script: flow/formal/debug/debug_fpv.tcl
-proved: 26/26, 39/39 covers covered
+proved: 26/26
+tool: JasperGold Apps 2022.09p002, 2026-11-21
+
+Rerun 2026-11-21 on c688056 (TOOL-A34: the script had not run since the port renames; clock and
+reset names fixed, nothing else). JasperGold Apps 2022.09p002, script flow/formal/debug/debug_fpv.tcl.
+Result: 26/26 assertions proven, 0 cex; 39/39 covers covered; every cover reached, as before.
+The tool's property list of this run is at the end of this file.
+
+==== the record before 2026-11-21 ====
+  was top: debug_top
+  was script: flow/formal/debug/debug_fpv.tcl
+  was proved: 26/26, 39/39 covers covered
 tool: JasperGold Apps 2022.09p002, 2026-11-04; rerun 2026-11-10 on acb29f7 (task kick inlined, D-33): 26/26 proven, 39/39 covers covered
 DBG-4 fixed (ruling D-32): a_dm_bus_error, the counterexample of 2026-10-15, is proven.
 
 Previous result (2026-10-15):
-top: debug_top
-children: jtag_tap debug_dtm dmi_cdc debug_module sba_master
-script: flow/formal/debug/debug_fpv.tcl
-proved: 25/26
+  was top: debug_top
+  was children: jtag_tap debug_dtm dmi_cdc debug_module sba_master
+  was script: flow/formal/debug/debug_fpv.tcl
+  was proved: 25/26
 tool: JasperGold Apps 2022.09p002, 2026-10-15
 
 26 assertions: 25 proved, 1 counterexample; 39 covers all covered (no vacuous proof).
@@ -20,3 +32,70 @@ bench alike). M7 (hartreset not gated by dmactive) is an equivalent mutant: form
 a_dm_inactive_quiet on it, because hartreset is already 0 whenever dmactive is 0. M8 (SBA drops its
 address phase before HREADY) cannot happen in the bench, where the SBA is the only master; formal
 gives a counterexample on a_sba_addr_stable.
+
+==== property list, 2026-11-21 ====
+covered      cover   <embedded>::debug_top.u_debug_sva.assume_slave_error2:precondition1
+covered      cover   <embedded>::debug_top.u_debug_sva.assume_slave_okay_idle:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_tap_five_tms
+covered      cover   <embedded>::debug_top.u_debug_sva.a_tap_five_tms:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_tap_tlr_idcode
+covered      cover   <embedded>::debug_top.u_debug_sva.a_tap_tlr_idcode:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_tap_capture_ir
+covered      cover   <embedded>::debug_top.u_debug_sva.a_tap_capture_ir:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_tap_tdo_oe
+covered      cover   <embedded>::debug_top.u_debug_sva.a_tap_tdo_oe:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dtm_one_outstanding
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dtm_one_outstanding:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dtm_payload_held
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dtm_payload_held:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dtm_busy_sticky
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dtm_busy_sticky:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dtm_no_req_when_sticky
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dtm_no_req_when_sticky:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dtm_tlr_clears
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dtm_tlr_clears:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dtm_idcode
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dtm_idcode:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_cdc_single_pulse
+covered      cover   <embedded>::debug_top.u_debug_sva.a_cdc_single_pulse:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_cdc_payload_settled
+covered      cover   <embedded>::debug_top.u_debug_sva.a_cdc_payload_settled:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_cdc_ack_only_done
+covered      cover   <embedded>::debug_top.u_debug_sva.a_cdc_ack_only_done:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dm_done_follows_req
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dm_done_follows_req:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dm_done_only_req
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dm_done_only_req:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dm_inactive_quiet
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dm_inactive_quiet:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dm_no_sba_inactive
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dm_no_sba_inactive:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dm_start_idle
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dm_start_idle:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dm_start_legal
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dm_start_legal:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dm_busyerror
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dm_busyerror:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dm_bus_error
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dm_bus_error:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_dm_autoinc
+covered      cover   <embedded>::debug_top.u_debug_sva.a_dm_autoinc:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_sba_single_word
+proven       assert  <embedded>::debug_top.u_debug_sva.a_sba_addr_stable
+covered      cover   <embedded>::debug_top.u_debug_sva.a_sba_addr_stable:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_sba_aligned
+covered      cover   <embedded>::debug_top.u_debug_sva.a_sba_aligned:precondition1
+proven       assert  <embedded>::debug_top.u_debug_sva.a_sba_one_done
+covered      cover   <embedded>::debug_top.u_debug_sva.a_sba_one_done:precondition1
+covered      cover   <embedded>::debug_top.u_debug_sva.c_dmi_write
+covered      cover   <embedded>::debug_top.u_debug_sva.c_dmi_read
+covered      cover   <embedded>::debug_top.u_debug_sva.c_busy_sticky
+covered      cover   <embedded>::debug_top.u_debug_sva.c_dm_access
+covered      cover   <embedded>::debug_top.u_debug_sva.c_sba_read
+covered      cover   <embedded>::debug_top.u_debug_sva.c_sba_write
+covered      cover   <embedded>::debug_top.u_debug_sva.c_sba_error
+covered      cover   <embedded>::debug_top.u_debug_sva.c_busyerror
+covered      cover   <embedded>::debug_top.u_debug_sva.c_autoinc
+covered      cover   <embedded>::debug_top.u_debug_sva.c_ndmreset
+covered      cover   <embedded>::debug_top.u_debug_sva.c_hartreset
+covered      cover   <embedded>::debug_top.u_debug_sva.c_unaligned_refused
