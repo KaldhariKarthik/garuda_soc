@@ -33,15 +33,16 @@ step that caught them.
 | 6.15 | Address map, interrupt sources and boot modes covered | `tb/soc/chip_cov.sv`; `2026-11-21_chip_stress_cov` | **86 / 86 bins**, no exclusions, merge of the 15 chip programs: the regions each master reaches, the 12 APB windows, the boot modes (flash, mailbox, JTAG), the interrupt lines (23/23), the DMA channels, the reset causes, and clock divider, sleep, ILOCK and hart reset. |
 | 6.16 | SoC code coverage >= 95%, every exclusion with a reason | `Docs/coverage/COVERAGE_BY_BLOCK.md` | Pending the F4 refresh on the SPIM-6 RTL (section 2). |
 | 6.17 | Directed, random and software suites: zero failures on the frozen RTL | gate_a, gate_b, regress_all | Pending F5 (section 2). |
-| 6.18 | Long-run test completes; no unbounded stalls | `2026-11-21_long_run` | Pending: `t_chip_stress`, 20 000 operations, seed 7, started 2026-11-21 15:00 (section 2). |
+| 6.18 | Long-run test completes; no unbounded stalls | `2026-11-21_long_run` | Pending: `t_chip_stress`, 20 000 operations, seed 7, running since 2026-11-21 19:31 (section 2). |
 | 6.19 | RTL frozen for synthesis | tag `1tops-rtl-freeze` | Pending F5. |
 
 ## 2. What is still to run
 
-- **6.18**: the long run (20 000 operations, seed 7, `STRESS_ITER` in `flow/regress/run_test.sh`)
-  was started on the RTL before SPIM-6. SPIM-6 changes only the end of a transfer with no data
-  phase, which `t_chip_stress` does not issue; the record says so.
-- **SPIM-6 formal**: `flow/formal/spim/spim_fpv.tcl` again on the patched controller.
+- **6.18**: the long run (20 000 operations, seed 7, `STRESS_ITER` in `flow/regress/run_test.sh`).
+  A first start at 15:00 was lost when the session that launched it ended; restarted 19:31 on
+  `a635f2a`, the RTL with SPIM-6.
+- **SPIM-6 formal**: done. `flow/formal/spim/spim_fpv.tcl` on the patched controller: 36/36
+  proven, 0 cex, the same 2 reset-precondition covers unreachable (`a635f2a`).
 - **6.16 / 6.3**: the Xcelium coverage refresh (`garuda.vsif` with every chip program, the
   T-19 runs included) and `make cov_chart`; every waiver re-checked by `tools/waiver_audit.py`.
 - **6.17 / 6.19**: gate_a, gate_b, regress_all, uvm_b, uvm_chip, check_tree on one tree; then the tag.
