@@ -1,0 +1,45 @@
+G6 6.5 (interrupt path: enable, level, priority) and 6.13 (nesting) at chip level: t_chip_irqprio, 2026-11-21
+RTL as at e49e5d5 (no RTL change); Xcelium 22.09 (plain tb_chip), irun 15.20 UVM CDNS-1.2 (chip bench)
+
+Six sources raised and held by firmware, each from its own block: UART0/1/2 THRE (IDs 17-19), GPIO pad edge (20),
+PWM period boundary (21), software interrupt CLICSWI (23).
+  step 1  per source: pending in CLICIP with enable off, no trap; enabled at level 0, never taken; at level 7, taken once,
+          pending clears when the source drops
+  step 2  12 level tables (ties, level 0 among them): served highest level first, ties to the lowest ID, level 0 never
+  step 3  nesting: in a level-40 handler with MIE on, level 200 preempts at once, level 40 waits for the return;
+          mintstatus.mil reads 40 inside, 0 after
+
+== plain bench: make test_chip_irqprio (in make test_chip, gate_b)
+[tb_chip] tohost = 0x00000001 at 278100000: 30156 retired, 0 hclk cycles clock-gated, 0 system resets
+[tb_chip] AHB checker violations: I=0 D=0 SBA=0 DMA=0 (slave bus 0, expected >0 only for deliberate faults)
+RESULT: PASSED
+
+== UVM chip bench: tb/chip_uvm/run_chip_uvm.sh irqprio (row added to tb/chip_uvm/programs.txt)
+chip_uvm irqprio PASS
+uvm_test_top.env.clic.sb [SB] clic_scoreboard: 73481 output samples, 22 reads, 152 writes compared; 0 mismatches
+uvm_test_top.env.crg.sb [SB] crg_scoreboard: 74513 always-on cycles, 2 access cycles (2 reads) compared; 1 system resets and 0 core-only resets measured; 0 mismatches
+uvm_test_top.env.gpio.sb [SB] gpio_scoreboard: 37257 cycles, 1 reads, 34 writes compared; from the pads alone 0 PADIN levels, 0 edges and 0 interrupt rises checked; 0 mismatches
+uvm_test_top.env.pwm.sb [SB] pwm_scoreboard: 37257 cycles, 4 reads, 31 writes compared; 0 frames and 0 pulses measured; 0 mismatches
+uvm_test_top.env.uart0.sb [SB] uart_scoreboard: 0 reads, 28 writes; 0 frames on tx compared, 0 bit periods; 0 bytes read compared; LSR halves compared 0, in transition 0; 0 mismatches
+uvm_test_top.env.uart1.sb [SB] uart_scoreboard: 0 reads, 28 writes; 0 frames on tx compared, 0 bit periods; 0 bytes read compared; LSR halves compared 0, in transition 0; 0 mismatches
+uvm_test_top.env.uart2.sb [SB] uart_scoreboard: 0 reads, 28 writes; 0 frames on tx compared, 0 bit periods; 0 bytes read compared; LSR halves compared 0, in transition 0; 0 mismatches
+tb_chip_uvm: uart0 echoed 0 frame(s)
+tb_chip_uvm: uart1 echoed 0 frame(s)
+tb_chip_uvm: uart2 echoed 0 frame(s)
+tb_chip_uvm: the SPI companion sent 0 frame(s)
+tb_chip_uvm: test=chip_base_test program rc=0 errors=0
+UVM_ERROR :    0
+UVM_FATAL :    0
+  workdir  :  sim/chip_uvm/cov_work
+  dutinst  :  tb_chip_uvm(tb_chip_uvm)
+  scope    :  chip_uvm
+  model(design data) :  sim/chip_uvm/cov_work/chip_uvm/icc_6e533fc9_2b9368c7.ucm (reused)
+  data               :  sim/chip_uvm/cov_work/chip_uvm/irqprio/icc_6e533fc9_2b9368c7.ucd
+
+== negative controls (each in its own copy of rtl/; the test must fail)
+  tiebreak  : clic_select picks on {present, level} only, ties to the right-hand node -> KILLED, step 22 (the all-equal table)
+  level_ge  : clic_ctrl takes level >= mil (level 0 taken, equal level preempts)     -> KILLED, step 31
+  nopreempt : clic_ctrl takes only when mil = 0 (no nesting)                          -> KILLED, step 31
+
+Test defect found on the way (not RTL): wait_n counted relative to n_order at entry, but the interrupt is
+taken before the call, so it waited for a second trap and timed out. Now absolute.

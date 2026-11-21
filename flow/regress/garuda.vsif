@@ -136,5 +136,7 @@ group garuda {
         test chip_cov {};
         // 2026-11-21 (G6 6.8, 6.14): seeded random traffic with the SBA as a fourth master
         test chip_stress {};
+        // 2026-11-21 (G6 6.5, 6.13): CLIC enable, level, priority and nesting at chip level
+        test chip_irqprio {};
     };
 };

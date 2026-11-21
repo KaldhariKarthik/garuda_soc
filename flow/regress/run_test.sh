@@ -126,6 +126,7 @@ case "$T" in
                  swirq)  ARGS="+MODE=basic +TEST=sw/build/t_chip_swirq.hex" ;;
                  cov)    ARGS="+MODE=cov +TEST=sw/build/t_chip_cov.hex +MAXUS=6000" ;;
                  dma_*)  ARGS="+MODE=basic +TEST=sw/build/t_chip_$m.hex +MAXUS=4000" ;;
+                 irqprio) ARGS="+MODE=basic +TEST=sw/build/t_chip_irqprio.hex +MAXUS=3000" ;;   # G6 6.5
                  # G6 6.8: seeded random traffic; the seed is SVSEED (default 1)
                  stress) ARGS="+MODE=basic +TEST=sw/build/t_chip_stress.hex +MAXUS=20000 +SEED=${SVSEED:-1} +SBA_STRESS" ;;
                  *)      ARGS="+MODE=$m +TEST=sw/build/t_chip_$m.hex" ;;
