@@ -34,7 +34,7 @@ step that caught them.
 | 6.16 | SoC code coverage >= 95%, every exclusion with a reason | `Docs/coverage/COVERAGE_BY_BLOCK.md` | Coverage refresh on `9910e6c` (`2026-11-21_cov_refresh`): 221/221 directed runs and 198/198 UVM runs merged in IMC. **Every one of the 16 blocks and the chip top: statement, expression, toggle and FSM 100% after its written waivers**, functional 100% (chip `chip_cov` 86/86). Raw (before waivers) the lowest is toggle (chip wiring 80.7%, GPIO 52.0%); every waiver has its reason and evidence, and `tools/waiver_audit.py` reads every waiver file: **0 unjustified** of 2 297 entries (one `illegal_bins` was given its reason). The five track-A blocks are signed off on their Verilator flow with its own waivers (`cov_*_report` PASS). 105 coverage waivers read `reviewer = pending`: Karthik signs them at the review. |
 | 6.17 | Directed, random and software suites: zero failures on the frozen RTL | gate_a, gate_b, regress_all | On one design (RTL, benches, software and makefiles identical across the three trees): **gate_a PASS** on `77307d5`; **gate_b PASS** on `52198d6` (check_tree 0 problems, HAL 0 open of 4 591 findings, block benches, every chip program, the nine UVM environments, the UVM chip bench 19/19 and 3/3 planted defects killed); **regress_all PASS** on `996da50`. Logs: `2026-11-21_gate_a_freeze`, `2026-11-21_gate_b_freeze`, `2026-11-21_regress_all_freeze`. The first gate_b run failed `static_lint`: SPIM-6's two lines had moved eight per-line HAL exceptions (STALE, as the D-40 check intends); moved, and gate_b rerun from the start. |
 | 6.18 | Long-run test completes; no unbounded stalls | `sw/chip/t_chip_stress.c`; `2026-11-21_long_run` | `t_chip_stress`, **20 000 random operations, seed 7, all four AHB masters** (core I and D, DMA on every channel, SBA over JTAG), interrupts throughout, on the freeze design: **PASS**, 18 892 026 instructions over 181 ms of chip time, 14 380 SBA reads compared, AHB checkers 0 violations, flash model 0, 0 assertion failures, 1 h 02 min wall. Every wait in the program is bounded, so a stall would have ended it with a step code. |
-| 6.19 | RTL frozen for synthesis | tag `1tops-rtl-freeze` | Pending F5. |
+| 6.19 | RTL frozen for synthesis | tag `1tops-rtl-freeze` | **Tagged `1tops-rtl-freeze`** (annotated, on the commit that adds this line) after gate_a, gate_b, regress_all, the coverage refresh and the long run on the freeze design. From here an RTL change needs coach approval and a full regression rerun. Karthik pushes main and the tag. |
 
 ## 2. What is still to run
 
@@ -43,7 +43,7 @@ step that caught them.
   proven, 0 cex, the same 2 reset-precondition covers unreachable (`a635f2a`).
 - **6.16 / 6.3**: done (`77307d5`).
 - **6.17**: done (gate_a, gate_b, regress_all; above).
-- **6.19**: the tag, after 6.18.
+- **6.19**: tagged `1tops-rtl-freeze`; Karthik pushes.
 - **`.docx` exports**: 18 of 19 older than their .md (`make check_docs`); regenerating needs pandoc, which the sim host does not have.
 
 ## 3. Found on the way
