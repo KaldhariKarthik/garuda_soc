@@ -70,7 +70,7 @@ def main():
     for md, m, d in stale:
         print("| `%s` | %s | %s | **STALE** |" % (md[:-3], m, d))
     for md in missing:
-        print("| `%s` | %s | — | **NO .docx** |" % (md[:-3], (git_date(os.path.join(DOCS, md)) or "?")[:10]))
+        print("| `%s` | %s | - | **NO .docx** |" % (md[:-3], (git_date(os.path.join(DOCS, md)) or "?")[:10]))
     for md in ok:
         print("| `%s` | %s | up to date | ok |" % (md[:-3], (git_date(os.path.join(DOCS, md)) or "?")[:10]))
 
