@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-route]  -- hclk/aon_clk arrival spread (PD-15)|route]  -- hclk/aon_clk arrival spread (PD-15)
+# run_hclk_spread.sh <variant> [cts|route]  -- hclk/aon_clk arrival spread (PD-15)
+# SDC=<file> overrides the DIV2 SDC (a run made before a rename needs the SDC of its time).
 set -euo pipefail
 V=${1:?usage: run_hclk_spread.sh <variant> [cts|route]}; ST=${2:-cts}
 source "$(dirname "$0")/pd_env.sh" "$V"
