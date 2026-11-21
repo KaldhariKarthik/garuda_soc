@@ -1,0 +1,45 @@
+F4 coverage refresh (1-TOPS G6 6.3, 6.16): make cov_chart on 9910e6c, 2026-11-21
+RTL: every change of the day included: T-19 (D-41, trap_ctrl), SPIM-6 (vendor patch 0001), BRG-3.
+irun 15.20-s086 with coverage, IMC 15.20; tools/gen/cov_chart.py collect + report.
+
+== cov_runs: every test of flow/regress/garuda.vsif through flow/regress/run_test.sh, 6 at a time
+221 of 221 runs passed (the T-19 programs t_core_wfi_mret, _w2, _w3 and the chip programs
+t_chip_irqprio, t_chip_regs, t_chip_mem among them). 24 runs first failed with ncsim *F,NOLICN
+(licence seats: 6 coverage jobs beside the long run); they compiled and never simulated, and all
+24 passed when rerun 4 at a time. Merged with the earlier block runs: 419 directed runs in the report.
+
+== uvm_b + uvm_dma: the nine UVM environments, 22 runs each (register, directed, 20 random seeds)
+uvm_clic uvm_timers uvm_pwm uvm_gpio uvm_crg uvm_spis uvm_i2c uvm_uart uvm_dma: 198 of 198 PASS
+
+== Docs/coverage/COVERAGE_BY_BLOCK.md (regenerated; summary table)
+| Block | Track | Measured on | Statement | Expression | Toggle | FSM | Functional | Assertions triggered | Waivers |
+|---|---|---|---|---|---|---|---|---|---|
+| RV32IM core | A | all directed tests, merged (no waivers applied here); **signed off on Verilator: `cov_core_report` PASS** | 100.0% (290/290) | 100.0% (85/85) | 95.7% (8551/8931) | none | 94.2% (1786/1895) | 100.0% (138/138) | 62, in `tb/core/cov/core_waivers.toml` (Verilator sign-off) |
+| DSU | A | all directed tests, merged (no waivers applied here); **signed off on Verilator: `cov_dsu_report` PASS** | 100.0% (63/63) | none | 95.9% (3537/3689) | none | 59.7% (191/320) | none | 6, in `tb/dsu/cov/dsu_waivers.toml` (Verilator sign-off) |
+| AHB interconnect | A | all directed tests, merged (no waivers applied here); **signed off on Verilator: `cov_ahb_report` PASS** | 100.0% (78/78) | 100.0% (9/9) | 92.5% (1300/1405) | 100.0% (7/7) | 71.8% (102/142) | 97.3% (36/37) | 6, in `tb/ahb/cov/ahb_waivers.toml` (Verilator sign-off) |
+| AHB to APB bridge | A | all directed tests, merged (no waivers applied here); **signed off on Verilator: `cov_apb_report` PASS** | 100.0% (53/53) | 100.0% (6/6) | 83.4% (1074/1287) | none | 38.4% (53/138) | 96.7% (29/30) | 7, in `tb/ahb2apb/cov/ahb2apb_waivers.toml` (Verilator sign-off) |
+| Memories | A | all directed tests, merged | 85.7% (60/70), after waivers 100.0% (60/60) | 95.7% (22/23), after waivers 100.0% (22/22) | 99.5% (968/973), after waivers 100.0% (968/968) | none | 100.0% (53/53) | 100.0% (21/21) | 16, in `flow/cov/mem_exclusions.tcl` |
+| DMA | A | all directed tests, merged (no waivers applied here); **signed off on Verilator: `cov_dma_report` PASS** | 100.0% (148/148) | 100.0% (37/37) | 79.1% (2851/3606) | none | 95.6% (151/158) | 100.0% (54/54) | 24, in `tb/dma/cov/dma_waivers.toml` (Verilator sign-off) |
+| Debug | A | all directed tests, merged | 100.0% (221/221) | 100.0% (49/49) | 91.7% (1414/1542), after waivers 100.0% (1414/1414) | none | 100.0% (80/80) | 100.0% (40/40) | 124, in `flow/cov/debug_exclusions.tcl` |
+| CLIC | B | the block's UVM environment | 100.0% (25/25) | none | 95.8% (1177/1229), after waivers 100.0% (1177/1177) | none | 100.0% (429/429) | 100.0% (87/87) | 52, in `flow/cov/clic_exclusions.tcl` |
+| Timers and watchdog | B | the block's UVM environment | 100.0% (68/68) | 100.0% (6/6) | 99.8% (1319/1321), after waivers 100.0% (1319/1319) | none | 100.0% (145/145) | 100.0% (36/36) | 3, in `flow/cov/timers_exclusions.tcl` |
+| Clock divider and reset | B | the block's UVM environment | 100.0% (73/73) | 100.0% (16/16) | 82.7% (249/301), after waivers 100.0% (249/249) | none | 100.0% (106/106) | 100.0% (43/43) | 55, in `flow/cov/crg_exclusions.tcl` |
+| PWM | B | the block's UVM environment | 100.0% (86/86) | 100.0% (18/18) | 93.3% (526/564), after waivers 100.0% (526/526) | none | 100.0% (275/275) | 98.7% (76/77), after waivers 100.0% (76/76) | 40, in `flow/cov/pwm_exclusions.tcl` |
+| GPIO | B | the block's UVM environment | 57.4% (147/256), after waivers 100.0% (147/147) | 95.8% (23/24), after waivers 100.0% (19/19) | 52.0% (584/1122), after waivers 100.0% (584/584) | none | 100.0% (214/214) | 100.0% (36/36) | 649, in `flow/cov/gpio_exclusions.tcl` |
+| UART | B | the block's UVM environment | 97.6% (245/251), after waivers 100.0% (245/245) | 100.0% (44/44) | 78.0% (679/871), after waivers 100.0% (679/679) | 100.0% (28/28) | 100.0% (211/211) | none | 198, in `flow/cov/uart_exclusions.tcl` |
+| I2C | B | the block's UVM environment | 98.7% (230/233), after waivers 100.0% (230/230) | 94.7% (18/19), after waivers 100.0% (15/15) | 83.6% (624/746), after waivers 100.0% (624/624) | 100.0% (56/56) | 100.0% (222/222) | 100.0% (68/68) | 128, in `flow/cov/i2c_exclusions.tcl` |
+| SPI master | B | all directed tests, merged | 98.8% (242/245), after waivers 100.0% (242/242) | 90.3% (65/72), after waivers 100.0% (65/65) | 94.7% (1820/1921), after waivers 100.0% (1820/1820) | 98.1% (53/54), after waivers 100.0% (53/53) | 100.0% (68/68) | 100.0% (14/14) | 106, in `flow/cov/spim_exclusions.tcl` |
+| SPI slave | B | the block's UVM environment | 100.0% (99/99) | 100.0% (24/24) | 74.6% (419/562), after waivers 100.0% (419/419) | none | 100.0% (146/146) | 98.1% (53/54), after waivers 100.0% (53/53) | 147, in `flow/cov/spis_exclusions.tcl` |
+| APB shim (shared by six peripherals) | B | all directed tests, merged | 100.0% (14/14) | 100.0% (6/6) | 99.3% (138/139), after waivers 100.0% (138/138) | none | 100.0% (35/35) | 100.0% (19/19) | 1, in `flow/cov/shim_exclusions.tcl` |
+| Chip and SoC top (wiring) | B | all directed tests, merged | none | none | 80.7% (2039/2527), after waivers 100.0% (2039/2039) | none | 100.0% (86/86) | none | 488, in `flow/cov/top_exclusions.tcl` |
+Changed from the aaad3d3 report: only the chip functional coverage, 57/57 -> 86/86 (the extended
+chip_cov of e49e5d5). Every other figure identical; SPI master unchanged with SPIM-6 in.
+Every block meets the bar: 100% functional, 100% code after its written waivers. The cross-block
+line under the table (94.9%) counts the five track-A blocks on Xcelium with no waiver applied;
+their sign-off figure is their Verilator flow with its own waivers (cov_*_report PASS), as before.
+
+== tools/waiver_audit.py
+verilator 8/8, yosys 4/4, cdc 25/25, coverage 105/105, imc 2007/2007, bins 86/86, superlint 62/62:
+0 unjustified. One illegal_bins of tb/soc/chip_cov.sv (sba_with_flash) had no reason in the
+source and was given one (a bench check, not a waiver). 105 coverage waivers still read
+reviewer = pending: Karthik signs them at the review.

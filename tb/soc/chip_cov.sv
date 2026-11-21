@@ -94,6 +94,9 @@ module chip_cov (
     covergroup cg_boot @(posedge hclk iff boot_jump);
         option.per_instance = 1;
         cp: coverpoint {boot_sel, sba_loaded} { bins flash = {2'b00}; bins mailbox = {2'b10}; bins jtag = {2'b11};
+                                                // reason: not a GARUDA boot mode (MEM §8, DEBUG §7.6): the image comes over SBA only
+                                                // with boot_sel = 1 (tb_chip +MODE=jtag); a flash boot (boot_sel = 0) copies it from SPI,
+                                                // so an SBA load before a flash-mode jump means the bench mixed two modes: a check, not a waiver
                                                 illegal_bins sba_with_flash = {2'b01}; }
     endgroup
 

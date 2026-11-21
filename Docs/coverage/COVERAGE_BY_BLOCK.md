@@ -1,12 +1,12 @@
 # GARUDA SoC: coverage by block
 
-Written by `tools/gen/cov_chart.py` on 2026-11-21 from IMC 15.2 reports, tree `aaad3d3` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
+Written by `tools/gen/cov_chart.py` on 2026-11-21 from IMC 15.2 reports, tree `9910e6c`. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
 
 ![coverage by block](coverage_by_block.svg)
 
 ## How to read it
 
-- **Three sources.** The blocks that have a UVM environment of their own are measured on that environment's runs. The others are measured on the 415 directed runs of `flow/regress/garuda.vsif` merged together, counted per module. Both are shown as measured and, where exclusions are written in `flow/cov/`, after them. The five track-A blocks (core, DSU, AHB, bridge, DMA) are signed off on their own Verilator coverage flow with its own waivers; their rows show the Xcelium merge with no waiver and quote the Verilator verdict, which is the sign-off figure.
+- **Three sources.** The blocks that have a UVM environment of their own are measured on that environment's runs. The others are measured on the 419 directed runs of `flow/regress/garuda.vsif` merged together, counted per module. Both are shown as measured and, where exclusions are written in `flow/cov/`, after them. The five track-A blocks (core, DSU, AHB, bridge, DMA) are signed off on their own Verilator coverage flow with its own waivers; their rows show the Xcelium merge with no waiver and quote the Verilator verdict, which is the sign-off figure.
 - **Statement, expression, toggle, FSM** are IMC's block, expression, toggle and FSM (states, transitions, arcs) metrics. **Functional** is covergroup bins. **Assertions triggered** counts bound properties and cover properties that finished at least once: a property that never triggered has checked nothing, however many tests passed.
 - The sign-off bar (`flow/0_signoff_criteria.md`) is 100% functional and at least 95% code coverage with every hole waived in writing. A block is closed only when it meets it.
 
@@ -31,7 +31,7 @@ Written by `tools/gen/cov_chart.py` on 2026-11-21 from IMC 15.2 reports, tree `a
 | SPI master | B | all directed tests, merged | 98.8% (242/245), after waivers 100.0% (242/242) | 90.3% (65/72), after waivers 100.0% (65/65) | 94.7% (1820/1921), after waivers 100.0% (1820/1820) | 98.1% (53/54), after waivers 100.0% (53/53) | 100.0% (68/68) | 100.0% (14/14) | 106, in `flow/cov/spim_exclusions.tcl` |
 | SPI slave | B | the block's UVM environment | 100.0% (99/99) | 100.0% (24/24) | 74.6% (419/562), after waivers 100.0% (419/419) | none | 100.0% (146/146) | 98.1% (53/54), after waivers 100.0% (53/53) | 147, in `flow/cov/spis_exclusions.tcl` |
 | APB shim (shared by six peripherals) | B | all directed tests, merged | 100.0% (14/14) | 100.0% (6/6) | 99.3% (138/139), after waivers 100.0% (138/138) | none | 100.0% (35/35) | 100.0% (19/19) | 1, in `flow/cov/shim_exclusions.tcl` |
-| Chip and SoC top (wiring) | B | all directed tests, merged | none | none | 80.7% (2039/2527), after waivers 100.0% (2039/2039) | none | 100.0% (57/57) | none | 488, in `flow/cov/top_exclusions.tcl` |
+| Chip and SoC top (wiring) | B | all directed tests, merged | none | none | 80.7% (2039/2527), after waivers 100.0% (2039/2039) | none | 100.0% (86/86) | none | 488, in `flow/cov/top_exclusions.tcl` |
 
 Over the sixteen blocks, counting items (waived items removed for the five blocks that have waivers): statement 100.0% (2128/2128), expression 100.0% (415/415), toggle 94.4% (27092/28697), FSM 100.0% (144/144); all four together 94.9% (29779/31384).
 
@@ -530,7 +530,7 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 
 ### SPI master
 
-Plan: `tb/spi_master/GARUDA_SPIM_vplan.csv` (27 features, 42 checks and coverage items). Track B.
+Plan: `tb/spi_master/GARUDA_SPIM_vplan.csv` (27 features, 43 checks and coverage items). Track B.
 
 Measured on the UVM environment (0 runs: register test, directed test, random seeds), DUT instance only.
 
@@ -671,7 +671,7 @@ Measured on the UVM environment (0 runs: register test, directed test, random se
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
 | Toggle | 80.7% (2039/2527) | 100.0% (2039/2039) | 488 |
-| Functional (covergroup bins) | 100.0% (57/57) | 100.0% (57/57) | 0 |
+| Functional (covergroup bins) | 100.0% (86/86) | 100.0% (86/86) | 0 |
 
 **Exclusions and their justifications** (`flow/cov/top_exclusions.tcl`, 488 lines):
 
