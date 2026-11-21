@@ -95,6 +95,17 @@ def main():
         sys.exit("saif_to_activity: no DURATION in %s" % saif)
     dur_ps = duration * ts_ps
     pre = scope.strip("/") + "/"
+    # Yosys's slang front end flattens a two-index array into one index: the flop
+    # of buffer[r][b] is named buffer[r*W+b], W = the number of bits per row. Each
+    # two-index net is also written under that name (W from the SAIF itself).
+    two = re.compile(r"^(.*)\[(\d+)\]\[(\d+)\]$")
+    width = {}
+    for path in nets:
+        if not path.startswith(pre):
+            continue
+        m = two.match(flat_name(path[len(pre):]))
+        if m:
+            width[m.group(1)] = max(width.get(m.group(1), 0), int(m.group(3)) + 1)
     n = 0
     with open(out, "w") as f:
         f.write("# from %s, scope %s, duration %.0f ps\n" % (saif, scope, dur_ps))
@@ -105,6 +116,10 @@ def main():
             duty = t1 / (t0 + t1) if (t0 + t1) > 0 else 0.5
             f.write("pd_activity {%s} %.6e %.4f\n" % (net, tc / dur_ps, duty))
             n += 1
+            m = two.match(net)
+            if m and m.group(1) in width:
+                k = int(m.group(2)) * width[m.group(1)] + int(m.group(3))
+                f.write("pd_activity {%s[%d]} %.6e %.4f\n" % (m.group(1), k, tc / dur_ps, duty))
     print("saif_to_activity: %d nets under %s, duration %.1f us -> %s" % (n, scope, dur_ps / 1e6, out))
 
 
