@@ -140,5 +140,7 @@ group garuda {
         test chip_irqprio {};
         // 2026-11-21 (G6 6.2): every register of every APB window, from the RDL
         test chip_regs {};
+        // 2026-11-21 (G6 6.12): memory march, walking ones, address lines, byte lanes
+        test chip_mem {};
     };
 };

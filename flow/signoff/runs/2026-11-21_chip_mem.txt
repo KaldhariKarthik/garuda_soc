@@ -1,0 +1,25 @@
+G6 6.12 (bare-metal C suite: memory march and walking ones): t_chip_mem, 2026-11-21
+RTL as at e756c4c (no RTL change); Xcelium 22.09, plain tb_chip
+
+From the core through the AHB fabric, over the memory the program does not use (sw/chip/link_chip.ld):
+DSRAM 0x2000_1000-0x2000_CFFF (all four banks), ISRAM 0x0000_4000-0x0000_FFFF.
+  1 data bus: walking ones and zeros in one word of every bank
+  2 address lines 2..15: a unique word at base + 2^k, each line written alone, none may alias
+  3 byte and halfword lanes: each lane alone, the word read back
+  4 March C- over the whole region (up w0; up r0 w1; up r1 w0; down r0 w1; down r1 w0; up r0)
+
+== make test_chip_mem (in make test_chip, gate_b)
+[tb_chip] tohost = 0x00000001 at 12159100000: 817363 retired, 0 hclk cycles clock-gated, 0 system resets
+[tb_chip] AHB checker violations: I=0 D=0 SBA=0 DMA=0 (slave bus 0, expected >0 only for deliberate faults)
+RESULT: PASSED
+
+== negative controls (each in its own copy of rtl/; the program must report a step)
+  addr_bit9  : DSRAM bank 1 word-address bit 9 stuck at 0 -> KILLED, step 120 (DSRAM address lines)
+  lane2      : SRAM byte lane 2 written only with lane 3    -> KILLED, step 130 (DSRAM lanes)
+  data_bit17 : SRAM data bit 17 written as 0               -> KILLED, step 110 (DSRAM data bus)
+  (a first form of addr_bit9 over all four banks aliased the JTAG mailbox at 0x2000_FFF0, so the
+   Boot ROM never entered the program: the chip failed, the test did not; narrowed to bank 1)
+
+The rest of 6.12 is in the chip programs: timer interrupt (t_chip_irq), software interrupt
+(t_chip_swirq), external pad interrupt (t_chip_irqprio GPIO, t_chip_periph), UART loopback (t_chip_uart),
+SPI master to the flash model (t_chip_flash), SPI slave with the companion (t_chip_periph), GPIO (t_chip_periph).

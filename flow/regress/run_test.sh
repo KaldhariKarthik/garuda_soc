@@ -128,6 +128,7 @@ case "$T" in
                  dma_*)  ARGS="+MODE=basic +TEST=sw/build/t_chip_$m.hex +MAXUS=4000" ;;
                  irqprio) ARGS="+MODE=basic +TEST=sw/build/t_chip_irqprio.hex +MAXUS=3000" ;;   # G6 6.5
                  regs)    ARGS="+MODE=basic +TEST=sw/build/t_chip_regs.hex +MAXUS=3000" ;;      # G6 6.2
+                 mem)     ARGS="+MODE=basic +TEST=sw/build/t_chip_mem.hex +MAXUS=20000" ;;      # G6 6.12
                  # G6 6.8: seeded random traffic; the seed is SVSEED (default 1). G6 6.18 long run:
                  # STRESS_ITER=20000 STRESS_MAXUS=400000 SVSEED=7 flow/regress/run_test.sh chip_stress
                  stress) ARGS="+MODE=basic +TEST=sw/build/t_chip_stress.hex +MAXUS=${STRESS_MAXUS:-20000} +SEED=${SVSEED:-1} ${STRESS_ITER:++ITER=$STRESS_ITER} +SBA_STRESS" ;;
