@@ -220,6 +220,14 @@ module tb_chip;
         dut.u_core.u_soc.u_dsram.bd_write(MBOX, 32'h0);
         dut.u_core.u_soc.u_dsram.bd_write(FROMHOST, 32'h0);
         if (mode == "cov") dut.u_core.u_soc.u_dsram.bd_write(NOINIT, 32'h0);   // t_chip_cov's run marker
+        // a seeded program (t_chip_stress) reads its seed and length here; 0 = its default
+        begin
+            integer unsigned seed_w, iter_w;
+            if (!$value$plusargs("SEED=%d", seed_w)) seed_w = 0;
+            if (!$value$plusargs("ITER=%d", iter_w)) iter_w = 0;
+            dut.u_core.u_soc.u_dsram.bd_write(NOINIT + 32'h10, seed_w);
+            dut.u_core.u_soc.u_dsram.bd_write(NOINIT + 32'h14, iter_w);
+        end
 
         if (mode == "flash") begin
             // Nothing is placed anywhere and no mailbox is posted: the ROM
@@ -321,6 +329,41 @@ module tb_chip;
         end
     end
 
+    // ---- +SBA_STRESS: the debugger as the fourth AHB master (1-TOPS G6 6.14) ---------------
+    // While the program runs (the hart is not halted), the Debug Module's system bus access
+    // reads random words of the boot ROM and of the program image in ISRAM over the real
+    // JTAG pins, each compared with the backdoor, so the DMA, the core's D-port and I-port
+    // and the SBA contend for the fabric. Every access must end without sberror or
+    // sbbusyerror. Not with MODE=jtag or flash (they use the pins or have no image here).
+    integer n_sba = 0;
+    initial if ($test$plusargs("SBA_STRESS")) begin : sba_stress
+        reg [31:0] a, r, cs, want;
+        integer k;
+        #20000;                                              // the program under way
+        if (mode == "jtag" || mode == "flash") disable sba_stress;   // mode is set at time 0
+        tap_reset();
+        shift_ir(5'h11);
+        dmw(7'h10, 32'h0000_0001);                           // dmactive; the hart keeps running
+        dmw(7'h38, (1 << 20) | (2 << 17));                   // 32-bit, read on address
+        forever begin
+            if ($urandom_range(1, 0)) begin
+                k = $urandom_range(1023, 0); a = 32'h1000_0000 + 4 * k;
+                want = dut.u_core.u_soc.u_brom.bd_read(4 * k);
+            end else begin
+                k = $urandom_range(nwords - 1, 0); a = 4 * k; want = img[k];
+            end
+            dmw(7'h39, a);
+            do dmr(7'h38, cs); while (cs[21]);               // sbbusy
+            dmr(7'h3C, r);
+            if (cs[14:12] !== 3'd0 || cs[22] !== 1'b0 || r !== want) begin
+                $display("[FAIL] SBA stress read %0d of 0x%08h: 0x%08h, expected 0x%08h (sberror %0d, sbbusyerror %b)",
+                         n_sba, a, r, want, cs[14:12], cs[22]);
+                $display("RESULT: FAILED"); $finish;
+            end
+            n_sba++;
+        end
+    end
+
     // ---- verdict ---------------------------------------------------------------------------
     initial begin
         #100;
@@ -333,6 +376,7 @@ module tb_chip;
                          th, $time, n_retire, n_sleep, n_hreset_fall);
                 $display("[tb_chip] AHB checker violations: I=%0d D=%0d SBA=%0d DMA=%0d (slave bus %0d, expected >0 only for deliberate faults)",
                          vi, vd, vs, vm, vsl);
+                if ($test$plusargs("SBA_STRESS")) $display("[tb_chip] SBA stress: %0d reads over JTAG compared", n_sba);
 `ifdef GARUDA_CHIP_UVM
                 if (rc) $display("[FAIL] program reported step %0d", rc);
                 if ((vi | vd | vs | vm) != 0) $display("[FAIL] AHB checker violations");

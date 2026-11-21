@@ -1,4 +1,4 @@
-# the chip programs on the UVM chip bench (G6 6.1): name  mode  hex  max_us  blocks
+# the chip programs on the UVM chip bench (G6 6.1): name  mode  hex  max_us  blocks  [plusargs]
 # blocks: the environments whose block the program uses ("-" = all of them); the others
 # are checked to stay quiet (outputs idle, reset values) and may compare nothing.
 # Each list is the 2026-11-21 sweep without +BLOCKS, cross-checked against the source:
@@ -18,3 +18,7 @@ dma_rearm    basic     sw/build/t_chip_dma_rearm.hex    4000  dma,timers,crg
 dma_subword  basic     sw/build/t_chip_dma_subword.hex  4000  dma,timers,crg
 dma_traffic  basic     sw/build/t_chip_dma_traffic.hex  4000  dma,clic,crg
 dma_uart     basic     sw/build/t_chip_dma_uart.hex     4000  dma,uart0,uart1,crg
+# G6 6.8: seeded random traffic (t_chip_stress), every environment checking
+stress_s1    basic     sw/build/t_chip_stress.hex       20000 -     +SEED=1 +ITER=1000 +SBA_STRESS
+stress_s2    basic     sw/build/t_chip_stress.hex       20000 -     +SEED=2 +ITER=1000 +SBA_STRESS
+stress_s3    basic     sw/build/t_chip_stress.hex       20000 -     +SEED=3 +ITER=1000 +SBA_STRESS

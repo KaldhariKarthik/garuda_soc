@@ -39,6 +39,22 @@ tb_chip's verdict), no scoreboard has a mismatch, and there is no UVM error.
 others, only "the scoreboard compared nothing" is reported as a note: every other check
 stays on, so an unused block must still sit idle at its reset values.
 
+## Random traffic and stress (G6 6.8, 6.14)
+
+`sw/chip/t_chip_stress.c` is a seeded random walk (`+SEED`, `+ITER`; tb_chip writes them
+into no-init DSRAM before the core leaves reset) over DMA M2M jobs (random size, length
+and alignment; one in eight to the ISRAM, which must be refused), UART bytes on all three
+instances, software and timer interrupts, PWM duties, GPIO pad levels, SPI companion
+frames, I2C writes and ID reads, with DMA completion, software and timer interrupts
+arriving throughout. Every finished job is checked in the ISR; at the end every count
+balances. `+SBA_STRESS` (tb_chip) adds the debugger as the fourth AHB master: random
+boot ROM and ISRAM words read over the JTAG pins while the program runs, each compared
+with the backdoor. `programs.txt` runs three seeds of 1000 operations; the plain bench
+runs one of 200 (`flow/regress/run_test.sh chip_stress`, seed = SVSEED).
+
+The program uses no division: GARUDA executes only the MUL instructions of the M
+extension (CORE [7.2]; DIV and REM trap for firmware to emulate).
+
 ## Negative controls (`plants.txt`)
 
 Each planted defect is one the firmware cannot see: the program still reports success,

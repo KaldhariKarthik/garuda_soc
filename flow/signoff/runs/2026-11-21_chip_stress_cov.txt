@@ -1,0 +1,99 @@
+G6 6.8 / 6.14 (random traffic, four masters) and 6.15 (SoC functional coverage), 2026-11-21
+RTL as at 7bdc738 (no RTL change); irun 15.20-s086, IMC 15.20
+
+== UVM chip bench sweep (tb/chip_uvm/sweep.sh): 14 programs, t_chip_stress x 3 seeds (1000 operations, +SBA_STRESS), 3 planted defects
+chip_uvm basic PASS
+chip_uvm uart PASS
+chip_uvm periph PASS
+chip_uvm integ PASS
+chip_uvm irq PASS
+chip_uvm swirq PASS
+chip_uvm wdt PASS
+chip_uvm jtag PASS
+chip_uvm flash PASS
+chip_uvm cov PASS
+chip_uvm dma_rearm PASS
+chip_uvm dma_subword PASS
+chip_uvm dma_traffic PASS
+chip_uvm dma_uart PASS
+chip_uvm stress_s1 PASS
+chip_uvm stress_s2 PASS
+chip_uvm stress_s3 PASS
+chip_uvm: 17 PASS, 0 FAIL
+chip_uvm plant pwm KILLED by sb_pin (the program passed)
+chip_uvm plant spis_miso KILLED by sb_miso (the program passed)
+chip_uvm plant uart_dma KILLED by sb_dma (the program passed)
+chip_uvm: 3 of 3 planted defects killed
+
+-- stress_s1
+[tb_chip] tohost = 0x00000001 at 8823100000: 917058 retired, 0 hclk cycles clock-gated, 0 system resets
+[tb_chip] SBA stress: 698 reads over JTAG compared
+tb_chip_uvm: test=chip_base_test program rc=0 errors=0
+env.clic.sb [SB] clic_scoreboard: 2209731 output samples, 89 reads, 188 writes compared; 0 mismatches
+env.crg.sb [SB] crg_scoreboard: 2210763 always-on cycles, 2 access cycles (2 reads) compared; 1 system resets and 0 core-only resets measured; 0 mismatches
+env.dma.sb [SB] dma_scoreboard: 2146 beats (per channel 515 400 254 407 0 570), 26 failed beats, 2146 AHB reads, 2146 AHB writes, 26 register reads, 1195 register writes, 2210763 sideband cycles compared; 0 mismatches; 0 request assertions taken by the beat be
+env.gpio.sb [SB] gpio_scoreboard: 1105382 cycles, 123 reads, 260 writes compared; from the pads alone 167 PADIN levels, 0 edges and 0 interrupt rises checked; 0 mismatches
+env.pwm.sb [SB] pwm_scoreboard: 1105382 cycles, 106 reads, 93 writes compared; 17516 frames and 67000 pulses measured; 0 mismatches
+env.spis.sb [SB] spis_scoreboard: 1105382 cycles, 2498 reads, 52 writes compared; 51 packets seen, 51 compared with the agent (102 bytes in, 102 bytes out); 0 mismatches
+env.timers.sb [SB] tmr_scoreboard: 2210763 cycles, 180 reads, 543 writes compared; 0 watchdog resets seen; 0 mismatches
+env.uart0.sb [SB] uart_scoreboard: 740 reads, 67 writes; 63 frames on tx compared, 63 bit periods; 63 bytes read compared; LSR halves compared 1090, in transition 242; 0 mismatches
+env.uart1.sb [SB] uart_scoreboard: 769 reads, 69 writes; 65 frames on tx compared, 65 bit periods; 65 bytes read compared; LSR halves compared 1129, in transition 249; 0 mismatches
+env.uart2.sb [SB] uart_scoreboard: 799 reads, 70 writes; 66 frames on tx compared, 66 bit periods; 66 bytes read compared; LSR halves compared 1176, in transition 262; 0 mismatches
+-- stress_s2
+[tb_chip] tohost = 0x00000001 at 9155100000: 933169 retired, 0 hclk cycles clock-gated, 0 system resets
+[tb_chip] SBA stress: 724 reads over JTAG compared
+tb_chip_uvm: test=chip_base_test program rc=0 errors=0
+env.clic.sb [SB] clic_scoreboard: 2292731 output samples, 83 reads, 176 writes compared; 0 mismatches
+env.crg.sb [SB] crg_scoreboard: 2293763 always-on cycles, 2 access cycles (2 reads) compared; 1 system resets and 0 core-only resets measured; 0 mismatches
+env.dma.sb [SB] dma_scoreboard: 2037 beats (per channel 514 446 333 245 0 499), 40 failed beats, 2037 AHB reads, 2037 AHB writes, 40 register reads, 1180 register writes, 2293763 sideband cycles compared; 0 mismatches; 0 request assertions taken by the beat be
+env.gpio.sb [SB] gpio_scoreboard: 1146882 cycles, 115 reads, 283 writes compared; from the pads alone 150 PADIN levels, 0 edges and 0 interrupt rises checked; 0 mismatches
+env.pwm.sb [SB] pwm_scoreboard: 1146882 cycles, 101 reads, 95 writes compared; 18174 frames and 68001 pulses measured; 0 mismatches
+env.spis.sb [SB] spis_scoreboard: 1146882 cycles, 2954 reads, 61 writes compared; 60 packets seen, 60 compared with the agent (120 bytes in, 120 bytes out); 0 mismatches
+env.timers.sb [SB] tmr_scoreboard: 2293763 cycles, 186 reads, 561 writes compared; 0 watchdog resets seen; 0 mismatches
+env.uart0.sb [SB] uart_scoreboard: 810 reads, 72 writes; 68 frames on tx compared, 68 bit periods; 68 bytes read compared; LSR halves compared 1198, in transition 266; 0 mismatches
+env.uart1.sb [SB] uart_scoreboard: 590 reads, 53 writes; 49 frames on tx compared, 49 bit periods; 49 bytes read compared; LSR halves compared 866, in transition 190; 0 mismatches
+env.uart2.sb [SB] uart_scoreboard: 742 reads, 68 writes; 64 frames on tx compared, 64 bit periods; 64 bytes read compared; LSR halves compared 1095, in transition 233; 0 mismatches
+-- stress_s3
+[tb_chip] tohost = 0x00000001 at 9679100000: 1016749 retired, 0 hclk cycles clock-gated, 0 system resets
+[tb_chip] SBA stress: 766 reads over JTAG compared
+tb_chip_uvm: test=chip_base_test program rc=0 errors=0
+env.clic.sb [SB] clic_scoreboard: 2423731 output samples, 104 reads, 218 writes compared; 0 mismatches
+env.crg.sb [SB] crg_scoreboard: 2424763 always-on cycles, 2 access cycles (2 reads) compared; 1 system resets and 0 core-only resets measured; 0 mismatches
+env.dma.sb [SB] dma_scoreboard: 2480 beats (per channel 469 517 596 514 0 384), 28 failed beats, 2480 AHB reads, 2480 AHB writes, 28 register reads, 1370 register writes, 2424763 sideband cycles compared; 0 mismatches; 0 request assertions taken by the beat be
+env.gpio.sb [SB] gpio_scoreboard: 1212382 cycles, 99 reads, 230 writes compared; from the pads alone 139 PADIN levels, 0 edges and 0 interrupt rises checked; 0 mismatches
+env.pwm.sb [SB] pwm_scoreboard: 1212382 cycles, 96 reads, 90 writes compared; 19214 frames and 70295 pulses measured; 0 mismatches
+env.spis.sb [SB] spis_scoreboard: 1212382 cycles, 2152 reads, 46 writes compared; 45 packets seen, 45 compared with the agent (90 bytes in, 90 bytes out); 0 mismatches
+env.timers.sb [SB] tmr_scoreboard: 2424763 cycles, 182 reads, 549 writes compared; 0 watchdog resets seen; 0 mismatches
+env.uart0.sb [SB] uart_scoreboard: 662 reads, 59 writes; 55 frames on tx compared, 55 bit periods; 55 bytes read compared; LSR halves compared 979, in transition 215; 0 mismatches
+env.uart1.sb [SB] uart_scoreboard: 911 reads, 81 writes; 77 frames on tx compared, 77 bit periods; 77 bytes read compared; LSR halves compared 1354, in transition 298; 0 mismatches
+env.uart2.sb [SB] uart_scoreboard: 735 reads, 67 writes; 63 frames on tx compared, 63 bit periods; 63 bytes read compared; LSR halves compared 1092, in transition 238; 0 mismatches
+
+== plain tb_chip (flow/regress/run_test.sh), every chip program with the extended chip_cov
+chip_basic        RESULT: PASSED, 0 SVA failures
+chip_irq          RESULT: PASSED, 0 SVA failures
+chip_wdt          RESULT: PASSED, 0 SVA failures
+chip_flash        RESULT: PASSED, 0 SVA failures
+chip_uart         RESULT: PASSED, 0 SVA failures
+chip_periph       RESULT: PASSED, 0 SVA failures
+chip_integ        RESULT: PASSED, 0 SVA failures
+chip_jtag         RESULT: PASSED, 0 SVA failures
+chip_swirq        RESULT: PASSED, 0 SVA failures
+chip_cov          RESULT: PASSED, 0 SVA failures
+chip_dma_rearm    RESULT: PASSED, 0 SVA failures
+chip_dma_subword  RESULT: PASSED, 0 SVA failures
+chip_dma_traffic  RESULT: PASSED, 0 SVA failures
+chip_dma_uart     RESULT: PASSED, 0 SVA failures
+chip_stress       RESULT: PASSED, 0 SVA failures
+
+== chip functional coverage (tb/soc/chip_cov.sv), merge of the 15 chip programs, no exclusions
+cmi 100.00%, 100.00% (2/2)
+cmd 100.00%, 100.00% (5/5)
+cms 100.00%, 100.00% (5/5)
+cmm 100.00%, 100.00% (2/2)
+caw 100.00%, 100.00% (12/12)
+cb 100.00%, 100.00% (3/3)
+ci 100.00%, 100.00% (23/23)
+cd 100.00%, 100.00% (7/7)
+cr 100.00%, 100.00% (5/5)
+cm 100.00%, 100.00% (22/22)
+total 86/86 bins

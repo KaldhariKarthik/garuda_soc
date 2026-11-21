@@ -6,20 +6,20 @@ set -u
 cd "$(dirname "$0")/../.."
 S=sim/chip_uvm/summary.txt; mkdir -p sim/chip_uvm; : > "$S"
 first=1; fail=0
-while read -r n mode hex maxus blocks; do
+while read -r n mode hex maxus blocks extra; do
     case "$n" in ''|\#*) continue ;; esac
     [ "$blocks" = "-" ] && blocks=""
     if [ $first = 1 ]; then c=1; first=0; else c=0; fi
-    COMPILE=$c tb/chip_uvm/run_chip_uvm.sh "$n" "$mode" "$hex" "$maxus" "$blocks" | tee -a "$S" | grep -q PASS || fail=1
+    EXTRA="$extra" COMPILE=$c tb/chip_uvm/run_chip_uvm.sh "$n" "$mode" "$hex" "$maxus" "$blocks" | tee -a "$S" | grep -q PASS || fail=1
 done < tb/chip_uvm/programs.txt
 echo "chip_uvm: $(grep -c ' PASS$' "$S") PASS, $(grep -c ' FAIL ' "$S") FAIL" | tee -a "$S"
 # negative controls: each planted defect must be caught while the program itself passes
 nk=0; nc=0
 while read -r pl prog chk; do
     case "$pl" in ''|\#*) continue ;; esac
-    read -r _ mode hex maxus blocks < <(awk -v p="$prog" '$1==p' tb/chip_uvm/programs.txt)
+    read -r _ mode hex maxus blocks extra < <(awk -v p="$prog" '$1==p' tb/chip_uvm/programs.txt)
     [ "$blocks" = "-" ] && blocks=""
-    PLANT=$pl tb/chip_uvm/run_chip_uvm.sh "plant_$pl" "$mode" "$hex" "$maxus" "$blocks" > /dev/null
+    EXTRA="$extra" PLANT=$pl tb/chip_uvm/run_chip_uvm.sh "plant_$pl" "$mode" "$hex" "$maxus" "$blocks" > /dev/null
     L=sim/chip_uvm/plant_$pl/irun.log; nc=$((nc + 1))
     if grep -q "program rc=0" "$L" && grep -q "RESULT: FAILED" "$L" && grep -qE "UVM_ERROR .*\[$chk\]" "$L"; then
         echo "chip_uvm plant $pl KILLED by $chk (the program passed)" | tee -a "$S"; nk=$((nk + 1))
