@@ -54,6 +54,10 @@ export VERILOG_INCLUDE_DIRS = $(shell cd $(GARUDA_ROOT) && python3 scripts/expan
 #     defined: that branch is a constant-0 register and would trim the core.
 #     SYNTH_MEMORY_MAX_BITS stays at 4096 and SYNTH_MOCK_LARGE_MEMORIES at 0,
 #     so ORFS aborts if any memory were inferred as flops.
+# SystemVerilog front end (2026-11-21): since the RTL moved to SystemVerilog packages (2026-11-16),
+# ORFS's default reader stops at rtl/common/garuda_pkg.sv:5 (syntax error). Yosys 0.68's built-in
+# slang reads it. Flop names follow slang (flow/constraints/asap7/gen_modes.py).
+export SYNTH_HDL_FRONTEND ?= slang
 export VERILOG_DEFINES = $(shell cd $(GARUDA_ROOT) && python3 scripts/expand_filelist.py rtl/soc/filelist_chip.f --defines) \
                          -D OPENROAD_CLKGATE -D GARUDA_SRAM_MACRO
 
