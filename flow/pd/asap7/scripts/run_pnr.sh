@@ -79,7 +79,9 @@ copy_from() {   # every garuda* design (the core and its hardened memories)
             else
                 cp -a "$d" "$n"
             fi
-            rm -f "$n"/5_* "$n"/6_* "$n"/route.guide
+            # only the core's route results are redone; a hardened memory block
+            # keeps its 6_final (its LEF, liberty and corner models come from it)
+            case $d in */asap7/garuda/*) rm -f "$n"/5_* "$n"/6_* "$n"/route.guide ;; esac
         done
     done
 }
