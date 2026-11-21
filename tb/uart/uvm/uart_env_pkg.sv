@@ -438,7 +438,10 @@ package uart_env_pkg;
         // ---- a frame starts or ends on tx
         function void write_txe(uart_tx_ev e);
             if (e.kind == UART_TX_START) begin
-                if (tx_fifo.size() != 0) tx_line.push_back(tx_fifo.pop_front());
+                if (tx_fifo.size() != 0) begin
+                    tx_line.push_back(tx_fifo.pop_front());
+                    if (tx_fifo.size() == 0) cov.cg_uart_fifo.sample(0, 0);   // drained to empty (2026-11-20: never sampled before)
+                end
                 else if (!tx_loose) err("sb_tx", "a frame started on tx with nothing written to send");
                 tx_unsure_until = cyc + 5;
                 return;
@@ -524,12 +527,12 @@ package uart_env_pkg;
                     12'h008: begin                                               // FCR
                         if (d[1]) begin
                             cov.cg_uart_fcr.sample(1, (rx_fifo.size() == 0) ? 0 : (rx_fifo.size() == FIFO_N) ? 2 : 1);
-                            rx_fifo.delete(); rx_unsure_until = cyc + 6;
+                            rx_fifo.delete(); rx_unsure_until = cyc + 6; cov.cg_uart_fifo.sample(1, 0);
                             if (rx_held_v) begin rx_fifo.push_back(rx_held); rx_held_v = 0; end   // the byte the receiver was holding goes in
                         end
                         if (d[2]) begin
                             cov.cg_uart_fcr.sample(0, (tx_fifo.size() == 0) ? ((tx_line.size() != 0) ? 3 : 0) : (tx_fifo.size() == FIFO_N) ? 2 : 1);
-                            tx_fifo.delete(); tx_unsure_until = cyc + 5;
+                            tx_fifo.delete(); tx_unsure_until = cyc + 5; cov.cg_uart_fifo.sample(0, 0);
                         end
                     end
                     12'h00C: lcr = d;
@@ -554,6 +557,7 @@ package uart_env_pkg;
                                  if (rx_fifo.size() == 0 && rx_way.size() != 0) begin rx_arrive(rx_way.pop_front()); void'(rx_way_by.pop_front()); end
                                  if (rx_fifo.size() != 0) begin
                                      uart_rx_t b = rx_fifo.pop_front();
+                                     if (rx_fifo.size() == 0) cov.cg_uart_fifo.sample(1, 0);
                                      n_rx_cmp++;
                                      if (!rx_loose && it.prdata !== {24'd0, b.data}) err("sb_rx", $sformatf("byte read %02h, the frame sent was %02h", it.prdata[7:0], b.data));
                                      if (rx_held_v) begin rx_fifo.push_back(rx_held); rx_held_v = 0; end

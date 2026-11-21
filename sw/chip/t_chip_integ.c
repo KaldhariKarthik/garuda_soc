@@ -323,6 +323,16 @@ int main(void)
         e0 = exc;
         REG((uint32_t)(uintptr_t)&dst[0] + GARUDA_DSRAM_SIZE) = 0x5A5A1234u;
         if (dst[0] != 0x5A5A1234u || exc != e0)                     return 78;
+        /* the top of each 256 MiB segment aliases too: HADDR[27:17] set, the same word
+         * (coverage of the memories' address inputs, 2026-11-20) */
+        {
+            uint32_t top = 0x0FFE0000u;
+            uint32_t a = (uint32_t)(uintptr_t)&main;
+            if (REG(GARUDA_BOOTROM_BASE + top + 0x100u) != REG(GARUDA_BOOTROM_BASE + 0x100u)) return 79;
+            if (REG(a + top) != REG(a))                                                       return 79;
+            REG((uint32_t)(uintptr_t)&dst[1] + top) = 0xA5A54321u;
+            if (dst[1] != 0xA5A54321u || exc != e0)                                           return 79;
+        }
     }
 
     return bad ? 80 : 0;

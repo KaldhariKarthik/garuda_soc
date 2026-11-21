@@ -61,13 +61,13 @@ BLOCKS = [
     dict(key="AHB2APB", name="AHB to APB bridge", plan="tb/ahb2apb/GARUDA_AHB2APB_vplan.csv", track="A",
          modules="ahb2apb_apb_fsm ahb2apb_bridge ahb2apb_fabric", sva="ahb2apb_bridge_sva",
          cg_types="ahb2apb_bridge_cov"),
-    dict(key="MEM", name="Memories", plan="tb/mem/GARUDA_MEM_vplan.csv", track="A",
+    dict(key="MEM", excl="flow/cov/mem_exclusions.tcl", name="Memories", plan="tb/mem/GARUDA_MEM_vplan.csv", track="A",
          modules="ahb_mem_slave_if sram_wrapper isram_top dsram_top bootrom_top", sva="mem_sva",
          cg_types="mem_cov"),
     dict(key="DMA", name="DMA", plan="tb/dma/GARUDA_DMA_vplan.csv", track="A",
          modules="dma_apb_slave dma_arbiter dma_chan dma_engine dma_top", sva="dma_top_sva dma_chan_sva",
          cg_types="dma_cov"),
-    dict(key="DEBUG", name="Debug", plan="tb/debug/GARUDA_DEBUG_vplan.csv", track="A",
+    dict(key="DEBUG", excl="flow/cov/debug_exclusions.tcl", name="Debug", plan="tb/debug/GARUDA_DEBUG_vplan.csv", track="A",
          modules="debug_module debug_top dmi_cdc debug_dtm jtag_tap sba_master", sva="debug_sva",
          cg_types="debug_cov"),
     dict(key="CLIC", name="CLIC", plan="tb/clic/GARUDA_CLIC_vplan.csv", track="B",
@@ -87,11 +87,14 @@ BLOCKS = [
          uvm=("uvm_gpio", ["garuda_gpio_top"], "flow/cov/gpio_exclusions.tcl")),
     dict(key="UART", name="UART", plan="tb/uart/GARUDA_UART_vplan.csv", track="B",
          modules="garuda_uart_top apb_uart_sv uart_rx uart_tx uart_interrupt io_generic_fifo", sva="garuda_uart_sva",
-         uvm=("uvm_uart", ["tb_uart_uvm.g_uart*.dut"], "flow/cov/uart_exclusions.tcl")),   # three instances: selected by path
+         uvm=("uvm_uart", ["tb_uart_uvm.g_uart*.dut"], "flow/cov/uart_exclusions.tcl"),   # three instances: selected by path
+         # Karthik 2026-11-20: UART code coverage per design, merged over the bench's three copies
+         # (as the core and the DMA); each copy's connection is a chip-level check
+         uvm_types="garuda_uart_top apb_uart_sv uart_rx uart_tx uart_interrupt io_generic_fifo garuda_apb_shim garuda_apb_dma garuda_sync_bit"),
     dict(key="I2C", name="I2C", plan="tb/i2c/GARUDA_I2C_vplan.csv", track="B",
          modules="garuda_i2c_top i2c_byte_ctrl i2c_bit_ctrl", sva="garuda_i2c_sva",
          uvm=("uvm_i2c", ["garuda_i2c_top"], "flow/cov/i2c_exclusions.tcl")),
-    dict(key="SPIM", name="SPI master", plan="tb/spi_master/GARUDA_SPIM_vplan.csv", track="B",
+    dict(key="SPIM", excl="flow/cov/spim_exclusions.tcl", name="SPI master", plan="tb/spi_master/GARUDA_SPIM_vplan.csv", track="B",
          modules="garuda_spim_top apb_spi_master spim_apb_if spim_clkgen spim_ctrl "
                  "spi_master_fifo spi_master_rx spi_master_tx", sva="garuda_spim_sva", cg_types="spim_cov"),
     dict(key="SPIS", name="SPI slave", plan="tb/spi_slave/GARUDA_SPIS_vplan.csv", track="B",
@@ -100,9 +103,9 @@ BLOCKS = [
 ]
 # not one of the sixteen, shown below them
 EXTRA = [
-    dict(key="SHIM", name="APB shim (shared by six peripherals)", plan="", track="B",
+    dict(key="SHIM", excl="flow/cov/shim_exclusions.tcl", name="APB shim (shared by six peripherals)", plan="", track="B",
          modules="garuda_apb_shim", sva="garuda_apb_shim_sva", cg_types="garuda_apb_shim_cov"),
-    dict(key="TOP", name="Chip and SoC top (wiring)", plan="", track="B",
+    dict(key="TOP", excl="flow/cov/top_exclusions.tcl", name="Chip and SoC top (wiring)", plan="", track="B",
          modules="garuda_chip_top garuda_chip_core garuda_soc_top", cg_types="chip_cov"),
 ]
 METRICS = ["Block", "Expression", "Toggle", "Fsm", "Assertion"]
@@ -128,6 +131,7 @@ def imc(tcl_path):
 
 # ============================================================================ collect
 def collect():
+    stale = []
     os.makedirs(os.path.join(ROOT, ALL), exist_ok=True)
     runs = sorted(d for d in sh("ls -d sim/run_test/*/cov_work/garuda/*/").stdout.split() if os.path.isdir(os.path.join(ROOT, d)))
     passed = []
@@ -156,6 +160,23 @@ def collect():
         if udma:
             print("cov_chart: %d passing DMA UVM run(s) of sim/uvm_dma added to the merge" % len(udma))
             passed += udma
+    # The peripheral UVM environments join the merge too (2026-11-20): the APB shim is one module
+    # used by every peripheral, and each environment exercises it (writes to holes and to ID) in
+    # ways no chip program does. COV_NO_UVM_ALL=1 leaves them out.
+    if os.environ.get("COV_NO_UVM_ALL") != "1":
+        extra = []
+        for b in BLOCKS:
+            if "uvm" not in b:
+                continue
+            d = b["uvm"][0]
+            for s in sorted(sh("ls -d sim/%s/cov_work/scope/*/" % d).stdout.split()):
+                t = s.rstrip("/").split("/")[-1]
+                log = os.path.join(ROOT, "sim/%s/%s.log" % (d, t))
+                if t != "all" and os.path.exists(log) and "RESULT: PASSED" in open(log, errors="replace").read():
+                    extra.append(s)
+        if extra:
+            print("cov_chart: %d passing peripheral UVM run(s) added to the merge" % len(extra))
+            passed += extra
     with open(os.path.join(ROOT, ALL, "runs.txt"), "w") as fh:
         fh.write("\n".join(passed) + "\n")
 
@@ -175,6 +196,17 @@ def collect():
                          % (len(lost), "\n".join(lost[:5])))
         sys.exit(1)
 
+    # blocks measured in the main merge with an exclusion file of their own (b["excl"], -type lines):
+    # sourced into the merged database, reported again, and checked for stale lines (2026-11-20)
+    ex = [b for b in BLOCKS + EXTRA if b.get("excl") and os.path.exists(os.path.join(ROOT, b["excl"]))]
+    if ex:
+        tcl = ["load -run %s/merged" % ALL] + ["source %s" % b["excl"] for b in ex] + [
+               "report -summary -type -metrics block:expression:toggle:fsm:assertion:covergroup -out %s/type_summary_after.txt" % ALL] + [
+               "report -detail -type %s -metrics block:expression:toggle:fsm -out %s/holes_%s.txt" % (b["modules"], ALL, b["key"].lower())
+               for b in ex] + ["exit"]
+        open(os.path.join(ROOT, ALL, "after.tcl"), "w").write("\n".join(tcl) + "\n")
+        out = imc("%s/after.tcl" % ALL)
+        stale.extend("main merge: %s" % l.strip() for l in out.splitlines() if "*W,NOMATCH" in l)
     # covergroups of the unit and element benches live in each bench's own module
     # tb_top and in classes; twenty different tb_top do not merge by type, and
     # the groups of one bench are not those of another, so they are read from
@@ -204,20 +236,30 @@ def collect():
         if not okscopes:
             sys.exit("no passing UVM run under sim/%s - run `make %s` first" % (d, d))
         sel = " ".join(i + "..." for i in insts)
+        scope = ("-type " + b["uvm_types"]) if b.get("uvm_types") else ("-inst " + sel)
         tcl = ["merge %s -out sim/%s/cov_work/scope/all -overwrite -initial_model union_all" % (" ".join(okscopes), d),
                "load -run sim/%s/cov_work/scope/all" % d,
-               "report -summary -inst %s -metrics block:expression:toggle:fsm:assertion -out sim/%s/code_raw.txt" % (sel, d),
+               "report -summary %s -metrics block:expression:toggle:fsm:assertion -out sim/%s/code_raw.txt" % (scope, d),
                "source %s" % waivers,
-               "report -summary -inst %s -metrics block:expression:toggle:fsm:assertion -out sim/%s/code_cov.txt" % (sel, d),
+               "report -summary %s -metrics block:expression:toggle:fsm:assertion -out sim/%s/code_cov.txt" % (scope, d),
                "report -summary -inst uvm_pkg... -metrics covergroup -out sim/%s/func_sum.txt" % d,
                "report -detail -inst uvm_pkg... -metrics covergroup -out sim/%s/func_holes.txt" % d,
                "report -detail -inst %s -metrics assertion -out sim/%s/assert_never.txt" % (sel, d),
-               "report -detail -inst %s -metrics block:expression:toggle:fsm -out sim/%s/holes.txt" % (sel, d),
+               "report -detail %s -metrics block:expression:toggle:fsm -out sim/%s/holes.txt" % (scope, d),
                "exit"]
         open(os.path.join(ROOT, "sim/%s/chart.tcl" % d), "w").write("\n".join(tcl) + "\n")
-        imc("sim/%s/chart.tcl" % d)
+        out = imc("sim/%s/chart.tcl" % d)
+        # an exclusion that matches nothing in the merged design (IMC *W,NOMATCH) is stale:
+        # the code it described changed or went (D-40, 2026-11-20). Fail on any.
+        nm = [l for l in out.splitlines() if "*W,NOMATCH" in l]
+        stale.extend("%s: %s" % (waivers, l.strip()) for l in nm)
         open(os.path.join(ROOT, "sim/%s/chart_runs.txt" % d), "w").write("%d\n" % len(okscopes))
     print("cov_chart: reports written under %s and sim/uvm_*" % ALL)
+    if stale:
+        open(os.path.join(ROOT, ALL, "stale_exclusions.txt"), "w").write("\n".join(stale) + "\n")
+        sys.stderr.write("cov_chart: %d exclusion(s) match nothing (stale), listed in %s/stale_exclusions.txt\n"
+                         % (len(stale), ALL))
+        sys.exit(1)
 
 
 # ============================================================================ parse
@@ -308,7 +350,7 @@ def read_waivers(path):
     """exclusions file -> list of (metric, instance, item, comment)."""
     out = []
     for l in open(os.path.join(ROOT, path)).read().splitlines():
-        m = re.match(r'^exclude -inst (\S+) -(\w+) ?(.*?) -comment "(.*)"\s*$', l)
+        m = re.match(r'^exclude -(?:inst|type) (\S+) -(\w+) ?(.*?) -comment "(.*)"\s*$', l)
         if m:
             out.append((m.group(2), m.group(1), m.group(3).replace("\\", ""), m.group(4)))
     return out
@@ -361,6 +403,21 @@ def gather():
         d["source"] = "all directed tests, merged"
         d["waivers"] = []
         d["func"] = None
+
+        tsa = read_summary("%s/type_summary_after.txt" % ALL) if b.get("excl") else None
+        if tsa:
+            after = {m: (0, 0, 0) for m in METRICS}
+            for k in tsa.get("_order", []):
+                base = k.split("#")[0]
+                if any(base == n or base.startswith(n + "_g_") for n in mods):
+                    for m in ("Block", "Expression", "Toggle", "Fsm"):
+                        after[m] = add(after[m], col(tsa[k], m))
+                if any(base == n or base.startswith(n + "_g_") for n in svas):
+                    after["Assertion"] = add(after["Assertion"], col(tsa[k], "Assertion"))
+            d["raw"] = merged
+            d["waived"] = after
+            d["waivers"] = read_waivers(b["excl"])
+            d["waiver_file"] = b["excl"]
 
         if b.get("cg_types") and b["key"] != "CORE":
             parts = [(t, col(ts.get(t, {}), "CoverGroup")) for t in b["cg_types"].split()]
@@ -485,7 +542,7 @@ def svg(data, path):
              '(no state machine, no covergroup or no bound property yet). Source: IMC 15.2 reports; see '
              'COVERAGE_BY_BLOCK.md for the counts.</text>' % (H - 22, MUTED))
     o.append("</svg>")
-    open(os.path.join(ROOT, path), "w").write("\n".join(o) + "\n")
+    open(os.path.join(ROOT, path), "w", encoding="utf-8").write("\n".join(o) + "\n")
 
 
 # ============================================================================ report
@@ -586,7 +643,8 @@ def report():
             left = [(m, d["waived"][m]) for m in METRICS if d["waived"][m][1] and d["waived"][m][0] != d["waived"][m][1]]
             if left:
                 L.append("**Still open after the waivers:** " + "; ".join("%s %d of %d" % (m, p[1] - p[0], p[1]) for m, p in left) +
-                         ". Listed in `sim/%s/holes.txt` after `make cov_chart`." % d["uvm"][0])
+                         ". Listed in `%s` after `make cov_chart`." % (("sim/%s/holes.txt" % d["uvm"][0]) if "uvm" in d
+                                                                         else ("%s/holes_%s.txt" % (ALL, d["key"].lower()))))
                 L.append("")
             nv = d.get("never_uvm", [])
             if nv:

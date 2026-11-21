@@ -1,0 +1,9 @@
+top: reset_ctrl
+children: reset_ctrl_apb
+script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh reset_s8)
+proved: 18/18
+tool: JasperGold Apps 2022.09p002, 2026-11-21
+
+clocks: hclk aon_clk pclk:2    resets: ext_rst_n 
+covers: 22, not covered: 1
+  cover unreachable: reset_ctrl.u_reset_ctrl_sva.a_reason_ext:precondition1

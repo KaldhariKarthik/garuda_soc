@@ -39,6 +39,7 @@ module tb_debug;
     wire ndmreset, hartreset;
     reg  [47:0] acc0 = 48'h1234_5678_9ABC, acc1 = 48'h0000_0000_0001, acc2 = 48'hFFFF_0000_0000;
     reg         ovf = 0;
+    reg         halt_safe = 1'b1;
 
     wire [31:0] haddr, hwdata, hrdata;
     wire [1:0]  htrans, htrans_m;
@@ -49,9 +50,9 @@ module tb_debug;
     // not granted its address phase is not taken (the slaves see IDLE) and it
     // sees HREADY low, so it must hold the address. With arb_on the bench
     // withholds the grant on random cycles; off, the SBA always owns the bus.
-    reg arb_on = 1'b0, gnt = 1'b1;
+    reg arb_on = 1'b0, gnt = 1'b1, hold_off = 1'b0;   // hold_off: withhold the grant (SBA stays busy)
     integer arb_stalls = 0;
-    always @(posedge hclk) gnt <= arb_on ? ($urandom_range(0, 2) != 0) : 1'b1;
+    always @(posedge hclk) gnt <= hold_off ? 1'b0 : arb_on ? ($urandom_range(0, 2) != 0) : 1'b1;
     always @(posedge hclk) if (rst_n && htrans_m[1] && !gnt) arb_stalls = arb_stalls + 1;
     assign htrans   = (htrans_m[1] && !gnt) ? 2'b00 : htrans_m;   // what the slaves see
     assign hready_m = (htrans_m[1] && !gnt) ? 1'b0  : hready;     // what the SBA sees
@@ -61,7 +62,7 @@ module tb_debug;
     debug_top dut (
         .tck(tck), .tms_i(tms), .tdi_i(tdi), .tdo_o(tdo), .tdo_oe_o(tdo_oe), .ext_rst_n(por_n),
         .hclk(hclk), .dm_rst_n(rst_n), .ndmreset_o(ndmreset), .hartreset_o(hartreset),
-        .halt_req_o(), .halt_safe_i(1'b1),     // RDC-1: no core here, always at a safe point
+        .halt_req_o(), .halt_safe_i(halt_safe), // RDC-1: no core here; 0 only for the halt-timeout check
         .dsu_acc0_i(acc0), .dsu_acc1_i(acc1), .dsu_acc2_i(acc2), .dsu_ovf_i(ovf),
         .haddr_o(haddr), .htrans_o(htrans_m), .hwrite_o(hwrite), .hsize_o(hsize),
         .hwdata_o(hwdata), .hrdata_i(hrdata), .hready_i(hready_m),
@@ -262,7 +263,8 @@ module tb_debug;
     int i, ok, l0, p0, x0, stale, w;
 
     // accumulators keep running during the tap tests
-    always @(posedge hclk) if (rst_n) begin
+    reg acc_run = 1'b1;                      // 0: the bench sets the taps itself
+    always @(posedge hclk) if (rst_n && acc_run) begin
         acc0 <= acc0 + 48'h0000_0010_0001;
         acc1 <= acc1 + 48'h0123_4567_89AB;   // upper half changes every cycle
         acc2 <= acc2 - 48'h0000_FFFF_FFF1;
@@ -651,6 +653,72 @@ module tb_debug;
         check(lo !== hi, "[N-6.7] the taps are read live while the accumulator runs (no halt needed)");
         dmr(7'h66, r); check(!r[0], "dsuovf reads 0 while no overflow is flagged");
         ovf = 1; dmr(7'h66, r); check(r[0], "dsuovf reports the sticky DSU overflow");
+        ovf = 0; dmr(7'h66, r); check(!r[0], "dsuovf follows the DSU flag back to 0 (the DSU clears it)");
+
+        // ---- coverage closure (2026-11-20, D-40) -------------------------------------
+        // DSU taps all-ones then all-zeros: every bit of the three hold registers both ways
+        acc_run = 0;
+        for (int v = 0; v < 3; v++) begin                   // zeros, ones, zeros: every bit rises and falls
+            @(posedge hclk); acc0 <= (v == 1) ? {48{1'b1}} : 48'h0; acc1 <= (v == 1) ? {48{1'b1}} : 48'h0; acc2 <= (v == 1) ? {48{1'b1}} : 48'h0;
+            ok = 1;
+            dmr(7'h60, lo); dmr(7'h61, hi); if ({hi[15:0], lo} !== acc0 || hi[31:16] !== 0) ok = 0;
+            dmr(7'h62, lo); dmr(7'h63, hi); if ({hi[15:0], lo} !== acc1 || hi[31:16] !== 0) ok = 0;
+            dmr(7'h64, lo); dmr(7'h65, hi); if ({hi[15:0], lo} !== acc2 || hi[31:16] !== 0) ok = 0;
+            check(ok, $sformatf("[N-6.8] dsuacc0..2 read %s through lo then hi", (v == 1) ? "all-ones" : "all-zeros"));
+        end
+        acc_run = 1;
+        // SBA data all-ones and all-zeros, written and read back through the DSRAM model
+        for (int v = 0; v < 2; v++) begin
+            dmw(7'h38, (2 << 17)); dmw(7'h39, 32'h2000_0100); dmw(7'h3C, v ? 32'h0 : 32'hFFFF_FFFF);
+            dmw(7'h38, (1 << 20) | (2 << 17)); dmw(7'h39, 32'h2000_0100); dmr(7'h3C, r);
+            check(r === (v ? 32'h0 : 32'hFFFF_FFFF), $sformatf("SBA write then read of %08h", v ? 32'h0 : 32'hFFFF_FFFF));
+        end
+        dmw(7'h38, (2 << 17));
+        // halt timeout (RDC-1): the core never reaches a safe point, the DM grants after
+        // HALT_TIMEOUT cycles and sets HALTINFO.haltforced; the debugger clears it (W1C)
+        halt_safe = 0;
+        // a JTAG scan takes longer than the timeout at this clock ratio: the grant is watched
+        // directly, counted from the cycle the request reaches the DM
+        fork
+            dmw(7'h10, 32'h2000_0001);
+            begin
+                @(posedge dut.u_dm.halt_requested);
+                repeat (512) @(posedge hclk);
+                check(!dut.u_dm.grant_q && !dut.u_dm.haltforced, "[RDC-1] no halt granted while the core is not at a safe point");
+                repeat (600) @(posedge hclk);
+            end
+        join
+        dmr(7'h11, r); check(r[9], "[RDC-1] halt granted after HALT_TIMEOUT cycles anyway");
+        dmr(7'h70, r); check(r[0], "[RDC-1] HALTINFO.haltforced set by the forced grant");
+        dmw(7'h70, 32'h1); dmr(7'h70, r); check(!r[0], "[RDC-1] HALTINFO.haltforced is W1C");
+        dmw(7'h10, 32'h0000_0001); halt_safe = 1;
+        dmr(7'h11, r); check(!r[9], "resume drops the grant");
+        // SBA registers while the DM is inactive (dmactive = 0): writes are ignored, no bus
+        // access starts, the SB registers read their reset values (D-9)
+        x0 = n_xfer;
+        dmw(7'h10, 32'h0000_0000);
+        dmw(7'h38, (1 << 20) | (2 << 17) | (1 << 15));
+        dmw(7'h39, 32'h2000_0100); dmw(7'h3C, 32'h1234_5678);
+        dmr(7'h3C, r);
+        dmr(7'h39, r); ok = (r == 0);
+        dmr(7'h38, r); if (r[22:12] != (2 << 5)) ok = 0;                    // only sbaccess = 2 (its reset value)
+        dmw(7'h16, 32'hFFFF_FFFF); dmr(7'h16, r); if (r != 0) ok = 0;   // abstractcs: not implemented
+        check(ok && n_xfer == x0, "[D-9] with dmactive = 0 the SB registers ignore writes, read their reset values, and start no bus access");
+        dmw(7'h10, 32'h0000_0001);
+        // DMI accesses while an SBA read is held off the bus (busy): a read of sbaddress0 has no
+        // effect, an sbcs write keeps the configuration; the read completes once granted
+        dmw(7'h38, (1 << 20) | (2 << 17));
+        hold_off = 1;
+        dmw(7'h39, 32'h2000_0100);
+        dmr(7'h38, r); ok = r[21];                                       // sbbusy
+        dmr(7'h39, r); if (r != 32'h2000_0100) ok = 0;
+        dmw(7'h38, (1 << 20) | (2 << 17));
+        hold_off = 0;
+        repeat (40) @(posedge hclk);
+        dmr(7'h38, r); if (r[21] || r[14:12] != 0) ok = 0;
+        dmr(7'h3C, r); if (r != 32'h0) ok = 0;                            // the word written last above
+        check(ok, "[N-6.5] DMI accesses while the SBA is busy: sbbusy reads 1, sbaddress0 reads back, the read completes when granted");
+        dmw(7'h38, (1 << 22) | (2 << 17)); dmw(7'h38, (2 << 17));       // clear sbbusyerror if the sbcs write set it
 
         idle(12); repeat (12) @(posedge hclk); #0.01;
         check(cdc_err == 0 && lq.size() == 0,

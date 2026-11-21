@@ -153,7 +153,7 @@ module tb_apb_shim;
     endtask
 
     logic [31:0] d;
-    bit e;
+    bit e, e2;
     int i, t0;
 
     initial begin
@@ -192,6 +192,13 @@ module tb_apb_shim;
         check(e, "PSLVERR on an unmapped offset inside the window");
         bfm.read(12'hFE0, d, e);
         check(!e, "no PSLVERR on a tail register");
+        // writes (2026-11-20, coverage x_target_dir hole x write, x_tail_dir id x write): a write to
+        // an offset with no register answers PSLVERR; ID is read-only, a write is OKAY and changes nothing
+        bfm.write(12'h800, 32'hFFFF_FFFF, e);
+        check(e, "PSLVERR on a write to an unmapped offset inside the window");
+        bfm.write(12'hFEC, 32'h0, e);
+        bfm.read(12'hFEC, d, e2);
+        check(!e && d == {16'h6A5D, 8'd13, 8'd1}, "a write to ID is OKAY and ID keeps its value");
         check(pready_viol == 0, "PREADY high in every cycle of every access so far");
 
         // ---- sticky interrupt ------------------------------------------------------

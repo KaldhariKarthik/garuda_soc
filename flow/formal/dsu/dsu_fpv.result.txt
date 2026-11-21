@@ -2,7 +2,7 @@ top: dsu_top
 children: dsu_decoder dsu_stall overflow_flag mac_cluster operand_router readback_mux result_selector barrel_shifter
 script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh dsu)
 proved: 47/47
-tool: JasperGold Apps 2022.09p002, 2026-11-16
+tool: JasperGold Apps 2022.09p002, 2026-11-20
 
-clocks: clk                resets: rst_n 
+clocks: gclk                resets: core_rst_n 
 covers: 31, not covered: 0

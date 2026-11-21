@@ -146,13 +146,25 @@ module regfile_sva (
     a_bypass_rs1: assert property (@(posedge gclk)
         (wb_reg_write_i && wb_rd_i != 5'd0 && wb_rd_i == rs1_idx_i) |-> rs1_data_o === wb_data_i )
         else $error("[SVA-FAIL] a_bypass_rs1: a same-cycle write was not bypassed to rs1");
-    // otherwise it reads the last value written. The checker keeps its own copy
-    // of every register's last write (2026-11-19: in place of sequence-local
-    // variables, which Verilator reports it may mishandle, SIDEEFFECT); the
-    // regfile has no reset, so a register never written is not checked.
-    // written_q starts empty by its declaration (no reset to clear it), so the
-    // process is a plain clocked always: always_ff would make the initialiser
-    // a second driver (Xcelium MULAXX).
+    // otherwise it reads the last value written. Two forms of one property
+    // (2026-11-20): sequence-local variables, which need no starting state and
+    // which JasperGold proves on a register file with no reset; and, for the
+    // 2-state simulator only (it reports the local-variable form as SIDEEFFECT), a
+    // shadow copy whose written flags start empty by declaration, which the
+    // formal tools do not take as an initial state.
+`ifndef VERILATOR
+    property p_read_last(logic [4:0] idx, logic [31:0] data);
+        logic [4:0] r; logic [31:0] d;
+        @(posedge gclk)
+        (wb_reg_write_i && wb_rd_i != 5'd0, r = wb_rd_i, d = wb_data_i)
+            ##1 (!(wb_reg_write_i && wb_rd_i == r))[*1:$] ##0 (idx == r)
+        |-> data === d;
+    endproperty
+    a_read_last_rs1: assert property (p_read_last(rs1_idx_i, rs1_data_o))
+        else $error("[SVA-FAIL] a_read_last_rs1: x%0d did not read the last value written", rs1_idx_i);
+    a_read_last_rs2: assert property (p_read_last(rs2_idx_i, rs2_data_o))
+        else $error("[SVA-FAIL] a_read_last_rs2: x%0d did not read the last value written", rs2_idx_i);
+`else
     logic [31:0] last_q [1:31];
     logic [31:1] written_q = '0;
     always @(posedge gclk) begin : p_shadow
@@ -169,6 +181,7 @@ module regfile_sva (
     a_read_last_rs2: assert property (@(posedge gclk)
         (rs2_idx_i != 5'd0 && written_q[rs2_idx_i] && !wr_rs2) |-> rs2_data_o === last_q[rs2_idx_i])
         else $error("[SVA-FAIL] a_read_last_rs2: x%0d did not read the last value written", rs2_idx_i);
+`endif
 endmodule
 
 bind clic_ctrl clic_ctrl_sva #(.ID_W(ID_W)) u_clic_ctrl_sva (.*);

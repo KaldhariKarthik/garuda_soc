@@ -1,11 +1,11 @@
 top: garuda_i2c_top
 children: 
 script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh i2c)
-proved: 47/49
-tool: JasperGold Apps 2022.09p002, 2026-11-10
+proved: 48/50
+tool: JasperGold Apps 2022.09p002, 2026-11-20
 
-clocks: pclk_i             resets: preset_n_i 
-covers: 66, not covered: 10
+clocks: pclk             resets: preset_n 
+covers: 69, not covered: 11
 assertions not proved:
   undetermined garuda_i2c_top.u_i2c_sva.a_tip_bounded
   undetermined garuda_i2c_top.u_i2c_sva.a_sda_stable_scl_high
@@ -15,6 +15,7 @@ assertions not proved:
   cover undetermined: garuda_i2c_top.u_shim.u_shim_sva.g_evt[3].c_shim_evt
   cover undetermined: garuda_i2c_top.u_shim.u_shim_sva.g_evt[3].c_shim_clear
   cover unreachable: garuda_i2c_top.u_shim.u_shim_sva.a_shim_reset:precondition1
+  cover unreachable: garuda_i2c_top.u_dma.u_dma_sva.a_dma_reset:precondition1
   cover undetermined: garuda_i2c_top.u_i2c_sva.assume_byte_continues_own:precondition1
   cover undetermined: garuda_i2c_top.u_i2c_sva.c_byte_continues_own
   cover undetermined: garuda_i2c_top.u_i2c_sva.a_sda_stable_scl_high:precondition1

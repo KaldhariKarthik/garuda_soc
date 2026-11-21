@@ -6,8 +6,9 @@ cd "$(dirname "$0")/../.."
 JG=/home/install/JASPER/bin/jg
 TABLE='
 clic    |clic_top        |rtl/clic/filelist.f        |pclk           |preset_n |clic_apb clic_select|APB=pclk
-timers  |timers_top      |rtl/timers/filelist.f      |hclk pclk:2 |hreset_n preset_n ext_rst_n |mtime timers_apb watchdog|APB=pclk
+timers  |timers_top      |rtl/timers/filelist.f      |hclk pclk:2 |hreset_n preset_n ext_hrst_n |mtime timers_apb watchdog|APB=pclk
 reset   |reset_ctrl      |rtl/reset_ctrl/filelist.f  |hclk aon_clk pclk:2 |ext_rst_n |reset_ctrl_apb|DEFS=FORMAL APB=pclk APBRST=preset_n
+reset_s8 |reset_ctrl     |rtl/reset_ctrl/filelist.f  |hclk aon_clk pclk:2 |ext_rst_n |reset_ctrl_apb|DEFS=FORMAL APB=pclk APBRST=preset_n PARAMS="-parameter STRETCH 8"
 pwm     |garuda_pwm_top  |rtl/pwm/filelist.f         |pclk          |preset_n |garuda_pwm_core|APB=pclk
 gpio    |garuda_gpio_top |rtl/gpio/filelist.f        |pclk          |preset_n ||APB=pclk
 i2c     |garuda_i2c_top  |rtl/i2c/filelist.f         |pclk          |preset_n ||DEFS=FORMAL APB=pclk

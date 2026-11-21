@@ -80,6 +80,7 @@
 //     v_busy_no_burst  BUSY outside a burst
 //   Transfer legality
 //     v_unaligned      HADDR not aligned to HSIZE
+//     v_wide           HSIZE wider than the 32-bit data bus (TB-A16, 2026-11-20)
 //     v_wdata_change   HWDATA changed during a wait state of its own data phase
 //   Response legality
 //     v_err_single     ERROR completed in one cycle (it must be two)
@@ -151,7 +152,7 @@ module ahb_lite_checker #(
     integer v_seq_after_idle, v_seq_after_sgl, v_seq_no_burst;
     integer v_burst_change, v_size_change, v_addr_seq, v_burst_short;
     integer v_1k_cross;
-    integer v_busy_no_burst, v_unaligned, v_wdata_change;
+    integer v_busy_no_burst, v_unaligned, v_wdata_change, v_wide;
     integer v_err_single, v_resp_no_dp;
     integer v_total, n_reported;
     integer n_addr_phases, n_bursts, n_wrap_unchecked, n_error_resp;
@@ -230,7 +231,7 @@ module ahb_lite_checker #(
             v_seq_no_burst = 0; v_burst_change = 0; v_size_change = 0;
             v_addr_seq = 0; v_burst_short = 0; v_busy_no_burst = 0;
             v_1k_cross = 0;
-            v_unaligned = 0; v_wdata_change = 0; v_err_single = 0;
+            v_unaligned = 0; v_wdata_change = 0; v_err_single = 0; v_wide = 0;
             v_resp_no_dp = 0; v_total = 0; n_reported = 0;
             n_addr_phases = 0; n_bursts = 0; n_wrap_unchecked = 0;
             n_error_resp = 0; n_err_cancel = 0;
@@ -297,6 +298,9 @@ module ahb_lite_checker #(
                 if ((haddr_i & ((32'd1 << hsize_i) - 32'd1)) != 32'd0) begin
                     v_unaligned = v_unaligned + 1;
                     viol("HADDR is not aligned to HSIZE");
+                end else if (hsize_i > 3'd2) begin
+                    v_wide = v_wide + 1;
+                    viol("HSIZE wider than the 32-bit data bus");
                 end
 
                 case (htrans_i)
@@ -472,6 +476,7 @@ module ahb_lite_checker #(
                 if (v_burst_short)    $display("     fixed-length burst truncated     : %0d", v_burst_short);
                 if (v_busy_no_burst)  $display("     BUSY outside a burst             : %0d", v_busy_no_burst);
                 if (v_unaligned)      $display("     HADDR unaligned to HSIZE         : %0d", v_unaligned);
+                if (v_wide)           $display("     HSIZE wider than the data bus    : %0d", v_wide);
                 if (v_wdata_change)   $display("     HWDATA changed in wait state     : %0d", v_wdata_change);
                 if (v_err_single)     $display("     one-cycle ERROR response         : %0d", v_err_single);
                 if (v_resp_no_dp)     $display("     HRESP outside a data phase       : %0d", v_resp_no_dp);

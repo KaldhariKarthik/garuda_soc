@@ -31,6 +31,9 @@ module branch_unit_sva (
             default: isa_taken = 1'b0;
         endcase
         if (!$isunknown({pc, imm, rs1_fwd, rs2_fwd, funct3, branch, jal, jalr, predicted_taken})) begin
+            // decode raises at most one of branch, JAL, JALR (assumed in formal, checked in
+            // simulation; 2026-11-20: without it formal raised branch and JAL together)
+            assume_cf_onehot: assume #0 ($onehot0({branch, jal, jalr}));
             a_br_taken: assert #0 (!branch || funct3 inside {3'b010, 3'b011} || branch_taken == isa_taken)
                 else $error("[SVA-FAIL] a_br_taken: funct3 %b gave taken=%b, the ISA says %b", funct3, branch_taken, isa_taken);
             a_br_mispredict: assert #0 (!branch || funct3 inside {3'b010, 3'b011} || mispredict == (isa_taken != predicted_taken))

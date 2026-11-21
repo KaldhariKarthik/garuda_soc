@@ -22,6 +22,8 @@
 #      inside loops that run over pins 8 and above.
 #   5. dft_cg_enable_i is tied low until scan insertion (GPIO [N-9.3], OPEN-G1).
 # =============================================================================
+# 2026-11-20 (D-40): 17 exclusions removed that IMC reported as matching nothing (*W,NOMATCH):
+# the code they named was renamed or removed in F4 / D-39. cov_chart now fails on any such line.
 exclude -inst garuda_gpio_top -toggle prdata_o\[31\] -comment "read-data bit that is 0 in every register of this block: constant by specification, checked by the scoreboard on every read"
 exclude -inst garuda_gpio_top.u_shim -toggle prdata_o\[31\] -comment "read-data bit that is 0 in every register of this block: constant by specification, checked by the scoreboard on every read"
 exclude -inst garuda_gpio_top -toggle prdata_o\[28\] -comment "read-data bit that is 0 in every register of this block: constant by specification, checked by the scoreboard on every read"
@@ -119,24 +121,10 @@ exclude -inst garuda_gpio_top -toggle ip_prdata\[31\] -comment "read-data bit th
 exclude -inst garuda_gpio_top.u_shim -toggle ip_prdata_i\[31\] -comment "read-data bit that is 0 in every register of this block: constant by specification, checked by the scoreboard on every read"
 exclude -inst garuda_gpio_top.u_gpio -toggle PRDATA\[31\] -comment "read-data bit that is 0 in every register of this block: constant by specification, checked by the scoreboard on every read"
 exclude -inst garuda_gpio_top -toggle pready_o -comment "PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready"
-exclude -inst garuda_gpio_top -toggle ip_pready -comment "PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready"
 exclude -inst garuda_gpio_top.u_shim -toggle pready_o -comment "PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready"
-exclude -inst garuda_gpio_top.u_shim -toggle ip_pready_i -comment "PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready"
 exclude -inst garuda_gpio_top.u_shim.u_shim_sva -toggle pready_o -comment "PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready"
 exclude -inst garuda_gpio_top.u_gpio -toggle PREADY -comment "PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready"
 exclude -inst garuda_gpio_top.u_gpio -toggle PSLVERR -comment "tied low in the vendored block and left unconnected: the shim makes PSLVERR"
-exclude -inst garuda_gpio_top.u_shim -toggle rx_avail_i -comment "tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic"
-exclude -inst garuda_gpio_top.u_shim -toggle tx_space_i -comment "tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic"
-exclude -inst garuda_gpio_top.u_shim -toggle dma_ack_i -comment "tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic"
-exclude -inst garuda_gpio_top.u_shim -toggle dma_req_o -comment "tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic"
-exclude -inst garuda_gpio_top.u_shim -toggle holdoff_q -comment "tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic"
-exclude -inst garuda_gpio_top.u_shim.u_shim_sva -toggle rx_avail_i -comment "tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic"
-exclude -inst garuda_gpio_top.u_shim.u_shim_sva -toggle tx_space_i -comment "tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic"
-exclude -inst garuda_gpio_top.u_shim.u_shim_sva -toggle dma_ack_i -comment "tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic"
-exclude -inst garuda_gpio_top.u_shim.u_shim_sva -toggle dma_req_o -comment "tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic"
-exclude -inst garuda_gpio_top.u_gpio_sva -toggle dma_req -comment "tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic"
-exclude -inst garuda_gpio_top.u_shim.u_shim_sva -assertion a_shim_dma_holdoff -comment "tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic"
-exclude -inst garuda_gpio_top.u_shim.u_shim_sva -assertion a_shim_dma_gate -comment "tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic"
 exclude -inst garuda_gpio_top.u_gpio -toggle s_cg_en\[2\] -comment "logic of a pin that does not exist: the vendored block is written for 64 pins and built with PAD_NUM = 2"
 exclude -inst garuda_gpio_top.u_gpio -toggle s_cg_en\[3\] -comment "logic of a pin that does not exist: the vendored block is written for 64 pins and built with PAD_NUM = 2"
 exclude -inst garuda_gpio_top.u_gpio -toggle s_cg_en\[4\] -comment "logic of a pin that does not exist: the vendored block is written for 64 pins and built with PAD_NUM = 2"
@@ -234,9 +222,6 @@ exclude -inst garuda_gpio_top.u_gpio -block 223 -comment "logic of a pin that do
 exclude -inst garuda_gpio_top.u_gpio -block 228 -comment "logic of a pin that does not exist: the vendored block is written for 64 pins and built with PAD_NUM = 2"
 exclude -inst garuda_gpio_top.u_gpio -block 233 -comment "logic of a pin that does not exist: the vendored block is written for 64 pins and built with PAD_NUM = 2"
 exclude -inst garuda_gpio_top.u_gpio -toggle dft_cg_enable_i -comment "tied low until scan insertion: GPIO spec N-9.3, open item OPEN-G1"
-exclude -inst garuda_gpio_top.u_shim -block 30 -comment "the shim's report that an IP held PREADY low: the vendored GPIO ties PREADY high, so the report can never print here"
-exclude -inst garuda_gpio_top.u_shim -expression 4.1 -comment "condition of the same report: ip_pready_i is tied high by the vendored GPIO"
-exclude -inst garuda_gpio_top.u_shim -block 27 -comment "the shim stops the simulation if its parameter IP_LIMIT is above 0x100, which the 64-bit register map cannot describe; the parameter is a constant below that here, so the branch is never taken"
 
 # -----------------------------------------------------------------------------
 # Added 2026-10-13 with the shim's per-word register map (plan task 0.9).

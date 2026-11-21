@@ -1,5 +1,5 @@
-garuda-run 1  suite archtest  block core  2026-10-13T08:07:57+05:30
-design b90b481d8f91d5d8d1cd3887c3856c38033d87f7  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+garuda-run 1  suite archtest  block core  2026-11-21T05:49:24+05:30
+design 848e5e3d682318be467e7b87d27f7aaaf724a0c9  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
 
 PASS    OK                      I-add-01                     
 PASS    OK                      I-addi-01                    

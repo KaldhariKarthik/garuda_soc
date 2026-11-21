@@ -240,6 +240,23 @@ module tb_chip;
             dmw(7'h39, MBOX);     dmw(7'h3C, MBOX_MAGIC);        // post
             dmr(7'h11, r);
             if (!r[9]) begin $display("[FAIL] hart not halted during the JTAG load"); $display("RESULT: FAILED"); $finish; end
+            // SBA reads across the address map while the hart is held (2026-11-20, coverage of
+            // the SBA address bits and [N-7.13]): the ISRAM through its alias at the top of the
+            // segment, the boot ROM, a peripheral ID register through the bridge, and an address
+            // in no region, which the default slave answers ERROR: sberror 4, cleared by W1C.
+            dmw(7'h38, (1 << 20) | (2 << 17));                   // 32-bit, read on address
+            dmw(7'h39, 32'h0FFF_0000); dmr(7'h3C, r);
+            if (r !== img[0]) begin $display("[FAIL] SBA read of the ISRAM alias: %h, expected %h", r, img[0]); $display("RESULT: FAILED"); $finish; end
+            dmw(7'h39, 32'h1000_0000); dmr(7'h3C, r);
+            if (r !== dut.u_core.u_soc.u_brom.bd_read(0)) begin $display("[FAIL] SBA read of the boot ROM: %h", r); $display("RESULT: FAILED"); $finish; end
+            dmw(7'h39, 32'h4000_3FEC); dmr(7'h3C, r);
+            if (r[31:16] !== 16'h6A5D) begin $display("[FAIL] SBA read of the UART0 ID register: %h", r); $display("RESULT: FAILED"); $finish; end
+            dmw(7'h39, 32'hF000_0000); dmr(7'h3C, r); dmr(7'h38, r);
+            if (r[14:12] !== 3'd4) begin $display("[FAIL] SBA read of an address in no region: sberror %0d, expected 4", r[14:12]); $display("RESULT: FAILED"); $finish; end
+            dmw(7'h38, (7 << 12) | (2 << 17)); dmr(7'h38, r);
+            if (r[14:12] !== 3'd0) begin $display("[FAIL] sberror not cleared by W1C"); $display("RESULT: FAILED"); $finish; end
+            dmw(7'h38, (1 << 20) | (2 << 17)); dmw(7'h39, 32'h0000_0000); dmr(7'h3C, r);
+            if (r !== img[0]) begin $display("[FAIL] SBA read of ISRAM word 0 after the error: %h", r); $display("RESULT: FAILED"); $finish; end
             dmw(7'h10, 32'h4000_0001);                           // resumereq: run
             $display("[tb_chip] %0d words loaded over JTAG SBA, hart resumed at %0t", nwords, $time);
         end

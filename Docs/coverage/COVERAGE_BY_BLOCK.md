@@ -1,12 +1,12 @@
 # GARUDA SoC: coverage by block
 
-Written by `tools/gen/cov_chart.py` on 2026-10-16 from IMC 15.2 reports, tree `bcc0728` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
+Written by `tools/gen/cov_chart.py` on 2026-11-21 from IMC 15.2 reports, tree `848e5e3` plus uncommitted changes. No figure here is typed by hand: each is a covered/total pair IMC printed, added over the modules of the block. To make it again: `make cov_chart`.
 
 ![coverage by block](coverage_by_block.svg)
 
 ## How to read it
 
-- **Two sources.** The five blocks that have a UVM environment (CLIC, timers, clock and reset, PWM, GPIO) are measured on that environment's own runs and shown twice: as measured, and after the written waivers. The other eleven are measured on the 122 directed runs of `flow/regress/garuda.vsif` merged together, counted per module, with no waiver: none has been written for them yet. A hole in those rows is a hole, not a waived item.
+- **Two sources.** The five blocks that have a UVM environment (CLIC, timers, clock and reset, PWM, GPIO) are measured on that environment's own runs and shown twice: as measured, and after the written waivers. The other eleven are measured on the 409 directed runs of `flow/regress/garuda.vsif` merged together, counted per module, with no waiver: none has been written for them yet. A hole in those rows is a hole, not a waived item.
 - **Statement, expression, toggle, FSM** are IMC's block, expression, toggle and FSM (states, transitions, arcs) metrics. **Functional** is covergroup bins. **Assertions triggered** counts bound properties and cover properties that finished at least once: a property that never triggered has checked nothing, however many tests passed.
 - The sign-off bar (`flow/0_signoff_criteria.md`) is 100% functional and at least 95% code coverage with every hole waived in writing. A block is closed only when it meets it.
 
@@ -14,26 +14,26 @@ Written by `tools/gen/cov_chart.py` on 2026-10-16 from IMC 15.2 reports, tree `b
 
 | Block | Track | Measured on | Statement | Expression | Toggle | FSM | Functional | Assertions triggered | Waivers |
 |---|---|---|---|---|---|---|---|---|---|
-| RV32IM core | A | 190 core runs of one vManager session of `garuda.vsif` merged by module type, 2026-11-16 (`flow/4_core/core_g5.md`; the same on the vPlan in vManager) | 99.0% (290/293); 100% waived | 100.0% (73/73) | 93.9% (8883/9456); 100% waived | 100.0% (4/4) | 100.0% (761/761), 2 `ignore_bins` (proven) | not re-measured | 581 (`tb/core/cov/core_waivers.toml`) |
-| DSU | A | all directed tests, merged | 100.0% (63/63) | none | 95.6% (3601/3765) | none | 60.0% (192/320) | none | none written |
-| AHB interconnect | A | all directed tests, merged | 98.6% (72/73) | 100.0% (9/9) | 69.1% (1086/1572) | 100.0% (7/7) | 71.8% (102/142) | 94.6% (35/37) | none written |
-| AHB to APB bridge | A | all directed tests, merged | 93.0% (40/43) | 81.8% (9/11) | 78.3% (1100/1404) | 89.3% (25/28) | 38.4% (53/138) | 96.7% (29/30) | none written |
-| Memories | A | all directed tests, merged | 85.7% (60/70) | 95.7% (22/23) | 92.8% (914/985) | none | 77.2% (44/57) | 100.0% (20/20) | none written |
-| DMA | A | all directed tests, merged | 99.1% (106/107) | 97.8% (45/46) | 60.3% (2151/3566) | 100.0% (13/13) | 75.8% (122/161) | 100.0% (53/53) | none written |
-| Debug | A | all directed tests, merged | 96.5% (166/172) | 88.6% (31/35) | 77.1% (1224/1587) | 91.7% (44/48) | 90.0% (72/80) | 97.5% (39/40) | none written |
-| CLIC | B | the block's UVM environment | 100.0% (20/20) | none | 96.1% (1119/1165), after waivers 100.0% (1119/1119) | none | 100.0% (417/417) | 73.2% (60/82), after waivers 100.0% (60/60) | 68, in `flow/cov/clic_exclusions.tcl` |
-| Timers and watchdog | B | the block's UVM environment | 100.0% (68/68) | 100.0% (3/3) | 93.8% (1383/1475), after waivers 100.0% (1383/1383) | none | 100.0% (145/145) | 100.0% (36/36) | 93, in `flow/cov/timers_exclusions.tcl` |
-| Clock divider and reset | B | the block's UVM environment | 100.0% (84/84) | 100.0% (13/13) | 82.2% (240/292), after waivers 100.0% (240/240) | none | 100.0% (106/106) | 100.0% (42/42) | 55, in `flow/cov/crg_exclusions.tcl` |
-| PWM | B | the block's UVM environment | 98.0% (98/100), after waivers 100.0% (98/98) | 96.0% (24/25), after waivers 100.0% (21/21) | 92.9% (624/672), after waivers 100.0% (624/624) | none | 100.0% (275/275) | 96.2% (76/79), after waivers 100.0% (76/76) | 60, in `flow/cov/pwm_exclusions.tcl` |
-| GPIO | B | the block's UVM environment | 58.4% (156/267), after waivers 100.0% (156/156) | 93.5% (29/31), after waivers 100.0% (22/22) | 55.5% (680/1225), after waivers 100.0% (296/296) | none | 100.0% (214/214) | 94.7% (36/38), after waivers 100.0% (36/36) | 666, in `flow/cov/gpio_exclusions.tcl` |
-| UART | B | the block's UVM environment | 83.1% (713/858) | 84.1% (164/195) | 66.7% (1718/2574) | 71.4% (60/84) | 98.1% (207/211) | 64.7% (97/150) | none written |
-| I2C | B | the block's UVM environment | 97.7% (213/218), after waivers 100.0% (213/213) | 88.2% (15/17), after waivers 100.0% (9/9) | 91.2% (622/682), after waivers 100.0% (622/622) | 100.0% (56/56) | 100.0% (221/221) | 100.0% (65/65) | 71, in `flow/cov/i2c_exclusions.tcl` |
-| SPI master | B | all directed tests, merged | 67.3% (165/245) | 52.8% (38/72) | 54.5% (1059/1942) | 38.9% (21/54) | 39.1% (27/69) | 85.7% (12/14) | none written |
-| SPI slave | B | the block's UVM environment | 97.8% (91/93), after waivers 100.0% (91/91) | 94.7% (18/19), after waivers 100.0% (15/15) | 85.2% (415/487), after waivers 100.0% (415/415) | none | 100.0% (146/146) | 98.0% (50/51), after waivers 100.0% (50/50) | 79, in `flow/cov/spis_exclusions.tcl` |
-| APB shim (shared by six peripherals) | B | all directed tests, merged | 93.5% (29/31) | 92.3% (12/13) | 99.0% (204/206) | none | 90.5% (38/42) | 100.0% (21/21) | none written |
-| Chip and SoC top (wiring) | B | all directed tests, merged | none | none | 56.0% (1550/2767) | none | 86.2% (50/58) | none | none written |
+| RV32IM core | A | all directed tests, merged | 100.0% (290/290) | 100.0% (85/85) | 95.7% (8551/8931) | none | 94.2% (1786/1895) | 99.3% (137/138) | none written |
+| DSU | A | all directed tests, merged | 100.0% (63/63) | none | 95.9% (3537/3689) | none | 59.7% (191/320) | none | none written |
+| AHB interconnect | A | all directed tests, merged | 98.7% (77/78) | 100.0% (9/9) | 87.8% (1233/1405) | 100.0% (7/7) | 71.8% (102/142) | 97.3% (36/37) | none written |
+| AHB to APB bridge | A | all directed tests, merged | 100.0% (53/53) | 100.0% (6/6) | 79.1% (1018/1287) | none | 38.4% (53/138) | 96.7% (29/30) | none written |
+| Memories | A | all directed tests, merged | 85.7% (60/70), after waivers 100.0% (60/60) | 95.7% (22/23) | 99.5% (968/973), after waivers 100.0% (968/968) | none | 100.0% (53/53) | 100.0% (21/21) | 15, in `flow/cov/mem_exclusions.tcl` |
+| DMA | A | all directed tests, merged | 100.0% (148/148) | 100.0% (37/37) | 78.9% (2845/3606) | none | 95.6% (151/158) | 100.0% (54/54) | none written |
+| Debug | A | all directed tests, merged | 100.0% (221/221) | 98.0% (48/49) | 91.7% (1414/1542), after waivers 100.0% (1414/1414) | none | 100.0% (80/80) | 100.0% (40/40) | 124, in `flow/cov/debug_exclusions.tcl` |
+| CLIC | B | the block's UVM environment | 100.0% (25/25) | none | 95.8% (1177/1229), after waivers 100.0% (1173/1173) | none | 100.0% (429/429) | 100.0% (87/87) | 56, in `flow/cov/clic_exclusions.tcl` |
+| Timers and watchdog | B | the block's UVM environment | 100.0% (68/68) | 100.0% (6/6) | 99.8% (1319/1321), after waivers 100.0% (1319/1319) | none | 100.0% (145/145) | 100.0% (36/36) | 3, in `flow/cov/timers_exclusions.tcl` |
+| Clock divider and reset | B | the block's UVM environment | 100.0% (73/73) | 100.0% (16/16) | 82.7% (249/301), after waivers 100.0% (249/249) | none | 100.0% (106/106) | 100.0% (43/43) | 55, in `flow/cov/crg_exclusions.tcl` |
+| PWM | B | the block's UVM environment | 100.0% (86/86) | 100.0% (18/18) | 93.3% (526/564), after waivers 100.0% (526/526) | none | 100.0% (275/275) | 98.7% (76/77), after waivers 100.0% (76/76) | 40, in `flow/cov/pwm_exclusions.tcl` |
+| GPIO | B | the block's UVM environment | 57.4% (147/256), after waivers 100.0% (147/147) | 95.8% (23/24), after waivers 100.0% (19/19) | 52.0% (584/1122), after waivers 100.0% (200/200) | none | 100.0% (214/214) | 100.0% (36/36) | 649, in `flow/cov/gpio_exclusions.tcl` |
+| UART | B | the block's UVM environment | 97.6% (245/251), after waivers 100.0% (245/245) | 100.0% (44/44) | 78.0% (679/871), after waivers 100.0% (679/679) | 100.0% (28/28) | 100.0% (211/211) | none | 198, in `flow/cov/uart_exclusions.tcl` |
+| I2C | B | the block's UVM environment | 98.7% (230/233), after waivers 100.0% (230/230) | 94.7% (18/19), after waivers 100.0% (15/15) | 83.6% (624/746), after waivers 100.0% (624/624) | 100.0% (56/56) | 100.0% (222/222) | 100.0% (68/68) | 128, in `flow/cov/i2c_exclusions.tcl` |
+| SPI master | B | all directed tests, merged | 98.8% (242/245), after waivers 100.0% (242/242) | 90.3% (65/72), after waivers 100.0% (65/65) | 94.7% (1820/1921), after waivers 100.0% (1820/1820) | 98.1% (53/54), after waivers 100.0% (53/53) | 100.0% (68/68) | 92.9% (13/14) | 106, in `flow/cov/spim_exclusions.tcl` |
+| SPI slave | B | the block's UVM environment | 100.0% (99/99) | 100.0% (24/24) | 74.6% (419/562), after waivers 100.0% (419/419) | none | 100.0% (146/146) | 98.1% (53/54), after waivers 100.0% (53/53) | 147, in `flow/cov/spis_exclusions.tcl` |
+| APB shim (shared by six peripherals) | B | all directed tests, merged | 100.0% (14/14) | 100.0% (6/6) | 99.3% (138/139), after waivers 100.0% (138/138) | none | 100.0% (35/35) | 100.0% (19/19) | 1, in `flow/cov/shim_exclusions.tcl` |
+| Chip and SoC top (wiring) | B | all directed tests, merged | none | none | 67.8% (1713/2527) | none | 86.2% (50/58) | none | none written |
 
-Over the sixteen blocks, counting items (waived items removed for the five blocks that have waivers): statement 90.5% (2400/2653), expression 85.8% (467/544), toggle 81.0% (25425/31404), FSM 78.2% (230/294); all four together 81.7% (28522/34895).
+Over the sixteen blocks, counting items (waived items removed for the five blocks that have waivers): statement 100.0% (2127/2128), expression 99.5% (414/416), toggle 93.9% (26575/28309), FSM 100.0% (144/144); all four together 94.4% (29260/30997).
 
 ## Block by block
 
@@ -41,71 +41,78 @@ Over the sixteen blocks, counting items (waived items removed for the five block
 
 Plan: `tb/core/GARUDA_CORE_vplan.csv` (41 features, 69 checks and coverage items). Track A.
 
-Measured on all directed tests merged, per module, 2026-10-16. No waiver applied. Superseded by the G5 merge of 2026-11-11 (`flow/4_core/core_g5.md`, `flow/4_core/imc/`).
+Measured on all directed tests merged, per module. No waiver applied.
 
 | Module | Statement | Expression | Toggle | FSM |
 |---|---|---|---|---|
-| `garuda_core_top` | 100.0% (9/9) | none | 77.5% (1428/1842) | none |
-| `core_clk_gate` | 100.0% (3/3) | none | 80.0% (4/5) | none |
-| `garuda_if_stage_top` | none | none | 84.2% (267/317) | none |
-| `garuda_pc_gen` | 100.0% (10/10) | none | 97.0% (129/133) | none |
-| `garuda_iport_ahb_master` | 100.0% (19/19) | 100.0% (9/9) | 82.1% (253/308) | none |
-| `garuda_prefetch_buffer` | 100.0% (15/15) | none | 97.3% (144/148) | none |
-| `if_id` | 100.0% (7/7) | none | 69.1% (94/136) | none |
-| `id_stage` | none | none | 98.8% (555/562) | none |
-| `decode_control` | 96.9% (63/65) | 100.0% (20/20) | 100.0% (117/117) | none |
+| `garuda_core_top` | 100.0% (9/9) | none | 96.3% (1705/1770) | none |
+| `core_clk_gate` | 100.0% (3/3) | none | 100.0% (5/5) | none |
+| `if_stage_top` | none | none | 86.2% (269/312) | none |
+| `garuda_pc_gen` | 100.0% (7/7) | none | 98.5% (67/68) | none |
+| `iport_master` | 100.0% (19/19) | 100.0% (18/18) | 83.7% (257/307) | none |
+| `prefetch_buf` | 100.0% (15/15) | none | 97.3% (143/147) | none |
+| `if_id` | 100.0% (7/7) | none | 97.1% (133/137) | none |
+| `id_stage` | none | none | 98.8% (554/561) | none |
+| `decode_control` | 100.0% (60/60) | 100.0% (15/15) | 100.0% (110/110) | none |
 | `imm_gen` | 100.0% (8/8) | none | 86.7% (280/323) | none |
-| `regfile` | 100.0% (3/3) | 100.0% (11/11) | 100.0% (178/178) | none |
-| `branch_predict` | none | none | 96.1% (220/229) | none |
-| `hazard_forward_unit` | none | none | 100.0% (17/17) | none |
-| `id_ex` | 100.0% (8/8) | none | 91.1% (430/472) | none |
+| `regfile` | 100.0% (3/3) | 100.0% (11/11) | 100.0% (177/177) | none |
+| `branch_predict` | none | none | 96.1% (221/230) | none |
+| `hazard_fwd_unit` | none | none | 100.0% (17/17) | none |
+| `id_ex` | 100.0% (7/7) | none | 99.4% (467/470) | none |
 | `forward_unit` | none | 100.0% (12/12) | 100.0% (28/28) | none |
-| `ex_stage` | 100.0% (8/8) | none | 87.5% (836/955) | none |
-| `alu` | 100.0% (13/13) | none | 100.0% (105/105) | none |
-| `mul32` | none | none | 100.0% (233/233) | none |
-| `branch_unit` | 100.0% (8/8) | none | 98.2% (266/271) | none |
-| `csr_rw` | none | none | 100.0% (115/115) | none |
-| `ex_mem` | 100.0% (7/7) | none | 82.0% (182/222) | none |
-| `mem_stage` | none | none | 96.3% (392/407) | none |
-| `load_store_unit` | 100.0% (4/4) | none | 99.1% (106/107) | none |
-| `d_port_ahb_master` | 92.3% (12/13) | 100.0% (6/6) | 97.3% (144/148) | 100.0% (4/4) |
-| `load_formatter` | 100.0% (14/14) | none | 100.0% (96/96) | none |
+| `ex_stage` | 100.0% (4/4) | 100.0% (3/3) | 99.6% (900/904) | none |
+| `alu_unit` | 100.0% (13/13) | none | 100.0% (139/139) | none |
+| `mul32` | none | none | 100.0% (231/231) | none |
+| `branch_unit` | 100.0% (8/8) | 100.0% (6/6) | 98.2% (266/271) | none |
+| `csr_rw` | none | none | 100.0% (70/70) | none |
+| `ex_mem` | 100.0% (7/7) | none | 98.2% (217/221) | none |
+| `mem_stage` | none | none | 98.0% (390/398) | none |
+| `load_store_unit` | 100.0% (8/8) | none | 99.0% (101/102) | none |
+| `dport_master` | 100.0% (14/14) | 100.0% (6/6) | 98.0% (145/148) | none |
+| `load_formatter` | 100.0% (9/9) | none | 100.0% (96/96) | none |
 | `mem_wb_reg` | 100.0% (5/5) | none | 100.0% (81/81) | none |
 | `wb_stage` | none | none | 100.0% (76/76) | none |
-| `csr_file` | 93.9% (62/66) | 66.7% (8/12) | 57.7% (491/851) | none |
-| `clic_ctrl` | none | none | 96.4% (108/112) | none |
-| `trap_ctrl` | 100.0% (7/7) | none | 64.9% (362/558) | none |
-| `pipe_ctrl` | none | none | 86.1% (136/158) | none |
-| **whole block** | 97.6% (285/292) | 94.3% (66/70) | 84.6% (7873/9310) | 100.0% (4/4) |
+| `csr_file` | 100.0% (77/77) | 100.0% (3/3) | 86.1% (632/734) | none |
+| `clic_ctrl` | none | none | 96.5% (109/113) | none |
+| `trap_ctrl` | 100.0% (7/7) | 100.0% (11/11) | 96.8% (512/529) | none |
+| `pipe_ctrl` | none | none | 98.1% (153/156) | none |
+| **whole block** | 100.0% (290/290) | 100.0% (85/85) | 95.7% (8551/8931) | none |
 
-Functional coverage: 90.8% (1188/1309).
+Functional coverage: 94.2% (1786/1895).
 
 | Covergroups of | Bins covered |
 |---|---|
-| garuda_cov (tb_boot: ISA and sanity programs; chip programs) | 79.0% (199/252) |
-| garuda_core_cov_ext (tb_boot: ISA and sanity programs; chip programs) | 69.6% (133/191) |
+| garuda_cov (tb_boot: ISA and sanity programs; chip programs) | 100.0% (224/224) |
+| garuda_core_cov_ext (tb_boot: ISA and sanity programs; chip programs) | 42.0% (76/181) |
 | unit_alu | 100.0% (26/26) |
-| unit_branch_predict | 100.0% (14/14) |
-| unit_branch_unit | 100.0% (29/29) |
-| unit_clic_ctrl | 94.1% (16/17) |
-| unit_csr_rw | 84.8% (28/33) |
+| unit_alu_unit | 100.0% (152/152) |
+| unit_branch_predict | 100.0% (27/27) |
+| unit_branch_unit | 100.0% (64/64) |
+| unit_clic_ctrl | 100.0% (12/12) |
+| unit_csr_rw | 100.0% (28/28) |
 | unit_d_port_ahb_master | 100.0% (28/28) |
-| unit_decode_control | 100.0% (59/59) |
+| unit_decode_control | 100.0% (213/213) |
+| unit_dport_master | 100.0% (30/30) |
+| unit_forward_unit | 100.0% (31/31) |
 | unit_garuda_if_stage_top | 100.0% (22/22) |
 | unit_garuda_iport_ahb_master | 100.0% (31/31) |
-| unit_garuda_pc_gen | 100.0% (13/13) |
+| unit_garuda_pc_gen | 100.0% (4/4) |
 | unit_garuda_prefetch_buffer | 88.2% (30/34) |
 | unit_hazard_forward_unit | 100.0% (105/105) |
+| unit_hazard_fwd_unit | 100.0% (118/118) |
 | unit_id_stage | 100.0% (154/154) |
+| unit_if_stage_top | 100.0% (22/22) |
 | unit_imm_gen | 100.0% (22/22) |
+| unit_iport_master | 100.0% (31/31) |
 | unit_load_formatter | 100.0% (39/39) |
-| unit_load_store_unit | 100.0% (32/32) |
+| unit_load_store_unit | 100.0% (59/59) |
 | unit_mem_stage | 100.0% (60/60) |
 | unit_mem_wb_reg | 100.0% (17/17) |
 | unit_mul32 | 100.0% (29/29) |
+| unit_prefetch_buf | 100.0% (30/30) |
 | unit_reg_file | 100.0% (102/102) |
 
-Assertions: 100.0% (140/140) triggered.
+Assertions: 99.3% (137/138) triggered. Never triggered: `c_h5_vs_trap`.
 
 **Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is "unreachable", a JasperGold run that confirms it.
 
@@ -118,27 +125,27 @@ Measured on all directed tests merged, per module. No waiver applied.
 
 | Module | Statement | Expression | Toggle | FSM |
 |---|---|---|---|---|
-| `dsu_top` | 100.0% (5/5) | none | 99.5% (568/571) | none |
-| `dsu_decoder` | none | none | 100.0% (142/142) | none |
-| `saturation_unit` | 100.0% (5/5) | none | 63.4% (166/262) | none |
-| `mac_cluster` | 100.0% (5/5) | none | 99.4% (521/524) | none |
-| `mac_unit` | 100.0% (24/24) | none | 95.1% (1036/1089) | none |
+| `dsu_top` | 100.0% (5/5) | none | 100.0% (573/573) | none |
+| `dsu_decoder` | none | none | 100.0% (129/129) | none |
+| `saturation_unit` | 100.0% (5/5) | none | 54.9% (117/213) | none |
+| `mac_cluster` | 100.0% (5/5) | none | 100.0% (479/479) | none |
+| `mac_unit` | 100.0% (24/24) | none | 95.8% (1150/1201) | none |
 | `operand_router` | 100.0% (5/5) | none | 98.8% (161/163) | none |
 | `mult_16x16` | none | none | 100.0% (64/64) | none |
 | `csa_3to2` | none | none | 99.2% (243/245) | none |
-| `kogge_stone_49` | none | none | 98.6% (146/148) | none |
-| `barrel_shifter` | none | none | 100.0% (279/279) | none |
-| `readback_mux` | none | none | 100.0% (114/114) | none |
+| `kogge_stone_49` | none | none | 99.3% (146/147) | none |
+| `barrel_shifter` | none | none | 100.0% (199/199) | none |
+| `readback_mux` | none | none | 100.0% (112/112) | none |
 | `result_selector` | 100.0% (5/5) | none | 100.0% (130/130) | none |
-| `overflow_flag` | 100.0% (7/7) | none | 66.7% (6/9) | none |
+| `overflow_flag` | 100.0% (7/7) | none | 100.0% (9/9) | none |
 | `dsu_stall` | 100.0% (7/7) | none | 100.0% (25/25) | none |
-| **whole block** | 100.0% (63/63) | none | 95.6% (3601/3765) | none |
+| **whole block** | 100.0% (63/63) | none | 95.9% (3537/3689) | none |
 
-Functional coverage: 60.0% (192/320).
+Functional coverage: 59.7% (191/320).
 
 | Covergroups of | Bins covered |
 |---|---|
-| dsu_cov | 60.0% (192/320) |
+| dsu_cov | 59.7% (191/320) |
 
 Assertions: no property is bound to this block yet.
 
@@ -147,20 +154,20 @@ Assertions: no property is bound to this block yet.
 
 ### AHB interconnect
 
-Plan: `tb/ahb/GARUDA_AHB_vplan.csv` (24 features, 36 checks and coverage items). Track A.
+Plan: `tb/ahb/GARUDA_AHB_vplan.csv` (24 features, 45 checks and coverage items). Track A.
 
 Measured on all directed tests merged, per module. No waiver applied.
 
 | Module | Statement | Expression | Toggle | FSM |
 |---|---|---|---|---|
-| `ahb_interconnect` | none | none | 68.5% (512/747) | none |
-| `ahb_arbiter` | 100.0% (13/13) | 100.0% (3/3) | 90.3% (28/31) | none |
-| `ahb_master_mux` | 100.0% (13/13) | 100.0% (3/3) | 55.7% (214/384) | none |
-| `ahb_decoder` | 100.0% (6/6) | none | 67.6% (25/37) | none |
-| `ahb_default_slave` | 92.3% (12/13) | none | 25.6% (11/43) | 100.0% (7/7) |
-| `ahb_slave_mux` | 100.0% (21/21) | none | 84.9% (185/218) | none |
-| `ahb_master_port` | 100.0% (7/7) | 100.0% (3/3) | 99.1% (111/112) | none |
-| **whole block** | 98.6% (72/73) | 100.0% (9/9) | 69.1% (1086/1572) | 100.0% (7/7) |
+| `ahb_interconnect` | none | none | 87.7% (616/702) | none |
+| `ahb_arbiter` | 100.0% (13/13) | 100.0% (3/3) | 90.0% (27/30) | none |
+| `ahb_master_mux` | 100.0% (13/13) | 100.0% (3/3) | 76.9% (273/355) | none |
+| `ahb_decoder` | 100.0% (6/6) | none | 100.0% (9/9) | none |
+| `ahb_dflt_slave` | 100.0% (10/10) | none | 100.0% (12/12) | 100.0% (7/7) |
+| `ahb_slave_mux` | 96.6% (28/29) | none | 100.0% (186/186) | none |
+| `ahb_master_port` | 100.0% (7/7) | 100.0% (3/3) | 99.1% (110/111) | none |
+| **whole block** | 98.7% (77/78) | 100.0% (9/9) | 87.8% (1233/1405) | 100.0% (7/7) |
 
 Functional coverage: 71.8% (102/142).
 
@@ -168,23 +175,23 @@ Functional coverage: 71.8% (102/142).
 |---|---|
 | ahb_interconnect_cov | 71.8% (102/142) |
 
-Assertions: 94.6% (35/37) triggered. Never triggered: `c_all_request`, `assume_rom_error2`.
+Assertions: 97.3% (36/37) triggered. Never triggered: `c_all_request`.
 
 **Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is "unreachable", a JasperGold run that confirms it.
 
 
 ### AHB to APB bridge
 
-Plan: `tb/ahb2apb/GARUDA_AHB2APB_vplan.csv` (30 features, 50 checks and coverage items). Track A.
+Plan: `tb/ahb2apb/GARUDA_AHB2APB_vplan.csv` (30 features, 58 checks and coverage items). Track A.
 
 Measured on all directed tests merged, per module. No waiver applied.
 
 | Module | Statement | Expression | Toggle | FSM |
 |---|---|---|---|---|
-| `ahb2apb_bridge` | 88.5% (23/26) | 81.8% (9/11) | 79.1% (598/756) | 85.0% (17/20) |
-| `ahb2apb_apb_fsm` | 100.0% (15/15) | none | 94.8% (184/194) | 100.0% (8/8) |
-| `ahb2apb_fabric` | 100.0% (2/2) | none | 70.0% (318/454) | none |
-| **whole block** | 93.0% (40/43) | 81.8% (9/11) | 78.3% (1100/1404) | 89.3% (25/28) |
+| `ahb2apb_bridge` | 100.0% (25/25) | 100.0% (6/6) | 81.1% (575/709) | none |
+| `ahb2apb_apb_fsm` | 100.0% (28/28) | none | 95.2% (118/124) | none |
+| `ahb2apb_fabric` | none | none | 71.6% (325/454) | none |
+| **whole block** | 100.0% (53/53) | 100.0% (6/6) | 79.1% (1018/1287) | none |
 
 Functional coverage: 38.4% (53/138).
 
@@ -201,27 +208,37 @@ Assertions: 96.7% (29/30) triggered. Never triggered: `c_in_reset`.
 
 Plan: `tb/mem/GARUDA_MEM_vplan.csv` (28 features, 40 checks and coverage items). Track A.
 
-Measured on all directed tests merged, per module. No waiver applied.
+Measured on the UVM environment (0 runs: register test, directed test, random seeds), DUT instance only.
 
-| Module | Statement | Expression | Toggle | FSM |
-|---|---|---|---|---|
-| `isram_top` | 75.0% (3/4) | none | 90.6% (183/202) | none |
-| `ahb_mem_slave_if` | 95.8% (23/24) | 94.1% (16/17) | 96.1% (317/330) | none |
-| `sram_wrapper` | 90.5% (19/21) | 100.0% (3/3) | 100.0% (85/85) | none |
-| `bootrom_top` | 75.0% (3/4) | none | 89.8% (176/196) | none |
-| `sram_wrapper, generate init_T` | 100.0% (1/1) | none | none | none |
-| `dsram_top` | 68.8% (11/16) | 100.0% (3/3) | 89.0% (153/172) | none |
-| **whole block** | 85.7% (60/70) | 95.7% (22/23) | 92.8% (914/985) | none |
+| Metric | As measured | After waivers | Items waived |
+|---|---|---|---|
+| Block | 85.7% (60/70) | 100.0% (60/60) | 10 |
+| Expression | 95.7% (22/23) | 95.7% (22/23) | 0 |
+| Toggle | 99.5% (968/973) | 100.0% (968/968) | 5 |
+| Assertion | 100.0% (21/21) | 100.0% (21/21) | 0 |
+| Functional (covergroup bins) | 100.0% (53/53) | 100.0% (53/53) | 0 |
 
-Functional coverage: 77.2% (44/57).
+**Still open after the waivers:** Expression 1 of 23. Listed in `sim/cov_all/holes_mem.txt` after `make cov_chart`.
 
-| Covergroups of | Bins covered |
-|---|---|
-| mem_cov | 77.2% (44/57) |
+**Exclusions and their justifications** (`flow/cov/mem_exclusions.tcl`, 15 lines):
 
-Assertions: 100.0% (20/20) triggered.
-
-**Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is "unreachable", a JasperGold run that confirms it.
+| Metric | Where | Items | Justification |
+|---|---|---|---|
+| block | `bootrom_top` | 1: `1` | bd_load_hex call (bootrom_top.sv:63) inside ifndef SYNTHESIS: a bench backdoor preload, not hardware |
+| block | `isram_top` | 1: `4` | bd_load_hex call (isram_top.sv:79) inside ifndef SYNTHESIS: a bench backdoor preload, not hardware |
+| block | `dsram_top` | 1: `8` | backdoor bd_write to bank 1 (dsram_top.sv:89) inside ifndef SYNTHESIS: bench code, not hardware |
+| block | `dsram_top` | 1: `9` | backdoor bd_write to bank 2 (dsram_top.sv:90) inside ifndef SYNTHESIS: bench code, not hardware |
+| block | `dsram_top` | 1: `13` | backdoor bd_read of bank 0 (dsram_top.sv:103) inside ifndef SYNTHESIS: bench code, not hardware |
+| block | `dsram_top` | 1: `14` | backdoor bd_read of bank 1 (dsram_top.sv:104) inside ifndef SYNTHESIS: bench code, not hardware |
+| block | `dsram_top` | 1: `15` | backdoor bd_read of bank 2 (dsram_top.sv:105) inside ifndef SYNTHESIS: bench code, not hardware |
+| block | `sram_wrapper` | 1: `21` | readmemh preload (sram_wrapper.sv:118-120) inside ifndef SYNTHESIS: bench code, not hardware |
+| block | `ahb_mem_slave_if` | 1: `23` | simulation-only self-check (ahb_mem_slave_if.sv:198-203, ifndef SYNTHESIS) that prints on a write-buffer overflow: never firing is the passing result |
+| block | `sram_wrapper` | 1: `17` | the ROM-write path (sram_wrapper.sv:101, we with IS_ROM = 1): the boot ROM's interface refuses every write (WRITABLE = 0, AHB ERROR), so its array never sees we |
+| toggle | `bootrom_top` | 1: `we` | the boot ROM's array write enable is constant 0: its interface refuses every write (WRITABLE = 0) |
+| toggle | `ahb_mem_slave_if` | 1: `hsize_i` | the AHB is 32 bits wide: HSIZE is at most word, so bit 2 is 0 |
+| toggle | `bootrom_top` | 1: `hsize_i` | the AHB is 32 bits wide: HSIZE is at most word, so bit 2 is 0 |
+| toggle | `isram_top` | 1: `hsize_i` | the AHB is 32 bits wide: HSIZE is at most word, so bit 2 is 0 |
+| toggle | `dsram_top` | 1: `hsize_i` | the AHB is 32 bits wide: HSIZE is at most word, so bit 2 is 0 |
 
 
 ### DMA
@@ -232,20 +249,21 @@ Measured on all directed tests merged, per module. No waiver applied.
 
 | Module | Statement | Expression | Toggle | FSM |
 |---|---|---|---|---|
-| `dma_top` | none | none | 55.5% (707/1275) | none |
-| `dma_apb_slave` | 100.0% (21/21) | none | 54.1% (660/1221) | none |
-| `dma_chan` | 100.0% (51/51) | 100.0% (26/26) | 68.8% (245/356) | none |
-| `dma_arbiter` | 100.0% (4/4) | 100.0% (4/4) | 100.0% (13/13) | none |
-| `dma_engine` | 96.8% (30/31) | 93.8% (15/16) | 75.0% (526/701) | 100.0% (13/13) |
-| **whole block** | 99.1% (106/107) | 97.8% (45/46) | 60.3% (2151/3566) | 100.0% (13/13) |
+| `dma_top` | none | none | 72.3% (927/1283) | none |
+| `dma_apb_slave` | 100.0% (8/8) | 100.0% (3/3) | 69.2% (823/1189) | none |
+| `dma_chan` | 100.0% (76/76) | 100.0% (12/12) | 90.7% (283/312) | none |
+| `dma_arbiter` | 100.0% (6/6) | 100.0% (4/4) | 100.0% (10/10) | none |
+| `dma_engine` | 100.0% (55/55) | 100.0% (18/18) | 98.8% (802/812) | none |
+| `dma_engine, generate ack2_T_F` | 100.0% (3/3) | none | none | none |
+| **whole block** | 100.0% (148/148) | 100.0% (37/37) | 78.9% (2845/3606) | none |
 
-Functional coverage: 75.8% (122/161).
+Functional coverage: 95.6% (151/158).
 
 | Covergroups of | Bins covered |
 |---|---|
-| dma_cov | 75.8% (122/161) |
+| dma_cov | 95.6% (151/158) |
 
-Assertions: 100.0% (53/53) triggered.
+Assertions: 100.0% (54/54) triggered.
 
 **Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is "unreachable", a JasperGold run that confirms it.
 
@@ -254,43 +272,54 @@ Assertions: 100.0% (53/53) triggered.
 
 Plan: `tb/debug/GARUDA_DEBUG_vplan.csv` (36 features, 52 checks and coverage items). Track A.
 
-Measured on all directed tests merged, per module. No waiver applied.
+Measured on the UVM environment (0 runs: register test, directed test, random seeds), DUT instance only.
 
-| Module | Statement | Expression | Toggle | FSM |
-|---|---|---|---|---|
-| `debug_top` | none | none | 86.0% (388/451) | none |
-| `jtag_tap` | 100.0% (36/36) | none | 100.0% (30/30) | 90.5% (38/42) |
-| `dtm` | 94.3% (33/35) | 94.1% (16/17) | 83.9% (167/199) | none |
-| `dmi_cdc` | 100.0% (15/15) | none | 100.0% (17/17) | none |
-| `debug_module` | 95.8% (68/71) | 83.3% (15/18) | 65.0% (420/646) | none |
-| `sba_master` | 93.3% (14/15) | none | 82.8% (202/244) | 100.0% (6/6) |
-| **whole block** | 96.5% (166/172) | 88.6% (31/35) | 77.1% (1224/1587) | 91.7% (44/48) |
+| Metric | As measured | After waivers | Items waived |
+|---|---|---|---|
+| Block | 100.0% (221/221) | 100.0% (221/221) | 0 |
+| Expression | 98.0% (48/49) | 98.0% (48/49) | 0 |
+| Toggle | 91.7% (1414/1542) | 100.0% (1414/1414) | 128 |
+| Assertion | 100.0% (40/40) | 100.0% (40/40) | 0 |
+| Functional (covergroup bins) | 100.0% (80/80) | 100.0% (80/80) | 0 |
 
-Functional coverage: 90.0% (72/80).
+**Still open after the waivers:** Expression 1 of 49. Listed in `sim/cov_all/holes_debug.txt` after `make cov_chart`.
 
-| Covergroups of | Bins covered |
-|---|---|
-| debug_cov | 90.0% (72/80) |
+**Exclusions and their justifications** (`flow/cov/debug_exclusions.tcl`, 124 lines):
 
-Assertions: 97.5% (39/40) triggered. Never triggered: `a_sba_addr_stable`.
-
-**Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is "unreachable", a JasperGold run that confirms it.
+| Metric | Where | Items | Justification |
+|---|---|---|---|
+| toggle | `debug_dtm` | 20: `dtmcs` | dtmcs fields 31:12 are constants (zero, dmihardreset/dmireset read 0, idle = 5): debug_dtm.sv:60 |
+| toggle | `debug_dtm` | 10: `dtmcs` | dtmcs abits = 7 and version = 1 are constants: debug_dtm.sv:60 |
+| toggle | `debug_module` | 2: `dmcontrol` | dmcontrol haltreq/resumereq read 0 (write-only actions): constant in debug_module.sv:116 |
+| toggle | `debug_module` | 27: `dmcontrol` | dmcontrol fields 28:2 (hasel, hartsel, set/clr resethaltreq, ackhavereset) are not implemented for one hart: constant 0, debug_module.sv:116 |
+| toggle | `debug_module` | 20: `dmstatus` | dmstatus fields 31:12 are constants for one hart with no reset-halt (impebreak 0, allhavereset/anyhavereset/allresumeack 0): debug_module.sv:120 |
+| toggle | `debug_module` | 8: `dmstatus` | dmstatus authenticated = 1, hasresethaltreq/confstrptrvalid = 0, version = 2 are constants: debug_module.sv:125 |
+| toggle | `debug_module` | 9: `sbcs` | sbcs sbversion = 1 and the reserved bits are constants: debug_module.sv:126 |
+| toggle | `debug_module` | 12: `sbcs` | sbcs sbasize = 32 and sbaccess8/16/32/64/128 = 00100 (32-bit only) are constants: debug_module.sv:128 |
+| toggle | `debug_module` | 2: `refuse_code` | refuse_code is 2 or 3 (debug_module.sv:203): bit 1 is always 1, bit 2 always 0 |
+| toggle | `debug_module` | 6: `halt_cnt` | halt_cnt counts to HALT_TIMEOUT - 1 = 1023 (debug_module.sv:144) and is reset there: bits 15:10 never set |
+| toggle | `sba_master` | 1: `hsize_o` | SBA is 32-bit only (sbaccess32): HSIZE tied to word, sba_master.sv:39 |
+| toggle | `debug_top` | 1: `hsize_o` | SBA is 32-bit only (sbaccess32): HSIZE tied to word, sba_master.sv:39 |
+| toggle | `sba_master` | 1: `htrans_o` | SBA issues single NONSEQ or IDLE transfers, never SEQ or BUSY: HTRANS bit 0 is 0 (sba_master.sv:76-80) |
+| toggle | `debug_top` | 1: `htrans_o` | SBA issues single NONSEQ or IDLE transfers, never SEQ or BUSY: HTRANS bit 0 is 0 (sba_master.sv:76-80) |
+| toggle | `sba_master` | 2: `haddr_o` | a misaligned SBA address is refused before the bus (wadr_ok/sadr_ok, debug_module.sv:195-196): HADDR bits 1:0 are 0 |
+| toggle | `debug_top` | 2: `haddr_o` | a misaligned SBA address is refused before the bus (wadr_ok/sadr_ok, debug_module.sv:195-196): HADDR bits 1:0 are 0 |
 
 
 ### CLIC
 
-Plan: `tb/clic/GARUDA_CLIC_vplan.csv` (35 features, 67 checks and coverage items). Track B.
+Plan: `tb/clic/GARUDA_CLIC_vplan.csv` (35 features, 70 checks and coverage items). Track B.
 
 Measured on the UVM environment (22 runs: register test, directed test, random seeds), DUT instance only.
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
-| Block | 100.0% (20/20) | 100.0% (20/20) | 0 |
-| Toggle | 96.1% (1119/1165) | 100.0% (1119/1119) | 46 |
-| Assertion | 73.2% (60/82) | 100.0% (60/60) | 22 |
-| Functional (covergroup bins) | 100.0% (417/417) | 100.0% (417/417) | 0 |
+| Block | 100.0% (25/25) | 100.0% (25/25) | 0 |
+| Toggle | 95.8% (1177/1229) | 100.0% (1173/1173) | 56 |
+| Assertion | 100.0% (87/87) | 100.0% (87/87) | 0 |
+| Functional (covergroup bins) | 100.0% (429/429) | 100.0% (429/429) | 0 |
 
-**Exclusions and their justifications** (`flow/cov/clic_exclusions.tcl`, 68 lines):
+**Exclusions and their justifications** (`flow/cov/clic_exclusions.tcl`, 56 lines):
 
 | Metric | Where | Items | Justification |
 |---|---|---|---|
@@ -299,17 +328,7 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 | toggle | `clic_top.u_sel` | 11: `cand_i` | candidate bit of an ID with no source: its enable is hardwired 0, so enable AND pending is always 0 |
 | toggle | `clic_top` | 1: `pready_o` | constant 1: the block is zero-wait by specification (CLIC section 5), checked by a_pready |
 | toggle | `clic_top.u_apb` | 1: `pready_o` | constant 1: the block is zero-wait by specification (CLIC section 5), checked by a_pready |
-| assertion | `clic_top.u_clic_sva.g_n\[0\]` | 2: `a_tiebreak_lowest_id`, `a_winner_max_level` | ID 0 has no source and can never be a candidate, so this property cannot trigger; the 21 instances for assigned IDs all trigger |
-| assertion | `clic_top.u_clic_sva.g_n\[7\]` | 2: `a_tiebreak_lowest_id`, `a_winner_max_level` | ID 7 has no source and can never be a candidate, so this property cannot trigger; the 21 instances for assigned IDs all trigger |
-| assertion | `clic_top.u_clic_sva.g_n\[23\]` | 2: `a_tiebreak_lowest_id`, `a_winner_max_level` | ID 23 has no source and can never be a candidate, so this property cannot trigger; the 21 instances for assigned IDs all trigger |
-| assertion | `clic_top.u_clic_sva.g_n\[24\]` | 2: `a_tiebreak_lowest_id`, `a_winner_max_level` | ID 24 has no source and can never be a candidate, so this property cannot trigger; the 21 instances for assigned IDs all trigger |
-| assertion | `clic_top.u_clic_sva.g_n\[25\]` | 2: `a_tiebreak_lowest_id`, `a_winner_max_level` | ID 25 has no source and can never be a candidate, so this property cannot trigger; the 21 instances for assigned IDs all trigger |
-| assertion | `clic_top.u_clic_sva.g_n\[26\]` | 2: `a_tiebreak_lowest_id`, `a_winner_max_level` | ID 26 has no source and can never be a candidate, so this property cannot trigger; the 21 instances for assigned IDs all trigger |
-| assertion | `clic_top.u_clic_sva.g_n\[27\]` | 2: `a_tiebreak_lowest_id`, `a_winner_max_level` | ID 27 has no source and can never be a candidate, so this property cannot trigger; the 21 instances for assigned IDs all trigger |
-| assertion | `clic_top.u_clic_sva.g_n\[28\]` | 2: `a_tiebreak_lowest_id`, `a_winner_max_level` | ID 28 has no source and can never be a candidate, so this property cannot trigger; the 21 instances for assigned IDs all trigger |
-| assertion | `clic_top.u_clic_sva.g_n\[29\]` | 2: `a_tiebreak_lowest_id`, `a_winner_max_level` | ID 29 has no source and can never be a candidate, so this property cannot trigger; the 21 instances for assigned IDs all trigger |
-| assertion | `clic_top.u_clic_sva.g_n\[30\]` | 2: `a_tiebreak_lowest_id`, `a_winner_max_level` | ID 30 has no source and can never be a candidate, so this property cannot trigger; the 21 instances for assigned IDs all trigger |
-| assertion | `clic_top.u_clic_sva.g_n\[31\]` | 2: `a_tiebreak_lowest_id`, `a_winner_max_level` | ID 31 has no source and can never be a candidate, so this property cannot trigger; the 21 instances for assigned IDs all trigger |
+| toggle | `clic_top` | 10: `cand` | candidate bit of an ID with no source: its enable is hardwired 0 by IE_MASK (00FF_FF7E: IDs 0, 7 and 24-31), so cand = pending & enable is 0 |
 
 
 ### Timers and watchdog
@@ -321,18 +340,15 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
 | Block | 100.0% (68/68) | 100.0% (68/68) | 0 |
-| Expression | 100.0% (3/3) | 100.0% (3/3) | 0 |
-| Toggle | 93.8% (1383/1475) | 100.0% (1383/1383) | 92 |
+| Expression | 100.0% (6/6) | 100.0% (6/6) | 0 |
+| Toggle | 99.8% (1319/1321) | 100.0% (1319/1319) | 2 |
 | Assertion | 100.0% (36/36) | 100.0% (36/36) | 0 |
 | Functional (covergroup bins) | 100.0% (145/145) | 100.0% (145/145) | 0 |
 
-**Exclusions and their justifications** (`flow/cov/timers_exclusions.tcl`, 93 lines):
+**Exclusions and their justifications** (`flow/cov/timers_exclusions.tcl`, 3 lines):
 
 | Metric | Where | Items | Justification |
 |---|---|---|---|
-| toggle | `timers_top` | 30: `ctl` | reserved bit of WDTCTL, reads 0: constant by specification, checked by the scoreboard on every WDTCTL read |
-| toggle | `timers_top.u_apb` | 30: `wdtctl_i` | reserved bit of WDTCTL, reads 0: constant by specification, checked by the scoreboard on every WDTCTL read |
-| toggle | `timers_top.u_wdt` | 30: `ctl_o` | reserved bit of WDTCTL, reads 0: constant by specification, checked by the scoreboard on every WDTCTL read |
 | toggle | `timers_top` | 1: `pready_o` | PREADY is tied high, no wait states: checked by a_pready and sb_pready |
 | toggle | `timers_top.u_apb` | 1: `pready_o` | PREADY is tied high, no wait states: checked by a_pready and sb_pready |
 | toggle | `timers_top.u_timers_sva` | 1: `pready_o` | PREADY is tied high, no wait states: checked by a_pready and sb_pready |
@@ -346,10 +362,10 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
-| Block | 100.0% (84/84) | 100.0% (84/84) | 0 |
-| Expression | 100.0% (13/13) | 100.0% (13/13) | 0 |
-| Toggle | 82.2% (240/292) | 100.0% (240/240) | 52 |
-| Assertion | 100.0% (42/42) | 100.0% (42/42) | 0 |
+| Block | 100.0% (73/73) | 100.0% (73/73) | 0 |
+| Expression | 100.0% (16/16) | 100.0% (16/16) | 0 |
+| Toggle | 82.7% (249/301) | 100.0% (249/249) | 52 |
+| Assertion | 100.0% (43/43) | 100.0% (43/43) | 0 |
 | Functional (covergroup bins) | 100.0% (106/106) | 100.0% (106/106) | 0 |
 
 **Exclusions and their justifications** (`flow/cov/crg_exclusions.tcl`, 55 lines):
@@ -373,13 +389,13 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
-| Block | 98.0% (98/100) | 100.0% (98/98) | 2 |
-| Expression | 96.0% (24/25) | 100.0% (21/21) | 4 |
-| Toggle | 92.9% (624/672) | 100.0% (624/624) | 48 |
-| Assertion | 96.2% (76/79) | 100.0% (76/76) | 3 |
+| Block | 100.0% (86/86) | 100.0% (86/86) | 0 |
+| Expression | 100.0% (18/18) | 100.0% (18/18) | 0 |
+| Toggle | 93.3% (526/564) | 100.0% (526/526) | 38 |
+| Assertion | 98.7% (76/77) | 100.0% (76/76) | 1 |
 | Functional (covergroup bins) | 100.0% (275/275) | 100.0% (275/275) | 0 |
 
-**Exclusions and their justifications** (`flow/cov/pwm_exclusions.tcl`, 60 lines):
+**Exclusions and their justifications** (`flow/cov/pwm_exclusions.tcl`, 40 lines):
 
 | Metric | Where | Items | Justification |
 |---|---|---|---|
@@ -388,15 +404,7 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 | toggle | `garuda_pwm_top` | 1: `pready_o` | PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready |
 | toggle | `garuda_pwm_top.u_shim` | 1: `pready_o` | PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready |
 | toggle | `garuda_pwm_top.u_shim.u_shim_sva` | 1: `pready_o` | PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready |
-| toggle | `garuda_pwm_top.u_shim` | 1: `ip_pready_i` | tied high in garuda_pwm_top: the registers answer in the same cycle |
-| toggle | `garuda_pwm_top.u_shim` | 9: `dma_ack_i`, `dma_req_o`, `holdoff_q`, `pad_async_i`, `pad_sync_o`, `rx_avail_i` and 3 more | tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser |
-| toggle | `garuda_pwm_top.u_shim.u_shim_sva` | 4: `dma_ack_i`, `dma_req_o`, `rx_avail_i`, `tx_space_i` | tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser |
-| toggle | `garuda_pwm_top.u_pwm_sva` | 1: `dma_req` | tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser |
-| assertion | `garuda_pwm_top.u_shim.u_shim_sva` | 2: `a_shim_dma_gate`, `a_shim_dma_holdoff` | tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser |
-| block | `garuda_pwm_top.u_shim` | 1: `30` | the shim's report that an IP held PREADY low: the PWM registers answer in the same cycle (ip_pready_i tied high), so the report can never print here |
-| expression | `garuda_pwm_top.u_shim` | 1: `4.1` | condition of the same report: ip_pready_i is tied high in garuda_pwm_top |
 | assertion | `garuda_pwm_top.u_shim.u_shim_sva` | 1: `c_shim_hole` | the register map of the PWM has no hole below its limit (all eight words 0x00 to 0x1C are registers), so this cover cannot happen here; it is seen in the GPIO, the I2C and the SPI master |
-| block | `garuda_pwm_top.u_shim` | 1: `27` | the shim stops the simulation if its parameter IP_LIMIT is above 0x100, which the 64-bit register map cannot describe; the parameter is a constant below that here, so the branch is never taken |
 
 
 ### GPIO
@@ -407,34 +415,27 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
-| Block | 58.4% (156/267) | 100.0% (156/156) | 111 |
-| Expression | 93.5% (29/31) | 100.0% (22/22) | 9 |
-| Toggle | 55.5% (680/1225) | 100.0% (296/296) | 81 |
-| Assertion | 94.7% (36/38) | 100.0% (36/36) | 2 |
+| Block | 57.4% (147/256) | 100.0% (147/147) | 109 |
+| Expression | 95.8% (23/24) | 100.0% (19/19) | 5 |
+| Toggle | 52.0% (584/1122) | 100.0% (200/200) | 74 |
+| Assertion | 100.0% (36/36) | 100.0% (36/36) | 0 |
 | Functional (covergroup bins) | 100.0% (214/214) | 100.0% (214/214) | 0 |
 
-**Exclusions and their justifications** (`flow/cov/gpio_exclusions.tcl`, 666 lines):
+**Exclusions and their justifications** (`flow/cov/gpio_exclusions.tcl`, 649 lines):
 
 | Metric | Where | Items | Justification |
 |---|---|---|---|
 | toggle | `garuda_gpio_top` | 36: `ip_prdata`, `prdata_o` | read-data bit that is 0 in every register of this block: constant by specification, checked by the scoreboard on every read |
 | toggle | `garuda_gpio_top.u_shim` | 36: `ip_prdata_i`, `prdata_o` | read-data bit that is 0 in every register of this block: constant by specification, checked by the scoreboard on every read |
 | toggle | `garuda_gpio_top.u_gpio` | 24: `PRDATA` | read-data bit that is 0 in every register of this block: constant by specification, checked by the scoreboard on every read |
-| toggle | `garuda_gpio_top` | 2: `ip_pready`, `pready_o` | PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready |
-| toggle | `garuda_gpio_top.u_shim` | 2: `ip_pready_i`, `pready_o` | PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready |
+| toggle | `garuda_gpio_top` | 1: `pready_o` | PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready |
+| toggle | `garuda_gpio_top.u_shim` | 1: `pready_o` | PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready |
 | toggle | `garuda_gpio_top.u_shim.u_shim_sva` | 1: `pready_o` | PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready |
 | toggle | `garuda_gpio_top.u_gpio` | 1: `PREADY` | PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready |
 | toggle | `garuda_gpio_top.u_gpio` | 1: `PSLVERR` | tied low in the vendored block and left unconnected: the shim makes PSLVERR |
-| toggle | `garuda_gpio_top.u_shim` | 5: `dma_ack_i`, `dma_req_o`, `holdoff_q`, `rx_avail_i`, `tx_space_i` | tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic |
-| toggle | `garuda_gpio_top.u_shim.u_shim_sva` | 4: `dma_ack_i`, `dma_req_o`, `rx_avail_i`, `tx_space_i` | tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic |
-| toggle | `garuda_gpio_top.u_gpio_sva` | 1: `dma_req` | tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic |
-| assertion | `garuda_gpio_top.u_shim.u_shim_sva` | 2: `a_shim_dma_gate`, `a_shim_dma_holdoff` | tied off in garuda_gpio_top: the GPIO has no DMA channel; covered in the blocks that use the shim's DMA logic |
 | toggle | `garuda_gpio_top.u_gpio` | 77: `s_cg_en`, `s_clk_en` | logic of a pin that does not exist: the vendored block is written for 64 pins and built with PAD_NUM = 2 |
 | block | `garuda_gpio_top.u_gpio` | 19: `123`, `133`, `143`, `153`, `163`, `168` and 13 more | logic of a pin that does not exist: the vendored block is written for 64 pins and built with PAD_NUM = 2 |
 | toggle | `garuda_gpio_top.u_gpio` | 1: `dft_cg_enable_i` | tied low until scan insertion: GPIO spec N-9.3, open item OPEN-G1 |
-| block | `garuda_gpio_top.u_shim` | 1: `30` | the shim's report that an IP held PREADY low: the vendored GPIO ties PREADY high, so the report can never print here |
-| expression | `garuda_gpio_top.u_shim` | 1: `4.1` | condition of the same report: ip_pready_i is tied high by the vendored GPIO |
-| block | `garuda_gpio_top.u_shim` | 1: `27` | the shim stops the simulation if its parameter IP_LIMIT is above 0x100, which the 64-bit register map cannot describe; the parameter is a constant below that here, so the branch is never taken |
 | block | `garuda_gpio_top.u_gpio` | 90: `100`, `102`, `104`, `105`, `106`, `107` and 84 more | reached only through an offset that is not a GARUDA register (0x20, 0x2C to 0x7C: the vendored file's bank for pads 32 to 63 and PADCFG1 to 7; GARUDA has two pads). Since the shim's register map of 2026-10-13 the IP is not selected there (GPIO-2 item 3, AUD-13), so the bus cannot reach it; until then it was covered only by writes to those non-registers. Unreachability to be confirmed in JasperGold (plan task 4.4) |
 | expression | `garuda_gpio_top.u_gpio` | 1: `2.1` | reached only through an offset that is not a GARUDA register (0x20, 0x2C to 0x7C: the vendored file's bank for pads 32 to 63 and PADCFG1 to 7; GARUDA has two pads). Since the shim's register map of 2026-10-13 the IP is not selected there (GPIO-2 item 3, AUD-13), so the bus cannot reach it; until then it was covered only by writes to those non-registers. Unreachability to be confirmed in JasperGold (plan task 4.4) |
 | toggle | `garuda_gpio_top.u_gpio` | 360: `s_gpio_dir`, `s_gpio_en`, `s_gpio_inten`, `s_gpio_out`, `s_write_cfg`, `s_write_dir` and 4 more | reached only through an offset that is not a GARUDA register (0x20, 0x2C to 0x7C: the vendored file's bank for pads 32 to 63 and PADCFG1 to 7; GARUDA has two pads). Since the shim's register map of 2026-10-13 the IP is not selected there (GPIO-2 item 3, AUD-13), so the bus cannot reach it; until then it was covered only by writes to those non-registers. Unreachability to be confirmed in JasperGold (plan task 4.4) |
@@ -448,18 +449,47 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
-| Block | 83.1% (713/858) | 83.1% (713/858) | 0 |
-| Expression | 84.1% (164/195) | 84.1% (164/195) | 0 |
-| Toggle | 66.7% (1718/2574) | 66.7% (1718/2574) | 0 |
-| Fsm | 71.4% (60/84) | 71.4% (60/84) | 0 |
-| Assertion | 64.7% (97/150) | 64.7% (97/150) | 0 |
-| Functional (covergroup bins) | 98.1% (207/211) | 98.1% (207/211) | 0 |
+| Block | 97.6% (245/251) | 100.0% (245/245) | 6 |
+| Expression | 100.0% (44/44) | 100.0% (44/44) | 0 |
+| Toggle | 78.0% (679/871) | 100.0% (679/679) | 192 |
+| Fsm | 100.0% (28/28) | 100.0% (28/28) | 0 |
+| Functional (covergroup bins) | 100.0% (211/211) | 100.0% (211/211) | 0 |
 
-**Still open after the waivers:** Block 145 of 858; Expression 31 of 195; Toggle 856 of 2574; Fsm 24 of 84; Assertion 53 of 150. Listed in `sim/uvm_uart/holes.txt` after `make cov_chart`.
+Properties that never triggered in these runs: `c_shim_hole`, `c_shim_irq`, `c_shim_err`, `a_shim_err_no_change`, `a_shim_err_no_select`, `c_shim_unaligned`, `c_shim_hole`, `a_shim_irq_held`, `c_shim_clear`, `a_shim_clear`, `a_shim_set_beats_clear`, `c_shim_clear`, `a_shim_no_spurious`, `a_shim_clear`, `a_shim_set_beats_clear`, `c_shim_clear`, `c_shim_evt`, `a_shim_clear`, `a_shim_sticky`, `a_shim_set_beats_clear`, `a_shim_capture`, `c_dma_req`, `a_shim_dma_holdoff`, `a_shim_dma_gate`, `c_rx_full`, `a_dma_drop`, `a_err_needs_byte`, `a_set_beats_clear`, `c_shim_irq`, `c_shim_err`.
 
-Properties that never triggered in these runs: `c_shim_hole`, `c_shim_irq`, `c_shim_err`, `a_shim_dma_holdoff`, `a_shim_dma_gate`, `a_shim_err_no_change`, `a_shim_err_no_select`, `c_shim_unaligned`, `c_shim_hole`, `a_shim_irq_held`, `c_shim_clear`, `a_shim_clear`, `a_shim_set_beats_clear`, `c_shim_clear`, `a_shim_no_spurious`, `a_shim_clear`, `a_shim_set_beats_clear`, `c_shim_clear`, `c_shim_evt`, `a_shim_clear`, `a_shim_sticky`, `a_shim_set_beats_clear`, `a_shim_capture`, `c_rx_full`, `a_dma_drop`, `a_err_needs_byte`, `a_set_beats_clear`, `c_shim_irq`, `c_shim_err`, `a_shim_dma_holdoff`.
+**Exclusions and their justifications** (`flow/cov/uart_exclusions.tcl`, 198 lines):
 
-**Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is "unreachable", a JasperGold run that confirms it.
+| Metric | Where | Items | Justification |
+|---|---|---|---|
+| toggle | `apb_uart_sv` | 24: `PRDATA` | the vendored UART's registers are 8 bits: PRDATA = {24'b0, reg} (apb_uart.sv), so bits 31:8 are 0 |
+| toggle | `garuda_uart_top` | 24: `ip_prdata` | the vendored UART's registers are 8 bits: PRDATA = {24'b0, reg} (apb_uart.sv), so bits 31:8 are 0 |
+| toggle | `garuda_apb_shim` | 24: `ip_prdata_i` | the vendored UART's registers are 8 bits: PRDATA = {24'b0, reg} (apb_uart.sv), so bits 31:8 are 0 |
+| toggle | `garuda_apb_dma` | 30: `rdata_o` | DMACTL is 2 bits: garuda_apb_dma.sv:63 rdata_o = {30'd0, dmactl_q}, so bits 31:2 are 0 (D-39) |
+| toggle | `garuda_uart_top` | 30: `dma_rdata` | DMACTL is 2 bits: garuda_apb_dma.sv:63 rdata_o = {30'd0, dmactl_q}, so bits 31:2 are 0 (D-39) |
+| toggle | `garuda_apb_shim` | 12: `prdata_o` | read-data bit that is 0 in every register of the UART window (8-bit registers, the ID constant, IRQSTAT/IRQEN two bits, DMACTL two bits): checked by the scoreboard on every read |
+| toggle | `garuda_uart_top` | 24: `prdata_o`, `shim_prdata` | read-data bit that is 0 in every register of the UART window (8-bit registers, the ID constant, IRQSTAT/IRQEN two bits, DMACTL two bits): checked by the scoreboard on every read |
+| toggle | `garuda_uart_top` | 4: `eff_paddr`, `ip_paddr` | the wrapper turns word offsets into the 16550's byte offsets: ip_paddr = {2'b00, paddr_i\[11:2\]} (garuda_uart_top.sv), so bits 11:10 are 0 |
+| toggle | `apb_uart_sv` | 2: `PADDR` | the wrapper turns word offsets into the 16550's byte offsets: ip_paddr = {2'b00, paddr_i\[11:2\]} (garuda_uart_top.sv), so bits 11:10 are 0 |
+| toggle | `apb_uart_sv` | 1: `PREADY` | no peripheral inserts wait states (AHB2APB spec 7.5): PREADY is tied 1 |
+| toggle | `garuda_apb_shim` | 1: `pready_o` | no peripheral inserts wait states (AHB2APB spec 7.5): PREADY is tied 1 |
+| toggle | `garuda_uart_top` | 1: `pready_o` | no peripheral inserts wait states (AHB2APB spec 7.5): PREADY is tied 1 |
+| toggle | `apb_uart_sv` | 1: `PSLVERR` | the vendored UART never answers PSLVERR (tied 0); the shim makes PSLVERR from the register map |
+| toggle | `apb_uart_sv` | 1: `apb_rx_ready` | only ever assigned 0 in apb_uart.sv (the vendored UART reads the RX FIFO through its own path) |
+| toggle | `apb_uart_sv` | 2: `clr_int` | clr_int is only ever 1000, 1100 or 0100 (apb_uart.sv:295-319): bits 1:0 are 0 |
+| toggle | `uart_interrupt` | 2: `clr_int_i` | clr_int is only ever 1000, 1100 or 0100 (apb_uart.sv:295-319): bits 1:0 are 0 |
+| toggle | `uart_interrupt` | 3: `IIR_o`, `iir_n`, `iir_q` | the vendored UART's IIR codes are 1100, 1000, 0100 and 0001 (uart_interrupt.sv): bit 1 is never 1 (the directed test checks the THR-empty code 0100) |
+| toggle | `apb_uart_sv` | 1: `IIR_o` | the vendored UART's IIR codes are 1100, 1000, 0100 and 0001 (uart_interrupt.sv): bit 1 is never 1 (the directed test checks the THR-empty code 0100) |
+| toggle | `uart_interrupt` | 1: `CTI_i` | the character-timeout input is tied 0 by apb_uart.sv (no CTI in GARUDA's configuration; Superlint VENDOR_UNUSED_MODE) |
+| block | `uart_interrupt` | 1: `23` | the character-timeout interrupt (uart_interrupt.sv:75-76): CTI_i is tied 0 |
+| toggle | `uart_rx` | 1: `cfg_en_i` | cfg_en_i is tied 1 by apb_uart.sv: the receiver and transmitter are always enabled (Superlint VENDOR_UNUSED_MODE) |
+| toggle | `uart_tx` | 1: `cfg_en_i` | cfg_en_i is tied 1 by apb_uart.sv: the receiver and transmitter are always enabled (Superlint VENDOR_UNUSED_MODE) |
+| block | `uart_rx` | 1: `53` | the disabled branch of the receiver FSM (uart_rx.sv:203-206): cfg_en_i is tied 1 by apb_uart.sv: the receiver and transmitter are always enabled (Superlint VENDOR_UNUSED_MODE) |
+| block | `uart_rx` | 1: `58` | the disabled branch of the receiver input synchroniser (uart_rx.sv:217-220): cfg_en_i is tied 1 by apb_uart.sv: the receiver and transmitter are always enabled (Superlint VENDOR_UNUSED_MODE) |
+| block | `uart_tx` | 1: `10` | the disabled branch (uart_tx.sv:75): cfg_en_i is tied 1 by apb_uart.sv: the receiver and transmitter are always enabled (Superlint VENDOR_UNUSED_MODE) |
+| block | `uart_tx` | 1: `46` | the disabled branch of the transmitter FSM (uart_tx.sv:176-179): cfg_en_i is tied 1 by apb_uart.sv: the receiver and transmitter are always enabled (Superlint VENDOR_UNUSED_MODE) |
+| block | `uart_rx` | 1: `19` | the implicit default of case(cfg_bits_i) at uart_rx.sv:111: the 2-bit field has four values and all four are listed |
+| toggle | `uart_rx` | 1: `s_target_bits` | s_target_bits is only ever 4 to 7 (uart_rx.sv / uart_tx.sv: 5 to 8 data bits): bit 2 is always 1 |
+| toggle | `uart_tx` | 1: `s_target_bits` | s_target_bits is only ever 4 to 7 (uart_rx.sv / uart_tx.sv: 5 to 8 data bits): bit 2 is always 1 |
 
 
 ### I2C
@@ -470,22 +500,21 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
-| Block | 97.7% (213/218) | 100.0% (213/213) | 5 |
-| Expression | 88.2% (15/17) | 100.0% (9/9) | 8 |
-| Toggle | 91.2% (622/682) | 100.0% (622/622) | 60 |
+| Block | 98.7% (230/233) | 100.0% (230/230) | 3 |
+| Expression | 94.7% (18/19) | 100.0% (15/15) | 4 |
+| Toggle | 83.6% (624/746) | 100.0% (624/624) | 122 |
 | Fsm | 100.0% (56/56) | 100.0% (56/56) | 0 |
-| Assertion | 100.0% (65/65) | 100.0% (65/65) | 0 |
-| Functional (covergroup bins) | 100.0% (221/221) | 100.0% (221/221) | 0 |
+| Assertion | 100.0% (68/68) | 100.0% (68/68) | 0 |
+| Functional (covergroup bins) | 100.0% (222/222) | 100.0% (222/222) | 0 |
 
-**Exclusions and their justifications** (`flow/cov/i2c_exclusions.tcl`, 71 lines):
+**Exclusions and their justifications** (`flow/cov/i2c_exclusions.tcl`, 128 lines):
 
 | Metric | Where | Items | Justification |
 |---|---|---|---|
 | toggle | `garuda_i2c_top` | 23: `prdata_o`, `reg_rdata` | read-data bit that is 0 in every register of this block (no register is wider than 16 bits and these bits of ID are 0): constant by specification, checked by the scoreboard on every read |
 | toggle | `garuda_i2c_top` | 1: `pready_o` | PREADY is tied high: an access to this block never waits (I2C R-4); checked by a_pready and a_shim_pready |
-| toggle | `garuda_i2c_top` | 4: `core_scl_o`, `core_sda_o`, `i2c_scl_o`, `i2c_sda_o` | open drain: the output value of both pins is tied to 0 and the block speaks through the output enables only (I2C N-9.2); checked by a_never_high |
 | toggle | `garuda_i2c_top.u_shim` | 23: `ip_prdata_i`, `prdata_o` | read-data bit that is 0 in every register of this block (no register is wider than 16 bits and these bits of ID are 0): constant by specification, checked by the scoreboard on every read |
-| toggle | `garuda_i2c_top.u_shim` | 2: `ip_pready_i`, `pready_o` | PREADY is tied high: an access to this block never waits (I2C R-4); checked by a_pready and a_shim_pready |
+| toggle | `garuda_i2c_top.u_shim` | 1: `pready_o` | PREADY is tied high: an access to this block never waits (I2C R-4); checked by a_pready and a_shim_pready |
 | toggle | `garuda_i2c_top.u_shim.u_shim_sva` | 1: `pready_o` | PREADY is tied high: an access to this block never waits (I2C R-4); checked by a_pready and a_shim_pready |
 | toggle | `garuda_i2c_top.u_byte` | 1: `ena` | the vendored controllers' enable input is tied high by the wrapper, which stops them through their reset instead (I2C-1, N-7.5) |
 | toggle | `garuda_i2c_top.u_byte` | 2: `scl_o`, `sda_o` | open drain: the output value of both pins is tied to 0 and the block speaks through the output enables only (I2C N-9.2); checked by a_never_high |
@@ -493,43 +522,99 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 | toggle | `garuda_i2c_top.u_byte.bit_controller` | 2: `scl_o`, `sda_o` | open drain: the output value of both pins is tied to 0 and the block speaks through the output enables only (I2C N-9.2); checked by a_never_high |
 | toggle | `garuda_i2c_top.u_byte.bit_controller` | 1: `c_state` | bit 17 of the vendored bit controller's state vector: it has 17 states in an 18-bit one-hot vector, so the top bit is never used |
 | toggle | `garuda_i2c_top.u_i2c_sva` | 1: `pready_o` | PREADY is tied high: an access to this block never waits (I2C R-4); checked by a_pready and a_shim_pready |
-| toggle | `garuda_i2c_top.u_i2c_sva` | 2: `i2c_scl_o`, `i2c_sda_o` | open drain: the output value of both pins is tied to 0 and the block speaks through the output enables only (I2C N-9.2); checked by a_never_high |
 | block | `garuda_i2c_top.u_byte` | 1: `56` | the state machine of the vendored byte controller has no default branch (full_case): the five states listed are all it can be in, so the implicit default is never taken |
 | block | `garuda_i2c_top.u_byte.bit_controller` | 1: `77` | the state machine of the vendored bit controller has no default branch (full_case): the 17 one-hot states listed are all it can be in, so the implicit default is never taken |
 | block | `garuda_i2c_top.u_byte.bit_controller` | 1: `18` | the spike filter's counter is cleared when the vendored enable is low; the wrapper ties the enable high (I2C-1) |
 | expression | `garuda_i2c_top.u_byte.bit_controller` | 1: `1.1` | the term for the vendored enable being low in the prescaler reload: the wrapper ties the enable high (I2C-1) |
-| block | `garuda_i2c_top.u_shim` | 1: `27` | the shim stops the simulation if its parameter IP_LIMIT is above 0x100, which the 64-bit register map cannot describe; the parameter is a constant below that here, so the branch cannot be taken |
-| block | `garuda_i2c_top.u_shim` | 1: `30` | the shim's report that an IP held PREADY low: the I2C registers answer in the same cycle (ip_pready_i tied high), so the report can never print here |
-| expression | `garuda_i2c_top.u_shim` | 1: `4.1` | condition of the same report: ip_pready_i is tied high in garuda_i2c_top |
+| toggle | `garuda_i2c_top.u_dma` | 30: `rdata_o` | DMACTL is 2 bits: garuda_apb_dma.sv:63 rdata_o = {30'd0, dmactl_q}, so bits 31:2 are 0 (D-39) |
+| toggle | `garuda_i2c_top` | 30: `dma_rdata` | DMACTL is 2 bits: garuda_apb_dma.sv:63 rdata_o = {30'd0, dmactl_q}, so bits 31:2 are 0 (D-39) |
+| toggle | `garuda_i2c_top` | 7: `shim_prdata` | read-data bit that is 0 in every register of this block (the ID constant and every register leave it 0): constant by specification, checked by the scoreboard on every read |
 
 
 ### SPI master
 
 Plan: `tb/spi_master/GARUDA_SPIM_vplan.csv` (27 features, 42 checks and coverage items). Track B.
 
-Measured on all directed tests merged, per module. No waiver applied.
+Measured on the UVM environment (0 runs: register test, directed test, random seeds), DUT instance only.
 
-| Module | Statement | Expression | Toggle | FSM |
-|---|---|---|---|---|
-| `garuda_spim_top` | 100.0% (5/5) | 100.0% (3/3) | 84.2% (234/278) | none |
-| `apb_spi_master` | 34.9% (15/43) | 10.0% (2/20) | 48.2% (224/465) | 16.7% (2/12) |
-| `spi_master_apb_if` | 91.3% (21/23) | 100.0% (4/4) | 51.4% (183/356) | none |
-| `spi_master_fifo` | 93.1% (27/29) | 73.7% (14/19) | 87.8% (79/90) | none |
-| `spi_master_controller` | 54.4% (43/79) | 35.3% (6/17) | 33.8% (108/320) | 39.3% (11/28) |
-| `spi_master_clkgen` | 100.0% (13/13) | 100.0% (3/3) | 26.5% (13/49) | none |
-| `spi_master_tx` | 86.4% (19/22) | 100.0% (6/6) | 44.8% (86/192) | 100.0% (4/4) |
-| `spi_master_rx` | 71.0% (22/31) | none | 68.8% (132/192) | 40.0% (4/10) |
-| **whole block** | 67.3% (165/245) | 52.8% (38/72) | 54.5% (1059/1942) | 38.9% (21/54) |
+| Metric | As measured | After waivers | Items waived |
+|---|---|---|---|
+| Block | 98.8% (242/245) | 100.0% (242/242) | 3 |
+| Expression | 90.3% (65/72) | 100.0% (65/65) | 7 |
+| Toggle | 94.7% (1820/1921) | 100.0% (1820/1820) | 101 |
+| Fsm | 98.1% (53/54) | 100.0% (53/53) | 1 |
+| Assertion | 92.9% (13/14) | 92.9% (13/14) | 0 |
+| Functional (covergroup bins) | 100.0% (68/68) | 100.0% (68/68) | 0 |
 
-Functional coverage: 39.1% (27/69).
+**Still open after the waivers:** Assertion 1 of 14. Listed in `sim/cov_all/holes_spim.txt` after `make cov_chart`.
 
-| Covergroups of | Bins covered |
-|---|---|
-| spim_cov | 39.1% (27/69) |
+**Exclusions and their justifications** (`flow/cov/spim_exclusions.tcl`, 106 lines):
 
-Assertions: 85.7% (12/14) triggered. Never triggered: `c_dma_req`, `c_rx_full`.
-
-**Exclusions:** none written. They are written when the block is closed (step R8 of the block recipe), each with its reason and, where the reason is "unreachable", a JasperGold run that confirms it.
+| Metric | Where | Items | Justification |
+|---|---|---|---|
+| block | `spim_ctrl` | 1: `69` | en_quad_int set on a quad start: the quad-SPI mode is not used: the wrapper clears STATUS\[3:2\] before the IP (garuda_spim_top.sv:157-158, SPIM \[N-7.5\], spec section 13) |
+| block | `spi_master_rx` | 1: `10` | the four-lane shift of a quad read: the quad-SPI mode is not used: the wrapper clears STATUS\[3:2\] before the IP (garuda_spim_top.sv:157-158, SPIM \[N-7.5\], spec section 13) |
+| block | `spim_ctrl` | 1: `48` | the MODE state: no transition of spim_ctrl enters it (state_next is never MODE, spim_ctrl.sv), Superlint BLK_NO_RCHB class VENDOR_UNUSED_MODE (SPIM-2) |
+| state | `spim_ctrl` | 1: `state.MODE` | the MODE state: no transition of spim_ctrl enters it (state_next is never MODE), SPIM-2 |
+| expression | `spim_ctrl` | 1: `1.1.3 1.1.4 2.1.2 3.1.1 3.1.2 4.1.2 5.1.2` | the spi_qrd and spi_qwr terms of the start and direction decodes: the quad-SPI mode is not used: the wrapper clears STATUS\[3:2\] before the IP (garuda_spim_top.sv:157-158, SPIM \[N-7.5\], spec section 13) |
+| toggle | `spim_ctrl` | 2: `spi_qrd`, `spi_qwr` | quad start strobe, constant 0: the quad-SPI mode is not used: the wrapper clears STATUS\[3:2\] before the IP (garuda_spim_top.sv:157-158, SPIM \[N-7.5\], spec section 13) |
+| toggle | `spim_apb_if` | 2: `spi_qrd`, `spi_qwr` | quad start strobe, constant 0: the quad-SPI mode is not used: the wrapper clears STATUS\[3:2\] before the IP (garuda_spim_top.sv:157-158, SPIM \[N-7.5\], spec section 13) |
+| toggle | `apb_spi_master` | 2: `spi_qrd`, `spi_qwr` | quad start strobe, constant 0: the quad-SPI mode is not used: the wrapper clears STATUS\[3:2\] before the IP (garuda_spim_top.sv:157-158, SPIM \[N-7.5\], spec section 13) |
+| toggle | `spim_ctrl` | 2: `en_quad`, `en_quad_int` | quad lane enable, constant 0: the quad-SPI mode is not used: the wrapper clears STATUS\[3:2\] before the IP (garuda_spim_top.sv:157-158, SPIM \[N-7.5\], spec section 13) |
+| toggle | `spi_master_rx` | 1: `en_quad_in` | quad lane enable, constant 0: the quad-SPI mode is not used: the wrapper clears STATUS\[3:2\] before the IP (garuda_spim_top.sv:157-158, SPIM \[N-7.5\], spec section 13) |
+| toggle | `spi_master_tx` | 1: `en_quad_in` | quad lane enable, constant 0: the quad-SPI mode is not used: the wrapper clears STATUS\[3:2\] before the IP (garuda_spim_top.sv:157-158, SPIM \[N-7.5\], spec section 13) |
+| toggle | `spim_ctrl` | 2: `s_spi_mode`, `spi_mode` | bit 0 of the lane mode is 1 only in SPI_QUAD_TX (spim_ctrl.sv:12): the quad-SPI mode is not used: the wrapper clears STATUS\[3:2\] before the IP (garuda_spim_top.sv:157-158, SPIM \[N-7.5\], spec section 13) |
+| toggle | `apb_spi_master` | 1: `spi_mode` | bit 0 of the lane mode is 1 only in SPI_QUAD_TX (spim_ctrl.sv:12): the quad-SPI mode is not used: the wrapper clears STATUS\[3:2\] before the IP (garuda_spim_top.sv:157-158, SPIM \[N-7.5\], spec section 13) |
+| toggle | `spim_ctrl` | 3: `spi_sdi0`, `spi_sdi2`, `spi_sdi3` | input lane tied 0 by the wrapper: MISO is on sdi1, the other lanes are quad-only (garuda_spim_top.sv:177, \[N-7.6\]) |
+| toggle | `apb_spi_master` | 3: `spi_sdi0`, `spi_sdi2`, `spi_sdi3` | input lane tied 0 by the wrapper: MISO is on sdi1, the other lanes are quad-only (garuda_spim_top.sv:177, \[N-7.6\]) |
+| toggle | `spi_master_rx` | 3: `sdi0`, `sdi2`, `sdi3` | input lane tied 0 by the wrapper: MISO is on sdi1, the other lanes are quad-only (garuda_spim_top.sv:177, \[N-7.6\]) |
+| toggle | `spim_apb_if` | 1: `PREADY` | the vendored register file ties PREADY to 1 (spim_apb_if.sv:80); the wrapper leaves it open |
+| toggle | `spim_apb_if` | 1: `PSLVERR` | the vendored register file ties PSLVERR to 0 (spim_apb_if.sv:79); the shim answers errors |
+| toggle | `apb_spi_master` | 1: `PREADY` | the vendored register file ties PREADY to 1 (spim_apb_if.sv:80); the wrapper leaves it open |
+| toggle | `apb_spi_master` | 1: `PSLVERR` | the vendored register file ties PSLVERR to 0 (spim_apb_if.sv:79); the shim answers errors |
+| toggle | `garuda_spim_top` | 1: `pready_o` | PREADY tied 1: the SPI master never stalls the APB (R-5, a_pready) |
+| toggle | `apb_spi_master` | 2: `elements_rx`, `elements_tx` | the FIFOs are BUFFER_DEPTH = 10 words deep: a count never reaches 16, so bit 4 stays 0 |
+| toggle | `spi_master_fifo` | 2: `elements`, `elements_o` | the FIFOs are BUFFER_DEPTH = 10 words deep: a count never reaches 16, so bit 4 stays 0 |
+| toggle | `garuda_spim_top` | 2: `rx_words`, `tx_words` | the FIFOs are BUFFER_DEPTH = 10 words deep: a count never reaches 16, so bit 4 stays 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 31 (apb_spi_master.sv:114): fill, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 30 (apb_spi_master.sv:114): fill, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 29 (apb_spi_master.sv:114): fill, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 28 (apb_spi_master.sv:114): TX count bit 4: the FIFOs are BUFFER_DEPTH = 10 words deep: a count never reaches 16, so bit 4 stays 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 23 (apb_spi_master.sv:114): fill, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 22 (apb_spi_master.sv:114): fill, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 21 (apb_spi_master.sv:114): fill, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 20 (apb_spi_master.sv:114): RX count bit 4: the FIFOs are BUFFER_DEPTH = 10 words deep: a count never reaches 16, so bit 4 stays 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 15 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 14 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 13 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 12 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 11 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 10 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 9 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 8 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 7 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `apb_spi_master` | 1: `spi_status` | STATUS bit 3 (apb_spi_master.sv:114): the MODE state flag: MODE is never entered (SPIM-2) |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 31 (apb_spi_master.sv:114): fill, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 30 (apb_spi_master.sv:114): fill, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 29 (apb_spi_master.sv:114): fill, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 28 (apb_spi_master.sv:114): TX count bit 4: the FIFOs are BUFFER_DEPTH = 10 words deep: a count never reaches 16, so bit 4 stays 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 23 (apb_spi_master.sv:114): fill, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 22 (apb_spi_master.sv:114): fill, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 21 (apb_spi_master.sv:114): fill, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 20 (apb_spi_master.sv:114): RX count bit 4: the FIFOs are BUFFER_DEPTH = 10 words deep: a count never reaches 16, so bit 4 stays 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 15 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 14 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 13 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 12 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 11 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 10 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 9 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 8 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 7 (apb_spi_master.sv:114): 9'h0 field, constant 0 |
+| toggle | `spim_apb_if` | 1: `spi_status` | STATUS bit 3 (apb_spi_master.sv:114): the MODE state flag: MODE is never entered (SPIM-2) |
+| toggle | `spim_ctrl` | 1: `spi_status` | the MODE state flag: MODE is never entered (SPIM-2) |
+| toggle | `apb_spi_master` | 1: `spi_ctrl_status` | the MODE state flag: MODE is never entered (SPIM-2) |
+| toggle | `garuda_spim_top` | 30: `dma_rdata` | DMACTL read data is 2 bits wide (garuda_apb_dma.sv:44, D-39): bits 31:2 are 0 |
 
 
 ### SPI slave
@@ -540,66 +625,60 @@ Measured on the UVM environment (22 runs: register test, directed test, random s
 
 | Metric | As measured | After waivers | Items waived |
 |---|---|---|---|
-| Block | 97.8% (91/93) | 100.0% (91/91) | 2 |
-| Expression | 94.7% (18/19) | 100.0% (15/15) | 4 |
-| Toggle | 85.2% (415/487) | 100.0% (415/415) | 72 |
-| Assertion | 98.0% (50/51) | 100.0% (50/50) | 1 |
+| Block | 100.0% (99/99) | 100.0% (99/99) | 0 |
+| Expression | 100.0% (24/24) | 100.0% (24/24) | 0 |
+| Toggle | 74.6% (419/562) | 100.0% (419/419) | 143 |
+| Assertion | 98.1% (53/54) | 100.0% (53/53) | 1 |
 | Functional (covergroup bins) | 100.0% (146/146) | 100.0% (146/146) | 0 |
 
-**Exclusions and their justifications** (`flow/cov/spis_exclusions.tcl`, 79 lines):
+**Exclusions and their justifications** (`flow/cov/spis_exclusions.tcl`, 147 lines):
 
 | Metric | Where | Items | Justification |
 |---|---|---|---|
 | toggle | `garuda_spis_top` | 34: `prdata_o`, `reg_rdata` | read-data bit that is 0 in every register of this block (no register is wider than 9 bits and these bits of ID are 0): constant by specification, checked by the scoreboard on every read |
 | toggle | `garuda_spis_top` | 1: `pready_o` | PREADY is tied high: an access to this block never waits (SPIS R-5); checked by a_pready and a_shim_pready |
 | toggle | `garuda_spis_top.u_shim` | 34: `ip_prdata_i`, `prdata_o` | read-data bit that is 0 in every register of this block (no register is wider than 9 bits and these bits of ID are 0): constant by specification, checked by the scoreboard on every read |
-| toggle | `garuda_spis_top.u_shim` | 2: `ip_pready_i`, `pready_o` | PREADY is tied high: an access to this block never waits (SPIS R-5); checked by a_pready and a_shim_pready |
-| toggle | `garuda_spis_top.u_shim` | 1: `tx_space_i` | the SPI slave has no transmit request: tx_space_i is tied low in garuda_spis_top (SPIS N-7.6); the request for transmit space is exercised in the UART and the SPI master |
+| toggle | `garuda_spis_top.u_shim` | 1: `pready_o` | PREADY is tied high: an access to this block never waits (SPIS R-5); checked by a_pready and a_shim_pready |
 | toggle | `garuda_spis_top.u_shim.u_shim_sva` | 1: `pready_o` | PREADY is tied high: an access to this block never waits (SPIS R-5); checked by a_pready and a_shim_pready |
-| toggle | `garuda_spis_top.u_shim.u_shim_sva` | 1: `tx_space_i` | the SPI slave has no transmit request: tx_space_i is tied low in garuda_spis_top (SPIS N-7.6); the request for transmit space is exercised in the UART and the SPI master |
 | toggle | `garuda_spis_top.u_spis_sva` | 1: `pready_o` | PREADY is tied high: an access to this block never waits (SPIS R-5); checked by a_pready and a_shim_pready |
-| block | `garuda_spis_top.u_shim` | 1: `27` | the shim stops the simulation if its parameter IP_LIMIT is above 0x100, which the 64-bit register map cannot describe; the parameter is a constant below that here, so the branch cannot be taken |
-| block | `garuda_spis_top.u_shim` | 1: `30` | the shim's report that an IP held PREADY low: the SPI slave registers answer in the same cycle (ip_pready_i tied high), so the report can never print here |
-| expression | `garuda_spis_top.u_shim` | 1: `4.1` | condition of the same report: ip_pready_i is tied high in garuda_spis_top |
 | assertion | `garuda_spis_top.u_shim.u_shim_sva` | 1: `c_shim_hole` | the register map of the SPI slave has no hole below its limit (all four words 0x00 to 0x0C are registers), so this cover cannot happen here; it is seen in the GPIO, the I2C and the SPI master |
+| toggle | `garuda_spis_top.u_dma` | 30: `rdata_o` | DMACTL is 2 bits: garuda_apb_dma.sv:63 rdata_o = {30'd0, dmactl_q}, so bits 31:2 are 0 (D-39) |
+| toggle | `garuda_spis_top` | 30: `dma_rdata` | DMACTL is 2 bits: garuda_apb_dma.sv:63 rdata_o = {30'd0, dmactl_q}, so bits 31:2 are 0 (D-39) |
+| toggle | `garuda_spis_top` | 11: `shim_prdata` | read-data bit that is 0 in every register of this block (the ID constant and every register leave it 0): constant by specification, checked by the scoreboard on every read |
+| toggle | `garuda_spis_top` | 1: `dma_src` | the SPI slave has one DMA source (receive): dma_src = {1'b0, rxvalid}, garuda_spis_top.sv:209 |
+| toggle | `garuda_spis_top.u_dma` | 1: `src_i` | the SPI slave has one DMA source (receive): dma_src = {1'b0, rxvalid}, garuda_spis_top.sv:209 |
+| toggle | `garuda_spis_top.u_dma.u_dma_sva` | 1: `src_i` | the SPI slave has one DMA source (receive): dma_src = {1'b0, rxvalid}, garuda_spis_top.sv:209 |
 
 
 ### APB shim (shared by six peripherals)
 
-Measured on all directed tests merged, per module. No waiver applied.
+Measured on the UVM environment (0 runs: register test, directed test, random seeds), DUT instance only.
 
-| Module | Statement | Expression | Toggle | FSM |
-|---|---|---|---|---|
-| `garuda_apb_shim` | 93.5% (29/31) | 92.3% (12/13) | 99.0% (204/206) | none |
-| **whole block** | 93.5% (29/31) | 92.3% (12/13) | 99.0% (204/206) | none |
+| Metric | As measured | After waivers | Items waived |
+|---|---|---|---|
+| Block | 100.0% (14/14) | 100.0% (14/14) | 0 |
+| Expression | 100.0% (6/6) | 100.0% (6/6) | 0 |
+| Toggle | 99.3% (138/139) | 100.0% (138/138) | 1 |
+| Assertion | 100.0% (19/19) | 100.0% (19/19) | 0 |
+| Functional (covergroup bins) | 100.0% (35/35) | 100.0% (35/35) | 0 |
 
-Functional coverage: 90.5% (38/42).
+**Exclusions and their justifications** (`flow/cov/shim_exclusions.tcl`, 1 lines):
 
-| Covergroups of | Bins covered |
-|---|---|
-| garuda_apb_shim_cov | 90.5% (38/42) |
-
-Assertions: 100.0% (21/21) triggered.
+| Metric | Where | Items | Justification |
+|---|---|---|---|
+| toggle | `garuda_apb_shim` | 1: `pready_o` | no peripheral inserts wait states (AHB2APB spec 7.5): PREADY is tied 1 in garuda_apb_shim.sv |
 
 
 ### Chip and SoC top (wiring)
 
-Measured on all directed tests merged, per module. No waiver applied.
+Measured on the UVM environment (0 runs: register test, directed test, random seeds), DUT instance only.
 
-| Module | Statement | Expression | Toggle | FSM |
-|---|---|---|---|---|
-| `garuda_chip_top` | none | none | 73.8% (31/42) | none |
-| `garuda_chip_core` | none | none | 55.0% (435/791) | none |
-| `garuda_soc_top` | none | none | 56.0% (1084/1934) | none |
-| **whole block** | none | none | 56.0% (1550/2767) | none |
+| Metric | As measured | After waivers | Items waived |
+|---|---|---|---|
+| Toggle | 67.8% (1713/2527) | 67.8% (1713/2527) | 0 |
+| Functional (covergroup bins) | 86.2% (50/58) | 86.2% (50/58) | 0 |
 
-Functional coverage: 86.2% (50/58).
-
-| Covergroups of | Bins covered |
-|---|---|
-| chip_cov | 86.2% (50/58) |
-
-Assertions: no property is bound to this block yet.
+**Still open after the waivers:** Toggle 814 of 2527. Listed in `sim/cov_all/holes_top.txt` after `make cov_chart`.
 
 ## Notes on the measurement
 

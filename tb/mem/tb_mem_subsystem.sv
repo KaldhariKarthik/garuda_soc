@@ -252,6 +252,45 @@ module tb_mem_subsystem;
         check(wait_viol == 0, "[N-7.6] zero wait states on every legal access");
         check(v_chk == 2, "AHB-Lite checker: only the 2 deliberate misaligned transfers flagged");
 
+        // ---- coverage closure (2026-11-20, D-40) --------------------------------------------
+        // every misaligned size/lane pair, both directions, and a wider-than-word size: each is
+        // refused with ERROR [N-7.4] and the next legal access is OKAY
+        begin : misaligned_all
+            int nexp, nok, v0;
+            v0 = v_chk;
+            clr(); nexp = 0;
+            for (int wr = 0; wr < 2; wr++) for (int ln = 1; ln < 4; ln++) begin
+                if (ln[0]) begin go(32'h2000_0500 + ln, wr, 32'h0, H); nexp++; end
+                go(32'h2000_0500 + ln, wr, 32'h0, W); nexp++;
+            end
+            go(32'h2000_0500, 0, 0, 3'b011); nexp++;          // 64-bit size on a 32-bit bus
+            go(32'h2000_0500, 0, 0, W);
+            drain();
+            nok = 0;
+            for (int k = 0; k < nexp; k++) if (u_m.r_resp[k]) nok++;
+            check(nok == nexp && !u_m.r_resp[nexp], $sformatf("[N-7.4] %0d misaligned or wider-than-word accesses, read and write, all ERROR; the next is OKAY", nexp));
+            check(v_chk - v0 == nexp, $sformatf("AHB-Lite checker flagged all %0d deliberate faults (%0d)", nexp, v_chk - v0));
+        end
+        // the write buffer under back-to-back traffic: 400 mixed accesses over four words, so
+        // a read meets a parked write to its own word and to another, right after a write
+        clr(); n = 0; e = 0;
+        for (i = 0; i < 400; i++) begin
+            a  = 32'h2000_0400 + (rnd() % 16);
+            case (rnd() % 3) 0: sz = B; 1: begin sz = H; a[0] = 0; end default: begin sz = W; a[1:0] = 0; end endcase
+            d = rnd();
+            if (rnd() % 2) begin go(a, 1, d << (8*a[1:0]), sz); sh_wr(a, d << (8*a[1:0]), sz); exp_q[n] = 32'hx; end
+            else           begin go(a, 0, 0, sz); exp_q[n] = sh_rd(a); end
+            msk_q[n] = lanes(a, sz);
+            n++;
+            if (n == 200) begin
+                drain();
+                for (int k = 0; k < 200; k++)
+                    if (exp_q[k] !== 32'hx && ((u_m.r_data[k] ^ exp_q[k]) & msk_q[k]) != 0) e++;
+                clr(); n = 0;
+            end
+        end
+        check(e == 0, "write-buffer soak: 400 back-to-back accesses over four words match the shadow model");
+
         $display("tb_mem_subsystem: checks=%0d  FAIL=%0d", checks, fails);
         $display("RESULT: %s", fails ? "FAILED" : "PASSED");
         $finish;

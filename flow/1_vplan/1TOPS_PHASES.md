@@ -13,7 +13,7 @@ This page says which vPlan sections belong to which phase, which bench runs them
 
 | vPlan | Sections | Bench | Checks and coverage |
 |---|---|---|---|
-| `tb/core/GARUDA_CORE_vplan.csv` | A Instruction set; B CSRs; C Exceptions; E Pipeline (unit parts) | the core unit and element benches, `tb/core/tb_*.sv` / `.v` (`make test_core`, `make test_elements`, `make test_units`) | each bench's own scoreboard; unit covergroups (`unit_alu`, `unit_branch_unit`, `unit_decode_control` and the others in `Docs/coverage/COVERAGE_BY_BLOCK.md`); properties in `rtl/core/*_sva.sv` |
+| `tb/core/GARUDA_CORE_vplan.csv` | A Instruction set; B CSRs; C Exceptions; E Pipeline (unit parts) | the core unit and element benches, `tb/core/tb_*.sv` / `.v` (`make test_core`, `make test_elements`, `make test_units`) | each bench's own scoreboard; unit covergroups (`unit_alu_unit`, `unit_branch_unit`, `unit_decode_control` and the others in `Docs/coverage/COVERAGE_BY_BLOCK.md`); properties in `rtl/core/*_sva.sv` |
 | `tb/dsu/GARUDA_DSU_vplan.csv` | A Instructions; B Numeric contract; C Encoding | `tb/dsu/tb_dsu_top` against `DSUModel` (`make test_dsu`) | result-by-result compare; `rtl/dsu/dsu_sva.sv`, `dsu_arith_sva.sv` |
 
 ## Phase 2: core sanity (G4, items 4.10 to 4.14)

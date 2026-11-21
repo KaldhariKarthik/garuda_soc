@@ -44,8 +44,11 @@ module mem_cov #(parameter integer AW = 14, parameter integer WRITABLE = 1) (
         x_read_wbuf: cross cp_dir, cp_wbuf, cp_after {
             ignore_bins writes = binsof(cp_dir.write);   // the write-buffer cross is about reads after a write
             ignore_bins rom = binsof(cp_wbuf) with (WRITABLE == 0);   // per instance: the ROM has no write buffer
+            ignore_bins parked_after_write = !binsof(cp_wbuf.empty) && binsof(cp_after.after_write);   // a write data phase always finds the buffer empty: a_wbuf_empty_in_write_dp PROVEN (flow/formal/mem/mem_fpv.result.txt)
         }
-        x_dir_outcome: cross cp_dir, cp_outcome;
+        x_dir_outcome: cross cp_dir, cp_outcome {
+            ignore_bins read_refused_as_write = binsof(cp_dir.read) && binsof(cp_outcome) intersect {ROM_WRITE, LOCKED, DEBUG_BYPASS};   // these outcomes need hwrite (ahb_mem_slave_if.sv:85-86, mem_cov.sv:25): a read cannot have them
+        }
     endgroup
     cg_access ca = new();
 endmodule

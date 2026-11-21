@@ -85,6 +85,13 @@ module mem_sva #(
     a_wbuf_no_overflow: assert property (@(posedge hclk) disable iff (!hreset_n)
         !(park_wr && wb_v && !commit_wb) )
         else $error("[SVA-FAIL] a_wbuf_no_overflow: a write was parked over a parked write");
+    // the write buffer is empty whenever a write is in its data phase (2026-11-20): a write
+    // parks only beside a read address phase, so the next data phase is a read; and a parked
+    // write commits in the first cycle with no read address phase. So a read never meets a
+    // parked write straight after a write (mem_cov x_read_wbuf after_write is unreachable).
+    a_wbuf_empty_in_write_dp: assert property (@(posedge hclk) disable iff (!hreset_n)
+        (dp_valid && dp_write && !dp_err) |-> !wb_v )
+        else $error("[SVA-FAIL] a_wbuf_empty_in_write_dp: a write data phase with a parked write");
     // read data is zero outside a read data phase
     a_rdata_quiet: assert property (@(posedge hclk) disable iff (!hreset_n)
         !rd_dp |-> hrdata_o == 32'd0 )

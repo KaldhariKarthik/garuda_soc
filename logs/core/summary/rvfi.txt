@@ -1,5 +1,5 @@
-garuda-run 1  suite rvfi  block core  2026-10-15T21:42:36+05:30
-design 167aa935078d4e9cecaa35e5186328b55cfc2ca6  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20261004-983a06a  seed 1
+garuda-run 1  suite rvfi  block core  2026-11-21T05:49:11+05:30
+design 848e5e3d682318be467e7b87d27f7aaaf724a0c9  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
 
 PASS    OK                      rv_t_core_mret_buserr     
 PASS    OK                      rv_t_core_mret_buserr_w2  
@@ -62,6 +62,7 @@ PASS    OK                      p-ma_addr
 PASS    OK                      p-ma_data                 
 PASS    OK                      p-ma_fetch                
 PASS    OK                      p-mcsr                    
+PASS    OK                      p-minstret                
 PASS    OK                      p-rem                     
 PASS    OK                      p-remu                    
 PASS    OK                      p-sbreak                  
@@ -89,7 +90,7 @@ PASS    OK                      sw
 PASS    OK                      xor                       
 PASS    OK                      xori                      
 
-PASS    87
+PASS    88
 FAIL    0
 BLOCKED 0
-total   87
+total   88

@@ -31,4 +31,4 @@ lint_off -rule CASEINCOMPLETE -file "*rtl/third_party/pulp/apb_gpio/src/apb_gpio
 // or counter meets an integer constant, 2-bit constants for the 2-bit DMA error phase).
 // One line stays: a_arb_prio is written for any priority map, and with the shipped map
 // channel 5 has priority 0 (PRIO[17:15] = 0), so "PRIO[..] >= PRIO[17:15]" is always true.
-lint_off -rule UNSIGNED       -file "*rtl/dma/dma_sva.sv"              -lines 83
+lint_off -rule UNSIGNED       -file "*rtl/dma/dma_sva.sv"              -lines 88

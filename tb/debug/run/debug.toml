@@ -1,7 +1,10 @@
 # Debug block bench (tb/debug/tb_debug.sv): JTAG TAP + DTM + DMI CDC + Debug
 # Module + SBA master against real slaves. Baseline (audit aae00a2, rtl/debug
 # unchanged to b90b481): 93 checks, 0 FAIL. The count is pinned so a check that
-# silently stops running fails the suite.
+# silently stops running fails the suite. 98 since the RDC-1 and DSU-tap checks (the pin
+# was not moved then: TB-A15); 108 since 2026-11-20 (halt timeout and HALTINFO W1C, DSU
+# taps all-ones/all-zeros, SBA data both ways, dsuovf falling); 111 with the SB registers while
+# the DM is inactive and DMI accesses while the SBA is busy.
 # Run: make -f flow/mk/track_a_run.mk debug_block
 [suite]
 block = "debug"
@@ -15,4 +18,4 @@ flist   = "tb/debug/filelist_debug.f"
 top     = "tb_debug"
 marker  = '^RESULT: PASSED'
 timeout = 900
-require = ['tb_debug: checks=93 +FAIL=0']
+require = ['tb_debug: checks=111 +FAIL=0']

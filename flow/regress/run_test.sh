@@ -116,10 +116,15 @@ case "$T" in
   chip_*)      m=${T#chip_}; FL=tb/soc/filelist_chip_cov.f; TOP=tb_chip; MARK="RESULT: +PASSED"
                case "$m" in
                  uart)   ARGS="+MODE=basic +TEST=sw/build/t_chip_uart.hex" ;;
+                 # the bench's mode is "watchdog" (as make test_chip_wdt); +MODE=wdt left the
+                 # watchdog test running in no mode until the timeout (2026-11-20)
+                 wdt)    ARGS="+MODE=watchdog +TEST=sw/build/t_chip_wdt.hex" ;;
                  periph) ARGS="+MODE=basic +TEST=sw/build/t_chip_periph.hex +MAXUS=1200" ;;
                  jtag)   ARGS="+MODE=jtag +TEST=sw/build/t_chip_jtag.hex +MAXUS=1500" ;;
                  flash)  ARGS="+MODE=flash +TEST=sw/build/flash.hex +MAXUS=3000" ;;
                  integ)  ARGS="+MODE=basic +TEST=sw/build/t_chip_integ.hex +MAXUS=4000" ;;
+                 swirq)  ARGS="+MODE=basic +TEST=sw/build/t_chip_swirq.hex" ;;
+                 dma_*)  ARGS="+MODE=basic +TEST=sw/build/t_chip_$m.hex +MAXUS=4000" ;;
                  *)      ARGS="+MODE=$m +TEST=sw/build/t_chip_$m.hex" ;;
                esac ;;
   *) echo "[FAIL] run_test.sh: unknown test '$T'"; echo "GARUDA_RESULT: FAIL $T"; exit 1 ;;

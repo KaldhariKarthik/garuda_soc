@@ -39,8 +39,10 @@ module reset_ctrl_sva #(
     always @(posedge aon_clk or negedge ext_rst_n)
         if (!ext_rst_n) begin low_h <= 0; low_p <= 0; since_req <= 0; sys_cause <= 1'b1; dm_cause <= 1'b1; end
         else begin
-            low_h     <= hreset_n ? 0 : low_h + 1;
-            low_p     <= preset_n ? 0 : low_p + 1;
+            // saturate just above STRETCH (2026-11-20): the properties only ask whether the
+            // count reached STRETCH; an unbounded counter left the two proofs undetermined
+            low_h     <= hreset_n ? 0 : (low_h > STRETCH) ? low_h : low_h + 1;
+            low_p     <= preset_n ? 0 : (low_p > STRETCH) ? low_p : low_p + 1;
             since_req <= sys_req ? 0 : since_req + 1;
             sys_cause <= sys_req | (sys_cause & ~(hreset_n & preset_n));   // preset_n is released after hreset_n
             dm_cause  <= dm_req  | (dm_cause  & ~dm_rst_n);

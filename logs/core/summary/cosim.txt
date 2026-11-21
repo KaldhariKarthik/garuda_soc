@@ -1,5 +1,5 @@
-garuda-run 1  suite cosim  block core  2026-11-15T09:54:42+05:30
-design 78bd7cc950317b83167e190b13eabebbd0ac0cc3  rtl/ clean  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
+garuda-run 1  suite cosim  block core  2026-11-21T05:49:18+05:30
+design 848e5e3d682318be467e7b87d27f7aaaf724a0c9  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
 
 PASS    OK                      cs_t_loadbranch           
 PASS    OK                      cs_t_flush                

@@ -2,9 +2,9 @@ top: timers_top
 children: mtime timers_apb watchdog
 script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh timers)
 proved: 26/26
-tool: JasperGold Apps 2022.09p002, 2026-10-15
+tool: JasperGold Apps 2022.09p002, 2026-11-20
 
-clocks: hclk_i pclk_i:2    resets: hreset_n_i preset_n_i ext_rst_n_i 
+clocks: hclk pclk:2    resets: hreset_n preset_n ext_hrst_n 
 covers: 33, not covered: 4
   cover unreachable: timers_top.u_timers_sva.a_mtimecmp_reset:precondition1
   cover unreachable: timers_top.u_timers_sva.a_wdt_req_survives_hreset:precondition1

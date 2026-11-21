@@ -115,20 +115,20 @@ Total 87.0% (11056/12704) with 35 of 105 runs that reach the block at all; 70 re
 |---|---|---|---|---|
 | 1 | `san_t_cov` | 7201 | 56.68% | 56.68% |
 | 2 | `unit_id_stage` | 486 | 60.51% | 14.24% |
-| 3 | `unit_garuda_if_stage_top` | 474 | 64.24% | 7.61% |
+| 3 | `unit_if_stage_top` | 474 | 64.24% | 7.61% |
 | 4 | `unit_mem_stage` | 407 | 67.44% | 8.66% |
 | 5 | `chip_integ` | 285 | 69.69% | 56.08% |
 | 6 | `unit_branch_unit` | 213 | 71.36% | 3.55% |
-| 7 | `unit_garuda_iport_ahb_master` | 165 | 72.66% | 3.43% |
-| 8 | `unit_d_port_ahb_master` | 145 | 73.80% | 2.41% |
-| 9 | `unit_garuda_prefetch_buffer` | 144 | 74.94% | 2.36% |
+| 7 | `unit_iport_master` | 165 | 72.66% | 3.43% |
+| 8 | `unit_dport_master` | 145 | 73.80% | 2.41% |
+| 9 | `unit_prefetch_buf` | 144 | 74.94% | 2.36% |
 | 10 | `unit_imm_gen` | 137 | 76.02% | 3.35% |
 | 11 | `unit_garuda_pc_gen` | 132 | 77.05% | 2.09% |
 | 12 | `unit_mem_wb_reg` | 125 | 78.04% | 2.25% |
 | 13 | `unit_reg_file` | 119 | 78.98% | 2.44% |
 | 14 | `unit_csr_rw` | 115 | 79.88% | 1.75% |
 | 15 | `unit_load_store_unit` | 110 | 80.75% | 1.73% |
-| 16 | `unit_alu` | 108 | 81.60% | 1.77% |
+| 16 | `unit_alu_unit` | 108 | 81.60% | 1.77% |
 | 17 | `unit_mul32` | 103 | 82.41% | 2.64% |
 | 18 | `san_t_clic` | 94 | 83.15% | 46.49% |
 | 19 | `unit_decode_control` | 88 | 83.84% | 2.13% |
@@ -138,7 +138,7 @@ Total 87.0% (11056/12704) with 35 of 105 runs that reach the block at all; 70 re
 | 23 | `unit_clic_ctrl` | 56 | 86.06% | 0.85% |
 | 24 | `chip_wdt` | 30 | 86.30% | 49.76% |
 | 25 | `isa_p_illegal` | 28 | 86.52% | 45.51% |
-| 26 | `unit_hazard_forward_unit` | 24 | 86.70% | 0.32% |
+| 26 | `unit_hazard_fwd_unit` | 24 | 86.70% | 0.32% |
 | 27 | `isa_p_csr` | 10 | 86.78% | 46.63% |
 | 28 | `san_t_hold_flush_matrix` | 10 | 86.86% | 53.60% |
 | 29 | `isa_p_ma_fetch` | 5 | 86.90% | 45.65% |

@@ -14,7 +14,10 @@ set W 1
 if {[info exists ::env(WRITABLE)]} { set W $::env(WRITABLE) }
 set FILES [split [string trim [exec env -u LD_LIBRARY_PATH python3 scripts/expand_filelist.py $FL]] "\n"]
 set KEEP {}
-foreach f $FILES { if {[string match *sram_wrapper.v $f] || [string match *ahb_mem_slave_if.v $f] || [string match *mem_sva.sv $f]} { lappend KEEP $f } }
+# packages first, then the front end, the array and the properties (.sv since the rename;
+# the .v names matched nothing from then until 2026-11-20, TOOL-A30)
+foreach f $FILES { if {[string match *garuda_pkg.sv $f] || [string match *mem_pkg.sv $f]} { lappend KEEP $f } }
+foreach f $FILES { if {[string match *sram_wrapper.sv $f] || [string match *ahb_mem_slave_if.sv $f] || [string match *mem_sva.sv $f]} { lappend KEEP $f } }
 analyze -sv09 +define+FORMAL +incdir+rtl/mem {*}$KEEP flow/formal/mem/mem_fv_top.sv
 elaborate -top mem_fv_top -parameter WRITABLE $W
 clock hclk_i

@@ -1,5 +1,5 @@
-garuda-run 1  suite block  block dma  2026-11-20T07:44:05+05:30
-design 8db238050bb7108ad0b5825b8d751e1510dfe77d  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
+garuda-run 1  suite block  block dma  2026-11-21T06:54:44+05:30
+design 848e5e3d682318be467e7b87d27f7aaaf724a0c9  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
 
 PASS    OK                      tb_dma_top  
 

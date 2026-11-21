@@ -25,10 +25,11 @@ module tb_dma_chan_unit;
     always #2 clk = ~clk;
     logic wcr = 0, wsar = 0, wdar = 0, wcnt = 0, wiclr = 0, req = 0, bd = 0, be = 0;
     logic [31:0] wd = 0; logic [2:0] ep = 0;
-    wire [31:0] cr, sar, dar, cnt, stat; wire elig, ic, ie; wire [1:0] size;
+    wire [31:0] cr, sar, dar, cnt, stat; wire elig, ic, ie;
+    wire [1:0] size = cr[6:5];   // size_o left the port list in b21ef9a (F4); the size is CR[6:5] (TB-A17)
     dma_chan dut (.hclk(clk), .hreset_n(rst_n), .wr_cr_i(wcr), .wr_sar_i(wsar), .wr_dar_i(wdar),
                   .wr_cnt_i(wcnt), .wr_iclr_i(wiclr), .wdata_i(wd), .cr_o(cr), .sar_o(sar), .dar_o(dar),
-                  .cnt_o(cnt), .stat_o(stat), .req_i(req), .eligible_o(elig), .size_o(size),
+                  .cnt_o(cnt), .stat_o(stat), .req_i(req), .eligible_o(elig),
                   .beat_done_i(bd), .beat_err_i(be), .err_phase_i(ep), .inflight_i(1'b0), .complete_irq_o(ic), .error_irq_o(ie));
     // ---- reference state ----
     bit en, sinc, dinc, iec, iee, comp, err, taken;

@@ -14,10 +14,11 @@
 # m_hready_own both assertions fail: a free HREADY can stretch a read data phase
 # while a parked write commits, which no AHB interconnect does.
 # =============================================================================
-analyze -sv09 +define+SYNTHESIS +incdir+rtl/mem rtl/mem/ahb_mem_slave_if.sv rtl/dsram/dsram_top.sv
+# packages added 2026-11-20 (TOOL-A30: the script had not elaborated since the F4 package split)
+analyze -sv09 +define+SYNTHESIS +incdir+rtl/mem rtl/common/garuda_pkg.sv rtl/mem/mem_pkg.sv rtl/mem/ahb_mem_slave_if.sv rtl/dsram/dsram_top.sv
 elaborate -top dsram_top -bbox_m sram_wrapper
-clock hclk_i
-reset -expression {!hreset_n_i}
+clock hclk
+reset -expression {!hreset_n}
 # AHB: in this slave's own data phase the bus HREADY is this slave's HREADYOUT
 # (it is the data-phase slave; the interconnect returns its ready)
 assume -name m_hready_own {u_if.dp_valid |-> (hready_i == hreadyout_o)}

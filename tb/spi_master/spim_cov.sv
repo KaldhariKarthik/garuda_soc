@@ -44,7 +44,7 @@ module spim_cov (
     endgroup
     covergroup cg_dma @(posedge pclk_i iff (preset_n_i && dma_ack_i));
         option.per_instance = 1;
-        cp_req_at_ack: coverpoint dma_req_o;
+        cp_req_at_ack: coverpoint dma_req_o { ignore_bins high = {1}; }   // dma_req_o is gated by !dma_ack_i (garuda_apb_dma.sv:43, D-21): it is 0 in every ack cycle
         cp_mode: coverpoint dmactl { bins rx = {1}; bins tx = {2}; bins both = {3}; }
     endgroup
     cg_start cs = new(); cg_fw cf = new(); cg_dma cd = new();

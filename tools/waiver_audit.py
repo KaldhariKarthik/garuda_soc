@@ -165,6 +165,25 @@ def bins():
     return out
 
 
+def imc():
+    """flow/cov/*_exclusions*.tcl written by hand (not generated from a tb/*/cov/*_waivers.toml):
+    every exclude needs a -comment reason. Staleness is IMC's: an exclude that matches nothing
+    is reported in the cov_chart log (2026-11-20: these files were not read before)."""
+    out = []
+    for p in sorted(glob.glob(os.path.join(ROOT, "flow/cov/*_exclusions*.tcl"))):
+        head = open(p).read(600)
+        if "GENERATED" in head:
+            continue
+        for n, ln in enumerate(open(p), 1):
+            s = ln.strip()
+            if not s.startswith("exclude "):
+                continue
+            m = re.search(r'-comment\s+"([^"]*)"', s)
+            v = "justified" if m and m.group(1).strip() else "unjustified: no -comment reason"
+            out.append(("imc", "%s:%d" % (rel(p), n), s[:80], v))
+    return out
+
+
 def superlint():
     """flow/2_static/superlint/chip/findings.tsv (tools/superlint_findings.py): one row per
     finding with its class; OPEN is a finding no reading covers."""
@@ -193,7 +212,7 @@ def hal(log):
 
 
 def main():
-    rows = verilator() + yosys() + cdc() + coverage() + bins() + superlint()
+    rows = verilator() + yosys() + cdc() + coverage() + imc() + bins() + superlint()
     if "--hal" in sys.argv:
         rows += hal(sys.argv[sys.argv.index("--hal") + 1])
     kinds = []

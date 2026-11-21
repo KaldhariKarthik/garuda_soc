@@ -39,12 +39,12 @@ group garuda {
     group core {
         group core_units {
             test unit_decode_control {}; test unit_imm_gen {}; test unit_reg_file {};
-            test unit_branch_predict {}; test unit_hazard_forward_unit {}; test unit_id_stage {};
-            test unit_alu {}; test unit_mul32 {}; test unit_branch_unit {};
+            test unit_branch_predict {}; test unit_hazard_fwd_unit {}; test unit_id_stage {};
+            test unit_alu_unit {}; test unit_mul32 {}; test unit_branch_unit {};
             test unit_csr_rw {}; test unit_clic_ctrl {}; test unit_load_store_unit {};
             test unit_load_formatter {}; test unit_mem_wb_reg {}; test unit_garuda_pc_gen {};
-            test unit_garuda_prefetch_buffer {}; test unit_garuda_iport_ahb_master {}; test unit_d_port_ahb_master {};
-            test unit_mem_stage {}; test unit_garuda_if_stage_top {}; test unit_forward_unit {};
+            test unit_prefetch_buf {}; test unit_iport_master {}; test unit_dport_master {};
+            test unit_mem_stage {}; test unit_if_stage_top {}; test unit_forward_unit {};
         };
         // the plain-Verilog benches of the pipeline registers and control (G4 section 2);
         // tb_core_halt needs an image and runs as prog_halt__* below
@@ -126,5 +126,9 @@ group garuda {
     group soc {
         test chip_basic {}; test chip_irq {}; test chip_wdt {}; test chip_flash {};
         test chip_uart {}; test chip_periph {}; test chip_integ {}; test chip_jtag {};
+        // 2026-11-20 (TOOL-A31): five chip programs that ran only under Verilator (dma_chip suite,
+        // make test_chip_swirq) and so never reached the coverage merge
+        test chip_swirq {}; test chip_dma_rearm {}; test chip_dma_traffic {};
+        test chip_dma_subword {}; test chip_dma_uart {};
     };
 };

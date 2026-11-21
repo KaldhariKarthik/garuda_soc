@@ -306,10 +306,51 @@ class uart_directed_test extends uart_base_test;
             expect_count("a FIFO with one bad byte", n, 16);
         end
         rxb(8'hAA, 1, 0); rxb(8'h55, 0, 1); rxb(8'h33, 1, 1); rxb(8'h0F); bits(3); env.cov.cg_uart_err.sample(3, 0);
+        env.cov.cg_uart_err.sample(2, 0);                                     // 8'h33: parity and framing in one byte
         drain(n); expect_count("two bad bytes in a row", n, 4);
         // UART-5: with the FIFO empty again there is no line-error event, and the flag clears and stays clear
         wr(12'hFE0, 32'h7); clks(20); rd(12'hFE0, d);
         if (d[2] !== 1'b0) `uvm_error("TEST", "IRQSTAT bit 2 set with no byte in the FIFO (UART-5)")
+
+        // ---- coverage closure (2026-11-20, D-40)
+        // (a) a framing error on the byte the receiver holds while the FIFO is full: the vendored
+        //     receiver latches frame_err_q only then (otherwise the byte enters the FIFO in the same
+        //     cycle and carries the flag directly); the held byte must still read back with FE
+        `uvm_info("TEST", "coverage: framing error on the byte held at a full FIFO", UVM_LOW)
+        setup_line(7, 8, 0, 0);
+        wr(12'hFE0, 32'h7);
+        for (int k = 0; k < 16; k++) rxb(8'h40 + k, 0, 0, 0, 2);
+        rxb(8'hEE, 0, 1, 0, 2); bits(3);
+        n = 0;
+        forever begin
+            rd(12'h014, d); if (!d[0]) break;
+            if (d[3] !== (n == 16)) `uvm_error("TEST", $sformatf("LSR FE %0b at byte %0d; the bad one is the 17th, held while the FIFO was full", d[3], n))
+            rd(12'h000, d); n++;
+        end
+        expect_count("16 bytes and the held one", n, 17);
+        wr(12'hFE0, 32'h7);
+        // (b) the 16550's receive trigger levels 4, 8 and 14 (FCR[7:6]) and its line-status interrupt
+        //     (IER bit 2): GARUDA routes its own events to irq_o (F03), but the IP runs these and the
+        //     bytes must arrive unchanged at every level
+        `uvm_info("TEST", "coverage: receive trigger levels and the 16550 line-status interrupt", UVM_LOW)
+        setup_line(7, 8, 1, 0);
+        for (int t = 1; t < 4; t++) begin
+            wr(12'h008, {t[1:0], 6'b000111});                                  // FIFOs on and cleared, trigger level t
+            for (int k = 0; k < 15; k++) rxb(8'h60 + k, 0, 0, 0, 2);
+            bits(3); rd(12'h008, d);
+            drain(n); expect_count($sformatf("15 bytes at trigger level %0d", t), n, 15);
+        end
+        wr(12'h008, 8'h07);                                                    // back to level 1
+        wr(12'h004, 8'h07);                                                    // the IP's own interrupt enables
+        rxb(8'h5A, 1, 0); bits(3); rd(12'h008, d); rd(12'h014, d);
+        drain(n); expect_count("a byte with a parity error, line-status interrupt enabled", n, 1);
+        // (c) the 16550's transmit-holding-register-empty interrupt: IER bit 1 with the TX FIFO empty
+        wr(12'h004, 8'h00); wr(12'h008, 8'h07); clks(8); rd(12'h008, d);       // FIFOs cleared, the IIR read once
+        wr(12'h004, 8'h02); wait_temt(); clks(10); rd(12'h008, d);
+        // the vendored UART's own IIR codes (uart_interrupt.sv): 1100 line status, 1000 receive
+        // data, 0100 THR empty, 0001 none; not the 16550's 0110 / 0100 / 0010
+        if (d[3:0] !== 4'b0100) `uvm_error("TEST", $sformatf("IIR %01h with IER = THRE only and the TX FIFO empty, want 4 (THR empty, vendor code)", d[3:0]))
+        wr(12'h004, 8'h00); wr(12'hFE0, 32'h7);
 
         // ---- F20, cg_uart_rx.cp_break: a break of 1, 2 and 10 frame lengths is one 0x00 with a framing error
         `uvm_info("TEST", "F20, F23: break and short pulses", UVM_LOW)
@@ -369,6 +410,10 @@ class uart_directed_test extends uart_base_test;
         setup_line(199);
         wr(12'hFE8, 32'h2); clks(20); dma_on = 1; clks(700); dma_on = 0; clks(8);      // it fills the transmit FIFO
         wr(12'hFE8, 32'h0); wr(12'h008, 8'h04); wait_temt();
+        // software tops up the transmit FIFO while TX DMA is enabled (the DMA itself writes only
+        // when the FIFO is empty): fifteen writes reach "nearly full" (coverage, 2026-11-20)
+        wr(12'hFE8, 32'h2); for (int k = 0; k < 15; k++) wr(12'h000, 8'hC0 + k);
+        wr(12'hFE8, 32'h0); wait_temt();
         setup_line(7);
         wr(12'hFE8, 32'h3); rxb(8'h66); bits(3); clks(30); dma_on = 1; clks(120); dma_on = 0; clks(8);
         wr(12'hFE8, 32'h0); wr(12'h008, 8'h06); wait_temt(); drain(n); wr(12'hFE0, 32'h7);

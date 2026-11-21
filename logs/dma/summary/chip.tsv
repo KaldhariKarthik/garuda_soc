@@ -1,6 +1,6 @@
-# garuda-run 1 suite=chip block=dma date=2026-11-20T07:43:54+05:30 design=8db238050bb7108ad0b5825b8d751e1510dfe77d rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a seed=1
+# garuda-run 1 suite=chip block=dma date=2026-11-21T07:21:29+05:30 design=848e5e3d682318be467e7b87d27f7aaaf724a0c9 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a seed=1
 test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
-t_chip_dma_rearm	PASS	OK	0	yes	0	0	0	-	535	0	EXCLUDED;SHIM-PULL	1	4.63	17				logs/dma/raw/chip/sim_t_chip_dma_rearm_s1.log
-t_chip_dma_traffic	PASS	OK	0	yes	0	0	0	-	535	0	EXCLUDED;SHIM-PULL	1	0.83	17				logs/dma/raw/chip/sim_t_chip_dma_traffic_s1.log
-t_chip_dma_subword	PASS	OK	0	yes	0	0	0	-	535	0	EXCLUDED;SHIM-PULL	1	0.08	17				logs/dma/raw/chip/sim_t_chip_dma_subword_s1.log
-t_chip_dma_uart	PASS	OK	0	yes	0	0	0	-	535	0	EXCLUDED;SHIM-PULL	1	0.36	17				logs/dma/raw/chip/sim_t_chip_dma_uart_s1.log
+t_chip_dma_rearm	PASS	OK	0	yes	0	0	0	-	538	0	EXCLUDED;SHIM-PULL	1	3.08	17				logs/dma/raw/chip/sim_t_chip_dma_rearm_s1.log
+t_chip_dma_traffic	PASS	OK	0	yes	0	0	0	-	538	0	EXCLUDED;SHIM-PULL	1	0.50	17				logs/dma/raw/chip/sim_t_chip_dma_traffic_s1.log
+t_chip_dma_subword	PASS	OK	0	yes	0	0	0	-	538	0	EXCLUDED;SHIM-PULL	1	0.04	17				logs/dma/raw/chip/sim_t_chip_dma_subword_s1.log
+t_chip_dma_uart	PASS	OK	0	yes	0	0	0	-	538	0	EXCLUDED;SHIM-PULL	1	0.14	17				logs/dma/raw/chip/sim_t_chip_dma_uart_s1.log

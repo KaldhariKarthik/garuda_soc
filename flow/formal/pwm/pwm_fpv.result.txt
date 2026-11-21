@@ -1,14 +1,12 @@
 top: garuda_pwm_top
 children: garuda_pwm_core
 script: flow/formal/block_fpv.tcl (flow/formal/run_blocks.sh pwm)
-proved: 56/56
-tool: JasperGold Apps 2022.09p002, 2026-10-15
+proved: 54/54
+tool: JasperGold Apps 2022.09p002, 2026-11-20
 
-clocks: pclk_i             resets: preset_n_i 
-covers: 74, not covered: 8
+clocks: pclk             resets: preset_n 
+covers: 73, not covered: 6
   cover unreachable: garuda_pwm_top.u_shim.u_shim_sva.c_shim_hole
-  cover unreachable: garuda_pwm_top.u_shim.u_shim_sva.a_shim_dma_gate:precondition1
-  cover unreachable: garuda_pwm_top.u_shim.u_shim_sva.a_shim_dma_holdoff:precondition1
   cover unreachable: garuda_pwm_top.u_shim.u_shim_sva.a_shim_reset:precondition1
   cover unreachable: garuda_pwm_top.u_pwm_sva.g_ch[0].a_low_in_reset:precondition1
   cover unreachable: garuda_pwm_top.u_pwm_sva.g_ch[1].a_low_in_reset:precondition1

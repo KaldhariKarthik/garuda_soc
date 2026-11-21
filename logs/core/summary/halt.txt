@@ -1,5 +1,5 @@
-garuda-run 1  suite halt  block core  2026-11-16T10:01:04+05:30
-design 5dfc2efc60ce0ce3179d96b683d38cc0ea23b2a4  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
+garuda-run 1  suite halt  block core  2026-11-21T06:54:24+05:30
+design 848e5e3d682318be467e7b87d27f7aaaf724a0c9  rtl/ DIRTY  tool Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a  seed 1
 
 PASS    OK                      t_core_hartreset_s1       
 PASS    OK                      t_core_hartreset_s2       

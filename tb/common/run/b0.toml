@@ -36,7 +36,8 @@ top   = "tb_apb_checker_selftest"
 
 [[test]]
 name  = "apb_shim"
-# 27 since 8db2380 (D-39): DMACTL reads 0 in a block with no DMA channel, two checks more
-count = [['checks=27  FAIL=0', 1]]
+# 27 since 8db2380 (D-39): DMACTL reads 0 in a block with no DMA channel; 29 since 2026-11-20:
+# a write to a hole answers PSLVERR, a write to ID changes nothing
+count = [['checks=29  FAIL=0', 1]]
 flist = "tb/common/filelist_shim.f"
 top   = "tb_apb_shim"

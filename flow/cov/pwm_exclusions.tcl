@@ -16,6 +16,8 @@
 #      logic cannot move here. It is exercised in the blocks that use it
 #      (UART, I2C, SPI). a_no_dma_req checks that no request ever leaves.
 # =============================================================================
+# 2026-11-20 (D-40): 20 exclusions removed that IMC reported as matching nothing (*W,NOMATCH):
+# the code they named was renamed or removed in F4 / D-39. cov_chart now fails on any such line.
 exclude -inst garuda_pwm_top -toggle reg_rdata\[20\] -comment "read-data bit that is 0 in every register of this block: constant by specification, checked by the scoreboard on every read"
 exclude -inst garuda_pwm_top.u_shim -toggle ip_prdata_i\[20\] -comment "read-data bit that is 0 in every register of this block: constant by specification, checked by the scoreboard on every read"
 exclude -inst garuda_pwm_top -toggle reg_rdata\[21\] -comment "read-data bit that is 0 in every register of this block: constant by specification, checked by the scoreboard on every read"
@@ -55,24 +57,4 @@ exclude -inst garuda_pwm_top.u_shim -toggle prdata_o\[21\] -comment "read-data b
 exclude -inst garuda_pwm_top -toggle pready_o -comment "PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready"
 exclude -inst garuda_pwm_top.u_shim -toggle pready_o -comment "PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready"
 exclude -inst garuda_pwm_top.u_shim.u_shim_sva -toggle pready_o -comment "PREADY is tied high, no wait states: checked by a_shim_pready and sb_pready"
-exclude -inst garuda_pwm_top.u_shim -toggle ip_pready_i -comment "tied high in garuda_pwm_top: the registers answer in the same cycle"
-exclude -inst garuda_pwm_top.u_shim -toggle rx_avail_i -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim -toggle tx_space_i -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim -toggle dma_ack_i -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim -toggle dma_req_o -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim -toggle pad_async_i -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim -toggle pad_sync_o -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim -toggle holdoff_q -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim -toggle sync0_q -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim -toggle sync1_q -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim.u_shim_sva -toggle rx_avail_i -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim.u_shim_sva -toggle tx_space_i -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim.u_shim_sva -toggle dma_ack_i -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim.u_shim_sva -toggle dma_req_o -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_pwm_sva -toggle dma_req -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim.u_shim_sva -assertion a_shim_dma_holdoff -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim.u_shim_sva -assertion a_shim_dma_gate -comment "tied off in garuda_pwm_top: the PWM has no DMA channel and no pad input; covered in the blocks that use the shim's DMA and synchroniser"
-exclude -inst garuda_pwm_top.u_shim -block 30 -comment "the shim's report that an IP held PREADY low: the PWM registers answer in the same cycle (ip_pready_i tied high), so the report can never print here"
-exclude -inst garuda_pwm_top.u_shim -expression 4.1 -comment "condition of the same report: ip_pready_i is tied high in garuda_pwm_top"
 exclude -inst garuda_pwm_top.u_shim.u_shim_sva -assertion c_shim_hole -comment "the register map of the PWM has no hole below its limit (all eight words 0x00 to 0x1C are registers), so this cover cannot happen here; it is seen in the GPIO, the I2C and the SPI master"
-exclude -inst garuda_pwm_top.u_shim -block 27 -comment "the shim stops the simulation if its parameter IP_LIMIT is above 0x100, which the 64-bit register map cannot describe; the parameter is a constant below that here, so the branch is never taken"
