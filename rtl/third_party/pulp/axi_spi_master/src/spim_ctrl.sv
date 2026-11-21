@@ -350,6 +350,7 @@ module spim_ctrl
           end
           else
           begin
+            eot        = 1'b1;     // GARUDA SPIM-6: a bare command ends here, and ends the transfer
             state_next = IDLE;
           end
         end
@@ -412,6 +413,7 @@ module spim_ctrl
           end
           else
           begin
+            eot        = 1'b1;     // GARUDA SPIM-6: command + address with no data ends here
             state_next = IDLE;
           end
         end

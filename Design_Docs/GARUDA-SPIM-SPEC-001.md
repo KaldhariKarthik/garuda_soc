@@ -162,6 +162,8 @@ occupancy.
 gets zero. Waiting for a word to *arrive* has no such race. For a transfer with
 no read data (a write, or a bare command), wait on `IRQSTAT[0]` instead —
 clear it, start the transfer, poll it — which is sticky and cannot be missed.
+It is set at the end of every transfer, including one that ends after the command or the
+address with no data phase (SPIM-6, vendor patch 0001: upstream raised no end-of-transfer there).
 
 ### 6.2 `CLKDIV` (0x04)
 

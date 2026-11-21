@@ -1,0 +1,33 @@
+G6 6.4 (peripheral receive and transmit paths at chip level): t_chip_periph steps 5 and 7, 2026-11-21
+RTL: 339a0d8 + SPIM-6 (vendor patch 0001, spim_ctrl eot on a transfer with no data phase); Xcelium 22.09
+plain tb_chip, and irun 15.2 UVM chip bench
+
+Until today t_chip_periph only wrote over I2C and only read over the SPI master (the boot path).
+  step 5  I2C receive: pointer write, REPEATED START, address-read, one byte with NACK + STOP;
+          RXDATA must be the byte step 4 wrote to the board's slave (0xC3 at pointer 0x55)
+  step 7  SPI master transmit: WREN, PAGE PROGRAM of one word to the board's flash at 0x010F00,
+          READ it back; every transfer completes on IRQSTAT[0] as SPIM [N-6.1a] says
+The flash model gained WREN / PAGE PROGRAM / RDSR, and tb_chip now fails on any flash protocol
+violation (TB-A22; until today it counted them and nothing read the count).
+
+== found: SPIM-6 (P2, RTL, fixed). A transfer with no data phase (WREN, a bare command, command +
+   address) never raised end-of-transfer: the upstream controller went back to IDLE silently and
+   IRQSTAT[0] never set. Step 7 timed out at the WREN with 8 SCLK on the wire. Fixed in the vendor
+   patch (D-22): eot on the CMD->IDLE and ADDR->IDLE arcs. Docs/bugs/track_b.md, SPIM spec [N-6.1a].
+
+== make test_chip_periph (in make test_chip, gate_b)
+[tb_chip] tohost = 0x00000001 at 203100000: 10715 retired, 0 hclk cycles clock-gated, 0 system resets
+[tb_chip] AHB checker violations: I=0 D=0 SBA=0 DMA=0 (slave bus 0, expected >0 only for deliberate faults)
+[tb_chip] SPI flash model: 0 protocol violations, 4 bytes programmed
+RESULT: PASSED
+also on the patched RTL: make test_spim (54 checks, 0 FAIL), make test_chip_flash, make test_chip_basic: PASSED
+
+== UVM chip bench: tb/chip_uvm/run_chip_uvm.sh periph (COMPILE=1)
+chip_uvm periph PASS; UVM_ERROR 0, UVM_FATAL 0; SPI flash model 0 violations, 4 bytes programmed
+i2c_scoreboard: 12 bus events, 12 compared with a command; 1 byte read compared; 0 mismatches
+(every chip run before today compared 0 bytes read over I2C, except t_chip_regs' 1)
+
+== negative controls (each in its own copy of rtl/; the program must report a step)
+  i2c_rx_bit0   : I2C receive shift register shifts in 1, not SDA          -> KILLED, step 5
+  spim_tx_bit16 : SPI master TX FIFO data bit 16 inverted on the wire      -> KILLED, step 7 (4 bytes programmed, read back differs)
+  spim_noeot    : SPIM-6 fix removed (no eot after a bare command)          -> KILLED, step 7

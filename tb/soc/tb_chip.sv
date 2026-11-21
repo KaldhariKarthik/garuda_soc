@@ -377,16 +377,22 @@ module tb_chip;
                 $display("[tb_chip] AHB checker violations: I=%0d D=%0d SBA=%0d DMA=%0d (slave bus %0d, expected >0 only for deliberate faults)",
                          vi, vd, vs, vm, vsl);
                 if ($test$plusargs("SBA_STRESS")) $display("[tb_chip] SBA stress: %0d reads over JTAG compared", n_sba);
+                // the flash model's own protocol checks (SCLK rate, MOSI stable, CS through command
+                // and address, program after WREN) count in every run; until TB-A22 nothing read them
+                $display("[tb_chip] SPI flash model: %0d protocol violations, %0d bytes programmed",
+                         u_flash.viol(), u_flash.n_prog);
 `ifdef GARUDA_CHIP_UVM
                 if (rc) $display("[FAIL] program reported step %0d", rc);
                 if ((vi | vd | vs | vm) != 0) $display("[FAIL] AHB checker violations");
-                prog_rc = (rc == 0 && (vi | vd | vs | vm) == 0) ? 0 : (rc ? rc : 99);
+                if (u_flash.viol() != 0) $display("[FAIL] SPI flash protocol violations");
+                prog_rc = (rc == 0 && (vi | vd | vs | vm) == 0 && u_flash.viol() == 0) ? 0 : (rc ? rc : 99);
                 prog_done = 1'b1;
                 wait (0);
 `else
-                if (rc == 0 && (vi | vd | vs | vm) == 0) $display("RESULT: PASSED");
+                if (rc == 0 && (vi | vd | vs | vm) == 0 && u_flash.viol() == 0) $display("RESULT: PASSED");
                 else begin
                     if (rc) $display("[FAIL] program reported step %0d", rc);
+                    if (u_flash.viol() != 0) $display("[FAIL] SPI flash protocol violations");
                     $display("RESULT: FAILED");
                 end
                 $finish;

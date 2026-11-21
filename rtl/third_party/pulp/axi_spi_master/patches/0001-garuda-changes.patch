@@ -2,6 +2,9 @@ GARUDA changes to axi_spi_master's SPI datapath (D-22, zero-waiver F4, recorded 
 - F4 renames (d995a4a): clock and reset ports to pclk/preset_n; spi_master_clkgen ->
   spim_clkgen and spi_master_controller -> spim_ctrl (HAL module-name length), files with them.
 - F4 style (a7c8db1): tools/rtl_style.py; proven equivalent by JasperGold SEC. No logic change.
+- SPIM-6 (2026-11-21, G6 6.4): spim_ctrl raises eot when a transfer ends after the command or the
+  address with no data phase (a bare command such as WREN, or command + address); upstream went
+  back to IDLE silently, so IRQSTAT[0] never set and firmware following SPIM [N-6.1a] waited forever.
 
 --- a/rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv
 +++ b/rtl/third_party/pulp/axi_spi_master/src/spi_master_fifo.sv
@@ -182,7 +185,23 @@ GARUDA changes to axi_spi_master's SPI datapath (D-22, zero-waiver F4, recorded 
      .en             ( spi_en_rx              ),
      .rx_edge        ( spi_rise               ),
      .rx_done        ( rx_done                ),
-@@ -515,9 +515,9 @@
+@@ -350,6 +350,7 @@
+           end
+           else
+           begin
++            eot        = 1'b1;     // GARUDA SPIM-6: a bare command ends here, and ends the transfer
+             state_next = IDLE;
+           end
+         end
+@@ -412,6 +413,7 @@
+           end
+           else
+           begin
++            eot        = 1'b1;     // GARUDA SPIM-6: command + address with no data ends here
+             state_next = IDLE;
+           end
+         end
+@@ -515,9 +517,9 @@
    end
  
  
