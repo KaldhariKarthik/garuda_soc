@@ -635,7 +635,8 @@ package uart_env_pkg;
             sb   = uart_scoreboard::type_id::create("sb", this);
             cov  = uart_coverage::type_id::create("cov", this);
             sb.cov = cov; sb.cfg = line_agt.cfg; sb.line = line_agt.line;
-            regmodel = new("regmodel");
+            // unique root name when several environments share one run (the chip, tb/chip_uvm); "regmodel" in the block runs
+            regmodel = new((get_full_name() == "uvm_test_top.env") ? "regmodel" : {get_name(), "_regmodel"});
             regmodel.build();
             regmodel.lock_model();
             regmodel.reset();
@@ -648,7 +649,8 @@ package uart_env_pkg;
             apb.mon.ap.connect(sb.apb_imp);
             line_agt.mon.ap.connect(sb.txe_imp);
             line_agt.drv.ap.connect(sb.rxf_imp);
-            regmodel.default_map.set_sequencer(apb.sqr, adapter);
+            // passive inside the chip (tb/chip_uvm): no sequencer, the predictor follows the bus
+            if (apb.get_is_active() == UVM_ACTIVE) regmodel.default_map.set_sequencer(apb.sqr, adapter);
             regmodel.default_map.set_auto_predict(0);
             predictor.map = regmodel.default_map; predictor.adapter = adapter;
             apb.mon.ap.connect(predictor.bus_in);

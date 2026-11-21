@@ -670,7 +670,8 @@ package spis_env_pkg;
             cov = spis_coverage::type_id::create("cov", this);
             sb.model = spis_ref_model::type_id::create("model");
             sb.cov = cov;
-            regmodel = new("regmodel");
+            // unique root name when several environments share one run (the chip, tb/chip_uvm); "regmodel" in the block runs
+            regmodel = new((get_full_name() == "uvm_test_top.env") ? "regmodel" : {get_name(), "_regmodel"});
             regmodel.build();
             regmodel.lock_model();
             regmodel.reset();
@@ -683,7 +684,8 @@ package spis_env_pkg;
             apb.mon.ap.connect(sb.apb_imp);
             spi.drv.ap.connect(sb.spi_imp);
             cov.line = spi.drv.line;
-            regmodel.default_map.set_sequencer(apb.sqr, adapter);
+            // passive inside the chip (tb/chip_uvm): no sequencer, the predictor follows the bus
+            if (apb.get_is_active() == UVM_ACTIVE) regmodel.default_map.set_sequencer(apb.sqr, adapter);
             regmodel.default_map.set_auto_predict(0);
             predictor.map = regmodel.default_map; predictor.adapter = adapter;
             apb.mon.ap.connect(predictor.bus_in);

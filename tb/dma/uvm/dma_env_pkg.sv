@@ -894,7 +894,10 @@ package dma_env_pkg;
                                        "%0d sideband cycles compared; %0d mismatches; %0d request assertions taken by the beat before them"},
                                       tot, n_beats[0], n_beats[1], n_beats[2], n_beats[3], n_beats[4], n_beats[5],
                                       n_beat_err, n_reads, n_writes, n_regrd, n_regwr, n_side, n_err, n_absorbed), UVM_NONE)
-            if (n_regrd == 0 || n_side == 0) `uvm_error("SB", "the scoreboard compared nothing")
+            // nothing compared = no register read and no beat (a run that only moves data and
+            // takes the interrupt, as the chip programs t_chip_irq/t_chip_swirq, compares its
+            // beats; TB-A21), or no sideband cycle
+            if ((n_regrd == 0 && tot == 0) || n_side == 0) `uvm_error("SB", "the scoreboard compared nothing")
             if (fl_ch >= 0) `uvm_error("sb_beats", $sformatf("the beat of channel %0d never finished", fl_ch))
         endfunction
     endclass
@@ -927,7 +930,8 @@ package dma_env_pkg;
             cov   = dma_coverage::type_id::create("cov", this);
             model = dma_ref_model::type_id::create("model");
             sb.model = model; sb.cov = cov;
-            regmodel = new("regmodel");
+            // unique root name when several environments share one run (the chip, tb/chip_uvm); "regmodel" in the block runs
+            regmodel = new((get_full_name() == "uvm_test_top.env") ? "regmodel" : {get_name(), "_regmodel"});
             regmodel.build();
             regmodel.lock_model();
             regmodel.reset();
@@ -940,7 +944,8 @@ package dma_env_pkg;
             amon.ap_addr.connect(sb.xaddr_imp);
             amon.ap_done.connect(sb.xdone_imp);
             smon.ap.connect(sb.side_imp);
-            regmodel.default_map.set_sequencer(apb.sqr, adapter);
+            // passive inside the chip (tb/chip_uvm): no sequencer, the predictor follows the bus
+            if (apb.get_is_active() == UVM_ACTIVE) regmodel.default_map.set_sequencer(apb.sqr, adapter);
             regmodel.default_map.set_auto_predict(0);
             predictor.map     = regmodel.default_map;
             predictor.adapter = adapter;

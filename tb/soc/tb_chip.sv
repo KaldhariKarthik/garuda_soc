@@ -37,6 +37,15 @@ module tb_chip;
     wire uart0_tx, uart1_tx, uart2_tx, pwm0, pwm1, pwm2, pwm3;
     wire spis_sclk, spis_mosi, spis_miso, spis_cs_n;
     pullup (i2c_scl); pullup (i2c_sda);
+    wire [2:0] uart_rx_pin;
+`ifdef GARUDA_CHIP_UVM
+    // driven by tb/chip_uvm/tb_chip_uvm.sv (the UART line agents)
+`else
+    assign uart_rx_pin = {uart2_tx, uart1_tx, uart0_tx};
+`endif
+    // GARUDA_CHIP_UVM: the verdict is handed to the UVM test instead of ending the run
+    reg prog_done = 1'b0;
+    integer prog_rc = -1;
 
     garuda_chip_top #(.BROM_INIT_FILE("sw/build/bootrom.hex")) dut (
         .refclk(refclk), .ext_rst_n(ext_rst_n),
@@ -47,10 +56,11 @@ module tb_chip;
         // Each UART's tx is looped back to its own rx. Nothing else in the chip
         // depends on these pins, and it lets t_chip_uart prove both directions
         // AND that the three instances do not talk to each other, with no
-        // model on the board.
-        .uart0_rx(uart0_tx), .uart0_tx(uart0_tx),
-        .uart1_rx(uart1_tx), .uart1_tx(uart1_tx),
-        .uart2_rx(uart2_tx), .uart2_tx(uart2_tx),
+        // model on the board. Under the UVM chip bench (GARUDA_CHIP_UVM,
+        // tb/chip_uvm) the rx pins are the UART agents' instead.
+        .uart0_rx(uart_rx_pin[0]), .uart0_tx(uart0_tx),
+        .uart1_rx(uart_rx_pin[1]), .uart1_tx(uart1_tx),
+        .uart2_rx(uart_rx_pin[2]), .uart2_tx(uart2_tx),
         .pwm0(pwm0), .pwm1(pwm1), .pwm2(pwm2), .pwm3(pwm3),
         .gpio0(gpio0), .gpio1(gpio1), .boot_sel(boot_sel),
         .spis_sclk(spis_sclk), .spis_mosi(spis_mosi),
@@ -133,9 +143,13 @@ module tb_chip;
     localparam [31:0] TOHOST = 32'h2000_F000, MBOX = 32'h2000_FFF0, MBOX_MAGIC = 32'h4A54_4147;
     localparam [31:0] FROMHOST = 32'h2000_F004, NOINIT = 32'h2000_E000;
 
-    // The ESP32 companion on block 14's pins, present in every mode.
+    // The ESP32 companion on block 14's pins, present in every mode. In the UVM chip
+    // bench (tb/chip_uvm) the SPI slave environment's master agent is the companion
+    // and drives these pins instead, with the same frame on the same trigger.
+`ifndef GARUDA_CHIP_UVM
     spi_master_model u_esp (.sclk(spis_sclk), .mosi(spis_mosi),
                             .cs_n(spis_cs_n), .miso(spis_miso));
+`endif
 
     // +TRAPLOG prints every trap the core takes: the first thing to look at when
     // a chip test hangs.
@@ -148,6 +162,7 @@ module tb_chip;
     // The companion sends a two-byte frame when firmware raises gpio1, which is
     // how a real one is asked for data (a ready line). Only t_chip_integ drives
     // gpio1; in every other test the pin stays an input on its pull-down.
+`ifndef GARUDA_CHIP_UVM
     byte unsigned esp_got;
     always @(posedge gpio1) begin
         u_esp.open_frame();
@@ -155,6 +170,7 @@ module tb_chip;
         u_esp.xfer(8'h3C, esp_got);
         u_esp.close_frame();
     end
+`endif
 
     // An I2C slave on the real open-drain bus, and pull-downs on the GPIO pins
     // so a released pin reads a defined level. Present in every mode; nothing
@@ -317,12 +333,20 @@ module tb_chip;
                          th, $time, n_retire, n_sleep, n_hreset_fall);
                 $display("[tb_chip] AHB checker violations: I=%0d D=%0d SBA=%0d DMA=%0d (slave bus %0d, expected >0 only for deliberate faults)",
                          vi, vd, vs, vm, vsl);
+`ifdef GARUDA_CHIP_UVM
+                if (rc) $display("[FAIL] program reported step %0d", rc);
+                if ((vi | vd | vs | vm) != 0) $display("[FAIL] AHB checker violations");
+                prog_rc = (rc == 0 && (vi | vd | vs | vm) == 0) ? 0 : (rc ? rc : 99);
+                prog_done = 1'b1;
+                wait (0);
+`else
                 if (rc == 0 && (vi | vd | vs | vm) == 0) $display("RESULT: PASSED");
                 else begin
                     if (rc) $display("[FAIL] program reported step %0d", rc);
                     $display("RESULT: FAILED");
                 end
                 $finish;
+`endif
             end
             if ($time > maxus * 1000) begin
                 $display("[FAIL] TIMEOUT after %0d us: tohost never written (%0d retired, pc in EX = 0x%08h)",

@@ -184,6 +184,14 @@ uvm_crg:                                         ## clock and reset UVM environm
 UVM_B = uvm_clic uvm_timers uvm_pwm uvm_gpio uvm_crg uvm_spis uvm_i2c uvm_uart
 uvm_b: $(UVM_B)                                  ## the five UVM environments of track B
 
+# G6 6.1 (D-42): the UVM bench of the whole chip. The core runs every program of
+# tb/chip_uvm/programs.txt while the block environments above (and DMA's) check their
+# blocks inside the chip, passive on the APB, with their pin agents on the pads; then
+# the planted defects of tb/chip_uvm/plants.txt must each be caught. tb/chip_uvm/README.md
+.PHONY: uvm_chip
+uvm_chip:                                        ## the whole chip under the block UVM environments
+	@tb/chip_uvm/sweep.sh
+
 # =============================================================================
 # Synthesis check with Cadence Genus (generic mapping, no library): unresolved
 # modules, multiple drivers, latches. Structural only - not timing signoff.
@@ -293,7 +301,7 @@ REGRESS_B = test_blocks_b test_chip
 # failure does not hide another.
 # =============================================================================
 GATE_SEEDS ?= 3
-GATE_B = check_tree static_lint test_blocks_b test_chip uvm_b
+GATE_B = check_tree static_lint test_blocks_b test_chip uvm_b uvm_chip
 gate_b:
 	@if $(MAKE) --no-print-directory -k $(GATE_B) SEEDS=$(GATE_SEEDS) UVM_TAG=_gate; \
 	 then echo "gate_b: PASS"; else echo "gate_b: FAIL"; exit 1; fi

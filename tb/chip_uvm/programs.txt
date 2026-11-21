@@ -1,0 +1,20 @@
+# the chip programs on the UVM chip bench (G6 6.1): name  mode  hex  max_us  blocks
+# blocks: the environments whose block the program uses ("-" = all of them); the others
+# are checked to stay quiet (outputs idle, reset values) and may compare nothing.
+# Each list is the 2026-11-21 sweep without +BLOCKS, cross-checked against the source:
+# no program names a block left out, except t_chip_basic's byte read of CLICIE (step 10),
+# which the bridge refuses before the APB, so the CLIC sees no access.
+basic        basic     sw/build/t_chip_basic.hex        2000  dma,crg
+uart         basic     sw/build/t_chip_uart.hex         2000  uart,crg
+periph       basic     sw/build/t_chip_periph.hex       1200  uart,gpio,pwm,i2c,spis,crg
+integ        basic     sw/build/t_chip_integ.hex        4000  -
+irq          irq       sw/build/t_chip_irq.hex          2000  clic,dma,timers,crg
+swirq        basic     sw/build/t_chip_swirq.hex        2000  clic,dma,crg
+wdt          watchdog  sw/build/t_chip_wdt.hex          2000  timers,crg
+jtag         jtag      sw/build/t_chip_jtag.hex         1500  uart0,crg
+flash        flash     sw/build/flash.hex               3000  crg
+cov          cov       sw/build/t_chip_cov.hex          6000  clic,dma,gpio,pwm,i2c,spis,crg
+dma_rearm    basic     sw/build/t_chip_dma_rearm.hex    4000  dma,timers,crg
+dma_subword  basic     sw/build/t_chip_dma_subword.hex  4000  dma,timers,crg
+dma_traffic  basic     sw/build/t_chip_dma_traffic.hex  4000  dma,clic,crg
+dma_uart     basic     sw/build/t_chip_dma_uart.hex     4000  dma,uart0,uart1,crg

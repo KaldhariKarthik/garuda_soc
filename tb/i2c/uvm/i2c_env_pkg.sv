@@ -729,7 +729,8 @@ package i2c_env_pkg;
             scfg  = i2c_slave_cfg::type_id::create("scfg");
             line  = new();
             bus.line = line; slave.line = line; other.line = line; sb.line = line; slave.cfg = scfg; sb.cov = cov;
-            regmodel = new("regmodel");
+            // unique root name when several environments share one run (the chip, tb/chip_uvm); "regmodel" in the block runs
+            regmodel = new((get_full_name() == "uvm_test_top.env") ? "regmodel" : {get_name(), "_regmodel"});
             regmodel.build();
             regmodel.lock_model();
             regmodel.reset();
@@ -741,7 +742,8 @@ package i2c_env_pkg;
             mon.ap.connect(sb.cyc_imp);
             bus.ap.connect(sb.bus_imp);
             apb.mon.ap.connect(sb.apb_imp);
-            regmodel.default_map.set_sequencer(apb.sqr, adapter);
+            // passive inside the chip (tb/chip_uvm): no sequencer, the predictor follows the bus
+            if (apb.get_is_active() == UVM_ACTIVE) regmodel.default_map.set_sequencer(apb.sqr, adapter);
             regmodel.default_map.set_auto_predict(0);
             predictor.map = regmodel.default_map; predictor.adapter = adapter;
             apb.mon.ap.connect(predictor.bus_in);

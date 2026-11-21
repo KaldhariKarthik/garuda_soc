@@ -1,0 +1,6 @@
+# negative controls of the UVM chip bench: name  program(programs.txt)  check that must fire
+# Each defect is invisible to the firmware (the program still reports success); the run
+# passes as a control only if the bench reports FAILED with that check's error.
+pwm        cov    sb_pin
+spis_miso  cov    sb_miso
+uart_dma   uart   sb_dma
