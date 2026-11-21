@@ -127,8 +127,10 @@ case "$T" in
                  cov)    ARGS="+MODE=cov +TEST=sw/build/t_chip_cov.hex +MAXUS=6000" ;;
                  dma_*)  ARGS="+MODE=basic +TEST=sw/build/t_chip_$m.hex +MAXUS=4000" ;;
                  irqprio) ARGS="+MODE=basic +TEST=sw/build/t_chip_irqprio.hex +MAXUS=3000" ;;   # G6 6.5
-                 # G6 6.8: seeded random traffic; the seed is SVSEED (default 1)
-                 stress) ARGS="+MODE=basic +TEST=sw/build/t_chip_stress.hex +MAXUS=20000 +SEED=${SVSEED:-1} +SBA_STRESS" ;;
+                 regs)    ARGS="+MODE=basic +TEST=sw/build/t_chip_regs.hex +MAXUS=3000" ;;      # G6 6.2
+                 # G6 6.8: seeded random traffic; the seed is SVSEED (default 1). G6 6.18 long run:
+                 # STRESS_ITER=20000 STRESS_MAXUS=400000 SVSEED=7 flow/regress/run_test.sh chip_stress
+                 stress) ARGS="+MODE=basic +TEST=sw/build/t_chip_stress.hex +MAXUS=${STRESS_MAXUS:-20000} +SEED=${SVSEED:-1} ${STRESS_ITER:++ITER=$STRESS_ITER} +SBA_STRESS" ;;
                  *)      ARGS="+MODE=$m +TEST=sw/build/t_chip_$m.hex" ;;
                esac ;;
   *) echo "[FAIL] run_test.sh: unknown test '$T'"; echo "GARUDA_RESULT: FAIL $T"; exit 1 ;;

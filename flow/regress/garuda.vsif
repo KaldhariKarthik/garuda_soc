@@ -138,5 +138,7 @@ group garuda {
         test chip_stress {};
         // 2026-11-21 (G6 6.5, 6.13): CLIC enable, level, priority and nesting at chip level
         test chip_irqprio {};
+        // 2026-11-21 (G6 6.2): every register of every APB window, from the RDL
+        test chip_regs {};
     };
 };

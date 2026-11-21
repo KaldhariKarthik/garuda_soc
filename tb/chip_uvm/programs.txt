@@ -20,6 +20,8 @@ dma_traffic  basic     sw/build/t_chip_dma_traffic.hex  4000  dma,clic,crg
 dma_uart     basic     sw/build/t_chip_dma_uart.hex     4000  dma,uart0,uart1,crg
 # G6 6.5, 6.13: CLIC enable, level, priority and nesting over six sources
 irqprio      basic     sw/build/t_chip_irqprio.hex      3000  uart,gpio,pwm,clic,crg
+# G6 6.2: every register of every APB window (sw/chip/chip_regs.h from the RDL)
+regs         basic     sw/build/t_chip_regs.hex         3000  -
 # G6 6.8: seeded random traffic (t_chip_stress), every environment checking
 stress_s1    basic     sw/build/t_chip_stress.hex       20000 -     +SEED=1 +ITER=1000 +SBA_STRESS
 stress_s2    basic     sw/build/t_chip_stress.hex       20000 -     +SEED=2 +ITER=1000 +SBA_STRESS
