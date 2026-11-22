@@ -857,6 +857,21 @@ chip with the core running C programs.
 SPI, I2C, GPIO) drive and check them. Rows 6.8 and 6.14 (traffic and random stress) are
 judged within what the firmware drives.
 
+## D-43 — ASAP7 run pnr_r10: final settings and what is left as it is
+
+**Decided 2026-11-22 (by Claude under the owner's instruction to finish the ASAP7 fixes; the owner
+reviews) · Raised by** PD-12, PD-15, PD-16
+
+| Decision | Chosen | Not chosen, and why |
+|---|---|---|
+| Read the SystemVerilog RTL | Yosys's built-in slang front end in ORFS | ORFS's default reader (stops at the packages); a plug-in install (slang is built into Yosys 0.68) |
+| CTS for the hclk spread | keep `-no_insertion_delay`; the run checks the spread and falls back | latency balancer on (pnr_r10a: spread unchanged at 300 ps, 73 delay buffers); `-balance_levels` (obsolete, CTS-0132) |
+| Hold-repair target | 20 ps (0 violations after route; 8,038 buffers) | 10 ps (pnr_r9: one FF endpoint -2.92 ps after route); a post-route ECO |
+| Repair scenes | div2_WC, div2_BC, div16_BC | 6 scenes (with the synchronous divider the DIV4..16 FF scenes behave alike; memory) |
+| hclk spread (283.9 ps) and the last slew net | left as they are on ASAP7 | a manual clock-tree change (large; timing already met; Innovus balances clock gates on the real flow) |
+
+---
+
 ## Open — carried forward, not decided
 
 These are recorded so they are not mistaken for settled. None blocks RTL.

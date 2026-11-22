@@ -69,9 +69,19 @@ copy_from() {   # every garuda* design (the core and its hardened memories)
         for d in "$PD_WORK/$k/asap7"/garuda*/"$FROM"; do
             [ -d "$d" ] || continue
             n=${d%/"$FROM"}/$V
-            [ -e "$n" ] && { say "exists: $n (pick a new variant name)"; return 1; }
-            cp -a "$d" "$n"
-            rm -f "$n"/5_* "$n"/6_* "$n"/route.guide
+            if [ -e "$n" ]; then
+                # this script writes run_pnr.log into the new logs directory before
+                # the copy starts; anything else there means the variant is in use
+                if [ -n "$(ls -A "$n" | grep -v '^run_pnr')" ]; then
+                    say "exists: $n (pick a new variant name)"; return 1
+                fi
+                cp -a "$d/." "$n/"
+            else
+                cp -a "$d" "$n"
+            fi
+            # only the core's route results are redone; a hardened memory block
+            # keeps its 6_final (its LEF, liberty and corner models come from it)
+            case $d in */asap7/garuda/*) rm -f "$n"/5_* "$n"/6_* "$n"/route.guide ;; esac
         done
     done
 }
