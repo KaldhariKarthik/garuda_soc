@@ -283,6 +283,36 @@ contradicted each other on where LoRa lived, and both contradicted the DMA spec.
 | **spare** | **2** |
 | **budget** | **28** |
 
+### 3.10 Peripheral table
+
+One row per APB window: what answers there, where its RTL came from, and what it drives
+into the CLIC, the DMA and the pad ring. The columns gather §3.3, §3.5, §3.6, §3.7 and §3.9
+into one place and agree with them. Each value was checked against the RTL
+(`rtl/soc/garuda_chip_core.sv` `periph_irq` / `dma_req`, `rtl/soc/garuda_soc_top.sv`
+`irq_src`, `rtl/soc/garuda_chip_top.sv` ports) on 2026-11-22.
+
+| Window | Block | Source | IRQ (CLIC ID) | DMA ch | Pins |
+|---|---|---|---|---|---|
+| 0 `0x4000_0000` | 14 `spi_slave` | in-house (D-25) | 14 | 4 | 4: `spis_sclk`, `spis_mosi`, `spis_miso`, `spis_cs_n` (outside the 28-pin baseline, OPEN-2) |
+| 1 `0x4000_1000` | 13 `spi_master` | PULP `apb_spi_master` + GARUDA wrapper | 15 | 0 | 5: `spim_sclk`, `spim_mosi`, `spim_miso`, `spim_cs_flash_n`, `spim_cs_imu_n` |
+| 2 `0x4000_2000` | 15 `i2c` | OpenCores bit/byte controllers + GARUDA register layer (D-25) | 16 | 1 | 2: `i2c_scl`, `i2c_sda` (open drain) |
+| 3 `0x4000_3000` | 16 `uart0` | PULP `apb_uart_sv`, patch 0001 (D-24) | 17 | 2 | 2: `uart0_rx`, `uart0_tx` |
+| 4 `0x4000_4000` | 17 `uart1` | PULP `apb_uart_sv`, patch 0001 (D-24) | 18 | 3 | 2: `uart1_rx`, `uart1_tx` |
+| 5 `0x4000_5000` | 9 `dma_cfg` | in-house | 1–6 complete, 8–13 error (ch 0–5) | owns ch 0–5 | — |
+| 6 `0x4000_6000` | 18 `uart2` | PULP `apb_uart_sv`, patch 0001 (D-24) | 19 | 5 | 2: `uart2_rx`, `uart2_tx` |
+| 7 `0x4000_7000` | 19 `gpio` | PULP `apb_gpio`, `PAD_NUM` = 2 | 20 (pin-change aggregate) | — | 2: `gpio0`, `gpio1` |
+| 8 `0x4000_8000` | 20 `pwm` | in-house (D-25) | 21 (fault) | — | 4: `pwm0`–`pwm3` |
+| 9 `0x4000_9000` | 22 `reset_ctrl` + `mem_ctl` | in-house | — | — | 2: `ext_rst_n`, `boot_sel` |
+| 10 `0x4000_A000` | 10 `clic_cfg` | in-house | 23 (software, `CLICSWI`) | — | — |
+| 11 `0x4000_B000` | 11 `timers_cfg` | in-house | 22 (watchdog early warning); machine timer on `mip.MTIP`, not the CLIC | — | — |
+
+**[N-3.4]** The pins above total 21 inside the baseline plus 4 for `spi_slave`. The other
+5 baseline pins are not behind an APB window: `refclk` (block 21 `clk_div`) and the JTAG
+four `tck`, `tms`, `tdi`, `tdo` (block 12 `debug`). That makes 26 allocated, as in §3.9.
+`ext_rst_n` also feeds `clk_div`'s raw reset. The `spi_slave` pins exist on
+`garuda_chip_top` when `WITH_SPI_SLAVE = 1` but are not yet in the pad budget. Bonding them
+is OPEN-2.
+
 ---
 
 ## 4 Boot
