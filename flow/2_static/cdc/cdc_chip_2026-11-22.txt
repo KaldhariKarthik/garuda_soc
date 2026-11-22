@@ -1,0 +1,10 @@
+CDC/RDC on the chip (JasperGold CDC, flow/2_static/cdc/cdc_chip.tcl), rerun for the RTL freeze review
+date: 2026-11-22 21:43 IST; tree: garuda_soc @ 67615dd, RTL identical to tag 1tops-rtl-freeze (affe136)
+command: jg -allow_unsupported_OS -cdc -batch -no_jges -proj sim/cdc_chip flow/2_static/cdc/cdc_chip.tcl (tcsh, source /home/install/cshrc); reports in sim/cdc_chip/reports
+
+crossing pairs analysed : 71
+waivers (each with reason): 25
+unwaived violations     : 0
+session exit            : Exiting the analysis session with status 0
+
+cdc: 0 unwaived violations, 25 waivers; same crossings, same 16 synchroniser schemes (all Passed) and same waivers as 2026-11-20; only the tool's internal ids and list order differ

@@ -1,0 +1,64 @@
+1-TOPS 5.3: riscv-arch-test 3.10.0 (I, Zmmul multiply, Zifencei, privilege) on Xcelium 22.09, tb_boot 2 MiB build; signatures against Spike (tools/archtest/sigcheck.py)
+date: 2026-11-22 21:42 IST; tree: garuda_soc @ 67615dd, RTL identical to tag 1tops-rtl-freeze (affe136); rerun for the RTL freeze review; command: make archtest_xrun (tcsh, source /home/install/cshrc)
+
+TEST                           RTL    SIGNATURE
+I-add-01                       PASS   MATCH   SIGNATURE MATCH: 590 words identical to Spike
+I-addi-01                      PASS   MATCH   SIGNATURE MATCH: 563 words identical to Spike
+I-and-01                       PASS   MATCH   SIGNATURE MATCH: 586 words identical to Spike
+I-andi-01                      PASS   MATCH   SIGNATURE MATCH: 564 words identical to Spike
+I-auipc-01                     PASS   MATCH   SIGNATURE MATCH: 66 words identical to Spike
+I-beq-01                       PASS   MATCH   SIGNATURE MATCH: 585 words identical to Spike
+I-bge-01                       PASS   MATCH   SIGNATURE MATCH: 592 words identical to Spike
+I-bgeu-01                      PASS   MATCH   SIGNATURE MATCH: 728 words identical to Spike
+I-blt-01                       PASS   MATCH   SIGNATURE MATCH: 582 words identical to Spike
+I-bltu-01                      PASS   MATCH   SIGNATURE MATCH: 728 words identical to Spike
+I-bne-01                       PASS   MATCH   SIGNATURE MATCH: 586 words identical to Spike
+I-fence-01                     PASS   MATCH   SIGNATURE MATCH: 3 words identical to Spike
+I-jal-01                       PASS   MATCH   SIGNATURE MATCH: 34 words identical to Spike
+I-jalr-01                      PASS   MATCH   SIGNATURE MATCH: 35 words identical to Spike
+I-lb-align-01                  PASS   MATCH   SIGNATURE MATCH: 35 words identical to Spike
+I-lbu-align-01                 PASS   MATCH   SIGNATURE MATCH: 34 words identical to Spike
+I-lh-align-01                  PASS   MATCH   SIGNATURE MATCH: 34 words identical to Spike
+I-lhu-align-01                 PASS   MATCH   SIGNATURE MATCH: 34 words identical to Spike
+I-lui-01                       PASS   MATCH   SIGNATURE MATCH: 65 words identical to Spike
+I-lw-align-01                  PASS   MATCH   SIGNATURE MATCH: 34 words identical to Spike
+I-misalign1-jalr-01            PASS   MATCH   SIGNATURE MATCH: 3 words identical to Spike
+I-or-01                        PASS   MATCH   SIGNATURE MATCH: 589 words identical to Spike
+I-ori-01                       PASS   MATCH   SIGNATURE MATCH: 562 words identical to Spike
+I-sb-align-01                  PASS   MATCH   SIGNATURE MATCH: 72 words identical to Spike
+I-sh-align-01                  PASS   MATCH   SIGNATURE MATCH: 73 words identical to Spike
+I-sll-01                       PASS   MATCH   SIGNATURE MATCH: 91 words identical to Spike
+I-slli-01                      PASS   MATCH   SIGNATURE MATCH: 90 words identical to Spike
+I-slt-01                       PASS   MATCH   SIGNATURE MATCH: 586 words identical to Spike
+I-slti-01                      PASS   MATCH   SIGNATURE MATCH: 562 words identical to Spike
+I-sltiu-01                     PASS   MATCH   SIGNATURE MATCH: 701 words identical to Spike
+I-sltu-01                      PASS   MATCH   SIGNATURE MATCH: 724 words identical to Spike
+I-sra-01                       PASS   MATCH   SIGNATURE MATCH: 92 words identical to Spike
+I-srai-01                      PASS   MATCH   SIGNATURE MATCH: 89 words identical to Spike
+I-srl-01                       PASS   MATCH   SIGNATURE MATCH: 94 words identical to Spike
+I-srli-01                      PASS   MATCH   SIGNATURE MATCH: 92 words identical to Spike
+I-sub-01                       PASS   MATCH   SIGNATURE MATCH: 594 words identical to Spike
+I-sw-align-01                  PASS   MATCH   SIGNATURE MATCH: 70 words identical to Spike
+I-xor-01                       PASS   MATCH   SIGNATURE MATCH: 590 words identical to Spike
+I-xori-01                      PASS   MATCH   SIGNATURE MATCH: 568 words identical to Spike
+M-mul-01                       PASS   MATCH   SIGNATURE MATCH: 616 words identical to Spike
+M-mulh-01                      PASS   MATCH   SIGNATURE MATCH: 616 words identical to Spike
+M-mulhsu-01                    PASS   MATCH   SIGNATURE MATCH: 680 words identical to Spike
+M-mulhu-01                     PASS   MATCH   SIGNATURE MATCH: 754 words identical to Spike
+privilege-ebreak               PASS   MATCH   SIGNATURE MATCH: 8 words; 7 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+privilege-ecall                PASS   MATCH   SIGNATURE MATCH: 8 words; 7 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+privilege-misalign2-jalr-01    PASS   MATCH   SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+privilege-misalign-beq-01      PASS   MATCH   SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+privilege-misalign-bge-01      PASS   MATCH   SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+privilege-misalign-bgeu-01     PASS   MATCH   SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+privilege-misalign-blt-01      PASS   MATCH   SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+privilege-misalign-bltu-01     PASS   MATCH   SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+privilege-misalign-bne-01      PASS   MATCH   SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+privilege-misalign-jal-01      PASS   MATCH   SIGNATURE MATCH: 69 words; 65 identical to Spike, 4 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3, w7 00000893/000008d3, w11 00000893/000008d3, w15 00000893/000008d3
+privilege-misalign-lh-01       PASS   MATCH   SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+privilege-misalign-lhu-01      PASS   MATCH   SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+privilege-misalign-lw-01       PASS   MATCH   SIGNATURE MATCH: 71 words; 68 identical to Spike, 3 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w5 00000893/000008d3, w9 00000893/000008d3, w13 00000893/000008d3
+privilege-misalign-sh-01       PASS   MATCH   SIGNATURE MATCH: 69 words; 68 identical to Spike, 1 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w3 00000893/000008d3
+privilege-misalign-sw-01       PASS   MATCH   SIGNATURE MATCH: 71 words; 68 identical to Spike, 3 trap-signature header word(s) differ exactly as ARCH-DEV-1 (CLIC mtvec MODE=3) predicts: w5 00000893/000008d3, w9 00000893/000008d3, w13 00000893/000008d3
+Zifencei-Fencei                PASS   MATCH   SIGNATURE MATCH: 6 words identical to Spike
+archtest_xrun: 59 of 59 PASS, every signature matches Spike

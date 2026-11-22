@@ -1,21 +1,21 @@
-# garuda-run 1 suite=covtests.cov block=core date=2026-11-21T10:12:56+05:30 design=aaad3d32b468936f11e036544847317a330809b7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a seed=1
+# garuda-run 1 suite=covtests.cov block=core date=2026-11-22T22:12:42+05:30 design=67615ddcf3a2a6b33cec788a77eeb595c76182e8 rtl_dirty=False tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a seed=1
 test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
-t_cov_fault	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.37	37		logs/core/raw/covtests.cov/cov/t_cov_fault_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_fault_s1.log
-t_cov_fault_w3	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.41	37		logs/core/raw/covtests.cov/cov/t_cov_fault_w3_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_fault_w3_s1.log
-t_cov_csr	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.32	37		logs/core/raw/covtests.cov/cov/t_cov_csr_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_csr_s1.log
-t_cov_csr_ro	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.34	37		logs/core/raw/covtests.cov/cov/t_cov_csr_ro_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_csr_ro_s1.log
-t_cov_irq_ids	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.36	37		logs/core/raw/covtests.cov/cov/t_cov_irq_ids_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_irq_ids_s1.log
-t_cov_irq_ids_fstop	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.36	37		logs/core/raw/covtests.cov/cov/t_cov_irq_ids_fstop_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_irq_ids_fstop_s1.log
-t_cov_illegal	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.34	37		logs/core/raw/covtests.cov/cov/t_cov_illegal_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_illegal_s1.log
-t_cov_dsu	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	11.88	37		logs/core/raw/covtests.cov/cov/t_cov_dsu_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_dsu_s1.log
-t_dsu_ovf_raw	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	11.86	37		logs/core/raw/covtests.cov/cov/t_dsu_ovf_raw_s1.dat		logs/core/raw/covtests.cov/sim_t_dsu_ovf_raw_s1.log
-t_cov_rereset	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.36	37		logs/core/raw/covtests.cov/cov/t_cov_rereset_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_rereset_s1.log
-t_cov_rereset_w2	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.38	37		logs/core/raw/covtests.cov/cov/t_cov_rereset_w2_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_rereset_w2_s1.log
-t_cov_irq	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.36	37		logs/core/raw/covtests.cov/cov/t_cov_irq_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_irq_s1.log
-t_cov_irq_w2	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.36	37		logs/core/raw/covtests.cov/cov/t_cov_irq_w2_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_irq_w2_s1.log
-t_cov_misfetch	PASS	OK	0	yes	0	0	0	MATCH	136	56	-	1	0.34	37	0.07	logs/core/raw/covtests.cov/cov/t_cov_misfetch_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_misfetch_s1.log
-t_cov_misfetch_w2	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.36	37		logs/core/raw/covtests.cov/cov/t_cov_misfetch_w2_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_misfetch_w2_s1.log
-t_cov_misfetch_d3	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.36	37		logs/core/raw/covtests.cov/cov/t_cov_misfetch_d3_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_misfetch_d3_s1.log
-t_dsu_macsat_rd	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.36	37		logs/core/raw/covtests.cov/cov/t_dsu_macsat_rd_s1.dat		logs/core/raw/covtests.cov/sim_t_dsu_macsat_rd_s1.log
-t_cov_vplan	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.38	37		logs/core/raw/covtests.cov/cov/t_cov_vplan_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_vplan_s1.log
-t_cov_vplan_w2	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.38	37		logs/core/raw/covtests.cov/cov/t_cov_vplan_w2_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_vplan_w2_s1.log
+t_cov_fault	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.55	37		logs/core/raw/covtests.cov/cov/t_cov_fault_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_fault_s1.log
+t_cov_fault_w3	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.63	37		logs/core/raw/covtests.cov/cov/t_cov_fault_w3_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_fault_w3_s1.log
+t_cov_csr	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.51	37		logs/core/raw/covtests.cov/cov/t_cov_csr_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_csr_s1.log
+t_cov_csr_ro	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.51	37		logs/core/raw/covtests.cov/cov/t_cov_csr_ro_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_csr_ro_s1.log
+t_cov_irq_ids	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.61	37		logs/core/raw/covtests.cov/cov/t_cov_irq_ids_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_irq_ids_s1.log
+t_cov_irq_ids_fstop	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.55	37		logs/core/raw/covtests.cov/cov/t_cov_irq_ids_fstop_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_irq_ids_fstop_s1.log
+t_cov_illegal	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.50	37		logs/core/raw/covtests.cov/cov/t_cov_illegal_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_illegal_s1.log
+t_cov_dsu	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	18.25	37		logs/core/raw/covtests.cov/cov/t_cov_dsu_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_dsu_s1.log
+t_dsu_ovf_raw	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	18.21	37		logs/core/raw/covtests.cov/cov/t_dsu_ovf_raw_s1.dat		logs/core/raw/covtests.cov/sim_t_dsu_ovf_raw_s1.log
+t_cov_rereset	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.53	37		logs/core/raw/covtests.cov/cov/t_cov_rereset_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_rereset_s1.log
+t_cov_rereset_w2	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.58	37		logs/core/raw/covtests.cov/cov/t_cov_rereset_w2_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_rereset_w2_s1.log
+t_cov_irq	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.50	37		logs/core/raw/covtests.cov/cov/t_cov_irq_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_irq_s1.log
+t_cov_irq_w2	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.50	37		logs/core/raw/covtests.cov/cov/t_cov_irq_w2_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_irq_w2_s1.log
+t_cov_misfetch	PASS	OK	0	yes	0	0	0	MATCH	136	56	-	1	0.55	37	0.11	logs/core/raw/covtests.cov/cov/t_cov_misfetch_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_misfetch_s1.log
+t_cov_misfetch_w2	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.53	37		logs/core/raw/covtests.cov/cov/t_cov_misfetch_w2_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_misfetch_w2_s1.log
+t_cov_misfetch_d3	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.50	37		logs/core/raw/covtests.cov/cov/t_cov_misfetch_d3_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_misfetch_d3_s1.log
+t_dsu_macsat_rd	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.48	37		logs/core/raw/covtests.cov/cov/t_dsu_macsat_rd_s1.dat		logs/core/raw/covtests.cov/sim_t_dsu_macsat_rd_s1.log
+t_cov_vplan	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.55	37		logs/core/raw/covtests.cov/cov/t_cov_vplan_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_vplan_s1.log
+t_cov_vplan_w2	PASS	OK	0	yes	0	0	0	n/a	136	56	-	1	0.55	37		logs/core/raw/covtests.cov/cov/t_cov_vplan_w2_s1.dat		logs/core/raw/covtests.cov/sim_t_cov_vplan_w2_s1.log

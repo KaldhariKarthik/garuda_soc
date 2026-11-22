@@ -1,3 +1,3 @@
-# garuda-run 1 suite=csr_map block=core date=2026-11-21T10:09:54+05:30 design=aaad3d32b468936f11e036544847317a330809b7 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a seed=1
+# garuda-run 1 suite=csr_map block=core date=2026-11-22T22:08:14+05:30 design=67615ddcf3a2a6b33cec788a77eeb595c76182e8 rtl_dirty=False tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a seed=1
 test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
-csr_sweep	PASS	OK	0	yes	0	0	0	n/a	136	0	-	1	0.14	17				logs/core/raw/csr_map/sim_csr_sweep_s1.log
+csr_sweep	PASS	OK	0	yes	0	0	0	n/a	136	0	-	1	0.18	17				logs/core/raw/csr_map/sim_csr_sweep_s1.log

@@ -278,7 +278,7 @@ CW-003  [expr/constant]  rtl/core/garuda_core_top.sv  /^line:309 \(\(CLK_GATE ==
 CW-004  [expr/unreachable]  rtl/core/dport_master.sv  /^line:166 \(\(state == S_ADDR\)==0 && \(state == S_DATA\)==0\) => 0/  -> 1 point(s)
     reason  : state is one bit (S_ADDR 0, S_DATA 1): it always equals one of the two, so both compares false cannot occur.
     evidence: literal rtl/core/dport_master.sv:86-89 (localparam logic S_ADDR = 1'b0, S_DATA = 1'b1; reg state).   reviewer: pending: Karthik
-CW-005  [toggle/constant]  rtl/core/iport_master.sv  /^room_limit\[(1|3)\]:/  -> 4 point(s)
+CW-005  [toggle/constant]  rtl/core/iport_master.sv  /^(room_limit\[1\]:0\->1|room_limit\[1\]:1\->0|room_limit\[3\]:0\->1|room_limit\[3\]:1\->0)$/  -> 4 point(s)
     reason  : room_limit is 1 (PF_DIS) or FIFO_DEPTH (4): bits 1 and 3 are 0 in both values.
     evidence: literal rtl/core/iport_master.sv:191-192 (pf_dis_i ? 1 : FIFO_DEPTH); FIFO_DEPTH = 4 (iport_master.sv:33).   reviewer: pending: Karthik
 CF-002  [covergroup/unreachable]  tb/cov/garuda_cov.sv  /cg_hazard\.x_fwd_under_stall\.exmem_x_auto_1$/  -> 1 point(s)

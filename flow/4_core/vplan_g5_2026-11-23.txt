@@ -1,0 +1,47 @@
+vPlan report of flow/1_vplan/garuda_core_g5.csv in vManager 15.2 (flow/regress/vplan_g5.tcl), 2026-11-23, rerun on the frozen RTL for the RTL freeze review.
+Text copy of sim/vm_g5/vplan/ (HTML); covered / total items at each node. Tree: garuda_soc @ 67615dd, RTL identical to tag 1tops-rtl-freeze (affe136).
+Session garuda_soc.kkarthik.26_11_23_00_05_26_4008: 221 runs, 221 PASS, 205 merged, 393 waiver exclusions, 0 rejected.
+Bench fixes in this run: tb/cov/garuda_core_cov_ext.sv bind renamed to xe_csr_en / xe_csr_op (F4 rename, cg_csr had sampled nothing); CW-005 match in the exact form, IMC exclusions regenerated.
+
+GARUDA core (1-TOPS G5): 9675 / 9675 (100%)
+  5.8 Functional coverage of the core: 757 / 757 (100%)
+  5.9 Code coverage of the core: 8918 / 8918 (100%)
+
+Functional, by covergroup type (sim/cov_g5/func_type.txt):
+  garuda_cov: (224/224)
+  garuda_core_cov_ext: (181/181)
+  garuda_cov_ext: (107/107)
+  garuda_cov_vplan: (245/245)
+
+Code, by module (vPlan node 5.9):
+  alu_unit: 152 / 152 (100%)
+  branch_predict: 221 / 221 (100%)
+  branch_unit: 280 / 280 (100%)
+  clic_ctrl: 109 / 109 (100%)
+  core_clk_gate: 8 / 8 (100%)
+  csr_file: 712 / 712 (100%)
+  csr_rw: 70 / 70 (100%)
+  dport_master: 164 / 164 (100%)
+  decode_control: 183 / 183 (100%)
+  ex_mem: 224 / 224 (100%)
+  ex_stage: 907 / 907 (100%)
+  forward_unit: 40 / 40 (100%)
+  garuda_core_top: 1713 / 1713 (100%)
+  if_stage_top: 268 / 268 (100%)
+  iport_master: 292 / 292 (100%)
+  garuda_pc_gen: 73 / 73 (100%)
+  prefetch_buf: 158 / 158 (100%)
+  hazard_fwd_unit: 17 / 17 (100%)
+  id_ex: 474 / 474 (100%)
+  id_stage: 554 / 554 (100%)
+  if_id: 140 / 140 (100%)
+  imm_gen: 288 / 288 (100%)
+  load_formatter: 105 / 105 (100%)
+  load_store_unit: 109 / 109 (100%)
+  mem_stage: 390 / 390 (100%)
+  mem_wb_reg: 86 / 86 (100%)
+  mul32: 231 / 231 (100%)
+  pipe_ctrl: 153 / 153 (100%)
+  regfile: 191 / 191 (100%)
+  trap_ctrl: 530 / 530 (100%)
+  wb_stage: 76 / 76 (100%)

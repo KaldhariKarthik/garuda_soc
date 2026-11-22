@@ -1,4 +1,4 @@
-# garuda-run 1 suite=b0.cov block=common date=2026-11-20T21:47:10+05:30 design=e5b2f5c1abacff26375b4f5ef1a606ac6d034595 rtl_dirty=True tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a seed=1
+# garuda-run 1 suite=b0.cov block=common date=2026-11-23T00:15:12+05:30 design=67615ddcf3a2a6b33cec788a77eeb595c76182e8 rtl_dirty=False tool=Verilator 5.052 2026-09-05 rev vUNKNOWN-built20260930-983a06a seed=1
 test	verdict	class	rc	marker	n_fail	n_assert	n_err	lockstep	sva_src	sva_ign	shims	seed	wall_s	rss_mb	lockstep_s	cov_dat	detail	log
 map_pkg	PASS	OK	0	yes	0	0	0	-	0	0	-	1	0.02	18		logs/common/raw/b0.cov/cov/map_pkg_s1.dat		logs/common/raw/b0.cov/sim_map_pkg_s1.log
 map_pkg_negctl	FAIL	XFAIL:PLANTED	0	no	1	0	0	-	0	0	-	1	0.02	18		logs/common/raw/b0.cov/cov/map_pkg_negctl_s1.dat	pass marker missing; 1 [FAIL] line(s) | first: [FAIL] [negctl] DMA prio ch0 compared against a wrong constant (4)	logs/common/raw/b0.cov/sim_map_pkg_negctl_s1.log
