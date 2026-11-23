@@ -27,7 +27,7 @@ PD_FROM    ?=
 # corners (PD-13): make pd_pnr V=r PD_CORNERS="WC TC BC" [PD_SAIF=<activity.saif>]
 export PD_CORNERS PD_MM_SCENES MMHOLD_MARGIN PD_SAIF
 
-.PHONY: help_pd pd_need_v pd_pnr pd_pnr_dry pd_mmhold pd_sta pd_skew pd_phase pd_shot pd_qor pd_runs pd_check
+.PHONY: help_pd pd_need_v pd_stage_shots pd_pnr pd_pnr_dry pd_mmhold pd_sta pd_skew pd_phase pd_shot pd_qor pd_runs pd_check
 
 help_pd:
 	@echo "  ---- physical design, ASAP7 (exploratory; V=<ORFS variant>) ----"
@@ -38,6 +38,7 @@ help_pd:
 	@echo "  make pd_skew V=r     -- clock latency and skew after CTS"
 	@echo "  make pd_phase V=r    -- STA launch/capture edges of every clock crossing"
 	@echo "  make pd_shot V=r     -- PNG of the GDS (PD_VIEW=all, routing or GDS layers)"
+	@echo "  make pd_stage_shots V=r -- layout PNG at each stage: floorplan, placement, global route, route"
 	@echo "  make pd_qor V=r      -- one-page summary of a run (also written to analysis/)"
 	@echo "  make pd_runs         -- every run side by side: outcome, slack, DRC, cells, time, memory"
 	@echo "  make pd_check        -- syntax check of the PD scripts"
@@ -85,3 +86,6 @@ pd_check:
 	     | tclsh /dev/stdin "$$f" | grep -qx 1 || { echo "Tcl incomplete: $$f"; exit 1; }; n=$$((n+1)); done; fi; \
 	 for f in $(PD_SCRIPTS)/*.py; do python3 -c "import ast,sys; ast.parse(open(sys.argv[1]).read())" "$$f"; n=$$((n+1)); done; \
 	 echo "pd_check: $$n PD scripts parse"
+
+pd_stage_shots: pd_need_v
+	@$(PD_SCRIPTS)/run_stage_shots.sh $(V)
